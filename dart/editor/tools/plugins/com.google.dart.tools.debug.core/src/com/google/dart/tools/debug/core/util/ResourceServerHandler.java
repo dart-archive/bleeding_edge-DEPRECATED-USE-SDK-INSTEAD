@@ -174,12 +174,6 @@ class ResourceServerHandler implements Runnable {
     }
   }
 
-  /**
-   * This flag controls whether the Editor's JS debug agent is appended to compiled .dart.js
-   * scripts.
-   */
-  private static boolean APPEND_DEBUG_AGENT = false;
-
   private static final String CONTENT_TYPE = "Content-Type";
   private static final String CACHE_CONTROL = "Cache-Control";
   private static final String USER_AGENT = "User-Agent";
@@ -241,6 +235,7 @@ class ResourceServerHandler implements Runnable {
       {"/agent.js", TYPE_JS, "agent.js"},
       {"/apple-touch-icon-precomposed.png", TYPE_PNG, "/resources/apple-touch-icon-precomposed.png"}};
 
+  @SuppressWarnings("unused")
   private static byte[] getJSAgentContent() {
     if (AGENT_CONTENT == null) {
       try {
@@ -375,7 +370,6 @@ class ResourceServerHandler implements Runnable {
 
   private HttpResponse createGETResponse(HttpHeader header) throws IOException {
     boolean headOnly = false;
-    byte[] javaScriptContent = null;
 
     if (HttpHeader.METHOD_HEAD.equals(header.method)) {
       headOnly = true;
@@ -422,15 +416,6 @@ class ResourceServerHandler implements Runnable {
     if (!canServeFile(javaFile)) {
       return createErrorResponse("File not found: " + header.file);
     }
-
-//    if (isFileJsArtifact(javaFile)) {
-//
-//      if (APPEND_DEBUG_AGENT) {
-//        javaScriptContent = getCombinedContentAndAgent(javaFile);
-//      } else {
-//        javaScriptContent = null;
-//      }
-//    }
 
     HttpResponse response = new HttpResponse();
 
@@ -743,7 +728,14 @@ class ResourceServerHandler implements Runnable {
       return null;
     }
 
-    IProject project = ResourcesPlugin.getWorkspace().getRoot().getProject(path.segment(0));
+    IProject project;
+
+    try {
+      // This can throw errors on some path inputs.
+      project = ResourcesPlugin.getWorkspace().getRoot().getProject(path.segment(0));
+    } catch (Throwable t) {
+      return null;
+    }
 
     if (!project.exists() || !project.isOpen()) {
       return null;

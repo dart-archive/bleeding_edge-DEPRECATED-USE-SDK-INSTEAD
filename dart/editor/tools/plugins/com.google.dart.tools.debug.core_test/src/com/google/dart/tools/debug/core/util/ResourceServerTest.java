@@ -17,7 +17,6 @@ package com.google.dart.tools.debug.core.util;
 import com.google.common.base.Charsets;
 import com.google.common.io.CharStreams;
 import com.google.common.io.Files;
-import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.test.util.TestProject;
 import com.google.dart.tools.core.utilities.net.URIUtilities;
 
@@ -26,6 +25,7 @@ import junit.framework.TestCase;
 import org.eclipse.core.resources.IFile;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -38,7 +38,7 @@ public class ResourceServerTest extends TestCase {
     IFile file = project.setFileContent("foo.txt", "foo");
     String url = server.getUrlForResource(file) + "s";
 
-    HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
+    HttpURLConnection connection = createConnection(url);
 
     assertEquals(404, connection.getResponseCode());
 
@@ -49,7 +49,7 @@ public class ResourceServerTest extends TestCase {
     IFile file = project.setFileContent("foo.txt", "foo");
     String url = server.getUrlForResource(file);
 
-    HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
+    HttpURLConnection connection = createConnection(url);
 
     assertEquals(200, connection.getResponseCode());
     assertEquals(3, connection.getContentLength());
@@ -63,24 +63,41 @@ public class ResourceServerTest extends TestCase {
   }
 
   public void test_onlyServeWorkspaceFiles() throws Exception {
-    if (!DartCore.isWindows()) {
-      File file = File.createTempFile("foo", ".txt");
-      Files.write("foo", file, Charsets.UTF_8);
-      file.deleteOnExit();
+    File file = File.createTempFile("foo", ".txt");
+    Files.write("foo", file, Charsets.UTF_8);
+    file.deleteOnExit();
 
-      String filePath = file.getAbsolutePath();
-      if (filePath.startsWith("/")) {
-        filePath = filePath.substring(1);
-      }
-      String url = "http://localhost:" + server.getPort() + "/" + URIUtilities.uriEncode(filePath);
-
-      HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
-
-      assertEquals(404, connection.getResponseCode());
-
-      connection.disconnect();
-      file.delete();
+    String filePath = file.getAbsolutePath().replaceAll("\\\\", "/");
+    if (filePath.startsWith("/")) {
+      filePath = filePath.substring(1);
     }
+    String url = "http://localhost:" + server.getPort() + "/" + URIUtilities.uriEncode(filePath);
+
+    HttpURLConnection connection = createConnection(url);
+
+    assertEquals(404, connection.getResponseCode());
+
+    connection.disconnect();
+    file.delete();
+  }
+
+  public void test_onlyServeWorkspaceFilesBadPath() throws Exception {
+    File file = File.createTempFile("foo", ".txt");
+    Files.write("foo", file, Charsets.UTF_8);
+    file.deleteOnExit();
+
+    String filePath = file.getAbsolutePath();
+    if (filePath.startsWith("/")) {
+      filePath = filePath.substring(1);
+    }
+    String url = "http://localhost:" + server.getPort() + "/" + URIUtilities.uriEncode(filePath);
+
+    HttpURLConnection connection = createConnection(url);
+
+    assertEquals(404, connection.getResponseCode());
+
+    connection.disconnect();
+    file.delete();
   }
 
   @Override
@@ -97,6 +114,13 @@ public class ResourceServerTest extends TestCase {
     server.shutdown();
 
     super.tearDown();
+  }
+
+  private HttpURLConnection createConnection(String url) throws IOException {
+    HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
+    connection.setConnectTimeout(3000);
+    connection.setReadTimeout(3000);
+    return connection;
   }
 
 }
