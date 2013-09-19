@@ -53,7 +53,6 @@ import org.eclipse.ui.dialogs.FilteredItemsSelectionDialog;
  * The main launch configuration UI for running Dart applications in Dartium.
  */
 public class DartiumMainTab extends AbstractLaunchConfigurationTab {
-  private Text htmlText;
 
   protected ModifyListener textModifyListener = new ModifyListener() {
     @Override
@@ -62,17 +61,19 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
     }
   };
 
+  private Text htmlText;
+
   private Button htmlButton;
 
-  private Button htmlBrowseButton;
+  protected Button htmlBrowseButton;
 
-  private Button urlButton;
+  protected Button urlButton;
 
-  private Text urlText;
+  protected Text urlText;
 
-  private Text sourceDirectoryText;
+  protected Text sourceDirectoryText;
 
-  private Button projectBrowseButton;
+  protected Button projectBrowseButton;
 
   private Button checkedModeButton;
 
@@ -80,7 +81,7 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
 
   private Button useWebComponentsButton;
 
-  protected Text argumentText;
+  private Text argumentText;
 
   /**
    * Create a new instance of DartServerMainTab.
@@ -436,19 +437,7 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
     }
   }
 
-  private boolean isValidUrl(String url) {
-    final String[] validSchemes = new String[] {"file:", "http:", "https:"};
-
-    for (String scheme : validSchemes) {
-      if (url.startsWith(scheme)) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-  private void updateEnablements(boolean isFile) {
+  protected void updateEnablements(boolean isFile) {
     if (isFile) {
       htmlText.setEnabled(true);
       htmlBrowseButton.setEnabled(true);
@@ -462,6 +451,18 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
       sourceDirectoryText.setEnabled(true);
       projectBrowseButton.setEnabled(true);
     }
+  }
+
+  private boolean isValidUrl(String url) {
+    final String[] validSchemes = new String[] {"file:", "http:", "https:"};
+
+    for (String scheme : validSchemes) {
+      if (url.startsWith(scheme)) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
 }

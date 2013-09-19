@@ -13,8 +13,16 @@
  */
 package com.google.dart.tools.debug.ui.internal.browser;
 
+import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.element.ExternalHtmlScriptElement;
+import com.google.dart.engine.element.HtmlElement;
+import com.google.dart.engine.element.HtmlScriptElement;
+import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.analysis.model.ProjectManager;
+import com.google.dart.tools.core.dart2js.Dart2JSCompiler;
+import com.google.dart.tools.core.dart2js.Dart2JSCompiler.CompilationResult;
 import com.google.dart.tools.core.dart2js.ProcessRunner;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
@@ -23,6 +31,7 @@ import com.google.dart.tools.debug.core.util.ResourceServer;
 import com.google.dart.tools.debug.core.util.ResourceServerManager;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -33,6 +42,7 @@ import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchManager;
+import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
@@ -101,13 +111,13 @@ public class BrowserLaunchConfigurationDelegate extends DartLaunchConfigurationD
 
     mode = ILaunchManager.RUN_MODE;
 
-    DartLaunchConfigWrapper launchConfig = new DartLaunchConfigWrapper(configuration);
-    launchConfig.markAsLaunched();
+    DartLaunchConfigWrapper wrapper = new DartLaunchConfigWrapper(configuration);
+    wrapper.markAsLaunched();
 
     String url;
 
-    if (launchConfig.getShouldLaunchFile()) {
-      IResource resource = launchConfig.getApplicationResource();
+    if (wrapper.getShouldLaunchFile()) {
+      IResource resource = wrapper.getApplicationResource();
 
       if (resource == null) {
         throw new CoreException(new Status(
@@ -115,16 +125,14 @@ public class BrowserLaunchConfigurationDelegate extends DartLaunchConfigurationD
             DartDebugCorePlugin.PLUGIN_ID,
             Messages.BrowserLaunchConfigurationDelegate_HtmlFileNotFound));
       }
-
-      //   compileJavascript(resource, monitor);
-
+      compileJavascript(resource, wrapper.getDart2jsFlagsAsArray(), monitor);
       try {
         // This returns just a plain file: url.
         ResourceServer server = ResourceServerManager.getServer();
 
         url = server.getUrlForResource(resource);
 
-        url = launchConfig.appendQueryParams(url);
+        url = wrapper.appendQueryParams(url);
       } catch (IOException ioe) {
         throw new CoreException(new Status(
             IStatus.ERROR,
@@ -133,7 +141,7 @@ public class BrowserLaunchConfigurationDelegate extends DartLaunchConfigurationD
             ioe));
       }
     } else {
-      url = launchConfig.getUrl();
+      url = wrapper.getUrl();
 
       try {
         String scheme = new URI(url).getScheme();
@@ -156,6 +164,59 @@ public class BrowserLaunchConfigurationDelegate extends DartLaunchConfigurationD
     }
 
     DebugPlugin.getDefault().getLaunchManager().removeLaunch(launch);
+
+  }
+
+  /**
+   * Before proceeding with launch, compile JavaScript
+   * 
+   * @param resource
+   * @param dart2jsFlags
+   * @throws CoreException
+   */
+  private void compileJavascript(IResource resource, String[] dart2jsFlags, IProgressMonitor monitor)
+      throws CoreException {
+
+    // TODO(keertip): check if javascript is upto date?
+    IResource libraryFile = null;
+    ProjectManager manager = DartCore.getProjectManager();
+    Source htmlSource = manager.getSource((IFile) resource);
+    AnalysisContext context = manager.getContext(resource);
+    HtmlElement htmlElement = context.getHtmlElement(htmlSource);
+    HtmlScriptElement[] scripts = htmlElement.getScripts();
+    for (HtmlScriptElement script : scripts) {
+      // TODO(keertip): handle case of html having multiple external script tags
+      if (script instanceof ExternalHtmlScriptElement) {
+        libraryFile = manager.getResource(((ExternalHtmlScriptElement) script).getScriptSource());
+      }
+    }
+
+    if (libraryFile != null) {
+      CompilationResult result = Dart2JSCompiler.compileLibrary(
+          (IFile) libraryFile,
+          dart2jsFlags,
+          monitor,
+          DartCore.getConsole());
+      if (result.getExitCode() != 0) {
+        String errMsg = NLS.bind(
+            "Failure to launch - unable to generate JavaScript for {0}.\n\nPlease see the console or log for more details.",
+            resource.getName());
+
+        errMsg = errMsg.trim();
+
+        DartDebugCorePlugin.logError(result.getAllOutput());
+
+        throw new CoreException(new Status(IStatus.ERROR, DartDebugUIPlugin.PLUGIN_ID, errMsg));
+      }
+
+    } else {
+      String errMsg = NLS.bind(
+          "Failure to launch - Could not find dart file to generate JavaScript for ",
+          resource.getName());
+      DartDebugCorePlugin.log(errMsg);
+
+      throw new CoreException(new Status(IStatus.ERROR, DartDebugUIPlugin.PLUGIN_ID, errMsg));
+    }
 
   }
 

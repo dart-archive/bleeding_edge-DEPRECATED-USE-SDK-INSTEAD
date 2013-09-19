@@ -59,4 +59,35 @@ public class Dart2JSCompilerTest extends TestCase {
     }
   }
 
+  public void test_dart2js_compile2() throws Exception {
+    Dart2JSCompiler compiler = new Dart2JSCompiler();
+
+    PlainTestProject project = new PlainTestProject("fooBar");
+
+    try {
+      IFile file = project.setFileContent("foo.dart", "void main() { print('foo'); }");
+      IFile outFile = project.getProject().getFile("foo.dart.js");
+      String[] flags = new String[] {"--minify"};
+
+      CompilationResult result = compiler.compile(
+          file.getLocation(),
+          outFile.getLocation(),
+          flags,
+          new NullProgressMonitor(),
+          null);
+
+      if (result.getExitCode() != 0) {
+        System.err.print(result.getAllOutput());
+      }
+
+      assertEquals(0, result.getExitCode());
+      assertEquals(true, outFile.exists());
+
+      // Make sure we wrote out some content.
+      assertTrue(outFile.getLocation().toFile().length() > 100);
+    } finally {
+      project.dispose();
+    }
+  }
+
 }

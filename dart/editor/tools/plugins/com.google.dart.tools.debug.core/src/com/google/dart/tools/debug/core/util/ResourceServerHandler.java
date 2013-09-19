@@ -16,7 +16,6 @@ package com.google.dart.tools.debug.core.util;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.ByteStreams;
-import com.google.common.io.Files;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 
@@ -405,15 +404,16 @@ class ResourceServerHandler implements Runnable {
       }
     }
 
+    // no longer running compilation server, instead generating js on launch
     // If a .dart.js file doesn't exist, check for a .dart file next to it.
-    if (javaFile == null && header.file.endsWith(".dart.js")) {
-      String dartFilePath = header.file.substring(0, header.file.length() - 3);
-      File dartFile = locateFile(dartFilePath);
-
-      if (dartFile != null) {
-        javaFile = new File(dartFile.getPath() + ".js");
-      }
-    }
+//    if (javaFile == null && header.file.endsWith(".dart.js")) {
+//      String dartFilePath = header.file.substring(0, header.file.length() - 3);
+//      File dartFile = locateFile(dartFilePath);
+//
+//      if (dartFile != null) {
+//        javaFile = new File(dartFile.getPath() + ".js");
+//      }
+//    }
 
     if (javaFile == null) {
       return createErrorResponse("File not found: " + header.file);
@@ -423,20 +423,14 @@ class ResourceServerHandler implements Runnable {
       return createErrorResponse("File not found: " + header.file);
     }
 
-    if (isFileJsArtifact(javaFile)) {
-      CompilationServer.getServer().recompileJavaScriptArtifact(javaFile);
-
-      // If the compilation failed, return a FNF response.
-      if (!javaFile.exists()) {
-        return createErrorResponse("File not found: " + header.file);
-      }
-
-      if (APPEND_DEBUG_AGENT) {
-        javaScriptContent = getCombinedContentAndAgent(javaFile);
-      } else {
-        javaScriptContent = null;
-      }
-    }
+//    if (isFileJsArtifact(javaFile)) {
+//
+//      if (APPEND_DEBUG_AGENT) {
+//        javaScriptContent = getCombinedContentAndAgent(javaFile);
+//      } else {
+//        javaScriptContent = null;
+//      }
+//    }
 
     HttpResponse response = new HttpResponse();
 
@@ -462,39 +456,39 @@ class ResourceServerHandler implements Runnable {
     if (javaFile != null) {
       long length = javaFile.length();
 
-      if (javaScriptContent != null) {
-        length = javaScriptContent.length;
-      }
+//      if (javaScriptContent != null) {
+//        length = javaScriptContent.length;
+//      }
 
       response.headers.put(CONTENT_LENGTH, Long.toString(length));
     }
 
     if (!headOnly) {
-      if (javaScriptContent != null) {
-        response.responseBodyStream = new ByteArrayInputStream(javaScriptContent);
+//      if (javaScriptContent != null) {
+//        response.responseBodyStream = new ByteArrayInputStream(javaScriptContent);
+//      } else {
+      List<int[]> ranges = header.getRanges();
+
+      if (ranges != null) {
+        byte[] rangeData = readRangeData(javaFile, ranges);
+
+        response.responseBodyStream = new ByteArrayInputStream(rangeData);
+
+        response.responseCode = HttpResponse.PARTIAL_CONTENT;
+        response.responseText = "Partial Content";
+
+        response.headers.put(CONTENT_LENGTH, Long.toString(rangeData.length));
+        // Content-Range: bytes X-Y/Z
+        int[] range = ranges.get(0);
+        response.headers.put(CONTENT_RANGE, "bytes " + range[0] + "-" + range[1] + "/"
+            + rangeData.length);
       } else {
-        List<int[]> ranges = header.getRanges();
-
-        if (ranges != null) {
-          byte[] rangeData = readRangeData(javaFile, ranges);
-
-          response.responseBodyStream = new ByteArrayInputStream(rangeData);
-
-          response.responseCode = HttpResponse.PARTIAL_CONTENT;
-          response.responseText = "Partial Content";
-
-          response.headers.put(CONTENT_LENGTH, Long.toString(rangeData.length));
-          // Content-Range: bytes X-Y/Z
-          int[] range = ranges.get(0);
-          response.headers.put(CONTENT_RANGE, "bytes " + range[0] + "-" + range[1] + "/"
-              + rangeData.length);
-        } else {
-          response.responseBodyStream = new FileInputStream(javaFile);
-        }
-
-        // Indicate that we support requesting a subset of the document.
-        response.headers.put(ACCEPT_RANGES, "bytes");
+        response.responseBodyStream = new FileInputStream(javaFile);
       }
+
+      // Indicate that we support requesting a subset of the document.
+      response.headers.put(ACCEPT_RANGES, "bytes");
+//      }
     }
 
     addStandardResponseHeaders(response);
@@ -595,25 +589,25 @@ class ResourceServerHandler implements Runnable {
    * @return
    * @throws IOException
    */
-  private byte[] getCombinedContentAndAgent(File dartJsFile) throws IOException {
-    // If we can find the source map token, then insert our debugger agent just before it.
-    // Otherwise, append the debugger agent to the end of the file content.
-
-    final String SRC_MAP_TOKEN = "//@ sourceMappingURL=";
-
-    String content = Files.toString(dartJsFile, Charsets.UTF_8);
-    String agent = new String(getJSAgentContent());
-
-    if (content.indexOf(SRC_MAP_TOKEN) != -1) {
-      int index = content.indexOf(SRC_MAP_TOKEN);
-
-      content = content.substring(0, index) + agent + content.substring(index);
-    } else {
-      content += agent;
-    }
-
-    return content.getBytes(Charsets.UTF_8);
-  }
+//  private byte[] getCombinedContentAndAgent(File dartJsFile) throws IOException {
+//    // If we can find the source map token, then insert our debugger agent just before it.
+//    // Otherwise, append the debugger agent to the end of the file content.
+//
+//    final String SRC_MAP_TOKEN = "//@ sourceMappingURL=";
+//
+//    String content = Files.toString(dartJsFile, Charsets.UTF_8);
+//    String agent = new String(getJSAgentContent());
+//
+//    if (content.indexOf(SRC_MAP_TOKEN) != -1) {
+//      int index = content.indexOf(SRC_MAP_TOKEN);
+//
+//      content = content.substring(0, index) + agent + content.substring(index);
+//    } else {
+//      content += agent;
+//    }
+//
+//    return content.getBytes(Charsets.UTF_8);
+//  }
 
   private String getContentType(String extension) {
     if (extension != null) {
@@ -724,9 +718,9 @@ class ResourceServerHandler implements Runnable {
     return false;
   }
 
-  private boolean isFileJsArtifact(File javaFile) {
-    return javaFile.getName().endsWith(".dart.js");
-  }
+//  private boolean isFileJsArtifact(File javaFile) {
+//    return javaFile.getName().endsWith(".dart.js");
+//  }
 
   private boolean isLocalAddress(InetAddress address) {
     return address.isAnyLocalAddress() || address.isLoopbackAddress();

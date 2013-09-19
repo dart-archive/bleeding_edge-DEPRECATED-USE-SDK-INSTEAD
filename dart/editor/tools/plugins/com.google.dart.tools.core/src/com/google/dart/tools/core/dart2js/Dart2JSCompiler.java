@@ -19,7 +19,6 @@ import com.google.dart.tools.core.MessageConsole;
 import com.google.dart.tools.core.internal.util.ResourceUtil2;
 import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.core.pub.IPackageRootProvider;
-import com.google.dart.tools.core.utilities.general.StringUtilities;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
@@ -40,6 +39,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -106,6 +106,22 @@ public class Dart2JSCompiler {
    */
   public static CompilationResult compileLibrary(IFile file, IProgressMonitor monitor,
       final MessageConsole console) throws CoreException {
+    return compileLibrary(file, null, monitor, console);
+  }
+
+  /**
+   * A static utility method to handle the common use case for the Dart2JSCompiler class. Compile
+   * the given dart library with the specified flags, optionally poll the given monitor to check for
+   * user cancellation, and write any output to the given console.
+   * 
+   * @param file
+   * @param compilerFlags
+   * @param monitor
+   * @param console
+   * @throws OperationCanceledException
+   */
+  public static CompilationResult compileLibrary(IFile file, String[] compilerFlags,
+      IProgressMonitor monitor, final MessageConsole console) throws CoreException {
     long startTime = System.currentTimeMillis();
 
     IPath path = file.getLocation();
@@ -118,7 +134,12 @@ public class Dart2JSCompiler {
     console.printSeparator("Running dart2js...");
 
     try {
-      CompilationResult result = compiler.compile(inputPath, outputPath, monitor, console);
+      CompilationResult result = compiler.compile(
+          inputPath,
+          outputPath,
+          compilerFlags,
+          monitor,
+          console);
 
       refreshResources(file);
 
@@ -241,11 +262,34 @@ public class Dart2JSCompiler {
    */
   public CompilationResult compile(IPath inputPath, IPath outputPath, IProgressMonitor monitor,
       MessageConsole console) throws IOException {
+    return compile(inputPath, outputPath, null, monitor, console);
+  }
+
+  /**
+   * Run dart2js as a process to compile the given input file to the given output file. If an
+   * IProgressMonitor is passed in, it is polled to see if the user cancelled the compile operation.
+   * The progress monitor is not used for any other purpose.
+   * 
+   * @param inputPath
+   * @param outputPath
+   * @param compilerFlags
+   * @param monitor
+   * @param console
+   * @return
+   * @throws IOException
+   * @throws OperationCanceledException if the user cancelled the operation
+   */
+  public CompilationResult compile(IPath inputPath, IPath outputPath, String[] compilerFlags,
+      IProgressMonitor monitor, MessageConsole console) throws IOException {
     ProcessBuilder builder = new ProcessBuilder();
 
     List<String> args = new ArrayList<String>();
 
     args.add(DartSdkManager.getManager().getSdk().getDart2JsExecutable().getPath());
+
+    if (compilerFlags != null && compilerFlags.length > 0) {
+      args.addAll(Arrays.asList(compilerFlags));
+    }
     args.addAll(getCompilerArguments(inputPath, outputPath));
 
     builder.command(args);
@@ -301,21 +345,6 @@ public class Dart2JSCompiler {
     }
     args.add("--out=" + outputPath.toOSString());
     args.add(inputPath.toOSString());
-
-    // Add any custom dart2js settings for this project.
-    IFile[] files = ResourcesPlugin.getWorkspace().getRoot().findFilesForLocation(inputPath);
-
-    if (files.length > 0) {
-      IProject project = files[0].getProject();
-
-      String flags = DartCore.getPlugin().getDart2jsFlags(project);
-
-      if (flags != null && flags.length() > 0) {
-        for (String arg : StringUtilities.parseArgumentString(flags)) {
-          args.add(arg);
-        }
-      }
-    }
 
     return args;
   }
