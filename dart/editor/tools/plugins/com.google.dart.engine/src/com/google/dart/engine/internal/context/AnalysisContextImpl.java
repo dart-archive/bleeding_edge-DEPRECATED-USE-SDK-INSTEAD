@@ -1953,7 +1953,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
           cache.put(unitSource, dartCopy);
           dartEntry = dartCopy;
         } else {
-          if (dartEntry.getState(DartEntry.HINTS) == CacheState.IN_PROCESS) {
+          if (dartEntry.getState(DartEntry.HINTS, librarySource) == CacheState.IN_PROCESS) {
             DartEntryImpl dartCopy = dartEntry.getWritableCopy();
             if (thrownException == null || resultTime >= 0L) {
               //
