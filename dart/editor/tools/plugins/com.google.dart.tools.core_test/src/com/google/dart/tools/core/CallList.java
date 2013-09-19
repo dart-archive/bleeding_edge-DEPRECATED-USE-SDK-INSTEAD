@@ -229,6 +229,24 @@ public class CallList {
     }
   }
 
+  /**
+   * Assert that there are one or more matching calls.
+   * 
+   * @param call the call (not {@code null})
+   */
+  public void assertOneOrMoreCalls(Call call) {
+    boolean atLeastOne = false;
+    for (int index = calls.size() - 1; index >= 0; index--) {
+      if (calls.get(index).equals(call)) {
+        calls.remove(index);
+        atLeastOne = true;
+      }
+    }
+    if (!atLeastOne) {
+      fail(call);
+    }
+  }
+
   private void fail(Object expected) {
     PrintStringWriter writer = new PrintStringWriter();
     writer.println("Expected:");

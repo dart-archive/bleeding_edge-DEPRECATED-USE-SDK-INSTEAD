@@ -176,9 +176,6 @@ public class AnalysisEngineParticipantTest extends AbstractDartCoreTest {
         new Source[] {});
     markerManager.waitForMarkers(10000);
     fileRes.assertMarkersDeleted();
-    // TODO(brianwilkerson) Figure out how to clear the list of invoked methods so that they cannot
-    // alter the behavior of the following tests.
-    //fileRes.assertMarkersNotDeleted();
 
     // file in project changed
     delta = new MockDelta(projectRes);
