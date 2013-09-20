@@ -21,7 +21,6 @@ import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.internal.text.editor.DartSelection;
 
 import org.eclipse.jface.action.Action;
-import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.ui.PlatformUI;
 
@@ -41,9 +40,9 @@ public class InlineAction extends AbstractRefactoringAction {
   }
 
   @Override
-  public void selectionChanged(SelectionChangedEvent event) {
-    inlineLocal.selectionChanged(event);
-    inlineMethod.selectionChanged(event);
+  public void selectionChanged(DartSelection selection) {
+    inlineLocal.selectionChanged(selection);
+    inlineMethod.selectionChanged(selection);
     setEnabled(computeEnabledState());
   }
 
