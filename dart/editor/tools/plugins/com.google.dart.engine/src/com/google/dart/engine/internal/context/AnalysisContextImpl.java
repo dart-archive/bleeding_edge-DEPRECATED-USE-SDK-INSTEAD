@@ -870,8 +870,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
           // get library-specific values
           Source[] librarySources = getLibrariesContaining(source);
           for (Source librarySource : librarySources) {
-            // TODO(brianwilkerson) Restore the line below when hints are being computed separately.
-//            statistics.putCacheItem(dartEntry, librarySource, DartEntry.HINTS);
+            statistics.putCacheItem(dartEntry, librarySource, DartEntry.HINTS);
             statistics.putCacheItem(dartEntry, librarySource, DartEntry.RESOLUTION_ERRORS);
             statistics.putCacheItem(dartEntry, librarySource, DartEntry.RESOLVED_UNIT);
           }
@@ -963,6 +962,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       return getChangeNotices(true);
     }
     try {
+      //System.out.println(task);
       task.perform(resultRecorder);
     } catch (AnalysisException exception) {
       if (!(exception.getCause() instanceof IOException)) {
@@ -1912,7 +1912,32 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     Source librarySource = task.getLibraryElement().getSource();
     AnalysisException thrownException = task.getException();
     DartEntry libraryEntry = null;
-    for (Map.Entry<Source, TimestampedData<AnalysisError[]>> entry : task.getHintMap().entrySet()) {
+    HashMap<Source, TimestampedData<AnalysisError[]>> hintMap = task.getHintMap();
+    if (hintMap == null) {
+      synchronized (cacheLock) {
+        // We don't have any information about which sources to mark as invalid other than the library
+        // source.
+        SourceEntry sourceEntry = cache.get(librarySource);
+        if (!(sourceEntry instanceof DartEntry)) {
+          // This shouldn't be possible because we should never have performed the task if the source
+          // didn't represent a Dart file, but check to be safe.
+          throw new AnalysisException(
+              "Internal error: attempting to generate hints for non-Dart file as a Dart file: "
+                  + librarySource.getFullName());
+        }
+        if (thrownException == null) {
+          thrownException = new AnalysisException(
+              "GenerateDartHintsTask returned a null hint map without throwing an exception: "
+                  + librarySource.getFullName());
+        }
+        DartEntryImpl dartCopy = ((DartEntry) sourceEntry).getWritableCopy();
+        dartCopy.setState(DartEntry.HINTS, librarySource, CacheState.ERROR);
+        dartCopy.setException(thrownException);
+        cache.put(librarySource, dartCopy);
+      }
+      throw thrownException;
+    }
+    for (Map.Entry<Source, TimestampedData<AnalysisError[]>> entry : hintMap.entrySet()) {
       Source unitSource = entry.getKey();
       TimestampedData<AnalysisError[]> results = entry.getValue();
       synchronized (cacheLock) {

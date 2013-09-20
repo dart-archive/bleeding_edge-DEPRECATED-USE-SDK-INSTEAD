@@ -453,11 +453,11 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     while (state != null) {
       if (librarySource.equals(state.librarySource)) {
         if (descriptor == RESOLUTION_ERRORS) {
-          return resolutionState.resolutionErrorsState;
+          return state.resolutionErrorsState;
         } else if (descriptor == RESOLVED_UNIT) {
-          return resolutionState.resolvedUnitState;
+          return state.resolvedUnitState;
         } else if (descriptor == HINTS) {
-          return resolutionState.hintsState;
+          return state.hintsState;
         } else {
           throw new IllegalArgumentException("Invalid descriptor: " + descriptor);
         }
