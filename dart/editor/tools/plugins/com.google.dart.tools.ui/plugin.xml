@@ -448,7 +448,7 @@
             markerType="com.google.dart.tools.core.hint"
             markerSeverity="1"/>
       <type
-            name="com.google.dart.tools.ui.info"
+            name="com.google.dart.tools.ui.warning"
             super="org.eclipse.ui.workbench.texteditor.warning"
             markerType="com.google.dart.tools.core.problem"
             markerSeverity="0"/>
