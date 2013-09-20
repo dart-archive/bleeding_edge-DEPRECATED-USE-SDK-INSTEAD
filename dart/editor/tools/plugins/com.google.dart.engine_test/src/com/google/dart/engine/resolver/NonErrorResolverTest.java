@@ -504,6 +504,26 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_constNotInitialized_field() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  static const int x = 0;",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_constNotInitialized_local() throws Exception {
+    Source source = addSource(createSource(//
+        "main() {",
+        "  const int x = 0;",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
   public void test_constWithNonConstantArgument_literals() throws Exception {
     Source source = addSource(createSource(//
         "class A {",

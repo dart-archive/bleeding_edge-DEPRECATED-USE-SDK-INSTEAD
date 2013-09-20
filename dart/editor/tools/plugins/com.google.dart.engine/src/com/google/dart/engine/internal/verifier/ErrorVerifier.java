@@ -1078,7 +1078,13 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     for (Entry<FieldElement, INIT_STATE> entry : fieldElementsMap.entrySet()) {
       if (entry.getValue() == INIT_STATE.NOT_INIT) {
         FieldElement fieldElement = entry.getKey();
-        if (fieldElement.isFinal() || fieldElement.isConst()) {
+        if (fieldElement.isConst()) {
+          errorReporter.reportError(
+              CompileTimeErrorCode.CONST_NOT_INITIALIZED,
+              node.getReturnType(),
+              fieldElement.getName());
+          foundError = true;
+        } else if (fieldElement.isFinal()) {
           errorReporter.reportError(
               StaticWarningCode.FINAL_NOT_INITIALIZED,
               node.getReturnType(),
@@ -2894,7 +2900,8 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * 
    * @param node the class declaration to test
    * @return {@code true} if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#FINAL_NOT_INITIALIZED
+   * @see CompileTimeErrorCode#CONST_NOT_INITIALIZED
+   * @see StaticWarningCode#FINAL_NOT_INITIALIZED
    */
   private boolean checkForFinalNotInitialized(ClassDeclaration node) {
     NodeList<ClassMember> classMembers = node.getMembers();
@@ -2922,21 +2929,29 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * 
    * @param node the class declaration to test
    * @return {@code true} if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#FINAL_NOT_INITIALIZED
+   * @see CompileTimeErrorCode#CONST_NOT_INITIALIZED
+   * @see StaticWarningCode#FINAL_NOT_INITIALIZED
    */
   private boolean checkForFinalNotInitialized(VariableDeclarationList node) {
     if (isInNativeClass) {
       return false;
     }
     boolean foundError = false;
-    if (!node.isSynthetic() && (node.isConst() || node.isFinal())) {
+    if (!node.isSynthetic()) {
       NodeList<VariableDeclaration> variables = node.getVariables();
       for (VariableDeclaration variable : variables) {
         if (variable.getInitializer() == null) {
-          errorReporter.reportError(
-              StaticWarningCode.FINAL_NOT_INITIALIZED,
-              variable.getName(),
-              variable.getName().getName());
+          if (node.isConst()) {
+            errorReporter.reportError(
+                CompileTimeErrorCode.CONST_NOT_INITIALIZED,
+                variable.getName(),
+                variable.getName().getName());
+          } else if (node.isFinal()) {
+            errorReporter.reportError(
+                StaticWarningCode.FINAL_NOT_INITIALIZED,
+                variable.getName(),
+                variable.getName().getName());
+          }
           foundError = true;
         }
       }

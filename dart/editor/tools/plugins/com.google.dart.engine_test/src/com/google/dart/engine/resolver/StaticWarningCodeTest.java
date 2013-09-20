@@ -1004,16 +1004,6 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_finalNotInitialized_instanceField_const_static() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {",
-        "  static const F;",
-        "}"));
-    resolve(source);
-    assertErrors(source, StaticWarningCode.FINAL_NOT_INITIALIZED);
-    verify(source);
-  }
-
   public void test_finalNotInitialized_instanceField_final() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
@@ -1034,27 +1024,9 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_finalNotInitialized_library_const() throws Exception {
-    Source source = addSource(createSource(//
-    "const F;"));
-    resolve(source);
-    assertErrors(source, StaticWarningCode.FINAL_NOT_INITIALIZED);
-    verify(source);
-  }
-
   public void test_finalNotInitialized_library_final() throws Exception {
     Source source = addSource(createSource(//
     "final F;"));
-    resolve(source);
-    assertErrors(source, StaticWarningCode.FINAL_NOT_INITIALIZED);
-    verify(source);
-  }
-
-  public void test_finalNotInitialized_local_const() throws Exception {
-    Source source = addSource(createSource(//
-        "f() {",
-        "  const int x;",
-        "}"));
     resolve(source);
     assertErrors(source, StaticWarningCode.FINAL_NOT_INITIALIZED);
     verify(source);

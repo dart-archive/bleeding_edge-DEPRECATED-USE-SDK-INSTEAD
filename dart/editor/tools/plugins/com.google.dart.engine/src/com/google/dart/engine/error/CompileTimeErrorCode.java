@@ -185,6 +185,14 @@ public enum CompileTimeErrorCode implements ErrorCode {
   CONST_INSTANCE_FIELD("Only static fields can be declared as 'const'"),
 
   /**
+   * 5 Variables: A constant variable must be initialized to a compile-time constant (12.1) or a
+   * compile-time error occurs.
+   * 
+   * @param name the name of the uninitialized final variable
+   */
+  CONST_NOT_INITIALIZED("The const variable '%s' must be initialized"),
+
+  /**
    * 12.11.2 Const: An expression of one of the forms !e, e1 && e2 or e1 || e2, where e, e1 and e2
    * are constant expressions that evaluate to a boolean value.
    */
