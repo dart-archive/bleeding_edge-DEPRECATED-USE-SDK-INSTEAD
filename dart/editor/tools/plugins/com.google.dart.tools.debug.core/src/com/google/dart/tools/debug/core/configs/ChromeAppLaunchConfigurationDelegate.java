@@ -133,8 +133,6 @@ public class ChromeAppLaunchConfigurationDelegate extends DartLaunchConfiguratio
     commandsList.add("--profile-directory=editor");
     commandsList.add("--no-first-run");
     commandsList.add("--no-default-browser-check");
-    commandsList.add("--enable-extension-activity-logging");
-    commandsList.add("--enable-extension-activity-ui");
 
     // This is currently only supported on the mac.
     if (DartCore.isMac()) {
@@ -160,6 +158,16 @@ public class ChromeAppLaunchConfigurationDelegate extends DartLaunchConfiguratio
     String[] commands = commandsList.toArray(new String[commandsList.size()]);
     ProcessBuilder processBuilder = new ProcessBuilder(commands);
     processBuilder.directory(cwd);
+
+    Map<String, String> wrapperEnv = wrapper.getEnvironment();
+
+    if (!wrapperEnv.isEmpty()) {
+      Map<String, String> env = processBuilder.environment();
+
+      for (String key : wrapperEnv.keySet()) {
+        env.put(key, wrapperEnv.get(key));
+      }
+    }
 
     Process runtimeProcess = null;
 

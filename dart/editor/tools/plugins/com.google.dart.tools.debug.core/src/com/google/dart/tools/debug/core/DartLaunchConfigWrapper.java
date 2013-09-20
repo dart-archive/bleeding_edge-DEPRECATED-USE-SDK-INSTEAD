@@ -24,8 +24,13 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 
+import java.io.IOException;
+import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 
 /**
  * A wrapper class around ILaunchConfiguration and ILaunchConfigurationWorkingCopy objects. It adds
@@ -33,6 +38,7 @@ import java.util.List;
  */
 public class DartLaunchConfigWrapper {
   private static final String APPLICATION_ARGUMENTS = "applicationArguments";
+  private static final String APPLICATION_ENVIRONMENT = "applicationEnvironment";
   private static final String APPLICATION_NAME = "applicationName";
   private static final String SOURCE_DIRECTORY = "sourceDirectory";
   private static final String URL_QUERY_PARAMS = "urlQueryParams";
@@ -169,6 +175,44 @@ public class DartLaunchConfigWrapper {
     }
 
     return StringUtilities.parseArgumentString(command);
+  }
+
+  /**
+   * @return any configured environment variables
+   */
+  public Map<String, String> getEnvironment() {
+    String env = getEnvironmentString();
+
+    Map<String, String> map = new HashMap<String, String>();
+
+    if (env.isEmpty()) {
+      return map;
+    }
+
+    Properties props = new Properties();
+
+    try {
+      props.load(new StringReader(env));
+    } catch (IOException e) {
+
+    }
+
+    for (Object key : props.keySet()) {
+      String strKey = (String) key;
+      map.put(strKey, props.getProperty(strKey));
+    }
+
+    return map;
+  }
+
+  public String getEnvironmentString() {
+    try {
+      return launchConfig.getAttribute(APPLICATION_ENVIRONMENT, "");
+    } catch (CoreException e) {
+      DartDebugCorePlugin.logError(e);
+
+      return "";
+    }
   }
 
   /**
@@ -385,6 +429,10 @@ public class DartLaunchConfigWrapper {
    */
   public void setDart2jsFlags(String value) {
     getWorkingCopy().setAttribute(DART2JS_FLAGS, value);
+  }
+
+  public void setEnvironmentString(String value) {
+    getWorkingCopy().setAttribute(APPLICATION_ENVIRONMENT, value);
   }
 
   /**

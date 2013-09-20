@@ -62,6 +62,8 @@ public class ChromeAppMainTab extends AbstractLaunchConfigurationTab {
 
   protected Text argumentText;
 
+  protected Text envText;
+
   protected ModifyListener textModifyListener = new ModifyListener() {
     @Override
     public void modifyText(ModifyEvent e) {
@@ -112,8 +114,20 @@ public class ChromeAppMainTab extends AbstractLaunchConfigurationTab {
     GridLayoutFactory.swtDefaults().applyTo(group);
 
     argumentText = new Text(group, SWT.BORDER | SWT.SINGLE);
+    argumentText.addModifyListener(textModifyListener);
     GridDataFactory.swtDefaults().align(SWT.FILL, SWT.CENTER).grab(true, false).applyTo(
         argumentText);
+
+    // additional browser arguments
+    group = new Group(composite, SWT.NONE);
+    group.setText("Environment variables");
+    GridDataFactory.fillDefaults().grab(true, false).applyTo(group);
+    GridLayoutFactory.swtDefaults().applyTo(group);
+
+    envText = new Text(group, SWT.BORDER | SWT.MULTI);
+    envText.addModifyListener(textModifyListener);
+    GridDataFactory.swtDefaults().align(SWT.FILL, SWT.FILL).grab(true, true).hint(-1, 75).applyTo(
+        envText);
 
     setControl(composite);
   }
@@ -146,8 +160,8 @@ public class ChromeAppMainTab extends AbstractLaunchConfigurationTab {
     DartLaunchConfigWrapper dartLauncher = new DartLaunchConfigWrapper(configuration);
 
     fileText.setText(dartLauncher.getApplicationName());
-
     argumentText.setText(dartLauncher.getArguments());
+    envText.setText(dartLauncher.getEnvironmentString());
   }
 
   @Override
@@ -160,12 +174,14 @@ public class ChromeAppMainTab extends AbstractLaunchConfigurationTab {
     DartLaunchConfigWrapper dartLauncher = new DartLaunchConfigWrapper(configuration);
     dartLauncher.setApplicationName(fileText.getText());
     dartLauncher.setArguments(argumentText.getText().trim());
+    dartLauncher.setEnvironmentString(envText.getText().trim());
   }
 
   @Override
   public void setDefaults(ILaunchConfigurationWorkingCopy configuration) {
     DartLaunchConfigWrapper dartLauncher = new DartLaunchConfigWrapper(configuration);
     dartLauncher.setApplicationName("");
+    dartLauncher.setEnvironmentString("");
   }
 
   protected void handleBrowseButton() {

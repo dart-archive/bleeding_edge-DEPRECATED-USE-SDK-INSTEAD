@@ -41,7 +41,7 @@ class ManifestKeywords {
       "content_scripts", "content_security_policy", "file_browser_handlers", "homepage_url",
       "incognito", "intents", "key", "minimum_chrome_version", "nacl_modules", "offline_enabled",
       "omnibox", "options_page", "permissions", "plugins", "requirements", "update_url",
-      "web_accessible_resources", "sandbox", "file_handlers",
+      "web_accessible_resources", "sandbox", "file_handlers", "short_name",
 
       // effectively keywords as well
       "scripts"};
