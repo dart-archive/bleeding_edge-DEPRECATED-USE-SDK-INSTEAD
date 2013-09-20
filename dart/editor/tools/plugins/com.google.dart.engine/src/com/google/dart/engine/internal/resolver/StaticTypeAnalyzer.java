@@ -1830,22 +1830,23 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
         || operator == TokenType.EQ_EQ || operator == TokenType.BANG_EQ) {
       return typeProvider.getBoolType();
     }
-    // int op double
-    if (operator == TokenType.MINUS || operator == TokenType.PERCENT || operator == TokenType.PLUS
-        || operator == TokenType.STAR) {
-      Type doubleType = typeProvider.getDoubleType();
-      if (getStaticType(node.getLeftOperand()) == typeProvider.getIntType()
-          && getStaticType(node.getRightOperand()) == doubleType) {
-        return doubleType;
+    Type intType = typeProvider.getIntType();
+    if (getStaticType(node.getLeftOperand()).equals(intType)) {
+      // int op double
+      if (operator == TokenType.MINUS || operator == TokenType.PERCENT
+          || operator == TokenType.PLUS || operator == TokenType.STAR) {
+        Type doubleType = typeProvider.getDoubleType();
+        if (getStaticType(node.getRightOperand()).equals(doubleType)) {
+          return doubleType;
+        }
       }
-    }
-    // int op int
-    if (operator == TokenType.MINUS || operator == TokenType.PERCENT || operator == TokenType.PLUS
-        || operator == TokenType.STAR || operator == TokenType.TILDE_SLASH) {
-      Type intType = typeProvider.getIntType();
-      if (getStaticType(node.getLeftOperand()) == intType
-          && getStaticType(node.getRightOperand()) == intType) {
-        staticType = intType;
+      // int op int
+      if (operator == TokenType.MINUS || operator == TokenType.PERCENT
+          || operator == TokenType.PLUS || operator == TokenType.STAR
+          || operator == TokenType.TILDE_SLASH) {
+        if (getStaticType(node.getRightOperand()).equals(intType)) {
+          staticType = intType;
+        }
       }
     }
     // default
