@@ -27,14 +27,11 @@ import org.eclipse.jface.layout.PixelConverter;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.graphics.Font;
-import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.DirectoryDialog;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
@@ -46,22 +43,6 @@ import org.eclipse.ui.dialogs.PropertyPage;
  * default output location.
  */
 public class DartSettingsPropertyPage extends PropertyPage implements IWorkbenchPropertyPage {
-  private static Font italicFont;
-
-  private static Font getItalicFont(Font font) {
-    if (italicFont == null) {
-      FontData data = font.getFontData()[0];
-
-      italicFont = new Font(Display.getDefault(), new FontData(
-          data.getName(),
-          data.getHeight(),
-          SWT.ITALIC));
-    }
-
-    return italicFont;
-  }
-
-  private Text dart2jsFlagsText;
 
   private Text packageRootText;
   private Button packageRootBrowseButton;
@@ -79,8 +60,6 @@ public class DartSettingsPropertyPage extends PropertyPage implements IWorkbench
 
     if (project != null) {
       try {
-        // dart2js
-        DartCore.getPlugin().setDart2jsFlags(project, dart2jsFlagsText.getText().trim());
 
         // package root
         String oldPackageRoot = DartCore.getPlugin().getProjectPreferences(project).get(
@@ -108,28 +87,8 @@ public class DartSettingsPropertyPage extends PropertyPage implements IWorkbench
     Composite composite = new Composite(parent, SWT.NONE);
     GridLayoutFactory.fillDefaults().applyTo(composite);
 
-    // dart2js settings
-    Group group = new Group(composite, SWT.NONE);
-    group.setText("Dart2js settings");
-    GridDataFactory.fillDefaults().grab(true, false).applyTo(group);
-    GridLayoutFactory.swtDefaults().numColumns(1).applyTo(group);
-    ((GridLayout) group.getLayout()).marginBottom = 5;
-
-    Label label = new Label(group, SWT.NONE);
-    label.setText("Additional flags for dart2js:");
-
-    dart2jsFlagsText = new Text(group, SWT.BORDER | SWT.SINGLE);
-    GridDataFactory.swtDefaults().align(SWT.FILL, SWT.CENTER).hint(100, -1).indent(indentAmount, 0).grab(
-        true,
-        false).applyTo(dart2jsFlagsText);
-
-    label = new Label(group, SWT.NONE);
-    label.setText("(e.g. --disallow-unsafe-eval)");
-    label.setFont(getItalicFont(label.getFont()));
-    GridDataFactory.swtDefaults().indent(indentAmount, 0).applyTo(label);
-
     // package root settings
-    group = new Group(composite, SWT.NONE);
+    Group group = new Group(composite, SWT.NONE);
     group.setText("Package root settings");
     GridDataFactory.fillDefaults().grab(true, false).applyTo(group);
     GridLayoutFactory.swtDefaults().numColumns(2).applyTo(group);
@@ -153,7 +112,7 @@ public class DartSettingsPropertyPage extends PropertyPage implements IWorkbench
       }
     });
 
-    label = new Label(group, SWT.NONE);
+    Label label = new Label(group, SWT.NONE);
     label.setText("The package root setting will override the use of local packages directories.");
     GridDataFactory.swtDefaults().indent(indentAmount, 0).span(2, 1).applyTo(label);
 
@@ -164,7 +123,6 @@ public class DartSettingsPropertyPage extends PropertyPage implements IWorkbench
 
   @Override
   protected void performDefaults() {
-    dart2jsFlagsText.setText("");
     packageRootText.setText("");
     super.performDefaults();
   }
@@ -188,12 +146,6 @@ public class DartSettingsPropertyPage extends PropertyPage implements IWorkbench
     IProject project = getProject();
 
     if (project != null) {
-      // dart2js
-      String args = DartCore.getPlugin().getDart2jsFlags(project);
-
-      if (args != null) {
-        dart2jsFlagsText.setText(args);
-      }
 
       String pref = DartCore.getPlugin().getProjectPreferences(project).get(
           DartCore.PROJECT_PREF_PACKAGE_ROOT,

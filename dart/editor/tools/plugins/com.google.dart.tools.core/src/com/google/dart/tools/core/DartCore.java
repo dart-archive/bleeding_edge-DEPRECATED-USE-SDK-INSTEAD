@@ -174,8 +174,6 @@ public class DartCore extends Plugin implements DartSdkListener {
 
   public static final String PROJECT_PREF_DISABLE_DART_BASED_BUILDER = "disableDartBasedBuilder";
 
-  public static final String PROJECT_PREF_DART2JS_FLAGS = "dart2jsFlags";
-
   /**
    * Cached extensions for CSS files.
    */
@@ -1328,10 +1326,6 @@ public class DartCore extends Plugin implements DartSdkListener {
     return DartSdkManager.getManager().hasSdk();
   }
 
-  public String getDart2jsFlags(IProject project) {
-    return getProjectPreferences(project).get(PROJECT_PREF_DART2JS_FLAGS, null);
-  }
-
   public boolean getDisableDartBasedBuilder(IProject project) {
     return getProjectPreferences(project).getBoolean(PROJECT_PREF_DISABLE_DART_BASED_BUILDER, false);
   }
@@ -1424,16 +1418,6 @@ public class DartCore extends Plugin implements DartSdkListener {
     Job job = new CleanLibrariesJob();
 
     job.schedule();
-  }
-
-  public void setDart2jsFlags(IProject project, String flags) throws CoreException {
-    try {
-      IEclipsePreferences prefs = getProjectPreferences(project);
-      prefs.put(PROJECT_PREF_DART2JS_FLAGS, flags);
-      prefs.flush();
-    } catch (BackingStoreException ex) {
-      throw new CoreException(new Status(IStatus.ERROR, PLUGIN_ID, ex.toString(), ex));
-    }
   }
 
   public void setDisableDartBasedBuilder(IProject project, boolean value) throws CoreException {
