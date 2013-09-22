@@ -872,6 +872,26 @@ public class InlineMethodRefactoringImplTest extends RefactoringImplTest {
         "");
   }
 
+  public void test_namedArgument() throws Exception {
+    indexTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "fa(pa) => fb(pb: true);",
+        "fb({pb: false}) {}",
+        "main() {",
+        "  fa(null);",
+        "}");
+    selection = findOffset("fa(null)");
+    createRefactoring();
+    // do refactoring
+    assertSuccessfulRefactoring(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "fa(pa) => fb(pb: true);",
+        "fb({pb: false}) {}",
+        "main() {",
+        "  fb(pb: true);",
+        "}");
+  }
+
   public void test_reference_toClassMethod() throws Exception {
     indexTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",

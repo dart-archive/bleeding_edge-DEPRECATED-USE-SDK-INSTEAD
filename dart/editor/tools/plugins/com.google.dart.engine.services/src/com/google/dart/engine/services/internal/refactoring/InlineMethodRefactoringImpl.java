@@ -84,6 +84,7 @@ import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeSt
 import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeStartLength;
 import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeStartStart;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
@@ -624,7 +625,7 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
       private void addParameter(SimpleIdentifier node) {
         ParameterElement parameterElement = CorrectionUtils.getParameterElement(node);
         if (parameterElement != null) {
-          int parameterIndex = CorrectionUtils.getParameterIndex(parameterElement);
+          int parameterIndex = getParameterIndex(parameterElement);
           if (parameterIndex != -1) {
             SourceRange nodeRange = rangeNode(node);
             int parentPrecedence = getExpressionParentPrecedence(node);
@@ -639,6 +640,10 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
           SourceRange nodeRange = rangeNode(node);
           result.addVariable(variableElement, nodeRange);
         }
+      }
+
+      private int getParameterIndex(ParameterElement parameter) {
+        return ArrayUtils.indexOf(methodElement.getParameters(), parameter);
       }
     });
     // done

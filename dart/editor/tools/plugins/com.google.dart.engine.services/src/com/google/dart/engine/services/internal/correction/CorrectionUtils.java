@@ -81,7 +81,6 @@ import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeNo
 import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeStartEnd;
 import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeStartStart;
 
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.nio.CharBuffer;
@@ -456,15 +455,6 @@ public class CorrectionUtils {
       return (ParameterElement) element;
     }
     return null;
-  }
-
-  public static int getParameterIndex(ParameterElement parameter) {
-    Element enclosingElement = parameter.getEnclosingElement();
-    if (enclosingElement instanceof ExecutableElement) {
-      ExecutableElement executableElement = (ExecutableElement) enclosingElement;
-      return ArrayUtils.indexOf(executableElement.getParameters(), parameter);
-    }
-    return -1;
   }
 
   /**

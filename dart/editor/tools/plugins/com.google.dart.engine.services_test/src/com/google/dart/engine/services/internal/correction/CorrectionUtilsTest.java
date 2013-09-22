@@ -962,26 +962,6 @@ public class CorrectionUtilsTest extends AbstractDartTest {
     assertSame(element, CorrectionUtils.getParameterElement(identifier));
   }
 
-  public void test_getParameterIndex() throws Exception {
-    ParameterElement parameter = mock(ParameterElement.class);
-    // no enclosing
-    assertEquals(-1, CorrectionUtils.getParameterIndex(parameter));
-    // enclose into MethodElement
-    {
-      MethodElement method = mock(MethodElement.class);
-      when(parameter.getEnclosingElement()).thenReturn(method);
-      // 0
-      when(method.getParameters()).thenReturn(new ParameterElement[] {parameter, null});
-      assertEquals(0, CorrectionUtils.getParameterIndex(parameter));
-      // 1
-      when(method.getParameters()).thenReturn(new ParameterElement[] {null, parameter});
-      assertEquals(1, CorrectionUtils.getParameterIndex(parameter));
-      // 1
-      when(method.getParameters()).thenReturn(new ParameterElement[] {null, null, parameter});
-      assertEquals(2, CorrectionUtils.getParameterIndex(parameter));
-    }
-  }
-
   public void test_getParameterSource() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
