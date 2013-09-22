@@ -2195,6 +2195,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     LibraryResolver resolver = task.getLibraryResolver();
     AnalysisException thrownException = task.getException();
     DartEntry unitEntry = null;
+    Source unitSource = task.getUnitSource();
     if (resolver != null) {
       //
       // The resolver should only be null if an exception was thrown before (or while) it was
@@ -2203,7 +2204,6 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       synchronized (cacheLock) {
         if (allModificationTimesMatch(resolver)) {
           Source htmlSource = getSourceFactory().forUri(DartSdk.DART_HTML);
-          Source unitSource = task.getUnitSource();
           RecordingErrorListener errorListener = resolver.getErrorListener();
           for (Library library : resolver.getResolvedLibraries()) {
             Source librarySource = library.getLibrarySource();
@@ -2269,6 +2269,9 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
                 }
                 dartCopy.setException(thrownException);
                 cache.put(source, dartCopy);
+                if (source.equals(unitSource)) {
+                  unitEntry = dartCopy;
+                }
               }
             }
           }
@@ -2277,6 +2280,13 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     }
     if (thrownException != null) {
       throw thrownException;
+    }
+    if (unitEntry == null) {
+      unitEntry = getReadableDartEntry(unitSource);
+      if (unitEntry == null) {
+        throw new AnalysisException("A Dart file became a non-Dart file: "
+            + unitSource.getFullName());
+      }
     }
     return unitEntry;
   }
