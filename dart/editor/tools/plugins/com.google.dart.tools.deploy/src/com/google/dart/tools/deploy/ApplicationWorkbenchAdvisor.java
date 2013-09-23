@@ -22,6 +22,7 @@ import com.google.dart.tools.ui.actions.OpenIntroEditorAction;
 import com.google.dart.tools.ui.internal.preferences.DartKeyBindingPersistence;
 import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
 import com.google.dart.tools.ui.theme.preferences.TemporaryProject;
+import com.google.dart.tools.ui.watchdog.MonitoringUtil;
 
 import org.eclipse.core.filesystem.IFileStore;
 import org.eclipse.core.filesystem.IFileTree;
@@ -131,6 +132,7 @@ public class ApplicationWorkbenchAdvisor extends WorkbenchAdvisor {
 
   private IPropertyChangeListener fontPropertyChangeListener = new FontPropertyChangeListener();
   private MessageConsole console;
+  private boolean uiMonitorStarted;
 
   /**
    * Creates a new workbench advisor instance.
@@ -154,6 +156,11 @@ public class ApplicationWorkbenchAdvisor extends WorkbenchAdvisor {
     if (delayedEventsProcessor != null) {
       delayedEventsProcessor.catchUp(display);
     }
+    if (!uiMonitorStarted) {
+      uiMonitorStarted = true;
+      MonitoringUtil.start();
+    }
+    MonitoringUtil.idle();
     super.eventLoopIdle(display);
   }
 
