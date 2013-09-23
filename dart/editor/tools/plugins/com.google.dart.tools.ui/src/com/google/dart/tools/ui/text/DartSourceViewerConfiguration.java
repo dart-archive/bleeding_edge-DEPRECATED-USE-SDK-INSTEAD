@@ -598,7 +598,7 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
       reconciler.setIsIncrementalReconciler(true);
       reconciler.setIsAllowedToModifyDocument(false);
       reconciler.setProgressMonitor(new NullProgressMonitor());
-      reconciler.setDelay(150);
+      reconciler.setDelay(500);
       return reconciler;
     }
     return null;
