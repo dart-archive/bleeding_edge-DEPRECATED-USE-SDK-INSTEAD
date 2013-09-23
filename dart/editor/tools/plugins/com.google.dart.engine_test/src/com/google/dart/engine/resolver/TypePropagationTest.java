@@ -412,7 +412,7 @@ public class TypePropagationTest extends ResolverTestCase {
     Source source = addSource(createSource(//
         "class A {}",
         "A f(A p) {",
-        "  if (p is Object) {",
+        "  if (p is String) {",
         "    return p;",
         "  } else {",
         "    return null;",

@@ -93,9 +93,29 @@ public enum HintCode implements ErrorCode {
   OVERRIDE_EQUALS_BUT_NOT_HASH_CODE("The class '%s' overrides 'operator==', but not 'get hashCode'"),
 
   /**
+   * Type checks of the type {@code x is! Null} should be done with {@code x != null}.
+   */
+  TYPE_CHECK_IS_NOT_NULL("Tests for non-null should be done with '!= null'"),
+
+  /**
+   * Type checks of the type {@code x is Null} should be done with {@code x == null}.
+   */
+  TYPE_CHECK_IS_NULL("Tests for null should be done with '== null'"),
+
+  /**
    * Unnecessary cast.
    */
   UNNECESSARY_CAST("Unnecessary cast"),
+
+  /**
+   * Unnecessary type checks, the result is always true.
+   */
+  UNNECESSARY_TYPE_CHECK_FALSE("Unnecessary type check, the result is always false"),
+
+  /**
+   * Unnecessary type checks, the result is always false.
+   */
+  UNNECESSARY_TYPE_CHECK_TRUE("Unnecessary type check, the result is always true"),
 
   /**
    * Unused imports are imports which are never not used.

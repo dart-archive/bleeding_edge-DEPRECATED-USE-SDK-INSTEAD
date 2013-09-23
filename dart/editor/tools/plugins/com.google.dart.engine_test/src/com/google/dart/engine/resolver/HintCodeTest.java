@@ -492,6 +492,26 @@ public class HintCodeTest extends ResolverTestCase {
     verify(source, source2);
   }
 
+  public void test_typeCheck_type_is_Null() throws Exception {
+    Source source = addSource(createSource(//
+        "m(i) {",
+        "  bool b = i is Null;",
+        "}"));
+    resolve(source);
+    assertErrors(source, HintCode.TYPE_CHECK_IS_NULL);
+    verify(source);
+  }
+
+  public void test_typeCheck_type_not_Null() throws Exception {
+    Source source = addSource(createSource(//
+        "m(i) {",
+        "  bool b = i is! Null;",
+        "}"));
+    resolve(source);
+    assertErrors(source, HintCode.TYPE_CHECK_IS_NOT_NULL);
+    verify(source);
+  }
+
   public void test_unnecessaryCast_type_supertype() throws Exception {
     Source source = addSource(createSource(//
         "m(int i) {",
@@ -509,6 +529,62 @@ public class HintCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(source, HintCode.UNNECESSARY_CAST);
+    verify(source);
+  }
+
+  public void test_unnecessaryTypeCheck_null_is_Null() throws Exception {
+    Source source = addSource(createSource(//
+    "bool b = null is Null;"));
+    resolve(source);
+    assertErrors(source, HintCode.UNNECESSARY_TYPE_CHECK_TRUE);
+    verify(source);
+  }
+
+  public void test_unnecessaryTypeCheck_null_not_Null() throws Exception {
+    Source source = addSource(createSource(//
+    "bool b = null is! Null;"));
+    resolve(source);
+    assertErrors(source, HintCode.UNNECESSARY_TYPE_CHECK_FALSE);
+    verify(source);
+  }
+
+  public void test_unnecessaryTypeCheck_type_is_dynamic() throws Exception {
+    Source source = addSource(createSource(//
+        "m(i) {",
+        "  bool b = i is dynamic;",
+        "}"));
+    resolve(source);
+    assertErrors(source, HintCode.UNNECESSARY_TYPE_CHECK_TRUE);
+    verify(source);
+  }
+
+  public void test_unnecessaryTypeCheck_type_is_object() throws Exception {
+    Source source = addSource(createSource(//
+        "m(i) {",
+        "  bool b = i is Object;",
+        "}"));
+    resolve(source);
+    assertErrors(source, HintCode.UNNECESSARY_TYPE_CHECK_TRUE);
+    verify(source);
+  }
+
+  public void test_unnecessaryTypeCheck_type_not_dynamic() throws Exception {
+    Source source = addSource(createSource(//
+        "m(i) {",
+        "  bool b = i is! dynamic;",
+        "}"));
+    resolve(source);
+    assertErrors(source, HintCode.UNNECESSARY_TYPE_CHECK_FALSE);
+    verify(source);
+  }
+
+  public void test_unnecessaryTypeCheck_type_not_object() throws Exception {
+    Source source = addSource(createSource(//
+        "m(i) {",
+        "  bool b = i is! Object;",
+        "}"));
+    resolve(source);
+    assertErrors(source, HintCode.UNNECESSARY_TYPE_CHECK_FALSE);
     verify(source);
   }
 

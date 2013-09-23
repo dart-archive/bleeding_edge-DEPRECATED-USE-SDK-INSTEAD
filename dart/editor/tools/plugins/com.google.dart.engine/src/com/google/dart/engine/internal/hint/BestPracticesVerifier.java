@@ -18,18 +18,22 @@ import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.Identifier;
+import com.google.dart.engine.ast.IsExpression;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.MethodInvocation;
+import com.google.dart.engine.ast.NullLiteral;
 import com.google.dart.engine.ast.ParenthesizedExpression;
 import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
 import com.google.dart.engine.element.ClassElement;
+import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.error.HintCode;
 import com.google.dart.engine.internal.error.ErrorReporter;
+import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
@@ -47,6 +51,10 @@ public class BestPracticesVerifier extends RecursiveASTVisitor<Void> {
   private static final String HASHCODE_GETTER_NAME = "hashCode";
 
   private static final String METHOD = "method";
+
+  private static final String NULL_TYPE_NAME = "Null";
+
+  private static final String OBJECT_TYPE_NAME = "Object";
 
   private static final String SETTER = "setter";
 
@@ -117,10 +125,76 @@ public class BestPracticesVerifier extends RecursiveASTVisitor<Void> {
   }
 
   @Override
+  public Void visitIsExpression(IsExpression node) {
+    checkAllTypeChecks(node);
+    return super.visitIsExpression(node);
+  }
+
+  @Override
   public Void visitMethodDeclaration(MethodDeclaration node) {
     // Commented out until we decide that we want this hint in the analyzer
     checkForOverridingPrivateMember(node);
     return super.visitMethodDeclaration(node);
+  }
+
+  /**
+   * Check for the passed is expression for the unnecessary type check hint codes as well as null
+   * checks expressed using an is expression.
+   * 
+   * @param node the is expression to check
+   * @return {@code true} if and only if a hint code is generated on the passed node
+   * @see HintCode#TYPE_CHECK_IS_NOT_NULL
+   * @see HintCode#TYPE_CHECK_IS_NULL
+   * @see HintCode#UNNECESSARY_TYPE_CHECK_TRUE
+   * @see HintCode#UNNECESSARY_TYPE_CHECK_FALSE
+   */
+  private boolean checkAllTypeChecks(IsExpression node) {
+    Expression expression = node.getExpression();
+    TypeName typeName = node.getType();
+    Type lhsType = expression.getStaticType();
+    Type rhsType = typeName.getType();
+    if (lhsType == null || rhsType == null) {
+      return false;
+    }
+    String rhsNameStr = typeName.getName().getName();
+    // if x is dynamic
+    if ((rhsType.isDynamic() && rhsNameStr.equals(Keyword.DYNAMIC.getSyntax()))) {
+      if (node.getNotOperator() == null) {
+        // the is case
+        errorReporter.reportError(HintCode.UNNECESSARY_TYPE_CHECK_TRUE, node);
+      } else {
+        // the is not case
+        errorReporter.reportError(HintCode.UNNECESSARY_TYPE_CHECK_FALSE, node);
+      }
+      return true;
+    }
+    Element rhsElement = rhsType.getElement();
+    LibraryElement libraryElement = rhsElement != null ? rhsElement.getLibrary() : null;
+    if (libraryElement != null && libraryElement.isDartCore()) {
+      // if x is Object or null is Null
+      // TODO(jwren) Do we need to check the name of the RHS type?
+      if ((rhsType.isObject() && rhsNameStr.equals(OBJECT_TYPE_NAME))
+          || (expression instanceof NullLiteral && rhsNameStr.equals(NULL_TYPE_NAME))) {
+        if (node.getNotOperator() == null) {
+          // the is case
+          errorReporter.reportError(HintCode.UNNECESSARY_TYPE_CHECK_TRUE, node);
+        } else {
+          // the is not case
+          errorReporter.reportError(HintCode.UNNECESSARY_TYPE_CHECK_FALSE, node);
+        }
+        return true;
+      } else if (rhsNameStr.equals(NULL_TYPE_NAME)) {
+        if (node.getNotOperator() == null) {
+          // the is case
+          errorReporter.reportError(HintCode.TYPE_CHECK_IS_NULL, node);
+        } else {
+          // the is not case
+          errorReporter.reportError(HintCode.TYPE_CHECK_IS_NOT_NULL, node);
+        }
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
@@ -262,24 +336,21 @@ public class BestPracticesVerifier extends RecursiveASTVisitor<Void> {
   }
 
   /**
-   * Check for the passed class declaration for the
-   * {@link HintCode#OVERRIDE_EQUALS_BUT_NOT_HASH_CODE} hint code.
+   * Check for the passed as expression for the {@link HintCode#UNNECESSARY_CAST} hint code.
    * 
-   * @param node the class declaration to check
+   * @param node the as expression to check
    * @return {@code true} if and only if a hint code is generated on the passed node
-   * @see HintCode#OVERRIDDING_PRIVATE_MEMBER
+   * @see HintCode#UNNECESSARY_CAST
    */
   private boolean checkForUnnecessaryCast(AsExpression node) {
     Expression expression = node.getExpression();
     TypeName typeName = node.getType();
     Type lhsType = expression.getStaticType();
     Type rhsType = typeName.getType();
-    if (lhsType == null || rhsType == null) {
-      return false;
-    }
     if (lhsType != null && rhsType != null && !lhsType.isDynamic() && !rhsType.isDynamic()
         && lhsType.isSubtypeOf(rhsType)) {
       errorReporter.reportError(HintCode.UNNECESSARY_CAST, node);
+      return true;
     }
     return false;
   }
