@@ -872,7 +872,7 @@ public class InlineMethodRefactoringImplTest extends RefactoringImplTest {
         "");
   }
 
-  public void test_namedArgument() throws Exception {
+  public void test_namedArgument_inBody() throws Exception {
     indexTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
         "fa(pa) => fb(pb: true);",
@@ -890,6 +890,29 @@ public class InlineMethodRefactoringImplTest extends RefactoringImplTest {
         "main() {",
         "  fb(pb: true);",
         "}");
+  }
+
+  public void test_namedArguments() throws Exception {
+    indexTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "test({a: 0, b: 2}) {",
+        "  print(a + b);",
+        "}",
+        "main() {",
+        "  test(a: 10, b: 20);",
+        "  test(b: 20, a: 10);",
+        "}",
+        "");
+    selection = findOffset("test({");
+    createRefactoring();
+    // do refactoring
+    assertSuccessfulRefactoring(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  print(10 + 20);",
+        "  print(10 + 20);",
+        "}",
+        "");
   }
 
   public void test_reference_toClassMethod() throws Exception {
@@ -963,9 +986,9 @@ public class InlineMethodRefactoringImplTest extends RefactoringImplTest {
   public void test_requiresPreview_false_literals() throws Exception {
     indexTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "test(a, b, c, d, e, f) {}",
+        "test(a, b, c, d, e, f, {n: 0}) {}",
         "main() {",
-        "  test(true, 1.0, 2, null, 'simple', 'adj' 'strings');",
+        "  test(true, 1.0, 2, null, 'simple', 'adj' 'strings', n: 3);",
         "}");
     selection = findOffset("test(a, ");
     createRefactoring();

@@ -14,6 +14,7 @@
 
 package com.google.dart.engine.services.internal.refactoring;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -33,9 +34,11 @@ import com.google.dart.engine.ast.ExpressionFunctionBody;
 import com.google.dart.engine.ast.FormalParameterList;
 import com.google.dart.engine.ast.FunctionBody;
 import com.google.dart.engine.ast.FunctionDeclaration;
+import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.ast.IntegerLiteral;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.MethodInvocation;
+import com.google.dart.engine.ast.NamedExpression;
 import com.google.dart.engine.ast.NullLiteral;
 import com.google.dart.engine.ast.PrefixedIdentifier;
 import com.google.dart.engine.ast.PropertyAccess;
@@ -62,6 +65,7 @@ import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.element.visitor.GeneralizingElementVisitor;
 import com.google.dart.engine.formatter.edit.Edit;
+import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.search.SearchMatch;
 import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.engine.services.change.Change;
@@ -344,7 +348,7 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
     private final SourceRange baseRange;
     final String source;
     final String prefix;
-    final Map<Integer, List<ParameterOccurrence>> parameters = Maps.newHashMap();
+    final Map<ParameterElement, List<ParameterOccurrence>> parameters = Maps.newHashMap();
     final Map<VariableElement, List<SourceRange>> variables = Maps.newHashMap();
     final List<SourceRange> instanceFieldQualifiers = Lists.newArrayList();
     final Map<String, List<SourceRange>> staticFieldQualifiers = Maps.newHashMap();
@@ -360,12 +364,12 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
       instanceFieldQualifiers.add(range);
     }
 
-    public void addParameterOccurrence(int index, SourceRange range, int precedence) {
-      if (index != -1) {
-        List<ParameterOccurrence> occurrences = parameters.get(index);
+    public void addParameterOccurrence(ParameterElement parameter, SourceRange range, int precedence) {
+      if (parameter != null) {
+        List<ParameterOccurrence> occurrences = parameters.get(parameter);
         if (occurrences == null) {
           occurrences = Lists.newArrayList();
-          parameters.put(index, occurrences);
+          parameters.put(parameter, occurrences);
         }
         range = rangeFromBase(range, baseRange);
         occurrences.add(new ParameterOccurrence(precedence, range));
@@ -394,6 +398,38 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
   }
 
   /**
+   * Resolver sets {@link ParameterElement} for the most cases, but not for setter invocation.
+   * 
+   * @return the best available {@link ParameterElement} for which given {@link Expression} is used.
+   */
+  private static ParameterElement getBestParameterElement(Expression expr) {
+    // setter invocation
+    if (expr.getParent() instanceof AssignmentExpression) {
+      AssignmentExpression assignment = (AssignmentExpression) expr.getParent();
+      if (assignment.getRightHandSide() == expr
+          && assignment.getOperator().getType() == TokenType.EQ) {
+        Expression lhs = assignment.getLeftHandSide();
+        Element lhsElement = null;
+        if (lhs instanceof Identifier) {
+          lhsElement = ((Identifier) lhs).getBestElement();
+        }
+        if (lhs instanceof PropertyAccess) {
+          lhsElement = ((PropertyAccess) lhs).getPropertyName().getBestElement();
+        }
+        if (lhsElement instanceof PropertyAccessorElement) {
+          PropertyAccessorElement accessor = (PropertyAccessorElement) lhsElement;
+          ParameterElement[] parameters = accessor.getParameters();
+          if (parameters.length != 0) {
+            return parameters[0];
+          }
+        }
+      }
+    }
+    // use resolver
+    return expr.getBestParameterElement();
+  }
+
+  /**
    * @return {@link #getExpressionPrecedence(ASTNode)} for parent node.
    */
   private static int getExpressionParentPrecedence(ASTNode node) {
@@ -413,13 +449,12 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
   }
 
   private final AssistContext context;
-
   private SourceChangeManager safeManager;
   private SourceChangeManager previewManager;
   private Mode initialMode;
   private List<ReferenceProcessor> referenceProcessors = Lists.newArrayList();
-  private boolean requiresPreview;
 
+  private boolean requiresPreview;
   private Mode currentMode;
   private boolean deleteSource;
   private ExecutableElement methodElement;
@@ -428,6 +463,7 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
   private ASTNode methodNode;
   private FormalParameterList methodParameters;
   private FunctionBody methodBody;
+
   private SourcePart methodExpressionPart;
 
   private SourcePart methodStatementsPart;
@@ -624,14 +660,18 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
 
       private void addParameter(SimpleIdentifier node) {
         ParameterElement parameterElement = CorrectionUtils.getParameterElement(node);
-        if (parameterElement != null) {
-          int parameterIndex = getParameterIndex(parameterElement);
-          if (parameterIndex != -1) {
-            SourceRange nodeRange = rangeNode(node);
-            int parentPrecedence = getExpressionParentPrecedence(node);
-            result.addParameterOccurrence(parameterIndex, nodeRange, parentPrecedence);
-          }
+        // not parameter
+        if (parameterElement == null) {
+          return;
         }
+        // not parameter of a function being inlined
+        if (!ArrayUtils.contains(methodElement.getParameters(), parameterElement)) {
+          return;
+        }
+        // OK, add occurrence
+        SourceRange nodeRange = rangeNode(node);
+        int parentPrecedence = getExpressionParentPrecedence(node);
+        result.addParameterOccurrence(parameterElement, nodeRange, parentPrecedence);
       }
 
       private void addVariable(SimpleIdentifier node) {
@@ -640,10 +680,6 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
           SourceRange nodeRange = rangeNode(node);
           result.addVariable(variableElement, nodeRange);
         }
-      }
-
-      private int getParameterIndex(ParameterElement parameter) {
-        return ArrayUtils.indexOf(methodElement.getParameters(), parameter);
       }
     });
     // done
@@ -657,10 +693,19 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
       ASTNode contextNode, Expression targetExpression, List<Expression> arguments) {
     // prepare edits to replace parameters with arguments
     List<Edit> edits = Lists.newArrayList();
-    for (Entry<Integer, List<ParameterOccurrence>> entry : part.parameters.entrySet()) {
-      int parameterIndex = entry.getKey();
+    for (Entry<ParameterElement, List<ParameterOccurrence>> entry : part.parameters.entrySet()) {
+      ParameterElement parameter = entry.getKey();
       // prepare argument
-      Expression argument = arguments.get(parameterIndex);
+      Expression argument = null;
+      for (Expression arg : arguments) {
+        if (Objects.equal(getBestParameterElement(arg), parameter)) {
+          argument = arg;
+          break;
+        }
+      }
+      if (argument instanceof NamedExpression) {
+        argument = ((NamedExpression) argument).getExpression();
+      }
       int argumentPrecedence = getExpressionPrecedence(argument);
       String argumentSource = utils.getText(argument);
       // replace all occurrences of this parameter
@@ -774,6 +819,10 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
         || e instanceof NullLiteral || e instanceof SimpleStringLiteral
         || e instanceof AdjacentStrings || e instanceof SymbolLiteral) {
       return false;
+    }
+    if (e instanceof NamedExpression) {
+      NamedExpression namedExpression = (NamedExpression) e;
+      return hasSideEffect(namedExpression.getExpression());
     }
     if (e instanceof SimpleIdentifier) {
       SimpleIdentifier identifier = (SimpleIdentifier) e;
