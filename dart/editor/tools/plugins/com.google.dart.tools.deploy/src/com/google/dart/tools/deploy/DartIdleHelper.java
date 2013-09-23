@@ -13,6 +13,9 @@
  */
 package com.google.dart.tools.deploy;
 
+import com.google.dart.tools.ui.instrumentation.UIInstrumentation;
+import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
+
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -205,25 +208,36 @@ class DartIdleHelper {
       protected IStatus run(IProgressMonitor monitor) {
         final Display display = configurer.getWorkbench().getDisplay();
         if (display != null && !display.isDisposed()) {
-          final long start = System.currentTimeMillis();
-          System.gc();
-          System.runFinalization();
-          lastGC = start;
-          final int duration = (int) (System.currentTimeMillis() - start);
-          if (Policy.DEBUG_GC) {
-            System.out.println("Explicit GC took: " + duration); //$NON-NLS-1$
-          }
-          if (duration > maxGC) {
+          UIInstrumentationBuilder instrumentation = UIInstrumentation.builder(this.getClass());
+          try {
+            final long start = System.currentTimeMillis();
+            System.gc();
+            System.runFinalization();
+            instrumentation.metric("ExplicitGC", "Completed");
+            lastGC = start;
+            final int duration = (int) (System.currentTimeMillis() - start);
             if (Policy.DEBUG_GC) {
-              System.out.println("Further explicit GCs disabled due to long GC"); //$NON-NLS-1$
+              System.out.println("Explicit GC took: " + duration); //$NON-NLS-1$
             }
-            shutdown();
-          } else {
-            //if the gc took a long time, ensure the next gc doesn't happen for awhile
-            nextGCInterval = Math.max(minGCInterval, GC_DELAY_MULTIPLIER * duration);
-            if (Policy.DEBUG_GC) {
-              System.out.println("Next GC to run in: " + nextGCInterval); //$NON-NLS-1$
+            if (duration > maxGC) {
+              if (Policy.DEBUG_GC) {
+                System.out.println("Further explicit GCs disabled due to long GC"); //$NON-NLS-1$
+              }
+              instrumentation.metric("Shutdown", "True");
+              shutdown();
+            } else {
+              //if the gc took a long time, ensure the next gc doesn't happen for awhile
+              nextGCInterval = Math.max(minGCInterval, GC_DELAY_MULTIPLIER * duration);
+              if (Policy.DEBUG_GC) {
+                System.out.println("Next GC to run in: " + nextGCInterval); //$NON-NLS-1$
+              }
+              instrumentation.metric("NextGC", nextGCInterval);
             }
+          } catch (RuntimeException e) {
+            instrumentation.record(e);
+            throw e;
+          } finally {
+            instrumentation.log();
           }
         }
         return Status.OK_STATUS;
