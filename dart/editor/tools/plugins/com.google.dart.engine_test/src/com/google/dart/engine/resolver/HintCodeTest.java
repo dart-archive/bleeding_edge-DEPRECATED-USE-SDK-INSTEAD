@@ -347,8 +347,8 @@ public class HintCodeTest extends ResolverTestCase {
     // Tests the propagated type information of the '/' method
     Source source = addSource(createSource(//
         "f(x, y) {",
-        "  x = 1",
-        "  y = 1",
+        "  x = 1;",
+        "  y = 1;",
         "  var v = (x / y).toInt();",
         "}"));
     resolve(source);
