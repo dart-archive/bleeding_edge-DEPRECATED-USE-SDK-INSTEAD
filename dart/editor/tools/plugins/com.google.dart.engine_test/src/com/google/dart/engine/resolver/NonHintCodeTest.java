@@ -154,8 +154,31 @@ public class NonHintCodeTest extends ResolverTestCase {
 
   public void test_divisionOptimization() throws Exception {
     Source source = addSource(createSource(//
-        "f(x, y) {",
+        "f(int x, int y) {",
         "  var v = x / y.toInt();",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_divisionOptimization_supressIfDivisionNotDefinedInCore() throws Exception {
+    Source source = addSource(createSource(//
+        "f(x, y) {",
+        "  var v = (x / y).toInt();",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_divisionOptimization_supressIfDivisionOverridden() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  num operator /(x) {}",
+        "}",
+        "f(A x, A y) {",
+        "  var v = (x / y).toInt();",
         "}"));
     resolve(source);
     assertNoErrors(source);

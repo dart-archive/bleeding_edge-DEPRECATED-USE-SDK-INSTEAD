@@ -323,9 +323,32 @@ public class HintCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_divisionOptimization() throws Exception {
+  public void test_divisionOptimization_double() throws Exception {
+    Source source = addSource(createSource(//
+        "f(double x, double y) {",
+        "  var v = (x / y).toInt();",
+        "}"));
+    resolve(source);
+    assertErrors(source, HintCode.DIVISION_OPTIMIZATION);
+    verify(source);
+  }
+
+  public void test_divisionOptimization_int() throws Exception {
+    Source source = addSource(createSource(//
+        "f(int x, int y) {",
+        "  var v = (x / y).toInt();",
+        "}"));
+    resolve(source);
+    assertErrors(source, HintCode.DIVISION_OPTIMIZATION);
+    verify(source);
+  }
+
+  public void test_divisionOptimization_propagatedType() throws Exception {
+    // Tests the propagated type information of the '/' method
     Source source = addSource(createSource(//
         "f(x, y) {",
+        "  x = 1",
+        "  y = 1",
         "  var v = (x / y).toInt();",
         "}"));
     resolve(source);
@@ -335,7 +358,7 @@ public class HintCodeTest extends ResolverTestCase {
 
   public void test_divisionOptimization_wrappedBinaryExpression() throws Exception {
     Source source = addSource(createSource(//
-        "f(x, y) {",
+        "f(int x, int y) {",
         "  var v = (((x / y))).toInt();",
         "}"));
     resolve(source);

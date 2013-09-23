@@ -25,6 +25,7 @@ import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.ExecutableElement;
+import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.error.HintCode;
@@ -130,9 +131,20 @@ public class BestPracticesVerifier extends RecursiveASTVisitor<Void> {
    * @see HintCode#DIVISION_OPTIMIZATION
    */
   private boolean checkForDivisionOptimizationHint(BinaryExpression node) {
+    // Return if the operator is not '/'
     if (!node.getOperator().getType().equals(TokenType.SLASH)) {
       return false;
     }
+    // Return if the '/' operator is not defined in core, or if we don't know its static or propagated type
+    MethodElement methodElement = node.getBestElement();
+    if (methodElement == null) {
+      return false;
+    }
+    LibraryElement libraryElement = methodElement.getLibrary();
+    if (libraryElement != null && !libraryElement.isDartCore()) {
+      return false;
+    }
+    // Report error if the (x/y) has toInt() invoked on it
     if (node.getParent() instanceof ParenthesizedExpression) {
       ParenthesizedExpression parenthesizedExpression = wrapParenthesizedExpression((ParenthesizedExpression) node.getParent());
       if (parenthesizedExpression.getParent() instanceof MethodInvocation) {
