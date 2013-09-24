@@ -165,9 +165,9 @@ public class AnalyzerOptions {
   @Option(name = "--ignore-unrecognized-flags")
   private boolean ignoreUnrecognizedFlags;
 
-  @Option(name = "--hints",//
-  usage = "Show hint results")
-  private boolean hints = false;
+  @Option(name = "--no-hints",//
+  usage = "Do not show hint results")
+  private boolean disableHints = false;
 
   @Option(name = "--perf",//
   usage = "Print performance statistics")
@@ -189,10 +189,10 @@ public class AnalyzerOptions {
 
   /**
    * @return whether hint results (e.g. type inference based information and pub best practices)
-   *         should be reported.
+   *         should not be reported.
    */
-  public boolean getHints() {
-    return hints;
+  public boolean getDisableHints() {
+    return disableHints;
   }
 
   public boolean getMachineFormat() {
