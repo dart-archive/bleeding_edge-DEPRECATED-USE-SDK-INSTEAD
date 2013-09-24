@@ -52,7 +52,8 @@ public class ApplicationWorkbenchWindowAdvisor extends WorkbenchWindowAdvisor {
       "org.eclipse.compare.internal.ComparePreferencePage", "org.eclipse.ui.net.NetPreferences",
       "org.eclipse.ui.preferencePages.Keys", "org.eclipse.ui.preferencePages.ContentTypes",
       "org.eclipse.ui.preferencePages.Editors", "org.eclipse.ui.preferencePages.Views",
-      "org.eclipse.ui.preferencePages.Workspace", "org.eclipse.ui.preferencePages.Workbench"};
+      "org.eclipse.ui.preferencePages.Workspace", "org.eclipse.ui.preferencePages.Workbench",
+      "org.eclipse.wst.*"};
 
   private static Object callReflectMethod(Object obj, String methodName) throws Exception {
     Method method = obj.getClass().getMethod(methodName);

@@ -377,7 +377,7 @@
          point="org.eclipse.core.contenttype.contentTypes">
       <file-association
             content-type="org.eclipse.core.runtime.text"
-            file-extensions="css,js,json,map,md,py,yaml,bat,sql">
+            file-extensions="js,json,map,md,py,yaml,bat,sql">
       </file-association>      
    </extension>
    

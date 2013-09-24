@@ -26,9 +26,9 @@
 		<quickOutlineConfiguration
 			class="org.eclipse.wst.xml.ui.internal.quickoutline.XMLQuickOutlineConfiguration"
 			target="org.eclipse.wst.html.core.htmlsource"/>
-		<propertySheetConfiguration
+		<!-- <propertySheetConfiguration
 			class="org.eclipse.wst.xml.ui.views.properties.XMLPropertySheetConfiguration"
-			target="org.eclipse.wst.html.core.htmlsource" />
+			target="org.eclipse.wst.html.core.htmlsource" /> -->
   		<documentationTextHover
         	class="org.eclipse.wst.html.ui.internal.taginfo.HTMLTagInfoHoverProcessor"
         	target="org.eclipse.wst.html.HTML_DEFAULT">
@@ -79,14 +79,14 @@
 			<contentType id="org.eclipse.wst.html.core.htmlsource" />
 		</adapterFactoryDescription>
 	</extension>
-	<extension point="org.eclipse.ui.preferencePages">
+	<!-- <extension point="org.eclipse.ui.preferencePages">
 		<page
 			name="%WEB.name"
 			class="org.eclipse.wst.html.ui.internal.preferences.ui.EmptyFilePreferencePage"
 			id="org.eclipse.wst.html.ui.preferences.web">
-		</page>
+		</page> -->
 		<!-- HTML PREFERENCE PAGES-->
-		<page
+		<!-- <page
 			name="%HTML_Files.name"
 			category="org.eclipse.wst.html.ui.preferences.web"
 			class="org.eclipse.wst.html.ui.internal.preferences.ui.HTMLFilesPreferencePage"
@@ -135,10 +135,10 @@
 			class="org.eclipse.wst.html.ui.internal.preferences.ui.HTMLTypingPreferencePage"
 			id="org.eclipse.wst.html.ui.preferences.typing">
 		</page>
-	</extension>
+	</extension> -->
 	<!-- Web content settings -->
-	<extension point="org.eclipse.ui.propertyPages">
-		<!-- for dynamic web project -->
+	<!-- <extension point="org.eclipse.ui.propertyPages">
+		<!- - for dynamic web project - ->
 		<page
 			name="%WebContentSettings.name"
 			class="org.eclipse.wst.html.ui.internal.contentproperties.ui.ProjectWebContentSettingsPropertyPage"
@@ -202,10 +202,10 @@
 				</adapt>
 			</enabledWhen>
 		</page>
-	</extension>
+	</extension> -->
 	
 	<!-- Keywords for preference and properties pages -->
-	<extension point="org.eclipse.ui.keywords">
+	<!-- <extension point="org.eclipse.ui.keywords">
 		<keyword
 			label="%preferenceKeywords.files"
 			id="org.eclipse.wst.html.ui.files"/>
@@ -227,7 +227,7 @@
 		<keyword
 			label="%preferenceKeywords.severities"
 			id="org.eclipse.wst.html.ui.severities"/>
-    </extension>
+    </extension> -->
 	
 	<!-- Editor actionsets -->
 	<extension point="org.eclipse.ui.actionSetPartAssociations">
@@ -494,7 +494,7 @@
              	</reference>
              </activeWhen>
        </handler>
-       <handler
+       <!-- <handler
              class="org.eclipse.wst.html.ui.internal.handlers.HTMLFindOccurrencesHandler"
              commandId="org.eclipse.wst.sse.ui.search.find.occurrences">
              <activeWhen>
@@ -502,7 +502,7 @@
                     definitionId="org.eclipse.wst.html.ui.occurrences">
              	</reference>
              </activeWhen>
-       </handler>
+       </handler> -->
        
 	</extension>
 	

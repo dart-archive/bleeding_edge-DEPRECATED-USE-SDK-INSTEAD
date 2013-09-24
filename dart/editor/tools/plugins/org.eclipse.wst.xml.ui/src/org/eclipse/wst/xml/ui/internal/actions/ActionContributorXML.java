@@ -7,8 +7,6 @@
  *******************************************************************************/
 package org.eclipse.wst.xml.ui.internal.actions;
 
-import java.util.ResourceBundle;
-
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IStatusLineManager;
 import org.eclipse.ui.IActionBars;
@@ -21,6 +19,8 @@ import org.eclipse.wst.sse.ui.internal.actions.ActionContributor;
 import org.eclipse.wst.sse.ui.internal.actions.ActionDefinitionIds;
 import org.eclipse.wst.sse.ui.internal.actions.StructuredTextEditorActionConstants;
 import org.eclipse.wst.xml.ui.internal.XMLUIMessages;
+
+import java.util.ResourceBundle;
 
 /**
  * XMLEditorActionContributor This class should not be used inside multi page editor's
@@ -78,6 +78,7 @@ public class ActionContributorXML extends ActionContributor {
   /**
    * @see org.eclipse.ui.part.EditorActionBarContributor#contributeToMenu(IMenuManager)
    */
+  @Override
   public void contributeToMenu(IMenuManager menu) {
     // navigate commands
     IMenuManager navigateMenu = menu.findMenuUsingPath(IWorkbenchActionConstants.M_NAVIGATE);
@@ -93,6 +94,80 @@ public class ActionContributorXML extends ActionContributor {
     super.contributeToMenu(menu);
   }
 
+  /**
+   * @see org.eclipse.ui.IEditorActionBarContributor#setActiveEditor(IEditorPart)
+   */
+  @Override
+  public void setActiveEditor(IEditorPart activeEditor) {
+    if (getActiveEditorPart() == activeEditor) {
+      return;
+    }
+    super.setActiveEditor(activeEditor);
+
+    IActionBars actionBars = getActionBars();
+    if (actionBars != null) {
+      IStatusLineManager statusLineManager = actionBars.getStatusLineManager();
+      if (statusLineManager != null) {
+        statusLineManager.setMessage(null);
+        statusLineManager.setErrorMessage(null);
+      }
+    }
+
+    ITextEditor textEditor = getTextEditor(activeEditor);
+
+    fContentAssist.setAction(getAction(textEditor,
+        StructuredTextEditorActionConstants.ACTION_NAME_CONTENTASSIST_PROPOSALS));
+
+    fCleanupDocument.setAction(getAction(textEditor,
+        StructuredTextEditorActionConstants.ACTION_NAME_CLEANUP_DOCUMENT));
+    fFormatDocument.setAction(getAction(textEditor,
+        StructuredTextEditorActionConstants.ACTION_NAME_FORMAT_DOCUMENT));
+    fFormatActiveElements.setAction(getAction(textEditor,
+        StructuredTextEditorActionConstants.ACTION_NAME_FORMAT_ACTIVE_ELEMENTS));
+    fCleanupDocument.setEnabled((textEditor != null) && textEditor.isEditable());
+    fFormatDocument.setEnabled((textEditor != null) && textEditor.isEditable());
+    fFormatActiveElements.setEnabled((textEditor != null) && textEditor.isEditable());
+
+    fOpenFileAction.setAction(getAction(textEditor,
+        StructuredTextEditorActionConstants.ACTION_NAME_OPEN_FILE));
+
+//    fFindOccurrences.setAction(getAction(textEditor,
+//        StructuredTextEditorActionConstants.ACTION_NAME_FIND_OCCURRENCES));
+
+    fGoToMatchingTagAction.setEditor(textEditor);
+    if (textEditor != null) {
+      if (textEditor.getAction(GO_TO_MATCHING_TAG_ID) != fGoToMatchingTagAction) {
+        textEditor.setAction(GO_TO_MATCHING_TAG_ID, fGoToMatchingTagAction);
+      }
+    }
+  }
+
+  /*
+   * (non-Javadoc)
+   * 
+   * @see
+   * org.eclipse.wst.sse.ui.ISourceViewerActionBarContributor#setViewerSpecificContributionsEnabled
+   * (boolean)
+   */
+  @Override
+  public void setViewerSpecificContributionsEnabled(boolean enabled) {
+    super.setViewerSpecificContributionsEnabled(enabled);
+
+    fContentAssist.setEnabled(enabled);
+    // cleanup and format document actions do not rely on source viewer
+    // being enabled
+    // fCleanupDocument.setEnabled(enabled);
+    // fFormatDocument.setEnabled(enabled);
+
+    fFormatActiveElements.setEnabled(enabled);
+    fOpenFileAction.setEnabled(enabled);
+    fFindOccurrences.setEnabled(enabled);
+
+    fGoToMatchingTagAction.setEnabled(enabled);
+    fGotoMatchingBracketAction.setEnabled(enabled);
+  }
+
+  @Override
   protected void addToMenu(IMenuManager menu) {
     /*
      * // edit commands IMenuManager editMenu =
@@ -128,78 +203,8 @@ public class ActionContributorXML extends ActionContributor {
    * 
    * @see org.eclipse.wst.sse.ui.edit.util.ActionContributor#getExtensionIDs()
    */
+  @Override
   protected String[] getExtensionIDs() {
     return EDITOR_IDS;
-  }
-
-  /**
-   * @see org.eclipse.ui.IEditorActionBarContributor#setActiveEditor(IEditorPart)
-   */
-  public void setActiveEditor(IEditorPart activeEditor) {
-    if (getActiveEditorPart() == activeEditor) {
-      return;
-    }
-    super.setActiveEditor(activeEditor);
-
-    IActionBars actionBars = getActionBars();
-    if (actionBars != null) {
-      IStatusLineManager statusLineManager = actionBars.getStatusLineManager();
-      if (statusLineManager != null) {
-        statusLineManager.setMessage(null);
-        statusLineManager.setErrorMessage(null);
-      }
-    }
-
-    ITextEditor textEditor = getTextEditor(activeEditor);
-
-    fContentAssist.setAction(getAction(textEditor,
-        StructuredTextEditorActionConstants.ACTION_NAME_CONTENTASSIST_PROPOSALS));
-
-    fCleanupDocument.setAction(getAction(textEditor,
-        StructuredTextEditorActionConstants.ACTION_NAME_CLEANUP_DOCUMENT));
-    fFormatDocument.setAction(getAction(textEditor,
-        StructuredTextEditorActionConstants.ACTION_NAME_FORMAT_DOCUMENT));
-    fFormatActiveElements.setAction(getAction(textEditor,
-        StructuredTextEditorActionConstants.ACTION_NAME_FORMAT_ACTIVE_ELEMENTS));
-    fCleanupDocument.setEnabled((textEditor != null) && textEditor.isEditable());
-    fFormatDocument.setEnabled((textEditor != null) && textEditor.isEditable());
-    fFormatActiveElements.setEnabled((textEditor != null) && textEditor.isEditable());
-
-    fOpenFileAction.setAction(getAction(textEditor,
-        StructuredTextEditorActionConstants.ACTION_NAME_OPEN_FILE));
-
-    fFindOccurrences.setAction(getAction(textEditor,
-        StructuredTextEditorActionConstants.ACTION_NAME_FIND_OCCURRENCES));
-
-    fGoToMatchingTagAction.setEditor(textEditor);
-    if (textEditor != null) {
-      if (textEditor.getAction(GO_TO_MATCHING_TAG_ID) != fGoToMatchingTagAction) {
-        textEditor.setAction(GO_TO_MATCHING_TAG_ID, fGoToMatchingTagAction);
-      }
-    }
-  }
-
-  /*
-   * (non-Javadoc)
-   * 
-   * @see
-   * org.eclipse.wst.sse.ui.ISourceViewerActionBarContributor#setViewerSpecificContributionsEnabled
-   * (boolean)
-   */
-  public void setViewerSpecificContributionsEnabled(boolean enabled) {
-    super.setViewerSpecificContributionsEnabled(enabled);
-
-    fContentAssist.setEnabled(enabled);
-    // cleanup and format document actions do not rely on source viewer
-    // being enabled
-    // fCleanupDocument.setEnabled(enabled);
-    // fFormatDocument.setEnabled(enabled);
-
-    fFormatActiveElements.setEnabled(enabled);
-    fOpenFileAction.setEnabled(enabled);
-    fFindOccurrences.setEnabled(enabled);
-
-    fGoToMatchingTagAction.setEnabled(enabled);
-    fGotoMatchingBracketAction.setEnabled(enabled);
   }
 }

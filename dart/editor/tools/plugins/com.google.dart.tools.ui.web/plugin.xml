@@ -4,6 +4,7 @@
 
    <extension
          point="org.eclipse.ui.editors">
+      <!--
       <editor
             class="com.google.dart.tools.ui.web.css.CssEditor"
             contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
@@ -36,7 +37,7 @@
             name="Dart HTML Editor"
             default="true">
       </editor>
-
+      -->
       <editor
             class="com.google.dart.tools.ui.web.yaml.YamlEditor"
             contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"

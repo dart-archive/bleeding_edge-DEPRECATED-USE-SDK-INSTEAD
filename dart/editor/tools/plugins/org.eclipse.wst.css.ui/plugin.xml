@@ -27,9 +27,9 @@
 		<sourceViewerConfiguration
 			class="org.eclipse.wst.css.ui.StructuredTextViewerConfigurationCSS"
 			target="org.eclipse.wst.css.core.csssource" />
-		<propertySheetConfiguration
+		<!-- <propertySheetConfiguration
 			class="org.eclipse.wst.css.ui.views.properties.CSSPropertySheetConfiguration"
-			target="org.eclipse.wst.css.core.csssource" />
+			target="org.eclipse.wst.css.core.csssource" /> -->
 		<documentationTextHover
         	class="org.eclipse.wst.css.ui.internal.text.hover.CSSColorHover"
         	target="org.eclipse.wst.css.STYLE" />
@@ -45,10 +45,10 @@
 			type="autoeditstrategy"
 			class="org.eclipse.wst.css.ui.internal.autoedit.StructuredAutoEditStrategyCSS"
 			target="org.eclipse.wst.css.STYLE" />
-		<provisionalDefinition
+		<!-- <provisionalDefinition
 			type="preferencepages"
 			value="org.eclipse.wst.css.ui.preferences.css org.eclipse.wst.sse.ui.preferences.css.source, org.eclipse.wst.css.ui.preferences.templates, org.eclipse.wst.sse.ui.preferences.css.styles, org.eclipse.wst.sse.ui.preferences.css.contentassist"
-			target="org.eclipse.wst.css.core.csssource" />
+			target="org.eclipse.wst.css.core.csssource" /> -->
 		<provisionalDefinition
 			type="spellingregions"
 			value="COMMENT"
@@ -83,7 +83,7 @@
 			class="org.eclipse.wst.sse.ui.internal.StructuredResourceMarkerAnnotationModelFactory" />
 	</extension>
 
-	<extension point="org.eclipse.ui.preferencePages">
+	<!-- <extension point="org.eclipse.ui.preferencePages">
 		<page
 			name="%CSS_Files.name"
 			category="org.eclipse.wst.html.ui.preferences.web"
@@ -121,10 +121,10 @@
 			id="org.eclipse.wst.sse.ui.preferences.css.styles">
          	<keywordReference id="org.eclipse.wst.css.ui.styles"/>
 		</page>
-	</extension>
+	</extension> -->
 
 	<!-- CSS Content Settings Property Page -->
-	<extension point="org.eclipse.ui.propertyPages">
+	<!-- <extension point="org.eclipse.ui.propertyPages">
 		<page
 			name="%WebContentSettings.name"
 			class="org.eclipse.wst.css.ui.internal.contentproperties.ui.CSSWebContentSettingsPropertyPage"
@@ -143,10 +143,10 @@
 			</enabledWhen>
          	<keywordReference id="org.eclipse.wst.css.ui.webcontent"/>
 		</page>
-	</extension>
+	</extension> -->
 
 	<!-- Keywords for preference and properties pages -->
-	<extension point="org.eclipse.ui.keywords">
+	<!-- <extension point="org.eclipse.ui.keywords">
 		<keyword
 			label="%preferenceKeywords.files"
 			id="org.eclipse.wst.css.ui.files"/>
@@ -166,7 +166,7 @@
         id="org.eclipse.wst.css.ui.contentassist"
         label="%preferenceKeywords.contentassist">
   </keyword>
-    </extension>
+    </extension> -->
 
 	<!-- Editor actionsets -->
 	<extension point="org.eclipse.ui.actionSetPartAssociations">

@@ -8,6 +8,7 @@
 package org.eclipse.wst.sse.ui;
 
 import com.google.dart.tools.internal.corext.refactoring.util.ReflectionUtils;
+import com.google.dart.tools.ui.actions.RefactorActionGroup;
 
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
@@ -165,7 +166,6 @@ import org.eclipse.wst.sse.ui.internal.ExtendedEditorDropTargetAdapter;
 import org.eclipse.wst.sse.ui.internal.IExtendedContributor;
 import org.eclipse.wst.sse.ui.internal.IModelProvider;
 import org.eclipse.wst.sse.ui.internal.IPopupMenuContributor;
-import org.eclipse.wst.sse.ui.internal.IStructuredTextEditorActionConstants;
 import org.eclipse.wst.sse.ui.internal.Logger;
 import org.eclipse.wst.sse.ui.internal.ReadOnlyAwareDropTargetAdapter;
 import org.eclipse.wst.sse.ui.internal.SSEUIMessages;
@@ -1494,15 +1494,7 @@ public class StructuredTextEditor extends TextEditor {
    */
   @Override
   public void editorContextMenuAboutToShow(IMenuManager menu) {
-    /*
-     * To be consistent with the Java Editor, we want to remove ShiftRight and ShiftLeft from the
-     * context menu.
-     */
-//    super.editorContextMenuAboutToShow(menu);
     editorContextMenuAboutToShow2(menu);
-//    menu.remove(ITextEditorActionConstants.SHIFT_LEFT);
-//    menu.remove(ITextEditorActionConstants.SHIFT_RIGHT);
-
     addContextMenuActions(menu);
     addSourceMenuActions(menu);
     addRefactorMenuActions(menu);
@@ -1928,9 +1920,9 @@ public class StructuredTextEditor extends TextEditor {
   }
 
   protected void addRefactorMenuActions(IMenuManager menu) {
-    IMenuManager subMenu = new MenuManager(SSEUIMessages.RefactorMenu_label,
-        IStructuredTextEditorActionConstants.REFACTOR_CONTEXT_MENU_ID);
-    menu.appendToGroup(ITextEditorActionConstants.GROUP_EDIT, subMenu);
+//    IMenuManager subMenu = new MenuManager(SSEUIMessages.RefactorMenu_label,
+//        IStructuredTextEditorActionConstants.REFACTOR_CONTEXT_MENU_ID);
+//    menu.appendToGroup(ITextEditorActionConstants.GROUP_EDIT, subMenu);
   }
 
   protected void addSourceMenuActions(IMenuManager menu) {
@@ -2288,45 +2280,27 @@ public class StructuredTextEditor extends TextEditor {
   }
 
   protected void editorContextMenuAboutToShow2(IMenuManager menu) {
-
-    menu.add(new Separator(ITextEditorActionConstants.GROUP_UNDO));
-//    menu.add(new GroupMarker(ITextEditorActionConstants.GROUP_SAVE));
-    menu.add(new Separator(ITextEditorActionConstants.GROUP_COPY));
-//    menu.add(new Separator(ITextEditorActionConstants.GROUP_PRINT));
+    // replaces call to super.editorContextMenuAboutToShow()
+    menu.add(new Separator(ITextEditorActionConstants.GROUP_OPEN));
     menu.add(new Separator(ITextEditorActionConstants.GROUP_EDIT));
-//    menu.add(new Separator(ITextEditorActionConstants.GROUP_FIND));
-//    menu.add(new Separator(IWorkbenchActionConstants.GROUP_ADD));
-//    menu.add(new Separator(ITextEditorActionConstants.GROUP_REST));
-//    menu.add(new Separator(IWorkbenchActionConstants.MB_ADDITIONS));
+    menu.add(new Separator(RefactorActionGroup.GROUP_REORG));
+    menu.add(new Separator(ITextEditorActionConstants.GROUP_RESTORE));
+    menu.add(new Separator(IWorkbenchActionConstants.MB_ADDITIONS));
 
     if (isEditable()) {
-      addAction(menu, ITextEditorActionConstants.GROUP_UNDO, ITextEditorActionConstants.UNDO);
-      addAction(menu, ITextEditorActionConstants.GROUP_UNDO,
+      addAction(menu, ITextEditorActionConstants.GROUP_EDIT, ITextEditorActionConstants.UNDO);
+      addAction(menu, ITextEditorActionConstants.GROUP_RESTORE,
           ITextEditorActionConstants.REVERT_TO_SAVED);
-//      addAction(menu, ITextEditorActionConstants.GROUP_SAVE, ITextEditorActionConstants.SAVE);
-      addAction(menu, ITextEditorActionConstants.GROUP_COPY, ITextEditorActionConstants.CUT);
-      addAction(menu, ITextEditorActionConstants.GROUP_COPY, ITextEditorActionConstants.COPY);
-      addAction(menu, ITextEditorActionConstants.GROUP_COPY, ITextEditorActionConstants.PASTE);
+      addAction(menu, ITextEditorActionConstants.GROUP_EDIT, ITextEditorActionConstants.CUT);
+      addAction(menu, ITextEditorActionConstants.GROUP_EDIT, ITextEditorActionConstants.COPY);
+      addAction(menu, ITextEditorActionConstants.GROUP_EDIT, ITextEditorActionConstants.PASTE);
       IAction action = getAction(ITextEditorActionConstants.QUICK_ASSIST);
       if (action != null && action.isEnabled()) {
-        addAction(menu, ITextEditorActionConstants.GROUP_EDIT,
-            ITextEditorActionConstants.QUICK_ASSIST);
+        addAction(menu, RefactorActionGroup.GROUP_REORG, ITextEditorActionConstants.QUICK_ASSIST);
       }
     } else {
-      addAction(menu, ITextEditorActionConstants.GROUP_COPY, ITextEditorActionConstants.COPY);
+      addAction(menu, ITextEditorActionConstants.GROUP_EDIT, ITextEditorActionConstants.COPY);
     }
-
-//    IAction preferencesAction = getAction(ITextEditorActionConstants.CONTEXT_PREFERENCES);
-//    menu.appendToGroup(IWorkbenchActionConstants.MB_ADDITIONS, new Separator(
-//        ITextEditorActionConstants.GROUP_SETTINGS));
-//    menu.appendToGroup(ITextEditorActionConstants.GROUP_SETTINGS, preferencesAction);
-    menu.add(new GroupMarker(ITextEditorActionConstants.GROUP_SAVE));
-    menu.appendToGroup(ITextEditorActionConstants.GROUP_SAVE, new Separator(
-        ITextEditorActionConstants.GROUP_OPEN));
-
-    // Removed Open With submenu
-
-    // Removed Show In submenu
   }
 
   /**

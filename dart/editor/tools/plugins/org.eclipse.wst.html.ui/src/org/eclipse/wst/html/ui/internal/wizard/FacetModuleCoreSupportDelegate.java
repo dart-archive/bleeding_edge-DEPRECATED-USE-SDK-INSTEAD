@@ -6,14 +6,9 @@
  *******************************************************************************/
 package org.eclipse.wst.html.ui.internal.wizard;
 
-import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.Path;
-import org.eclipse.wst.common.componentcore.ComponentCore;
-import org.eclipse.wst.common.componentcore.resources.IVirtualComponent;
-import org.eclipse.wst.common.componentcore.resources.IVirtualFolder;
 import org.eclipse.wst.common.project.facet.core.IFacetedProject;
 import org.eclipse.wst.common.project.facet.core.IProjectFacet;
 import org.eclipse.wst.common.project.facet.core.ProjectFacetsManager;
@@ -41,43 +36,43 @@ final class FacetModuleCoreSupportDelegate {
     }
 
     IPath[] paths = null;
-    IVirtualFolder componentFolder = ComponentCore.createFolder(project, Path.ROOT);
-    if (componentFolder != null && componentFolder.exists()) {
-      IContainer[] workspaceFolders = componentFolder.getUnderlyingFolders();
-      paths = new IPath[workspaceFolders.length];
-      for (int i = 0; i < workspaceFolders.length; i++) {
-        paths[i] = workspaceFolders[i].getFullPath();
-      }
-    } else {
-      paths = new IPath[] {project.getFullPath()};
-    }
+//    IVirtualFolder componentFolder = ComponentCore.createFolder(project, Path.ROOT);
+//    if (componentFolder != null && componentFolder.exists()) {
+//      IContainer[] workspaceFolders = componentFolder.getUnderlyingFolders();
+//      paths = new IPath[workspaceFolders.length];
+//      for (int i = 0; i < workspaceFolders.length; i++) {
+//        paths[i] = workspaceFolders[i].getFullPath();
+//      }
+//    } else {
+//      paths = new IPath[] {project.getFullPath()};
+//    }
     return paths;
   }
 
   static IPath getDefaultRoot(IProject project) {
 //    if (ModuleCoreNature.isFlexibleProject(project)) {
-    if (true) {
-      IVirtualFolder componentFolder = ComponentCore.createFolder(project, Path.ROOT);
-      if (componentFolder != null && componentFolder.exists()) {
-        return componentFolder.getWorkspaceRelativePath();
-      }
-    }
+//    if (true) {
+//      IVirtualFolder componentFolder = ComponentCore.createFolder(project, Path.ROOT);
+//      if (componentFolder != null && componentFolder.exists()) {
+//        return componentFolder.getWorkspaceRelativePath();
+//      }
+//    }
     return null;
   }
 
   static IPath getRootContainerForPath(IProject project, IPath path) {
 //    if (ModuleCoreNature.isFlexibleProject(project)) {
-    if (true) {
-      IVirtualFolder componentFolder = ComponentCore.createFolder(project, Path.ROOT);
-      if (componentFolder != null && componentFolder.exists()) {
-        IContainer[] workspaceFolders = componentFolder.getUnderlyingFolders();
-        for (int i = 0; i < workspaceFolders.length; i++) {
-          if (workspaceFolders[i].getFullPath().isPrefixOf(path)) {
-            return workspaceFolders[i].getFullPath();
-          }
-        }
-      }
-    }
+//    if (true) {
+//      IVirtualFolder componentFolder = ComponentCore.createFolder(project, Path.ROOT);
+//      if (componentFolder != null && componentFolder.exists()) {
+//        IContainer[] workspaceFolders = componentFolder.getUnderlyingFolders();
+//        for (int i = 0; i < workspaceFolders.length; i++) {
+//          if (workspaceFolders[i].getFullPath().isPrefixOf(path)) {
+//            return workspaceFolders[i].getFullPath();
+//          }
+//        }
+//      }
+//    }
     return null;
   }
 
@@ -92,12 +87,12 @@ final class FacetModuleCoreSupportDelegate {
     }
 
     IPath path = null;
-    IVirtualComponent component = ComponentCore.createComponent(project);
-    if (component != null && component.exists()) {
-      path = component.getRootFolder().getWorkspaceRelativePath();
-    } else {
-      path = project.getFullPath();
-    }
+//    IVirtualComponent component = ComponentCore.createComponent(project);
+//    if (component != null && component.exists()) {
+//      path = component.getRootFolder().getWorkspaceRelativePath();
+//    } else {
+//      path = project.getFullPath();
+//    }
     return path;
   }
 

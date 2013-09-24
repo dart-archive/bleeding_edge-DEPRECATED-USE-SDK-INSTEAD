@@ -4,7 +4,7 @@
 
 	<extension-point id="catalogFileType" name="%XML_Catalog_File_Type_Extension_Point.name" schema="schema/catalogFileType.exsd"/>
 
-	<extension point="org.eclipse.wst.xml.ui.catalogFileType">
+	<!-- <extension point="org.eclipse.wst.xml.ui.catalogFileType">
 		<fileType
 			extensions="dtd, ent, mod"
 			description="%_UI_PREF_DTD_FILES"
@@ -25,7 +25,7 @@
 			description="%_UI_PREF_CATALOG_FILES"
 			id="org.eclipse.wst.xml.core.ui.catalogFileType.cat">
 		</fileType>
-	</extension>
+	</extension> -->
 
 	<!--The org.eclipse.wst.xml.core.xmlsource content type is only for
 		handling some special cases of ill-formed xml in a reasonable
@@ -42,9 +42,9 @@
 		<quickOutlineConfiguration
 			class="org.eclipse.wst.xml.ui.internal.quickoutline.XMLQuickOutlineConfiguration"
 			target="org.eclipse.core.runtime.xml, org.eclipse.wst.xml.core.xmlsource" />
-		<propertySheetConfiguration
+		<!-- <propertySheetConfiguration
 			class="org.eclipse.wst.xml.ui.views.properties.XMLPropertySheetConfiguration"
-			target="org.eclipse.core.runtime.xml, org.eclipse.wst.xml.core.xmlsource" />
+			target="org.eclipse.core.runtime.xml, org.eclipse.wst.xml.core.xmlsource" /> -->
 		<documentationTextHover
         	class="org.eclipse.wst.xml.ui.internal.taginfo.XMLTagInfoHoverProcessor"
         	target="org.eclipse.wst.xml.XML_DEFAULT">
@@ -163,21 +163,21 @@
 	</extension>
 	<extension point="org.eclipse.ui.preferencePages">
 		<!-- The "top-level" XML category -->
-		<page
+		<!-- <page
 			name="%XML.name"
 			class="org.eclipse.wst.xml.ui.internal.preferences.EmptyFilePreferencePage"
 			id="org.eclipse.wst.xml.ui.preferences.xml">
-		</page>
+		</page> -->
 		<!-- The "lower level" XML Files category/page -->
-		<page
+		<!-- <page
 			name="%XML_Files.name"
 			category="org.eclipse.wst.xml.ui.preferences.xml"
 			class="org.eclipse.wst.xml.ui.internal.preferences.XMLFilesPreferencePage"
 			id="org.eclipse.wst.xml.ui.preferences.xml.xml">
          	<keywordReference id="org.eclipse.wst.xml.ui.files"/>
-        </page>
+        </page> -->
 		<!-- XML PREFERENCE PAGES -->
-		<page
+		<!-- <page
 			name="%XML_Source.name"
 			category="org.eclipse.wst.xml.ui.preferences.xml.xml"
 			class="org.eclipse.wst.xml.ui.internal.preferences.XMLSourcePreferencePage"
@@ -224,11 +224,11 @@
             class="org.eclipse.wst.xml.ui.internal.preferences.XMLValidatorPreferencePage"
             id="org.eclipse.wst.sse.ui.preferences.xml.validation">
        	    <keywordReference id="org.eclipse.wst.xml.ui.severities"/>
-    	</page>
+    	</page> -->
 	</extension>
 	
 	<!-- Web content settings -->
-	<extension point="org.eclipse.ui.propertyPages">
+	<!-- <extension point="org.eclipse.ui.propertyPages">
 		<page
 			name="%XML_Property_validation"
 			class="org.eclipse.wst.xml.ui.internal.preferences.XMLValidatorPreferencePage"
@@ -240,9 +240,9 @@
 				</adapt>
 			</enabledWhen>
 		</page>
-	</extension>
+	</extension> -->
 	<!-- Keywords for preference and properties pages -->
-	<extension point="org.eclipse.ui.keywords">
+	<!-- <extension point="org.eclipse.ui.keywords">
 		<keyword
 			label="%preferenceKeywords.files"
 			id="org.eclipse.wst.xml.ui.files"/>
@@ -264,7 +264,7 @@
 		<keyword
 			label="%preferenceKeywords.severities"
 			id="org.eclipse.wst.xml.ui.severities"/>
-    </extension>
+    </extension> -->
 	
 	<!-- Editor actionsets -->
 	<extension point="org.eclipse.ui.actionSetPartAssociations">
@@ -313,7 +313,7 @@
 		</include>
 	</extension>
 
-	<extension point="org.eclipse.ui.editors">
+	<!-- <extension point="org.eclipse.ui.editors">
 		<editor
 			name="%XML_Editor.name"
 			icon="$nl$/icons/xmldoc.gif"
@@ -327,7 +327,7 @@
 				contentTypeId="org.eclipse.wst.xml.core.xmlsource" />
 
 		</editor>
-	</extension>
+	</extension> -->
 
 	<!-- Editor actionsets -->
 	<extension point="org.eclipse.ui.actionSetPartAssociations">
@@ -1173,13 +1173,13 @@
               <reference definitionId="org.eclipse.wst.xml.ui.selection"/>
           </activeWhen>
        </handler>
-       <handler
+       <!-- <handler
              class="org.eclipse.wst.xml.ui.internal.handlers.XMLFindOccurencesHandler"
              commandId="org.eclipse.wst.sse.ui.search.find.occurrences">
           <activeWhen>
               <reference definitionId="org.eclipse.wst.xml.ui.occurrences"/>
           </activeWhen>
-       </handler>
+       </handler> -->
 <!--
        <handler
              class="org.eclipse.wst.xml.ui.internal.handlers.GoToMatchingTagHandler"

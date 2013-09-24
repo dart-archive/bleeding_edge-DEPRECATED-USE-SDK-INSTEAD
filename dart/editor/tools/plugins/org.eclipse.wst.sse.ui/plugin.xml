@@ -67,14 +67,14 @@
 	</extension>
 	
 	<!-- Keywords for preference and properties pages -->
-	<extension point="org.eclipse.ui.keywords">
+	<!-- <extension point="org.eclipse.ui.keywords">
 		<keyword
 			label="%preferenceKeywords.todo"
 			id="org.eclipse.wst.sse.ui.todo"/>
 		<keyword
 			label="%preferenceKeywords.sseeditor"
 			id="org.eclipse.wst.sse.ui.sseeditor"/>
-    </extension>
+    </extension> -->
     
 	<extension point="org.eclipse.ui.preferencePages">
 		<!-- Source Editor Preference page under Workbench->Editors -->
@@ -98,7 +98,7 @@
 	<!-- ================================================================================================ -->
 	<!-- common task tags property page -->
 	<!-- ================================================================================================ -->
-	<extension point="org.eclipse.ui.propertyPages">
+	<!-- <extension point="org.eclipse.ui.propertyPages">
 		<page
 			id="org.eclipse.wst.sse.ui.project.properties.tasktags"
 			name="%Task_Tags_Preferences.name"
@@ -111,7 +111,7 @@
 			</enabledWhen>
 			<keywordReference id="org.eclipse.wst.sse.ui.todo"/>
 		</page>
-	</extension>
+	</extension> -->
 
 	<!--
 		<extension-point id="dragSourceTransfers" name="Drag Source Transfers"/>
@@ -193,12 +193,12 @@
             id="org.eclipse.wst.sse.ui.goto.matching.bracket">
       </command>
 		<!-- Find Occurrences -->
-		<command
+		<!-- <command
 			name="%command.search.find.occurrences.name"
 			description="%command.search.find.occurrences.description"
 			categoryId="org.eclipse.ui.category.edit"
 			id="org.eclipse.wst.sse.ui.search.find.occurrences">
-		</command>
+		</command> -->
 		<command
 			name="%command.information.quick_outline.name"
 			description="%command.information.quick_outline.description"
@@ -341,12 +341,12 @@
             commandId="org.eclipse.wst.sse.ui.goto.matching.bracket"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
 		<!-- Find Occurrences -->
-		<key
+		<!-- <key
 			sequence="M1+M2+A"
 			contextId="org.eclipse.wst.sse.ui.structuredTextEditorScope"
 			commandId="org.eclipse.wst.sse.ui.search.find.occurrences"
 			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration">
-		</key>
+		</key> -->
 	</extension>
 	<!-- Font and colors contributions -->
 	<extension point="org.eclipse.ui.themes">
@@ -575,13 +575,13 @@
 	        </command>
         </menu>
      </menuContribution>
-		<menuContribution locationURI="menu:sourceMenuId?after=additions">
+		<!-- <menuContribution locationURI="menu:sourceMenuId?after=additions">
 			<command commandId="org.eclipse.wst.sse.ui.search.find.occurrences" id="OccurencesFile" style="push">
 			   <visibleWhen checkEnabled="false">
 					<reference definitionId="org.eclipse.wst.sse.ui.sseActiveContext.definition"></reference>
 				</visibleWhen>
 			</command>
-		</menuContribution>
+		</menuContribution> -->
 	    <!--<menuContribution locationURI="menu:edit?after=additions">
 	       <command commandId="org.eclipse.ui.edit.text.toggleInsertMode" id="ToggleInsertMode" label="%SmartInsert_label" style="toggle">
 			   <visibleWhen checkEnabled="false">

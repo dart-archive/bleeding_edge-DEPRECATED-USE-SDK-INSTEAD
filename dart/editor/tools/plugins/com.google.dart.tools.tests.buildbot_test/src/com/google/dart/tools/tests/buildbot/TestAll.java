@@ -52,7 +52,7 @@ public class TestAll {
     }
 
     // Web
-    suite.addTest(com.google.dart.tools.ui.web.TestAll.suite());
+//    suite.addTest(com.google.dart.tools.ui.web.TestAll.suite());
 
     return suite;
   }
