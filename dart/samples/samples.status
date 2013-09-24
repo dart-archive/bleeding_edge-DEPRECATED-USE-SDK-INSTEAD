@@ -41,7 +41,6 @@ swarm/test/swarm_test: Fail
 # Skip tests that use dart:html on the standalone VM
 clock: Skip
 dartcombat: Skip
-hi: Skip
 solar: Skip
 sunflower: Skip
 swarm: Skip
