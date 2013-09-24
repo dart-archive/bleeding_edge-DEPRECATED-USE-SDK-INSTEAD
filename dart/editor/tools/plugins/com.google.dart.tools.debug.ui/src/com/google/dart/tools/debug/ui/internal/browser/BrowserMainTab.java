@@ -61,6 +61,7 @@ public class BrowserMainTab extends DartiumMainTab {
 
   private Text dart2jsFlagsText;
   private int hIndent = 20;
+  private Button runDart2jsButton;
 
   @Override
   public void createControl(Composite parent) {
@@ -126,6 +127,10 @@ public class BrowserMainTab extends DartiumMainTab {
     GridLayoutFactory.swtDefaults().numColumns(3).applyTo(dart2jsGroup);
     ((GridLayout) dart2jsGroup.getLayout()).marginBottom = 5;
 
+    runDart2jsButton = new Button(dart2jsGroup, SWT.CHECK);
+    runDart2jsButton.setText("Compile before launch");
+    GridDataFactory.swtDefaults().span(3, 1).applyTo(runDart2jsButton);
+
     Label dart2jsLabel = new Label(dart2jsGroup, SWT.NONE);
     dart2jsLabel.setText("Compiler flags:");
     GridDataFactory.swtDefaults().hint(labelWidth + hIndent, -1).applyTo(dart2jsLabel);
@@ -138,7 +143,7 @@ public class BrowserMainTab extends DartiumMainTab {
     GridDataFactory.swtDefaults().hint(widthHint, -1).applyTo(label);
 
     label = new Label(dart2jsGroup, SWT.NONE);
-    label.setText("(e.g. --disallow-unsafe-eval)");
+    label.setText("(e.g. --minify)");
     label.setFont(getItalicFont(label.getFont()));
     GridDataFactory.swtDefaults().indent(hIndent + labelWidth, SWT.DEFAULT).span(3, 1).applyTo(
         label);
@@ -196,6 +201,7 @@ public class BrowserMainTab extends DartiumMainTab {
   public void initializeFrom(ILaunchConfiguration config) {
     super.initializeFrom(config);
     DartLaunchConfigWrapper wrapper = new DartLaunchConfigWrapper(config);
+    runDart2jsButton.setSelection(wrapper.getRunDart2js());
     dart2jsFlagsText.setText(wrapper.getDart2jsFlags());
   }
 
@@ -207,6 +213,7 @@ public class BrowserMainTab extends DartiumMainTab {
     super.performApply(config);
 
     DartLaunchConfigWrapper wrapper = new DartLaunchConfigWrapper(config);
+    wrapper.setRunDart2js(runDart2jsButton.getSelection());
     wrapper.setDart2jsFlags(dart2jsFlagsText.getText().trim());
 
   }
@@ -214,6 +221,8 @@ public class BrowserMainTab extends DartiumMainTab {
   @Override
   public void setDefaults(ILaunchConfigurationWorkingCopy configuration) {
     super.setDefaults(configuration);
+    DartLaunchConfigWrapper wrapper = new DartLaunchConfigWrapper(configuration);
+    wrapper.setRunDart2js(true);
   }
 
   @Override

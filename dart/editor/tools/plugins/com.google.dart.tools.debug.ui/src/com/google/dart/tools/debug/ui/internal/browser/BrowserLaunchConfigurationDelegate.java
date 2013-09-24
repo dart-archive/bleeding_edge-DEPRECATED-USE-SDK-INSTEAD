@@ -125,7 +125,11 @@ public class BrowserLaunchConfigurationDelegate extends DartLaunchConfigurationD
             DartDebugCorePlugin.PLUGIN_ID,
             Messages.BrowserLaunchConfigurationDelegate_HtmlFileNotFound));
       }
-      compileJavascript(resource, wrapper.getDart2jsFlagsAsArray(), monitor);
+
+      if (wrapper.getRunDart2js()) {
+        compileJavascript(resource, wrapper.getDart2jsFlagsAsArray(), monitor);
+      }
+
       try {
         // This returns just a plain file: url.
         ResourceServer server = ResourceServerManager.getServer();
