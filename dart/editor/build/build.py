@@ -6,7 +6,6 @@
 
 import glob
 import gsutil
-import hashlib
 import imp
 import optparse
 import os
