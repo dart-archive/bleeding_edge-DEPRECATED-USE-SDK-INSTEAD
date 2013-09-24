@@ -1190,7 +1190,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     Map<String, Type> overriddenNamedPT = overriddenFT.getNamedParameterTypes();
 
     // CTEC.INVALID_OVERRIDE_REQUIRED, CTEC.INVALID_OVERRIDE_POSITIONAL and CTEC.INVALID_OVERRIDE_NAMED
-    if (overridingNormalPT.length != overriddenNormalPT.length) {
+    if (overridingNormalPT.length > overriddenNormalPT.length) {
       errorReporter.reportError(
           StaticWarningCode.INVALID_OVERRIDE_REQUIRED,
           errorNameTarget,

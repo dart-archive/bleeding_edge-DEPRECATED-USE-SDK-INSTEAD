@@ -412,14 +412,14 @@ public enum StaticWarningCode implements ErrorCode {
 
   /**
    * 7.1 Instance Methods: It is a static warning if an instance method <i>m1</i> overrides an
-   * instance member <i>m2</i> and <i>m1</i> has a different number of required parameters than
+   * instance member <i>m2</i> and <i>m1</i> has a greater number of required parameters than
    * <i>m2</i>.
    * 
    * @param paramCount the number of required parameters in the overridden member
    * @param className the name of the class from the overridden method
    */
   INVALID_OVERRIDE_REQUIRED(
-      "Must have exactly %d required parameters to match the overridden method from '%s'"),
+      "Must have %d required parameters or less to match the overridden method from '%s'"),
 
   /**
    * 7.3 Setters: It is a static warning if a setter <i>m1</i> overrides a setter <i>m2</i> and the
