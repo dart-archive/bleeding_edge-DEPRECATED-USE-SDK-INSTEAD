@@ -99,6 +99,11 @@ public class CompilationUnit extends ASTNode {
   private AnalysisError[] resolutionErrors = AnalysisError.NO_ERRORS;
 
   /**
+   * The hints reported when the receiver was analyzed.
+   */
+  private AnalysisError[] hints = AnalysisError.NO_ERRORS;
+
+  /**
    * Initialize a newly created compilation unit to have the given directives and declarations.
    * 
    * @param beginToken the first token in the token stream
@@ -168,16 +173,36 @@ public class CompilationUnit extends ASTNode {
   public AnalysisError[] getErrors() {
     AnalysisError[] parserErrors = getParsingErrors();
     AnalysisError[] resolverErrors = getResolutionErrors();
-    if (resolverErrors.length == 0) {
+    AnalysisError[] hints = getHints();
+    if (resolverErrors.length == 0 && hints.length == 0) {
       return parserErrors;
-    } else if (parserErrors.length == 0) {
+    } else if (parserErrors.length == 0 && hints.length == 0) {
       return resolverErrors;
+    } else if (parserErrors.length == 0 && resolverErrors.length == 0) {
+      return hints;
     } else {
-      AnalysisError[] allErrors = new AnalysisError[parserErrors.length + resolverErrors.length];
+      AnalysisError[] allErrors = new AnalysisError[parserErrors.length + resolverErrors.length
+          + hints.length];
       System.arraycopy(parserErrors, 0, allErrors, 0, parserErrors.length);
       System.arraycopy(resolverErrors, 0, allErrors, parserErrors.length, resolverErrors.length);
+      System.arraycopy(
+          hints,
+          0,
+          allErrors,
+          parserErrors.length + resolverErrors.length,
+          hints.length);
       return allErrors;
     }
+  }
+
+  /**
+   * Return an array containing all of the hints associated with the receiver. The array will be
+   * empty if the receiver has not been analyzed.
+   * 
+   * @return the hints associated with the receiver
+   */
+  public AnalysisError[] getHints() {
+    return hints;
   }
 
   @Override
@@ -239,6 +264,15 @@ public class CompilationUnit extends ASTNode {
    */
   public void setElement(CompilationUnitElement element) {
     this.element = element;
+  }
+
+  /**
+   * Set the reported hints associated with this compilation unit.
+   * 
+   * @param the hints to be associated with this compilation unit
+   */
+  public void setHints(AnalysisError[] errors) {
+    hints = errors == null ? AnalysisError.NO_ERRORS : errors;
   }
 
   /**

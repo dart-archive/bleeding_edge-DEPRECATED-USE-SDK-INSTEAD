@@ -911,6 +911,36 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
             ""));
   }
 
+  public void test_isNotNull() throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main(p) {",
+        "  p is! Null;",
+        "}");
+    assert_runProcessor(
+        CorrectionKind.QF_USE_NOT_EQ_NULL,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "main(p) {",
+            "  p != null;",
+            "}"));
+  }
+
+  public void test_isNull() throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main(p) {",
+        "  p is Null;",
+        "}");
+    assert_runProcessor(
+        CorrectionKind.QF_USE_EQ_EQ_NULL,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "main(p) {",
+            "  p == null;",
+            "}"));
+  }
+
   public void test_makeEnclosingClassAbstract_declaresAbstractMethod() throws Exception {
     prepareProblemWithFix(
         "// filler filler filler filler filler filler filler filler filler filler",

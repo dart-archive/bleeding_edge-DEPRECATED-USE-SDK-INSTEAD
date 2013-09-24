@@ -33,6 +33,7 @@ import com.google.dart.engine.ast.FieldDeclaration;
 import com.google.dart.engine.ast.FunctionBody;
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.ast.ImportDirective;
+import com.google.dart.engine.ast.IsExpression;
 import com.google.dart.engine.ast.LibraryDirective;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.MethodInvocation;
@@ -43,6 +44,7 @@ import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.SimpleStringLiteral;
 import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.VariableDeclaration;
+import com.google.dart.engine.ast.visitor.NodeLocator;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
@@ -99,6 +101,8 @@ import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeEn
 import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeError;
 import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeNode;
 import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeStartLength;
+import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeStartStart;
+import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeToken;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -245,11 +249,10 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
 //  private SourceRange proposalEndRange = null;
 
   private ASTNode node;
+  private ASTNode coveredNode;
 
   private int selectionOffset;
-
   private int selectionLength;
-
   private CorrectionUtils utils;
 
   private final Map<SourceRange, Edit> positionStopEdits = Maps.newHashMap();
@@ -366,6 +369,7 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
     // prepare CorrectionUtils
     utils = new CorrectionUtils(unit);
     node = utils.findNode(selectionOffset, ASTNode.class);
+    coveredNode = new NodeLocator(selectionOffset, selectionOffset + selectionLength).searchWithin(unit);
     //
     final InstrumentationBuilder instrumentation = Instrumentation.builder(this.getClass());
     try {
@@ -389,6 +393,12 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
       }
       if (errorCode == HintCode.DIVISION_OPTIMIZATION) {
         addFix_useEffectiveIntegerDivision();
+      }
+      if (errorCode == HintCode.TYPE_CHECK_IS_NOT_NULL) {
+        addFix_isNotNull();
+      }
+      if (errorCode == HintCode.TYPE_CHECK_IS_NULL) {
+        addFix_isNull();
       }
       if (errorCode == ParserErrorCode.EXPECTED_TOKEN) {
         addFix_insertSemicolon();
@@ -467,6 +477,7 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
         || errorCode == CompileTimeErrorCode.UNDEFINED_FUNCTION
         || errorCode == CompileTimeErrorCode.URI_DOES_NOT_EXIST
         || errorCode == HintCode.DIVISION_OPTIMIZATION
+        || errorCode == HintCode.TYPE_CHECK_IS_NOT_NULL || errorCode == HintCode.TYPE_CHECK_IS_NULL
         || errorCode == ParserErrorCode.EXPECTED_TOKEN
         || errorCode == ParserErrorCode.GETTER_WITH_PARAMETERS
         || errorCode == StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
@@ -984,6 +995,22 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
     }
   }
 
+  private void addFix_isNotNull() throws Exception {
+    if (coveredNode instanceof IsExpression) {
+      IsExpression isExpression = (IsExpression) coveredNode;
+      addReplaceEdit(rangeEndEnd(isExpression.getExpression(), isExpression), " != null");
+      addUnitCorrectionProposal(CorrectionKind.QF_USE_NOT_EQ_NULL);
+    }
+  }
+
+  private void addFix_isNull() throws Exception {
+    if (coveredNode instanceof IsExpression) {
+      IsExpression isExpression = (IsExpression) coveredNode;
+      addReplaceEdit(rangeEndEnd(isExpression.getExpression(), isExpression), " == null");
+      addUnitCorrectionProposal(CorrectionKind.QF_USE_EQ_EQ_NULL);
+    }
+  }
+
   private void addFix_makeEnclosingClassAbstract() {
     ClassDeclaration enclosingClass = node.getAncestor(ClassDeclaration.class);
     String className = enclosingClass.getName().getName();
@@ -1311,10 +1338,10 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
         }
         // replace "/" with "~/"
         BinaryExpression binary = (BinaryExpression) target;
-        addReplaceEdit(SourceRangeFactory.rangeToken(binary.getOperator()), "~/");
+        addReplaceEdit(rangeToken(binary.getOperator()), "~/");
         // remove everything before and after
-        addRemoveEdit(SourceRangeFactory.rangeStartStart(invocation, binary.getLeftOperand()));
-        addRemoveEdit(SourceRangeFactory.rangeEndEnd(binary.getRightOperand(), invocation));
+        addRemoveEdit(rangeStartStart(invocation, binary.getLeftOperand()));
+        addRemoveEdit(rangeEndEnd(binary.getRightOperand(), invocation));
         // add proposal
         addUnitCorrectionProposal(CorrectionKind.QF_USE_EFFECTIVE_INTEGER_DIVISION);
         // done

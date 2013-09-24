@@ -61,7 +61,9 @@ public enum CorrectionKind {
   QF_REMOVE_PARAMETERS_IN_GETTER_DECLARATION(50, "Remove parameters in getter declaration"),
   QF_REMOVE_PARENTHESIS_IN_GETTER_INVOCATION(50, "Remove parentheses in getter invocation"),
   QF_REPLACE_BOOLEAN_WITH_BOOL(50, "Replace 'boolean' with 'bool'"),
-  QF_USE_EFFECTIVE_INTEGER_DIVISION(50, "Use effective integer division ~/");
+  QF_USE_EFFECTIVE_INTEGER_DIVISION(50, "Use effective integer division ~/"),
+  QF_USE_EQ_EQ_NULL(50, "Use == null instead of 'is Null'"),
+  QF_USE_NOT_EQ_NULL(50, "Use != null instead of 'is! Null'");
 
   private final int relevance;
   private final CorrectionImage image;
