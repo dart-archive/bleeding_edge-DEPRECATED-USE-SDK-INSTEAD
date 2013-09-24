@@ -42,14 +42,11 @@ public class ChromePackagedAppSampleTest extends TestCase {
 
       IFile buildFile = parent.getParent().getFile(new Path("build.dart"));
       assertTrue(buildFile.exists());
-      // TODO(devoncarew): This is using package: now. We should determine how to test code that
-      // uses pub packages that exist in the svn repo.
-      //GeneratorUtils.assertNoAnalysisErrors(buildFile);
+      GeneratorUtils.assertNoAnalysisErrors(buildFile);
 
       IFile fooDartFile = parent.getFile(new Path("foo.dart"));
       assertTrue(fooDartFile.exists());
-      // TODO(devoncarew): we can't call this - web_ui doesn't exist in our repo
-      //GeneratorUtils.assertNoAnalysisErrors(fooDartFile);
+      GeneratorUtils.assertNoAnalysisErrors(fooDartFile);
     } finally {
       testProject.dispose();
     }

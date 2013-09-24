@@ -1,15 +1,13 @@
 import 'dart:html';
-
-import 'package:js/js.dart' as js;
+import 'dart:js';
 
 int boundsChange = 100;
 
 /**
- * For non-trivial uses of the Chrome apps API, please see the 'chrome'
- * package.
+ * For non-trivial uses of the Chrome apps API, please see the
+ * [chrome](http://pub.dartlang.org/packages/chrome).
  * 
- * http://pub.dartlang.org/packages/chrome
- * http://developer.chrome.com/apps/api_index.html
+ * * http://developer.chrome.com/apps/api_index.html
  */
 void main() {
   query("#sample_text_id")
@@ -18,13 +16,14 @@ void main() {
 }
 
 void resizeWindow(MouseEvent event) {
-  var appWindow = js.context.chrome.app.window.current();
-  var bounds = appWindow.getBounds();
+  JsObject appWindow = 
+      context['chrome']['app']['window'].callMethod('current', []);
+  JsObject bounds = appWindow.callMethod('getBounds', []);
   
-  bounds.width += boundsChange;
-  bounds.left -= boundsChange ~/ 2;
+  bounds['width'] += boundsChange;
+  bounds['left'] -= boundsChange ~/ 2;
   
-  appWindow.setBounds(bounds);
+  appWindow.callMethod('setBounds', [bounds]);
   
   boundsChange *= -1;
 }
