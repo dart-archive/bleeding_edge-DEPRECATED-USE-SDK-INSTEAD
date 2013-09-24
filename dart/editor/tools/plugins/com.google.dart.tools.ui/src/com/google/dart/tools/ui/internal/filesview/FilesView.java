@@ -40,7 +40,6 @@ import com.google.dart.tools.ui.internal.handlers.OpenFolderHandler;
 import com.google.dart.tools.ui.internal.projects.HideProjectAction;
 import com.google.dart.tools.ui.internal.projects.OpenNewApplicationWizardAction;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringUtils;
-import com.google.dart.tools.ui.internal.util.ExternalBrowserUtil;
 import com.google.dart.tools.ui.internal.util.SWTUtil;
 
 import org.eclipse.core.commands.operations.IUndoContext;
@@ -125,7 +124,11 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
 
     @Override
     public void run() {
-      ExternalBrowserUtil.openInExternalBrowser("http://pub.dartlang.org/packages");
+        try {
+        getSite().getPage().showView("com.google.dart.tools.ui.view.packages");
+      } catch (PartInitException e) {
+        DartToolsPlugin.log(e);
+      }
     }
   }
 

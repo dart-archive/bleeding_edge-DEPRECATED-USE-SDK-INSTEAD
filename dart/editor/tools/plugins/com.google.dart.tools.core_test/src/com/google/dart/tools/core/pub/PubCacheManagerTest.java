@@ -76,6 +76,21 @@ public class PubCacheManagerTest extends TestCase {
 
   private MockWorkspaceRoot rootContainer;
 
+  public void test_getAllCachePackages() {
+    Map<String, Object> p = manager.getAllCachePackages();
+    assertNotNull(p);
+    assertTrue(p.isEmpty());
+  }
+
+  public void test_getCacheLocation() {
+    manager.updatePackagesList(0);
+    String location = manager.getCacheLocation("browser", "0.5.20");
+    assertNotNull(location);
+    assertEquals("/Users/keertip/.pub-cache/hosted/pub.dartlang.org/browser-0.5.20", location);
+    location = manager.getCacheLocation("args", "0.5.20");
+    assertNull(location);
+  }
+
   public void test_getLocalPackages() {
     Map<String, Object> p = manager.getLocalPackages();
     assertNotNull(p);

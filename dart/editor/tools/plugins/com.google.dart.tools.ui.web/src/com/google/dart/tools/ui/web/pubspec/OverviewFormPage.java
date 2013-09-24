@@ -51,6 +51,7 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IFileEditorInput;
+import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.forms.IManagedForm;
 import org.eclipse.ui.forms.SectionPart;
 import org.eclipse.ui.forms.editor.FormEditor;
@@ -292,10 +293,17 @@ public class OverviewFormPage extends FormPage implements IModelListener {
 
     GridLayoutFactory.fillDefaults().spacing(15, 5).applyTo(links);
 
-    createExternalLink(
-        links,
-        "Show packages on pub.dartlang.org",
-        "http://pub.dartlang.org/packages");
+    Hyperlink link = toolkit.createHyperlink(client, "Show packages on pub.dartlang.org", SWT.NONE);
+    link.addHyperlinkListener(new HyperlinkAdapter() {
+      @Override
+      public void linkActivated(HyperlinkEvent e) {
+        try {
+          getSite().getPage().showView("com.google.dart.tools.ui.view.packages");
+        } catch (PartInitException exception) {
+          DartWebPlugin.logError(exception);
+        }
+      }
+    });
     createExternalLink(
         links,
         "View Pubspec documentation",

@@ -48,23 +48,14 @@ public class PubCacheManager {
       this.packages = packages;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public IStatus run(IProgressMonitor monitor) {
 
-      String message = getPubCacheList();
-      // no errors
-      if (message.startsWith("{\"packages")) {
-        Map<String, Object> object = null;
-        try {
-          object = PubYamlUtils.parsePubspecYamlToMap(message);
-          synchronized (pubUsedPackages) {
-            pubCachePackages = (HashMap<String, Object>) object.get(PubspecConstants.PACKAGES);
-          }
-        } catch (Exception e) {
-          DartCore.logError("Error while parsing pub cache list", e);
+      HashMap<String, Object> object = readPackageInfo();
+      if (object != null) {
+        synchronized (pubUsedPackages) {
+          pubCachePackages = object;
         }
-
         if (packages == null) {
           initializeList();
           if (!pubUsedPackages.isEmpty()) {
@@ -76,9 +67,8 @@ public class PubCacheManager {
             PubManager.getInstance().notifyListeners(added);
           }
         }
-      } else {
-        DartCore.logError(message);
       }
+
       return Status.OK_STATUS;
     }
 
@@ -88,6 +78,10 @@ public class PubCacheManager {
    * A map to store the list of the installed packages and their locations, synchronize on
    * pubUsedPackages
    */
+  // {action_consolidator=
+  //    {0.1.3=
+  //           {location=/Users/keertip/.pub-cache/hosted/pub.dartlang.org/action_consolidator-0.1.3}},..
+  // }
   protected HashMap<String, Object> pubCachePackages = new HashMap<String, Object>();
 
   /**
@@ -105,11 +99,56 @@ public class PubCacheManager {
   // keeps track of packages last updated
   private Map<String, String> currentPackages;
 
+  /**
+   * Return information about all the cached packages
+   */
+  public HashMap<String, Object> getAllCachePackages() {
+    synchronized (pubUsedPackages) {
+      HashMap<String, Object> copy = new HashMap<String, Object>(pubCachePackages);
+      return copy;
+    }
+  }
+
+  /**
+   * Look in the pub cache list and return the location of package-version or {@code null} if not
+   * found
+   * 
+   * @param packageName
+   * @param version
+   */
+  @SuppressWarnings("unchecked")
+  public String getCacheLocation(String packageName, String version) {
+    HashMap<String, Object> map;
+    synchronized (pubUsedPackages) {
+      map = (HashMap<String, Object>) pubCachePackages.get(packageName);
+    }
+    if (map != null && map.keySet().contains(version)) {
+      return ((Map<String, String>) map.get(version)).get(PubspecConstants.LOCATION);
+    }
+    return null;
+  }
+
+  /**
+   * Return information about all the packages currently being used in all open folders
+   */
   public HashMap<String, Object> getLocalPackages() {
     synchronized (pubUsedPackages) {
       HashMap<String, Object> copy = new HashMap<String, Object>(pubUsedPackages);
       return copy;
     }
+  }
+
+  /**
+   * Run pub cache list and get the latest information about all cached packages.
+   */
+  public HashMap<String, Object> updateAndGetAllCachePackages() {
+    HashMap<String, Object> map = readPackageInfo();
+    if (map != null) {
+      synchronized (pubUsedPackages) {
+        pubCachePackages = map;
+      }
+    }
+    return getAllCachePackages();
   }
 
   public void updatePackagesList(int delay) {
@@ -179,7 +218,10 @@ public class PubCacheManager {
    */
   @SuppressWarnings("unchecked")
   private Map<String, String> getVersionInfo(String packageName, String version) {
-    Map<String, Map<String, String>> object = (Map<String, Map<String, String>>) pubCachePackages.get(packageName);
+    Map<String, Map<String, String>> object;
+    synchronized (pubUsedPackages) {
+      object = (Map<String, Map<String, String>>) pubCachePackages.get(packageName);
+    }
     if (object != null) {
       Map<String, String> versionInfo = object.get(version);
       return versionInfo;
@@ -210,5 +252,23 @@ public class PubCacheManager {
       }
     }
 
+  }
+
+  @SuppressWarnings("unchecked")
+  private HashMap<String, Object> readPackageInfo() {
+    String message = getPubCacheList();
+    // no errors
+    if (message.startsWith("{\"packages")) {
+      Map<String, Object> object = null;
+      try {
+        object = PubYamlUtils.parsePubspecYamlToMap(message);
+      } catch (Exception e) {
+        DartCore.logError("Error while parsing pub cache list", e);
+      }
+      return (HashMap<String, Object>) object.get(PubspecConstants.PACKAGES);
+    } else {
+      DartCore.logError(message);
+    }
+    return null;
   }
 }

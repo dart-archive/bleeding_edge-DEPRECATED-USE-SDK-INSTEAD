@@ -18,6 +18,7 @@ import com.google.dart.tools.core.utilities.yaml.PubYamlUtils;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.ListenerList;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.json.JSONArray;
@@ -34,7 +35,7 @@ import java.net.URLConnection;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -48,20 +49,10 @@ public class PubPackageManager {
     return INSTANCE;
   }
 
-  /**
-   * Map containing name and map with pubspec and url for the packages on pub.dartlang.org. Access
-   * to this should be synchronized against lock
-   */
-  // mongo_dart_query={pubspec={author=Vadim Tsushko <vadimtsushko@gmail.com>,
-  //                            dependencies={bson=>=0.1.7 <2.0.0}, 
-  //                            dev_dependencies={unittest=any, browser=any},
-  //                            description=Query builder for mongo_dart and objectory, 
-  //                            name=mongo_dart_query,
-  //                            homepage=https://github.com/vadimtsushko/mongo_dart_query, 
-  //                            version=0.1.8},
-  //                  url=http://pub.dartlang.org/api/packages/mongo_dart_query}}
-  //
-  private HashMap<String, HashMap<String, Object>> webPackages = new HashMap<String, HashMap<String, Object>>();
+  private List<String> packagesList = new ArrayList<String>();
+  private List<PubPackageObject> pubPackages = new ArrayList<PubPackageObject>();
+
+  private final ListenerList listeners = new ListenerList();
 
   /**
    * Used to synchronize access to webPackages
@@ -69,13 +60,17 @@ public class PubPackageManager {
   private Object lock = new Object();
   private Job job;
 
+  public void addListener(IPubPackageListener listener) {
+    listeners.add(listener);
+  }
+
   /**
    * Return a list containing the names of the packages on pub
    */
   public Collection<String> getPackageList() {
     startPackageListFromPubJob();
     synchronized (lock) {
-      return new ArrayList<String>(webPackages.keySet());
+      return new ArrayList<String>(packagesList);
     }
   }
 
@@ -88,17 +83,27 @@ public class PubPackageManager {
   }
 
   /**
-   * Return a map of names and information for the packages
+   * Return an array of {@link PubPackageObject}, the packages on pub
    */
-  public HashMap<String, HashMap<String, Object>> getPackages() {
+  public List<PubPackageObject> getPubPackages() {
     startPackageListFromPubJob();
     synchronized (lock) {
-      return new HashMap<String, HashMap<String, Object>>(webPackages);
+      return new ArrayList<PubPackageObject>(pubPackages);
     }
   }
 
   public void initialize() {
     startPackageListFromPubJob();
+  }
+
+  public void notifyListeners(List<PubPackageObject> packages) {
+    for (Object listener : listeners.getListeners()) {
+      ((IPubPackageListener) listener).pubPackagesChanged(packages);
+    }
+  }
+
+  public void removeListener(IPubPackageListener listener) {
+    listeners.remove(listener);
   }
 
   public void stop() {
@@ -173,7 +178,9 @@ public class PubPackageManager {
   //   "url":"http://pub.dartlang.org/api/packages/mongo_dart_query"}
   //
   private IStatus processData(JSONArray jsonArray, IProgressMonitor monitor) {
-    HashMap<String, HashMap<String, Object>> packagesMap = new HashMap<String, HashMap<String, Object>>();
+
+    List<PubPackageObject> packageObjectList = new ArrayList<PubPackageObject>();
+    List<String> packageNames = new ArrayList<String>();
 
     for (int j = 0; j < jsonArray.length(); j++) {
       JSONArray packages;
@@ -181,12 +188,17 @@ public class PubPackageManager {
         packages = jsonArray.getJSONArray(j);
         for (int i = 0; i < packages.length(); i++) {
           JSONObject o = new JSONObject(packages.getString(i));
-          HashMap<String, Object> map = new HashMap<String, Object>();
-          map.put("url", o.getString("url"));
+          String name = o.getString(PubspecConstants.NAME);
           Map<String, Object> pubspec = PubYamlUtils.parsePubspecYamlToMap(o.getJSONObject("latest").getString(
               "pubspec"));
-          map.put("pubspec", pubspec);
-          packagesMap.put(o.getString("name"), map);
+
+          PubPackageObject obj = new PubPackageObject(
+              name,
+              (String) pubspec.get(PubspecConstants.DESCRIPTION),
+              (String) pubspec.get(PubspecConstants.VERSION),
+              o.getString("url"));
+          packageObjectList.add(obj);
+          packageNames.add(name);
         }
       } catch (JSONException e) {
         DartCore.logError(e);
@@ -196,8 +208,10 @@ public class PubPackageManager {
       }
     }
     synchronized (lock) {
-      webPackages = packagesMap;
+      pubPackages = packageObjectList;
+      packagesList = packageNames;
     }
+    notifyListeners(getPubPackages());
     return Status.OK_STATUS;
   }
 
