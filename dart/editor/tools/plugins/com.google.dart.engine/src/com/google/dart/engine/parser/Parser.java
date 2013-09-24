@@ -5608,7 +5608,7 @@ public class Parser {
           commentToken.getOffset() + matcher.start(1),
           matcher.end(1) - matcher.start(1),
           TodoCode.TODO,
-          matcher.group()));
+          matcher.group(1)));
     }
   }
 
