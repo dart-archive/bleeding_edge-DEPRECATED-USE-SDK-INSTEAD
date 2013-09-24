@@ -18,6 +18,7 @@ import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.ErrorSeverity;
+import com.google.dart.engine.internal.context.PerformanceStatistics;
 
 import java.io.File;
 import java.io.IOException;
@@ -160,6 +161,7 @@ public class AnalyzerMain {
         : System.out, options);
 
     List<AnalysisError> errors = new ArrayList<AnalysisError>();
+    long startTime = System.currentTimeMillis();
 
     formatter.startAnalysis();
 
@@ -170,6 +172,16 @@ public class AnalyzerMain {
 
     if (status.equals(ErrorSeverity.WARNING) && options.getWarningsAreFatal()) {
       status = ErrorSeverity.ERROR;
+    }
+
+    if (options.getPerf()) {
+      long totalTime = System.currentTimeMillis() - startTime;
+      System.out.println("scan:" + PerformanceStatistics.scan.getResult());
+      System.out.println("parse:" + PerformanceStatistics.parse.getResult());
+      System.out.println("resolve:" + PerformanceStatistics.resolve.getResult());
+      System.out.println("errors:" + PerformanceStatistics.errors.getResult());
+      System.out.println("hints:" + PerformanceStatistics.hints.getResult());
+      System.out.println("total:" + totalTime);
     }
 
     return status;

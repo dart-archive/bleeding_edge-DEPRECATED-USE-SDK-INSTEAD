@@ -26,12 +26,14 @@ import com.google.dart.engine.ast.UriBasedDirective;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
+import com.google.dart.engine.internal.context.PerformanceStatistics;
 import com.google.dart.engine.internal.context.RecordingErrorListener;
 import com.google.dart.engine.parser.Parser;
 import com.google.dart.engine.scanner.CharBufferScanner;
 import com.google.dart.engine.scanner.StringScanner;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.utilities.general.TimeCounter.TimeCounterHandle;
 import com.google.dart.engine.utilities.io.UriUtilities;
 import com.google.dart.engine.utilities.source.LineInfo;
 
@@ -224,6 +226,7 @@ public class ParseDartTask extends AnalysisTask {
     //
     // Scan the contents of the file.
     //
+    TimeCounterHandle timeCounterScan = PerformanceStatistics.scan.start();
     Source.ContentReceiver receiver = new Source.ContentReceiver() {
       @Override
       public void accept(CharBuffer contents, long modificationTime) {
@@ -247,9 +250,11 @@ public class ParseDartTask extends AnalysisTask {
       modificationTime = source.getModificationStamp();
       throw new AnalysisException(exception);
     }
+    timeCounterScan.stop();
     //
     // Then parse the token stream.
     //
+    TimeCounterHandle timeCounterParse = PerformanceStatistics.parse.start();
     Parser parser = new Parser(source, errorListener);
     unit = parser.parseCompilationUnit(token[0]);
     errors = errorListener.getErrors(source);
@@ -277,6 +282,7 @@ public class ParseDartTask extends AnalysisTask {
     }
     unit.setParsingErrors(errors);
     unit.setLineInfo(lineInfo);
+    timeCounterParse.stop();
   }
 
   /**

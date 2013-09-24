@@ -18,6 +18,7 @@ import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
+import com.google.dart.engine.internal.context.PerformanceStatistics;
 import com.google.dart.engine.internal.context.RecordingErrorListener;
 import com.google.dart.engine.internal.context.ResolvableCompilationUnit;
 import com.google.dart.engine.internal.error.ErrorReporter;
@@ -32,6 +33,7 @@ import com.google.dart.engine.internal.verifier.ConstantVerifier;
 import com.google.dart.engine.internal.verifier.ErrorVerifier;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.utilities.general.TimeCounter.TimeCounterHandle;
 
 /**
  * Instances of the class {@code ResolveDartUnitTask} resolve a single Dart file based on a existing
@@ -170,6 +172,7 @@ public class ResolveDartUnitTask extends AnalysisTask {
     //
     // Perform additional error checking.
     //
+    TimeCounterHandle counterHandleErrors = PerformanceStatistics.errors.start();
     ErrorReporter errorReporter = new ErrorReporter(errorListener, source);
     ErrorVerifier errorVerifier = new ErrorVerifier(
         errorReporter,
@@ -180,6 +183,7 @@ public class ResolveDartUnitTask extends AnalysisTask {
 
     ConstantVerifier constantVerifier = new ConstantVerifier(errorReporter, typeProvider);
     unit.accept(constantVerifier);
+    counterHandleErrors.stop();
     //
     // Capture the results.
     //

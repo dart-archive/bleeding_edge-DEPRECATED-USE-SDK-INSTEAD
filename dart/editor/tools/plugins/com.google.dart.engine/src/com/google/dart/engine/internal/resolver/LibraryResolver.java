@@ -38,6 +38,7 @@ import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.error.CompileTimeErrorCode;
 import com.google.dart.engine.internal.constant.ConstantValueComputer;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
+import com.google.dart.engine.internal.context.PerformanceStatistics;
 import com.google.dart.engine.internal.context.RecordingErrorListener;
 import com.google.dart.engine.internal.element.ExportElementImpl;
 import com.google.dart.engine.internal.element.HideElementCombinatorImpl;
@@ -50,6 +51,7 @@ import com.google.dart.engine.internal.verifier.ConstantVerifier;
 import com.google.dart.engine.internal.verifier.ErrorVerifier;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.utilities.general.TimeCounter.TimeCounterHandle;
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.engine.utilities.io.UriUtilities;
@@ -527,12 +529,14 @@ public class LibraryResolver {
    * @throws AnalysisException if any of the type hierarchies could not be resolved
    */
   private void buildTypeHierarchies() throws AnalysisException {
+    TimeCounterHandle timeCounter = PerformanceStatistics.resolve.start();
     for (Library library : librariesInCycles) {
       for (Source source : library.getCompilationUnitSources()) {
         TypeResolverVisitor visitor = new TypeResolverVisitor(library, source, typeProvider);
         library.getAST(source).accept(visitor);
       }
     }
+    timeCounter.stop();
   }
 
   /**
@@ -757,6 +761,7 @@ public class LibraryResolver {
    * Compute a value for all of the constants in the libraries being analyzed.
    */
   private void performConstantEvaluation() {
+    TimeCounterHandle timeCounter = PerformanceStatistics.resolve.start();
     ConstantValueComputer computer = new ConstantValueComputer();
     for (Library library : librariesInCycles) {
       for (Source source : library.getCompilationUnitSources()) {
@@ -774,6 +779,7 @@ public class LibraryResolver {
       }
     }
     computer.computeValues();
+    timeCounter.stop();
   }
 
   /**
@@ -796,6 +802,7 @@ public class LibraryResolver {
    *           the library cannot be analyzed
    */
   private void resolveReferencesAndTypes(Library library) throws AnalysisException {
+    TimeCounterHandle timeCounter = PerformanceStatistics.resolve.start();
     for (Source source : library.getCompilationUnitSources()) {
       ResolverVisitor visitor = new ResolverVisitor(library, source, typeProvider);
       library.getAST(source).accept(visitor);
@@ -805,6 +812,7 @@ public class LibraryResolver {
         }
       }
     }
+    timeCounter.stop();
   }
 
   /**
@@ -850,6 +858,7 @@ public class LibraryResolver {
    *           the library cannot be analyzed
    */
   private void runAdditionalAnalyses(Library library) throws AnalysisException {
+    TimeCounterHandle timeCounter = PerformanceStatistics.errors.start();
     for (Source source : library.getCompilationUnitSources()) {
       ErrorReporter errorReporter = new ErrorReporter(errorListener, source);
       CompilationUnit unit = library.getAST(source);
@@ -866,5 +875,6 @@ public class LibraryResolver {
           library.getInheritanceManager());
       unit.accept(errorVerifier);
     }
+    timeCounter.stop();
   }
 }

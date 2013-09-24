@@ -15,8 +15,10 @@ package com.google.dart.engine.internal.builder;
 
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisException;
+import com.google.dart.engine.internal.context.PerformanceStatistics;
 import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.utilities.general.TimeCounter.TimeCounterHandle;
 
 /**
  * Instances of the class {@code CompilationUnitBuilder} build an element model for a single
@@ -44,6 +46,7 @@ public class CompilationUnitBuilder {
    */
   public CompilationUnitElementImpl buildCompilationUnit(Source source, CompilationUnit unit)
       throws AnalysisException {
+    TimeCounterHandle timeCounter = PerformanceStatistics.resolve.start();
     if (unit == null) {
       return null;
     }
@@ -59,6 +62,7 @@ public class CompilationUnitBuilder {
     element.setTypes(holder.getTypes());
     element.setTopLevelVariables(holder.getTopLevelVariables());
     unit.setElement(element);
+    timeCounter.stop();
     return element;
   }
 }

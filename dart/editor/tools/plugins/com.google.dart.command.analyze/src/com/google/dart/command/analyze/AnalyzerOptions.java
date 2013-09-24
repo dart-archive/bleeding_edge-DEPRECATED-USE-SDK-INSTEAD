@@ -169,6 +169,10 @@ public class AnalyzerOptions {
   usage = "Show hint results")
   private boolean hints = false;
 
+  @Option(name = "--perf",//
+  usage = "Print performance statistics")
+  private boolean perf = false;
+
   @Argument
   private final String sourceFile = null;
 
@@ -200,6 +204,13 @@ public class AnalyzerOptions {
    */
   public File getPackageRootPath() {
     return packageRootPath;
+  }
+
+  /**
+   * @return whether performance statistics should be printed.
+   */
+  public boolean getPerf() {
+    return perf;
   }
 
   /**

@@ -20,8 +20,10 @@ import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.error.HintCode;
+import com.google.dart.engine.internal.context.PerformanceStatistics;
 import com.google.dart.engine.internal.error.ErrorReporter;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.utilities.general.TimeCounter.TimeCounterHandle;
 
 /**
  * Instances of the class {@code HintGenerator} traverse a library's worth of dart code at a time to
@@ -53,6 +55,7 @@ public class HintGenerator {
   }
 
   public void generateForLibrary() throws AnalysisException {
+    TimeCounterHandle timeCounter = PerformanceStatistics.hints.start();
     for (int i = 0; i < compilationUnits.length; i++) {
       CompilationUnitElement element = compilationUnits[i].getElement();
       if (element != null) {
@@ -70,6 +73,7 @@ public class HintGenerator {
         compilationUnits[0].getElement().getSource());
     importsVerifier.generateDuplicateImportHints(definingCompilationUnitErrorReporter);
     importsVerifier.generateUnusedImportHints(definingCompilationUnitErrorReporter);
+    timeCounter.stop();
   }
 
   private void generateForCompilationUnit(CompilationUnit unit, Source source) {
