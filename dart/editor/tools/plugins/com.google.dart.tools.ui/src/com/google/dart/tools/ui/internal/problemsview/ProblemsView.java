@@ -319,6 +319,13 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
     public boolean select(Viewer viewer, Object parentElement, Object element) {
       IMarker marker = (IMarker) element;
 
+      if (!showHintsAction.isChecked()) {
+        if (marker.getAttribute(IMarker.PRIORITY, IMarker.PRIORITY_NORMAL) == IMarker.PRIORITY_LOW
+            && marker.getAttribute(IMarker.SEVERITY, 0) == IMarker.SEVERITY_WARNING) {
+          return false;
+        }
+      }
+
       if (!showInfosAction.isChecked()) {
         if (marker.getAttribute(IMarker.SEVERITY, 0) == IMarker.SEVERITY_INFO) {
           return false;
@@ -583,6 +590,21 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
     }
   }
 
+  private class ShowHintsAction extends InstrumentedAction {
+    public ShowHintsAction() {
+      super("Show hints", AS_CHECK_BOX);
+
+      setImageDescriptor(DartToolsPlugin.getBundledImageDescriptor("icons/full/misc/info.png"));
+
+      setChecked(getMementoBoolean("showHints", true));
+    }
+
+    @Override
+    protected void doRun(Event event, UIInstrumentationBuilder instrumentation) {
+      updateFilters();
+    }
+  }
+
   private class ShowInfosAction extends InstrumentedAction {
     public ShowInfosAction() {
       super("Show tasks", AS_CHECK_BOX);
@@ -595,7 +617,6 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
     @Override
     protected void doRun(Event event, UIInstrumentationBuilder instrumentation) {
       updateFilters();
-
     }
   }
 
@@ -850,6 +871,9 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
   private IProject focusedProject;
 
   private FocusOnProjectAction focusOnProjectAction;
+
+  private ShowHintsAction showHintsAction;
+
   private ShowInfosAction showInfosAction;
 
   private Clipboard clipboard;
@@ -1056,6 +1080,7 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
 
     if (showInfosAction != null) {
       memento.putBoolean("focusOnProject", focusOnProjectAction.isChecked());
+      memento.putBoolean("showHints", showHintsAction.isChecked());
       memento.putBoolean("showInfos", showInfosAction.isChecked());
     }
 
@@ -1078,6 +1103,9 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
   }
 
   protected void fillInToolbar(IToolBarManager toolbar) {
+    showHintsAction = new ShowHintsAction();
+    toolbar.add(showHintsAction);
+
     showInfosAction = new ShowInfosAction();
     toolbar.add(showInfosAction);
 

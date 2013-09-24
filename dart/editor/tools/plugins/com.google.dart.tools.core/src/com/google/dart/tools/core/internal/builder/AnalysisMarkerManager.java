@@ -118,12 +118,10 @@ public class AnalysisMarkerManager {
         marker.setAttribute(IMarker.CHAR_END, error.getOffset() + error.getLength());
         marker.setAttribute(IMarker.LINE_NUMBER, lineNum);
         marker.setAttribute(ERROR_CODE, encodeErrorCode(errorCode));
+        marker.setAttribute(IMarker.MESSAGE, error.getMessage());
 
         if (isHint) {
           marker.setAttribute(IMarker.PRIORITY, IMarker.PRIORITY_LOW);
-          marker.setAttribute(IMarker.MESSAGE, "hint: " + error.getMessage());
-        } else {
-          marker.setAttribute(IMarker.MESSAGE, error.getMessage());
         }
 
         errorCount++;
