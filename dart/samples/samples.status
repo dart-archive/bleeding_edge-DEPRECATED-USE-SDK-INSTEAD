@@ -14,10 +14,8 @@ time: Skip
 swarm/test/swarm_test: Pass, Crash, Fail # Issue 10950
 
 [ $compiler == none && $runtime == drt ]
-dartcombat/test/dartcombat_test: Skip # Issue 2790
 
 [ $runtime == chrome || $runtime == ff || $runtime == safari ]
-dartcombat/test/dartcombat_test: Skip # passes locally but timeout on bot?
 
 [ $runtime == ie9 ]
 swarm/test/swarm_ui_lib/layout/layout_test: Fail # http://dartbug.com/5132
@@ -40,7 +38,6 @@ swarm/test/swarm_test: Fail
 [ $runtime == vm ]
 # Skip tests that use dart:html on the standalone VM
 clock: Skip
-dartcombat: Skip
 solar: Skip
 sunflower: Skip
 swarm: Skip
@@ -48,7 +45,6 @@ swipe: Skip
 third_party/todomvc: Skip
 
 [ $compiler == dart2js && $browser ]
-dartcombat/test/dartcombat_test: Skip
 
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
 swarm/test/swarm_test: Fail # TODO(kasperl): Please triage.
