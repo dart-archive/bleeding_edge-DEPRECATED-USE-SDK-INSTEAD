@@ -4,6 +4,18 @@
 
 	<extension-point id="proposalInfo" name="%proposalInfo.name" schema="schema/proposalInfo.exsd"/>
 
+  <extension point="org.eclipse.core.contenttype.contentTypes">
+    <content-type
+      file-extensions="css,scss"
+      priority="high"
+      name="CSS"
+      id="org.eclipse.wst.css.core.csssource"
+      base-type="org.eclipse.core.runtime.text">
+      <describer
+        class="org.eclipse.wst.css.core.internal.contenttype.ContentDescriberForCSS" />
+    </content-type>
+  </extension>
+
 	<extension point="org.eclipse.ui.editors">
 		<editor
 			name="%CSS_Source_Page_Editor.name"

@@ -7,10 +7,13 @@
  *******************************************************************************/
 package org.eclipse.wst.css.ui.internal.preferences;
 
+import org.eclipse.core.runtime.Preferences;
 import org.eclipse.core.runtime.preferences.AbstractPreferenceInitializer;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.resource.ColorRegistry;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.wst.css.core.internal.CSSCorePlugin;
+import org.eclipse.wst.css.core.internal.preferences.CSSCorePreferenceNames;
 import org.eclipse.wst.css.ui.internal.CSSUIPlugin;
 import org.eclipse.wst.css.ui.internal.style.IStyleConstantsCSS;
 import org.eclipse.wst.sse.ui.internal.preferences.ui.ColorHelper;
@@ -27,6 +30,7 @@ public class CSSUIPreferenceInitializer extends AbstractPreferenceInitializer {
    * org.eclipse.core.runtime.preferences.AbstractPreferenceInitializer#initializeDefaultPreferences
    * ()
    */
+  @Override
   public void initializeDefaultPreferences() {
     IPreferenceStore store = CSSUIPlugin.getDefault().getPreferenceStore();
     ColorRegistry registry = PlatformUI.getWorkbench().getThemeManager().getCurrentTheme().getColorRegistry();
@@ -125,6 +129,14 @@ public class CSSUIPreferenceInitializer extends AbstractPreferenceInitializer {
             + "org.eclipse.wst.css.ui.proposalCategory.css");
 
     store.setDefault(CSSUIPreferenceNames.INSERT_SINGLE_SUGGESTION, true);
+
+    getModelPreferences().setValue(CSSCorePreferenceNames.INDENTATION_CHAR,
+        CSSCorePreferenceNames.SPACE);
+    getModelPreferences().setValue(CSSCorePreferenceNames.INDENTATION_SIZE, 2);
+  }
+
+  private Preferences getModelPreferences() {
+    return CSSCorePlugin.getDefault().getPluginPreferences();
   }
 
 }

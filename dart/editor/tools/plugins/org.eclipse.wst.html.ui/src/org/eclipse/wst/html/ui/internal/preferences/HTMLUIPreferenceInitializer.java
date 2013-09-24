@@ -8,10 +8,13 @@
  *******************************************************************************/
 package org.eclipse.wst.html.ui.internal.preferences;
 
+import org.eclipse.core.runtime.Preferences;
 import org.eclipse.core.runtime.preferences.AbstractPreferenceInitializer;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.resource.ColorRegistry;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.wst.html.core.internal.HTMLCorePlugin;
+import org.eclipse.wst.html.core.internal.preferences.HTMLCorePreferenceNames;
 import org.eclipse.wst.html.ui.internal.HTMLUIPlugin;
 import org.eclipse.wst.html.ui.internal.style.IStyleConstantsHTML;
 import org.eclipse.wst.sse.ui.internal.preferences.ui.ColorHelper;
@@ -29,6 +32,7 @@ public class HTMLUIPreferenceInitializer extends AbstractPreferenceInitializer {
    * org.eclipse.core.runtime.preferences.AbstractPreferenceInitializer#initializeDefaultPreferences
    * ()
    */
+  @Override
   public void initializeDefaultPreferences() {
     IPreferenceStore store = HTMLUIPlugin.getDefault().getPreferenceStore();
     ColorRegistry registry = PlatformUI.getWorkbench().getThemeManager().getCurrentTheme().getColorRegistry();
@@ -140,6 +144,15 @@ public class HTMLUIPreferenceInitializer extends AbstractPreferenceInitializer {
             + "org.eclipse.wst.css.ui.proposalCategory.cssTemplates\0"
             + "org.eclipse.wst.html.ui.proposalCategory.htmlTags\0"
             + "org.eclipse.wst.css.ui.proposalCategory.css");
+    getModelPreferences().setValue(HTMLCorePreferenceNames.INDENTATION_CHAR,
+        HTMLCorePreferenceNames.SPACE);
+    getModelPreferences().setValue(HTMLCorePreferenceNames.INDENTATION_SIZE, 2);
+    getModelPreferences().setValue(HTMLCorePreferenceNames.ELEM_UNKNOWN_NAME, -1);
+    getModelPreferences().setValue(HTMLCorePreferenceNames.ATTRIBUTE_UNDEFINED_NAME, -1);
+  }
+
+  private Preferences getModelPreferences() {
+    return HTMLCorePlugin.getDefault().getPluginPreferences();
   }
 
 }
