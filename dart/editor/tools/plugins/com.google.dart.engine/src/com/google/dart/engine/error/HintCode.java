@@ -103,6 +103,50 @@ public enum HintCode implements ErrorCode {
   TYPE_CHECK_IS_NULL("Tests for null should be done with '== null'"),
 
   /**
+   * This hint is generated anywhere where the {@link StaticTypeWarningCode#UNDEFINED_GETTER} or
+   * {@link StaticWarningCode#UNDEFINED_GETTER} would have been generated, if we used propagated
+   * information for the warnings.
+   * 
+   * @param getterName the name of the getter
+   * @param enclosingType the name of the enclosing type where the getter is being looked for
+   * @see StaticTypeWarningCode#UNDEFINED_GETTER
+   * @see StaticWarningCode#UNDEFINED_GETTER
+   */
+  UNDEFINED_GETTER(StaticTypeWarningCode.UNDEFINED_GETTER.getMessage()),
+
+  /**
+   * This hint is generated anywhere where the {@link StaticTypeWarningCode#UNDEFINED_METHOD} would
+   * have been generated, if we used propagated information for the warnings.
+   * 
+   * @param methodName the name of the method that is undefined
+   * @param typeName the resolved type name that the method lookup is happening on
+   * @see StaticTypeWarningCode#UNDEFINED_METHOD
+   */
+  UNDEFINED_METHOD(StaticTypeWarningCode.UNDEFINED_METHOD.getMessage()),
+
+  /**
+   * This hint is generated anywhere where the {@link StaticTypeWarningCode#UNDEFINED_OPERATOR}
+   * would have been generated, if we used propagated information for the warnings.
+   * 
+   * @param operator the name of the operator
+   * @param enclosingType the name of the enclosing type where the operator is being looked for
+   * @see StaticTypeWarningCode#UNDEFINED_OPERATOR
+   */
+  UNDEFINED_OPERATOR(StaticTypeWarningCode.UNDEFINED_OPERATOR.getMessage()),
+
+  /**
+   * This hint is generated anywhere where the {@link StaticTypeWarningCode#UNDEFINED_SETTER} or
+   * {@link StaticWarningCode#UNDEFINED_SETTER} would have been generated, if we used propagated
+   * information for the warnings.
+   * 
+   * @param setterName the name of the setter
+   * @param enclosingType the name of the enclosing type where the setter is being looked for
+   * @see StaticTypeWarningCode#UNDEFINED_SETTER
+   * @see StaticWarningCode#UNDEFINED_SETTER
+   */
+  UNDEFINED_SETTER(StaticTypeWarningCode.UNDEFINED_SETTER.getMessage()),
+
+  /**
    * Unnecessary cast.
    */
   UNNECESSARY_CAST("Unnecessary cast"),

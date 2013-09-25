@@ -14,6 +14,8 @@
 package com.google.dart.engine.resolver;
 
 import com.google.dart.engine.error.HintCode;
+import com.google.dart.engine.error.StaticTypeWarningCode;
+import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.source.Source;
 
 public class HintCodeTest extends ResolverTestCase {
@@ -510,6 +512,142 @@ public class HintCodeTest extends ResolverTestCase {
     resolve(source);
     assertErrors(source, HintCode.TYPE_CHECK_IS_NOT_NULL);
     verify(source);
+  }
+
+  public void test_undefinedGetter() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "f(var a) {",
+        "  if(a is A) {",
+        "    return a.m;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(source, HintCode.UNDEFINED_GETTER);
+  }
+
+  // The implementation of HintCode.UNDEFINED_SETTER assumes that UNDEFINED_SETTER in
+  // StaticTypeWarningCode and StaticWarningCode are the same, this verifies that assumption.
+  public void test_undefinedGetter_message() throws Exception {
+    assertEquals(
+        StaticTypeWarningCode.UNDEFINED_GETTER.getMessage(),
+        StaticWarningCode.UNDEFINED_GETTER.getMessage());
+  }
+
+  public void test_undefinedMethod() throws Exception {
+    Source source = addSource(createSource(//
+        "f() {",
+        "  var a = 'str';",
+        "  a.notAMethodOnString();",
+        "}"));
+    resolve(source);
+    assertErrors(source, HintCode.UNDEFINED_METHOD);
+  }
+
+  public void test_undefinedMethod_assignmentExpression() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "class B {",
+        "  f(var a, var a2) {",
+        "    a = new A();",
+        "    a2 = new A();",
+        "    a += a2;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(source, HintCode.UNDEFINED_METHOD);
+  }
+
+  public void test_undefinedOperator_indexBoth() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "f(var a) {",
+        "  if(a is A) {",
+        "    a[0]++;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(source, HintCode.UNDEFINED_OPERATOR, HintCode.UNDEFINED_OPERATOR);
+  }
+
+  public void test_undefinedOperator_indexGetter() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "f(var a) {",
+        "  if(a is A) {",
+        "    a[0];",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(source, HintCode.UNDEFINED_OPERATOR);
+  }
+
+  public void test_undefinedOperator_indexSetter() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "f(var a) {",
+        "  if(a is A) {",
+        "    a[0] = 1;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(source, HintCode.UNDEFINED_OPERATOR);
+  }
+
+  public void test_undefinedOperator_plus() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "f(var a) {",
+        "  if(a is A) {",
+        "    a + 1;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(source, HintCode.UNDEFINED_OPERATOR);
+  }
+
+  public void test_undefinedOperator_postfixExpression() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "f(var a) {",
+        "  if(a is A) {",
+        "    a++;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(source, HintCode.UNDEFINED_OPERATOR);
+  }
+
+  public void test_undefinedOperator_prefixExpression() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "f(var a) {",
+        "  if(a is A) {",
+        "    ++a;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(source, HintCode.UNDEFINED_OPERATOR);
+  }
+
+  public void test_undefinedSetter() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "f(var a) {",
+        "  if(a is A) {",
+        "    a.m = 0;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(source, HintCode.UNDEFINED_SETTER);
+  }
+
+  // The implementation of HintCode.UNDEFINED_SETTER assumes that UNDEFINED_SETTER in
+  // StaticTypeWarningCode and StaticWarningCode are the same, this verifies that assumption.
+  public void test_undefinedSetter_message() throws Exception {
+    assertEquals(
+        StaticTypeWarningCode.UNDEFINED_SETTER.getMessage(),
+        StaticWarningCode.UNDEFINED_SETTER.getMessage());
   }
 
   public void test_unnecessaryCast_type_supertype() throws Exception {

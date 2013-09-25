@@ -792,8 +792,9 @@ public enum StaticWarningCode implements ErrorCode {
    * <i>id</i> occurs inside a top level or static function (be it function, method, getter, or
    * setter) or variable initializer and there is no declaration <i>d</i> with name <i>id</i> in the
    * lexical scope enclosing the expression.
+   * 
+   * @param name the name of the identifier
    */
-  // TODO(jwren) Should we include the " in '%s'" in this message as well?
   UNDEFINED_IDENTIFIER("Undefined name '%s'"),
 
   /**

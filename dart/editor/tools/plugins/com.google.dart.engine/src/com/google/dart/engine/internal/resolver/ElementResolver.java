@@ -68,6 +68,7 @@ import com.google.dart.engine.ast.TypeParameter;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationList;
 import com.google.dart.engine.ast.visitor.SimpleASTVisitor;
+import com.google.dart.engine.context.AnalysisOptions;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ConstructorElement;
@@ -88,6 +89,7 @@ import com.google.dart.engine.element.PropertyInducingElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.error.CompileTimeErrorCode;
 import com.google.dart.engine.error.ErrorCode;
+import com.google.dart.engine.error.HintCode;
 import com.google.dart.engine.error.StaticTypeWarningCode;
 import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.internal.element.AuxiliaryElements;
@@ -296,6 +298,11 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
   private boolean strictMode;
 
   /**
+   * A flag indicating whether we should generate hints.
+   */
+  private boolean enableHints;
+
+  /**
    * The type representing the type 'dynamic'.
    */
   private Type dynamicType;
@@ -324,7 +331,9 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
    */
   public ElementResolver(ResolverVisitor resolver) {
     this.resolver = resolver;
-    strictMode = resolver.getDefiningLibrary().getContext().getAnalysisOptions().getStrictMode();
+    AnalysisOptions options = resolver.getDefiningLibrary().getContext().getAnalysisOptions();
+    strictMode = options.getStrictMode();
+    enableHints = options.getHint();
     dynamicType = resolver.getTypeProvider().getDynamicType();
     typeType = resolver.getTypeProvider().getTypeType();
   }
@@ -346,20 +355,29 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
         Type propagatedType = getPropagatedType(leftHandSide);
         MethodElement propagatedMethod = lookUpMethod(leftHandSide, propagatedType, methodName);
         node.setPropagatedElement(propagatedMethod);
+
+        boolean shouldReportMissingMember_static = shouldReportMissingMember(
+            staticType,
+            staticMethod)
+            && (strictMode || shouldReportMissingMember(propagatedType, propagatedMethod));
+        boolean shouldReportMissingMember_propagated = enableHints ? shouldReportMissingMember(
+            propagatedType,
+            propagatedMethod) : false;
+
         // TODO(jwren) If it becomes possible to have strictMode set to false, additional work will
         // need to happen to possibly pass the propagated element into the
         // reportErrorProxyConditionalErrorCode call below, or to always pass the static and
         // propagated information to the ProxyConditionalErrorCode
-        if (shouldReportMissingMember(staticType, staticMethod)
-            && (strictMode || propagatedType == null || shouldReportMissingMember(
-                propagatedType,
-                propagatedMethod))) {
+
+        if (shouldReportMissingMember_static || shouldReportMissingMember_propagated) {
           resolver.reportErrorProxyConditionalAnalysisError(
               staticType.getElement(),
-              StaticTypeWarningCode.UNDEFINED_METHOD,
+              shouldReportMissingMember_static ? StaticTypeWarningCode.UNDEFINED_METHOD
+                  : HintCode.UNDEFINED_METHOD,
               operator,
               methodName,
-              staticType.getDisplayName());
+              shouldReportMissingMember_static ? staticType.getDisplayName()
+                  : propagatedType.getDisplayName());
         }
       }
     }
@@ -382,20 +400,28 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
         MethodElement propagatedMethod = lookUpMethod(leftOperand, propagatedType, methodName);
         node.setPropagatedElement(propagatedMethod);
 
+        boolean shouldReportMissingMember_static = shouldReportMissingMember(
+            staticType,
+            staticMethod)
+            && (strictMode || shouldReportMissingMember(propagatedType, propagatedMethod));
+        boolean shouldReportMissingMember_propagated = enableHints ? shouldReportMissingMember(
+            propagatedType,
+            propagatedMethod) : false;
+
         // TODO(jwren) If it becomes possible to have strictMode set to false, additional work will
         // need to happen to possibly pass the propagated element into the
         // reportErrorProxyConditionalErrorCode call below, or to always pass the static and
         // propagated information to the ProxyConditionalErrorCode
-        if (shouldReportMissingMember(staticType, staticMethod)
-            && (strictMode || propagatedType == null || shouldReportMissingMember(
-                propagatedType,
-                propagatedMethod))) {
+        if (shouldReportMissingMember_static || shouldReportMissingMember_propagated) {
+          ErrorCode errorCode = shouldReportMissingMember_static
+              ? StaticTypeWarningCode.UNDEFINED_OPERATOR : HintCode.UNDEFINED_OPERATOR;
           resolver.reportErrorProxyConditionalAnalysisError(
               staticType.getElement(),
-              StaticTypeWarningCode.UNDEFINED_OPERATOR,
+              errorCode,
               operator,
               methodName,
-              staticType.getDisplayName());
+              shouldReportMissingMember_static ? staticType.getDisplayName()
+                  : propagatedType.getDisplayName());
         }
       }
     }
@@ -895,7 +921,15 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     //
     // Then check for error conditions.
     //
-    ErrorCode errorCode = checkForInvocationError(target, staticElement);
+    ErrorCode errorCode = checkForInvocationError(target, true, staticElement);
+    boolean generatedWithTypePropagation = false;
+    if (enableHints && errorCode == null && staticElement == null) {
+      errorCode = checkForInvocationError(target, false, propagatedElement);
+      generatedWithTypePropagation = true;
+    }
+    if (errorCode == null) {
+      return null;
+    }
     if (errorCode == StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION) {
       resolver.reportError(
           StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION,
@@ -913,13 +947,25 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
         targetTypeName = enclosingClass.getDisplayName();
         resolver.reportErrorProxyConditionalAnalysisError(
             resolver.getEnclosingClass(),
-            StaticTypeWarningCode.UNDEFINED_METHOD,
+            generatedWithTypePropagation ? HintCode.UNDEFINED_METHOD
+                : StaticTypeWarningCode.UNDEFINED_METHOD,
             methodName,
             methodName.getName(),
             targetTypeName);
       } else {
-        Type targetType = getStaticType(target);
         // ignore Function "call"
+        // (if we are about to create a hint using type propagation, then we can use type
+        // propagation here as well)
+        Type targetType = null;
+        if (!generatedWithTypePropagation) {
+          targetType = getStaticType(target);
+        } else {
+          // choose the best type
+          targetType = getPropagatedType(target);
+          if (targetType == null) {
+            targetType = getStaticType(target);
+          }
+        }
         if (targetType != null && targetType.isDartCoreFunction()
             && methodName.getName().equals(CALL_METHOD_NAME)) {
           // TODO(brianwilkerson) Can we ever resolve the function being invoked?
@@ -929,16 +975,16 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
         targetTypeName = targetType == null ? null : targetType.getDisplayName();
         resolver.reportErrorProxyConditionalAnalysisError(
             targetType.getElement(),
-            StaticTypeWarningCode.UNDEFINED_METHOD,
+            generatedWithTypePropagation ? HintCode.UNDEFINED_METHOD
+                : StaticTypeWarningCode.UNDEFINED_METHOD,
             methodName,
             methodName.getName(),
             targetTypeName);
       }
     } else if (errorCode == StaticTypeWarningCode.UNDEFINED_SUPER_METHOD) {
-      Type targetType = getPropagatedType(target);
-      if (targetType == null) {
-        targetType = getStaticType(target);
-      }
+      // Generate the type name.
+      // The error code will never be generated via type propagation
+      Type targetType = getStaticType(target);
       String targetTypeName = targetType == null ? null : targetType.getName();
       resolver.reportError(
           StaticTypeWarningCode.UNDEFINED_SUPER_METHOD,
@@ -974,20 +1020,26 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     MethodElement propagatedMethod = lookUpMethod(operand, propagatedType, methodName);
     node.setPropagatedElement(propagatedMethod);
 
+    boolean shouldReportMissingMember_static = shouldReportMissingMember(staticType, staticMethod)
+        && (strictMode || shouldReportMissingMember(propagatedType, propagatedMethod));
+    boolean shouldReportMissingMember_propagated = enableHints ? shouldReportMissingMember(
+        propagatedType,
+        propagatedMethod) : false;
+
     // TODO(jwren) If it becomes possible to have strictMode set to false, additional work will
     // need to happen to possibly pass the propagated element into the
     // reportErrorProxyConditionalErrorCode call below, or to always pass the static and
     // propagated information to the ProxyConditionalErrorCode
-    if (shouldReportMissingMember(staticType, staticMethod)
-        && (strictMode || propagatedType == null || shouldReportMissingMember(
-            propagatedType,
-            propagatedMethod))) {
+    if (shouldReportMissingMember_static || shouldReportMissingMember_propagated) {
+      ErrorCode errorCode = shouldReportMissingMember_static
+          ? StaticTypeWarningCode.UNDEFINED_OPERATOR : HintCode.UNDEFINED_OPERATOR;
       resolver.reportErrorProxyConditionalAnalysisError(
           staticType.getElement(),
-          StaticTypeWarningCode.UNDEFINED_OPERATOR,
+          errorCode,
           node.getOperator(),
           methodName,
-          staticType.getDisplayName());
+          shouldReportMissingMember_static ? staticType.getDisplayName()
+              : propagatedType.getDisplayName());
     }
     return null;
   }
@@ -1075,20 +1127,27 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       MethodElement propagatedMethod = lookUpMethod(operand, propagatedType, methodName);
       node.setPropagatedElement(propagatedMethod);
 
+      boolean shouldReportMissingMember_static = shouldReportMissingMember(staticType, staticMethod)
+          && (strictMode || shouldReportMissingMember(propagatedType, propagatedMethod));
+      boolean shouldReportMissingMember_propagated = enableHints ? shouldReportMissingMember(
+          propagatedType,
+          propagatedMethod) : false;
+
       // TODO(jwren) If it becomes possible to have strictMode set to false, additional work will
       // need to happen to possibly pass the propagated element into the
       // reportErrorProxyConditionalErrorCode call below, or to always pass the static and
       // propagated information to the ProxyConditionalErrorCode
-      if (shouldReportMissingMember(staticType, staticMethod)
-          && (strictMode || propagatedType == null || shouldReportMissingMember(
-              propagatedType,
-              propagatedMethod))) {
+
+      if (shouldReportMissingMember_static || shouldReportMissingMember_propagated) {
+        ErrorCode errorCode = shouldReportMissingMember_static
+            ? StaticTypeWarningCode.UNDEFINED_OPERATOR : HintCode.UNDEFINED_OPERATOR;
         resolver.reportErrorProxyConditionalAnalysisError(
             staticType.getElement(),
-            StaticTypeWarningCode.UNDEFINED_OPERATOR,
+            errorCode,
             operator,
             methodName,
-            staticType.getDisplayName());
+            shouldReportMissingMember_static ? staticType.getDisplayName()
+                : propagatedType.getDisplayName());
       }
     }
     return null;
@@ -1297,10 +1356,12 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
    * reported, or {@code null} if no error should be reported.
    * 
    * @param target the target of the invocation, or {@code null} if there was no target
+   * @param useStaticContext
    * @param element the element to be invoked
    * @return the error code that should be reported
    */
-  private ErrorCode checkForInvocationError(Expression target, Element element) {
+  private ErrorCode checkForInvocationError(Expression target, boolean useStaticContext,
+      Element element) {
     // Prefix is not declared, instead "prefix.id" are declared.
     if (element instanceof PrefixElement) {
       element = null;
@@ -1355,7 +1416,17 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
             return StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION;
           }
         } else {
-          Type targetType = getStaticType(target);
+          Type targetType;
+          if (useStaticContext) {
+            targetType = getStaticType(target);
+          } else {
+            // Compute and use the propagated type, if it is null, then it may be the case that
+            // static type is some type, in which the static type should be used.
+            targetType = getPropagatedType(target);
+            if (targetType == null) {
+              targetType = getStaticType(target);
+            }
+          }
           if (targetType == null) {
             return CompileTimeErrorCode.UNDEFINED_FUNCTION;
           } else if (!targetType.isDynamic()) {
@@ -1385,29 +1456,35 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     // need to happen to possibly pass the propagated element into the
     // reportErrorProxyConditionalErrorCode calls below, or to always pass the static and
     // propagated information to the ProxyConditionalErrorCode
-    if (shouldReportMissingMember(staticType, staticMethod)
-        && (strictMode || propagatedType == null || shouldReportMissingMember(
-            propagatedType,
-            propagatedMethod))) {
+    boolean shouldReportMissingMember_static = shouldReportMissingMember(staticType, staticMethod)
+        && (strictMode || shouldReportMissingMember(propagatedType, propagatedMethod));
+    boolean shouldReportMissingMember_propagated = enableHints ? shouldReportMissingMember(
+        propagatedType,
+        propagatedMethod) : false;
+    if (shouldReportMissingMember_static || shouldReportMissingMember_propagated) {
       Token leftBracket = node.getLeftBracket();
       Token rightBracket = node.getRightBracket();
+      ErrorCode errorCode = shouldReportMissingMember_static
+          ? StaticTypeWarningCode.UNDEFINED_OPERATOR : HintCode.UNDEFINED_OPERATOR;
       if (leftBracket == null || rightBracket == null) {
         resolver.reportErrorProxyConditionalAnalysisError(
             staticType.getElement(),
-            StaticTypeWarningCode.UNDEFINED_OPERATOR,
+            errorCode,
             node,
             methodName,
-            staticType.getDisplayName());
+            shouldReportMissingMember_static ? staticType.getDisplayName()
+                : propagatedType.getDisplayName());
       } else {
         int offset = leftBracket.getOffset();
         int length = rightBracket.getOffset() - offset + 1;
         resolver.reportErrorProxyConditionalAnalysisError(
             staticType.getElement(),
-            StaticTypeWarningCode.UNDEFINED_OPERATOR,
+            errorCode,
             offset,
             length,
             methodName,
-            staticType.getDisplayName());
+            shouldReportMissingMember_static ? staticType.getDisplayName()
+                : propagatedType.getDisplayName());
       }
       return true;
     }
@@ -2426,10 +2503,13 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     ExecutableElement propagatedElement = resolveProperty(target, propagatedType, propertyName);
     propertyName.setPropagatedElement(propagatedElement);
 
-    if (shouldReportMissingMember(staticType, staticElement)
-        && (strictMode || propagatedType == null || shouldReportMissingMember(
-            propagatedType,
-            propagatedElement))) {
+    boolean shouldReportMissingMember_static = shouldReportMissingMember(staticType, staticElement)
+        && (strictMode || shouldReportMissingMember(propagatedType, propagatedElement));
+    boolean shouldReportMissingMember_propagated = enableHints ? shouldReportMissingMember(
+        propagatedType,
+        propagatedElement) : false;
+
+    if (shouldReportMissingMember_static || shouldReportMissingMember_propagated) {
       // TODO(jwren) If it becomes possible to have strictMode set to false, additional work will
       // need to happen to possibly pass the propagated element into the
       // reportErrorProxyConditionalErrorCode calls below, or to always pass the static and
@@ -2440,33 +2520,41 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
         if (isStaticProperty) {
           resolver.reportErrorProxyConditionalAnalysisError(
               staticType.getElement(),
-              StaticWarningCode.UNDEFINED_SETTER,
+              shouldReportMissingMember_static ? StaticWarningCode.UNDEFINED_SETTER
+                  : HintCode.UNDEFINED_SETTER,
               propertyName,
               propertyName.getName(),
-              staticType.getDisplayName());
+              shouldReportMissingMember_static ? staticType.getDisplayName()
+                  : propagatedType.getDisplayName());
         } else {
           resolver.reportErrorProxyConditionalAnalysisError(
               staticType.getElement(),
-              StaticTypeWarningCode.UNDEFINED_SETTER,
+              shouldReportMissingMember_static ? StaticTypeWarningCode.UNDEFINED_SETTER
+                  : HintCode.UNDEFINED_SETTER,
               propertyName,
               propertyName.getName(),
-              staticType.getDisplayName());
+              shouldReportMissingMember_static ? staticType.getDisplayName()
+                  : propagatedType.getDisplayName());
         }
       } else if (propertyName.inGetterContext()) {
         if (isStaticProperty) {
           resolver.reportErrorProxyConditionalAnalysisError(
               staticType.getElement(),
-              StaticWarningCode.UNDEFINED_GETTER,
+              shouldReportMissingMember_static ? StaticWarningCode.UNDEFINED_GETTER
+                  : HintCode.UNDEFINED_GETTER,
               propertyName,
               propertyName.getName(),
-              staticType.getDisplayName());
+              shouldReportMissingMember_static ? staticType.getDisplayName()
+                  : propagatedType.getDisplayName());
         } else {
           resolver.reportErrorProxyConditionalAnalysisError(
               staticType.getElement(),
-              StaticTypeWarningCode.UNDEFINED_GETTER,
+              shouldReportMissingMember_static ? StaticTypeWarningCode.UNDEFINED_GETTER
+                  : HintCode.UNDEFINED_GETTER,
               propertyName,
               propertyName.getName(),
-              staticType.getDisplayName());
+              shouldReportMissingMember_static ? staticType.getDisplayName()
+                  : propagatedType.getDisplayName());
         }
       } else {
         resolver.reportErrorProxyConditionalAnalysisError(

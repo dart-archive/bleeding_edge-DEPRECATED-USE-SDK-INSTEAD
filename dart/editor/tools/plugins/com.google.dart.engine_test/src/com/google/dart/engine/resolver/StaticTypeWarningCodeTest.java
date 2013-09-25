@@ -674,7 +674,6 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "f(T e) { return e.m; }"));
     resolve(source);
     assertErrors(source, StaticTypeWarningCode.UNDEFINED_GETTER);
-    // A call to verify(source) fails as 'e.m' isn't resolved.
   }
 
   public void test_undefinedGetter_static() throws Exception {
@@ -683,7 +682,6 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "var a = A.B;"));
     resolve(source);
     assertErrors(source, StaticTypeWarningCode.UNDEFINED_GETTER);
-    // A call to verify(source) fails as 'A.B' isn't resolved.
   }
 
   public void test_undefinedMethod() throws Exception {
@@ -697,6 +695,19 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
     assertErrors(source, StaticTypeWarningCode.UNDEFINED_METHOD);
   }
 
+  public void test_undefinedMethod_assignmentExpression() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "class B {",
+        "  f(A a) {",
+        "    A a2 = new A();",
+        "    a += a2;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticTypeWarningCode.UNDEFINED_METHOD);
+  }
+
   public void test_undefinedMethod_ignoreTypePropagation() throws Exception {
     Source source = addSource(createSource(//
         "class A {}",
@@ -704,7 +715,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "  m() {}",
         "}",
         "class C {",
-        "f() {",
+        "  f() {",
         "    A a = new B();",
         "    a.m();",
         "  }",
@@ -724,7 +735,6 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         source,
         StaticTypeWarningCode.UNDEFINED_OPERATOR,
         StaticTypeWarningCode.UNDEFINED_OPERATOR);
-    // no verify(), a[0] is not resolved
   }
 
   public void test_undefinedOperator_indexGetter() throws Exception {
@@ -735,7 +745,6 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(source, StaticTypeWarningCode.UNDEFINED_OPERATOR);
-    // no verify(), a[0] is not resolved
   }
 
   public void test_undefinedOperator_indexSetter() throws Exception {
@@ -746,7 +755,6 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(source, StaticTypeWarningCode.UNDEFINED_OPERATOR);
-    // no verify(), a[0] is not resolved
   }
 
   public void test_undefinedOperator_plus() throws Exception {
@@ -757,7 +765,26 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(source, StaticTypeWarningCode.UNDEFINED_OPERATOR);
-    // no verify(), 'a + 1' is not resolved
+  }
+
+  public void test_undefinedOperator_postfixExpression() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "f(A a) {",
+        "  a++;",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticTypeWarningCode.UNDEFINED_OPERATOR);
+  }
+
+  public void test_undefinedOperator_prefixExpression() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "f(A a) {",
+        "  ++a;",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticTypeWarningCode.UNDEFINED_OPERATOR);
   }
 
   public void test_undefinedSetter() throws Exception {
@@ -766,7 +793,6 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "f(T e1) { e1.m = 0; }"));
     resolve(source);
     assertErrors(source, StaticTypeWarningCode.UNDEFINED_SETTER);
-    // A call to verify(source) fails as 'e.m' isn't resolved.
   }
 
   public void test_undefinedSetter_static() throws Exception {
@@ -775,7 +801,6 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "f() { A.B = 0;}"));
     resolve(source);
     assertErrors(source, StaticTypeWarningCode.UNDEFINED_SETTER);
-    //A call to verify(source) fails as 'A.B' isn't resolved.
   }
 
   public void test_undefinedSuperMethod() throws Exception {
