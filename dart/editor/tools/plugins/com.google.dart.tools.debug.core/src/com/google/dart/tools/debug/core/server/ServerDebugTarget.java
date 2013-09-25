@@ -351,6 +351,11 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
     process.terminate();
   }
 
+  public void writeToStdout(String message) {
+    //TODO(keertip): implement printing messages to console
+    // process.getStreamMonitor().messageAdded(message);
+  }
+
   protected ServerDebugThread findThread(VmIsolate isolate) {
     for (ServerDebugThread thread : threads) {
       if (thread.getIsolate().getId() == isolate.getId()) {

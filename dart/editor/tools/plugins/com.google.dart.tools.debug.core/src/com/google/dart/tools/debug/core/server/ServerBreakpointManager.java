@@ -134,10 +134,15 @@ class ServerBreakpointManager implements IBreakpointListener {
     DartBreakpoint dartBreakpoint = getDartBreakpointFor(bp);
 
     if (dartBreakpoint != null) {
-      if (bp.getLocation().getLineNumber(getConnection()) != dartBreakpoint.getLine()) {
+      int lineNo = bp.getLocation().getLineNumber(getConnection());
+      if (lineNo != dartBreakpoint.getLine()) {
         ignoredBreakpoints.add(dartBreakpoint);
 
-        dartBreakpoint.updateLineNumber(bp.getLocation().getLineNumber(getConnection()));
+        String message = "[breakpoint in " + dartBreakpoint.getFile().getName()
+            + " moved from line " + dartBreakpoint.getLine() + " to " + lineNo + "]";
+        target.writeToStdout(message);
+
+        dartBreakpoint.updateLineNumber(lineNo);
       }
     }
   }

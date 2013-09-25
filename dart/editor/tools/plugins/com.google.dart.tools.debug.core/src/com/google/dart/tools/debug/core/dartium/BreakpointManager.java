@@ -196,6 +196,10 @@ class BreakpointManager implements IBreakpointListener {
       if (breakpoint.getLine() != eclipseLine) {
         ignoredBreakpoints.add(breakpoint);
 
+        String message = "[breakpoint in " + breakpoint.getFile().getName() + " moved from line "
+            + breakpoint.getLine() + " to " + eclipseLine + "]";
+        debugTarget.writeToStdout(message);
+
         breakpoint.updateLineNumber(eclipseLine);
       }
     }
