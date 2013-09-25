@@ -647,7 +647,78 @@ def InstallSdk(buildroot, buildout, buildos, sdk_dir):
       dart_zip.AddDirectoryTree(unzip_dir_32, 'dart')
 
 
-def InstallDartium(buildroot, buildout, buildos, gsu):
+def InstallDartiumFromDartArchive(buildroot, buildout, buildos, gsu):
+  """Install Dartium into the RCP zip files.
+  Args:
+    buildroot: the boot of the build output
+    buildout: the location of the ant build output
+    buildos: the OS the build is running under
+    gsu: the gsutil wrapper
+  Raises:
+    Exception: if no dartium files can be found
+  """
+  print 'InstallDartium(%s, %s, %s)' % (buildroot, buildout, buildos)
+
+  tmp_dir = os.path.join(buildroot, 'tmp')
+  revision = 'latest' if CHANNEL == 'be' else REVISION
+
+  rcpZipFiles = _FindRcpZipFiles(buildout)
+  for rcpZipFile in rcpZipFiles:
+    print '  found rcp: %s' % rcpZipFile
+
+    arch = 'ia32'
+    system  = None
+    local_name = None
+
+    if '-linux.gtk.x86.zip' in rcpZipFile:
+      local_name = 'dartium-lucid32'
+      system = 'linux'
+    if '-linux.gtk.x86_64.zip' in rcpZipFile:
+      local_name = 'dartium-lucid64'
+      arch = 'x64'
+      system = 'linux'
+    if 'macosx' in rcpZipFile:
+      local_name = 'dartium-mac'
+      system = 'macos'
+    if 'win32' in rcpZipFile:
+      local_name = 'dartium-win'
+      system = 'windows'
+
+    namer = bot_utils.GCSNamer(CHANNEL, bot_utils.ReleaseType.RAW)
+    dartiumFile = namer.dartium_variant_zipfilepath(
+        revision, 'dartium', system, arch, 'release')
+
+    # Download and unzip dartium
+    unzip_dir = os.path.join(tmp_dir,
+      os.path.splitext(os.path.basename(dartiumFile))[0])
+    if not os.path.exists(unzip_dir):
+      os.makedirs(unzip_dir)
+
+    # Always download as local_name.zip
+    tmp_zip_file = os.path.join(tmp_dir, "%s.zip" % local_name)
+    if not os.path.exists(tmp_zip_file):
+      gsu.Copy(dartiumFile, tmp_zip_file, False)
+      # Dartium is unzipped into unzip_dir/dartium-*/
+      dartium_zip = ziputils.ZipUtil(tmp_zip_file, buildos)
+      dartium_zip.UnZip(unzip_dir)
+
+    dart_zip_path = join(buildout, rcpZipFile)
+    dart_zip = ziputils.ZipUtil(dart_zip_path, buildos)
+
+    add_path = glob.glob(join(unzip_dir, 'dartium-*'))[0]
+    if system == 'windows':
+      # TODO(ricow/kustermann): This is hackisch. We should make a generic
+      # black/white-listing mechanism.
+      FileDelete(join(add_path, 'mini_installer.exe'))
+      FileDelete(join(add_path, 'sync_unit_tests.exe'))
+      FileDelete(join(add_path, 'chrome.packed.7z'))
+
+    # Add dartium to the rcp zip
+    dart_zip.AddDirectoryTree(add_path, 'dart/chromium')
+  shutil.rmtree(tmp_dir, True)
+
+
+def InstallDartiumFromOldDartiumArchive(buildroot, buildout, buildos, gsu):
   """Install Dartium into the RCP zip files and upload a version of Dartium
 
   Args:
@@ -669,21 +740,14 @@ def InstallDartium(buildroot, buildout, buildos, gsu):
 
   dartiumFiles = []
 
-  if TRUNK_BUILD:
-    dartiumFiles.append("gs://dartium-archive/dartium-mac-full-trunk/"
-      + "dartium-mac-full-trunk-%s.0.zip" % REVISION)
-    dartiumFiles.append("gs://dartium-archive/dartium-win-full-trunk/"
-      + "dartium-win-full-trunk-%s.0.zip" % REVISION)
-    dartiumFiles.append("gs://dartium-archive/dartium-lucid32-full-trunk/"
-      + "dartium-lucid32-full-trunk-%s.0.zip" % REVISION)
-    dartiumFiles.append("gs://dartium-archive/dartium-lucid64-full-trunk/"
-      + "dartium-lucid64-full-trunk-%s.0.zip" % REVISION)
-  else:
-    dartiumFiles.append("gs://dartium-archive/continuous/dartium-mac.zip")
-    dartiumFiles.append("gs://dartium-archive/continuous/dartium-win.zip")
-    #There is not a dartium-lucid32-inc buildbot.
-    #dartiumFiles.append("gs://dartium-archive/continuous/dartium-lucid32.zip")
-    dartiumFiles.append("gs://dartium-archive/continuous/dartium-lucid64.zip")
+  dartiumFiles.append("gs://dartium-archive/dartium-mac-full-trunk/"
+    + "dartium-mac-full-trunk-%s.0.zip" % REVISION)
+  dartiumFiles.append("gs://dartium-archive/dartium-win-full-trunk/"
+    + "dartium-win-full-trunk-%s.0.zip" % REVISION)
+  dartiumFiles.append("gs://dartium-archive/dartium-lucid32-full-trunk/"
+    + "dartium-lucid32-full-trunk-%s.0.zip" % REVISION)
+  dartiumFiles.append("gs://dartium-archive/dartium-lucid64-full-trunk/"
+    + "dartium-lucid64-full-trunk-%s.0.zip" % REVISION)
 
   for rcpZipFile in rcpZipFiles:
     searchString = None
@@ -749,6 +813,17 @@ def InstallDartium(buildroot, buildout, buildos, gsu):
 
 
   shutil.rmtree(tmp_dir, True)
+
+
+def InstallDartium(buildroot, buildout, buildos, gsu):
+  if TRUNK_BUILD:
+    # On trunk builds we fetch dartium from the old location (where the
+    # dartium-*-trunk builders archive to)
+    InstallDartiumFromOldDartiumArchive(buildroot, buildout, buildos, gsu)
+  else:
+    # On our be/dev/stable channels, we fetch dartium from the new
+    # gs://dart-archive/ location.
+    InstallDartiumFromDartArchive(buildroot, buildout, buildos, gsu)
 
 
 def _InstallArtifacts(buildout, buildos, extra_artifacts):
