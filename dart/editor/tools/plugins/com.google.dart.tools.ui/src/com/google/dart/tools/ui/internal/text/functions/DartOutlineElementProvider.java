@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.ui.internal.text.functions;
 
-import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 
 import org.eclipse.jface.text.IRegion;
@@ -44,11 +43,7 @@ public class DartOutlineElementProvider implements IInformationProvider,
     if (fEditor == null) {
       return null;
     }
-    AssistContext assistContext = fEditor.getAssistContext();
-    if (assistContext == null) {
-      return null;
-    }
-    return assistContext.getCoveringNode();
+    return fEditor.getParsedUnit();
   }
 
   @Override

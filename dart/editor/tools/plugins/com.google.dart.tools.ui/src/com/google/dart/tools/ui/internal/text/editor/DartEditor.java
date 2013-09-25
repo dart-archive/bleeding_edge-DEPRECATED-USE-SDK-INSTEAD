@@ -4529,6 +4529,9 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       if (unit == null) {
         return null;
       }
+      if (unit.getElement() == null) {
+        return null;
+      }
       // prepare selection
       int selectionOffset = 0;
       int selectionLength = 0;
