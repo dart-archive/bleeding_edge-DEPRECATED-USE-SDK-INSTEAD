@@ -184,7 +184,6 @@
         colorPreferenceValue="255,128,0"
         highlightPreferenceKey="glanceHighlight"
         highlightPreferenceValue="true"
-        icon="icons/glance/marker.gif"
         isGoToNextNavigationTarget="false"
         isGoToNextNavigationTargetKey="glanceGoNext"
         isGoToPreviousNavigationTarget="false"
