@@ -783,4 +783,5 @@ public class HintCodeTest extends ResolverTestCase {
     assertNoErrors(source2);
     verify(source, source2);
   }
+
 }

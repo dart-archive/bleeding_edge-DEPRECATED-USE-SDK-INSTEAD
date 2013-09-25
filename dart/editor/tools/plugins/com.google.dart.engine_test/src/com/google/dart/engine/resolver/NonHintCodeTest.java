@@ -276,6 +276,21 @@ public class NonHintCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_unusedImport_annotationOnDirective() throws Exception {
+    Source source = addSource(createSource(//
+        "library L;",
+        "@A()",
+        "import 'lib1.dart';"));
+    Source source2 = addSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "class A {",
+        "  const A() {}",
+        "}"));
+    resolve(source);
+    assertErrors(source);
+    verify(source, source2);
+  }
+
   public void test_unusedImport_core_library() throws Exception {
     Source source = addSource(createSource(//
         "library L;",

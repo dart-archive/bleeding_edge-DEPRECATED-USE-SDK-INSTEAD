@@ -13,9 +13,11 @@
  */
 package com.google.dart.engine.internal.hint;
 
+import com.google.dart.engine.ast.Annotation;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.Directive;
 import com.google.dart.engine.ast.ExportDirective;
+import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.ast.ImportDirective;
 import com.google.dart.engine.ast.LibraryDirective;
 import com.google.dart.engine.ast.NodeList;
@@ -233,22 +235,24 @@ public class ImportsVerifier extends RecursiveASTVisitor<Void> {
         currentDirective = nextDirective;
       }
     }
-
     return super.visitCompilationUnit(node);
   }
 
   @Override
   public Void visitExportDirective(ExportDirective node) {
+    visitMetadata(node.getMetadata());
     return null;
   }
 
   @Override
   public Void visitImportDirective(ImportDirective node) {
+    visitMetadata(node.getMetadata());
     return null;
   }
 
   @Override
   public Void visitLibraryDirective(LibraryDirective node) {
+    visitMetadata(node.getMetadata());
     return null;
   }
 
@@ -372,5 +376,19 @@ public class ImportsVerifier extends RecursiveASTVisitor<Void> {
       }
     }
     return null;
+  }
+
+  /**
+   * Given some {@link NodeList} of {@link Annotation}s, ensure that the identifiers are visited by
+   * this visitor. Specifically, this covers the cases where AST nodes don't have their identifiers
+   * visited by this visitor, but still need their annotations visited.
+   * 
+   * @param annotations the list of annotations to visit
+   */
+  private void visitMetadata(NodeList<Annotation> annotations) {
+    for (Annotation annotation : annotations) {
+      Identifier name = annotation.getName();
+      visitIdentifier(name.getStaticElement(), name.getName());
+    }
   }
 }
