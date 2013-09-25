@@ -21,9 +21,9 @@ import com.google.dart.engine.source.TestSource;
 import static com.google.dart.engine.ast.ASTFactory.compilationUnit;
 import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
 
+import java.util.Collection;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 
 public class AnalysisCacheTest extends EngineTestCase {
   public void test_creation() {
@@ -73,8 +73,8 @@ public class AnalysisCacheTest extends EngineTestCase {
     TestSource source = new TestSource();
     DartEntryImpl entry = new DartEntryImpl();
     cache.put(source, entry);
-    Set<Entry<Source, SourceEntry>> result = cache.entrySet();
-    assertSize(1, result);
+    Collection<Entry<Source, SourceEntry>> result = cache.entrySet();
+    assertCollectionSize(1, result);
     Map.Entry<Source, SourceEntry> mapEntry = result.iterator().next();
     assertSame(source, mapEntry.getKey());
     assertSame(entry, mapEntry.getValue());

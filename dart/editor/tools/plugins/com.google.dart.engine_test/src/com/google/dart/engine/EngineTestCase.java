@@ -31,6 +31,7 @@ import junit.framework.Assert;
 import junit.framework.AssertionFailedError;
 import junit.framework.TestCase;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -278,6 +279,22 @@ public class EngineTestCase extends TestCase {
       assertEquals(
           ((StringToken) expectedToken).getLexeme(),
           ((StringToken) actualToken).getLexeme());
+    }
+  }
+
+  /**
+   * Assert that the given collection is non-{@code null} and has the expected number of elements.
+   * 
+   * @param expectedSize the expected number of elements
+   * @param c the collection being tested
+   * @throws AssertionFailedError if the list is {@code null} or does not have the expected number
+   *           of elements
+   */
+  public static void assertCollectionSize(int expectedSize, Collection<?> c) {
+    if (c == null) {
+      fail("Expected collection of size " + expectedSize + "; found null");
+    } else if (c.size() != expectedSize) {
+      fail("Expected collection of size " + expectedSize + "; contained " + c.size() + " elements");
     }
   }
 

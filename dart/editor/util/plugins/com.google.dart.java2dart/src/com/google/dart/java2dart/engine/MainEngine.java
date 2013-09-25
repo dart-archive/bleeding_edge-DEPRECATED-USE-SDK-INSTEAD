@@ -151,6 +151,10 @@ public class MainEngine {
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/utilities/logging"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/context"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/internal/context"));
+    // utilities/general
+    context.addSourceFile(new File(
+        engineFolder,
+        "com/google/dart/engine/utilities/general/TimeCounter.java"));
     // utilities/collection
     context.addSourceFile(new File(
         engineFolder,
@@ -242,6 +246,13 @@ public class MainEngine {
       Files.write(
           getFormattedSource(library),
           new File(targetFolder + "/utilities_collection.dart"),
+          Charsets.UTF_8);
+    }
+    {
+      CompilationUnit library = buildUtilitiesGeneralLibrary();
+      Files.write(
+          getFormattedSource(library),
+          new File(targetFolder + "/utilities_general.dart"),
           Charsets.UTF_8);
     }
     {
@@ -594,6 +605,7 @@ public class MainEngine {
     unit.getDirectives().add(importDirective("java_core.dart", null));
     unit.getDirectives().add(importDirective("java_engine.dart", null));
     unit.getDirectives().add(importDirective("utilities_collection.dart", null));
+    unit.getDirectives().add(importDirective("utilities_general.dart", null));
     unit.getDirectives().add(importDirective("instrumentation.dart", null));
     unit.getDirectives().add(importDirective("error.dart", null));
     unit.getDirectives().add(importDirective("source.dart", null));
@@ -747,6 +759,7 @@ public class MainEngine {
     unit.getDirectives().add(importDirective("source.dart", null));
     unit.getDirectives().add(importDirective("error.dart", null));
     unit.getDirectives().add(importDirective("scanner.dart", "sc"));
+    unit.getDirectives().add(importDirective("utilities_general.dart", null));
     unit.getDirectives().add(importDirective("utilities_dart.dart", null));
     unit.getDirectives().add(importDirective("ast.dart", null));
     unit.getDirectives().add(
@@ -1036,6 +1049,19 @@ public class MainEngine {
       File file = context.getMemberToFile().get(member);
       if (isEnginePath(file, "utilities/dart/ParameterKind")) {
         unit.getDeclarations().add(member);
+      }
+    }
+    return unit;
+  }
+
+  private static CompilationUnit buildUtilitiesGeneralLibrary() throws Exception {
+    CompilationUnit unit = new CompilationUnit(null, null, null, null, null);
+    unit.getDirectives().add(libraryDirective("engine", "utilities", "general"));
+    unit.getDirectives().add(importDirective("java_core.dart", null));
+    for (Entry<File, List<CompilationUnitMember>> entry : context.getFileToMembers().entrySet()) {
+      File file = entry.getKey();
+      if (isEnginePath(file, "utilities/general/")) {
+        addNotRemovedCompiationUnitEntries(unit, entry.getValue());
       }
     }
     return unit;

@@ -40,7 +40,7 @@ public enum TodoCode implements ErrorCode {
    * <li>TODOS
    */
   // I would strongly recommend not editing this regex.
-  public static Pattern TODO_REGEX = Pattern.compile("[\\s/\\*]((TODO[^\\w\\d][^\\r\\n]*)|(TODO:?$))");
+  public static Pattern TODO_REGEX = Pattern.compile("([\\s/\\*])((TODO[^\\w\\d][^\\r\\n]*)|(TODO:?$))");
 
   private TodoCode() {
 

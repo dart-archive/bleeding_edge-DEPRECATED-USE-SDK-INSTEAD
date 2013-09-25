@@ -17,9 +17,9 @@ import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.source.Source;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map.Entry;
-import java.util.Set;
 
 /**
  * Instances of the class {@code AnalysisCache} implement an LRU cache of information related to
@@ -105,12 +105,12 @@ public class AnalysisCache {
   }
 
   /**
-   * Return a set containing all of the map entries mapping sources to cache entries. Clients should
-   * not modify the returned set.
+   * Return a collection containing all of the map entries mapping sources to cache entries. Clients
+   * should not modify the returned collection.
    * 
-   * @return a set containing all of the map entries mapping sources to cache entries
+   * @return a collection containing all of the map entries mapping sources to cache entries
    */
-  public Set<Entry<Source, SourceEntry>> entrySet() {
+  public Collection<Entry<Source, SourceEntry>> entrySet() {
     return sourceMap.entrySet();
   }
 

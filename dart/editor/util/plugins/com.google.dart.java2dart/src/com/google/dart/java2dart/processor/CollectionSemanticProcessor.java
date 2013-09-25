@@ -184,6 +184,10 @@ public class CollectionSemanticProcessor extends SemanticProcessor {
           replaceNode(node, propertyAccess(target, nameNode));
           return null;
         }
+        if (isMethodInClass(node, "containsAll", "java.util.Collection")) {
+          replaceNode(node, methodInvocation("javaCollectionContainsAll", target, args.get(0)));
+          return null;
+        }
         if (isMethodInClass(node, "isEmpty", "java.util.Map")) {
           replaceNode(node, propertyAccess(target, nameNode));
           return null;

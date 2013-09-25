@@ -283,6 +283,7 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
         if (args.isEmpty()) {
           if ("hashCode".equals(name) || isMethodInClass(node, "length", "java.lang.String")
               || isMethodInClass(node, "isEmpty", "java.lang.String")
+              || isMethodInClass(node, "name", "java.lang.Enum")
               || isMethodInClass(node, "ordinal", "java.lang.Enum")
               || isMethodInClass(node, "values", "java.lang.Enum")) {
             replaceNode(node, propertyAccess(target, nameNode));
@@ -389,6 +390,22 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
         }
         if (isMethodInClass(node, "format", "java.lang.String")) {
           replaceNode(target, identifier("JavaString"));
+          return null;
+        }
+        if (isMethodInClass(node, "compile", "java.util.regex.Pattern")) {
+          replaceNode(
+              node,
+              instanceCreationExpression(Keyword.NEW, typeName("RegExp"), args.get(0)));
+          return null;
+        }
+        if (isMethodInClass(node, "matcher", "java.util.regex.Pattern")) {
+          replaceNode(
+              node,
+              instanceCreationExpression(
+                  Keyword.NEW,
+                  typeName("JavaPatternMatcher"),
+                  target,
+                  args.get(0)));
           return null;
         }
         if (name.equals("longValue") && target instanceof MethodInvocation) {
@@ -576,6 +593,13 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
           // StringBuilder -> JavaStringBuilder
           if (name.equals("StringBuilder")) {
             replaceNode(nameNode, identifier("JavaStringBuilder"));
+          }
+          // java.util.regex.*
+          if (JavaUtils.isTypeNamed(typeBinding, "java.util.regex.Pattern")) {
+            replaceNode(nameNode, identifier("RegExp"));
+          }
+          if (JavaUtils.isTypeNamed(typeBinding, "java.util.regex.Matcher")) {
+            replaceNode(nameNode, identifier("JavaPatternMatcher"));
           }
           // Class<T> -> Type
           if (name.equals("Class")) {

@@ -5603,12 +5603,14 @@ public class Parser {
     Matcher matcher = TodoCode.TODO_REGEX.matcher(commentToken.getLexeme());
 
     if (matcher.find()) {
+      int offset = commentToken.getOffset() + matcher.start() + matcher.group(1).length();
+      int length = matcher.group(2).length();
       errorListener.onError(new AnalysisError(
           source,
-          commentToken.getOffset() + matcher.start(1),
-          matcher.end(1) - matcher.start(1),
+          offset,
+          length,
           TodoCode.TODO,
-          matcher.group(1)));
+          matcher.group(2)));
     }
   }
 

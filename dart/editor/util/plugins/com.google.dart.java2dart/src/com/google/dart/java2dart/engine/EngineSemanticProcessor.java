@@ -64,22 +64,16 @@ import static com.google.dart.java2dart.util.ASTFactory.formalParameterList;
 import static com.google.dart.java2dart.util.ASTFactory.functionDeclaration;
 import static com.google.dart.java2dart.util.ASTFactory.functionExpression;
 import static com.google.dart.java2dart.util.ASTFactory.identifier;
-import static com.google.dart.java2dart.util.ASTFactory.ifStatement;
 import static com.google.dart.java2dart.util.ASTFactory.integer;
 import static com.google.dart.java2dart.util.ASTFactory.methodDeclaration;
 import static com.google.dart.java2dart.util.ASTFactory.methodInvocation;
 import static com.google.dart.java2dart.util.ASTFactory.namedFormalParameter;
-import static com.google.dart.java2dart.util.ASTFactory.nullLiteral;
 import static com.google.dart.java2dart.util.ASTFactory.prefixExpression;
 import static com.google.dart.java2dart.util.ASTFactory.propertyAccess;
 import static com.google.dart.java2dart.util.ASTFactory.redirectingConstructorInvocation;
-import static com.google.dart.java2dart.util.ASTFactory.returnStatement;
 import static com.google.dart.java2dart.util.ASTFactory.simpleFormalParameter;
-import static com.google.dart.java2dart.util.ASTFactory.thisExpression;
 import static com.google.dart.java2dart.util.ASTFactory.typeName;
 import static com.google.dart.java2dart.util.ASTFactory.variableDeclaration;
-import static com.google.dart.java2dart.util.ASTFactory.variableDeclarationList;
-import static com.google.dart.java2dart.util.ASTFactory.variableDeclarationStatement;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -608,42 +602,18 @@ public class EngineSemanticProcessor extends SemanticProcessor {
           node.setBody(blockFunctionBody());
           return null;
         }
-        if (isMethodInClass(binding, "getContents", "com.google.dart.engine.source.FileBasedSource")) {
+        if (isMethodInClass(
+            binding,
+            "getContentsFromFile",
+            "com.google.dart.engine.source.FileBasedSource")) {
           SimpleIdentifier receiverIdent = node.getParameters().getParameters().get(0).getIdentifier();
           Block tryCacheBlock = block();
-          {
-            tryCacheBlock.getStatements().add(
-                variableDeclarationStatement(variableDeclarationList(
-                    null,
-                    typeName("String"),
-                    variableDeclaration(
-                        "contents",
-                        methodInvocation(
-                            identifier("_contentCache"),
-                            "getContents",
-                            thisExpression())))));
-            SimpleIdentifier contentsIdent = identifier("contents");
-            Expression modificationStampExpr = methodInvocation(
-                identifier("_contentCache"),
-                "getModificationStamp",
-                thisExpression());
-            tryCacheBlock.getStatements().add(
-                ifStatement(
-                    binaryExpression(contentsIdent, TokenType.BANG_EQ, nullLiteral()),
-                    block(
-                        expressionStatement(methodInvocation(
-                            receiverIdent,
-                            "accept2",
-                            contentsIdent,
-                            modificationStampExpr)),
-                        returnStatement())));
-          }
-          ExpressionStatement doReadStatement = expressionStatement(methodInvocation(
+          ExpressionStatement statement = expressionStatement(methodInvocation(
               receiverIdent,
               "accept2",
               methodInvocation(identifier("file"), "readAsStringSync"),
               methodInvocation(identifier("file"), "lastModified")));
-          node.setBody(blockFunctionBody(tryCacheBlock, doReadStatement));
+          node.setBody(blockFunctionBody(tryCacheBlock, statement));
           return null;
         }
         return null;

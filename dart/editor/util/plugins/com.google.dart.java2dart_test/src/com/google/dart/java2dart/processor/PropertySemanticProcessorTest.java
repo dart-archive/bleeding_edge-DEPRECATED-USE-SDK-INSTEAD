@@ -121,6 +121,40 @@ public class PropertySemanticProcessorTest extends SemanticProcessorTest {
         "}");
   }
 
+  public void test_makeProperty_justField_inherited() throws Exception {
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "public class Test {",
+        "  static class A {",
+        "    protected int data;",
+        "  }",
+        "  static class B extends A {",
+        "    public int getFoo() {",
+        "      return data;",
+        "    }",
+        "  }",
+        "  public void main() {",
+        "    B b = new B();",
+        "    print(b.getFoo());",
+        "  }",
+        "}");
+    runProcessor();
+    assertFormattedSource(
+        "class Test {",
+        "  void main() {",
+        "    Test_B b = new Test_B();",
+        "    print(b.foo);",
+        "  }",
+        "}",
+        "class Test_A {",
+        "  int _data = 0;",
+        "}",
+        "class Test_B extends Test_A {",
+        "  int get foo => _data;",
+        "}");
+  }
+
   public void test_makeProperty_justField_onlyGetter_noAssignments() throws Exception {
     translateSingleFile(
         "// filler filler filler filler filler filler filler filler filler filler",

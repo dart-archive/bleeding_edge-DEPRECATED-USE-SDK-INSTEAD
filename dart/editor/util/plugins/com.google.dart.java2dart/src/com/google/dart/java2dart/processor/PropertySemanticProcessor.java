@@ -48,6 +48,8 @@ import static com.google.dart.java2dart.util.TokenFactory.token;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jdt.core.dom.IBinding;
 import org.eclipse.jdt.core.dom.IMethodBinding;
+import org.eclipse.jdt.core.dom.ITypeBinding;
+import org.eclipse.jdt.core.dom.IVariableBinding;
 
 import java.util.List;
 import java.util.Map;
@@ -266,16 +268,15 @@ public class PropertySemanticProcessor extends SemanticProcessor {
 
       @Override
       public Void visitMethodDeclaration(MethodDeclaration node) {
+        IMethodBinding binding = (IMethodBinding) context.getNodeBinding(node);
         // don't remove method if it overrides
-        {
-          IMethodBinding binding = (IMethodBinding) context.getNodeBinding(node);
-          if (binding == null) {
-            return null;
-          }
-          if (ignoredMethods.contains(binding)) {
-            return null;
-          }
+        if (binding == null) {
+          return null;
         }
+        if (ignoredMethods.contains(binding)) {
+          return null;
+        }
+        ITypeBinding declaringClass = binding.getDeclaringClass();
         // getter
         if (node.isGetter()) {
           String name = node.getName().getName();
@@ -286,6 +287,17 @@ public class PropertySemanticProcessor extends SemanticProcessor {
             Expression expression = body.getExpression();
             if (expression instanceof SimpleIdentifier) {
               SimpleIdentifier identifier = (SimpleIdentifier) expression;
+              // may be not a local field
+              IBinding identifierBinding = context.getNodeBinding(identifier);
+              if (identifierBinding instanceof IVariableBinding) {
+                IVariableBinding fieldBinding = (IVariableBinding) identifierBinding;
+                if (fieldBinding.getDeclaringClass() != declaringClass) {
+                  return null;
+                }
+              } else {
+                return null;
+              }
+              // OK, remember the field
               property.getterField = identifier.getName();
             }
           }

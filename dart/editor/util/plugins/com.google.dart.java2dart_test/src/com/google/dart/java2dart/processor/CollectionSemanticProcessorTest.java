@@ -376,6 +376,32 @@ public class CollectionSemanticProcessorTest extends SemanticProcessorTest {
         "}");
   }
 
+  public void test_List_containsAll() throws Exception {
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "import java.util.List;",
+        "import java.util.ArrayList;",
+        "public class Test {",
+        "  public void testA(List<String> items, List<String> c) {",
+        "    items.containsAll(c);",
+        "  }",
+        "  public void testB(ArrayList<String> items, List<String> c) {",
+        "    items.containsAll(c);",
+        "  }",
+        "}");
+    runProcessor();
+    assertFormattedSource(
+        "class Test {",
+        "  void testA(List<String> items, List<String> c) {",
+        "    javaCollectionContainsAll(items, c);",
+        "  }",
+        "  void testB(List<String> items, List<String> c) {",
+        "    javaCollectionContainsAll(items, c);",
+        "  }",
+        "}");
+  }
+
   public void test_List_get() throws Exception {
     translateSingleFile(
         "// filler filler filler filler filler filler filler filler filler filler",

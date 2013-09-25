@@ -34,7 +34,7 @@ import java.util.List;
  */
 public class ImportDirective extends NamespaceDirective {
 
-  private static final class ImportDirectiveComparator implements Comparator<ImportDirective> {
+  public static final Comparator<ImportDirective> COMPARATOR = new Comparator<ImportDirective>() {
     @Override
     public int compare(ImportDirective import1, ImportDirective import2) {
       //
@@ -128,10 +128,7 @@ public class ImportDirective extends NamespaceDirective {
       }
       return 0;
     }
-
-  }
-
-  public static final Comparator<ImportDirective> COMPARATOR = new ImportDirectiveComparator();
+  };
 
   /**
    * The token representing the 'as' token, or {@code null} if the imported names are not prefixed.

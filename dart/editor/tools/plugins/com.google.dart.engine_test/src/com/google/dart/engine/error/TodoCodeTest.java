@@ -42,12 +42,12 @@ public class TodoCodeTest extends EngineTestCase {
     Matcher m = TodoCode.TODO_REGEX.matcher("/**\n * TODO: foo bar\n * TODO bar baz\n*/");
 
     assertTrue(m.find());
-    assertEquals(7, m.start(1));
-    assertEquals(13, m.end(1) - m.start(1));
+    assertEquals(7, m.start(2));
+    assertEquals(13, m.end(2) - m.start(2));
 
     assertTrue(m.find());
-    assertEquals(24, m.start(1));
-    assertEquals(12, m.end(1) - m.start(1));
+    assertEquals(24, m.start(2));
+    assertEquals(12, m.end(2) - m.start(2));
 
     assertFalse(m.find());
   }
@@ -66,8 +66,8 @@ public class TodoCodeTest extends EngineTestCase {
     Matcher m = TodoCode.TODO_REGEX.matcher(comment);
 
     assertTrue(m.find());
-    assertEquals(start, m.start(1));
-    assertEquals(length, m.end(1) - m.start(1));
+    assertEquals(start, m.start(2));
+    assertEquals(length, m.end(2) - m.start(2));
   }
 
   private void negative(String comment) {

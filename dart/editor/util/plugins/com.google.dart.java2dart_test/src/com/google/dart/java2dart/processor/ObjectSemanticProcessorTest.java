@@ -168,6 +168,30 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "}");
   }
 
+  public void test_Enum_name() throws Exception {
+    setFileLines(
+        "test/MyEnum.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "package test;",
+            "public enum MyEnum {",
+            "  ONE, TWO;",
+            "}"));
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "public class Test {",
+        "  public void test() {",
+        "    return MyEnum.ONE.name();",
+        "  }",
+        "}");
+    runProcessor();
+    assertFormattedSource(//
+        "class Test {",
+        "  void test() => MyEnum.ONE.name;",
+        "}");
+  }
+
   public void test_Enum_ordinal() throws Exception {
     setFileLines(
         "test/MyEnum.java",
@@ -684,6 +708,44 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "  void main(PrintWriter p, String s) {",
         "    p.newLine();",
         "    p.println(s);",
+        "  }",
+        "}");
+  }
+
+  public void test_regex_Matcher() throws Exception {
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "import java.util.regex.*;",
+        "public class Test {",
+        "  void main(Pattern p, String s) {",
+        "    Matcher m = p.matcher(s);",
+        "  }",
+        "}");
+    runProcessor();
+    assertFormattedSource(//
+        "class Test {",
+        "  void main(RegExp p, String s) {",
+        "    JavaPatternMatcher m = new JavaPatternMatcher(p, s);",
+        "  }",
+        "}");
+  }
+
+  public void test_regex_Pattern() throws Exception {
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "import java.util.regex.*;",
+        "public class Test {",
+        "  void main(String s) {",
+        "    Pattern.compile(s);",
+        "  }",
+        "}");
+    runProcessor();
+    assertFormattedSource(//
+        "class Test {",
+        "  void main(String s) {",
+        "    new RegExp(s);",
         "  }",
         "}");
   }
