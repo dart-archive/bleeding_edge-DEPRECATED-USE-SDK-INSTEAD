@@ -70,6 +70,12 @@ public class ServerDebugValue extends ServerDebugElement implements IValue, IDar
 
   @Override
   public void evaluateExpression(final String expression, final IWatchExpressionListener listener) {
+    if (valueRetriever != null) {
+      // This is not a valid object to evaluate expressions against.
+      listener.watchEvaluationFinished(WatchExpressionResult.error(expression, "undefined"));
+      return;
+    }
+
     try {
       getConnection().evaluateObject(
           value.getIsolate(),
