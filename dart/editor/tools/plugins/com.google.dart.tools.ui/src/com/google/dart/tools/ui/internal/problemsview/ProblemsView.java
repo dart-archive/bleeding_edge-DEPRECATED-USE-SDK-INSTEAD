@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.problemsview;
 
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.actions.InstrumentedAction;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentation;
@@ -151,11 +152,9 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
 
     @Override
     public void run() {
-
       UIInstrumentationBuilder instrumentation = UIInstrumentation.builder("ProblemsView.CopyMarkerAction");
 
       try {
-
         StringBuilder builder = new StringBuilder();
 
         for (Object obj : getStructuredSelection().toArray()) {
@@ -180,16 +179,13 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
           instrumentation.data("text", builder.toString());
           copyToClipboard(builder.toString());
         }
-
       } catch (RuntimeException e) {
         instrumentation.metric("Exception", e.getClass().toString());
         instrumentation.data("Exception", e.toString());
         throw e;
       } finally {
         instrumentation.log();
-
       }
-
     }
 
     @Override
@@ -501,23 +497,19 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
 
     @Override
     public void run() {
-
       UIInstrumentationBuilder instrumentation = UIInstrumentation.builder("GoToMarkerAction.run");
 
       try {
-
-        openSelectedMarker(instrumentation); //This will record the selection, the action needs seperate instrumetnations so we
-        //know that it came from the GotoMarker action
-
+        // This will record the selection, the action needs seperate instrumetnations so we know
+        // that it came from the GotoMarker action.
+        openSelectedMarker(instrumentation);
       } catch (RuntimeException e) {
         instrumentation.metric("Exception", e.getClass().toString());
         instrumentation.data("Exception", e.toString());
         throw e;
       } finally {
         instrumentation.log();
-
       }
-
     }
 
     @Override
@@ -660,12 +652,17 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
         sortables[i] = new TableSorterMarker((IMarker) elements[i]);
       }
 
-      Arrays.sort(sortables, new Comparator<TableSorterMarker>() {
-        @Override
-        public int compare(TableSorterMarker marker1, TableSorterMarker marker2) {
-          return TableSorter.this.compare(viewer, marker1, marker2);
-        }
-      });
+      try {
+        Arrays.sort(sortables, new Comparator<TableSorterMarker>() {
+          @Override
+          public int compare(TableSorterMarker marker1, TableSorterMarker marker2) {
+            return TableSorter.this.compare(viewer, marker1, marker2);
+          }
+        });
+      } catch (Throwable t) {
+        // catch all exceptions having to do with sorting
+        DartCore.logError(t.toString());
+      }
 
       for (int i = 0; i < sortables.length; i++) {
         elements[i] = sortables[i].marker;
@@ -912,10 +909,9 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
     tableViewer.addDoubleClickListener(new IDoubleClickListener() {
       @Override
       public void doubleClick(DoubleClickEvent event) {
-
         UIInstrumentationBuilder instrumentation = UIInstrumentation.builder("ProblemView.doubleClick");
-        try {
 
+        try {
           openSelectedMarker(instrumentation);
         } catch (RuntimeException e) {
           instrumentation.metric("Exception", e.getClass().toString());
@@ -925,7 +921,6 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
         } finally {
           instrumentation.log();
         }
-
       }
     });
     tableViewer.addSelectionChangedListener(new ISelectionChangedListener() {
@@ -1387,12 +1382,10 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
           }
         }
       }
-
     } catch (RuntimeException e) {
       instrumentation.metric("Exception", e.getClass().toString());
       instrumentation.data("Exception", e.toString());
       throw e;
-
     }
   }
 
