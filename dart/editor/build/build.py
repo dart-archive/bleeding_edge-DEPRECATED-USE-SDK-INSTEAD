@@ -868,6 +868,33 @@ def PostProcessEditorBuilds(out_dir):
 
     print('  processing %s' % basename)
 
+    # adjust memory params for 64 bit versions
+    if (basename.endswith('-64.zip')):
+      if (basename.startswith('darteditor-macos-')):
+        inifile = join('dart', 'DartEditor.app', 'Contents', 'MacOS',
+                       'DartEditor.ini')
+      else:
+        inifile = join('dart', 'DartEditor.ini')
+
+      if (basename.startswith('darteditor-win32-')):
+        f = zipfile.ZipFile(zipFile)
+        f.extract(inifile)
+        f.close()
+      else:
+        subprocess.call(['unzip', zipFile, inifile], env=os.environ)
+
+      Modify64BitDartEditorIni(inifile)
+
+      if (basename.startswith('darteditor-win32-')):
+        f = zipfile.ZipFile(zipFile)
+        f.write(inifile)
+        f.close()
+      else:
+        subprocess.call(['zip', '-d', zipFile, inifile], env=os.environ)
+        subprocess.call(['zip', '-q', zipFile, inifile], env=os.environ)
+
+      os.remove(inifile)
+
     # post-process the info.plist file
     if (basename.startswith('darteditor-macos-')):
       infofile = join('dart', 'DartEditor.app', 'Contents', 'Info.plist')
@@ -878,6 +905,17 @@ def PostProcessEditorBuilds(out_dir):
             '<dict>\n\t<key>NSHighResolutionCapable</key>\n\t\t<true/>')])
       subprocess.call(['zip', '-q', zipFile, infofile], env=os.environ)
       os.remove(infofile)
+
+
+def Modify64BitDartEditorIni(iniFilePath):
+  f = open(iniFilePath, 'r')
+  lines = f.readlines()
+  f.close()
+  lines[lines.index('-Xms40m\n')] = '-Xms256m\n'
+  lines[lines.index('-Xmx1000m\n')] = '-Xmx2000m\n'
+  f = open(iniFilePath, 'w')
+  f.writelines(lines);
+  f.close()
 
 
 def RunEditorTests(buildout, buildos):
