@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.internal.scope;
 
+import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ImportElement;
@@ -165,6 +166,11 @@ public class LibraryImportScope extends Scope {
     } else if (to == 1) {
       // All but one member was removed
       return conflictingMembers[0];
+    } else if (to == 0) {
+      // All members were removed
+      AnalysisEngine.getInstance().getLogger().logInformation(
+          "Multiply defined SDK element: " + foundElement);
+      return foundElement;
     }
     Element[] remaining = new Element[to];
     System.arraycopy(conflictingMembers, 0, remaining, 0, to);
