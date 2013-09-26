@@ -887,7 +887,7 @@ def PostProcessEditorBuilds(out_dir):
       Modify64BitDartEditorIni(inifile)
 
       if (basename.startswith('darteditor-win32-')):
-        f = zipfile.ZipFile(zipFile)
+        f = zipfile.ZipFile(zipFile, 'w')
         f.write(inifile.replace('\\','/'))
         f.close()
       else:
