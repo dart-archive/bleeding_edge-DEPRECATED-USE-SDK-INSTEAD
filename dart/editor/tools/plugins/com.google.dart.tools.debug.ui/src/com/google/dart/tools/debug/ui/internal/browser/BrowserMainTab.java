@@ -232,4 +232,10 @@ public class BrowserMainTab extends DartiumMainTab {
     return null;
   }
 
+  @Override
+  protected void updateEnablements(boolean isFile) {
+    super.updateEnablements(isFile);
+    runDart2jsButton.setEnabled(isFile);
+    dart2jsFlagsText.setEnabled(isFile);
+  }
 }
