@@ -1,3 +1,5 @@
+library {name};
+
 import 'dart:html';
 
 main() {

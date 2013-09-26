@@ -1,3 +1,5 @@
+library clickcounter;
+
 import 'package:polymer/polymer.dart';
 
 @CustomTag('click-counter')
