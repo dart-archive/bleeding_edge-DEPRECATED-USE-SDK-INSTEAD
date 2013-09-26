@@ -879,7 +879,7 @@ def PostProcessEditorBuilds(out_dir):
 
       if (basename.startswith('darteditor-win32-')):
         f = zipfile.ZipFile(zipFile)
-        f.extract(inifile)
+        f.extract(inifile.replace('\\','/'))
         f.close()
       else:
         subprocess.call(['unzip', zipFile, inifile], env=os.environ)
@@ -888,7 +888,7 @@ def PostProcessEditorBuilds(out_dir):
 
       if (basename.startswith('darteditor-win32-')):
         f = zipfile.ZipFile(zipFile)
-        f.write(inifile)
+        f.write(inifile.replace('\\','/'))
         f.close()
       else:
         subprocess.call(['zip', '-d', zipFile, inifile], env=os.environ)
