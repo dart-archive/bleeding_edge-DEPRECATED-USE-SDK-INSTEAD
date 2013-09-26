@@ -1,5 +1,0 @@
-name:  openglui
-description:  Sample cross-platform Dart GL/canvas applications.
-
-dependencies:
-  browser: any
