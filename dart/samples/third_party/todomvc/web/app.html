@@ -24,7 +24,7 @@ BSD-style license that can be found in the LICENSE file.
         </template>
       </ul>
     </section>
-    <template bind if="{{app.todos.length > 0}}">
+    <template if="{{app.todos.length > 0}}">
       <footer id="footer">
         <span id="todo-count"><strong>{{app.remaining}}</strong></span>
         <ul is="router-options" id="filters">
@@ -32,7 +32,7 @@ BSD-style license that can be found in the LICENSE file.
           <li> <a href="#/active">Active</a> </li>
           <li> <a href="#/completed">Completed</a> </li>
         </ul>
-        <template bind if="{{app.hasCompleteTodos}}">
+        <template if="{{app.hasCompleteTodos}}">
           <button id="clear-completed" on-click="clear">
             Clear completed ({{app.doneCount}})
           </button>
