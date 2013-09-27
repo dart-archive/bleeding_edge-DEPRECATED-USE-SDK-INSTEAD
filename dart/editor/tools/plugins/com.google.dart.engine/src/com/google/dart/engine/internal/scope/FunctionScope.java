@@ -22,6 +22,9 @@ import com.google.dart.engine.element.ParameterElement;
  * @coverage dart.engine.resolver
  */
 public class FunctionScope extends EnclosedScope {
+  private final ExecutableElement functionElement;
+  private boolean parametersDefined;
+
   /**
    * Initialize a newly created scope enclosed within another scope.
    * 
@@ -30,15 +33,17 @@ public class FunctionScope extends EnclosedScope {
    */
   public FunctionScope(Scope enclosingScope, ExecutableElement functionElement) {
     super(new EnclosedScope(enclosingScope));
-    defineParameters(functionElement);
+    this.functionElement = functionElement;
   }
 
   /**
    * Define the parameters for the given function in the scope that encloses this function.
-   * 
-   * @param functionElement the element representing the function represented by this scope
    */
-  private void defineParameters(ExecutableElement functionElement) {
+  public void defineParameters() {
+    if (parametersDefined) {
+      return;
+    }
+    parametersDefined = true;
     Scope parameterScope = getEnclosingScope();
     if (functionElement.getEnclosingElement() instanceof ExecutableElement) {
       String name = functionElement.getName();

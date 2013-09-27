@@ -524,6 +524,17 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_constructorDeclaration_scope_signature() throws Exception {
+    Source source = addSource(createSource(//
+        "const app = 0;",
+        "class A {",
+        "  A(@app int app) {}",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
   public void test_constWithNonConstantArgument_literals() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
@@ -859,6 +870,40 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  A(this.x);",
         "  A.named() : this (42);",
         "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_functionDeclaration_scope_returnType() throws Exception {
+    Source source = addSource(createSource(//
+    "int f(int) {}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_functionDeclaration_scope_signature() throws Exception {
+    Source source = addSource(createSource(//
+        "const app = 0;",
+        "f(@app int app) {}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_functionTypeAlias_scope_returnType() throws Exception {
+    Source source = addSource(createSource(//
+    "typedef int f(int);"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_functionTypeAlias_scope_signature() throws Exception {
+    Source source = addSource(createSource(//
+        "const app = 0;",
+        "typedef int f(@app int app);"));
     resolve(source);
     assertNoErrors(source);
     verify(source);
@@ -1666,6 +1711,17 @@ public class NonErrorResolverTest extends ResolverTestCase {
     Source source = addSource(createSource(//
         "class A {",
         "  set A(v) {}",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_methodDeclaration_scope_signature() throws Exception {
+    Source source = addSource(createSource(//
+        "const app = 0;",
+        "class A {",
+        "  foo(@app int app) {}",
         "}"));
     resolve(source);
     assertNoErrors(source);

@@ -24,6 +24,7 @@ import com.google.dart.engine.ast.DoStatement;
 import com.google.dart.engine.ast.FieldDeclaration;
 import com.google.dart.engine.ast.ForEachStatement;
 import com.google.dart.engine.ast.ForStatement;
+import com.google.dart.engine.ast.FormalParameterList;
 import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.FunctionDeclarationStatement;
 import com.google.dart.engine.ast.FunctionExpression;
@@ -269,6 +270,19 @@ public abstract class ScopedVisitor extends GeneralizingASTVisitor<Void> {
     } finally {
       labelScope = outerLabelScope;
       nameScope = outerNameScope;
+    }
+    return null;
+  }
+
+  @Override
+  public Void visitFormalParameterList(FormalParameterList node) {
+    super.visitFormalParameterList(node);
+    // We finished resolving function signature, now include formal parameters scope.
+    if (nameScope instanceof FunctionScope) {
+      ((FunctionScope) nameScope).defineParameters();
+    }
+    if (nameScope instanceof FunctionTypeScope) {
+      ((FunctionTypeScope) nameScope).defineParameters();
     }
     return null;
   }

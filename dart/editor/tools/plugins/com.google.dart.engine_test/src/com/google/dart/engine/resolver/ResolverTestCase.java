@@ -111,7 +111,7 @@ public class ResolverTestCase extends EngineTestCase {
    * @throws AssertionFailedError if any errors have been reported
    */
   protected void assertNoErrors(Source source) throws AnalysisException {
-    assertLength(0, analysisContext.computeErrors(source));
+    assertErrors(source);
   }
 
   /**

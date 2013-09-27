@@ -24,6 +24,9 @@ import com.google.dart.engine.element.TypeParameterElement;
  * @coverage dart.engine.resolver
  */
 public class FunctionTypeScope extends EnclosedScope {
+  private final FunctionTypeAliasElement typeElement;
+  private boolean parametersDefined;
+
   /**
    * Initialize a newly created scope enclosed within another scope.
    * 
@@ -32,8 +35,8 @@ public class FunctionTypeScope extends EnclosedScope {
    */
   public FunctionTypeScope(Scope enclosingScope, FunctionTypeAliasElement typeElement) {
     super(new EnclosedScope(enclosingScope));
-    defineTypeParameters(typeElement);
-    defineParameters(typeElement);
+    this.typeElement = typeElement;
+    defineTypeParameters();
   }
 
   /**
@@ -41,7 +44,11 @@ public class FunctionTypeScope extends EnclosedScope {
    * 
    * @param typeElement the element representing the type represented by this scope
    */
-  private void defineParameters(FunctionTypeAliasElement typeElement) {
+  public void defineParameters() {
+    if (parametersDefined) {
+      return;
+    }
+    parametersDefined = true;
     for (ParameterElement parameter : typeElement.getParameters()) {
       define(parameter);
     }
@@ -52,7 +59,7 @@ public class FunctionTypeScope extends EnclosedScope {
    * 
    * @param typeElement the element representing the type represented by this scope
    */
-  private void defineTypeParameters(FunctionTypeAliasElement typeElement) {
+  private void defineTypeParameters() {
     Scope typeParameterScope = getEnclosingScope();
     for (TypeParameterElement typeParameter : typeElement.getTypeParameters()) {
       typeParameterScope.define(typeParameter);
