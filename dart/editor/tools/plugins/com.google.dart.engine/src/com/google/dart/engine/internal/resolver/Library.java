@@ -243,7 +243,7 @@ public class Library {
         libraryElement = (LibraryElementImpl) analysisContext.computeLibraryElement(librarySource);
       } catch (AnalysisException exception) {
         AnalysisEngine.getInstance().getLogger().logError(
-            "Could not compute ilbrary element for " + librarySource.getFullName(),
+            "Could not compute library element for " + librarySource.getFullName(),
             exception);
       }
     }
