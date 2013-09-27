@@ -54,8 +54,6 @@ public class BestPracticesVerifier extends RecursiveASTVisitor<Void> {
 
   private static final String NULL_TYPE_NAME = "Null";
 
-  private static final String OBJECT_TYPE_NAME = "Object";
-
   private static final String SETTER = "setter";
 
   private static final String TO_INT_METHOD_NAME = "toInt";
@@ -172,8 +170,7 @@ public class BestPracticesVerifier extends RecursiveASTVisitor<Void> {
     LibraryElement libraryElement = rhsElement != null ? rhsElement.getLibrary() : null;
     if (libraryElement != null && libraryElement.isDartCore()) {
       // if x is Object or null is Null
-      // TODO(jwren) Do we need to check the name of the RHS type?
-      if ((rhsType.isObject() && rhsNameStr.equals(OBJECT_TYPE_NAME))
+      if (rhsType.isObject()
           || (expression instanceof NullLiteral && rhsNameStr.equals(NULL_TYPE_NAME))) {
         if (node.getNotOperator() == null) {
           // the is case
