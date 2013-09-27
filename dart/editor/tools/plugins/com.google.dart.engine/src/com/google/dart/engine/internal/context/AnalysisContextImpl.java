@@ -269,6 +269,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
 
   @Override
   public AnalysisError[] computeErrors(Source source) throws AnalysisException {
+    boolean enableHints = getAnalysisOptions().getHint();
     SourceEntry sourceEntry = getReadableSourceEntry(source);
     if (sourceEntry instanceof DartEntry) {
       ArrayList<AnalysisError> errors = new ArrayList<AnalysisError>();
@@ -281,7 +282,9 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
             getDartResolutionData(source, source, dartEntry, DartEntry.RESOLUTION_ERRORS));
         // TODO(brianwilkerson) Gather other kinds of errors when their generation is moved out of
         // resolution into separate phases.
-        ListUtilities.addAll(errors, getDartHintData(source, source, dartEntry, DartEntry.HINTS));
+        if (enableHints) {
+          ListUtilities.addAll(errors, getDartHintData(source, source, dartEntry, DartEntry.HINTS));
+        }
       } else {
         Source[] libraries = getLibrariesContaining(source);
         for (Source librarySource : libraries) {
@@ -290,9 +293,11 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
               getDartResolutionData(source, librarySource, dartEntry, DartEntry.RESOLUTION_ERRORS));
           // TODO(brianwilkerson) Gather other kinds of errors when their generation is moved out of
           // resolution into separate phases.
-          ListUtilities.addAll(
-              errors,
-              getDartHintData(source, librarySource, dartEntry, DartEntry.HINTS));
+          if (enableHints) {
+            ListUtilities.addAll(
+                errors,
+                getDartHintData(source, librarySource, dartEntry, DartEntry.HINTS));
+          }
         }
       }
       if (errors.isEmpty()) {

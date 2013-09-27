@@ -912,6 +912,7 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
   }
 
   public void test_isNotNull() throws Exception {
+    enableContextHints();
     prepareProblemWithFix(
         "// filler filler filler filler filler filler filler filler filler filler",
         "main(p) {",
@@ -927,6 +928,7 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
   }
 
   public void test_isNull() throws Exception {
+    enableContextHints();
     prepareProblemWithFix(
         "// filler filler filler filler filler filler filler filler filler filler",
         "main(p) {",

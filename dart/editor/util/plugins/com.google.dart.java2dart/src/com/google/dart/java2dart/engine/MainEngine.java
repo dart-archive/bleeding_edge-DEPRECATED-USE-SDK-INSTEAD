@@ -306,10 +306,10 @@ public class MainEngine {
     }
     {
       CompilationUnit library = buildParserLibrary();
-      Files.write(
-          getFormattedSource(library),
-          new File(targetFolder + "/parser.dart"),
-          Charsets.UTF_8);
+      String source = getFormattedSource(library);
+      String line = "_errorListener.onError(new AnalysisError.con2(_source, offset, length, TodoCode.TODO, [matcher.group(2)]));";
+      source = replaceSourceFragment(source, line, "// " + line);
+      Files.write(source, new File(targetFolder + "/parser.dart"), Charsets.UTF_8);
     }
     {
       CompilationUnit library = buildSdkLibrary();
