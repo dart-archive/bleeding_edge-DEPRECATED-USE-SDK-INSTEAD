@@ -692,5 +692,46 @@
          <actionSet id="com.google.dart.tools.debug.ui.breakpointActionSet"/>
       </perspectiveExtension>
    </extension>
-   
+  
+  <extension point="org.eclipse.wst.sse.ui.editorConfiguration">
+    <!--
+    <contentOutlineConfiguration
+      class="org.eclipse.wst.jsdt.web.ui.views.provisional.contentoutline.JsContentOutlineConfig"
+      target="org.eclipse.wst.html.core.htmlsource.source" /> 
+    <quickOutlineConfiguration
+      class="org.eclipse.wst.css.ui.views.contentoutline.CSSQuickOutlineConfiguration"
+      target="org.eclipse.wst.css.core.csssource" />
+      -->
+    <sourceViewerConfiguration
+      class="com.google.dart.tools.wst.ui.StructuredTextViewerConfigurationDart"
+      target="org.eclipse.wst.html.core.htmlsource.source" />
+    <provisionalConfiguration
+      type="linestyleprovider"
+      class="com.google.dart.tools.wst.ui.style.LineStyleProviderForDart"
+      target="org.eclipse.wst.html.SCRIPT.type.APPLICATION/DART,org.eclipse.wst.html.SCRIPT.EVENTHANDLER.type.APPLICATION/DART,org.eclipse.wst.html.SCRIPT,org.eclipse.wst.html.SCRIPT.EVENTHANDLER" />
+    <!--
+    <documentationTextHover
+      class="org.eclipse.wst.jsdt.web.ui.internal.taginfo.JSDTHoverProcessor"
+      target="org.eclipse.wst.html.SCRIPT,org.eclipse.wst.html.SCRIPT.EVENTHANDLER" />
+    <provisionalConfiguration
+      type="characterpairmatcher"
+      class="org.eclipse.wst.jsdt.web.ui.internal.text.JsDocumentRegionEdgeMatcher"
+      target="org.eclipse.wst.html.SCRIPT,org.eclipse.wst.html.SCRIPT.EVENTHANDLER" />
+      -->
+    <provisionalConfiguration
+      type="autoeditstrategy"
+      class="com.google.dart.tools.wst.ui.autoedit.AutoEditStrategyForDart"
+      target="org.eclipse.wst.html.SCRIPT.type.APPLICATION/DART,org.eclipse.wst.html.SCRIPT.EVENTHANDLER.type.APPLICATION/DART,org.eclipse.wst.html.SCRIPT,org.eclipse.wst.html.SCRIPT.EVENTHANDLER" />
+      <!--
+    <provisionalConfiguration
+      type="org.eclipse.wst.sse.ui.internal.search.FindOccurrencesProcessor"
+      class="org.eclipse.wst.jsdt.web.ui.internal.java.search.JsFindOccurrencesProcessor"
+      target="org.eclipse.wst.html.SCRIPT,org.eclipse.wst.html.SCRIPT.EVENTHANDLER" />
+    <provisionalConfiguration
+      type="slaveformattingstrategy"
+      class="org.eclipse.wst.jsdt.web.ui.internal.format.FormattingStrategyJSDT"
+      target="org.eclipse.wst.html.SCRIPT" />
+    -->
+  </extension>
+ 
 </plugin>

@@ -41,6 +41,14 @@ public final class SemanticToken {
   }
 
   /**
+   * Clears this token.
+   */
+  public void clear() {
+    nodeOld = null;
+    document = null;
+  }
+
+  /**
    * @return the {@link ASNode}.
    */
   public ASTNode getNode() {
@@ -89,25 +97,11 @@ public final class SemanticToken {
   }
 
   /**
-   * Clears this token.
-   * <p>
-   * NOTE: Allowed to be used by {@link SemanticHighlightingReconciler} only.
-   * </p>
-   */
-  void clear() {
-    nodeOld = null;
-    document = null;
-  }
-
-  /**
    * Update this token with the given AST node.
-   * <p>
-   * NOTE: Allowed to be used by {@link SemanticHighlightingReconciler} only.
-   * </p>
    * 
    * @param node the {@link ASTNode}
    */
-  void update(ASTNode node) {
+  public void update(ASTNode node) {
     clear();
     this.node = node;
   }
