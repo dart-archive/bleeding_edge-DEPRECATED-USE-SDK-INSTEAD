@@ -1084,6 +1084,26 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_importPrefixes_withFirstLetterDifference() throws Exception {
+    Source source = addSource(createSource(//
+        "library L;",
+        "import 'lib1.dart' as math;",
+        "import 'lib2.dart' as path;",
+        "main() {",
+        "  math.test1();",
+        "  path.test2();",
+        "}"));
+    addSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "test1() {}"));
+    addSource("/lib2.dart", createSource(//
+        "library lib2;",
+        "test2() {}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
   public void test_inconsistentCaseExpressionTypes() throws Exception {
     Source source = addSource(createSource(//
         "f(var p) {",

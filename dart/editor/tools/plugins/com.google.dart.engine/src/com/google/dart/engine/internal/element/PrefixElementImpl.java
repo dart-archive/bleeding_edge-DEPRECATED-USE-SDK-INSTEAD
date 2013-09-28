@@ -81,4 +81,12 @@ public class PrefixElementImpl extends ElementImpl implements PrefixElement {
     builder.append("as ");
     super.appendTo(builder);
   }
+
+  @Override
+  protected String getIdentifier() {
+    // Force additional character because prefix location is just library + this identifier,
+    // and when we compare locations we ignore first character of first two components - we expect
+    // that they are URIs with URI kind character.
+    return "_" + super.getIdentifier();
+  }
 }
