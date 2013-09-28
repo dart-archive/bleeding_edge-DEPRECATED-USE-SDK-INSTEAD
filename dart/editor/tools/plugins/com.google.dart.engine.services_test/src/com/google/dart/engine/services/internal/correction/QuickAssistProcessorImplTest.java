@@ -420,42 +420,93 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
     assert_convertToExpressionBody_wrong(initial, "return;");
   }
 
-  public void test_convertToIsNot_OK() throws Exception {
+  public void test_convertToIsNot_OK_childOfIs_left() throws Exception {
+    String initial = "!(v is String)";
+    String expected = "v is! String";
+    assert_convertToIsNot(initial, "v is", expected);
+  }
+
+  public void test_convertToIsNot_OK_childOfIs_right() throws Exception {
+    String initial = "!(v is String)";
+    String expected = "v is! String";
+    assert_convertToIsNot(initial, "String)", expected);
+  }
+
+  public void test_convertToIsNot_OK_is() throws Exception {
     String initial = "!(v is String)";
     String expected = "v is! String";
     assert_convertToIsNot(initial, "is String", expected);
   }
 
-  public void test_convertToIsNot_OK_higherPrecedencePrefix() throws Exception {
+  public void test_convertToIsNot_OK_is_higherPrecedencePrefix() throws Exception {
     String initial = "!!(v is String)";
     String expected = "!(v is! String)";
     assert_convertToIsNot(initial, "is String", expected);
   }
 
-  public void test_convertToIsNot_wrong_alreadyIsNot() throws Exception {
+  public void test_convertToIsNot_OK_is_not_higherPrecedencePrefix() throws Exception {
+    String initial = "!!(v is String)";
+    String expected = "!(v is! String)";
+    assert_convertToIsNot(initial, "!(", expected);
+  }
+
+  public void test_convertToIsNot_OK_not() throws Exception {
+    String initial = "!(v is String)";
+    String expected = "v is! String";
+    assert_convertToIsNot(initial, "!", expected);
+  }
+
+  public void test_convertToIsNot_OK_parentheses() throws Exception {
+    String initial = "!(v is String)";
+    String expected = "v is! String";
+    assert_convertToIsNot(initial, "(v", expected);
+  }
+
+  public void test_convertToIsNot_wrong_is_alreadyIsNot() throws Exception {
     String initial = "v is! String";
     assert_convertToIsNot(initial, "is! String", initial);
   }
 
-  public void test_convertToIsNot_wrong_noEnclosingParenthesis() throws Exception {
+  public void test_convertToIsNot_wrong_is_noEnclosingParenthesis() throws Exception {
     String initial = "v is String";
     assert_convertToIsNot(initial, "is String", initial);
   }
 
-  public void test_convertToIsNot_wrong_noPrefix() throws Exception {
+  public void test_convertToIsNot_wrong_is_noPrefix() throws Exception {
     String initial = "(v is String)";
     assert_convertToIsNot(initial, "is String", initial);
   }
 
-  public void test_convertToIsNot_wrong_notIsExpression() throws Exception {
-    String initial = "!(v is String)";
-    assert_convertToIsNot(initial, "String)", initial);
+  public void test_convertToIsNot_wrong_is_notIsExpression() throws Exception {
+    String initial = "123 + 456";
+    assert_convertToIsNot(initial, "123 +", initial);
   }
 
-  public void test_convertToIsNot_wrong_notTheNotOperator() throws Exception {
+  public void test_convertToIsNot_wrong_is_notTheNotOperator() throws Exception {
     verifyNoTestUnitErrors = false;
     String initial = "++(v is String)";
     assert_convertToIsNot(initial, "is String", initial);
+  }
+
+  public void test_convertToIsNot_wrong_not_alreadyIsNot() throws Exception {
+    String initial = "!(v is! String)";
+    assert_convertToIsNot(initial, "!(", initial);
+  }
+
+  public void test_convertToIsNot_wrong_not_noEnclosingParenthesis() throws Exception {
+    String initial = "!v";
+    assert_convertToIsNot(initial, "!v", initial);
+  }
+
+  public void test_convertToIsNot_wrong_not_notIsExpression() throws Exception {
+    String initial = "!(v == 0)";
+    assert_convertToIsNot(initial, "!(", initial);
+  }
+
+  public void test_convertToIsNot_wrong_not_notTheNotOperator() throws Exception {
+    verifyNoTestUnitErrors = false;
+    String initial = "++(v is String)";
+    assert_convertToIsNot(initial, "++(", initial);
   }
 
   public void test_convertToIsNotEmpty_BAD_noIsNotEmpty() throws Exception {

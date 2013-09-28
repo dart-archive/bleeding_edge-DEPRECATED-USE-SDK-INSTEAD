@@ -438,7 +438,12 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
     addUnitCorrectionProposal(QA_CONVERT_INTO_EXPRESSION_BODY);
   }
 
-  void addProposal_convertToIsNot() throws Exception {
+  void addProposal_convertToIsNot_onIs() throws Exception {
+    // may be child of "is"
+    ASTNode node = this.node;
+    while (node != null && !(node instanceof IsExpression)) {
+      node = node.getParent();
+    }
     // prepare "is"
     if (!(node instanceof IsExpression)) {
       return;
@@ -460,6 +465,47 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
     }
     PrefixExpression prefExpression = (PrefixExpression) parent2;
     if (prefExpression.getOperator().getType() != TokenType.BANG) {
+      return;
+    }
+    // strip !()
+    if (CorrectionUtils.getParentPrecedence(prefExpression) >= TokenType.IS.getPrecedence()) {
+      addRemoveEdit(rangeToken(prefExpression.getOperator()));
+    } else {
+      addRemoveEdit(rangeStartEnd(prefExpression, parExpression.getLeftParenthesis()));
+      addRemoveEdit(rangeStartEnd(parExpression.getRightParenthesis(), prefExpression));
+    }
+    addInsertEdit(isExpression.getIsOperator().getEnd(), "!");
+    // add proposal
+    addUnitCorrectionProposal(QA_CONVERT_INTO_IS_NOT);
+  }
+
+  void addProposal_convertToIsNot_onNot() throws Exception {
+    // may be () in prefix expression
+    if (node instanceof ParenthesizedExpression && node.getParent() instanceof PrefixExpression) {
+      node = node.getParent();
+    }
+    // prepare !()
+    if (!(node instanceof PrefixExpression)) {
+      return;
+    }
+    PrefixExpression prefExpression = (PrefixExpression) node;
+    // should be ! operator
+    if (prefExpression.getOperator().getType() != TokenType.BANG) {
+      return;
+    }
+    // prepare !()
+    Expression operand = prefExpression.getOperand();
+    if (!(operand instanceof ParenthesizedExpression)) {
+      return;
+    }
+    ParenthesizedExpression parExpression = (ParenthesizedExpression) operand;
+    operand = parExpression.getExpression();
+    // prepare "is"
+    if (!(operand instanceof IsExpression)) {
+      return;
+    }
+    IsExpression isExpression = (IsExpression) operand;
+    if (isExpression.getNotOperator() != null) {
       return;
     }
     // strip !()
