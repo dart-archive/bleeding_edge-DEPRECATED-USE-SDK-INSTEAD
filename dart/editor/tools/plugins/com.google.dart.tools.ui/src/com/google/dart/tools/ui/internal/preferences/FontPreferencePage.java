@@ -73,6 +73,7 @@ public class FontPreferencePage extends PreferencePage implements IWorkbenchPref
   public static final String EDITOR_FONT_KEY = PreferenceConstants.EDITOR_TEXT_FONT;
   public static final String EDITOR_DEFAULT_FONT_KEY = "com.google.dart.tools.ui.editors.textfont.default";
   public static final String BASE_FONT_KEY = "com.google.dart.tools.ui.editors.basefont";
+  public static final String WST_FONT_KEY = "org.eclipse.wst.sse.ui.textfont";
   public static final String BASE_DEFAULT_FONT_KEY = "com.google.dart.tools.ui.editors.basefont.default";
 
   private static final int SZ_SMALL = 10;
@@ -131,6 +132,7 @@ public class FontPreferencePage extends PreferencePage implements IWorkbenchPref
 
     persistFont(EDITOR_FONT_KEY, fontData);
     persistFont(BASE_FONT_KEY, baseData);
+    persistFont(WST_FONT_KEY, baseData);
     /*
      * The following block of code adjusts fonts in dialogs. There are some issues, like much of the
      * non-framework section of the page not getting changed. For now, it is commented out.
