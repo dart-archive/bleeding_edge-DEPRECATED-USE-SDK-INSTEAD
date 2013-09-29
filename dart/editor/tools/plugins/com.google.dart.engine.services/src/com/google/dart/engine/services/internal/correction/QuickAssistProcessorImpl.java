@@ -668,6 +668,11 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
   }
 
   void addProposal_joinIfStatementInner() throws Exception {
+    // climb up condition to the (supposedly) "if" statement
+    ASTNode node = this.node;
+    while (node instanceof Expression) {
+      node = node.getParent();
+    }
     // prepare target "if" statement
     if (!(node instanceof IfStatement)) {
       return;
@@ -717,6 +722,65 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
     }
     // done
     addUnitCorrectionProposal(CorrectionKind.QA_JOIN_IF_WITH_INNER);
+  }
+
+  void addProposal_joinIfStatementOuter() throws Exception {
+    // climb up condition to the (supposedly) "if" statement
+    ASTNode node = this.node;
+    while (node instanceof Expression) {
+      node = node.getParent();
+    }
+    // prepare target "if" statement
+    if (!(node instanceof IfStatement)) {
+      return;
+    }
+    IfStatement targetIfStatement = (IfStatement) node;
+    if (targetIfStatement.getElseStatement() != null) {
+      return;
+    }
+    // prepare outer "if" statement
+    ASTNode parent = targetIfStatement.getParent();
+    if (parent instanceof Block) {
+      parent = parent.getParent();
+    }
+    if (!(parent instanceof IfStatement)) {
+      return;
+    }
+    IfStatement outerIfStatement = (IfStatement) parent;
+    if (outerIfStatement.getElseStatement() != null) {
+      return;
+    }
+    // prepare environment
+    String prefix = utils.getNodePrefix(outerIfStatement);
+    String eol = utils.getEndOfLine();
+    // merge conditions
+    String condition;
+    {
+      Expression targetCondition = targetIfStatement.getCondition();
+      Expression outerCondition = outerIfStatement.getCondition();
+      String targetConditionSource = getSource(targetCondition);
+      String outerConditionSource = getSource(outerCondition);
+      if (shouldWrapParenthesisBeforeAnd(targetCondition)) {
+        targetConditionSource = "(" + targetConditionSource + ")";
+      }
+      if (shouldWrapParenthesisBeforeAnd(outerCondition)) {
+        outerConditionSource = "(" + outerConditionSource + ")";
+      }
+      condition = outerConditionSource + " && " + targetConditionSource;
+    }
+    // replace outer "if" statement
+    {
+      Statement targetThenStatement = targetIfStatement.getThenStatement();
+      List<Statement> targetThenStatements = CorrectionUtils.getStatements(targetThenStatement);
+      SourceRange lineRanges = utils.getLinesRange(targetThenStatements);
+      String oldSource = utils.getText(lineRanges);
+      String newSource = utils.getIndentSource(oldSource, false);
+      addReplaceEdit(
+          rangeNode(outerIfStatement),
+          MessageFormat.format("if ({0}) '{'{1}{2}{3}'}'", condition, eol, newSource, prefix));
+    }
+    // done
+    addUnitCorrectionProposal(CorrectionKind.QA_JOIN_IF_WITH_OUTER);
   }
 
   void addProposal_joinVariableDeclaration_onAssignment() throws Exception {

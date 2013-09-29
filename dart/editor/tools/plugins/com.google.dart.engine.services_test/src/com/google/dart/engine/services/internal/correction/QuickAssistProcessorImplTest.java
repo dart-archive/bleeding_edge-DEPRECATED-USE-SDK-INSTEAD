@@ -680,7 +680,6 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
     }
   }
 
-  // XXX
   public void test_invertIfStatement_blocks() throws Exception {
     String initial = makeSource(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -707,7 +706,6 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
     assert_invertIfStatement(initial, "if ", expected);
   }
 
-  // XXX
   public void test_invertIfStatement_statements() throws Exception {
     String initial = makeSource(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -792,6 +790,26 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
         "  }",
         "}");
     assert_joinIfStatementInner(initial, "if (1 ==", expected);
+  }
+
+  public void test_joinIfStatementInner_OK_onCondition() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  if (1 == 1) {",
+        "    if (2 == 2) {",
+        "      print(0);",
+        "    }",
+        "  }",
+        "}");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  if (1 == 1 && 2 == 2) {",
+        "    print(0);",
+        "  }",
+        "}");
+    assert_joinIfStatementInner(initial, "1 ==", expected);
   }
 
   public void test_joinIfStatementInner_OK_simpleConditions_block_block() throws Exception {
@@ -923,6 +941,219 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
         "  }",
         "}");
     assert_joinIfStatementInner_wrong(initial, "if (1 ==");
+  }
+
+  public void test_joinIfStatementOuter_OK_conditionAndOr() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  if (1 == 1) {",
+        "    if (2 == 2 || 3 == 3) {",
+        "      print(0);",
+        "    }",
+        "  }",
+        "}");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  if (1 == 1 && (2 == 2 || 3 == 3)) {",
+        "    print(0);",
+        "  }",
+        "}");
+    assert_joinIfStatementOuter(initial, "if (2 ==", expected);
+  }
+
+  public void test_joinIfStatementOuter_OK_conditionInvocation() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  if (1 == 1) {",
+        "    if (isCheck()) {",
+        "      print(0);",
+        "    }",
+        "  }",
+        "}",
+        "bool isCheck() => false;");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  if (1 == 1 && isCheck()) {",
+        "    print(0);",
+        "  }",
+        "}",
+        "bool isCheck() => false;");
+    assert_joinIfStatementOuter(initial, "if (isCheck", expected);
+  }
+
+  public void test_joinIfStatementOuter_OK_conditionOrAnd() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  if (1 == 1 || 2 == 2) {",
+        "    if (3 == 3) {",
+        "      print(0);",
+        "    }",
+        "  }",
+        "}");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  if ((1 == 1 || 2 == 2) && 3 == 3) {",
+        "    print(0);",
+        "  }",
+        "}");
+    assert_joinIfStatementOuter(initial, "if (3 ==", expected);
+  }
+
+  public void test_joinIfStatementOuter_OK_onCondition() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  if (1 == 1) {",
+        "    if (2 == 2) {",
+        "      print(0);",
+        "    }",
+        "  }",
+        "}");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  if (1 == 1 && 2 == 2) {",
+        "    print(0);",
+        "  }",
+        "}");
+    assert_joinIfStatementOuter(initial, "2 ==", expected);
+  }
+
+  public void test_joinIfStatementOuter_OK_simpleConditions_block_block() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  if (1 == 1) {",
+        "    if (2 == 2) {",
+        "      print(0);",
+        "    }",
+        "  }",
+        "}");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  if (1 == 1 && 2 == 2) {",
+        "    print(0);",
+        "  }",
+        "}");
+    assert_joinIfStatementOuter(initial, "if (2 ==", expected);
+  }
+
+  public void test_joinIfStatementOuter_OK_simpleConditions_block_single() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  if (1 == 1) {",
+        "    if (2 == 2)",
+        "      print(0);",
+        "  }",
+        "}");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  if (1 == 1 && 2 == 2) {",
+        "    print(0);",
+        "  }",
+        "}");
+    assert_joinIfStatementOuter(initial, "if (2 ==", expected);
+  }
+
+  public void test_joinIfStatementOuter_OK_simpleConditions_single_blockMulti() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  if (1 == 1)",
+        "    if (2 == 2) {",
+        "      print(1);",
+        "      print(2);",
+        "      print(3);",
+        "    }",
+        "}");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  if (1 == 1 && 2 == 2) {",
+        "    print(1);",
+        "    print(2);",
+        "    print(3);",
+        "  }",
+        "}");
+    assert_joinIfStatementOuter(initial, "if (2 ==", expected);
+  }
+
+  public void test_joinIfStatementOuter_OK_simpleConditions_single_blockOne() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  if (1 == 1)",
+        "    if (2 == 2) {",
+        "      print(0);",
+        "    }",
+        "}");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  if (1 == 1 && 2 == 2) {",
+        "    print(0);",
+        "  }",
+        "}");
+    assert_joinIfStatementOuter(initial, "if (2 ==", expected);
+  }
+
+  public void test_joinIfStatementOuter_wrong_OuterNotIf() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  if (1 == 1) {",
+        "    print(0);",
+        "  }",
+        "}");
+    assert_joinIfStatementOuter_wrong(initial, "if (1 ==");
+  }
+
+  public void test_joinIfStatementOuter_wrong_OuterWithElse() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  if (1 == 1) {",
+        "    if (2 == 2 ) {",
+        "      print(0);",
+        "    }",
+        "  } else {",
+        "    print(1);",
+        "  }",
+        "}");
+    assert_joinIfStatementOuter_wrong(initial, "if (2 ==");
+  }
+
+  public void test_joinIfStatementOuter_wrong_targetNotIf() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  print(0);",
+        "}");
+    assert_joinIfStatementOuter_wrong(initial, "print(0");
+  }
+
+  public void test_joinIfStatementOuter_wrong_targetWithElse() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  if (1 == 1) {",
+        "    if (2 == 2 ) {",
+        "      print(0);",
+        "    } else {",
+        "      print(1);",
+        "    }",
+        "  }",
+        "}");
+    assert_joinIfStatementOuter_wrong(initial, "if (2 ==");
   }
 
   public void test_joinVariableDeclaration_onAssignment_OK() throws Exception {
@@ -1873,6 +2104,20 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
   private void assert_joinIfStatementInner_wrong(String initialSource, String offsetPattern)
       throws Exception {
     assert_joinIfStatementInner(initialSource, offsetPattern, initialSource);
+  }
+
+  private void assert_joinIfStatementOuter(String initialSource, String offsetPattern,
+      String expectedSource) throws Exception {
+    assert_runProcessor(
+        CorrectionKind.QA_JOIN_IF_WITH_OUTER,
+        initialSource,
+        offsetPattern,
+        expectedSource);
+  }
+
+  private void assert_joinIfStatementOuter_wrong(String initialSource, String offsetPattern)
+      throws Exception {
+    assert_joinIfStatementOuter(initialSource, offsetPattern, initialSource);
   }
 
   private void assert_joinVariableDeclaration(String initialSource, String offsetPattern,
