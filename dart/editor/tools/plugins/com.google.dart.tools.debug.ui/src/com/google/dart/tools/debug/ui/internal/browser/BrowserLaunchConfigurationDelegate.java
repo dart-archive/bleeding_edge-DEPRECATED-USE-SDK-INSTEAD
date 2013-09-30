@@ -33,10 +33,12 @@ import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunch;
@@ -181,7 +183,9 @@ public class BrowserLaunchConfigurationDelegate extends DartLaunchConfigurationD
   private void compileJavascript(IResource resource, String[] dart2jsFlags, IProgressMonitor monitor)
       throws CoreException {
 
-    // TODO(keertip): check if javascript is upto date?
+    if (locateMappedFile(resource) != null) {
+      resource = locateMappedFile(resource);
+    }
     IResource libraryFile = null;
     ProjectManager manager = DartCore.getProjectManager();
     Source htmlSource = manager.getSource((IFile) resource);
@@ -284,6 +288,20 @@ public class BrowserLaunchConfigurationDelegate extends DartLaunchConfigurationD
           Messages.BrowserLaunchConfigurationDelegate_BrowserNotFound,
           e));
     }
+  }
+
+  private IResource locateMappedFile(IResource resourceFile) {
+    String mappingPath = DartCore.getResourceRemapping((IFile) resourceFile);
+
+    if (mappingPath != null) {
+      IResource mappedResource = ResourcesPlugin.getWorkspace().getRoot().findMember(
+          Path.fromPortableString(mappingPath));
+
+      if (mappedResource != null && mappedResource.exists()) {
+        return mappedResource;
+      }
+    }
+    return null;
   }
 
 }
