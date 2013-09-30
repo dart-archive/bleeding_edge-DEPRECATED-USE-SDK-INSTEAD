@@ -76,12 +76,13 @@ public class PubspecModel {
   }
 
   public void add(DependencyObject[] objs, String eventType) {
-    for (int i = 0; i < objs.length; i++) {
-      dependencies.add(objs[i]);
-      objs[i].setModel(this);
+    if (objs.length > 0) {
+      for (int i = 0; i < objs.length; i++) {
+        dependencies.add(objs[i]);
+        objs[i].setModel(this);
+      }
+      fireModelChanged(objs, eventType);
     }
-
-    fireModelChanged(objs, eventType);
   }
 
   public void addModelListener(IModelListener listener) {
@@ -403,10 +404,15 @@ public class PubspecModel {
       author = (String) ((pubspecMap.get(PubspecConstants.AUTHOR) != null)
           ? pubspecMap.get(PubspecConstants.AUTHOR) : EMPTY_STRING);
       if (pubspecMap.get(PubspecConstants.AUTHORS) != null) {
-        List<String> authors = (List<String>) pubspecMap.get(PubspecConstants.AUTHORS);
-        author = authors.get(0);
-        for (int i = 1; i < authors.size(); i++) {
-          author += ", " + authors.get(i);
+        Object o = pubspecMap.get(PubspecConstants.AUTHORS);
+        if (o instanceof List) {
+          List<String> authors = (List<String>) pubspecMap.get(PubspecConstants.AUTHORS);
+          author = authors.get(0);
+          for (int i = 1; i < authors.size(); i++) {
+            author += ", " + authors.get(i);
+          }
+        } else {
+          author = (String) o;
         }
       }
       if (pubspecMap.get(PubspecConstants.ENVIRONMENT) != null) {
