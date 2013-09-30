@@ -88,7 +88,10 @@ public class DartHtmlScriptHelper {
       String type = node.getAttributeString("type");
       boolean isDart = type != null && APPLICATION_DART_TAG.equalsIgnoreCase(type);
       if (!isDart) {
-        scripts.add(node.getAttributeString("src"));
+        String src = node.getAttributeString("src");
+        if (src != null) {
+          scripts.add(src);
+        }
       }
     }
 
