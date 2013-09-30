@@ -457,7 +457,7 @@
             defaultHandler="com.google.dart.tools.debug.ui.launch.DeployPolymerAppHandler"
             description="Generate JavaScript for Polymer App"
             id="com.google.dart.tools.debug.ui.run.deploypolymer"
-            name="Deploy Polymer App">
+            name="Build Polymer App">
       </command>
    </extension>
    
