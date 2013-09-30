@@ -66,6 +66,7 @@ import com.google.dart.tools.ui.internal.actions.ActionUtil;
 import com.google.dart.tools.ui.internal.actions.FoldingActionGroup;
 import com.google.dart.tools.ui.internal.actions.SelectionConverter;
 import com.google.dart.tools.ui.internal.formatter.DartFormatter;
+import com.google.dart.tools.ui.internal.formatter.DartFormatter.FormattedSource;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.text.IProductConstants;
 import com.google.dart.tools.ui.internal.text.ProductProperties;
@@ -759,15 +760,30 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
         final IDocument document = getSourceViewer().getDocument();
 
         try {
+
+          final Point[] selection = new Point[1];
+          Display.getDefault().syncExec(new Runnable() {
+            @Override
+            public void run() {
+              selection[0] = getSourceViewer().getSelectedRange();
+            }
+          });
+
           final String unformattedSource = document.get();
-          final String formattedSource = DartFormatter.format(unformattedSource, monitor, console);
+          final FormattedSource formattedSource = DartFormatter.format(
+              unformattedSource,
+              selection[0],
+              monitor,
+              console);
           Display.getDefault().syncExec(new Runnable() {
             @Override
             public void run() {
               if (!formattedSource.equals(unformattedSource)) {
-                document.set(formattedSource);
+                document.set(formattedSource.source);
+                getSourceViewer().setSelectedRange(
+                    formattedSource.selectionOffset,
+                    formattedSource.selectionLength);
               }
-              //TODO (pquitslund): (re)set cursor position
             }
           });
         } catch (Exception e) {

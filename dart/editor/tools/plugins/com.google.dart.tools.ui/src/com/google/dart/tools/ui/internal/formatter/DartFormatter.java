@@ -16,9 +16,13 @@ package com.google.dart.tools.ui.internal.formatter;
 import com.google.dart.tools.core.MessageConsole;
 import com.google.dart.tools.core.dart2js.ProcessRunner;
 import com.google.dart.tools.core.model.DartSdkManager;
+import com.google.dart.tools.ui.DartToolsPlugin;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.swt.graphics.Point;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -83,17 +87,35 @@ public class DartFormatter {
 //  }
 
   /**
+   * Holder for formatted source and selection info.
+   */
+  public static class FormattedSource {
+    public int selectionOffset;
+    public int selectionLength;
+    public String source;
+  }
+
+  private static final String ARGS_MACHINE_FORMAT_FLAG = "-m";
+  private static final String ARGS_SOURCE_FLAG = "-s";
+
+  private static final String JSON_LENGTH_KEY = "length";
+  private static final String JSON_OFFSET_KEY = "offset";
+  private static final String JSON_SELECTION_KEY = "selection";
+  private static final String JSON_SOURCE_KEY = "source";
+
+  /**
    * Run the formatter on the given input source.
    * 
    * @param source the source to pass to the formatter
+   * @param selection the selection info to pass into the formatter
    * @param monitor the monitor for displaying progress
    * @param console the console to which output should be directed
    * @throws IOException if an exception was thrown during execution
    * @throws CoreException if an exception occurs in file refresh
-   * @return the formatted source string (or null in case formatting could not be executed)
+   * @return the formatted source (or null in case formatting could not be executed)
    */
-  public static String format(final String source, IProgressMonitor monitor, MessageConsole console)
-      throws IOException, CoreException {
+  public static FormattedSource format(final String source, final Point selection,
+      IProgressMonitor monitor, MessageConsole console) throws IOException, CoreException {
 
     File dartfmt = DartSdkManager.getManager().getSdk().getDartFmtExecutable();
     if (!dartfmt.canExecute()) {
@@ -104,6 +126,8 @@ public class DartFormatter {
 
     List<String> args = new ArrayList<String>();
     args.add(dartfmt.getPath());
+    args.add(ARGS_SOURCE_FLAG + " " + selection.x + "," + selection.y);
+    args.add(ARGS_MACHINE_FORMAT_FLAG);
 
     builder.command(args);
     builder.redirectErrorStream(true);
@@ -132,12 +156,25 @@ public class DartFormatter {
       throw new IOException(runner.getStdErr());
     }
 
-    //TODO (pquitslund): figure out why we need to remove an extra trailing NEWLINE
     String formattedSource = sb.toString();
-    if (formattedSource.endsWith("\n\n")) {
-      return formattedSource.substring(0, formattedSource.length() - 1);
+    try {
+      JSONObject json = new JSONObject(formattedSource);
+      String sourceString = (String) json.get(JSON_SOURCE_KEY);
+      JSONObject selectionJson = (JSONObject) json.get(JSON_SELECTION_KEY);
+      //TODO (pquitslund): figure out why we (occasionally) need to remove an extra trailing NEWLINE
+      if (sourceString.endsWith("\n\n")) {
+        sourceString = sourceString.substring(0, sourceString.length() - 1);
+      }
+      FormattedSource result = new FormattedSource();
+      result.source = sourceString;
+      result.selectionOffset = selectionJson.getInt(JSON_OFFSET_KEY);
+      result.selectionLength = selectionJson.getInt(JSON_LENGTH_KEY);
+      return result;
+    } catch (JSONException e) {
+      DartToolsPlugin.log(e);
+      throw new IOException(e);
     }
-    return formattedSource;
+
   }
 
   public static boolean isAvailable() {
