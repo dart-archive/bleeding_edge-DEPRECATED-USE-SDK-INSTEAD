@@ -1,0 +1,6 @@
+name:  word-finder
+description:  An HTML5 Drag and Drop demo using Polymer
+dependencies:
+  browser: any
+  polymer: any
+
