@@ -1117,7 +1117,6 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    */
   private boolean checkForAllInvalidOverrideErrorCodes(ExecutableElement executableElement,
       ParameterElement[] parameters, ASTNode[] parameterLocations, SimpleIdentifier errorNameTarget) {
-    LibraryElement executableElementLibrary = executableElement.getLibrary();
     String executableElementName = executableElement.getName();
     boolean executableElementPrivate = SimpleIdentifier.isPrivateName(executableElementName);
     ExecutableElement overriddenExecutable = inheritanceManager.lookupInheritance(
@@ -1150,7 +1149,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
               continue;
             }
             // Ignore if private in a different library - cannot collide.
-            if (executableElementPrivate && !executableElementLibrary.equals(superclassLibrary)) {
+            if (executableElementPrivate && !currentLibrary.equals(superclassLibrary)) {
               continue;
             }
             // instance vs. static
@@ -1171,7 +1170,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
               continue;
             }
             // Ignore if private in a different library - cannot collide.
-            if (executableElementPrivate && !executableElementLibrary.equals(superclassLibrary)) {
+            if (executableElementPrivate && !currentLibrary.equals(superclassLibrary)) {
               continue;
             }
             // instance vs. static
