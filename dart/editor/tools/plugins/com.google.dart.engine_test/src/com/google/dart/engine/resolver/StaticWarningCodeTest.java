@@ -386,6 +386,32 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_argumentTypeNotAssignable_const() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  const A(String p);",
+        "}",
+        "main() {",
+        "  const A(42);",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
+    verify(source);
+  }
+
+  public void test_argumentTypeNotAssignable_const_super() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  const A(String p);",
+        "}",
+        "class B extends A {",
+        "  const B() : super(42);",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
+    verify(source);
+  }
+
   public void test_argumentTypeNotAssignable_index() throws Exception {
     Source source = addSource(createSource(//
         "class A {",

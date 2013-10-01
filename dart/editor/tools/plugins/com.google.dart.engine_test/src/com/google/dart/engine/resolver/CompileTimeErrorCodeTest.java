@@ -147,32 +147,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_argumentTypeNotAssignable_const() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {",
-        "  const A(String p);",
-        "}",
-        "main() {",
-        "  const A(42);",
-        "}"));
-    resolve(source);
-    assertErrors(source, CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
-    verify(source);
-  }
-
-  public void test_argumentTypeNotAssignable_const_super() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {",
-        "  const A(String p);",
-        "}",
-        "class B extends A {",
-        "  const B() : super(42);",
-        "}"));
-    resolve(source);
-    assertErrors(source, CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
-    verify(source);
-  }
-
   public void test_builtInIdentifierAsType() throws Exception {
     Source source = addSource(createSource(//
         "f() {",
@@ -2515,7 +2489,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     assertErrors(
         source,
         CompileTimeErrorCode.CONST_EVAL_TYPE_INT,
-        CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
+        StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
     verify(source);
   }
 
@@ -2529,7 +2503,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     assertErrors(
         source,
         CompileTimeErrorCode.CONST_EVAL_TYPE_NUM,
-        CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
+        StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
     verify(source);
   }
 
@@ -3538,7 +3512,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     assertErrors(
         source,
         CompileTimeErrorCode.CONST_EVAL_TYPE_INT,
-        CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
+        StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
     verify(source);
     reset();
   }
@@ -3553,7 +3527,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     assertErrors(
         source,
         CompileTimeErrorCode.CONST_EVAL_TYPE_NUM,
-        CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
+        StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
     verify(source);
     reset();
   }

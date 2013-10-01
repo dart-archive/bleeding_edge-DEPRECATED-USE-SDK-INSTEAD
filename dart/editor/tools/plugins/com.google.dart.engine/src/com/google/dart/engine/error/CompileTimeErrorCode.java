@@ -42,20 +42,6 @@ public enum CompileTimeErrorCode implements ErrorCode {
   ARGUMENT_DEFINITION_TEST_NON_PARAMETER("'%s' is not a parameter"),
 
   /**
-   * 12.14.2 Binding Actuals to Formals: In checked mode, it is a dynamic type error if
-   * <i>o<sub>i</sub></i> is not <b>null</b> and the actual type of <i>p<sub>i</sub></i> is not a
-   * supertype of the type of <i>o<sub>i</sub></i>, i = 1..m.
-   * <p>
-   * 12.11.2 Const: It is a compile-time error if evaluation of a constant object results in an
-   * uncaught exception being thrown.
-   * 
-   * @param requiredCount the maximum number of positional arguments
-   * @param argumentCount the actual number of positional arguments given
-   */
-  ARGUMENT_TYPE_NOT_ASSIGNABLE(
-      "The argument type '%s' cannot be assigned to the parameter type '%s'"),
-
-  /**
    * 12.30 Identifier Reference: It is a compile-time error to use a built-in identifier other than
    * dynamic as a type annotation.
    */

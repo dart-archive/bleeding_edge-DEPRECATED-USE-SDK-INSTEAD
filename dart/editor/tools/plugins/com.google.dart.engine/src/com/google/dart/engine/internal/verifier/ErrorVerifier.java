@@ -1730,18 +1730,10 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * @param argument the argument to evaluate
    * @return {@code true} if and only if an error code is generated on the passed node
    * @see StaticWarningCode#ARGUMENT_TYPE_NOT_ASSIGNABLE
-   * @see CompileTimeErrorCode#ARGUMENT_TYPE_NOT_ASSIGNABLE
    */
   private boolean checkForArgumentTypeNotAssignable(Expression argument) {
     if (argument == null) {
       return false;
-    }
-
-    ErrorCode errorCode;
-    if (isInConstInstanceCreation || isEnclosingConstructorConst) {
-      errorCode = CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE;
-    } else {
-      errorCode = StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE;
     }
 
     ParameterElement staticParameterElement = argument.getStaticParameterElement();
@@ -1756,7 +1748,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
         argument,
         staticParameterType,
         propagatedParameterType,
-        errorCode);
+        StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
   }
 
   /**
@@ -1767,7 +1759,6 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * @param expectedPropagatedType the expected propagated type, may be {@code null}
    * @return {@code true} if and only if an error code is generated on the passed node
    * @see StaticWarningCode#ARGUMENT_TYPE_NOT_ASSIGNABLE
-   * @see CompileTimeErrorCode#ARGUMENT_TYPE_NOT_ASSIGNABLE
    */
   private boolean checkForArgumentTypeNotAssignable(Expression expression, Type expectedStaticType,
       Type expectedPropagatedType, ErrorCode errorCode) {
@@ -1791,7 +1782,6 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * @param actualPropagatedType the expected propagated type of the parameter, may be {@code null}
    * @return {@code true} if and only if an error code is generated on the passed node
    * @see StaticWarningCode#ARGUMENT_TYPE_NOT_ASSIGNABLE
-   * @see CompileTimeErrorCode#ARGUMENT_TYPE_NOT_ASSIGNABLE
    */
   private boolean checkForArgumentTypeNotAssignable(Expression expression, Type expectedStaticType,
       Type actualStaticType, Type expectedPropagatedType, Type actualPropagatedType,
@@ -3251,18 +3241,10 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * @param argument the expression to which the operator is being applied
    * @return {@code true} if and only if an error code is generated on the passed node
    * @see StaticWarningCode#ARGUMENT_TYPE_NOT_ASSIGNABLE
-   * @see CompileTimeErrorCode#ARGUMENT_TYPE_NOT_ASSIGNABLE
    */
   private boolean checkForIntNotAssignable(Expression argument) {
     if (argument == null) {
       return false;
-    }
-
-    ErrorCode errorCode;
-    if (isInConstInstanceCreation || isEnclosingConstructorConst) {
-      errorCode = CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE;
-    } else {
-      errorCode = StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE;
     }
 
     ParameterElement staticParameterElement = argument.getStaticParameterElement();
@@ -3279,7 +3261,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
         typeProvider.getIntType(),
         propagatedParameterType,
         typeProvider.getIntType(),
-        errorCode);
+        StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
   }
 
   /**
