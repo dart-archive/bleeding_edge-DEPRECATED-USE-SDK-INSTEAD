@@ -646,7 +646,6 @@ public class SimpleResolverTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertNoErrors(source);
-    verify(source);
   }
 
   public void test_setter_inherited() throws Exception {

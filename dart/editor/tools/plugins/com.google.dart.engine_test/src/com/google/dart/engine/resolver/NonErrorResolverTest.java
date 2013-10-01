@@ -471,7 +471,6 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertNoErrors(source);
-    verify(source);
   }
 
   public void test_constEvalTypeBoolNumString_notEqual() throws Exception {
@@ -2342,6 +2341,26 @@ public class NonErrorResolverTest extends ResolverTestCase {
     resolve(source);
     assertNoErrors(source);
     verify(source);
+  }
+
+  public void test_null_callMethod() throws Exception {
+    Source source = addSource(createSource(//
+        "main() {",
+        "  null.m();",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+  }
+
+  public void test_null_callOperator() throws Exception {
+    Source source = addSource(createSource(//
+        "main() {",
+        "  null + 5;",
+        "  null == 5;",
+        "  null[0];",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
   }
 
   public void test_optionalParameterInOperator_required() throws Exception {

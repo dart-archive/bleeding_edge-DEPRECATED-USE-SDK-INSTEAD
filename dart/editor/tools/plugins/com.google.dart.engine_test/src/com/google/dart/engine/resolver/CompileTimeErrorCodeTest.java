@@ -15,7 +15,6 @@ package com.google.dart.engine.resolver;
 
 import com.google.dart.engine.error.CompileTimeErrorCode;
 import com.google.dart.engine.error.HintCode;
-import com.google.dart.engine.error.StaticTypeWarningCode;
 import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.parser.ParserErrorCode;
 import com.google.dart.engine.source.Source;
@@ -427,20 +426,14 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   public void test_constEvalThrowsException_unaryBitNot_null() throws Exception {
     Source source = addSource("const C = ~null;");
     resolve(source);
-    assertErrors(
-        source,
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
-        StaticTypeWarningCode.UNDEFINED_OPERATOR);
+    assertErrors(source, CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
     // no verify(), '~null' is not resolved
   }
 
   public void test_constEvalThrowsException_unaryNegated_null() throws Exception {
     Source source = addSource("const C = -null;");
     resolve(source);
-    assertErrors(
-        source,
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
-        StaticTypeWarningCode.UNDEFINED_OPERATOR);
+    assertErrors(source, CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
     // no verify(), '-null' is not resolved
   }
 
@@ -3517,10 +3510,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
       assertErrors(source, CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
       verify(source);
     } else {
-      assertErrors(
-          source,
-          CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
-          StaticTypeWarningCode.UNDEFINED_OPERATOR);
+      assertErrors(source, CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
       // no verify(), 'null x' is not resolved
     }
     reset();

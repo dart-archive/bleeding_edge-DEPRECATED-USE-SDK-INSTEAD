@@ -1775,7 +1775,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
       return;
     }
     // Ignore 'bottom' type.
-    if (propagatedReturnType == BottomTypeImpl.getInstance()) {
+    if (propagatedReturnType.isBottom()) {
       return;
     }
     // Record only if we inferred more specific type.

@@ -56,8 +56,6 @@ import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.formatter.edit.Edit;
-import com.google.dart.engine.internal.type.BottomTypeImpl;
-import com.google.dart.engine.internal.type.DynamicTypeImpl;
 import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.KeywordToken;
 import com.google.dart.engine.scanner.TokenClass;
@@ -303,8 +301,7 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
     }
     Type type = value.getStaticType();
     // check type
-    if (type == null || type == DynamicTypeImpl.getInstance()
-        || type == BottomTypeImpl.getInstance()) {
+    if (type == null || type.isDynamic() || type.isBottom()) {
       return;
     }
     // add edit

@@ -894,7 +894,8 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       staticElement = resolveInvokedElement(methodName);
       propagatedElement = null;
     } else {
-      staticElement = resolveInvokedElement(target, getStaticType(target), methodName);
+      Type staticType = getStaticType(target);
+      staticElement = resolveInvokedElement(target, staticType, methodName);
       propagatedElement = resolveInvokedElement(target, getPropagatedType(target), methodName);
     }
     staticElement = convertSetterToGetter(staticElement);
@@ -1432,7 +1433,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
           }
           if (targetType == null) {
             return CompileTimeErrorCode.UNDEFINED_FUNCTION;
-          } else if (!targetType.isDynamic()) {
+          } else if (!targetType.isDynamic() && !targetType.isBottom()) {
             // Proxy-conditional warning, based on state of targetType.getElement()
             return StaticTypeWarningCode.UNDEFINED_METHOD;
           }
@@ -1655,7 +1656,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
    */
   private Type getStaticType(Expression expression) {
     if (expression instanceof NullLiteral) {
-      return resolver.getTypeProvider().getObjectType();
+      return resolver.getTypeProvider().getBottomType();
     }
     Type staticType = resolveTypeParameter(expression.getStaticType());
     if (staticType instanceof FunctionType) {
@@ -2691,7 +2692,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
    * @return {@code true} if we should report an error
    */
   private boolean shouldReportMissingMember(Type type, ExecutableElement member) {
-    if (member != null || type == null || type.isDynamic()) {
+    if (member != null || type == null || type.isDynamic() || type.isBottom()) {
       return false;
     }
     return true;

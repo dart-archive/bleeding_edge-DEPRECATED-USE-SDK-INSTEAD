@@ -97,6 +97,11 @@ public abstract class TypeImpl implements Type {
   }
 
   @Override
+  public boolean isBottom() {
+    return false;
+  }
+
+  @Override
   public boolean isDartCoreFunction() {
     return false;
   }

@@ -605,7 +605,6 @@ public class TypePropagationTest extends ResolverTestCase {
         "}"));
     LibraryElement library = resolve(source);
     assertNoErrors(source);
-    verify(source);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     ClassDeclaration classA = (ClassDeclaration) unit.getDeclarations().get(0);
     InterfaceType typeA = classA.getElement().getType();

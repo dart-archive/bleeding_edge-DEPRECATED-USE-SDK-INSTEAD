@@ -67,6 +67,13 @@ public interface Type {
   public boolean isAssignableTo(Type type);
 
   /**
+   * Return {@code true} if this type represents the bottom type.
+   * 
+   * @return {@code true} if this type represents the bottom type
+   */
+  public boolean isBottom();
+
+  /**
    * Return {@code true} if this type represents the type 'Function' defined in the dart:core
    * library.
    * 

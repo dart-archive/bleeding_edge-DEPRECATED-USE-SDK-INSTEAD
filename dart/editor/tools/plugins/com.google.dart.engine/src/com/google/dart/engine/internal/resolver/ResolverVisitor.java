@@ -78,7 +78,6 @@ import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.error.ErrorCode;
-import com.google.dart.engine.internal.type.BottomTypeImpl;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.source.Source;
@@ -798,7 +797,7 @@ public class ResolverVisitor extends ScopedVisitor {
    * @param potentialType the potential type of the element
    */
   protected void override(VariableElement element, Type potentialType) {
-    if (potentialType == null || potentialType == BottomTypeImpl.getInstance()) {
+    if (potentialType == null || potentialType.isBottom()) {
       return;
     }
     if (element instanceof PropertyInducingElement) {

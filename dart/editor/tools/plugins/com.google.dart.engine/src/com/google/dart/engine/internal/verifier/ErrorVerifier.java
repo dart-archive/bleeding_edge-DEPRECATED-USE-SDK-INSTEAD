@@ -128,7 +128,6 @@ import com.google.dart.engine.internal.resolver.InheritanceManager;
 import com.google.dart.engine.internal.resolver.TypeProvider;
 import com.google.dart.engine.internal.scope.Namespace;
 import com.google.dart.engine.internal.scope.NamespaceBuilder;
-import com.google.dart.engine.internal.type.BottomTypeImpl;
 import com.google.dart.engine.internal.type.DynamicTypeImpl;
 import com.google.dart.engine.internal.type.VoidTypeImpl;
 import com.google.dart.engine.parser.ParserErrorCode;
@@ -4368,8 +4367,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   private boolean checkForReturnOfInvalidType(Expression returnExpression, Type expectedReturnType) {
     Type staticReturnType = getStaticType(returnExpression);
     if (expectedReturnType.isVoid()) {
-      if (staticReturnType.isVoid() || staticReturnType.isDynamic()
-          || staticReturnType == BottomTypeImpl.getInstance()) {
+      if (staticReturnType.isVoid() || staticReturnType.isDynamic() || staticReturnType.isBottom()) {
         return false;
       }
       errorReporter.reportError(
@@ -4989,7 +4987,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   }
 
   private boolean isFunctionType(Type type) {
-    if (type.isDynamic() || type == BottomTypeImpl.getInstance()) {
+    if (type.isDynamic() || type.isBottom()) {
       return true;
     } else if (type instanceof FunctionType || type.isDartCoreFunction()) {
       return true;

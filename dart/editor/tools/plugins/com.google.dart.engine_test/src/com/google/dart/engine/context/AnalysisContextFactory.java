@@ -71,6 +71,12 @@ public final class AnalysisContextFactory {
         provider.getNullType().getElement(), provider.getNumType().getElement(),
         provider.getObjectType().getElement(), provider.getStackTraceType().getElement(),
         provider.getStringType().getElement(), provider.getTypeType().getElement()});
+    coreUnit.setFunctions(new FunctionElement[] {functionElement(
+        "identical",
+        provider.getBoolType().getElement(),
+        new ClassElement[] {
+            provider.getObjectType().getElement(), provider.getObjectType().getElement()},
+        null)});
     LibraryElementImpl coreLibrary = new LibraryElementImpl(sdkContext, libraryIdentifier(
         "dart",
         "core"));

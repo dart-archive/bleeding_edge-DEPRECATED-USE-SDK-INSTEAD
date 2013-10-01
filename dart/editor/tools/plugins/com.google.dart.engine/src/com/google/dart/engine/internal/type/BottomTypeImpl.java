@@ -48,6 +48,11 @@ public class BottomTypeImpl extends TypeImpl {
   }
 
   @Override
+  public boolean isBottom() {
+    return true;
+  }
+
+  @Override
   public boolean isMoreSpecificThan(Type type) {
     return true;
   }
