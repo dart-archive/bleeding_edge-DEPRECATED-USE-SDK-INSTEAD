@@ -13,7 +13,6 @@
  */
 package com.google.dart.engine.internal.task;
 
-import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.html.ast.XmlAttributeNode;
@@ -28,6 +27,7 @@ import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.source.LineInfo;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 
 /**
@@ -194,14 +194,11 @@ public class ParseHtmlTask extends AnalysisTask {
               URI uri = new URI(null, null, scriptAttribute.getText(), null);
               String fileName = uri.getPath();
               Source librarySource = getContext().getSourceFactory().resolveUri(source, fileName);
-              if (librarySource.exists()) {
+              if (librarySource != null && librarySource.exists()) {
                 libraries.add(librarySource);
               }
-            } catch (Exception exception) {
-              AnalysisEngine.getInstance().getLogger().logInformation(
-                  "Invalid URL ('" + scriptAttribute.getText() + "') in script tag in '"
-                      + source.getFullName() + "'",
-                  exception);
+            } catch (URISyntaxException e) {
+              // ignored - invalid URI reported during resolution phase
             }
           }
         }

@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.internal.task;
 
+import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
@@ -21,6 +22,8 @@ import com.google.dart.engine.source.FileUriResolver;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.engine.source.TestSource;
+import com.google.dart.engine.utilities.logging.Logger;
+import com.google.dart.engine.utilities.logging.TestLogger;
 
 import java.io.IOException;
 import java.net.URI;
@@ -67,6 +70,40 @@ public class ParseHtmlTaskTest extends EngineTestCase {
     assertSame(source, task.getSource());
   }
 
+  public void test_perform_embedded_source() throws Exception {
+    String contents = createSource(//
+        "<html>",
+        "<head>",
+        "  <script type='application/dart'>",
+        "    void buttonPressed() {}",
+        "  </script>",
+        "</head>",
+        "<body>",
+        "</body>",
+        "</html>");
+    TestLogger testLogger = new TestLogger();
+    ParseHtmlTask task = parseContents(contents, testLogger);
+    assertLength(0, task.getReferencedLibraries());
+    assertEquals(0, testLogger.getErrorCount());
+    assertEquals(0, testLogger.getInfoCount());
+  }
+
+  public void test_perform_empty_source_reference() throws Exception {
+    String contents = createSource(//
+        "<html>",
+        "<head>",
+        "  <script type='application/dart' src=''/>",
+        "</head>",
+        "<body>",
+        "</body>",
+        "</html>");
+    TestLogger testLogger = new TestLogger();
+    ParseHtmlTask task = parseContents(contents, testLogger);
+    assertLength(0, task.getReferencedLibraries());
+    assertEquals(0, testLogger.getErrorCount());
+    assertEquals(0, testLogger.getInfoCount());
+  }
+
   public void test_perform_exception() throws AnalysisException {
     final Source source = new TestSource() {
       @Override
@@ -86,18 +123,66 @@ public class ParseHtmlTaskTest extends EngineTestCase {
     });
   }
 
-  public void test_perform_valid() throws AnalysisException {
-    final Source source = new TestSource(createSource(//
+  public void test_perform_invalid_source_reference() throws Exception {
+    String contents = createSource(//
         "<html>",
         "<head>",
-        "  <script type='application/dart' src='test.dart'/>",
-        "  <script type='application/dart'>",
-        "    void buttonPressed() {}",
-        "  </script>",
+        "  <script type='application/dart' src='an;invalid:[]uri'/>",
         "</head>",
         "<body>",
         "</body>",
-        "</html>")) {
+        "</html>");
+    TestLogger testLogger = new TestLogger();
+    ParseHtmlTask task = parseContents(contents, testLogger);
+    assertLength(0, task.getReferencedLibraries());
+    assertEquals(0, testLogger.getErrorCount());
+    assertEquals(0, testLogger.getInfoCount());
+  }
+
+  public void test_perform_non_existing_source_reference() throws Exception {
+    String contents = createSource(//
+        "<html>",
+        "<head>",
+        "  <script type='application/dart' src='does/not/exist.dart'/>",
+        "</head>",
+        "<body>",
+        "</body>",
+        "</html>");
+    TestLogger testLogger = new TestLogger();
+    ParseHtmlTask task = parseSource(new TestSource(contents) {
+      @Override
+      public Source resolveRelative(URI containedUri) {
+        return new TestSource() {
+          @Override
+          public boolean exists() {
+            return false;
+          }
+        };
+      }
+    }, testLogger);
+    assertLength(0, task.getReferencedLibraries());
+    assertEquals(0, testLogger.getErrorCount());
+    assertEquals(0, testLogger.getInfoCount());
+  }
+
+  public void test_perform_referenced_source() throws Exception {
+    String contents = createSource(//
+        "<html>",
+        "<head>",
+        "  <script type='application/dart' src='test.dart'/>",
+        "</head>",
+        "<body>",
+        "</body>",
+        "</html>");
+    TestLogger testLogger = new TestLogger();
+    ParseHtmlTask task = parseContents(contents, testLogger);
+    assertLength(1, task.getReferencedLibraries());
+    assertEquals(0, testLogger.getErrorCount());
+    assertEquals(0, testLogger.getInfoCount());
+  }
+
+  private ParseHtmlTask parseContents(String contents, TestLogger testLogger) throws Exception {
+    return parseSource(new TestSource(contents) {
       @Override
       public Source resolveRelative(URI containedUri) {
         return new TestSource() {
@@ -107,24 +192,33 @@ public class ParseHtmlTaskTest extends EngineTestCase {
           }
         };
       }
-    };
+    }, testLogger);
+  }
+
+  private ParseHtmlTask parseSource(final Source source, TestLogger testLogger) throws Exception {
     InternalAnalysisContext context = new AnalysisContextImpl();
     context.setSourceFactory(new SourceFactory(new FileUriResolver()));
     ParseHtmlTask task = new ParseHtmlTask(context, source);
-    task.perform(new TestTaskVisitor<Boolean>() {
-      @Override
-      public Boolean visitParseHtmlTask(ParseHtmlTask task) throws AnalysisException {
-        AnalysisException exception = task.getException();
-        if (exception != null) {
-          throw exception;
+    Logger oldLogger = AnalysisEngine.getInstance().getLogger();
+    try {
+      AnalysisEngine.getInstance().setLogger(testLogger);
+      task.perform(new TestTaskVisitor<Boolean>() {
+        @Override
+        public Boolean visitParseHtmlTask(ParseHtmlTask task) throws AnalysisException {
+          AnalysisException exception = task.getException();
+          if (exception != null) {
+            throw exception;
+          }
+          assertNotNull(task.getHtmlUnit());
+          assertNotNull(task.getLineInfo());
+          assertEquals(source.getModificationStamp(), task.getModificationTime());
+          assertSame(source, task.getSource());
+          return true;
         }
-        assertNotNull(task.getHtmlUnit());
-        assertNotNull(task.getLineInfo());
-        assertEquals(source.getModificationStamp(), task.getModificationTime());
-        assertLength(1, task.getReferencedLibraries());
-        assertSame(source, task.getSource());
-        return true;
-      }
-    });
+      });
+    } finally {
+      AnalysisEngine.getInstance().setLogger(oldLogger);
+    }
+    return task;
   }
 }
