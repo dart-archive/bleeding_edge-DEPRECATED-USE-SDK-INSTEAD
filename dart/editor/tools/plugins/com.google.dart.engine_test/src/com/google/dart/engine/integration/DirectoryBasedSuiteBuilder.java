@@ -20,6 +20,7 @@ import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.ErrorCode;
+import com.google.dart.engine.internal.context.PerformanceStatistics;
 import com.google.dart.engine.utilities.io.PrintStringWriter;
 
 import junit.framework.Assert;
@@ -155,6 +156,50 @@ public abstract class DirectoryBasedSuiteBuilder {
           }
           Assert.fail(writer.toString());
         }
+      }
+    }
+  }
+
+  protected void printStatistics() {
+    System.out.print("  scan:    ");
+    printTime(PerformanceStatistics.scan.getResult());
+    System.out.println();
+
+    System.out.print("  parse:   ");
+    printTime(PerformanceStatistics.parse.getResult());
+    System.out.println();
+
+    System.out.print("  resolve: ");
+    printTime(PerformanceStatistics.resolve.getResult());
+    System.out.println();
+
+    System.out.print("  errors:  ");
+    printTime(PerformanceStatistics.errors.getResult());
+    System.out.println();
+
+    System.out.print("  hints:   ");
+    printTime(PerformanceStatistics.hints.getResult());
+    System.out.println();
+  }
+
+  protected void printTime(long time) {
+    if (time == 0) {
+      System.out.print("0 ms");
+    } else {
+      System.out.print(time);
+      System.out.print(" ms");
+      if (time > 60000) {
+        long seconds = time / 1000;
+        long minutes = seconds / 60;
+        seconds -= minutes * 60;
+        System.out.print(" (");
+        System.out.print(minutes);
+        System.out.print(":");
+        if (seconds < 10) {
+          System.out.print("0");
+        }
+        System.out.print(seconds);
+        System.out.print(")");
       }
     }
   }

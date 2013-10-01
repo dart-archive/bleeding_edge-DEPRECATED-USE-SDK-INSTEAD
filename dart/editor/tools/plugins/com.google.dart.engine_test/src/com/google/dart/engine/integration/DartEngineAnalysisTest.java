@@ -46,6 +46,7 @@ public class DartEngineAnalysisTest extends LibraryAnalysisTest {
         "pkg/analyzer_experimental/lib/src/generated/engine.dart"));
     long startTime = System.currentTimeMillis();
     LibraryElement library = context.computeLibraryElement(engineSource);
+    verify(library);
     long endTime = System.currentTimeMillis();
     //
     // Print out timing information.
@@ -54,6 +55,7 @@ public class DartEngineAnalysisTest extends LibraryAnalysisTest {
     System.out.print(endTime - startTime);
     System.out.println(" ms");
     System.out.println();
+    printStatistics();
     //
     // Print out memory usage information.
     //
@@ -64,7 +66,6 @@ public class DartEngineAnalysisTest extends LibraryAnalysisTest {
     //
     // Validate that there were no errors.
     //
-    verify(library);
     assertValid();
   }
 }

@@ -48,34 +48,13 @@ public class Co19AnalysisTest extends DirectoryBasedSuiteBuilder {
       System.out.print(" files in ");
       printTime(totalTime);
       System.out.println();
+      printStatistics();
 
       System.out.print(errorCount);
       System.out.println(" tests failed with unexpected errors");
 
       System.out.print(noErrorCount);
       System.out.println(" tests failed with no errors being generated");
-    }
-
-    private void printTime(long time) {
-      if (time == 0) {
-        System.out.print("0 ms");
-      } else {
-        System.out.print(time);
-        System.out.print(" ms");
-        if (time > 60000) {
-          long seconds = time / 1000;
-          long minutes = seconds / 60;
-          seconds -= minutes * 60;
-          System.out.print(" (");
-          System.out.print(minutes);
-          System.out.print(":");
-          if (seconds < 10) {
-            System.out.print("0");
-          }
-          System.out.print(seconds);
-          System.out.print(")");
-        }
-      }
     }
   }
 

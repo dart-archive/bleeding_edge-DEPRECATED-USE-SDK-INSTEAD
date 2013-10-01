@@ -20,6 +20,7 @@ import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.ErrorCode;
+import com.google.dart.engine.internal.context.PerformanceStatistics;
 import com.google.dart.engine.internal.resolver.ResolutionVerifier;
 import com.google.dart.engine.internal.resolver.StaticTypeVerifier;
 import com.google.dart.engine.source.Source;
@@ -82,6 +83,28 @@ public abstract class LibraryAnalysisTest extends TestCase {
     resolutionVerifier.assertResolved();
   }
 
+  protected void printStatistics() {
+    System.out.print("  scan:    ");
+    printTime(PerformanceStatistics.scan.getResult());
+    System.out.println();
+
+    System.out.print("  parse:   ");
+    printTime(PerformanceStatistics.parse.getResult());
+    System.out.println();
+
+    System.out.print("  resolve: ");
+    printTime(PerformanceStatistics.resolve.getResult());
+    System.out.println();
+
+    System.out.print("  errors:  ");
+    printTime(PerformanceStatistics.errors.getResult());
+    System.out.println();
+
+    System.out.print("  hints:   ");
+    printTime(PerformanceStatistics.hints.getResult());
+    System.out.println();
+  }
+
   /**
    * Mark the given library as one that should be ignored when validating the libraries that were
    * analyzed.
@@ -93,13 +116,9 @@ public abstract class LibraryAnalysisTest extends TestCase {
   }
 
   /**
-   * Add all of the errors in the given library and all referenced libraries to the given list of
-   * errors.
+   * Add all of the errors in the given library and all referenced libraries to the list of errors.
    * 
    * @param library the library whose errors are to be added
-   * @param visitedLibraries a set of all of the libraries whose errors have already been added,
-   *          used to prevent infinite recursion when there are mutually dependent libraries (and
-   *          duplication of errors)
    * @throws AnalysisException if the errors could not be determined
    */
   protected void verify(LibraryElement library) throws AnalysisException {
@@ -168,6 +187,28 @@ public abstract class LibraryAnalysisTest extends TestCase {
         }
       }
       Assert.fail(writer.toString());
+    }
+  }
+
+  private void printTime(long time) {
+    if (time == 0) {
+      System.out.print("0 ms");
+    } else {
+      System.out.print(time);
+      System.out.print(" ms");
+      if (time > 60000) {
+        long seconds = time / 1000;
+        long minutes = seconds / 60;
+        seconds -= minutes * 60;
+        System.out.print(" (");
+        System.out.print(minutes);
+        System.out.print(":");
+        if (seconds < 10) {
+          System.out.print("0");
+        }
+        System.out.print(seconds);
+        System.out.print(")");
+      }
     }
   }
 

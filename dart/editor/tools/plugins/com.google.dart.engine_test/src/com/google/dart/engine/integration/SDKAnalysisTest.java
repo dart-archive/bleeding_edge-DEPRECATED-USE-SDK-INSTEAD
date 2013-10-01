@@ -39,6 +39,10 @@ public class SDKAnalysisTest extends LibraryAnalysisTest {
       long endTime = System.currentTimeMillis();
       totalTime += endTime - startTime;
     }
+    validateSdk();
+    for (LibraryElement library : libraries) {
+      verify(library);
+    }
     //
     // Print out timing information.
     //
@@ -46,6 +50,7 @@ public class SDKAnalysisTest extends LibraryAnalysisTest {
     System.out.print(totalTime);
     System.out.println(" ms");
     System.out.println();
+    printStatistics();
     //
     // Print out memory usage information.
     //
@@ -57,10 +62,6 @@ public class SDKAnalysisTest extends LibraryAnalysisTest {
     //
     // Validate that there were no errors.
     //
-    validateSdk();
-    for (LibraryElement library : libraries) {
-      verify(library);
-    }
     assertValid();
   }
 }
