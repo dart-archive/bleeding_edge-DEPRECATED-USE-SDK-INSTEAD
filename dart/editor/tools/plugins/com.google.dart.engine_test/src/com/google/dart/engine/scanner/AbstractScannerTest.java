@@ -427,6 +427,15 @@ public abstract class AbstractScannerTest extends TestCase {
         new ExpectedLocation(source.length() - 1, 3, 3));
   }
 
+  public void test_lineInfo_multilineString() throws Exception {
+    String source = "'''a\r\nbc\r\nd'''";
+    assertLineInfo(
+        source,
+        new ExpectedLocation(0, 1, 1),
+        new ExpectedLocation(7, 2, 2),
+        new ExpectedLocation(source.length() - 1, 3, 4));
+  }
+
   public void test_lineInfo_simpleClass() throws Exception {
     String source = "class Test {\r\n    String s = '...';\r\n    int get x => s.MISSING_GETTER;\r\n}";
     assertLineInfo(
@@ -587,7 +596,15 @@ public abstract class AbstractScannerTest extends TestCase {
   }
 
   public void test_string_multi_double() throws Exception {
-    assertToken(TokenType.STRING, "\"\"\"multi-line\nstring\"\"\"");
+    assertToken(TokenType.STRING, "\"\"\"line1\nline2\"\"\"");
+  }
+
+  public void test_string_multi_embeddedQuotes() throws Exception {
+    assertToken(TokenType.STRING, "\"\"\"line1\n\"\"\nline2\"\"\"");
+  }
+
+  public void test_string_multi_embeddedQuotes_escapedChar() throws Exception {
+    assertToken(TokenType.STRING, "\"\"\"a\"\"\\tb\"\"\"");
   }
 
   public void test_string_multi_interpolation_block() throws Exception {
@@ -622,7 +639,7 @@ public abstract class AbstractScannerTest extends TestCase {
   }
 
   public void test_string_raw_multi_double() throws Exception {
-    assertToken(TokenType.STRING, "r\"\"\"string\"\"\"");
+    assertToken(TokenType.STRING, "r\"\"\"line1\nline2\"\"\"");
   }
 
   public void test_string_raw_multi_single() throws Exception {
