@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library editable_label;
+library todomvc.web.editable_label;
 
 import 'dart:html';
 import 'package:polymer/polymer.dart';
@@ -11,9 +11,10 @@ import 'package:polymer/polymer.dart';
  * Label whose [value] can be edited by double clicking. When editing, it
  * displays a form and input element, otherwise it displays the label.
  */
-class EditableLabel extends PolymerElement with ObservableMixin {
+class EditableLabel extends PolymerElement {
   @observable bool editing = false;
-  @observable String value = '';
+  @published String value = '';
+
   bool get applyAuthorStyles => true;
 
   InputElement get _editBox => getShadowRoot("editable-label").query('#edit');
@@ -46,5 +47,5 @@ class EditableLabel extends PolymerElement with ObservableMixin {
 }
 
 void main() {
-  registerPolymerElement('editable-label', () => new EditableLabel());
+  Polymer.register('editable-label', EditableLabel);
 }

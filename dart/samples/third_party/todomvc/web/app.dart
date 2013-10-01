@@ -2,14 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library app;
+library todomvc.web.app;
 
 import 'dart:html';
 import 'package:polymer/polymer.dart';
 import 'model.dart';
 
 @CustomTag("todo-app")
-class TodoApp extends PolymerElement with ObservableMixin {
+class TodoApp extends PolymerElement {
   @observable AppModel app;
   bool get applyAuthorStyles => true;
 
