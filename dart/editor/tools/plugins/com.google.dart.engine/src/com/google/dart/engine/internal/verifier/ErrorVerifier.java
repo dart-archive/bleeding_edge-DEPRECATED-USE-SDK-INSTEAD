@@ -4991,16 +4991,13 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   private boolean isFunctionType(Type type) {
     if (type.isDynamic() || type == BottomTypeImpl.getInstance()) {
       return true;
+    } else if (type instanceof FunctionType || type.isDartCoreFunction()) {
+      return true;
     } else if (type instanceof InterfaceType) {
-      if (type == typeProvider.getFunctionType()) {
-        return true;
-      }
       MethodElement callMethod = ((InterfaceType) type).lookUpMethod(
           ElementResolver.CALL_METHOD_NAME,
           currentLibrary);
       return callMethod != null;
-    } else if (type instanceof FunctionType || type.isDartCoreFunction()) {
-      return true;
     }
     return false;
   }
