@@ -1116,7 +1116,9 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    */
   private boolean checkForAllInvalidOverrideErrorCodes(ExecutableElement executableElement,
       ParameterElement[] parameters, ASTNode[] parameterLocations, SimpleIdentifier errorNameTarget) {
+    LibraryElement executableElementLibrary = executableElement.getLibrary();
     String executableElementName = executableElement.getName();
+    boolean executableElementPrivate = SimpleIdentifier.isPrivateName(executableElementName);
     ExecutableElement overriddenExecutable = inheritanceManager.lookupInheritance(
         enclosingClass,
         executableElementName);
@@ -1138,9 +1140,20 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
             : superclassType.getElement();
         while (superclassElement != null && !visitedClasses.contains(superclassElement)) {
           visitedClasses.add(superclassElement);
+          LibraryElement superclassLibrary = superclassElement.getLibrary();
+          // Check fields.
           FieldElement[] fieldElts = superclassElement.getFields();
           for (FieldElement fieldElt : fieldElts) {
-            if (fieldElt.getName().equals(executableElementName) && fieldElt.isStatic()) {
+            // We need the same name.
+            if (!fieldElt.getName().equals(executableElementName)) {
+              continue;
+            }
+            // Ignore if private in a different library - cannot collide.
+            if (executableElementPrivate && !executableElementLibrary.equals(superclassLibrary)) {
+              continue;
+            }
+            // instance vs. static
+            if (fieldElt.isStatic()) {
               errorReporter.reportError(
                   StaticWarningCode.INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC,
                   errorNameTarget,
@@ -1149,9 +1162,19 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
               return true;
             }
           }
+          // Check methods.
           MethodElement[] methodElements = superclassElement.getMethods();
           for (MethodElement methodElement : methodElements) {
-            if (methodElement.getName().equals(executableElementName) && methodElement.isStatic()) {
+            // We need the same name.
+            if (!methodElement.getName().equals(executableElementName)) {
+              continue;
+            }
+            // Ignore if private in a different library - cannot collide.
+            if (executableElementPrivate && !executableElementLibrary.equals(superclassLibrary)) {
+              continue;
+            }
+            // instance vs. static
+            if (methodElement.isStatic()) {
               errorReporter.reportError(
                   StaticWarningCode.INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC,
                   errorNameTarget,

@@ -1265,6 +1265,38 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_instanceMethodNameCollidesWithSuperclassStatic_field() throws Exception {
+    Source source = addSource(createSource(//
+        "import 'lib.dart';",
+        "class B extends A {",
+        "  _m() {}",
+        "}"));
+    addSource("/lib.dart", createSource(//
+        "library L;",
+        "class A {",
+        "  static var _m;",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_instanceMethodNameCollidesWithSuperclassStatic_method() throws Exception {
+    Source source = addSource(createSource(//
+        "import 'lib.dart';",
+        "class B extends A {",
+        "  _m() {}",
+        "}"));
+    addSource("/lib.dart", createSource(//
+        "library L;",
+        "class A {",
+        "  static _m() {}",
+        "}"));
+    resolve(source);
+    assertErrors(source, HintCode.OVERRIDDING_PRIVATE_MEMBER);
+    verify(source);
+  }
+
   public void test_invalidAnnotation_constantVariable() throws Exception {
     Source source = addSource(createSource(//
         "const C = 0;",
