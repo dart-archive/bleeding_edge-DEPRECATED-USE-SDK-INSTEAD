@@ -136,7 +136,7 @@ public class DependenciesMasterBlock extends MasterDetailsBlock implements IMode
   public void createContent(IManagedForm managedForm, Composite parent) {
     super.createContent(managedForm, parent);
 
-    sashForm.setWeights(new int[] {40, 60});
+    sashForm.setWeights(new int[] {50, 50});
   }
 
   public TableViewer getViewer() {

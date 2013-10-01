@@ -189,6 +189,8 @@ public class OverviewFormPage extends FormPage implements IModelListener {
     layout.numColumns = 2;
     top.setLayout(layout);
     top.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+    Composite bottom = toolkit.createComposite(scrolledForm.getBody());
+    bottom.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 
     createInfoSection(top, scrolledForm, toolkit);
     Composite right = toolkit.createComposite(top);
@@ -200,7 +202,7 @@ public class OverviewFormPage extends FormPage implements IModelListener {
       createActionsSection(right);
     }
     createExploreSection(right);
-    block.createContent(form);
+    block.createContent(form, bottom);
     model.addModelListener(this);
 
   }
