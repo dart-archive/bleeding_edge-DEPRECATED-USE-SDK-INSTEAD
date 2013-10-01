@@ -28,19 +28,14 @@ import com.google.dart.engine.ast.ClassMember;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.CompilationUnitMember;
 import com.google.dart.engine.ast.ConstructorDeclaration;
-import com.google.dart.engine.ast.DeclaredIdentifier;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.FieldDeclaration;
-import com.google.dart.engine.ast.ForEachStatement;
-import com.google.dart.engine.ast.FormalParameter;
-import com.google.dart.engine.ast.FormalParameterList;
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.ast.InstanceCreationExpression;
 import com.google.dart.engine.ast.ListLiteral;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.NodeList;
-import com.google.dart.engine.ast.PropertyAccess;
 import com.google.dart.engine.ast.RedirectingConstructorInvocation;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.SuperConstructorInvocation;
@@ -53,6 +48,7 @@ import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.KeywordToken;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.java2dart.processor.ConstructorSemanticProcessor;
+import com.google.dart.java2dart.processor.LocalVariablesSemanticProcessor;
 import com.google.dart.java2dart.util.Bindings;
 import com.google.dart.java2dart.util.JavaUtils;
 
@@ -79,6 +75,7 @@ import org.eclipse.jdt.core.dom.FileASTRequestor;
 import org.eclipse.jdt.core.dom.IBinding;
 import org.eclipse.jdt.core.dom.IMethodBinding;
 import org.eclipse.jdt.core.dom.ITypeBinding;
+import org.eclipse.jdt.core.dom.IVariableBinding;
 
 import java.io.File;
 import java.util.Collection;
@@ -122,7 +119,7 @@ public class Context {
   private final Map<File, List<CompilationUnitMember>> fileToMembers = Maps.newHashMap();
   private final Map<CompilationUnitMember, File> memberToFile = Maps.newHashMap();
   // information about names
-  private static final Set<String> forbiddenNames = Sets.newHashSet();
+  public static final Set<String> FORBIDDEN_NAMES = Sets.newHashSet();
   private final Set<String> usedNames = Sets.newHashSet();
   private final Set<ClassMember> privateClassMembers = Sets.newHashSet();
   private final Map<SimpleIdentifier, String> identifierToName = Maps.newHashMap();
@@ -143,7 +140,7 @@ public class Context {
   static {
     for (Keyword keyword : Keyword.values()) {
       if (!keyword.isPseudoKeyword()) {
-        forbiddenNames.add(keyword.getSyntax());
+        FORBIDDEN_NAMES.add(keyword.getSyntax());
       }
     }
   }
@@ -203,6 +200,10 @@ public class Context {
     sourceFolders.add(folder);
   }
 
+  public void applyLocalVariableSemanticChanges(CompilationUnit unit) {
+    new LocalVariablesSemanticProcessor(this).process(unit);
+  }
+
   /**
    * @return {@code true} if the method with the given signature (which could be made getter or
    *         setter) is allowed to be converted into getter/setter.
@@ -211,196 +212,6 @@ public class Context {
     IBinding binding = getNodeBinding(identifier);
     String signature = JavaUtils.getJdtSignature(binding);
     return !notPropertySet.contains(signature);
-  }
-
-  /**
-   * In Java we can have method parameter "foo" and invoke method named "foo", and parameter will
-   * not shadow invoked method. But in Dart it will.
-   */
-  public void ensureMethodParameterDoesNotHide(CompilationUnit unit) {
-    unit.accept(new RecursiveASTVisitor<Void>() {
-      @Override
-      public Void visitMethodDeclaration(MethodDeclaration node) {
-        FormalParameterList parameterList = node.getParameters();
-        if (parameterList != null) {
-          for (FormalParameter parameter : parameterList.getParameters()) {
-            final String parameterName = parameter.getIdentifier().getName();
-            final Object parameterBinding = getNodeBinding(parameter.getIdentifier());
-            final AtomicBoolean hasHiding = new AtomicBoolean();
-            node.accept(new RecursiveASTVisitor<Void>() {
-              @Override
-              public Void visitSimpleIdentifier(SimpleIdentifier node) {
-                if (node.getName().equals(parameterName)
-                    && getNodeBinding(node) != parameterBinding) {
-                  hasHiding.set(true);
-                }
-                return super.visitSimpleIdentifier(node);
-              }
-            });
-            if (hasHiding.get()) {
-              Set<String> used = getSuperMembersNames(node);
-              String newName = generateUniqueParameterName(used, parameterName);
-              renameIdentifier(parameter.getIdentifier(), newName);
-            }
-          }
-        }
-        return super.visitMethodDeclaration(node);
-      }
-
-      private String generateUniqueParameterName(Set<String> used, String name) {
-        int index = 2;
-        while (true) {
-          String newName = name + index;
-          if (!used.contains(newName)) {
-            return newName;
-          }
-          index++;
-        }
-      }
-    });
-  }
-
-  public void ensureNoVariableNameReferenceFromInitializer(CompilationUnit unit) {
-    unit.accept(new RecursiveASTVisitor<Void>() {
-      private Set<String> hierarchyNames;
-      private Set<String> methodNames;
-      private String currentVariableName = null;
-      private boolean hasNameReference = false;
-
-      @Override
-      public Void visitClassDeclaration(ClassDeclaration node) {
-        hierarchyNames = null;
-        try {
-          return super.visitClassDeclaration(node);
-        } finally {
-          hierarchyNames = null;
-        }
-      }
-
-      @Override
-      public Void visitForEachStatement(ForEachStatement node) {
-        DeclaredIdentifier loopVariable = node.getLoopVariable();
-        if (loopVariable != null) {
-          SimpleIdentifier nameNode = loopVariable.getIdentifier();
-          String variableName = nameNode.getName();
-          if (forbiddenNames.contains(variableName)) {
-            ensureHierarchyNames(node);
-            ensureMethodNames(node);
-            String newName = generateUniqueVariableName(variableName);
-            renameIdentifier(nameNode, newName);
-          }
-        }
-        return super.visitForEachStatement(node);
-      }
-
-      @Override
-      public Void visitMethodDeclaration(MethodDeclaration node) {
-        methodNames = null;
-        try {
-          return super.visitMethodDeclaration(node);
-        } finally {
-          methodNames = null;
-        }
-      }
-
-      @Override
-      public Void visitSimpleIdentifier(SimpleIdentifier node) {
-        if (node.getName().equals(currentVariableName)) {
-          ASTNode parent = node.getParent();
-          // name()
-          if (parent instanceof MethodInvocation) {
-            MethodInvocation invocation = (MethodInvocation) parent;
-            if (invocation.getMethodName() == node) {
-              // name = target.name()
-              if (invocation.getTarget() != null) {
-                return null;
-              }
-              // name = name()
-              hasNameReference = true;
-              return null;
-            }
-          }
-          // name = target.name
-          if (parent instanceof PropertyAccess) {
-            PropertyAccess propertyAccess = (PropertyAccess) parent;
-            if (propertyAccess.getPropertyName() == node && propertyAccess.getTarget() != null) {
-              return null;
-            }
-          }
-          // name = name_whichWasGetMethod_butNowGetter
-          {
-            Object bindingObject = getNodeBinding(node);
-            if (bindingObject instanceof IMethodBinding) {
-              SyntaxTranslator.replaceNode(parent, node, propertyAccess(thisExpression(), node));
-              return null;
-            }
-          }
-          // OK, this is really conflict
-          hasNameReference = true;
-        }
-        return null;
-      }
-
-      @Override
-      public Void visitVariableDeclaration(VariableDeclaration node) {
-        String oldVariableName = currentVariableName;
-        try {
-          currentVariableName = node.getName().getName();
-          hasNameReference = false;
-          Expression initializer = node.getInitializer();
-          if (initializer != null) {
-            initializer.accept(this);
-          }
-          if (hasNameReference || forbiddenNames.contains(currentVariableName)) {
-            ensureHierarchyNames(node);
-            ensureMethodNames(node);
-            String newName = generateUniqueVariableName(currentVariableName);
-            renameIdentifier(node.getName(), newName);
-          }
-        } finally {
-          currentVariableName = oldVariableName;
-        }
-        return null;
-      }
-
-      private void ensureHierarchyNames(ASTNode node) {
-        if (hierarchyNames != null) {
-          return;
-        }
-        hierarchyNames = getSuperMembersNames(node);
-      }
-
-      private void ensureMethodNames(ASTNode node) {
-        methodNames = Sets.newHashSet();
-        MethodDeclaration method = node.getAncestor(MethodDeclaration.class);
-        if (method != null) {
-          method.accept(new RecursiveASTVisitor<Void>() {
-            @Override
-            public Void visitVariableDeclaration(VariableDeclaration node) {
-              methodNames.add(node.getName().getName());
-              return super.visitVariableDeclaration(node);
-            }
-          });
-        }
-      }
-
-      /**
-       * @return the new name for variable which does not conflict with name of any member in super
-       *         classes - {@link #hierarchyNames}.
-       */
-      private String generateUniqueVariableName(String name) {
-        int index = 2;
-        while (true) {
-          String newName = name + index;
-          if (!hierarchyNames.contains(newName) && !methodNames.contains(newName)
-              && !forbiddenNames.contains(newName)) {
-            methodNames.add(newName);
-            return newName;
-          }
-          index++;
-        }
-      }
-    });
   }
 
   public void ensureUniqueClassMemberNames(CompilationUnit unit) {
@@ -542,7 +353,7 @@ public class Context {
       }
 
       private boolean isUniqueClassMemberName(String name) {
-        return !forbiddenNames.contains(name) && !usedClassMembers.containsKey(name);
+        return !FORBIDDEN_NAMES.contains(name) && !usedClassMembers.containsKey(name);
       }
     });
   }
@@ -622,6 +433,42 @@ public class Context {
     Object binding = nodeToBinding.get(target);
     List<SimpleIdentifier> references = bindingToIdentifiers.get(binding);
     return references != null ? references : Lists.<SimpleIdentifier> newArrayList();
+  }
+
+  /**
+   * @return the name of member declared in enclosing {@link ClassDeclaration} and its super
+   *         classes.
+   */
+  public Set<String> getSuperMembersNames(ASTNode node) {
+    Set<String> hierarchyNames = Sets.newHashSet();
+    ClassDeclaration classDeclaration = node.getAncestor(ClassDeclaration.class);
+    org.eclipse.jdt.core.dom.ITypeBinding binding = getNodeTypeBinding(classDeclaration);
+    if (binding != null) {
+      binding = binding.getSuperclass();
+      while (binding != null) {
+        for (org.eclipse.jdt.core.dom.IVariableBinding field : binding.getDeclaredFields()) {
+          hierarchyNames.add(field.getName());
+        }
+        for (org.eclipse.jdt.core.dom.IMethodBinding method : binding.getDeclaredMethods()) {
+          hierarchyNames.add(method.getName());
+        }
+        binding = binding.getSuperclass();
+      }
+    }
+    return hierarchyNames;
+  }
+
+  public boolean isFieldBinding(ASTNode node) {
+    IBinding binding = getNodeBinding(node);
+    if (binding instanceof IVariableBinding) {
+      return ((IVariableBinding) binding).isField();
+    }
+    return false;
+  }
+
+  public boolean isMethodBinding(ASTNode node) {
+    IBinding binding = getNodeBinding(node);
+    return binding instanceof IMethodBinding;
   }
 
   /**
@@ -720,8 +567,7 @@ public class Context {
       ensureFieldInitializers(dartUniverse);
       dontUseThisInFieldInitializers(dartUniverse);
       ensureUniqueClassMemberNames(dartUniverse);
-      ensureNoVariableNameReferenceFromInitializer(dartUniverse);
-      ensureMethodParameterDoesNotHide(dartUniverse);
+      applyLocalVariableSemanticChanges(dartUniverse);
       new ConstructorSemanticProcessor(this).process(dartUniverse);
       renameConstructors(dartUniverse);
       insertEnclosingTypeForInstanceCreationArguments(dartUniverse);
@@ -899,29 +745,6 @@ public class Context {
         return super.visitFieldDeclaration(node);
       }
     });
-  }
-
-  /**
-   * @return the name of member declared in enclosing {@link ClassDeclaration} and its super
-   *         classes.
-   */
-  private Set<String> getSuperMembersNames(ASTNode node) {
-    Set<String> hierarchyNames = Sets.newHashSet();
-    ClassDeclaration classDeclaration = node.getAncestor(ClassDeclaration.class);
-    org.eclipse.jdt.core.dom.ITypeBinding binding = getNodeTypeBinding(classDeclaration);
-    if (binding != null) {
-      binding = binding.getSuperclass();
-      while (binding != null) {
-        for (org.eclipse.jdt.core.dom.IVariableBinding field : binding.getDeclaredFields()) {
-          hierarchyNames.add(field.getName());
-        }
-        for (org.eclipse.jdt.core.dom.IMethodBinding method : binding.getDeclaredMethods()) {
-          hierarchyNames.add(method.getName());
-        }
-        binding = binding.getSuperclass();
-      }
-    }
-    return hierarchyNames;
   }
 
   private void insertEnclosingTypeForInstanceCreationArguments(CompilationUnit unit) {

@@ -21,6 +21,7 @@ import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.ExpressionFunctionBody;
 import com.google.dart.engine.ast.IntegerLiteral;
 import com.google.dart.engine.ast.IsExpression;
+import com.google.dart.engine.ast.ListLiteral;
 import com.google.dart.engine.ast.ParenthesizedExpression;
 import com.google.dart.engine.ast.PrefixExpression;
 import com.google.dart.engine.ast.ReturnStatement;
@@ -42,6 +43,10 @@ public class BeautifySemanticProcessor extends SemanticProcessor {
     }
     // argument of invocation
     if (node.getParent() instanceof ArgumentList) {
+      return true;
+    }
+    // list literal element
+    if (node.getParent() instanceof ListLiteral) {
       return true;
     }
     // RHS of assignment

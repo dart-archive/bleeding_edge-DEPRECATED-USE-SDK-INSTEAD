@@ -1137,7 +1137,7 @@ public class SemanticTest extends AbstractSemanticTest {
         toString(
             "class Test {",
             "  int foo() => 42;",
-            "  int bar1(int foo2) => foo(foo2);",
+            "  int bar1(int foo) => this.foo(foo);",
             "  int bar2(int foo) => foo;",
             "}"),
         getFormattedSource(unit));
@@ -1317,215 +1317,6 @@ public class SemanticTest extends AbstractSemanticTest {
             "  void main() {",
             "    foo(this);",
             "    foo2(42);",
-            "  }",
-            "}"),
-        getFormattedSource(unit));
-  }
-
-  public void test_giveUniqueName_variableInitializer() throws Exception {
-    File file = setFileLines(
-        "test/Test.java",
-        toString(
-            "// filler filler filler filler filler filler filler filler filler filler",
-            "package test;",
-            "public class Test {",
-            "  static int foo() {return 42;}",
-            "  static void barA() {",
-            "    int foo = foo();",
-            "    baz(foo);",
-            "  }",
-            "  static void barB() {",
-            "    int foo = foo();",
-            "    baz(foo);",
-            "  }",
-            "  static void baz(int p) {}",
-            "}",
-            ""));
-    Context context = new Context();
-    context.addSourceFolder(tmpFolder);
-    context.addSourceFile(file);
-    CompilationUnit unit = context.translate();
-    assertEquals(
-        toString(
-            "class Test {",
-            "  static int foo() => 42;",
-            "  static void barA() {",
-            "    int foo2 = foo();",
-            "    baz(foo2);",
-            "  }",
-            "  static void barB() {",
-            "    int foo2 = foo();",
-            "    baz(foo2);",
-            "  }",
-            "  static void baz(int p) {",
-            "  }",
-            "}"),
-        getFormattedSource(unit));
-  }
-
-  public void test_giveUniqueName_variableInitializer_localNames() throws Exception {
-    File file = setFileLines(
-        "test/Test.java",
-        toString(
-            "// filler filler filler filler filler filler filler filler filler filler",
-            "package test;",
-            "public class Test {",
-            "  static int foo() {return 42;}",
-            "  static void barA() {",
-            "    int foo2 = 2;",
-            "    int foo = foo();",
-            "    baz(foo);",
-            "    int foo3 = 3;",
-            "  }",
-            "}",
-            ""));
-    Context context = new Context();
-    context.addSourceFolder(tmpFolder);
-    context.addSourceFile(file);
-    CompilationUnit unit = context.translate();
-    assertEquals(
-        toString(
-            "class Test {",
-            "  static int foo() => 42;",
-            "  static void barA() {",
-            "    int foo2 = 2;",
-            "    int foo4 = foo();",
-            "    baz(foo4);",
-            "    int foo3 = 3;",
-            "  }",
-            "}"),
-        getFormattedSource(unit));
-  }
-
-  public void test_giveUniqueName_variableInitializer_onlyHierarchyNames() throws Exception {
-    setFileLines(
-        "test/A.java",
-        toString(
-            "// filler filler filler filler filler filler filler filler filler filler",
-            "package test;",
-            "public class A {",
-            "  static int foo3;",
-            "}",
-            ""));
-    setFileLines(
-        "test/B.java",
-        toString(
-            "// filler filler filler filler filler filler filler filler filler filler",
-            "package test;",
-            "public class B {",
-            "  static int foo2;",
-            "}",
-            ""));
-    setFileLines(
-        "test/Test.java",
-        toString(
-            "// filler filler filler filler filler filler filler filler filler filler",
-            "package test;",
-            "public class Test extends B {",
-            "  static int foo() {return 42;}",
-            "  static void bar() {",
-            "    int foo = foo();",
-            "    baz(foo);",
-            "  }",
-            "}",
-            ""));
-    Context context = new Context();
-    context.addSourceFolder(tmpFolder);
-    context.addSourceFiles(tmpFolder);
-    CompilationUnit unit = context.translate();
-    assertEquals(
-        toString(
-            "class A {",
-            "  static int foo3 = 0;",
-            "}",
-            "class B {",
-            "  static int foo2 = 0;",
-            "}",
-            "class Test extends B {",
-            "  static int foo() => 42;",
-            "  static void bar() {",
-            "    int foo3 = foo();",
-            "    baz(foo3);",
-            "  }",
-            "}"),
-        getFormattedSource(unit));
-  }
-
-  public void test_giveUniqueName_variableInitializer_propertyReference() throws Exception {
-    File file = setFileLines(
-        "test/Test.java",
-        toString(
-            "// filler filler filler filler filler filler filler filler filler filler",
-            "package test;",
-            "public class Test {",
-            "  int getFoo() {return 42;}",
-            "  static void main() {",
-            "    int foo = getFoo();",
-            "    process(foo);",
-            "  }",
-            "  void process(int x) {}",
-            "}",
-            ""));
-    Context context = new Context();
-    context.addSourceFolder(tmpFolder);
-    context.addSourceFile(file);
-    CompilationUnit unit = context.translate();
-    // convert to properties and run variable checks again
-    new PropertySemanticProcessor(context).process(unit);
-    context.ensureNoVariableNameReferenceFromInitializer(unit);
-    // verify
-    assertEquals(
-        toString(
-            "class Test {",
-            "  int get foo => 42;",
-            "  static void main() {",
-            "    int foo = this.foo;",
-            "    process(foo);",
-            "  }",
-            "  void process(int x) {",
-            "  }",
-            "}"),
-        getFormattedSource(unit));
-  }
-
-  public void test_giveUniqueName_variableInitializer_qualifiedReference() throws Exception {
-    File file = setFileLines(
-        "test/Test.java",
-        toString(
-            "// filler filler filler filler filler filler filler filler filler filler",
-            "package test;",
-            "public class Test {",
-            "  int foo() {return 42;}",
-            "  int bar;",
-            "  static void mainA() {",
-            "    int foo = this.foo();",
-            "    process(foo);",
-            "  }",
-            "  static void mainB() {",
-            "    int bar = this.bar;",
-            "    process(bar);",
-            "  }",
-            "  void process(int x) {}",
-            "}",
-            ""));
-    Context context = new Context();
-    context.addSourceFolder(tmpFolder);
-    context.addSourceFile(file);
-    CompilationUnit unit = context.translate();
-    assertEquals(
-        toString(
-            "class Test {",
-            "  int foo() => 42;",
-            "  int bar = 0;",
-            "  static void mainA() {",
-            "    int foo = this.foo();",
-            "    process(foo);",
-            "  }",
-            "  static void mainB() {",
-            "    int bar = this.bar;",
-            "    process(bar);",
-            "  }",
-            "  void process(int x) {",
             "  }",
             "}"),
         getFormattedSource(unit));
@@ -1723,6 +1514,198 @@ public class SemanticTest extends AbstractSemanticTest {
             "    res = new List<double>.filled(5, 0.0);",
             "    res = new List<double>.filled(5, 0.0);",
             "    res = new List<Object>(5);",
+            "  }",
+            "}"),
+        getFormattedSource(unit));
+  }
+
+  public void test_localVariableShadow_qualified() throws Exception {
+    setFileLines(
+        "test/Test.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "package test;",
+            "public class Test {",
+            "  int element;",
+            "  void main() {",
+            "    int v = this.element;",
+            "    int element = 42;",
+            "  }",
+            "}",
+            ""));
+    Context context = new Context();
+    context.addSourceFolder(tmpFolder);
+    context.addSourceFiles(tmpFolder);
+    CompilationUnit unit = context.translate();
+    assertEquals(
+        toString(
+            "class Test {",
+            "  int element = 0;",
+            "  void main() {",
+            "    int v = this.element;",
+            "    int element = 42;",
+            "  }",
+            "}"),
+        getFormattedSource(unit));
+  }
+
+  public void test_localVariableShadow_renamedProperty_catch() throws Exception {
+    setFileLines(
+        "test/Test.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "package test;",
+            "public class Test {",
+            "  int test;",
+            "  int getTest() { return test; }",
+            "  void main() {",
+            "    try {",
+            "    } catch (Exception test) {",
+            "      int v = getTest();",
+            "    }",
+            "  }",
+            "}",
+            ""));
+    Context context = new Context();
+    context.addSourceFolder(tmpFolder);
+    context.addSourceFiles(tmpFolder);
+    CompilationUnit unit = context.translate();
+    new PropertySemanticProcessor(context).process(unit);
+    context.applyLocalVariableSemanticChanges(unit);
+    assertEquals(
+        toString(
+            "class Test {",
+            "  final int test = 0;",
+            "  void main() {",
+            "    try {",
+            "    } catch (test) {",
+            "      int v = this.test;",
+            "    }",
+            "  }",
+            "}"),
+        getFormattedSource(unit));
+  }
+
+  public void test_localVariableShadow_renamedProperty_var() throws Exception {
+    setFileLines(
+        "test/Test.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "package test;",
+            "public class Test {",
+            "  int test;",
+            "  int getTest() { return test; }",
+            "  void main(int test) {",
+            "    int v = getTest();",
+            "    int element = 42;",
+            "  }",
+            "}",
+            ""));
+    Context context = new Context();
+    context.addSourceFolder(tmpFolder);
+    context.addSourceFiles(tmpFolder);
+    CompilationUnit unit = context.translate();
+    new PropertySemanticProcessor(context).process(unit);
+    context.applyLocalVariableSemanticChanges(unit);
+    assertEquals(
+        toString(
+            "class Test {",
+            "  final int test = 0;",
+            "  void main(int test) {",
+            "    int v = this.test;",
+            "    int element = 42;",
+            "  }",
+            "}"),
+        getFormattedSource(unit));
+  }
+
+  public void test_localVariableShadow_shadowedField() throws Exception {
+    setFileLines(
+        "test/Test.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "package test;",
+            "public class Test {",
+            "  int element;",
+            "  void main() {",
+            "    int v = element;",
+            "    int element = 42;",
+            "  }",
+            "}",
+            ""));
+    Context context = new Context();
+    context.addSourceFolder(tmpFolder);
+    context.addSourceFiles(tmpFolder);
+    CompilationUnit unit = context.translate();
+    assertEquals(
+        toString(
+            "class Test {",
+            "  int element = 0;",
+            "  void main() {",
+            "    int v = this.element;",
+            "    int element = 42;",
+            "  }",
+            "}"),
+        getFormattedSource(unit));
+  }
+
+  public void test_localVariableShadow_shadowedMethod() throws Exception {
+    setFileLines(
+        "test/Test.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "package test;",
+            "public class Test {",
+            "  void element() {}",
+            "  void main() {",
+            "    element();",
+            "    int element = 42;",
+            "  }",
+            "}",
+            ""));
+    Context context = new Context();
+    context.addSourceFolder(tmpFolder);
+    context.addSourceFiles(tmpFolder);
+    CompilationUnit unit = context.translate();
+    assertEquals(
+        toString(
+            "class Test {",
+            "  void element() {",
+            "  }",
+            "  void main() {",
+            "    this.element();",
+            "    int element = 42;",
+            "  }",
+            "}"),
+        getFormattedSource(unit));
+  }
+
+  public void test_localVariableShadow_staticMethod() throws Exception {
+    setFileLines(
+        "test/Test.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "package test;",
+            "public class Test {",
+            "  static void element() {}",
+            "  void main() {",
+            "    element();",
+            "    int element = 42;",
+            "  }",
+            "}",
+            ""));
+    Context context = new Context();
+    context.addSourceFolder(tmpFolder);
+    context.addSourceFiles(tmpFolder);
+    CompilationUnit unit = context.translate();
+    assertEquals(
+        toString(
+            "class Test {",
+            "  static void element() {",
+            "  }",
+            "  void main() {",
+            "    Test.element();",
+            "    int element = 42;",
             "  }",
             "}"),
         getFormattedSource(unit));
@@ -2187,6 +2170,127 @@ public class SemanticTest extends AbstractSemanticTest {
             "}",
             "class Test_B extends Test_A {",
             "  Test_B(List<int> args) : super(args);",
+            "}"),
+        getFormattedSource(unit));
+  }
+
+  public void test_variableInitializer_qualifiedReference() throws Exception {
+    File file = setFileLines(
+        "test/Test.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "package test;",
+            "public class Test {",
+            "  int foo() {return 42;}",
+            "  int bar;",
+            "  static void mainA() {",
+            "    int foo = this.foo();",
+            "    process(foo);",
+            "  }",
+            "  static void mainB() {",
+            "    int bar = this.bar;",
+            "    process(bar);",
+            "  }",
+            "  void process(int x) {}",
+            "}",
+            ""));
+    Context context = new Context();
+    context.addSourceFolder(tmpFolder);
+    context.addSourceFile(file);
+    CompilationUnit unit = context.translate();
+    assertEquals(
+        toString(
+            "class Test {",
+            "  int foo() => 42;",
+            "  int bar = 0;",
+            "  static void mainA() {",
+            "    int foo = this.foo();",
+            "    process(foo);",
+            "  }",
+            "  static void mainB() {",
+            "    int bar = this.bar;",
+            "    process(bar);",
+            "  }",
+            "  void process(int x) {",
+            "  }",
+            "}"),
+        getFormattedSource(unit));
+  }
+
+  public void test_variableInitializer_useThisQualifier() throws Exception {
+    File file = setFileLines(
+        "test/Test.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "package test;",
+            "public class Test {",
+            "  static int foo() {return 42;}",
+            "  static void barA() {",
+            "    int foo = foo();",
+            "    baz(foo);",
+            "  }",
+            "  static void barB() {",
+            "    int foo = foo();",
+            "    baz(foo);",
+            "  }",
+            "  static void baz(int p) {}",
+            "}",
+            ""));
+    Context context = new Context();
+    context.addSourceFolder(tmpFolder);
+    context.addSourceFile(file);
+    CompilationUnit unit = context.translate();
+    assertEquals(
+        toString(
+            "class Test {",
+            "  static int foo() => 42;",
+            "  static void barA() {",
+            "    int foo = Test.foo();",
+            "    baz(foo);",
+            "  }",
+            "  static void barB() {",
+            "    int foo = Test.foo();",
+            "    baz(foo);",
+            "  }",
+            "  static void baz(int p) {",
+            "  }",
+            "}"),
+        getFormattedSource(unit));
+  }
+
+  public void test_variableInitializer_useThisQualifier_propertyReference() throws Exception {
+    File file = setFileLines(
+        "test/Test.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "package test;",
+            "public class Test {",
+            "  int getFoo() {return 42;}",
+            "  static void main() {",
+            "    int foo = getFoo();",
+            "    process(foo);",
+            "  }",
+            "  void process(int x) {}",
+            "}",
+            ""));
+    Context context = new Context();
+    context.addSourceFolder(tmpFolder);
+    context.addSourceFile(file);
+    CompilationUnit unit = context.translate();
+    // convert to properties and run variable checks again
+    new PropertySemanticProcessor(context).process(unit);
+    context.applyLocalVariableSemanticChanges(unit);
+    // verify
+    assertEquals(
+        toString(
+            "class Test {",
+            "  int get foo => 42;",
+            "  static void main() {",
+            "    int foo = this.foo;",
+            "    process(foo);",
+            "  }",
+            "  void process(int x) {",
+            "  }",
             "}"),
         getFormattedSource(unit));
   }

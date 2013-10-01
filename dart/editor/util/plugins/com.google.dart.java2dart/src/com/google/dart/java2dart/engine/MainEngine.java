@@ -222,8 +222,7 @@ public class MainEngine {
     }
     // run this again, because we may introduce conflicts when convert methods to getters/setters
     context.ensureUniqueClassMemberNames(dartUnit);
-    context.ensureNoVariableNameReferenceFromInitializer(dartUnit);
-    context.ensureMethodParameterDoesNotHide(dartUnit);
+    context.applyLocalVariableSemanticChanges(dartUnit);
     // handle reflection
     EngineSemanticProcessor.rewriteReflectionFieldsWithDirect(context, dartUnit);
     // dump as several libraries

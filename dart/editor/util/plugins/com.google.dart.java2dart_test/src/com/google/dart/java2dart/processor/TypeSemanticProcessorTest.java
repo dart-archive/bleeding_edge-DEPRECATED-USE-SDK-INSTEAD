@@ -17,7 +17,7 @@ package com.google.dart.java2dart.processor;
  * Test for {@link TypeSemanticProcessor}.
  */
 public class TypeSemanticProcessorTest extends SemanticProcessorTest {
-  public void test_enumAssign() throws Exception {
+  public void test_forceTypeCast_enum() throws Exception {
     setFileLines("test/MyIntf.java", "package test; public class MyIntf {}");
     setFileLines("test/A.java", "package test; public class A implements Enum<A>, MyIntf {}");
     setFileLines("test/B.java", "package test; public class B implements Enum<B>, MyIntf {}");
