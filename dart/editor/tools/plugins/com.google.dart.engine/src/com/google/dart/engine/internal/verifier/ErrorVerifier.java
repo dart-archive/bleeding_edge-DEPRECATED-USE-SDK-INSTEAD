@@ -141,6 +141,7 @@ import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
 import com.google.dart.engine.type.TypeParameterType;
+import com.google.dart.engine.utilities.collection.MemberMap;
 import com.google.dart.engine.utilities.dart.ParameterKind;
 import com.google.dart.engine.utilities.general.ObjectUtilities;
 
@@ -3764,10 +3765,14 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     HashSet<ExecutableElement> missingOverrides = new HashSet<ExecutableElement>();
 
     // Loop through the set of all executable elements declared in the implicit interface.
-    HashMap<String, ExecutableElement> membersInheritedFromInterfaces = inheritanceManager.getMapOfMembersInheritedFromInterfaces(enclosingClass);
-    HashMap<String, ExecutableElement> membersInheritedFromSuperclasses = inheritanceManager.getMapOfMembersInheritedFromClasses(enclosingClass);
-    for (Entry<String, ExecutableElement> entry : membersInheritedFromInterfaces.entrySet()) {
-      ExecutableElement executableElt = entry.getValue();
+    MemberMap membersInheritedFromInterfaces = inheritanceManager.getMapOfMembersInheritedFromInterfaces(enclosingClass);
+    MemberMap membersInheritedFromSuperclasses = inheritanceManager.getMapOfMembersInheritedFromClasses(enclosingClass);
+    for (int i = 0; i < membersInheritedFromInterfaces.getSize(); i++) {
+      String memberName = membersInheritedFromInterfaces.getKey(i);
+      ExecutableElement executableElt = membersInheritedFromInterfaces.getValue(i);
+      if (memberName == null) {
+        break;
+      }
 
       // First check to see if this element was declared in the superclass chain, in which case
       // there is already a concrete implementation.
@@ -3783,26 +3788,24 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
 
       if (executableElt instanceof MethodElement) {
         // Verify that this class has a method which overrides the method from the interface.
-        String methodName = entry.getKey();
         // If a method was inherited from an interface, but is not implemented by either the class
         // or one of its superclasses, then add the inherited method to the missingOverides set.
-        if (!methodsInEnclosingClass.contains(methodName)
+        if (!methodsInEnclosingClass.contains(memberName)
             && !memberHasConcreteMethodImplementationInSuperclassChain(
                 enclosingClass,
-                methodName,
+                memberName,
                 new ArrayList<ClassElement>())) {
           missingOverrides.add(executableElt);
         }
       } else if (executableElt instanceof PropertyAccessorElement) {
         // Verify that this class has a member which overrides the method from the interface.
-        String accessorName = entry.getKey();
         // If an accessor was inherited from an interface, but is not implemented by either the
         // class or one of its superclasses, then add the inherited accessor to the missingOverides
         // set.
-        if (!accessorsInEnclosingClass.contains(accessorName)
+        if (!accessorsInEnclosingClass.contains(memberName)
             && !memberHasConcreteAccessorImplementationInSuperclassChain(
                 enclosingClass,
-                accessorName,
+                memberName,
                 new ArrayList<ClassElement>())) {
           missingOverrides.add(executableElt);
         }
