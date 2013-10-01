@@ -1076,7 +1076,16 @@ public class Parser {
   private AssertStatement parseAssertStatement() {
     Token keyword = expect(Keyword.ASSERT);
     Token leftParen = expect(TokenType.OPEN_PAREN);
-    Expression expression = parseConditionalExpression();
+    Expression expression = parseExpression();
+    if (expression instanceof AssignmentExpression) {
+      reportError(ParserErrorCode.ASSERT_DOES_NOT_TAKE_ASSIGNMENT, expression);
+    } else if (expression instanceof CascadeExpression) {
+      reportError(ParserErrorCode.ASSERT_DOES_NOT_TAKE_CASCADE, expression);
+    } else if (expression instanceof ThrowExpression) {
+      reportError(ParserErrorCode.ASSERT_DOES_NOT_TAKE_THROW, expression);
+    } else if (expression instanceof RethrowExpression) {
+      reportError(ParserErrorCode.ASSERT_DOES_NOT_TAKE_RETHROW, expression);
+    }
     Token rightParen = expect(TokenType.CLOSE_PAREN);
     Token semicolon = expect(TokenType.SEMICOLON);
     return new AssertStatement(keyword, leftParen, expression, rightParen, semicolon);

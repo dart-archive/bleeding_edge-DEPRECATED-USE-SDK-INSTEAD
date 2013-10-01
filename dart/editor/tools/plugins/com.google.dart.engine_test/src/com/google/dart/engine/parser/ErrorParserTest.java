@@ -193,6 +193,28 @@ public class ErrorParserTest extends ParserTestCase {
     parseCompilationUnit("abstract typedef F();", ParserErrorCode.ABSTRACT_TYPEDEF);
   }
 
+  public void test_assertDoesNotTakeAssignment() throws Exception {
+    parse(
+        "parseAssertStatement",
+        "assert(b = true);",
+        ParserErrorCode.ASSERT_DOES_NOT_TAKE_ASSIGNMENT);
+  }
+
+  public void test_assertDoesNotTakeCascades() throws Exception {
+    parse(
+        "parseAssertStatement",
+        "assert(new A()..m());",
+        ParserErrorCode.ASSERT_DOES_NOT_TAKE_CASCADE);
+  }
+
+  public void test_assertDoesNotTakeRethrow() throws Exception {
+    parse("parseAssertStatement", "assert(rethrow);", ParserErrorCode.ASSERT_DOES_NOT_TAKE_RETHROW);
+  }
+
+  public void test_assertDoesNotTakeThrow() throws Exception {
+    parse("parseAssertStatement", "assert(throw x);", ParserErrorCode.ASSERT_DOES_NOT_TAKE_THROW);
+  }
+
   public void test_breakOutsideOfLoop_breakInDoStatement() throws Exception {
     parse("parseDoStatement", "do {break;} while (x);");
   }
