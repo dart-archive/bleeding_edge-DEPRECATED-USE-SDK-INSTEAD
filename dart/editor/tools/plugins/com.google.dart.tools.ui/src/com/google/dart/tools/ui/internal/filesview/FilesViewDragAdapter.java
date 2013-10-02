@@ -14,6 +14,7 @@
 package com.google.dart.tools.ui.internal.filesview;
 
 import org.eclipse.jface.viewers.ISelectionProvider;
+import org.eclipse.swt.dnd.DragSourceEvent;
 import org.eclipse.ui.views.navigator.NavigatorDragAdapter;
 
 /**
@@ -31,4 +32,8 @@ public class FilesViewDragAdapter extends NavigatorDragAdapter {
     super(provider);
   }
 
+  @Override
+  public void dragFinished(DragSourceEvent event) {
+    // Don't call super(), it will delete files.
+  }
 }
