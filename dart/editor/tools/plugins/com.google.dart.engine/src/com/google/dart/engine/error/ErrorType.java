@@ -28,7 +28,7 @@ public enum ErrorType {
    * Extra analysis run over the code to follow best practices, which are not in the Dart Language
    * Specification.
    */
-  HINT(ErrorSeverity.WARNING),
+  HINT(ErrorSeverity.INFO),
 
   /**
    * Compile-time errors are errors that preclude execution. A compile time error must be reported

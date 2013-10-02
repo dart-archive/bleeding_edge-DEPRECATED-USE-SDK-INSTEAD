@@ -100,19 +100,12 @@ class MarkersUtils {
       if (severity == IMarker.SEVERITY_ERROR) {
         counts.get(ERROR_CATEGORY)[0]++;
       } else if (severity == IMarker.SEVERITY_WARNING) {
+        counts.get(WARNING_CATEGORY)[0]++;
+      } else if (severity == IMarker.SEVERITY_INFO) {
         try {
           if (marker.isSubtypeOf(DartCore.DART_HINT_MARKER_TYPE)) {
             counts.get(HINT_CATEGORY)[0]++;
-          } else {
-            counts.get(WARNING_CATEGORY)[0]++;
-          }
-        } catch (CoreException ce) {
-          // ignore
-
-        }
-      } else if (severity == IMarker.SEVERITY_INFO) {
-        try {
-          if (marker.isSubtypeOf(IMarker.TASK)) {
+          } else if (marker.isSubtypeOf(IMarker.TASK)) {
             counts.get(TASK_CATEGORY)[0]++;
           } else {
             //counts.get(TASK_CATEGORY)[0]++;

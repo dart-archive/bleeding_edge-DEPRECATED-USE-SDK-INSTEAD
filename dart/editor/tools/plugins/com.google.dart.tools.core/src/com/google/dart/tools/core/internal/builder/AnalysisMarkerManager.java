@@ -121,7 +121,7 @@ public class AnalysisMarkerManager {
         marker.setAttribute(IMarker.MESSAGE, error.getMessage());
 
         if (isHint) {
-          marker.setAttribute(IMarker.PRIORITY, IMarker.PRIORITY_LOW);
+          marker.setAttribute(IMarker.PRIORITY, IMarker.PRIORITY_HIGH);
         }
 
         errorCount++;

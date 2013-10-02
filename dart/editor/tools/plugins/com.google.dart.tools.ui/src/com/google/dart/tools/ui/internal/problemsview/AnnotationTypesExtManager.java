@@ -65,6 +65,7 @@ class AnnotationTypesExtManager {
 
   public Image getImageForMarker(IMarker marker) {
     int severity = marker.getAttribute(IMarker.SEVERITY, -1);
+    int priority = marker.getAttribute(IMarker.PRIORITY, IMarker.PRIORITY_NORMAL);
 
     if (severity != -1) {
       try {
@@ -78,7 +79,6 @@ class AnnotationTypesExtManager {
           return imageDataForMarkerType.get(markerType);
         }
       } catch (CoreException ex) {
-
       }
     }
 
@@ -88,7 +88,11 @@ class AnnotationTypesExtManager {
       case IMarker.SEVERITY_WARNING:
         return DartToolsPlugin.getImage("icons/full/misc/warn_tsk.gif");
       case IMarker.SEVERITY_INFO:
-        return DartToolsPlugin.getImage("icons/full/eview16/tasks_tsk.gif");
+        if (priority == IMarker.PRIORITY_NORMAL) {
+          return DartToolsPlugin.getImage("icons/full/eview16/tasks_tsk.gif");
+        } else {
+          return DartToolsPlugin.getImage("icons/full/misc/info.png");
+        }
     }
 
     return DartToolsPlugin.getImage("icons/full/misc/info_tsk.gif");

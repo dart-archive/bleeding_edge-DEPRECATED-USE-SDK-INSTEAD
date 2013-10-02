@@ -316,14 +316,15 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
       IMarker marker = (IMarker) element;
 
       if (!showHintsAction.isChecked()) {
-        if (marker.getAttribute(IMarker.PRIORITY, IMarker.PRIORITY_NORMAL) == IMarker.PRIORITY_LOW
-            && marker.getAttribute(IMarker.SEVERITY, 0) == IMarker.SEVERITY_WARNING) {
+        if (marker.getAttribute(IMarker.PRIORITY, IMarker.PRIORITY_NORMAL) == IMarker.PRIORITY_HIGH
+            && marker.getAttribute(IMarker.SEVERITY, 0) == IMarker.SEVERITY_INFO) {
           return false;
         }
       }
 
       if (!showInfosAction.isChecked()) {
-        if (marker.getAttribute(IMarker.SEVERITY, 0) == IMarker.SEVERITY_INFO) {
+        if (marker.getAttribute(IMarker.PRIORITY, IMarker.PRIORITY_NORMAL) == IMarker.PRIORITY_NORMAL
+            && marker.getAttribute(IMarker.SEVERITY, 0) == IMarker.SEVERITY_INFO) {
           return false;
         }
       }
