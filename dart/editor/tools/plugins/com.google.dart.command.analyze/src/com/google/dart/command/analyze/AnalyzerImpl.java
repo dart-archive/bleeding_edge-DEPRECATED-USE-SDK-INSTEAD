@@ -209,9 +209,10 @@ class AnalyzerImpl {
     }
   }
 
-  private void getAllErrors(AnalysisContext context, Set<Source> sources, List<AnalysisError> errors) {
+  private void getAllErrors(AnalysisContext context, Set<Source> sources, List<AnalysisError> errors)
+      throws AnalysisException {
     for (Source source : sources) {
-      AnalysisError[] sourceErrors = context.getErrors(source).getErrors();
+      AnalysisError[] sourceErrors = context.computeErrors(source);
       errors.addAll(Arrays.asList(sourceErrors));
     }
   }

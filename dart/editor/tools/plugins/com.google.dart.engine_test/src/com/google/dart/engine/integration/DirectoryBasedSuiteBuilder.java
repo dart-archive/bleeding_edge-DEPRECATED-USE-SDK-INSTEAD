@@ -13,7 +13,6 @@
  */
 package com.google.dart.engine.integration;
 
-import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.CompilationUnitElement;
@@ -21,6 +20,7 @@ import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.internal.context.PerformanceStatistics;
+import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.io.PrintStringWriter;
 
 import junit.framework.Assert;
@@ -92,10 +92,11 @@ public abstract class DirectoryBasedSuiteBuilder {
    */
   protected void addErrors(ArrayList<AnalysisError> errorList, CompilationUnitElement element)
       throws AnalysisException {
+    Source source = element.getSource();
     LibraryElement library = element.getLibrary();
     AnalysisContext context = library.getContext();
-    CompilationUnit unit = context.resolveCompilationUnit(element.getSource(), library);
-    AnalysisError[] errors = unit.getErrors();
+    context.resolveCompilationUnit(source, library);
+    AnalysisError[] errors = context.computeErrors(source);
     if (errors == null) {
       Assert.fail("The compilation unit \"" + element.getSource().getFullName()
           + "\" was not resolved");

@@ -51,7 +51,7 @@ public class GeneratorUtils {
         file.getLocation().toFile());
     context.computeLibraryElement(librarySource);
 
-    AnalysisError[] errors = context.getErrors(librarySource).getErrors();
+    AnalysisError[] errors = context.computeErrors(librarySource);
     assertNotNull(errors);
 
     if (errors.length > 0) {
