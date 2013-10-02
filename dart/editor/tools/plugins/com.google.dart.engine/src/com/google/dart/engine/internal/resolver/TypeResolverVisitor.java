@@ -75,6 +75,8 @@ import com.google.dart.engine.internal.type.InterfaceTypeImpl;
 import com.google.dart.engine.internal.type.TypeImpl;
 import com.google.dart.engine.internal.type.VoidTypeImpl;
 import com.google.dart.engine.scanner.Keyword;
+import com.google.dart.engine.scanner.Token;
+import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.InterfaceType;
@@ -91,6 +93,31 @@ import java.util.ArrayList;
  * @coverage dart.engine.resolver
  */
 public class TypeResolverVisitor extends ScopedVisitor {
+  /**
+   * @return {@code true} if the name of the given {@link TypeName} is an built-in identifier.
+   */
+  private static boolean isBuiltInIdentifier(TypeName node) {
+    Token token = node.getName().getBeginToken();
+    return token.getType() == TokenType.KEYWORD;
+  }
+
+  /**
+   * @return {@code true} if given {@link TypeName} is used as a type annotation.
+   */
+  private static boolean isTypeAnnotation(TypeName node) {
+    ASTNode parent = node.getParent();
+    if (parent instanceof VariableDeclarationList) {
+      return ((VariableDeclarationList) parent).getType() == node;
+    }
+    if (parent instanceof FieldFormalParameter) {
+      return ((FieldFormalParameter) parent).getType() == node;
+    }
+    if (parent instanceof SimpleFormalParameter) {
+      return ((SimpleFormalParameter) parent).getType() == node;
+    }
+    return false;
+  }
+
   /**
    * The type representing the type 'dynamic'.
    */
@@ -465,7 +492,9 @@ public class TypeResolverVisitor extends ScopedVisitor {
       // from the ErrorVerifier, so that we don't have two errors on a built in identifier being
       // used as a class name. See CompileTimeErrorCodeTest.test_builtInIdentifierAsType().
       SimpleIdentifier typeNameSimple = getTypeSimpleIdentifier(typeName);
-      if (typeNameSimple.getName().equals("boolean")) {
+      if (isBuiltInIdentifier(node) && isTypeAnnotation(node)) {
+        reportError(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, typeName, typeName.getName());
+      } else if (typeNameSimple.getName().equals("boolean")) {
         reportError(StaticWarningCode.UNDEFINED_CLASS_BOOLEAN, typeNameSimple);
       } else if (isTypeNameInCatchClause(node)) {
         reportError(StaticWarningCode.NON_TYPE_IN_CATCH_CLAUSE, typeName, typeName.getName());

@@ -963,7 +963,6 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
 
   @Override
   public Void visitVariableDeclarationList(VariableDeclarationList node) {
-    checkForBuiltInIdentifierAsName(node);
     return super.visitVariableDeclarationList(node);
   }
 
@@ -1906,34 +1905,6 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     if (token.getType() == TokenType.KEYWORD) {
       errorReporter.reportError(errorCode, identifier, identifier.getName());
       return true;
-    }
-    return false;
-  }
-
-  /**
-   * This verifies that the passed variable declaration list does not have a built-in identifier.
-   * 
-   * @param node the variable declaration list to check
-   * @return {@code true} if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#BUILT_IN_IDENTIFIER_AS_TYPE
-   */
-  private boolean checkForBuiltInIdentifierAsName(VariableDeclarationList node) {
-    TypeName typeName = node.getType();
-    if (typeName != null) {
-      Identifier identifier = typeName.getName();
-      if (identifier instanceof SimpleIdentifier) {
-        SimpleIdentifier simpleIdentifier = (SimpleIdentifier) identifier;
-        Token token = simpleIdentifier.getToken();
-        if (token.getType() == TokenType.KEYWORD) {
-          if (((KeywordToken) token).getKeyword() != Keyword.DYNAMIC) {
-            errorReporter.reportError(
-                CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE,
-                identifier,
-                identifier.getName());
-            return true;
-          }
-        }
-      }
     }
     return false;
   }

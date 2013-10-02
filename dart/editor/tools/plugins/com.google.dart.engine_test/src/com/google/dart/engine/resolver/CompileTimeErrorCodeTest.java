@@ -147,16 +147,33 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_builtInIdentifierAsType() throws Exception {
+  public void test_builtInIdentifierAsType_formalParameter_field() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  var x;",
+        "  A(static this.x);",
+        "}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE);
+    verify(source);
+  }
+
+  public void test_builtInIdentifierAsType_formalParameter_simple() throws Exception {
+    Source source = addSource(createSource(//
+        "f(static x) {",
+        "}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE);
+    verify(source);
+  }
+
+  public void test_builtInIdentifierAsType_variableDeclaration() throws Exception {
     Source source = addSource(createSource(//
         "f() {",
         "  typedef x;",
         "}"));
     resolve(source);
-    assertErrors(
-        source,
-        CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE,
-        StaticWarningCode.UNDEFINED_CLASS);
+    assertErrors(source, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE);
     verify(source);
   }
 
