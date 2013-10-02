@@ -16,6 +16,8 @@ package com.google.dart.tools.ui.instrumentation;
 import com.google.dart.engine.utilities.instrumentation.HealthUtils;
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
+import com.google.dart.tools.ui.feedback.FeedbackUtils;
+import com.google.dart.tools.ui.feedback.FeedbackUtils.Stats;
 import com.google.dart.tools.ui.instrumentation.util.Base64;
 
 import org.eclipse.jface.text.IDocument;
@@ -43,12 +45,31 @@ public class Heartbeat {
   }
 
   /**
+   * Log the information that is also reported in the feedback dialog
+   */
+  private static void logFeedbackInfo(InstrumentationBuilder instrumentation) {
+
+    instrumentation.metric("FB-VersionDetails", FeedbackUtils.getEditorVersionDetails());
+    instrumentation.metric("FB-OSName", FeedbackUtils.getOSName());
+
+    Stats stats = FeedbackUtils.getStats();
+    instrumentation.metric("FB-Stats-autoRunPubEnabled", stats.autoRunPubEnabled);
+    instrumentation.metric("FB-Stats-numEditors", stats.numEditors);
+    instrumentation.metric("FB-Stats-numProjects", stats.numProjects);
+    instrumentation.metric("FB-Stats-numThreads", stats.numThreads);
+    instrumentation.metric("FB-Stats-indexStats", stats.indexStats);
+
+  }
+
+  /**
    * This method logs information about the health of the development environment. It is imperative
    * that this method execute quickly as this is typically called once per minute.
    * 
    * @param instrumentation the instrumentation used to log information (not {@code null})
    */
   public void heartbeat(InstrumentationBuilder instrumentation) {
+
+    logFeedbackInfo(instrumentation);
 
     HealthUtils.logMemory(instrumentation);
     HealthUtils.logThreads(instrumentation);
