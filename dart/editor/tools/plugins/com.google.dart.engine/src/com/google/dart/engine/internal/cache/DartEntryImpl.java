@@ -71,6 +71,17 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     private AnalysisError[] resolutionErrors = AnalysisError.NO_ERRORS;
 
     /**
+     * The state of the cached verification errors.
+     */
+    private CacheState verificationErrorsState = CacheState.INVALID;
+
+    /**
+     * The errors produced while verifying the compilation unit, or an empty array if the errors are
+     * not currently cached.
+     */
+    private AnalysisError[] verificationErrors = AnalysisError.NO_ERRORS;
+
+    /**
      * The state of the cached hints.
      */
     private CacheState hintsState = CacheState.INVALID;
@@ -102,6 +113,9 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
 
       resolutionErrorsState = other.resolutionErrorsState;
       resolutionErrors = other.resolutionErrors;
+
+      verificationErrorsState = other.verificationErrorsState;
+      verificationErrors = other.verificationErrors;
 
       hintsState = other.hintsState;
       hints = other.hints;
@@ -138,6 +152,9 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
       resolutionErrorsState = CacheState.INVALID;
       resolutionErrors = AnalysisError.NO_ERRORS;
 
+      verificationErrorsState = CacheState.INVALID;
+      verificationErrors = AnalysisError.NO_ERRORS;
+
       hintsState = CacheState.INVALID;
       hints = AnalysisError.NO_ERRORS;
     }
@@ -157,6 +174,9 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
       resolutionErrorsState = CacheState.ERROR;
       resolutionErrors = AnalysisError.NO_ERRORS;
 
+      verificationErrorsState = CacheState.ERROR;
+      verificationErrors = AnalysisError.NO_ERRORS;
+
       hintsState = CacheState.ERROR;
       hints = AnalysisError.NO_ERRORS;
     }
@@ -171,6 +191,9 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
       }
       if (resolutionErrorsState == CacheState.IN_PROCESS) {
         resolutionErrorsState = CacheState.INVALID;
+      }
+      if (verificationErrorsState == CacheState.IN_PROCESS) {
+        verificationErrorsState = CacheState.INVALID;
       }
       if (hintsState == CacheState.IN_PROCESS) {
         hintsState = CacheState.INVALID;
@@ -192,6 +215,8 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
         builder.append(resolvedUnitState);
         builder.append("; resolutionErrors = ");
         builder.append(resolutionErrorsState);
+        builder.append("; verificationErrors = ");
+        builder.append(verificationErrorsState);
         builder.append("; hints = ");
         builder.append(hintsState);
         if (nextState != null) {
@@ -356,6 +381,9 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
       for (AnalysisError error : state.resolutionErrors) {
         errors.add(error);
       }
+      for (AnalysisError error : state.verificationErrors) {
+        errors.add(error);
+      }
       for (AnalysisError error : state.hints) {
         errors.add(error);
       }
@@ -456,6 +484,8 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
           return state.resolutionErrorsState;
         } else if (descriptor == RESOLVED_UNIT) {
           return state.resolvedUnitState;
+        } else if (descriptor == VERIFICATION_ERRORS) {
+          return state.verificationErrorsState;
         } else if (descriptor == HINTS) {
           return state.hintsState;
         } else {
@@ -464,7 +494,8 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
       }
       state = state.nextState;
     };
-    if (descriptor == RESOLUTION_ERRORS || descriptor == RESOLVED_UNIT || descriptor == HINTS) {
+    if (descriptor == RESOLUTION_ERRORS || descriptor == RESOLVED_UNIT
+        || descriptor == VERIFICATION_ERRORS || descriptor == HINTS) {
       return CacheState.INVALID;
     } else {
       throw new IllegalArgumentException("Invalid descriptor: " + descriptor);
@@ -509,6 +540,8 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
           return (E) state.resolutionErrors;
         } else if (descriptor == RESOLVED_UNIT) {
           return (E) state.resolvedUnit;
+        } else if (descriptor == VERIFICATION_ERRORS) {
+          return (E) state.verificationErrors;
         } else if (descriptor == HINTS) {
           return (E) state.hints;
         } else {
@@ -517,7 +550,7 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
       }
       state = state.nextState;
     };
-    if (descriptor == RESOLUTION_ERRORS || descriptor == HINTS) {
+    if (descriptor == RESOLUTION_ERRORS || descriptor == VERIFICATION_ERRORS || descriptor == HINTS) {
       return (E) AnalysisError.NO_ERRORS;
     } else if (descriptor == RESOLVED_UNIT) {
       return null;
@@ -819,6 +852,12 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     } else if (descriptor == RESOLVED_UNIT) {
       state.resolvedUnit = updatedValue(cacheState, state.resolvedUnit, null);
       state.resolvedUnitState = cacheState;
+    } else if (descriptor == VERIFICATION_ERRORS) {
+      state.verificationErrors = updatedValue(
+          cacheState,
+          state.verificationErrors,
+          AnalysisError.NO_ERRORS);
+      state.verificationErrorsState = cacheState;
     } else if (descriptor == HINTS) {
       state.hints = updatedValue(cacheState, state.hints, AnalysisError.NO_ERRORS);
       state.hintsState = cacheState;
@@ -882,6 +921,9 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     } else if (descriptor == RESOLVED_UNIT) {
       state.resolvedUnit = (CompilationUnit) value;
       state.resolvedUnitState = CacheState.VALID;
+    } else if (descriptor == VERIFICATION_ERRORS) {
+      state.verificationErrors = value == null ? AnalysisError.NO_ERRORS : (AnalysisError[]) value;
+      state.verificationErrorsState = CacheState.VALID;
     } else if (descriptor == HINTS) {
       state.hints = value == null ? AnalysisError.NO_ERRORS : (AnalysisError[]) value;
       state.hintsState = CacheState.VALID;

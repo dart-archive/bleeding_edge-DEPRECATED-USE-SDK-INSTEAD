@@ -113,6 +113,12 @@ public interface DartEntry extends SourceEntry {
       "DartEntry.SOURCE_KIND");
 
   /**
+   * The data descriptor representing the errors resulting from verifying the source.
+   */
+  public static final DataDescriptor<AnalysisError[]> VERIFICATION_ERRORS = new DataDescriptor<AnalysisError[]>(
+      "DartEntry.VERIFICATION_ERRORS");
+
+  /**
    * Return all of the errors associated with the compilation unit that are currently cached.
    * 
    * @return all of the errors associated with the compilation unit

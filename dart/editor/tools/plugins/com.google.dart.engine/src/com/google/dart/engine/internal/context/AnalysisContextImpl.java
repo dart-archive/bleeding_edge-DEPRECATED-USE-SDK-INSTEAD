@@ -878,6 +878,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
             statistics.putCacheItem(dartEntry, librarySource, DartEntry.HINTS);
             statistics.putCacheItem(dartEntry, librarySource, DartEntry.RESOLUTION_ERRORS);
             statistics.putCacheItem(dartEntry, librarySource, DartEntry.RESOLVED_UNIT);
+            statistics.putCacheItem(dartEntry, librarySource, DartEntry.VERIFICATION_ERRORS);
           }
 //        } else if (entry instanceof HtmlEntry) {
 //          HtmlEntry htmlEntry = (HtmlEntry) entry;

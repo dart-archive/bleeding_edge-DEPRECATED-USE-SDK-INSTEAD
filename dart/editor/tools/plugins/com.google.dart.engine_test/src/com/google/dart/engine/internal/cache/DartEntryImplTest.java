@@ -18,6 +18,7 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.CompileTimeErrorCode;
 import com.google.dart.engine.error.HintCode;
+import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
 import com.google.dart.engine.internal.scope.Namespace;
 import com.google.dart.engine.parser.ParserErrorCode;
@@ -57,10 +58,13 @@ public class DartEntryImplTest extends EngineTestCase {
     entry.setValue(DartEntry.RESOLUTION_ERRORS, source, new AnalysisError[] {new AnalysisError(
         source,
         CompileTimeErrorCode.CONST_CONSTRUCTOR_THROWS_EXCEPTION)});
+    entry.setValue(DartEntry.VERIFICATION_ERRORS, source, new AnalysisError[] {new AnalysisError(
+        source,
+        StaticWarningCode.CASE_BLOCK_NOT_TERMINATED)});
     entry.setValue(DartEntry.HINTS, source, new AnalysisError[] {new AnalysisError(
         source,
         HintCode.DEAD_CODE)});
-    assertLength(3, entry.getAllErrors());
+    assertLength(4, entry.getAllErrors());
   }
 
   public void test_getState_invalid_element() {
@@ -78,6 +82,16 @@ public class DartEntryImplTest extends EngineTestCase {
     try {
       entry.getState(DartEntry.RESOLUTION_ERRORS);
       fail("Expected IllegalArgumentException for RESOLUTION_ERRORS");
+    } catch (IllegalArgumentException exception) {
+      // Expected
+    }
+  }
+
+  public void test_getState_invalid_verificationErrors() {
+    DartEntryImpl entry = new DartEntryImpl();
+    try {
+      entry.getState(DartEntry.VERIFICATION_ERRORS);
+      fail("Expected IllegalArgumentException for VERIFICATION_ERRORS");
     } catch (IllegalArgumentException exception) {
       // Expected
     }
@@ -114,6 +128,16 @@ public class DartEntryImplTest extends EngineTestCase {
     try {
       entry.getValue(DartEntry.ELEMENT, source3);
       fail("Expected IllegalArgumentException for ELEMENT");
+    } catch (IllegalArgumentException exception) {
+      // Expected
+    }
+  }
+
+  public void test_getValue_invalid_verificationErrors() {
+    DartEntryImpl entry = new DartEntryImpl();
+    try {
+      entry.getValue(DartEntry.VERIFICATION_ERRORS);
+      fail("Expected IllegalArgumentException for VERIFICATION_ERRORS");
     } catch (IllegalArgumentException exception) {
       // Expected
     }
@@ -353,6 +377,16 @@ public class DartEntryImplTest extends EngineTestCase {
     }
   }
 
+  public void test_setState_invalid_verificationErrors() {
+    DartEntryImpl entry = new DartEntryImpl();
+    try {
+      entry.setState(DartEntry.VERIFICATION_ERRORS, CacheState.FLUSHED);
+      fail("Expected IllegalArgumentException for VERIFICATION_ERRORS");
+    } catch (IllegalArgumentException exception) {
+      // Expected
+    }
+  }
+
   public void test_setState_isClient() {
     setState2(DartEntry.IS_CLIENT);
   }
@@ -387,6 +421,10 @@ public class DartEntryImplTest extends EngineTestCase {
 
   public void test_setState_sourceKind() {
     setState2(DartEntry.SOURCE_KIND);
+  }
+
+  public void test_setState_verificationErrors() {
+    setState3(DartEntry.VERIFICATION_ERRORS);
   }
 
   public void test_setValue_element() {
@@ -447,6 +485,12 @@ public class DartEntryImplTest extends EngineTestCase {
 
   public void test_setValue_sourceKind() {
     setValue2(DartEntry.SOURCE_KIND, SourceKind.LIBRARY);
+  }
+
+  public void test_setValue_verificationErrors() {
+    setValue3(DartEntry.VERIFICATION_ERRORS, new AnalysisError[] {new AnalysisError(
+        null,
+        StaticWarningCode.CASE_BLOCK_NOT_TERMINATED)});
   }
 
   private DartEntryImpl entryWithValidState() {
