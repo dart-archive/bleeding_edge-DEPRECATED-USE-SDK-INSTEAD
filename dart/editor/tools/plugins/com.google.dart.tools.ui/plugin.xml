@@ -2376,6 +2376,60 @@
             schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
 
       <key
+            commandId="org.eclipse.ui.edit.text.goto.lineDown"
+            contextId="org.eclipse.ui.textEditorScope"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
+            sequence="ARROW_DOWN">
+      </key>
+      <key
+            commandId="org.eclipse.ui.edit.text.goto.lineUp"
+            contextId="org.eclipse.ui.textEditorScope"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
+            sequence="ARROW_UP">
+      </key>
+      <key
+            commandId="org.eclipse.ui.edit.text.goto.columnPrevious"
+            contextId="org.eclipse.ui.textEditorScope"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
+            sequence="ARROW_LEFT">
+      </key>
+      <key
+            commandId="org.eclipse.ui.edit.text.goto.columnNext"
+            contextId="org.eclipse.ui.textEditorScope"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
+            sequence="ARROW_RIGHT">
+      </key>
+      <key
+            commandId="org.eclipse.ui.edit.text.goto.pageDown"
+            contextId="org.eclipse.ui.textEditorScope"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
+            sequence="PAGE_DOWN">
+      </key>
+      <key
+            commandId="org.eclipse.ui.edit.text.goto.pageUp"
+            contextId="org.eclipse.ui.textEditorScope"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
+            sequence="PAGE_UP">
+      </key>
+      <key
+            commandId="org.eclipse.ui.edit.text.cut.line.to.end"
+            contextId="org.eclipse.ui.textEditorScope"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
+            sequence="M1+M2+M3+DEL">
+      </key>
+      <key
+            commandId="org.eclipse.ui.navigate.nextTab"
+            contextId="org.eclipse.ui.textEditorScope"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
+            sequence="CTRL+TAB">
+      </key>
+      <key
+            commandId="org.eclipse.ui.navigate.previousTab"
+            contextId="org.eclipse.ui.textEditorScope"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
+            sequence="CTRL+SHIFT+TAB">
+      </key>
+      <key
             commandId="org.eclipse.ui.edit.text.hippieCompletion"
             contextId="org.eclipse.ui.textEditorScope"
             sequence="M3+/"
