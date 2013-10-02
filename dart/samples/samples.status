@@ -53,6 +53,9 @@ swarm/test/swarm_ui_lib/layout/layout_test: Fail # TODO(kasperl): Please triage.
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
 
+[ $compiler == none && $runtime == dartium ]
+swarm/test/swarm_test: Fail # Issue 13719: Please triage this failure.
+
 [ $browser ]
 # This may be related to issue 157
 swarm/test/swarm_ui_lib/touch/touch_test: Fail # Expectation: Solver. Expect.approxEquals(expected:9, actual:8.990625000000001, tolerance:0.0009) fails
