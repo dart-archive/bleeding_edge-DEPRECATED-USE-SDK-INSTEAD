@@ -13,7 +13,6 @@ vars = {
   "nss_rev": "@209026",
 
   "co19_rev": "@607",
-  "co19_repo": "http://co19.googlecode.com/svn/trunk/co19/",
 }
 
 deps = {
@@ -21,8 +20,8 @@ deps = {
     Var("dart_branch") + "/dart",
 
   # co19 tests.
-  "dart/tests/co19/src":
-    Var("co19_repo") + "tests/co19/src" + Var("co19_rev"),
+  "dart/tests/co19/src": ((Var("googlecode_url") % "co19") +
+      "/trunk/co19/tests/co19/src" + Var("co19_rev")),
 
   # Stuff needed for GYP to run.
   "dart/third_party/gyp":
