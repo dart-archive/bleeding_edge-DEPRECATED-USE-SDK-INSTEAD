@@ -882,29 +882,29 @@ def PostProcessEditorBuilds(out_dir):
         f.extract(inifile.replace('\\','/'))
         f.close()
       else:
-        subprocess.call(['unzip', zipFile, inifile], env=os.environ)
+        bot_utils.run(['unzip', zipFile, inifile], env=os.environ)
 
       Modify64BitDartEditorIni(inifile)
 
       if (basename.startswith('darteditor-win32-')):
-        f = zipfile.ZipFile(zipFile, 'a')
-        f.write(inifile.replace('\\','/'))
-        f.close()
+        seven_zip = os.path.join(DART_DIR, 'third_party', '7zip', '7za.exe')
+        bot_utils.run([seven_zip, 'd', zipFile, inifile], env=os.environ)
+        bot_utils.run([seven_zip, 'a', zipFile, inifile], env=os.environ)
       else:
-        subprocess.call(['zip', '-d', zipFile, inifile], env=os.environ)
-        subprocess.call(['zip', '-q', zipFile, inifile], env=os.environ)
+        bot_utils.run(['zip', '-d', zipFile, inifile], env=os.environ)
+        bot_utils.run(['zip', '-q', zipFile, inifile], env=os.environ)
 
       os.remove(inifile)
 
     # post-process the info.plist file
     if (basename.startswith('darteditor-macos-')):
       infofile = join('dart', 'DartEditor.app', 'Contents', 'Info.plist')
-      subprocess.call(['unzip', zipFile, infofile], env=os.environ)
+      bot_utils.run(['unzip', zipFile, infofile], env=os.environ)
       ReplaceInFiles(
           [infofile],
           [('<dict>',
             '<dict>\n\t<key>NSHighResolutionCapable</key>\n\t\t<true/>')])
-      subprocess.call(['zip', '-q', zipFile, infofile], env=os.environ)
+      bot_utils.run(['zip', '-q', zipFile, infofile], env=os.environ)
       os.remove(infofile)
 
 
