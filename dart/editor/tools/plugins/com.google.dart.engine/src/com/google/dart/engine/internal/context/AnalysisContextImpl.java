@@ -2464,17 +2464,17 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       htmlCopy.invalidateAllInformation();
       cache.put(source, htmlCopy);
     } else if (sourceEntry instanceof DartEntry) {
-//      HashSet<Source> librariesToInvalidate = new HashSet<Source>();
       Source[] containingLibraries = getLibrariesContaining(source);
-//      for (Source containingLibrary : containingLibraries) {
-//        librariesToInvalidate.add(containingLibrary);
-//        for (Source dependentLibrary : getLibrariesDependingOn(containingLibrary)) {
-//          librariesToInvalidate.add(dependentLibrary);
-//        }
-//      }
+      HashSet<Source> librariesToInvalidate = new HashSet<Source>();
+      for (Source containingLibrary : containingLibraries) {
+        librariesToInvalidate.add(containingLibrary);
+        for (Source dependentLibrary : getLibrariesDependingOn(containingLibrary)) {
+          librariesToInvalidate.add(dependentLibrary);
+        }
+      }
 
-//    for (Source library : librariesToInvalidate) {
-      for (Source library : containingLibraries) {
+      for (Source library : librariesToInvalidate) {
+//    for (Source library : containingLibraries) {
         invalidateLibraryResolution(library);
       }
 
