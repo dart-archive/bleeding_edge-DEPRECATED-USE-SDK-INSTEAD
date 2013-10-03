@@ -11,6 +11,7 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.internal.keys.BindingService;
 import org.eclipse.ui.internal.keys.WorkbenchKeyboard;
 import org.eclipse.ui.keys.IBindingService;
+import org.eclipse.ui.texteditor.IWorkbenchActionDefinitionIds;
 
 import java.util.List;
 import java.util.Map;
@@ -19,6 +20,7 @@ import java.util.Map;
 public class GlanceEventDispatcher {
 
   public static final String GLANCE_CTX = "com.xored.glance.ui.context";
+  public static final String TEXT_EDITOR_CTX = "org.eclipse.ui.textEditorScope";
 
   public static final String NEXT_COMMAND = "com.xored.glance.ui.nextResult";
   public static final String PREV_COMMAND = "com.xored.glance.ui.prevResult";
@@ -46,10 +48,12 @@ public class GlanceEventDispatcher {
       return;
     } else if (FOCUS_COMMAND.equals(commandID)) {
 //      SearchManager.getIntance().sourceFocus(); // in case someone has a key binding already
-    } else if (NEXT_COMMAND.equals(commandID)) {
+    } else if (NEXT_COMMAND.equals(commandID)
+        || IWorkbenchActionDefinitionIds.FIND_NEXT.equals(commandID)) {
       SearchManager.getIntance().findNext();
       event.doit = false;
-    } else if (PREV_COMMAND.equals(commandID)) {
+    } else if (PREV_COMMAND.equals(commandID)
+        || IWorkbenchActionDefinitionIds.FIND_PREVIOUS.equals(commandID)) {
       SearchManager.getIntance().findPrevious();
       event.doit = false;
     } else if (CLOSE_COMMAND.equals(commandID)) {
@@ -67,7 +71,8 @@ public class GlanceEventDispatcher {
     if (bindings != null) {
       for (Object obj : bindings) {
         Binding binding = (Binding) obj;
-        if (GLANCE_CTX.equals(binding.getContextId())) {
+        String ctx = binding.getContextId();
+        if (GLANCE_CTX.equals(ctx) || TEXT_EDITOR_CTX.equals(ctx)) {
           return binding.getParameterizedCommand().getId();
         }
       }
