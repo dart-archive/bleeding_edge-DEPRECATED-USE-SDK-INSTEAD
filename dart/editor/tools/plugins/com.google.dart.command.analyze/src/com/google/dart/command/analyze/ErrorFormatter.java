@@ -221,7 +221,7 @@ public class ErrorFormatter {
         }
       });
     } catch (Exception e) {
-      System.err.println("Source not availale for " + source.getFullName());
+      System.err.println("Source not available for " + source.getFullName());
     }
   }
 
