@@ -67,6 +67,12 @@ public class ValidResult extends EvaluationResultImpl {
   public static final ValidResult RESULT_OBJECT = new ValidResult(new Object());
 
   /**
+   * A result object representing the an arbitrary symbol on which no further operations can be
+   * performed.
+   */
+  public static final ValidResult RESULT_SYMBOL = new ValidResult(new Object());
+
+  /**
    * A result object representing the an arbitrary string on which no further operations can be
    * performed.
    */

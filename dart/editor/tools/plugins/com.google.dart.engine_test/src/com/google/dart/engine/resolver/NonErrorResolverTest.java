@@ -444,6 +444,18 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_constEval_symbol() throws Exception {
+    addSource("/math.dart", createSource(//
+        "library math;",
+        "const PI = 3.14;"));
+    Source source = addSource(createSource(//
+        "const C = #foo;",
+        "foo() {}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
   public void test_constEvalTypeBoolNumString_equal() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
