@@ -52,6 +52,10 @@ class JsArrayToListAdapter<E> extends TypedProxy /*with ListMixin<E>*/ implement
     final sortedList = _asList()..sort(compare);
     setRange(0, sortedList.length, sortedList);
   }
+  @override void shuffle() {
+    final shuffledList = _asList()..shuffle();
+    setRange(0, shuffledList.length, shuffledLength);
+  }
   @override void insert(int index, E element) {
     $unsafe.splice(index, 0, _toJs(element));
   }
