@@ -4001,6 +4001,16 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(statement.getRightBracket());
   }
 
+  public void test_parseSymbolLiteral_builtInIdentifier() throws Exception {
+    SymbolLiteral literal = parse("parseSymbolLiteral", "#dynamic.static.abstract");
+    assertNotNull(literal.getPoundSign());
+    Token[] components = literal.getComponents();
+    assertLength(3, components);
+    assertEquals("dynamic", components[0].getLexeme());
+    assertEquals("static", components[1].getLexeme());
+    assertEquals("abstract", components[2].getLexeme());
+  }
+
   public void test_parseSymbolLiteral_multiple() throws Exception {
     SymbolLiteral literal = parse("parseSymbolLiteral", "#a.b.c");
     assertNotNull(literal.getPoundSign());

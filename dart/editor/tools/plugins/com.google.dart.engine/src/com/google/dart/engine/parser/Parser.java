@@ -5019,11 +5019,11 @@ public class Parser {
   private SymbolLiteral parseSymbolLiteral() {
     Token poundSign = getAndAdvance();
     List<Token> components = new ArrayList<Token>();
-    if (matches(TokenType.IDENTIFIER)) {
+    if (matchesIdentifier()) {
       components.add(getAndAdvance());
       while (matches(TokenType.PERIOD)) {
         advance();
-        if (matches(TokenType.IDENTIFIER)) {
+        if (matchesIdentifier()) {
           components.add(getAndAdvance());
         } else {
           reportError(ParserErrorCode.MISSING_IDENTIFIER);
