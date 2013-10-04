@@ -38,6 +38,7 @@ import com.google.dart.tools.ui.internal.handlers.NewFileHandler.NewFileCommandA
 import com.google.dart.tools.ui.internal.handlers.OpenFolderHandler;
 import com.google.dart.tools.ui.internal.projects.OpenNewApplicationWizardAction;
 
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.IResourceDelta;
@@ -63,12 +64,20 @@ import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.jface.util.Util;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.ISelectionChangedListener;
+import org.eclipse.jface.viewers.ISelectionProvider;
+import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IPageLayout;
 import org.eclipse.ui.IPageListener;
+import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IWorkbenchActionConstants;
 import org.eclipse.ui.IWorkbenchCommandConstants;
 import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.actions.ActionFactory;
 import org.eclipse.ui.actions.ActionFactory.IWorkbenchAction;
@@ -76,6 +85,7 @@ import org.eclipse.ui.actions.ContributionItemFactory;
 import org.eclipse.ui.actions.NewWizardMenu;
 import org.eclipse.ui.application.ActionBarAdvisor;
 import org.eclipse.ui.application.IActionBarConfigurer;
+import org.eclipse.ui.dialogs.PropertyDialogAction;
 import org.eclipse.ui.ide.IIDEActionConstants;
 import org.eclipse.ui.internal.IPreferenceConstants;
 import org.eclipse.ui.internal.ShowViewAction;
@@ -99,6 +109,78 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
     protected AccessibleShowViewAction(IWorkbenchWindow window, IViewDescriptor desc,
         boolean makeFast) {
       super(window, desc, makeFast);
+    }
+  }
+
+  private class ShowPropertiesAction extends Action implements IWorkbenchAction,
+      ISelectionListener, ISelectionChangedListener, ISelectionProvider {
+
+    private ISelection selection;
+
+    private final PropertyDialogAction workbenchAction = new PropertyDialogAction(getWindow(), this);
+
+    private ShowPropertiesAction() {
+      setId(workbenchAction.getId());
+      setText(org.eclipse.ui.internal.WorkbenchMessages.PropertyDialog_text);
+      setDescription(org.eclipse.ui.internal.WorkbenchMessages.PropertyDialog_text);
+      setToolTipText(org.eclipse.ui.internal.WorkbenchMessages.PropertyDialog_toolTip);
+    }
+
+    @Override
+    public void addSelectionChangedListener(ISelectionChangedListener listener) {
+      // Ignore
+    }
+
+    @Override
+    public void dispose() {
+      workbenchAction.dispose();
+    }
+    
+      @Override
+    public ISelection getSelection() {
+      return selection;
+    }
+
+    @Override
+    public void removeSelectionChangedListener(ISelectionChangedListener listener) {
+      // Ignore
+    }
+
+    @Override
+    public void run() {
+      workbenchAction.run();
+    }
+
+    @Override
+    public void runWithEvent(Event event) {
+      run();
+    }
+
+    @Override
+    public void selectionChanged(IWorkbenchPart part, ISelection selection) {
+      updateEnablement(selection);
+    }
+
+    @Override
+    public void selectionChanged(SelectionChangedEvent event) {
+      ISelection selection = event.getSelection();
+      updateEnablement(selection);
+    }
+
+    @Override
+    public void setSelection(ISelection selection) {
+      this.selection = selection;
+    }
+
+    private void updateEnablement(ISelection selection) {
+      setSelection(selection);
+      boolean enabled = false;
+      if (selection instanceof IStructuredSelection) {
+        IStructuredSelection structuredSelection = (IStructuredSelection) selection;
+        enabled = structuredSelection.size() == 1
+            && structuredSelection.getFirstElement() instanceof IResource;
+      }
+      setEnabled(enabled);
     }
   }
 
@@ -127,9 +209,9 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 
   private IWorkbenchAction aboutAction;
 
-  private IWorkbenchAction openPreferencesAction;
-
   //private IWorkbenchAction saveAsAction;
+
+  private IWorkbenchAction openPreferencesAction;
 
   private IWorkbenchAction hideShowEditorAction;
 
@@ -176,10 +258,10 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 
   private IWorkbenchAction goIntoAction;
 
-  private IWorkbenchAction upAction;
-
   // IDE-specific actions
 //  private IAction newWizardAction;
+
+  private IWorkbenchAction upAction;
 
   private DartRunAction dartRunAction;
 
@@ -191,9 +273,9 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 
   private RunPubAction pubUpdateAction;
 
-  private RunPubAction pubDeployAction;
-
 //  private OrganizeImportsAction organizeImportsAction;
+
+  private RunPubAction pubDeployAction;
 
   private IWorkbenchAction importResourcesAction;
 
@@ -207,8 +289,6 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 
   private IWorkbenchAction refreshAction;
 
-  private ShowInFinderAction showInFinderAction;
-
   // IDE-specific retarget actions
   //private CommandContributionItem minimizeItem;
 
@@ -218,6 +298,8 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 
   // contribution items
   // @issue should obtain from ContributionItemFactory
+
+  private ShowInFinderAction showInFinderAction;
 
   // @issue class is workbench internal
   private StatusLineContributionItem statusLineItem;
@@ -232,26 +314,28 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 
   private IResourceChangeListener resourceListener;
 
-  /**
-   * Indicates if the action builder has been disposed
-   */
-  private boolean isDisposed = false;
-
 //  /**
 //   * The coolbar context menu manager.
 //   */
 //  private MenuManager coolbarPopupMenuManager;
 
-  private final WorkbenchActionFactory actionFactory;
+  /**
+   * Indicates if the action builder has been disposed
+   */
+  private boolean isDisposed = false;
 
+  private final WorkbenchActionFactory actionFactory;
   private IWorkbenchAction newApplicationWizardAction;
   private OpenOnlineDocsAction openOnlineDocsAction;
   private OpenTutorialAction openTutorialAction;
+
   private OpenApiDocsAction openApiDocsAction;
 
   private NewFileCommandAction newFileAction;
 
   private RunPublishAction pubPublishAction;
+
+  private ShowPropertiesAction showPropertiesAction;
 
   /**
    * Constructs a new action builder which contributes actions to the given window.
@@ -350,6 +434,7 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
     openTutorialAction = null;
     openApiDocsAction = null;
     refreshAction = null;
+    showPropertiesAction = null;
     //minimizeItem = null;
     //zoomItem = null;
     //arrangeWindowsItem = null;
@@ -548,6 +633,9 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 
     showInFinderAction = ShowInFinderAction.getInstance(window);
     register(showInFinderAction);
+
+    showPropertiesAction = new ShowPropertiesAction();
+    register(showPropertiesAction);
 
     newWindowAction = ActionFactory.OPEN_NEW_WINDOW.create(getWindow());
     newWindowAction.setText(IDEWorkbenchMessages.Workbench_openNewWindow);
@@ -976,7 +1064,7 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 
     menu.add(new Separator());
     menu.add(showInFinderAction);
-    menu.add(actionFactory.getPropertiesItem());
+    menu.add(showPropertiesAction);
 
     menu.add(ContributionItemFactory.REOPEN_EDITORS.create(getWindow()));
     menu.add(new GroupMarker(IWorkbenchActionConstants.MRU));
@@ -991,6 +1079,14 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
     quitItem.setVisible(!Util.isMac());
     menu.add(quitItem);
     menu.add(new GroupMarker(IWorkbenchActionConstants.FILE_END));
+
+    menu.addMenuListener(new IMenuListener() {
+      @Override
+      public void menuAboutToShow(IMenuManager manager) {
+        showPropertiesAction.updateEnablement(getWindow().getSelectionService().getSelection());
+        showInFinderAction.updateEnablement();
+      }
+    });
 
     return menu;
   }

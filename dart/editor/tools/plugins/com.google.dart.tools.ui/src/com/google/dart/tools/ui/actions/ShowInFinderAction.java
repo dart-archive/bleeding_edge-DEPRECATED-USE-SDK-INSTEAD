@@ -92,6 +92,22 @@ public class ShowInFinderAction extends InstrumentedSelectionDispatchAction {
     super.selectionChanged(selection);
   }
 
+  public void updateEnablement() {
+
+    boolean enabled = false;
+
+    ISelection selection = getSelection();
+    if (selection instanceof StructuredSelection) {
+      StructuredSelection structuredSelection = (StructuredSelection) selection;
+      if (!structuredSelection.isEmpty()
+          && structuredSelection.getFirstElement() instanceof IResource) {
+        enabled = true;
+      }
+    }
+
+    setEnabled(enabled);
+  }
+
   @Override
   protected void doRun(Event event, UIInstrumentationBuilder instrumentation) {
     ISelection selection = getSelection();
