@@ -567,8 +567,7 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
       FieldElement field = fieldParameter.getField();
       recordRelationship(field, IndexConstants.IS_REFERENCED_BY_QUALIFIED, location);
     } else if (element instanceof PrefixElement) {
-      // TODO(scheglov) record ImportElement
-//      recordRelationship(element.get, IndexConstants.IS_REFERENCED_BY, location);
+      recordImportElementReferenceWithPrefix(node, (PrefixElement) element);
     } else if (element instanceof PropertyAccessorElement || element instanceof MethodElement) {
       location = getLocationWithTypeAssignedToField(node, element, location);
       if (isQualified(node)) {
@@ -759,6 +758,35 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
           recordRelationship(importElement, IndexConstants.IS_REFERENCED_BY, location);
           break;
         }
+      }
+    }
+  }
+
+  /**
+   * Records {@link ImportElement} that declares given {@link PrefixElement} and imports library
+   * with element used by {@link PrefixedIdentifier} with given prefix node.
+   */
+  private void recordImportElementReferenceWithPrefix(SimpleIdentifier prefix,
+      PrefixElement usedPrefix) {
+    // prefix should be used
+    ASTNode parent = prefix.getParent();
+    if (!(parent instanceof PrefixedIdentifier)) {
+      return;
+    }
+    // prepare used element
+    Element usedElement = ((PrefixedIdentifier) parent).getStaticElement();
+    if (usedElement == null) {
+      return;
+    }
+    // find ImportElement that imports used library with used prefix
+    LibraryElement usedLibrary = usedElement.getLibrary();
+    for (ImportElement importElement : libraryElement.getImports()) {
+      PrefixElement prefixElement = importElement.getPrefix();
+      if (Objects.equal(prefixElement, usedPrefix)
+          && Objects.equal(importElement.getImportedLibrary(), usedLibrary)) {
+        Location location = createLocation(prefix);
+        recordRelationship(importElement, IndexConstants.IS_REFERENCED_BY, location);
+        break;
       }
     }
   }

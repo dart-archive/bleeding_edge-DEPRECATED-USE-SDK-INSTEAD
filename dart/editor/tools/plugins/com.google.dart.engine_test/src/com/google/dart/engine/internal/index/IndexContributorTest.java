@@ -1103,11 +1103,53 @@ public class IndexContributorTest extends AbstractDartTest {
 
   public void test_isReferencedBy_ImportElement_withPrefix() throws Exception {
     setFileContent(
-        "Lib.dart",
+        "LibA.dart",
         makeSource(
             "// filler filler filler filler filler filler filler filler filler filler",
-            "library lib;",
+            "library libA;",
             "var myVar;"));
+    setFileContent(
+        "LibB.dart",
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "library libB;",
+            "class MyClass {}"));
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "import 'LibA.dart' as pref;",
+        "import 'LibB.dart' as pref;",
+        "main() {",
+        "  pref.myVar = 1;",
+        "  new pref.MyClass();",
+        "}",
+        "");
+    // set elements
+    Element mainElement = findElement("main(");
+    ImportElement importElementA = (ImportElement) findNode(
+        "import 'LibA.dart",
+        ImportDirective.class).getElement();
+    ImportElement importElementB = (ImportElement) findNode(
+        "import 'LibB.dart",
+        ImportDirective.class).getElement();
+    // index
+    index.visitCompilationUnit(testUnit);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    assertRecordedRelation(
+        relations,
+        importElementA,
+        IndexConstants.IS_REFERENCED_BY,
+        new ExpectedLocation(mainElement, findOffset("pref.myVar"), "pref"));
+    assertRecordedRelation(
+        relations,
+        importElementB,
+        IndexConstants.IS_REFERENCED_BY,
+        new ExpectedLocation(mainElement, findOffset("pref.MyClass"), "pref"));
+  }
+
+  public void test_isReferencedBy_ImportElement_withPrefix_unresolvedElement() throws Exception {
+    verifyNoTestUnitErrors = false;
+    setFileContent("Lib.dart", "library lib;");
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
         "import 'Lib.dart' as pref;",
@@ -1115,22 +1157,9 @@ public class IndexContributorTest extends AbstractDartTest {
         "  pref.myVar = 1;",
         "}",
         "");
-    // set elements
-    Element mainElement = findElement("main(");
-    ImportElement importElement = (ImportElement) findNode(
-        "import 'Lib.dart",
-        ImportDirective.class).getElement();
     // index
     index.visitCompilationUnit(testUnit);
-    // verify
-    // TODO(scheglov) we have problem - PrefixElement recorded for "pref" and we don't know
-    // which ImportElement it is.
-//    List<RecordedRelation> relations = captureRecordedRelations();
-//    assertRecordedRelation(
-//        relations,
-//        importElement,
-//        IndexConstants.IS_REFERENCED_BY,
-//        new ExpectedLocation(mainElement, findOffset("pref.myVar"), "pref"));
+    // no exception
   }
 
   public void test_isReferencedBy_LabelElement() throws Exception {
