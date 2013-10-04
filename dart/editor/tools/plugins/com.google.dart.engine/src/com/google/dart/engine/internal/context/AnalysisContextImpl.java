@@ -51,6 +51,7 @@ import com.google.dart.engine.internal.scope.Namespace;
 import com.google.dart.engine.internal.scope.NamespaceBuilder;
 import com.google.dart.engine.internal.task.AnalysisTask;
 import com.google.dart.engine.internal.task.AnalysisTaskVisitor;
+import com.google.dart.engine.internal.task.GenerateDartErrorsTask;
 import com.google.dart.engine.internal.task.GenerateDartHintsTask;
 import com.google.dart.engine.internal.task.ParseDartTask;
 import com.google.dart.engine.internal.task.ParseHtmlTask;
@@ -87,6 +88,12 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
    * record the results of a task.
    */
   private class AnalysisTaskResultRecorder implements AnalysisTaskVisitor<SourceEntry> {
+    @Override
+    public SourceEntry visitGenerateDartErrorsTask(GenerateDartErrorsTask task)
+        throws AnalysisException {
+      return recordGenerateDartErrorsTask(task);
+    }
+
     @Override
     public SourceEntry visitGenerateDartHintsTask(GenerateDartHintsTask task)
         throws AnalysisException {
@@ -280,8 +287,9 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         ListUtilities.addAll(
             errors,
             getDartResolutionData(source, source, dartEntry, DartEntry.RESOLUTION_ERRORS));
-        // TODO(brianwilkerson) Gather other kinds of errors when their generation is moved out of
-        // resolution into separate phases.
+        ListUtilities.addAll(
+            errors,
+            getDartVerificationData(source, source, dartEntry, DartEntry.VERIFICATION_ERRORS));
         if (enableHints) {
           ListUtilities.addAll(errors, getDartHintData(source, source, dartEntry, DartEntry.HINTS));
         }
@@ -291,8 +299,13 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
           ListUtilities.addAll(
               errors,
               getDartResolutionData(source, librarySource, dartEntry, DartEntry.RESOLUTION_ERRORS));
-          // TODO(brianwilkerson) Gather other kinds of errors when their generation is moved out of
-          // resolution into separate phases.
+          ListUtilities.addAll(
+              errors,
+              getDartVerificationData(
+                  source,
+                  librarySource,
+                  dartEntry,
+                  DartEntry.VERIFICATION_ERRORS));
           if (enableHints) {
             ListUtilities.addAll(
                 errors,
@@ -1167,6 +1180,38 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
+   * Given a source for a Dart file and the library that contains it, return a cache entry in which
+   * the data represented by the given descriptor is available. This method assumes that the data
+   * can be produced by verifying the source in the given library if the data is not already cached.
+   * 
+   * @param unitSource the source representing the Dart file
+   * @param librarySource the source representing the library containing the Dart file
+   * @param dartEntry the cache entry associated with the Dart file
+   * @param descriptor the descriptor representing the data to be returned
+   * @return a cache entry containing the required data
+   * @throws AnalysisException if data could not be returned because the source could not be parsed
+   */
+  private DartEntry cacheDartVerificationData(Source unitSource, Source librarySource,
+      DartEntry dartEntry, DataDescriptor<?> descriptor) throws AnalysisException {
+    //
+    // Check to see whether we already have the information being requested.
+    //
+    CacheState state = dartEntry.getState(descriptor, librarySource);
+    while (state != CacheState.ERROR && state != CacheState.VALID) {
+      //
+      // If not, compute the information. Unless the modification date of the source continues to
+      // change, this loop will eventually terminate.
+      //
+      dartEntry = (DartEntry) new GenerateDartErrorsTask(
+          this,
+          unitSource,
+          getLibraryElement(librarySource)).perform(resultRecorder);
+      state = dartEntry.getState(descriptor, librarySource);
+    }
+    return dartEntry;
+  }
+
+  /**
    * Given a source for an HTML file, return a cache entry in which all of the data represented by
    * the given descriptors is available. This method assumes that the data can be produced by
    * parsing the source if it is not already cached.
@@ -1422,6 +1467,25 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
+   * Given a source for a Dart file and the library that contains it, return the data represented by
+   * the given descriptor that is associated with that source. This method assumes that the data can
+   * be produced by verifying the source within the given library if it is not already cached.
+   * 
+   * @param unitSource the source representing the Dart file
+   * @param librarySource the source representing the library containing the Dart file
+   * @param dartEntry the entry representing the Dart file
+   * @param descriptor the descriptor representing the data to be returned
+   * @return the requested data about the given source
+   * @throws AnalysisException if data could not be returned because the source could not be
+   *           resolved
+   */
+  private <E> E getDartVerificationData(Source unitSource, Source librarySource,
+      DartEntry dartEntry, DataDescriptor<E> descriptor) throws AnalysisException {
+    dartEntry = cacheDartVerificationData(unitSource, librarySource, dartEntry, descriptor);
+    return dartEntry.getValue(descriptor, librarySource);
+  }
+
+  /**
    * Given a source for an HTML file, return the data represented by the given descriptor that is
    * associated with that source, or the given default value if the source is not an HTML file. This
    * method assumes that the data can be produced by parsing the source if it is not already cached.
@@ -1571,6 +1635,19 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
               dartCopy.setState(DartEntry.RESOLVED_UNIT, librarySource, CacheState.IN_PROCESS);
               cache.put(source, dartCopy);
               return new ResolveDartUnitTask(this, source, libraryElement);
+            }
+          }
+          CacheState verificationErrorsState = dartEntry.getState(
+              DartEntry.VERIFICATION_ERRORS,
+              librarySource);
+          if (verificationErrorsState == CacheState.INVALID
+              || (isPriority && verificationErrorsState == CacheState.FLUSHED)) {
+            LibraryElement libraryElement = libraryEntry.getValue(DartEntry.ELEMENT);
+            if (libraryElement != null) {
+              DartEntryImpl dartCopy = dartEntry.getWritableCopy();
+              dartCopy.setState(DartEntry.VERIFICATION_ERRORS, librarySource, CacheState.IN_PROCESS);
+              cache.put(source, dartCopy);
+              return new GenerateDartErrorsTask(this, source, libraryElement);
             }
           }
           if (hintsEnabled) {
@@ -1754,6 +1831,17 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
               return;
             }
           }
+          CacheState verificationErrorsState = dartEntry.getState(
+              DartEntry.VERIFICATION_ERRORS,
+              librarySource);
+          if (verificationErrorsState == CacheState.INVALID
+              || (isPriority && verificationErrorsState == CacheState.FLUSHED)) {
+            LibraryElement libraryElement = libraryEntry.getValue(DartEntry.ELEMENT);
+            if (libraryElement != null) {
+              sources.add(source);
+              return;
+            }
+          }
           if (hintsEnabled) {
             CacheState hintsState = dartEntry.getState(DartEntry.HINTS, librarySource);
             if (hintsState == CacheState.INVALID
@@ -1884,6 +1972,81 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       unitSources.add(partSource);
     }
     dartCopy.setValue(DartEntry.INCLUDED_PARTS, unitSources.toArray(new Source[unitSources.size()]));
+  }
+
+  /**
+   * Record the results produced by performing a {@link GenerateDartErrorsTask}. If the results were
+   * computed from data that is now out-of-date, then the results will not be recorded.
+   * 
+   * @param task the task that was performed
+   * @return an entry containing the computed results
+   * @throws AnalysisException if the results could not be recorded
+   */
+  private DartEntry recordGenerateDartErrorsTask(GenerateDartErrorsTask task)
+      throws AnalysisException {
+    Source source = task.getSource();
+    Source librarySource = task.getLibraryElement().getSource();
+    AnalysisException thrownException = task.getException();
+    DartEntry dartEntry = null;
+    synchronized (cacheLock) {
+      SourceEntry sourceEntry = cache.get(source);
+      if (!(sourceEntry instanceof DartEntry)) {
+        // This shouldn't be possible because we should never have performed the task if the source
+        // didn't represent a Dart file, but check to be safe.
+        throw new AnalysisException(
+            "Internal error: attempting to verify non-Dart file as a Dart file: "
+                + source.getFullName());
+      }
+      dartEntry = (DartEntry) sourceEntry;
+      cache.accessed(source);
+      long sourceTime = source.getModificationStamp();
+      long resultTime = task.getModificationTime();
+      if (sourceTime == resultTime) {
+        if (dartEntry.getModificationTime() != sourceTime) {
+          // The source has changed without the context being notified. Simulate notification.
+          sourceChanged(source);
+          dartEntry = getReadableDartEntry(source);
+          if (dartEntry == null) {
+            throw new AnalysisException("A Dart file became a non-Dart file: "
+                + source.getFullName());
+          }
+        }
+        DartEntryImpl dartCopy = dartEntry.getWritableCopy();
+        if (thrownException == null) {
+          dartCopy.setValue(DartEntry.VERIFICATION_ERRORS, librarySource, task.getErrors());
+          ChangeNoticeImpl notice = getNotice(source);
+          notice.setErrors(dartCopy.getAllErrors(), dartCopy.getValue(SourceEntry.LINE_INFO));
+        } else {
+          dartCopy.setState(DartEntry.VERIFICATION_ERRORS, librarySource, CacheState.ERROR);
+        }
+        dartCopy.setException(thrownException);
+        cache.put(source, dartCopy);
+        dartEntry = dartCopy;
+      } else {
+        DartEntryImpl dartCopy = dartEntry.getWritableCopy();
+        if (thrownException == null || resultTime >= 0L) {
+          //
+          // The analysis was performed on out-of-date sources. Mark the cache so that the source
+          // will be re-verified using the up-to-date sources.
+          //
+          dartCopy.setState(DartEntry.VERIFICATION_ERRORS, librarySource, CacheState.INVALID);
+        } else {
+          //
+          // We could not determine whether the sources were up-to-date or out-of-date. Mark the
+          // cache so that we won't attempt to re-verify the source until there's a good chance
+          // that we'll be able to do so without error.
+          //
+          dartCopy.setState(DartEntry.VERIFICATION_ERRORS, librarySource, CacheState.ERROR);
+        }
+        dartCopy.setException(thrownException);
+        cache.put(source, dartCopy);
+        dartEntry = dartCopy;
+      }
+    }
+    if (thrownException != null) {
+      throw thrownException;
+    }
+    return dartEntry;
   }
 
   /**

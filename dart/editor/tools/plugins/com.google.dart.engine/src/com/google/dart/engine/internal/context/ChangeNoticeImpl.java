@@ -125,4 +125,9 @@ public class ChangeNoticeImpl implements ChangeNotice {
     this.errors = errors;
     this.lineInfo = lineInfo;
   }
+
+  @Override
+  public String toString() {
+    return "Changes for " + source.getFullName();
+  }
 }

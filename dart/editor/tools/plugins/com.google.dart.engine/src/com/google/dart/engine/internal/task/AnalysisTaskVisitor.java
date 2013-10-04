@@ -22,6 +22,15 @@ import com.google.dart.engine.context.AnalysisException;
  */
 public interface AnalysisTaskVisitor<E> {
   /**
+   * Visit a {@link GenerateDartErrorsTask}.
+   * 
+   * @param task the task to be visited
+   * @return the result of visiting the task
+   * @throws AnalysisException if the visitor throws an exception for some reason
+   */
+  public E visitGenerateDartErrorsTask(GenerateDartErrorsTask task) throws AnalysisException;
+
+  /**
    * Visit a {@link GenerateDartHintsTask}.
    * 
    * @param task the task to be visited

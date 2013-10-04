@@ -46,9 +46,6 @@ import com.google.dart.engine.internal.element.ImportElementImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
 import com.google.dart.engine.internal.element.PrefixElementImpl;
 import com.google.dart.engine.internal.element.ShowElementCombinatorImpl;
-import com.google.dart.engine.internal.error.ErrorReporter;
-import com.google.dart.engine.internal.verifier.ConstantVerifier;
-import com.google.dart.engine.internal.verifier.ErrorVerifier;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.general.TimeCounter.TimeCounterHandle;
@@ -220,13 +217,6 @@ public class LibraryResolver {
       //}
       performConstantEvaluation();
       instrumentation.metric("performConstantEvaluation", "complete");
-      if (fullAnalysis) {
-        //
-        // Run additional analyses, such as constant expression analysis.
-        //
-        runAdditionalAnalyses();
-        instrumentation.metric("runAdditionalAnalyses", "complete");
-      }
       return targetLibrary.getLibraryElement();
     } finally {
       instrumentation.log();
@@ -309,13 +299,6 @@ public class LibraryResolver {
       //}
       performConstantEvaluation();
       instrumentation.metric("performConstantEvaluation", "complete");
-      if (fullAnalysis) {
-        //
-        // Run additional analyses, such as constant expression analysis.
-        //
-        runAdditionalAnalyses();
-        instrumentation.metric("runAdditionalAnalyses", "complete");
-      }
       instrumentation.metric("librariesInCycles", librariesInCycles.size());
       for (Library lib : librariesInCycles) {
         instrumentation.metric(
@@ -834,47 +817,5 @@ public class LibraryResolver {
     }
     uriContent = UriUtilities.encode(uriContent);
     return analysisContext.getSourceFactory().resolveUri(librarySource, uriContent);
-  }
-
-  /**
-   * Run additional analyses, such as the {@link ConstantVerifier} and {@link ErrorVerifier}
-   * analysis in the current cycle.
-   * 
-   * @throws AnalysisException if any of the identifiers could not be resolved or if the types in
-   *           the library cannot be analyzed
-   */
-  private void runAdditionalAnalyses() throws AnalysisException {
-    for (Library library : librariesInCycles) {
-      runAdditionalAnalyses(library);
-    }
-  }
-
-  /**
-   * Run additional analyses, such as the {@link ConstantVerifier} and {@link ErrorVerifier}
-   * analysis in the given library.
-   * 
-   * @param library the library to have the extra analyses processes run
-   * @throws AnalysisException if any of the identifiers could not be resolved or if the types in
-   *           the library cannot be analyzed
-   */
-  private void runAdditionalAnalyses(Library library) throws AnalysisException {
-    TimeCounterHandle timeCounter = PerformanceStatistics.errors.start();
-    for (Source source : library.getCompilationUnitSources()) {
-      ErrorReporter errorReporter = new ErrorReporter(errorListener, source);
-      CompilationUnit unit = library.getAST(source);
-
-      // Visit the ConstantVerifier before the ErrorVerifier since some error codes need the
-      // computed constant values.
-      ConstantVerifier constantVerifier = new ConstantVerifier(errorReporter, typeProvider);
-      unit.accept(constantVerifier);
-
-      ErrorVerifier errorVerifier = new ErrorVerifier(
-          errorReporter,
-          library.getLibraryElement(),
-          typeProvider,
-          library.getInheritanceManager());
-      unit.accept(errorVerifier);
-    }
-    timeCounter.stop();
   }
 }

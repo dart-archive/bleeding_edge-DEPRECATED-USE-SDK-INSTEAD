@@ -20,7 +20,6 @@ import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
-import com.google.dart.engine.internal.context.TimestampedData;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceFactory;
@@ -28,9 +27,7 @@ import com.google.dart.engine.source.SourceFactory;
 import static com.google.dart.engine.element.ElementFactory.library;
 import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
 
-import java.util.HashMap;
-
-public class GenerateDartHintsTaskTest extends EngineTestCase {
+public class GenerateDartErrorsTaskTest extends EngineTestCase {
   /**
    * The source factory associated with the analysis context.
    */
@@ -42,10 +39,10 @@ public class GenerateDartHintsTaskTest extends EngineTestCase {
   private ChangeSet changeSet;
 
   public void test_accept() throws AnalysisException {
-    GenerateDartHintsTask task = new GenerateDartHintsTask(null, null);
+    GenerateDartErrorsTask task = new GenerateDartErrorsTask(null, null, null);
     assertTrue(task.accept(new TestTaskVisitor<Boolean>() {
       @Override
-      public Boolean visitGenerateDartHintsTask(GenerateDartHintsTask task)
+      public Boolean visitGenerateDartErrorsTask(GenerateDartErrorsTask task)
           throws AnalysisException {
         return true;
       }
@@ -53,20 +50,21 @@ public class GenerateDartHintsTaskTest extends EngineTestCase {
   }
 
   public void test_getException() {
-    GenerateDartHintsTask task = new GenerateDartHintsTask(null, null);
+    GenerateDartErrorsTask task = new GenerateDartErrorsTask(null, null, null);
     assertNull(task.getException());
-  }
-
-  public void test_getHintMap() {
-    GenerateDartHintsTask task = new GenerateDartHintsTask(null, null);
-    assertNull(task.getHintMap());
   }
 
   public void test_getLibraryElement() {
     InternalAnalysisContext context = AnalysisContextFactory.contextWithCore();
     LibraryElement element = library(context, "lib");
-    GenerateDartHintsTask task = new GenerateDartHintsTask(context, element);
+    GenerateDartErrorsTask task = new GenerateDartErrorsTask(context, null, element);
     assertSame(element, task.getLibraryElement());
+  }
+
+  public void test_getSource() {
+    Source source = new FileBasedSource(null, createFile("/test.dart"));
+    GenerateDartErrorsTask task = new GenerateDartErrorsTask(null, source, null);
+    assertSame(source, task.getSource());
   }
 
   public void test_perform() throws AnalysisException {
@@ -75,30 +73,25 @@ public class GenerateDartHintsTaskTest extends EngineTestCase {
     changeSet = new ChangeSet();
     final Source librarySource = cacheSource("/test.dart", createSource(//
         "library lib;",
-        "import 'unused.dart';",
-        "part 'part.dart';"));
-    cacheSource("/unused.dart", createSource(//
-        "library unused;"));
-    final Source partSource = cacheSource("/part.dart", createSource(//
-        "part of lib;"));
+        "class A {",
+        "  int f = new A();",
+        "}"));
     context.applyChanges(changeSet);
+    final LibraryElement libraryElement = context.computeLibraryElement(librarySource);
 
-    GenerateDartHintsTask task = new GenerateDartHintsTask(
-        context,
-        context.computeLibraryElement(librarySource));
+    GenerateDartErrorsTask task = new GenerateDartErrorsTask(context, librarySource, libraryElement);
     task.perform(new TestTaskVisitor<Boolean>() {
       @Override
-      public Boolean visitGenerateDartHintsTask(GenerateDartHintsTask task)
+      public Boolean visitGenerateDartErrorsTask(GenerateDartErrorsTask task)
           throws AnalysisException {
         AnalysisException exception = task.getException();
         if (exception != null) {
           throw exception;
         }
-        assertNotNull(task.getLibraryElement());
-        HashMap<Source, TimestampedData<AnalysisError[]>> hintMap = task.getHintMap();
-        assertSize(2, hintMap);
-        assertLength(1, hintMap.get(librarySource).getData());
-        assertLength(0, hintMap.get(partSource).getData());
+        assertSame(libraryElement, task.getLibraryElement());
+        assertSame(librarySource, task.getSource());
+        AnalysisError[] errors = task.getErrors();
+        assertLength(1, errors);
         return true;
       }
     });

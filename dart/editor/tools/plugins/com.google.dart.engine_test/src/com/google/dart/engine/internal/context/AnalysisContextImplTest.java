@@ -780,7 +780,7 @@ public class AnalysisContextImplTest extends EngineTestCase {
     }
     sourceFactory.getContentCache().setContents(source, "library test;");
     assertTrue(initialTime != source.getModificationStamp());
-    for (int i = 0; i < 11; i++) {
+    for (int i = 0; i < 100; i++) {
       ChangeNotice[] notice = context.performAnalysisTask();
       if (notice == null) {
         break;
@@ -809,7 +809,7 @@ public class AnalysisContextImplTest extends EngineTestCase {
     }
     context.applyChanges(changeSet);
     context.setAnalysisPriorityOrder(sources);
-    for (int i = 0; i < sourceCount * 4; i++) {
+    for (int i = 0; i < (sourceCount * 5) + 100; i++) {
       ChangeNotice[] notice = context.performAnalysisTask();
       if (notice == null) {
         break;

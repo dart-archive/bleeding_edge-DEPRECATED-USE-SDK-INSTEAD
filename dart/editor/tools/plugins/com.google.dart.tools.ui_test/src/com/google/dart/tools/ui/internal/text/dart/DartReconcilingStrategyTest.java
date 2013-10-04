@@ -354,7 +354,7 @@ public class DartReconcilingStrategyTest extends TestCase {
     strategy.initialReconcile();
 
     assertNotNull(mockEditor.waitForApply(5000));
-    CompilationUnit unit = mockContext.waitForResolution(mockSource, 15000);
+    CompilationUnit unit = mockContext.waitForResolution(mockSource, 50000);
     assertNotNull(unit);
     unit = mockEditor.waitForApply(5000);
     assertNotNull(unit);
@@ -427,7 +427,7 @@ public class DartReconcilingStrategyTest extends TestCase {
 
     mockEditor.expectApply();
     strategy.reconcile(new DirtyRegion(0, 0, DirtyRegion.INSERT, newText), new Region(0, 0));
-    CompilationUnit unit = mockEditor.waitForApply(5000);
+    CompilationUnit unit = mockEditor.waitForApply(10000);
     assertNotNull(unit);
   }
 

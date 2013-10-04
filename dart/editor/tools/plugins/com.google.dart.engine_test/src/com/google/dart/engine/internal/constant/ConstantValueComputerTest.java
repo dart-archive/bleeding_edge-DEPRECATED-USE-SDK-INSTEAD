@@ -42,6 +42,7 @@ public class ConstantValueComputerTest extends ResolverTestCase {
       CompilationUnit unit = getAnalysisContext().resolveCompilationUnit(
           librarySource,
           libraryElement);
+      getAnalysisContext().computeErrors(librarySource);
       assertNotNull(unit);
 
       ConstantValueComputer computer = new ConstantValueComputer();
