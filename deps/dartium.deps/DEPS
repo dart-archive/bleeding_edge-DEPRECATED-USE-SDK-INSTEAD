@@ -16,6 +16,8 @@ vars.update({
   "dartium_webkit_trunk": "http://src.chromium.org/multivm/trunk/webkit",
   "dartium_webkit_revision": "1407",
   "dartium_tools_revision": "1403",
+
+  "co19_rev": "@607",
 })
 
 def massage_deps(deps):
@@ -29,7 +31,8 @@ def massage_deps(deps):
     if value.startswith(Var("webkit_trunk")):
       path, revision = value.split('@') # and svn revision.
       path = path[len(Var("webkit_trunk")):]  # Strip WebKit repo.
-      value = Var("dartium_webkit_trunk") + path + '@' + Var("dartium_webkit_revision")
+      value = (Var("dartium_webkit_trunk") + path +
+               '@' + Var("dartium_webkit_revision"))
       deps[key] = value
       continue
 
@@ -43,6 +46,9 @@ deps.update({
 
   "src/dart":
     Var("dart_branch") + "/dart",
+
+  "src/dart/tests/co19/src": ((Var("googlecode_url") % "co19") +
+      "/trunk/co19/tests/co19/src" + Var("co19_rev")),
 
   "src/dartium_tools":
     Var("multivm_url") + "/tools@" + Var("dartium_tools_revision"),
