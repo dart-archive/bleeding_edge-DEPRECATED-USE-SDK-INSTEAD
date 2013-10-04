@@ -14,7 +14,9 @@
 package com.google.dart.engine.internal.scope;
 
 import com.google.dart.engine.AnalysisEngine;
+import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.Identifier;
+import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
@@ -22,6 +24,7 @@ import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.internal.element.MultiplyDefinedElementImpl;
+import com.google.dart.engine.source.Source;
 
 import java.util.ArrayList;
 
@@ -115,7 +118,7 @@ public class LibraryImportScope extends Scope {
       // TODO (jwren) Change the error message to include a list of all library names instead of
       // just the first two
       errorListener.onError(new AnalysisError(
-          getSource(),
+          getSource(identifier),
           identifier.getOffset(),
           identifier.getLength(),
           StaticWarningCode.AMBIGUOUS_IMPORT,
@@ -142,6 +145,27 @@ public class LibraryImportScope extends Scope {
     for (ImportElement element : definingLibrary.getImports()) {
       importedNamespaces.add(builder.createImportNamespace(element));
     }
+  }
+
+  /**
+   * Return the source that contains the given identifier, or the source associated with this scope
+   * if the source containing the identifier could not be determined.
+   * 
+   * @param identifier the identifier whose source is to be returned
+   * @return the source that contains the given identifier
+   */
+  private Source getSource(Identifier identifier) {
+    CompilationUnit unit = identifier.getAncestor(CompilationUnit.class);
+    if (unit != null) {
+      CompilationUnitElement element = unit.getElement();
+      if (element != null) {
+        Source source = element.getSource();
+        if (source != null) {
+          return source;
+        }
+      }
+    }
+    return getSource();
   }
 
   /**

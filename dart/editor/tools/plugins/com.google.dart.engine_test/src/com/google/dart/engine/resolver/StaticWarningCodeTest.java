@@ -208,6 +208,28 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         CompileTimeErrorCode.IMPLEMENTS_NON_CLASS);
   }
 
+  public void test_ambiguousImport_inPart() throws Exception {
+    Source source = addSource(createSource(//
+        "library lib;",
+        "import 'lib1.dart';",
+        "import 'lib2.dart';",
+        "part 'part.dart';"));
+    addSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "class N {}"));
+    addSource("/lib2.dart", createSource(//
+        "library lib2;",
+        "class N {}"));
+    Source partSource = addSource("/part.dart", createSource(//
+        "part of lib;",
+        "class A extends N {}"));
+    resolve(source);
+    assertErrors(
+        partSource,
+        StaticWarningCode.AMBIGUOUS_IMPORT,
+        CompileTimeErrorCode.EXTENDS_NON_CLASS);
+  }
+
   public void test_ambiguousImport_instanceCreation() throws Exception {
     Source source = addSource(createSource(//
         "library L;",
