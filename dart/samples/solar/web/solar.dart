@@ -48,17 +48,17 @@ class SolarSystem {
   // Initialize the planets and start the simulation.
   start() {
     // Measure the canvas element.
-    Rect rect = canvas.parent.client;
+    Rectangle rect = canvas.parent.client;
     width = rect.width;
     height = rect.height;
     canvas.width = width;
 
-    // Create sun.    
+    // Create sun.
     final mercury = new PlanetaryBody(this, "orange", 0.382, 0.387, 0.241);
     final venus   = new PlanetaryBody(this, "green", 0.949, 0.723, 0.615);
     sun = new PlanetaryBody(this, "#ff2", 14.0)..addPlanet(mercury)
                                                ..addPlanet(venus);
-    
+
     final earth = new PlanetaryBody(this, "#33f", 1.0, 1.0, 1.0);
     final moon  = new PlanetaryBody(this, "gray", 0.2, 0.14, 0.075);
     final mars  = new PlanetaryBody(this, "red", 0.532, 1.524, 1.88);
@@ -66,7 +66,7 @@ class SolarSystem {
                        ..addPlanet(mars));
 
     addAsteroidBelt(sun, 150);
-    
+
     final f = 0.1;
     final h = 1 / 1500.0;
     final g = 1 / 72.0;
