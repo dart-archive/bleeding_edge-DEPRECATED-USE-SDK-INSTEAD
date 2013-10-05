@@ -23,6 +23,7 @@ import com.google.dart.engine.ast.CompilationUnitMember;
 import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.FieldDeclaration;
 import com.google.dart.engine.ast.FunctionDeclaration;
+import com.google.dart.engine.ast.FunctionTypeAlias;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.TopLevelVariableDeclaration;
@@ -164,6 +165,10 @@ public class LightNodeElements {
         return isPrivate ? DartPluginImages.DESC_DART_CLASS_PRIVATE
             : DartPluginImages.DESC_DART_CLASS_PUBLIC;
       }
+      if (node instanceof FunctionTypeAlias) {
+        return isPrivate ? DartPluginImages.DESC_DART_FUNCTIONTYPE_PRIVATE
+            : DartPluginImages.DESC_DART_FUNCTIONTYPE_PUBLIC;
+      }
       if (node instanceof VariableDeclaration) {
         return isPrivate ? DartPluginImages.DESC_DART_FIELD_PRIVATE
             : DartPluginImages.DESC_DART_FIELD_PUBLIC;
@@ -276,6 +281,12 @@ public class LightNodeElements {
     } else {
       {
         FunctionDeclaration function = node.getAncestor(FunctionDeclaration.class);
+        if (function != null) {
+          childNode = function;
+        }
+      }
+      {
+        FunctionTypeAlias function = node.getAncestor(FunctionTypeAlias.class);
         if (function != null) {
           childNode = function;
         }
@@ -405,6 +416,12 @@ public class LightNodeElements {
           functionDeclaration,
           nameNode,
           nameNode.getName());
+    }
+    // FunctionTypeAlias
+    if (node instanceof FunctionTypeAlias) {
+      FunctionTypeAlias alias = (FunctionTypeAlias) node;
+      SimpleIdentifier nameNode = alias.getName();
+      return new LightNodeElement(contextFile, null, alias, nameNode, nameNode.getName());
     }
     // unknown
     return null;
