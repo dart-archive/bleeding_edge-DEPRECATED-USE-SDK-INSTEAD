@@ -11,9 +11,10 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.engine.utilities.collection;
+package com.google.dart.engine.resolver;
 
 import com.google.dart.engine.element.MethodElement;
+import com.google.dart.engine.internal.resolver.MemberMap;
 import com.google.dart.engine.internal.resolver.TestTypeProvider;
 import com.google.dart.engine.type.InterfaceType;
 

@@ -11,7 +11,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.engine.utilities.collection;
+package com.google.dart.engine.internal.resolver;
 
 import com.google.dart.engine.element.ExecutableElement;
 
@@ -49,15 +49,14 @@ public class MemberMap {
    * @param initialCapacity the initial capacity
    */
   public MemberMap(int initialCapacity) {
-    keys = new String[initialCapacity];
-    values = new ExecutableElement[initialCapacity];
+    initArrays(initialCapacity);
   }
 
   /**
    * Copy constructor.
    */
   public MemberMap(MemberMap memberMap) {
-    this(memberMap.size + 5);
+    initArrays(memberMap.size + 5);
     for (int i = 0; i < memberMap.size; i++) {
       keys[i] = memberMap.keys[i];
       values[i] = memberMap.values[i];
@@ -169,6 +168,14 @@ public class MemberMap {
         return;
       }
     }
+  }
+
+  /**
+   * Initializes {@link #keys} and {@link #values}.
+   */
+  private void initArrays(int initialCapacity) {
+    keys = new String[initialCapacity];
+    values = new ExecutableElement[initialCapacity];
   }
 
 }

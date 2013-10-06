@@ -1578,7 +1578,7 @@ public class SemanticTest extends AbstractSemanticTest {
             "  final int test = 0;",
             "  void main() {",
             "    try {",
-            "    } catch (test) {",
+            "    } on Exception catch (test) {",
             "      int v = this.test;",
             "    }",
             "  }",
@@ -1979,7 +1979,7 @@ public class SemanticTest extends AbstractSemanticTest {
         getFormattedSource(unit));
   }
 
-  public void test_tryCatch_Exception() throws Exception {
+  public void test_tryCatch_Throwable() throws Exception {
     setFileLines(
         "test/Test.java",
         toString(
@@ -1987,7 +1987,7 @@ public class SemanticTest extends AbstractSemanticTest {
             "public class Test {",
             "  void main() {",
             "    try {",
-            "    } catch (Exception e) {",
+            "    } catch (Throwable e) {",
             "    }",
             "}"));
     Context context = new Context();

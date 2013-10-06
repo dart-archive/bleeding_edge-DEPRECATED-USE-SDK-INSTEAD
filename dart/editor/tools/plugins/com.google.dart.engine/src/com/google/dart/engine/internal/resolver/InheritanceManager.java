@@ -26,7 +26,6 @@ import com.google.dart.engine.internal.verifier.ErrorVerifier;
 import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
-import com.google.dart.engine.utilities.collection.MemberMap;
 
 import java.util.ArrayList;
 import java.util.HashMap;

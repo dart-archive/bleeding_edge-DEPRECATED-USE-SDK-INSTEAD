@@ -24,6 +24,7 @@ public class TestAll {
     suite.addTestSuite(CompileTimeErrorCodeTest.class);
     suite.addTestSuite(ErrorResolverTest.class);
     suite.addTestSuite(HintCodeTest.class);
+    suite.addTestSuite(MemberMapTest.class);
     suite.addTestSuite(NonHintCodeTest.class);
     suite.addTestSuite(NonErrorResolverTest.class);
     //suite.addTestSuite(PubSuggestionCodeTest.class);

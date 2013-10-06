@@ -758,8 +758,8 @@ public class MainEngine {
     unit.getDirectives().add(importDirective("source.dart", null));
     unit.getDirectives().add(importDirective("error.dart", null));
     unit.getDirectives().add(importDirective("scanner.dart", "sc"));
-    unit.getDirectives().add(importDirective("utilities_general.dart", null));
     unit.getDirectives().add(importDirective("utilities_dart.dart", null));
+    unit.getDirectives().add(importDirective("utilities_general.dart", null));
     unit.getDirectives().add(importDirective("ast.dart", null));
     unit.getDirectives().add(
         importDirective("parser.dart", null, importShowCombinator("Parser", "ParserErrorCode")));

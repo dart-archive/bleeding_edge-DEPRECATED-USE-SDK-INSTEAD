@@ -450,7 +450,7 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
     // "catch (e) {}" or "on Type catch (e) {}"
     Type javaExceptionType = node.getException().getType();
     ITypeBinding javaExceptionBinding = javaExceptionType.resolveBinding();
-    if (JavaUtils.isTypeNamed(javaExceptionBinding, "java.lang.Exception")) {
+    if (JavaUtils.isTypeNamed(javaExceptionBinding, "java.lang.Throwable")) {
       return done(catchClause(null, exceptionParameter, null, block));
     } else {
       TypeName exceptionType = translate(javaExceptionType);

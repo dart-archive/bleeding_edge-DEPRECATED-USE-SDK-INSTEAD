@@ -31,7 +31,6 @@ import com.google.dart.engine.internal.element.MethodElementImpl;
 import com.google.dart.engine.source.ContentCache;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.type.InterfaceType;
-import com.google.dart.engine.utilities.collection.MemberMap;
 import com.google.dart.engine.utilities.io.FileUtilities2;
 
 import static com.google.dart.engine.element.ElementFactory.classElement;

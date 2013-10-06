@@ -125,6 +125,7 @@ import com.google.dart.engine.internal.element.member.ParameterMember;
 import com.google.dart.engine.internal.error.ErrorReporter;
 import com.google.dart.engine.internal.resolver.ElementResolver;
 import com.google.dart.engine.internal.resolver.InheritanceManager;
+import com.google.dart.engine.internal.resolver.MemberMap;
 import com.google.dart.engine.internal.resolver.TypeProvider;
 import com.google.dart.engine.internal.scope.Namespace;
 import com.google.dart.engine.internal.scope.NamespaceBuilder;
@@ -141,7 +142,6 @@ import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
 import com.google.dart.engine.type.TypeParameterType;
-import com.google.dart.engine.utilities.collection.MemberMap;
 import com.google.dart.engine.utilities.dart.ParameterKind;
 import com.google.dart.engine.utilities.general.ObjectUtilities;
 
@@ -1117,7 +1117,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   private boolean checkForAllInvalidOverrideErrorCodes(ExecutableElement executableElement,
       ParameterElement[] parameters, ASTNode[] parameterLocations, SimpleIdentifier errorNameTarget) {
     String executableElementName = executableElement.getName();
-    boolean executableElementPrivate = SimpleIdentifier.isPrivateName(executableElementName);
+    boolean executableElementPrivate = Identifier.isPrivateName(executableElementName);
     ExecutableElement overriddenExecutable = inheritanceManager.lookupInheritance(
         enclosingClass,
         executableElementName);

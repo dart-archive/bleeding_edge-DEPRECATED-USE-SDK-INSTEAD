@@ -550,7 +550,7 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
     for (ConstructorElement superConstructor : superConstructors) {
       String constructorName = superConstructor.getName();
       // skip private
-      if (SimpleIdentifier.isPrivateName(constructorName)) {
+      if (Identifier.isPrivateName(constructorName)) {
         continue;
       }
       // prepare SourceBuilder
@@ -617,7 +617,7 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
     for (ConstructorElement superConstructor : superConstructors) {
       String constructorName = superConstructor.getName();
       // skip private
-      if (SimpleIdentifier.isPrivateName(constructorName)) {
+      if (Identifier.isPrivateName(constructorName)) {
         continue;
       }
       // prepare parameters and arguments
