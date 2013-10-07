@@ -227,62 +227,68 @@ public class ParseDartTask extends AnalysisTask {
     // Scan the contents of the file.
     //
     TimeCounterHandle timeCounterScan = PerformanceStatistics.scan.start();
-    Source.ContentReceiver receiver = new Source.ContentReceiver() {
-      @Override
-      public void accept(CharBuffer contents, long modificationTime) {
-        ParseDartTask.this.modificationTime = modificationTime;
-        CharBufferScanner scanner = new CharBufferScanner(source, contents, errorListener);
-        token[0] = scanner.tokenize();
-        lineInfo = new LineInfo(scanner.getLineStarts());
-      }
-
-      @Override
-      public void accept(String contents, long modificationTime) {
-        ParseDartTask.this.modificationTime = modificationTime;
-        StringScanner scanner = new StringScanner(source, contents, errorListener);
-        token[0] = scanner.tokenize();
-        lineInfo = new LineInfo(scanner.getLineStarts());
-      }
-    };
     try {
-      source.getContents(receiver);
-    } catch (Exception exception) {
-      modificationTime = source.getModificationStamp();
-      throw new AnalysisException(exception);
+      Source.ContentReceiver receiver = new Source.ContentReceiver() {
+        @Override
+        public void accept(CharBuffer contents, long modificationTime) {
+          ParseDartTask.this.modificationTime = modificationTime;
+          CharBufferScanner scanner = new CharBufferScanner(source, contents, errorListener);
+          token[0] = scanner.tokenize();
+          lineInfo = new LineInfo(scanner.getLineStarts());
+        }
+
+        @Override
+        public void accept(String contents, long modificationTime) {
+          ParseDartTask.this.modificationTime = modificationTime;
+          StringScanner scanner = new StringScanner(source, contents, errorListener);
+          token[0] = scanner.tokenize();
+          lineInfo = new LineInfo(scanner.getLineStarts());
+        }
+      };
+      try {
+        source.getContents(receiver);
+      } catch (Exception exception) {
+        modificationTime = source.getModificationStamp();
+        throw new AnalysisException(exception);
+      }
+    } finally {
+      timeCounterScan.stop();
     }
-    timeCounterScan.stop();
     //
     // Then parse the token stream.
     //
     TimeCounterHandle timeCounterParse = PerformanceStatistics.parse.start();
-    Parser parser = new Parser(source, errorListener);
-    unit = parser.parseCompilationUnit(token[0]);
-    errors = errorListener.getErrors(source);
-    for (Directive directive : unit.getDirectives()) {
-      if (directive instanceof ExportDirective) {
-        Source exportSource = resolveSource(source, (ExportDirective) directive);
-        if (exportSource != null) {
-          exportedSources.add(exportSource);
+    try {
+      Parser parser = new Parser(source, errorListener);
+      unit = parser.parseCompilationUnit(token[0]);
+      errors = errorListener.getErrors(source);
+      for (Directive directive : unit.getDirectives()) {
+        if (directive instanceof ExportDirective) {
+          Source exportSource = resolveSource(source, (ExportDirective) directive);
+          if (exportSource != null) {
+            exportedSources.add(exportSource);
+          }
+        } else if (directive instanceof ImportDirective) {
+          Source importSource = resolveSource(source, (ImportDirective) directive);
+          if (importSource != null) {
+            importedSources.add(importSource);
+          }
+        } else if (directive instanceof LibraryDirective) {
+          hasLibraryDirective = true;
+        } else if (directive instanceof PartDirective) {
+          Source partSource = resolveSource(source, (PartDirective) directive);
+          if (partSource != null) {
+            includedSources.add(partSource);
+          }
+        } else if (directive instanceof PartOfDirective) {
+          hasPartOfDirective = true;
         }
-      } else if (directive instanceof ImportDirective) {
-        Source importSource = resolveSource(source, (ImportDirective) directive);
-        if (importSource != null) {
-          importedSources.add(importSource);
-        }
-      } else if (directive instanceof LibraryDirective) {
-        hasLibraryDirective = true;
-      } else if (directive instanceof PartDirective) {
-        Source partSource = resolveSource(source, (PartDirective) directive);
-        if (partSource != null) {
-          includedSources.add(partSource);
-        }
-      } else if (directive instanceof PartOfDirective) {
-        hasPartOfDirective = true;
       }
+      unit.setParsingErrors(errors);
+      unit.setLineInfo(lineInfo);
+    } finally {
+      timeCounterParse.stop();
     }
-    unit.setParsingErrors(errors);
-    unit.setLineInfo(lineInfo);
-    timeCounterParse.stop();
   }
 
   /**

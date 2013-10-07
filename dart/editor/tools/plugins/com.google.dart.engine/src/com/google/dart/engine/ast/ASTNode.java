@@ -133,7 +133,7 @@ public abstract class ASTNode {
     if (beginToken == null) {
       return -1;
     }
-    return getBeginToken().getOffset();
+    return beginToken.getOffset();
   }
 
   /**

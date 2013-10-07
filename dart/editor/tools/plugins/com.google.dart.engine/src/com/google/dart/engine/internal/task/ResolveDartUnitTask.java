@@ -173,17 +173,20 @@ public class ResolveDartUnitTask extends AnalysisTask {
     // Perform additional error checking.
     //
     TimeCounterHandle counterHandleErrors = PerformanceStatistics.errors.start();
-    ErrorReporter errorReporter = new ErrorReporter(errorListener, source);
-    ErrorVerifier errorVerifier = new ErrorVerifier(
-        errorReporter,
-        libraryElement,
-        typeProvider,
-        inheritanceManager);
-    unit.accept(errorVerifier);
+    try {
+      ErrorReporter errorReporter = new ErrorReporter(errorListener, source);
+      ErrorVerifier errorVerifier = new ErrorVerifier(
+          errorReporter,
+          libraryElement,
+          typeProvider,
+          inheritanceManager);
+      unit.accept(errorVerifier);
 
-    ConstantVerifier constantVerifier = new ConstantVerifier(errorReporter, typeProvider);
-    unit.accept(constantVerifier);
-    counterHandleErrors.stop();
+      ConstantVerifier constantVerifier = new ConstantVerifier(errorReporter, typeProvider);
+      unit.accept(constantVerifier);
+    } finally {
+      counterHandleErrors.stop();
+    }
     //
     // Capture the results.
     //

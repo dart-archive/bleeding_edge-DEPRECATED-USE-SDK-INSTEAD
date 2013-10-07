@@ -47,22 +47,25 @@ public class CompilationUnitBuilder {
   public CompilationUnitElementImpl buildCompilationUnit(Source source, CompilationUnit unit)
       throws AnalysisException {
     TimeCounterHandle timeCounter = PerformanceStatistics.resolve.start();
-    if (unit == null) {
-      return null;
-    }
-    ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = new ElementBuilder(holder);
-    unit.accept(builder);
+    try {
+      if (unit == null) {
+        return null;
+      }
+      ElementHolder holder = new ElementHolder();
+      ElementBuilder builder = new ElementBuilder(holder);
+      unit.accept(builder);
 
-    CompilationUnitElementImpl element = new CompilationUnitElementImpl(source.getShortName());
-    element.setAccessors(holder.getAccessors());
-    element.setFunctions(holder.getFunctions());
-    element.setSource(source);
-    element.setTypeAliases(holder.getTypeAliases());
-    element.setTypes(holder.getTypes());
-    element.setTopLevelVariables(holder.getTopLevelVariables());
-    unit.setElement(element);
-    timeCounter.stop();
-    return element;
+      CompilationUnitElementImpl element = new CompilationUnitElementImpl(source.getShortName());
+      element.setAccessors(holder.getAccessors());
+      element.setFunctions(holder.getFunctions());
+      element.setSource(source);
+      element.setTypeAliases(holder.getTypeAliases());
+      element.setTypes(holder.getTypes());
+      element.setTopLevelVariables(holder.getTopLevelVariables());
+      unit.setElement(element);
+      return element;
+    } finally {
+      timeCounter.stop();
+    }
   }
 }

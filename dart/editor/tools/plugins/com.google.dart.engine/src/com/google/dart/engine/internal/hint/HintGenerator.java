@@ -56,24 +56,27 @@ public class HintGenerator {
 
   public void generateForLibrary() throws AnalysisException {
     TimeCounterHandle timeCounter = PerformanceStatistics.hints.start();
-    for (int i = 0; i < compilationUnits.length; i++) {
-      CompilationUnitElement element = compilationUnits[i].getElement();
-      if (element != null) {
-        if (i == 0) {
-          importsVerifier.setInDefiningCompilationUnit(true);
-          generateForCompilationUnit(compilationUnits[i], element.getSource());
-          importsVerifier.setInDefiningCompilationUnit(false);
-        } else {
-          generateForCompilationUnit(compilationUnits[i], element.getSource());
+    try {
+      for (int i = 0; i < compilationUnits.length; i++) {
+        CompilationUnitElement element = compilationUnits[i].getElement();
+        if (element != null) {
+          if (i == 0) {
+            importsVerifier.setInDefiningCompilationUnit(true);
+            generateForCompilationUnit(compilationUnits[i], element.getSource());
+            importsVerifier.setInDefiningCompilationUnit(false);
+          } else {
+            generateForCompilationUnit(compilationUnits[i], element.getSource());
+          }
         }
       }
+      ErrorReporter definingCompilationUnitErrorReporter = new ErrorReporter(
+          errorListener,
+          compilationUnits[0].getElement().getSource());
+      importsVerifier.generateDuplicateImportHints(definingCompilationUnitErrorReporter);
+      importsVerifier.generateUnusedImportHints(definingCompilationUnitErrorReporter);
+    } finally {
+      timeCounter.stop();
     }
-    ErrorReporter definingCompilationUnitErrorReporter = new ErrorReporter(
-        errorListener,
-        compilationUnits[0].getElement().getSource());
-    importsVerifier.generateDuplicateImportHints(definingCompilationUnitErrorReporter);
-    importsVerifier.generateUnusedImportHints(definingCompilationUnitErrorReporter);
-    timeCounter.stop();
   }
 
   private void generateForCompilationUnit(CompilationUnit unit, Source source) {

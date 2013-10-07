@@ -513,13 +513,16 @@ public class LibraryResolver {
    */
   private void buildTypeHierarchies() throws AnalysisException {
     TimeCounterHandle timeCounter = PerformanceStatistics.resolve.start();
-    for (Library library : librariesInCycles) {
-      for (Source source : library.getCompilationUnitSources()) {
-        TypeResolverVisitor visitor = new TypeResolverVisitor(library, source, typeProvider);
-        library.getAST(source).accept(visitor);
+    try {
+      for (Library library : librariesInCycles) {
+        for (Source source : library.getCompilationUnitSources()) {
+          TypeResolverVisitor visitor = new TypeResolverVisitor(library, source, typeProvider);
+          library.getAST(source).accept(visitor);
+        }
       }
+    } finally {
+      timeCounter.stop();
     }
-    timeCounter.stop();
   }
 
   /**
@@ -745,24 +748,27 @@ public class LibraryResolver {
    */
   private void performConstantEvaluation() {
     TimeCounterHandle timeCounter = PerformanceStatistics.resolve.start();
-    ConstantValueComputer computer = new ConstantValueComputer();
-    for (Library library : librariesInCycles) {
-      for (Source source : library.getCompilationUnitSources()) {
-        try {
-          CompilationUnit unit = library.getAST(source);
-          if (unit != null) {
-            computer.add(unit);
+    try {
+      ConstantValueComputer computer = new ConstantValueComputer();
+      for (Library library : librariesInCycles) {
+        for (Source source : library.getCompilationUnitSources()) {
+          try {
+            CompilationUnit unit = library.getAST(source);
+            if (unit != null) {
+              computer.add(unit);
+            }
+          } catch (AnalysisException exception) {
+            AnalysisEngine.getInstance().getLogger().logError(
+                "Internal Error: Could not access AST for " + source.getFullName()
+                    + " during constant evaluation",
+                exception);
           }
-        } catch (AnalysisException exception) {
-          AnalysisEngine.getInstance().getLogger().logError(
-              "Internal Error: Could not access AST for " + source.getFullName()
-                  + " during constant evaluation",
-              exception);
         }
       }
+      computer.computeValues();
+    } finally {
+      timeCounter.stop();
     }
-    computer.computeValues();
-    timeCounter.stop();
   }
 
   /**
@@ -786,16 +792,19 @@ public class LibraryResolver {
    */
   private void resolveReferencesAndTypes(Library library) throws AnalysisException {
     TimeCounterHandle timeCounter = PerformanceStatistics.resolve.start();
-    for (Source source : library.getCompilationUnitSources()) {
-      ResolverVisitor visitor = new ResolverVisitor(library, source, typeProvider);
-      library.getAST(source).accept(visitor);
-      for (ProxyConditionalAnalysisError conditionalCode : visitor.getProxyConditionalAnalysisErrors()) {
-        if (conditionalCode.shouldIncludeErrorCode()) {
-          visitor.reportError(conditionalCode.getAnalysisError());
+    try {
+      for (Source source : library.getCompilationUnitSources()) {
+        ResolverVisitor visitor = new ResolverVisitor(library, source, typeProvider);
+        library.getAST(source).accept(visitor);
+        for (ProxyConditionalAnalysisError conditionalCode : visitor.getProxyConditionalAnalysisErrors()) {
+          if (conditionalCode.shouldIncludeErrorCode()) {
+            visitor.reportError(conditionalCode.getAnalysisError());
+          }
         }
       }
+    } finally {
+      timeCounter.stop();
     }
-    timeCounter.stop();
   }
 
   /**
