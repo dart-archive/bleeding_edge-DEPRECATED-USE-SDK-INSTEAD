@@ -406,6 +406,22 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
             "}"));
   }
 
+  public void test_createMissingOverrides_generics() throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "import 'dart:collection';",
+        "class Test extends IterableMixin<int> {",
+        "}");
+    assert_runProcessor(
+        CorrectionKind.QF_CREATE_MISSING_OVERRIDES,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "import 'dart:collection';",
+            "class Test extends IterableMixin<int> {",
+            "  Iterator<int> get iterator => null; // TODO implement this getter",
+            "}"));
+  }
+
   public void test_createMissingOverrides_getter() throws Exception {
     prepareProblemWithFix(
         "// filler filler filler filler filler filler filler filler filler filler",
