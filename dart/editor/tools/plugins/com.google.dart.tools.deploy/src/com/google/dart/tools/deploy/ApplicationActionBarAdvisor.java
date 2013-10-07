@@ -120,7 +120,7 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
     private final PropertyDialogAction workbenchAction = new PropertyDialogAction(getWindow(), this);
 
     private ShowPropertiesAction() {
-      setId(workbenchAction.getId());
+      setId(IWorkbenchCommandConstants.FILE_PROPERTIES);
       setText(org.eclipse.ui.internal.WorkbenchMessages.PropertyDialog_text);
       setDescription(org.eclipse.ui.internal.WorkbenchMessages.PropertyDialog_text);
       setToolTipText(org.eclipse.ui.internal.WorkbenchMessages.PropertyDialog_toolTip);
@@ -135,8 +135,8 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
     public void dispose() {
       workbenchAction.dispose();
     }
-    
-      @Override
+
+    @Override
     public ISelection getSelection() {
       return selection;
     }

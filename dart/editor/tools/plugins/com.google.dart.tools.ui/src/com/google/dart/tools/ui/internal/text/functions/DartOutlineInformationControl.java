@@ -74,7 +74,7 @@ public class DartOutlineInformationControl extends PopupDialog implements IInfor
         return true;
       }
       // make be "element" matches
-      String elementName = LightNodeElements.LABEL_PROVIDER.getText(element);
+      String elementName = element.getName();
       if (elementName != null && stringMatcher.match(elementName)) {
         return true;
       }
@@ -233,7 +233,7 @@ public class DartOutlineInformationControl extends PopupDialog implements IInfor
     viewer = new OutlineTreeViewer(tree);
     viewer.addFilter(new NameFilter());
     viewer.setContentProvider(LightNodeElements.newTreeContentProvider(editor));
-    viewer.setLabelProvider(LightNodeElements.LABEL_PROVIDER);
+    viewer.setLabelProvider(LightNodeElements.newLabelProvider());
     viewer.setInput(editor.getParsedUnit());
     selectElementEnclosingEditorSelection();
     // close on ESC

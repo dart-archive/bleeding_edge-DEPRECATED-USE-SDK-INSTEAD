@@ -51,7 +51,6 @@ import org.eclipse.swt.custom.BusyIndicator;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.ui.IActionBars;
@@ -90,12 +89,6 @@ public class DartOutlinePage extends Page implements IContentOutlinePage {
       super(tree);
       setUseHashlookup(true);
       tree.setBackgroundMode(SWT.INHERIT_FORCE);
-      tree.addListener(SWT.EraseItem, new Listener() {
-        @Override
-        public void handleEvent(Event event) {
-          SWTUtil.eraseSelection(event, tree, preferences);
-        }
-      });
     }
 
     private void updateColors() {
@@ -200,7 +193,7 @@ public class DartOutlinePage extends Page implements IContentOutlinePage {
     viewer = new DartOutlineViewer(tree);
     ColoredViewersManager.install(viewer);
     viewer.setContentProvider(LightNodeElements.newTreeContentProvider(editor));
-    viewer.setLabelProvider(LightNodeElements.LABEL_PROVIDER);
+    viewer.setLabelProvider(LightNodeElements.newLabelProvider());
     SWTUtil.bindJFaceResourcesFontToControl(tree);
     // install listeners added before UI creation
     {

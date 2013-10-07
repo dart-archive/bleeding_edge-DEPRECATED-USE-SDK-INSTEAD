@@ -22,11 +22,14 @@ import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.CompilationUnitMember;
 import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.FieldDeclaration;
+import com.google.dart.engine.ast.FormalParameterList;
 import com.google.dart.engine.ast.FunctionDeclaration;
+import com.google.dart.engine.ast.FunctionExpression;
 import com.google.dart.engine.ast.FunctionTypeAlias;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.TopLevelVariableDeclaration;
+import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.tools.ui.DartElementImageDescriptor;
 import com.google.dart.tools.ui.DartPluginImages;
@@ -35,8 +38,12 @@ import com.google.dart.tools.ui.internal.viewsupport.ImageDescriptorRegistry;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider;
+import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider.IStyledLabelProvider;
+import org.eclipse.jface.viewers.IBaseLabelProvider;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.LabelProvider;
+import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerComparator;
@@ -156,7 +163,7 @@ public class LightNodeElements {
   /**
    * {@link LabelProvider} for {@link LightNodeElement}.
    */
-  private static class NodeLabelProvider extends LabelProvider {
+  private static class NodeLabelProvider extends LabelProvider implements IStyledLabelProvider {
     private static final Point SIZE = new Point(22, 16);
     private static final ImageDescriptorRegistry registry = DartToolsPlugin.getImageDescriptorRegistry();
 
@@ -231,14 +238,56 @@ public class LightNodeElements {
     }
 
     @Override
+    public StyledString getStyledText(Object obj) {
+      StyledString styledString = new StyledString(getText(obj));
+      // prepare object elements
+      LightNodeElement lightElement = (LightNodeElement) obj;
+      ASTNode node = lightElement.getNode();
+      // prepare parameters
+      FormalParameterList parameters = null;
+      TypeName returnType = null;
+      if (node instanceof FunctionDeclaration) {
+        FunctionDeclaration function = (FunctionDeclaration) node;
+        FunctionExpression functionExpression = function.getFunctionExpression();
+        if (functionExpression != null) {
+          parameters = functionExpression.getParameters();
+          returnType = function.getReturnType();
+        }
+      }
+      if (node instanceof FunctionTypeAlias) {
+        FunctionTypeAlias functionTypeAlias = (FunctionTypeAlias) node;
+        parameters = functionTypeAlias.getParameters();
+        returnType = functionTypeAlias.getReturnType();
+      }
+      if (node instanceof ConstructorDeclaration) {
+        ConstructorDeclaration constructor = (ConstructorDeclaration) node;
+        parameters = constructor.getParameters();
+      }
+      if (node instanceof MethodDeclaration) {
+        MethodDeclaration method = (MethodDeclaration) node;
+        parameters = method.getParameters();
+        returnType = method.getReturnType();
+      }
+      // may be append parameters
+      if (parameters != null) {
+        styledString.append(parameters.toSource(), StyledString.DECORATIONS_STYLER);
+      }
+      if (returnType != null) {
+        styledString.append(" : " + returnType.toSource(), StyledString.QUALIFIER_STYLER);
+      }
+      // done
+      return styledString;
+    }
+
+    @Override
     public String getText(Object element) {
       return ((LightNodeElement) element).getName();
     }
   }
 
-  public static final LabelProvider LABEL_PROVIDER = new NodeLabelProvider();
   public static final ViewerComparator NAME_COMPARATOR = new NameComparator();
   public static final ViewerComparator POSITION_COMPARATOR = new PositionComparator();
+  private static final IStyledLabelProvider LABEL_PROVIDER = new NodeLabelProvider();
 
   /**
    * @return the {@link LightNodeElement} for given {@link ASTNode}, may be <code>null</code> if
@@ -333,6 +382,13 @@ public class LightNodeElements {
    */
   public static List<LightNodeElement> getRootElements(TreeViewer viewer) {
     return ((NodeContentProvider) viewer.getContentProvider()).elements;
+  }
+
+  /**
+   * @return the new label provider instance to use for displaying {@link LightNodeElement}s.
+   */
+  public static IBaseLabelProvider newLabelProvider() {
+    return new DelegatingStyledCellLabelProvider(LABEL_PROVIDER);
   }
 
   /**
