@@ -736,6 +736,7 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     if (this.equals(s)) {
       return true;
     }
+
     //
     // T is bottom. (This case is handled by the class BottomTypeImpl.)
     //
@@ -744,6 +745,7 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     if (s.isDirectSupertypeOf(this)) {
       return true;
     }
+
     //
     // Covariance: T is of the form I<T1, ..., Tn> and S is of the form I<S1, ..., Sn> and Ti << Si, 1 <= i <= n.
     //
@@ -762,28 +764,28 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       }
       return true;
     }
+
     //
     // Transitivity: T << U and U << S.
     //
+    // First check for infinite loops
     ClassElement element = getElement();
     if (element == null || visitedClasses.contains(element)) {
       return false;
     }
     visitedClasses.add(element);
-    //
     // Iterate over all of the types U that are more specific than T because they are direct
     // supertypes of T and return true if any of them are more specific than S.
-    //
-    InterfaceType supertype = element.getSupertype();
+    InterfaceType supertype = getSuperclass();
     if (supertype != null && ((InterfaceTypeImpl) supertype).isMoreSpecificThan(s, visitedClasses)) {
       return true;
     }
-    for (InterfaceType interfaceType : element.getInterfaces()) {
+    for (InterfaceType interfaceType : getInterfaces()) {
       if (((InterfaceTypeImpl) interfaceType).isMoreSpecificThan(s, visitedClasses)) {
         return true;
       }
     }
-    for (InterfaceType mixinType : element.getMixins()) {
+    for (InterfaceType mixinType : getMixins()) {
       if (((InterfaceTypeImpl) mixinType).isMoreSpecificThan(s, visitedClasses)) {
         return true;
       }

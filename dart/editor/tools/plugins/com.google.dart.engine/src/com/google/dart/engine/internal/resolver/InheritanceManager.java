@@ -22,6 +22,8 @@ import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.error.StaticTypeWarningCode;
 import com.google.dart.engine.error.StaticWarningCode;
+import com.google.dart.engine.internal.element.member.MethodMember;
+import com.google.dart.engine.internal.element.member.PropertyAccessorMember;
 import com.google.dart.engine.internal.verifier.ErrorVerifier;
 import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.InterfaceType;
@@ -258,10 +260,21 @@ public class InheritanceManager {
         classLookup.put(superclassElt, resultMap);
         return resultMap;
       }
-      // put the members from the superclass
+
+      //
+      // Substitute the supertypes down the hierarchy
+      //
+      substituteTypeParametersDownHierarchy(supertype, resultMap);
+
+      //
+      // Include the members from the superclass in the resultMap
+      //
       recordMapWithClassMembers(resultMap, supertype);
     }
 
+    //
+    // Include the members from the mixins in the resultMap
+    //
     InterfaceType[] mixins = classElt.getMixins();
     for (int i = mixins.length - 1; i >= 0; i--) {
       recordMapWithClassMembers(resultMap, mixins[i]);
@@ -380,20 +393,14 @@ public class InheritanceManager {
           map = new MemberMap(map);
 
           //
+          // Substitute the supertypes down the hierarchy
+          //
+          substituteTypeParametersDownHierarchy(supertype, map);
+
+          //
           // Add any members from the supertype into the map as well.
           //
-          MethodElement[] methods = supertype.getMethods();
-          for (MethodElement method : methods) {
-            if (method.isAccessibleIn(library) && !method.isStatic()) {
-              map.put(method.getName(), method);
-            }
-          }
-          PropertyAccessorElement[] accessors = supertype.getAccessors();
-          for (PropertyAccessorElement accessor : accessors) {
-            if (accessor.isAccessibleIn(library) && !accessor.isStatic()) {
-              map.put(accessor.getName(), accessor);
-            }
-          }
+          recordMapWithClassMembers(map, supertype);
 
           lookupMaps.add(map);
         } finally {
@@ -432,20 +439,14 @@ public class InheritanceManager {
             map = new MemberMap(map);
 
             //
+            // Substitute the supertypes down the hierarchy
+            //
+            substituteTypeParametersDownHierarchy(interfaceType, map);
+
+            //
             // And add any members from the interface into the map as well.
             //
-            MethodElement[] methods = interfaceType.getMethods();
-            for (MethodElement method : methods) {
-              if (method.isAccessibleIn(library) && !method.isStatic()) {
-                map.put(method.getName(), method);
-              }
-            }
-            PropertyAccessorElement[] accessors = interfaceType.getAccessors();
-            for (PropertyAccessorElement accessor : accessors) {
-              if (accessor.isAccessibleIn(library) && !accessor.isStatic()) {
-                map.put(accessor.getName(), accessor);
-              }
-            }
+            recordMapWithClassMembers(map, interfaceType);
 
             lookupMaps.add(map);
           } finally {
@@ -634,6 +635,29 @@ public class InheritanceManager {
       errorsInClassElement.put(classElt, errorSet);
     }
     errorSet.add(new AnalysisError(classElt.getSource(), offset, length, errorCode, arguments));
+  }
+
+  /**
+   * Loop through all of the members in some {@link MemberMap}, performing type parameter
+   * substitutions using a passed supertype.
+   * 
+   * @param superType the supertype to substitute into the members of the {@link MemberMap}
+   * @param map the MemberMap to perform the substitutions on
+   */
+  private void substituteTypeParametersDownHierarchy(InterfaceType superType, MemberMap map) {
+    for (int i = 0; i < map.getSize(); i++) {
+      String key = map.getKey(i);
+      ExecutableElement executableElement = map.getValue(i);
+      if (executableElement instanceof MethodMember) {
+        executableElement = MethodMember.from((MethodMember) executableElement, superType);
+        map.put(key, executableElement);
+      } else if (executableElement instanceof PropertyAccessorMember) {
+        executableElement = PropertyAccessorMember.from(
+            (PropertyAccessorMember) executableElement,
+            superType);
+        map.put(key, executableElement);
+      }
+    }
   }
 
 }
