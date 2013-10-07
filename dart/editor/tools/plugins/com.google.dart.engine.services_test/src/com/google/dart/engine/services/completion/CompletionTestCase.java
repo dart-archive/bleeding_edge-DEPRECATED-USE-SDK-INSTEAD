@@ -87,11 +87,17 @@ public class CompletionTestCase extends ResolverTestCase {
         !completionTests.isEmpty());
     sources.add(addSource(completionTests.iterator().next().source));
     CompilationUnit compilationUnit = resolveAndIndex(sources);
+    AnalysisContext analysisContext = getAnalysisContext();
     CompletionFactory factory = new CompletionFactory();
     for (LocationSpec test : completionTests) {
       MockCompletionRequestor requestor = new MockCompletionRequestor();
       CompletionEngine engine = new CompletionEngine(requestor, factory);
-      engine.complete(new AssistContext(searchEngine, compilationUnit, test.testLocation, 0));
+      engine.complete(new AssistContext(
+          searchEngine,
+          analysisContext,
+          compilationUnit,
+          test.testLocation,
+          0));
       if (test.positiveResults.size() > 0) {
         assertTrue(
             "Test " + test.id + " expected code completion suggestions "

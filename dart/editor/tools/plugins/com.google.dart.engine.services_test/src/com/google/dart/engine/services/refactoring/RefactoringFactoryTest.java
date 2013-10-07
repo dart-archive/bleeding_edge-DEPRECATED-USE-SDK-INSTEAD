@@ -77,28 +77,28 @@ public class RefactoringFactoryTest extends AbstractDartTest {
 
   public void test_createExtractLocalRefactoring() throws Exception {
     parseTestUnit("");
-    AssistContext context = new AssistContext(searchEngine, testUnit, 0, 0);
+    AssistContext context = new AssistContext(searchEngine, analysisContext, testUnit, 0, 0);
     ExtractLocalRefactoring refactoring = createExtractLocalRefactoring(context);
     assertThat(refactoring).isInstanceOf(ExtractLocalRefactoringImpl.class);
   }
 
   public void test_createExtractMethodRefactoring() throws Exception {
     parseTestUnit("");
-    AssistContext context = new AssistContext(searchEngine, testUnit, 0, 0);
+    AssistContext context = new AssistContext(searchEngine, analysisContext, testUnit, 0, 0);
     ExtractMethodRefactoring refactoring = createExtractMethodRefactoring(context);
     assertThat(refactoring).isInstanceOf(ExtractMethodRefactoringImpl.class);
   }
 
   public void test_createInlineLocalRefactoring() throws Exception {
     parseTestUnit("");
-    AssistContext context = new AssistContext(searchEngine, testUnit, 0, 0);
+    AssistContext context = new AssistContext(searchEngine, analysisContext, testUnit, 0, 0);
     InlineLocalRefactoring refactoring = createInlineLocalRefactoring(context);
     assertThat(refactoring).isInstanceOf(InlineLocalRefactoringImpl.class);
   }
 
   public void test_createInlineMethodRefactoring() throws Exception {
     parseTestUnit("");
-    AssistContext context = new AssistContext(searchEngine, testUnit, 0, 0);
+    AssistContext context = new AssistContext(searchEngine, analysisContext, testUnit, 0, 0);
     InlineMethodRefactoring refactoring = createInlineMethodRefactoring(context);
     assertThat(refactoring).isInstanceOf(InlineMethodRefactoringImpl.class);
   }

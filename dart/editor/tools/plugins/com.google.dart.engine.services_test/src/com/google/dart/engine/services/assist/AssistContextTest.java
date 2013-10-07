@@ -15,6 +15,7 @@
 package com.google.dart.engine.services.assist;
 
 import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.search.SearchEngine;
@@ -27,6 +28,7 @@ import static org.mockito.Mockito.when;
 
 public class AssistContextTest extends AbstractDartTest {
   private final SearchEngine searchEngine = mock(SearchEngine.class);
+  private final AnalysisContext analysisContext = mock(AnalysisContext.class);
 
   public void test_access() throws Exception {
     Source source = mock(Source.class);
@@ -38,6 +40,7 @@ public class AssistContextTest extends AbstractDartTest {
     int selectionLength = 2;
     AssistContext context = new AssistContext(
         searchEngine,
+        analysisContext,
         compilationUnit,
         selectionOffset,
         selectionLength);
@@ -51,7 +54,7 @@ public class AssistContextTest extends AbstractDartTest {
 
   public void test_access_noElement() throws Exception {
     CompilationUnit compilationUnit = mock(CompilationUnit.class);
-    AssistContext context = new AssistContext(searchEngine, compilationUnit, 0, 0);
+    AssistContext context = new AssistContext(searchEngine, analysisContext, compilationUnit, 0, 0);
     assertSame(null, context.getSource());
   }
 
@@ -67,6 +70,7 @@ public class AssistContextTest extends AbstractDartTest {
     int selectionLength = testCode.indexOf("ng ") - selectionOffset;
     AssistContext context = new AssistContext(
         searchEngine,
+        analysisContext,
         testUnit,
         selectionOffset,
         selectionLength);
@@ -76,7 +80,7 @@ public class AssistContextTest extends AbstractDartTest {
   }
 
   public void test_getCoveredElement_null() throws Exception {
-    AssistContext context = new AssistContext(searchEngine, null, 0, 0);
+    AssistContext context = new AssistContext(searchEngine, analysisContext, null, 0, 0);
     assertNull(context.getCoveredElement());
   }
 
@@ -94,6 +98,7 @@ public class AssistContextTest extends AbstractDartTest {
       int selectionLength = selectionEnd - selectionOffset;
       AssistContext context = new AssistContext(
           searchEngine,
+          analysisContext,
           testUnit,
           selectionOffset,
           selectionLength);
@@ -110,6 +115,7 @@ public class AssistContextTest extends AbstractDartTest {
       int selectionLength = selectionEnd - selectionOffset;
       AssistContext context = new AssistContext(
           searchEngine,
+          analysisContext,
           testUnit,
           selectionOffset,
           selectionLength);
@@ -123,7 +129,11 @@ public class AssistContextTest extends AbstractDartTest {
 
   public void test_new_SourceRange() throws Exception {
     CompilationUnit compilationUnit = mock(CompilationUnit.class);
-    AssistContext context = new AssistContext(searchEngine, compilationUnit, new SourceRange(10, 2));
+    AssistContext context = new AssistContext(
+        searchEngine,
+        analysisContext,
+        compilationUnit,
+        new SourceRange(10, 2));
     assertSame(compilationUnit, context.getCompilationUnit());
     assertEquals(10, context.getSelectionOffset());
     assertEquals(2, context.getSelectionLength());

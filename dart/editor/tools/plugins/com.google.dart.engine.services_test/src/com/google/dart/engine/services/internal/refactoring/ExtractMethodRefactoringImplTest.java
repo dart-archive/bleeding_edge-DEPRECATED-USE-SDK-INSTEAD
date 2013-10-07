@@ -2436,6 +2436,7 @@ public class ExtractMethodRefactoringImplTest extends RefactoringImplTest {
     int selectionLength = selectionEnd - selectionStart;
     AssistContext context = new AssistContext(
         searchEngine,
+        analysisContext,
         testUnit,
         selectionStart,
         selectionLength);

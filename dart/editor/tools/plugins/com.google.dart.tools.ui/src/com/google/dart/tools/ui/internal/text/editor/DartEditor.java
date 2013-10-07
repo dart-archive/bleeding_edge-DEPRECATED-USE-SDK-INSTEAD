@@ -4540,6 +4540,11 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       if (textSelection == null) {
         return null;
       }
+      // prepare AnalysisContext
+      AnalysisContext analysisContext = getInputAnalysisContext();
+      if (analysisContext == null) {
+        return null;
+      }
       // prepare input CompilationUnit
       com.google.dart.engine.ast.CompilationUnit unit = getInputUnit();
       if (unit == null) {
@@ -4559,6 +4564,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       Index index = DartCore.getProjectManager().getIndex();
       return new AssistContext(
           SearchEngineFactory.createSearchEngine(index),
+          analysisContext,
           unit,
           selectionOffset,
           selectionLength);

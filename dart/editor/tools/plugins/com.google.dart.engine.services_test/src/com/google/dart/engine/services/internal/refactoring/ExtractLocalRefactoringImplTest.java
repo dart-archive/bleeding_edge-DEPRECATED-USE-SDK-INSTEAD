@@ -883,6 +883,7 @@ public class ExtractLocalRefactoringImplTest extends RefactoringImplTest {
     int selectionLength = selectionEnd - selectionStart;
     AssistContext context = new AssistContext(
         searchEngine,
+        analysisContext,
         testUnit,
         selectionStart,
         selectionLength);

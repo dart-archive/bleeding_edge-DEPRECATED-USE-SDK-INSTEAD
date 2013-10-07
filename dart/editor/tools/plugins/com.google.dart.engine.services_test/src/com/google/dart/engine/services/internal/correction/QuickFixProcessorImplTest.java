@@ -182,7 +182,7 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
     CompilationUnitElement unitElement = mock(CompilationUnitElement.class);
     when(unit.getElement()).thenReturn(unitElement);
     // prepare context
-    AssistContext context = new AssistContext(null, unit, 0, 0);
+    AssistContext context = new AssistContext(null, null, unit, 0, 0);
     AnalysisError problem = new AnalysisError(
         testSource,
         ResolverErrorCode.MISSING_LIBRARY_DIRECTIVE_WITH_PART);
@@ -191,7 +191,7 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
   }
 
   public void test_computeProposals_noProblem() throws Exception {
-    AssistContext emptyContext = new AssistContext(null, null, 0, 0);
+    AssistContext emptyContext = new AssistContext(null, null, null, 0, 0);
     CorrectionProposal[] proposals = PROCESSOR.computeProposals(emptyContext, null);
     assertThat(proposals).isEmpty();
   }
@@ -200,7 +200,7 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
     // prepare CompilationUnit without CompilationUnitElement
     CompilationUnit unit = mock(CompilationUnit.class);
     // prepare context
-    AssistContext context = new AssistContext(null, unit, 0, 0);
+    AssistContext context = new AssistContext(null, null, unit, 0, 0);
     AnalysisError problem = new AnalysisError(
         testSource,
         ResolverErrorCode.MISSING_LIBRARY_DIRECTIVE_WITH_PART);
@@ -1505,7 +1505,7 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
   }
 
   private CorrectionProposal[] getProposals() throws Exception {
-    AssistContext context = new AssistContext(null, testUnit, 0, 0);
+    AssistContext context = new AssistContext(null, analysisContext, testUnit, 0, 0);
     return PROCESSOR.computeProposals(context, error);
   }
 

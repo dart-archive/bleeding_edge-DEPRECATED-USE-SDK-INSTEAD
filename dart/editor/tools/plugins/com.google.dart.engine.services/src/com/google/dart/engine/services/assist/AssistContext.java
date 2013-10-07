@@ -17,6 +17,7 @@ import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.visitor.ElementLocator;
 import com.google.dart.engine.ast.visitor.NodeLocator;
+import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.search.SearchEngine;
@@ -28,6 +29,7 @@ import com.google.dart.engine.utilities.source.SourceRange;
  */
 public class AssistContext {
   private final SearchEngine searchEngine;
+  private final AnalysisContext analysisContext;
   private final CompilationUnit compilationUnit;
   private final int selectionOffset;
   private final int selectionLength;
@@ -36,17 +38,30 @@ public class AssistContext {
   private Element coveredElement;
   private boolean coveredElementFound;
 
-  public AssistContext(SearchEngine searchEngine, CompilationUnit compilationUnit,
-      int selectionOffset, int selectionLength) {
+  public AssistContext(SearchEngine searchEngine, AnalysisContext analysisContext,
+      CompilationUnit compilationUnit, int selectionOffset, int selectionLength) {
     this.searchEngine = searchEngine;
+    this.analysisContext = analysisContext;
     this.compilationUnit = compilationUnit;
     this.selectionOffset = selectionOffset;
     this.selectionLength = selectionLength;
   }
 
-  public AssistContext(SearchEngine searchEngine, CompilationUnit compilationUnit,
-      SourceRange selectionRange) {
-    this(searchEngine, compilationUnit, selectionRange.getOffset(), selectionRange.getLength());
+  public AssistContext(SearchEngine searchEngine, AnalysisContext analysisContext,
+      CompilationUnit compilationUnit, SourceRange selectionRange) {
+    this(
+        searchEngine,
+        analysisContext,
+        compilationUnit,
+        selectionRange.getOffset(),
+        selectionRange.getLength());
+  }
+
+  /**
+   * @return the {@link AnalysisContext} in which {@link Source} is analyzed.
+   */
+  public AnalysisContext getAnalysisContext() {
+    return analysisContext;
   }
 
   /**

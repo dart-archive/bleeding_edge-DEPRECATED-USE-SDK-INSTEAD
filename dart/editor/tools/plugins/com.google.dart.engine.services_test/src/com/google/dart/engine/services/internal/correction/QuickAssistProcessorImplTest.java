@@ -2256,7 +2256,12 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
   }
 
   private CorrectionProposal[] getProposals() throws Exception {
-    AssistContext context = new AssistContext(null, testUnit, selectionOffset, selectionLength);
+    AssistContext context = new AssistContext(
+        null,
+        analysisContext,
+        testUnit,
+        selectionOffset,
+        selectionLength);
     return PROCESSOR.getProposals(context);
   }
 

@@ -14,10 +14,11 @@
 package com.google.dart.tools.ui.internal.text.correction;
 
 import com.google.common.collect.Lists;
-import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.services.assist.AssistContext;
+import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
@@ -184,7 +185,13 @@ public class DartCorrectionAssistant extends QuickAssistAssistant {
       if (context == null) {
         return;
       }
-      CompilationUnit unit = context.getCompilationUnit();
+      // prepare errors
+      Source source = context.getSource();
+      AnalysisContext analysisContext = context.getAnalysisContext();
+      if (analysisContext == null) {
+        return;
+      }
+      AnalysisError[] errors = analysisContext.getErrors(source).getErrors();
       // prepare current line range
       IRegion lineInfo = getRegionOfInterest(editor, currOffset);
       if (lineInfo == null) {
@@ -192,12 +199,12 @@ public class DartCorrectionAssistant extends QuickAssistAssistant {
       }
       int rangeStart = lineInfo.getOffset();
       int rangeEnd = rangeStart + lineInfo.getLength();
-
+      // prepare fixable problems on the current line
       List<AnalysisError> allProblems = Lists.newArrayList();
       List<Position> allPositions = Lists.newArrayList();
-      for (AnalysisError error : unit.getErrors()) {
+      for (AnalysisError error : errors) {
         Position pos = new Position(error.getOffset(), error.getLength());
-        // check that Annotation is on the current line
+        // check that error is on the current line
         if (!isInside(pos.offset, rangeStart, rangeEnd)) {
           continue;
         }
