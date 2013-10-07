@@ -1,11 +1,11 @@
 /*
  * Copyright (c) 2012, the Dart project authors.
- * 
+ *
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -137,12 +137,12 @@ public class ComplexParserTest extends ParserTestCase {
   }
 
   public void test_bitwiseAndExpression_precedence_equality_left() throws Exception {
-    BinaryExpression expression = parseExpression("x == y & z");
+    BinaryExpression expression = parseExpression("x == y && z");
     assertInstanceOf(BinaryExpression.class, expression.getLeftOperand());
   }
 
   public void test_bitwiseAndExpression_precedence_equality_right() throws Exception {
-    BinaryExpression expression = parseExpression("x & y == z");
+    BinaryExpression expression = parseExpression("x && y == z");
     assertInstanceOf(BinaryExpression.class, expression.getRightOperand());
   }
 
@@ -250,12 +250,12 @@ public class ComplexParserTest extends ParserTestCase {
   }
 
   public void test_logicalAndExpression_precedence_bitwiseOr_left() throws Exception {
-    BinaryExpression expression = parseExpression("x | y && z");
+    BinaryExpression expression = parseExpression("x | y < z");
     assertInstanceOf(BinaryExpression.class, expression.getLeftOperand());
   }
 
   public void test_logicalAndExpression_precedence_bitwiseOr_right() throws Exception {
-    BinaryExpression expression = parseExpression("x && y | z");
+    BinaryExpression expression = parseExpression("x < y | z");
     assertInstanceOf(BinaryExpression.class, expression.getRightOperand());
   }
 
@@ -301,7 +301,7 @@ public class ComplexParserTest extends ParserTestCase {
   }
 
   public void test_relationalExpression_precedence_shift_right() throws Exception {
-    IsExpression expression = parseExpression("x << y is z");
+    IsExpression expression = parseExpression("x << y & z");
     assertInstanceOf(BinaryExpression.class, expression.getExpression());
   }
 
