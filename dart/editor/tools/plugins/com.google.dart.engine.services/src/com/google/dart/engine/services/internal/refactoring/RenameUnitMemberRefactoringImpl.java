@@ -19,7 +19,6 @@ import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.FunctionTypeAliasElement;
-import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.PropertyInducingElement;
 import com.google.dart.engine.element.TopLevelVariableElement;
@@ -136,9 +135,6 @@ public class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
 
   @Override
   public String getRefactoringName() {
-    if (element instanceof ImportElement) {
-      return "Rename Import Prefix";
-    }
     if (element instanceof TopLevelVariableElement) {
       return "Rename Top-Level Variable";
     }

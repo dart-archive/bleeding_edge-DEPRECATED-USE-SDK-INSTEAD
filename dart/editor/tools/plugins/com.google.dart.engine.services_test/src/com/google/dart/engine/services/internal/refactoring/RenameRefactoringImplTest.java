@@ -21,6 +21,8 @@ import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.element.PrefixElement;
+import com.google.dart.engine.internal.index.IndexContributor;
 import com.google.dart.engine.services.change.Change;
 import com.google.dart.engine.services.refactoring.RefactoringFactory;
 import com.google.dart.engine.services.refactoring.RenameRefactoring;
@@ -109,7 +111,11 @@ public abstract class RenameRefactoringImplTest extends RefactoringImplTest {
    *         the given search pattern.
    */
   protected final void createRenameRefactoring(String search) {
-    Element element = findIdentifierElement(search);
+    SimpleIdentifier identifier = findIdentifier(search);
+    Element element = identifier.getBestElement();
+    if (element instanceof PrefixElement) {
+      element = IndexContributor.getImportElement(identifier);
+    }
     createRenameRefactoring(element);
   }
 

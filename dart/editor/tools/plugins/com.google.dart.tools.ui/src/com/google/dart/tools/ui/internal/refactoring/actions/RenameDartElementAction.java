@@ -19,6 +19,7 @@ import com.google.dart.engine.ast.Directive;
 import com.google.dart.engine.ast.InstanceCreationExpression;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.engine.source.Source;
@@ -53,9 +54,12 @@ public class RenameDartElementAction extends AbstractRefactoringAction {
     if (node != null) {
       Directive directive = node.getAncestor(Directive.class);
       if (directive != null) {
-        Element libraryElement = directive.getElement();
-        if (libraryElement instanceof LibraryElement) {
-          return libraryElement;
+        Element directiveElement = directive.getElement();
+        if (directiveElement instanceof LibraryElement) {
+          return directiveElement;
+        }
+        if (directiveElement instanceof ImportElement) {
+          return directiveElement;
         }
       }
     }

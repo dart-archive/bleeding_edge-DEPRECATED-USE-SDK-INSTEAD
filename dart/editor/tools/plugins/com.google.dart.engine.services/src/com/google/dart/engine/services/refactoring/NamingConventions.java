@@ -109,6 +109,18 @@ public final class NamingConventions {
    *         valid, {@link RefactoringStatusSeverity#WARNING} if the name is discouraged, or
    *         {@link RefactoringStatusSeverity#ERROR} if the name is illegal.
    */
+  public static RefactoringStatus validateImportPrefixName(String name) {
+    if (name != null && name.isEmpty()) {
+      return new RefactoringStatus();
+    }
+    return validateLowerCamelCase(name, "Import prefix");
+  }
+
+  /**
+   * @return the {@link RefactoringStatus} with {@link RefactoringStatusSeverity#OK} if the name is
+   *         valid, {@link RefactoringStatusSeverity#WARNING} if the name is discouraged, or
+   *         {@link RefactoringStatusSeverity#ERROR} if the name is illegal.
+   */
   public static RefactoringStatus validateLibraryName(String name) {
     // null
     if (name == null) {

@@ -24,6 +24,7 @@ import static com.google.dart.engine.services.refactoring.NamingConventions.vali
 import static com.google.dart.engine.services.refactoring.NamingConventions.validateFieldName;
 import static com.google.dart.engine.services.refactoring.NamingConventions.validateFunctionName;
 import static com.google.dart.engine.services.refactoring.NamingConventions.validateFunctionTypeAliasName;
+import static com.google.dart.engine.services.refactoring.NamingConventions.validateImportPrefixName;
 import static com.google.dart.engine.services.refactoring.NamingConventions.validateLibraryName;
 import static com.google.dart.engine.services.refactoring.NamingConventions.validateMethodName;
 import static com.google.dart.engine.services.refactoring.NamingConventions.validateParameterName;
@@ -394,6 +395,68 @@ public class NamingConventionsTest extends AbstractDartTest {
         validateFunctionTypeAliasName("newName  "),
         RefactoringStatusSeverity.ERROR,
         "Function type alias name must not start or end with a blank.");
+  }
+
+  public void test_validateImportPrefixName_doesNotStartWithLowerCase() throws Exception {
+    assertRefactoringStatus(
+        validateImportPrefixName("NewName"),
+        RefactoringStatusSeverity.WARNING,
+        "Import prefix name should start with a lowercase letter.");
+  }
+
+  public void test_validateImportPrefixName_leadingBlanks() throws Exception {
+    assertRefactoringStatus(
+        validateImportPrefixName("  newName"),
+        RefactoringStatusSeverity.ERROR,
+        "Import prefix name must not start or end with a blank.");
+  }
+
+  public void test_validateImportPrefixName_notIdentifierMiddle() throws Exception {
+    assertRefactoringStatus(
+        validateImportPrefixName("na-me"),
+        RefactoringStatusSeverity.ERROR,
+        "Import prefix name must not contain '-'.");
+  }
+
+  public void test_validateImportPrefixName_notIdentifierStart() throws Exception {
+    assertRefactoringStatus(
+        validateImportPrefixName("2name"),
+        RefactoringStatusSeverity.ERROR,
+        "Import prefix name must not start with '2'.");
+  }
+
+  public void test_validateImportPrefixName_null() throws Exception {
+    assertRefactoringStatus(
+        validateImportPrefixName(null),
+        RefactoringStatusSeverity.ERROR,
+        "Import prefix name must not be null.");
+  }
+
+  public void test_validateImportPrefixName_OK() throws Exception {
+    assertRefactoringStatusOK(validateImportPrefixName("newName"));
+  }
+
+  public void test_validateImportPrefixName_OK_empty() throws Exception {
+    assertRefactoringStatusOK(validateImportPrefixName(""));
+  }
+
+  public void test_validateImportPrefixName_OK_leadingDollar() throws Exception {
+    assertRefactoringStatusOK(validateImportPrefixName("$newName"));
+  }
+
+  public void test_validateImportPrefixName_OK_leadingUnderscore() throws Exception {
+    assertRefactoringStatusOK(validateImportPrefixName("_newName"));
+  }
+
+  public void test_validateImportPrefixName_OK_middleDollar() throws Exception {
+    assertRefactoringStatusOK(validateImportPrefixName("new$Name"));
+  }
+
+  public void test_validateImportPrefixName_trailingBlanks() throws Exception {
+    assertRefactoringStatus(
+        validateImportPrefixName("newName  "),
+        RefactoringStatusSeverity.ERROR,
+        "Import prefix name must not start or end with a blank.");
   }
 
   public void test_validateLibraryName_blank() throws Exception {

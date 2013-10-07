@@ -27,6 +27,23 @@ import com.google.dart.engine.element.PrefixElement;
  */
 public class ImportElementImpl extends ElementImpl implements ImportElement {
   /**
+   * The offset of this directive, may be {@code -1} if synthetic.
+   */
+  private int offset = -1;
+
+  /**
+   * The offset of the character immediately following the last character of this node's URI, may be
+   * {@code -1} if synthetic.
+   */
+  private int uriEnd = -1;
+
+  /**
+   * The offset of the prefix of this import in the file that contains the this import directive, or
+   * {@code -1} if this import is synthetic.
+   */
+  private int prefixOffset;
+
+  /**
    * The URI that is specified by this directive.
    */
   private String uri;
@@ -81,8 +98,18 @@ public class ImportElementImpl extends ElementImpl implements ImportElement {
   }
 
   @Override
+  public int getPrefixOffset() {
+    return prefixOffset;
+  }
+
+  @Override
   public String getUri() {
     return uri;
+  }
+
+  @Override
+  public int getUriEnd() {
+    return uriEnd;
   }
 
   /**
@@ -106,6 +133,13 @@ public class ImportElementImpl extends ElementImpl implements ImportElement {
   }
 
   /**
+   * Set the offset of this directive.
+   */
+  public void setOffset(int offset) {
+    this.offset = offset;
+  }
+
+  /**
    * Set the prefix that was specified as part of the import directive to the given prefix.
    * 
    * @param prefix the prefix that was specified as part of the import directive
@@ -115,12 +149,28 @@ public class ImportElementImpl extends ElementImpl implements ImportElement {
   }
 
   /**
+   * Set the offset of the prefix of this import in the file that contains the this import
+   * directive.
+   */
+  public void setPrefixOffset(int prefixOffset) {
+    this.prefixOffset = prefixOffset;
+  }
+
+  /**
    * Set the URI that is specified by this directive.
    * 
    * @param uri the URI that is specified by this directive.
    */
   public void setUri(String uri) {
     this.uri = uri;
+  }
+
+  /**
+   * Set the the offset of the character immediately following the last character of this node's
+   * URI. {@code -1} for synthetic import.
+   */
+  public void setUriEnd(int uriEnd) {
+    this.uriEnd = uriEnd;
   }
 
   @Override
@@ -137,6 +187,6 @@ public class ImportElementImpl extends ElementImpl implements ImportElement {
 
   @Override
   protected String getIdentifier() {
-    return ((LibraryElementImpl) importedLibrary).getIdentifier();
+    return ((LibraryElementImpl) importedLibrary).getIdentifier() + "@" + offset;
   }
 }

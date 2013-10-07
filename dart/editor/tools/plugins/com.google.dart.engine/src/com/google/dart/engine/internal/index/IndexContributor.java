@@ -17,6 +17,8 @@ package com.google.dart.engine.internal.index;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.BinaryExpression;
@@ -79,6 +81,8 @@ import com.google.dart.engine.index.IndexStore;
 import com.google.dart.engine.index.Location;
 import com.google.dart.engine.index.LocationWithData;
 import com.google.dart.engine.index.Relationship;
+import com.google.dart.engine.internal.scope.Namespace;
+import com.google.dart.engine.internal.scope.NamespaceBuilder;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.type.InterfaceType;
@@ -86,6 +90,10 @@ import com.google.dart.engine.type.Type;
 import com.google.dart.engine.utilities.collection.IntStack;
 
 import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 /**
  * Visits resolved AST and adds relationships into {@link IndexStore}.
@@ -109,6 +117,26 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
   }
 
   /**
+   * @return the {@link ImportElement} that is referenced by this node with {@link PrefixElement},
+   *         may be {@code null}.
+   */
+  public static ImportElement getImportElement(SimpleIdentifier prefixNode) {
+    CompilationUnit unit = prefixNode.getAncestor(CompilationUnit.class);
+    LibraryElement libraryElement = unit.getElement().getLibrary();
+    // prefix should be used
+    ASTNode parent = prefixNode.getParent();
+    if (!(parent instanceof PrefixedIdentifier)) {
+      return null;
+    }
+    // prepare used element
+    Element usedElement = ((PrefixedIdentifier) parent).getStaticElement();
+    // find ImportElement
+    String prefix = prefixNode.getName();
+    Map<ImportElement, Set<Element>> importElementsMap = Maps.newHashMap();
+    return getImportElement(libraryElement, prefix, usedElement, importElementsMap);
+  }
+
+  /**
    * @return the library import prefix name, may be {@code null}.
    */
   @VisibleForTesting
@@ -123,6 +151,78 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
       }
     }
     // no prefix
+    return null;
+  }
+
+  /**
+   * @return the {@link ImportElement} that declares given {@link PrefixElement} and imports library
+   *         with element used by {@link PrefixedIdentifier} with given prefix node.
+   */
+  private static ImportElement getImportElement(LibraryElement libraryElement, String prefix,
+      Element usedElement, Map<ImportElement, Set<Element>> importElementsMap) {
+    // validate Element
+    if (usedElement == null) {
+      return null;
+    }
+    if (!(usedElement.getEnclosingElement() instanceof CompilationUnitElement)) {
+      return null;
+    }
+    LibraryElement usedLibrary = usedElement.getLibrary();
+    // find ImportElement that imports used library with used prefix
+    List<ImportElement> candidates = null;
+    for (ImportElement importElement : libraryElement.getImports()) {
+      // required library
+      if (!Objects.equal(importElement.getImportedLibrary(), usedLibrary)) {
+        continue;
+      }
+      // required prefix
+      PrefixElement prefixElement = importElement.getPrefix();
+      if (prefix == null) {
+        if (prefixElement != null) {
+          continue;
+        }
+      } else {
+        if (prefixElement == null) {
+          continue;
+        }
+        if (!prefix.equals(prefixElement.getName())) {
+          continue;
+        }
+      }
+      // no combinators => only possible candidate
+      if (importElement.getCombinators().length == 0) {
+        return importElement;
+      }
+      // OK, we have candidate
+      if (candidates == null) {
+        candidates = Lists.newArrayList();
+      }
+      candidates.add(importElement);
+    }
+    // no candidates, probably element is defined in this library
+    if (candidates == null) {
+      return null;
+    }
+    // one candidate
+    if (candidates.size() == 1) {
+      return candidates.get(0);
+    }
+    // ensure that each ImportElement has set of elements
+    for (ImportElement importElement : candidates) {
+      if (importElementsMap.containsKey(importElement)) {
+        continue;
+      }
+      Namespace namespace = new NamespaceBuilder().createImportNamespace(importElement);
+      Set<Element> elements = Sets.newHashSet(namespace.getDefinedNames().values());
+      importElementsMap.put(importElement, elements);
+    }
+    // use import namespace to choose correct one
+    for (Entry<ImportElement, Set<Element>> entry : importElementsMap.entrySet()) {
+      if (entry.getValue().contains(usedElement)) {
+        return entry.getKey();
+      }
+    }
+    // not found
     return null;
   }
 
@@ -241,6 +341,8 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
   private final IndexStore store;
 
   private LibraryElement libraryElement;
+
+  private final Map<ImportElement, Set<Element>> importElementsMap = Maps.newHashMap();
 
   /**
    * A stack whose top element (the element with the largest index) is an element representing the
@@ -567,7 +669,7 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
       FieldElement field = fieldParameter.getField();
       recordRelationship(field, IndexConstants.IS_REFERENCED_BY_QUALIFIED, location);
     } else if (element instanceof PrefixElement) {
-      recordImportElementReferenceWithPrefix(node, (PrefixElement) element);
+      recordImportElementReferenceWithPrefix(node);
     } else if (element instanceof PropertyAccessorElement || element instanceof MethodElement) {
       location = getLocationWithTypeAssignedToField(node, element, location);
       if (isQualified(node)) {
@@ -747,47 +849,42 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
    * top-level element and not qualified with import prefix.
    */
   private void recordImportElementReferenceWithoutPrefix(SimpleIdentifier node) {
+    if (isIdentifierInPrefixedIdentifier(node)) {
+      return;
+    }
     Element element = node.getStaticElement();
-    if (element != null && element.getEnclosingElement() instanceof CompilationUnitElement
-        && !isIdentifierInPrefixedIdentifier(node)) {
-      LibraryElement importLibraryElement = element.getLibrary();
-      for (ImportElement importElement : libraryElement.getImports()) {
-        if (importElement.getPrefix() == null
-            && Objects.equal(importElement.getImportedLibrary(), importLibraryElement)) {
-          Location location = createLocation(node.getOffset(), 0, null);
-          recordRelationship(importElement, IndexConstants.IS_REFERENCED_BY, location);
-          break;
-        }
-      }
+    ImportElement importElement = getImportElement(libraryElement, null, element, importElementsMap);
+    if (importElement != null) {
+      Location location = createLocation(node.getOffset(), 0, null);
+      recordRelationship(importElement, IndexConstants.IS_REFERENCED_BY, location);
     }
   }
 
   /**
-   * Records {@link ImportElement} that declares given {@link PrefixElement} and imports library
-   * with element used by {@link PrefixedIdentifier} with given prefix node.
+   * Records {@link ImportElement} that declares given prefix and imports library with element used
+   * by {@link PrefixedIdentifier} with given prefix node.
    */
-  private void recordImportElementReferenceWithPrefix(SimpleIdentifier prefix,
-      PrefixElement usedPrefix) {
+  private void recordImportElementReferenceWithPrefix(SimpleIdentifier prefixNode) {
     // prefix should be used
-    ASTNode parent = prefix.getParent();
+    ASTNode parent = prefixNode.getParent();
     if (!(parent instanceof PrefixedIdentifier)) {
       return;
     }
+    PrefixedIdentifier prefixed = (PrefixedIdentifier) parent;
     // prepare used element
-    Element usedElement = ((PrefixedIdentifier) parent).getStaticElement();
-    if (usedElement == null) {
-      return;
-    }
-    // find ImportElement that imports used library with used prefix
-    LibraryElement usedLibrary = usedElement.getLibrary();
-    for (ImportElement importElement : libraryElement.getImports()) {
-      PrefixElement prefixElement = importElement.getPrefix();
-      if (Objects.equal(prefixElement, usedPrefix)
-          && Objects.equal(importElement.getImportedLibrary(), usedLibrary)) {
-        Location location = createLocation(prefix);
-        recordRelationship(importElement, IndexConstants.IS_REFERENCED_BY, location);
-        break;
-      }
+    Element usedElement = prefixed.getStaticElement();
+    // find ImportElement
+    String prefix = prefixNode.getName();
+    ImportElement importElement = getImportElement(
+        libraryElement,
+        prefix,
+        usedElement,
+        importElementsMap);
+    if (importElement != null) {
+      int offset = prefixNode.getOffset();
+      int length = prefixed.getPeriod().getEnd() - offset;
+      Location location = createLocation(offset, length, null);
+      recordRelationship(importElement, IndexConstants.IS_REFERENCED_BY, location);
     }
   }
 

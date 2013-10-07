@@ -24,6 +24,7 @@ import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.FunctionElement;
+import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.LocalElement;
 import com.google.dart.engine.element.MethodElement;
@@ -38,6 +39,7 @@ import com.google.dart.engine.services.internal.refactoring.InlineLocalRefactori
 import com.google.dart.engine.services.internal.refactoring.InlineMethodRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.RenameClassMemberRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.RenameConstructorRefactoringImpl;
+import com.google.dart.engine.services.internal.refactoring.RenameImportRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.RenameLibraryRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.RenameLocalRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.RenameUnitMemberRefactoringImpl;
@@ -119,6 +121,9 @@ public class RefactoringFactory {
       if (element instanceof LocalElement) {
         return new RenameLocalRefactoringImpl(searchEngine, (LocalElement) element);
       }
+    }
+    if (element instanceof ImportElement) {
+      return new RenameImportRefactoringImpl(searchEngine, (ImportElement) element);
     }
     if (element.getEnclosingElement() instanceof LibraryElement
         || element.getEnclosingElement() instanceof CompilationUnitElement) {

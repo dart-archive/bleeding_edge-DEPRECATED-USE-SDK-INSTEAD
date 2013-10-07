@@ -418,6 +418,11 @@ public class LibraryResolver {
             Library importedLibrary = libraryMap.get(importedSource);
             if (importedLibrary != null) {
               ImportElementImpl importElement = new ImportElementImpl();
+              importElement.setOffset(directive.getOffset());
+              StringLiteral uriLiteral = importDirective.getUri();
+              if (uriLiteral != null) {
+                importElement.setUriEnd(uriLiteral.getEnd());
+              }
               importElement.setUri(library.getUri(importDirective));
               importElement.setCombinators(buildCombinators(importDirective));
               LibraryElement importedLibraryElement = importedLibrary.getLibraryElement();
@@ -426,6 +431,7 @@ public class LibraryResolver {
               }
               SimpleIdentifier prefixNode = ((ImportDirective) directive).getPrefix();
               if (prefixNode != null) {
+                importElement.setPrefixOffset(prefixNode.getOffset());
                 String prefixName = prefixNode.getName();
                 PrefixElementImpl prefix = nameToPrefixMap.get(prefixName);
                 if (prefix == null) {
@@ -439,7 +445,6 @@ public class LibraryResolver {
               imports.add(importElement);
 
               if (doesCompilationUnitHavePartOfDirective(importedLibrary.getAST(importedSource))) {
-                StringLiteral uriLiteral = importDirective.getUri();
                 errorListener.onError(new AnalysisError(
                     library.getLibrarySource(),
                     uriLiteral.getOffset(),

@@ -459,27 +459,6 @@ public class RenameUnitMemberRefactoringImplTest extends RenameRefactoringImplTe
         "}");
   }
 
-  // TODO(scheglov) we actually want to rename ImportElement here, not PrefixElement
-  public void test_createChange_ImportElement() throws Exception {
-    indexTestUnit(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "import 'dart:math' as test;",
-        "main() {",
-        "  print(test.PI);",
-        "}");
-    // configure refactoring
-    createRenameRefactoring("test.PI");
-//    assertEquals("Rename Import Prefix", refactoring.getRefactoringName());
-//    refactoring.setNewName("newName");
-//    // validate change
-//    assertSuccessfulRename(
-//        "// filler filler filler filler filler filler filler filler filler filler",
-//        "import 'dart:math' as newName;",
-//        "main() {",
-//        "  print(newName.PI);",
-//        "}");
-  }
-
   public void test_createChange_oneLibInTwoContexts() throws Exception {
     String libCode = "test() {}";
     String code = makeSource(

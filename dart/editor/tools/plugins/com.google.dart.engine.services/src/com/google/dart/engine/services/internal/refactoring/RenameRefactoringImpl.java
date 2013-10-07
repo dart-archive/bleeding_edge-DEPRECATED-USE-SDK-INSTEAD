@@ -18,7 +18,9 @@ import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LocalElement;
+import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.formatter.edit.Edit;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchMatch;
@@ -91,8 +93,17 @@ public abstract class RenameRefactoringImpl extends RefactoringImpl implements R
     return Objects.equal(referenceSource, localSource) && referenceRange.intersects(localRange);
   }
 
-  protected final SearchEngine searchEngine;
+  private static String getDisplayName(Element element) {
+    if (element instanceof ImportElement) {
+      PrefixElement prefix = ((ImportElement) element).getPrefix();
+      if (prefix != null) {
+        return prefix.getDisplayName();
+      }
+    }
+    return element.getDisplayName();
+  }
 
+  protected final SearchEngine searchEngine;
   protected final Element element;
   protected final String oldName;
 
@@ -101,7 +112,7 @@ public abstract class RenameRefactoringImpl extends RefactoringImpl implements R
   public RenameRefactoringImpl(SearchEngine searchEngine, Element element) {
     this.searchEngine = searchEngine;
     this.element = element;
-    this.oldName = element.getDisplayName();
+    this.oldName = getDisplayName(element);
   }
 
   @Override
@@ -112,7 +123,7 @@ public abstract class RenameRefactoringImpl extends RefactoringImpl implements R
   @Override
   public RefactoringStatus checkNewName(String newName) {
     RefactoringStatus result = new RefactoringStatus();
-    if (Objects.equal(newName, element.getDisplayName())) {
+    if (Objects.equal(newName, getCurrentName())) {
       result.addFatalError("Choose another name.");
     }
     return result;

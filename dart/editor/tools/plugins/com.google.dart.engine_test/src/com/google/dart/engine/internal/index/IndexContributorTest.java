@@ -1139,12 +1139,86 @@ public class IndexContributorTest extends AbstractDartTest {
         relations,
         importElementA,
         IndexConstants.IS_REFERENCED_BY,
-        new ExpectedLocation(mainElement, findOffset("pref.myVar"), "pref"));
+        new ExpectedLocation(mainElement, findOffset("pref.myVar"), "pref."));
     assertRecordedRelation(
         relations,
         importElementB,
         IndexConstants.IS_REFERENCED_BY,
-        new ExpectedLocation(mainElement, findOffset("pref.MyClass"), "pref"));
+        new ExpectedLocation(mainElement, findOffset("pref.MyClass"), "pref."));
+  }
+
+  public void test_isReferencedBy_ImportElement_withPrefix_combinators() throws Exception {
+    setFileContent(
+        "Lib.dart",
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "library lib;",
+            "class A {}",
+            "class B {}"));
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "import 'Lib.dart' as pref show A;",
+        "import 'Lib.dart' as pref show B;",
+        "import 'Lib.dart';",
+        "import 'Lib.dart' as otherPrefix;",
+        "main() {",
+        "  new pref.A();",
+        "  new pref.B();",
+        "}",
+        "");
+    // set elements
+    Element mainElement = findElement("main(");
+    ImportElement importElementA = (ImportElement) findNode(
+        "import 'Lib.dart' as pref show A",
+        ImportDirective.class).getElement();
+    ImportElement importElementB = (ImportElement) findNode(
+        "import 'Lib.dart' as pref show B",
+        ImportDirective.class).getElement();
+    // index
+    index.visitCompilationUnit(testUnit);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    assertRecordedRelation(
+        relations,
+        importElementA,
+        IndexConstants.IS_REFERENCED_BY,
+        new ExpectedLocation(mainElement, findOffset("pref.A"), "pref."));
+    assertRecordedRelation(
+        relations,
+        importElementB,
+        IndexConstants.IS_REFERENCED_BY,
+        new ExpectedLocation(mainElement, findOffset("pref.B"), "pref."));
+  }
+
+  public void test_isReferencedBy_ImportElement_withPrefix_oneCandidate() throws Exception {
+    setFileContent(
+        "Lib.dart",
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "library lib;",
+            "class A {}",
+            "class B {}"));
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "import 'Lib.dart' as pref show A;",
+        "main() {",
+        "  new pref.A();",
+        "}",
+        "");
+    // set elements
+    Element mainElement = findElement("main(");
+    ImportElement importElementA = (ImportElement) findNode(
+        "import 'Lib.dart' as pref show A",
+        ImportDirective.class).getElement();
+    // index
+    index.visitCompilationUnit(testUnit);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    assertRecordedRelation(
+        relations,
+        importElementA,
+        IndexConstants.IS_REFERENCED_BY,
+        new ExpectedLocation(mainElement, findOffset("pref.A"), "pref."));
   }
 
   public void test_isReferencedBy_ImportElement_withPrefix_unresolvedElement() throws Exception {

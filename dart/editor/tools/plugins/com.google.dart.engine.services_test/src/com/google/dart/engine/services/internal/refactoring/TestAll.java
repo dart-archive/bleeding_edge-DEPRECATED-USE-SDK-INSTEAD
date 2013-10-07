@@ -22,6 +22,7 @@ public class TestAll {
     suite.addTestSuite(NamingConventionsTest.class);
     suite.addTestSuite(RenameLibraryRefactoringImplTest.class);
     suite.addTestSuite(RenameUnitMemberRefactoringImplTest.class);
+    suite.addTestSuite(RenameImportRefactoringImplTest.class);
     suite.addTestSuite(RenameConstructorRefactoringImplTest.class);
     suite.addTestSuite(RenameClassMemberRefactoringImplTest.class);
     suite.addTestSuite(RenameLocalRefactoringImplTest.class);

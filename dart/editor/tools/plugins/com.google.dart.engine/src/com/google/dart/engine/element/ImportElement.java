@@ -47,4 +47,21 @@ public interface ImportElement extends Element, UriReferencedElement {
    * @return the prefix that was specified as part of the import directive
    */
   public PrefixElement getPrefix();
+
+  /**
+   * Return the offset of the prefix of this import in the file that contains this import directive,
+   * or {@code -1} if this import is synthetic, does not have a prefix, or otherwise does not have
+   * an offset.
+   * 
+   * @return the offset of the prefix of this import
+   */
+  public int getPrefixOffset();
+
+  /**
+   * Return the offset of the character immediately following the last character of this node's URI,
+   * or {@code -1} for synthetic import.
+   * 
+   * @return the offset of the character just past the node's URI
+   */
+  public int getUriEnd();
 }
