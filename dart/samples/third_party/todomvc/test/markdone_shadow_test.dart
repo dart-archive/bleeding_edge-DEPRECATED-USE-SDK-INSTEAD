@@ -9,4 +9,8 @@ library todomvc.test.markdone_shadow_test;
 import 'dart:html';
 import 'markdone_test.dart' as markdone_test;
 
-main() => markdone_test.main();
+main() {
+  // Make analyzer happy by using dart:html.
+  document.query('body');
+  markdone_test.main();
+}

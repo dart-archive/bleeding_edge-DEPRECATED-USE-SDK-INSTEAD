@@ -3,3 +3,5 @@ description: TodoMVC built with the polymer.dart package
 version: 0.14.0
 dependencies:
   polymer: any
+dev_dependencies:
+  unittest: any
