@@ -75,6 +75,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 /**
  * Instances of the class {@code AnalysisContextImpl} implement an {@link AnalysisContext analysis
@@ -1057,9 +1058,10 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
    * @throws AnalysisException if any of the modification times could not be determined (this should
    *           not happen)
    */
-  private boolean allModificationTimesMatch(LibraryResolver resolver) throws AnalysisException {
+  private boolean allModificationTimesMatch(Set<Library> resolvedLibraries)
+      throws AnalysisException {
     boolean allTimesMatch = true;
-    for (Library library : resolver.getResolvedLibraries()) {
+    for (Library library : resolvedLibraries) {
       for (Source source : library.getCompilationUnitSources()) {
         DartEntry dartEntry = getReadableDartEntry(source);
         if (dartEntry == null) {
@@ -2351,11 +2353,30 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       // The resolver should only be null if an exception was thrown before (or while) it was
       // being created.
       //
+      Set<Library> resolvedLibraries = resolver.getResolvedLibraries();
+      if (resolvedLibraries == null) {
+        //
+        // The resolved libraries should only be null if an exception was thrown during resolution.
+        //
+        unitEntry = getReadableDartEntry(unitSource);
+        if (unitEntry == null) {
+          throw new AnalysisException("A Dart file became a non-Dart file: "
+              + unitSource.getFullName());
+        }
+        DartEntryImpl dartCopy = unitEntry.getWritableCopy();
+        dartCopy.recordResolutionError();
+        dartCopy.setException(thrownException);
+        cache.put(unitSource, dartCopy);
+        if (thrownException != null) {
+          throw thrownException;
+        }
+        return dartCopy;
+      }
       synchronized (cacheLock) {
-        if (allModificationTimesMatch(resolver)) {
+        if (allModificationTimesMatch(resolvedLibraries)) {
           Source htmlSource = getSourceFactory().forUri(DartSdk.DART_HTML);
           RecordingErrorListener errorListener = resolver.getErrorListener();
-          for (Library library : resolver.getResolvedLibraries()) {
+          for (Library library : resolvedLibraries) {
             Source librarySource = library.getLibrarySource();
             for (Source source : library.getCompilationUnitSources()) {
               CompilationUnit unit = library.getAST(source);
@@ -2397,7 +2418,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
             }
           }
         } else {
-          for (Library library : resolver.getResolvedLibraries()) {
+          for (Library library : resolvedLibraries) {
             for (Source source : library.getCompilationUnitSources()) {
               DartEntry dartEntry = getReadableDartEntry(source);
               if (dartEntry != null) {
@@ -2405,15 +2426,15 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
                 DartEntryImpl dartCopy = dartEntry.getWritableCopy();
                 if (thrownException == null || resultTime >= 0L) {
                   //
-                  // The analysis was performed on out-of-date sources. Mark the cache so that the sources
-                  // will be re-analyzed using the up-to-date sources.
+                  // The analysis was performed on out-of-date sources. Mark the cache so that the
+                  // sources will be re-analyzed using the up-to-date sources.
                   //
                   dartCopy.recordResolutionNotInProcess();
                 } else {
                   //
-                  // We could not determine whether the sources were up-to-date or out-of-date. Mark the
-                  // cache so that we won't attempt to re-analyze the sources until there's a good chance
-                  // that we'll be able to do so without error.
+                  // We could not determine whether the sources were up-to-date or out-of-date. Mark
+                  // the cache so that we won't attempt to re-analyze the sources until there's a
+                  // good chance that we'll be able to do so without error.
                   //
                   dartCopy.recordResolutionError();
                 }
