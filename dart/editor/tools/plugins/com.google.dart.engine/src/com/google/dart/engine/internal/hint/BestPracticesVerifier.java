@@ -37,6 +37,7 @@ import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
+import com.google.dart.engine.type.TypeParameterType;
 
 /**
  * Instances of the class {@code BestPracticesVerifier} traverse an AST structure looking for
@@ -344,7 +345,10 @@ public class BestPracticesVerifier extends RecursiveASTVisitor<Void> {
     TypeName typeName = node.getType();
     Type lhsType = expression.getStaticType();
     Type rhsType = typeName.getType();
+    // TODO(jwren) After dartbug.com/13732, revisit this, we should be able to remove the
+    // !(x instanceof TypeParameterType) checks.
     if (lhsType != null && rhsType != null && !lhsType.isDynamic() && !rhsType.isDynamic()
+        && !(lhsType instanceof TypeParameterType) && !(rhsType instanceof TypeParameterType)
         && lhsType.isSubtypeOf(rhsType)) {
       errorReporter.reportError(HintCode.UNNECESSARY_CAST, node);
       return true;

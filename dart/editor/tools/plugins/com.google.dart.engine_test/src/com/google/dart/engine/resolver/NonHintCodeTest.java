@@ -256,6 +256,23 @@ public class NonHintCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_unnecessaryCast_13855_parameter_A() throws Exception {
+    // dartbug.com/13855, dartbug.com/13732
+    Source source = addSource(createSource(//
+        "class A{",
+        "  a() {}",
+        "}",
+        "class B<E> {",
+        "  E e;",
+        "  m() {",
+        "    (e as A).a();",
+        "  }",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
   public void test_unnecessaryCast_dynamic_type() throws Exception {
     Source source = addSource(createSource(//
         "m(v) {",
