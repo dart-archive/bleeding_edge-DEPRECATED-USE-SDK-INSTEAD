@@ -301,7 +301,7 @@ public class ComplexParserTest extends ParserTestCase {
   }
 
   public void test_relationalExpression_precedence_shift_right() throws Exception {
-    IsExpression expression = parseExpression("x << y & z");
+    IsExpression expression = parseExpression("x << y is z");
     assertInstanceOf(BinaryExpression.class, expression.getExpression());
   }
 
