@@ -313,6 +313,7 @@
                id="com.google.dart.tools.debug.breakpointActions.toggle">
          </action>
       </editorContribution>
+      <!-- TODO update for breakpoints in new HTML editor
       <editorContribution
             targetID="com.google.dart.tools.ui.web.html.HtmlEditor"
             id="com.google.dart.tools.debug.ui.breakpointActions.html">
@@ -323,6 +324,7 @@
                id="com.google.dart.tools.debug.breakpointActions.toggle.html">
          </action>
       </editorContribution>
+      -->
    </extension>
 
    <extension

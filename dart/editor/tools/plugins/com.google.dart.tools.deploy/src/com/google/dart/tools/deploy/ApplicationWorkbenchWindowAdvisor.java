@@ -16,6 +16,8 @@ package com.google.dart.tools.deploy;
 import com.google.dart.tools.core.CmdLineOptions;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.perf.PerfManager;
+import com.google.dart.tools.ui.instrumentation.UIInstrumentation;
+import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.InstanceScope;
@@ -23,6 +25,9 @@ import org.eclipse.jface.preference.IPreferenceNode;
 import org.eclipse.jface.preference.PreferenceManager;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.ui.IEditorReference;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.application.ActionBarAdvisor;
 import org.eclipse.ui.application.IActionBarConfigurer;
@@ -31,6 +36,7 @@ import org.eclipse.ui.application.WorkbenchWindowAdvisor;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 
 /**
  * The WorkbenchWindowAdvisor for the Dart Editor.
@@ -114,6 +120,8 @@ public class ApplicationWorkbenchWindowAdvisor extends WorkbenchWindowAdvisor {
 
     super.postWindowOpen();
 
+    closeOldEditors();
+
     // Turn off the ability to move the toolbars around.
     getWindowConfigurer().getActionBarConfigurer().getCoolBarManager().setLockLayout(true);
   }
@@ -129,6 +137,37 @@ public class ApplicationWorkbenchWindowAdvisor extends WorkbenchWindowAdvisor {
 
     // make sure we always save and restore workspace state
     configurer.getWorkbenchConfigurer().setSaveAndRestore(true);
+  }
+
+  /**
+   * Automatically close editors that are no longer part of Dart Editor.
+   */
+  private void closeOldEditors() {
+    IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+    if (window != null) {
+      IWorkbenchPage page = window.getActivePage();
+      IEditorReference[] editorReferences = page.getEditorReferences();
+      ArrayList<IEditorReference> editorsToClose = new ArrayList<IEditorReference>();
+      for (IEditorReference editorRef : editorReferences) {
+        String editorId = editorRef.getId();
+        if (editorId.equals("com.google.dart.tools.ui.web.html.HtmlEditor")
+            || editorId.equals("com.google.dart.tools.ui.web.xml.XmlEditor")
+            || editorId.equals("com.google.dart.tools.ui.web.css.CssEditor")) {
+          editorsToClose.add(editorRef);
+        }
+      }
+      if (editorsToClose.size() > 0) {
+        UIInstrumentationBuilder instrumentation = UIInstrumentation.builder("closeOldEditors");
+        try {
+          instrumentation.metric("editorsClosed", editorsToClose.size());
+          page.closeEditors(
+              editorsToClose.toArray(new IEditorReference[editorsToClose.size()]),
+              false);
+        } finally {
+          instrumentation.log();
+        }
+      }
+    }
   }
 
   /**
