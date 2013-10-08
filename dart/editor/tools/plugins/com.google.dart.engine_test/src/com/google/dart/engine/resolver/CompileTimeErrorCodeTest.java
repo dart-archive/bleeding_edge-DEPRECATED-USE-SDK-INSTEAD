@@ -147,6 +147,16 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_builtInIdentifierAsMixinName_classTypeAlias() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "class B {}",
+        "class as = A with B;"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME);
+    verify(source);
+  }
+
   public void test_builtInIdentifierAsType_formalParameter_field() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
@@ -174,16 +184,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(source, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE);
-    verify(source);
-  }
-
-  public void test_builtInIdentifierAsTypedefName_classTypeAlias() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {}",
-        "class B {}",
-        "typedef as = A with B;"));
-    resolve(source);
-    assertErrors(source, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME);
     verify(source);
   }
 
@@ -1385,11 +1385,11 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_implementsNonClass_typedef() throws Exception {
+  public void test_implementsNonClass_typeAlias() throws Exception {
     Source source = addSource(createSource(//
         "class A {}",
         "int B;",
-        "typedef C = A implements B;"));
+        "class C = A implements B;"));
     resolve(source);
     assertErrors(source, CompileTimeErrorCode.IMPLEMENTS_NON_CLASS);
     verify(source);
@@ -2072,12 +2072,12 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_mixinDeclaresConstructor_typedef() throws Exception {
+  public void test_mixinDeclaresConstructor_typeAlias() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
         "  A() {}",
         "}",
-        "typedef B = Object with A;"));
+        "class B = Object with A;"));
     resolve(source);
     assertErrors(source, CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR);
     verify(source);
@@ -2103,21 +2103,21 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_mixinInheritsFromNotObject_typedef_extends() throws Exception {
+  public void test_mixinInheritsFromNotObject_typeAlias_extends() throws Exception {
     Source source = addSource(createSource(//
         "class A {}",
         "class B extends A {}",
-        "typedef C = Object with B;"));
+        "class C = Object with B;"));
     resolve(source);
     assertErrors(source, CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT);
     verify(source);
   }
 
-  public void test_mixinInheritsFromNotObject_typedef_with() throws Exception {
+  public void test_mixinInheritsFromNotObject_typeAlias_with() throws Exception {
     Source source = addSource(createSource(//
         "class A {}",
         "class B extends Object with A {}",
-        "typedef C = Object with B;"));
+        "class C = Object with B;"));
     resolve(source);
     assertErrors(source, CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT);
     verify(source);
@@ -2180,11 +2180,11 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_mixinOfNonClass_typedef() throws Exception {
+  public void test_mixinOfNonClass_typeAlias() throws Exception {
     Source source = addSource(createSource(//
         "class A {}",
         "int B;",
-        "typedef C = A with B;"));
+        "class C = A with B;"));
     resolve(source);
     assertErrors(source, CompileTimeErrorCode.MIXIN_OF_NON_CLASS);
     verify(source);
@@ -2211,11 +2211,11 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_mixinWithNonClassSuperclass_typedef() throws Exception {
+  public void test_mixinWithNonClassSuperclass_typeAlias() throws Exception {
     Source source = addSource(createSource(//
         "int A;",
         "class B {}",
-        "typedef C = A with B;"));
+        "class C = A with B;"));
     resolve(source);
     assertErrors(source, CompileTimeErrorCode.MIXIN_WITH_NON_CLASS_SUPERCLASS);
     verify(source);
@@ -2953,11 +2953,11 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_recursiveInterfaceInheritanceBaseCaseImplements_typedef() throws Exception {
+  public void test_recursiveInterfaceInheritanceBaseCaseImplements_typeAlias() throws Exception {
     Source source = addSource(createSource(//
         "class A {}",
         "class M {}",
-        "typedef B = A with M implements B;"));
+        "class B = A with M implements B;"));
     resolve(source);
     assertErrors(source, CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_IMPLEMENTS);
     verify(source);
@@ -3229,7 +3229,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
 
   public void test_typeAliasCannotRereferenceItself_mixin_direct() throws Exception {
     Source source = addSource(createSource(//
-    "typedef M = Object with M;"));
+    "class M = Object with M;"));
     resolve(source);
     assertErrors(source, CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF);
     verify(source);
@@ -3237,8 +3237,8 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
 
   public void test_typeAliasCannotRereferenceItself_mixin_indirect() throws Exception {
     Source source = addSource(createSource(//
-        "typedef M1 = Object with M2;",
-        "typedef M2 = Object with M1;"));
+        "class M1 = Object with M2;",
+        "class M2 = Object with M1;"));
     resolve(source);
     assertErrors(
         source,

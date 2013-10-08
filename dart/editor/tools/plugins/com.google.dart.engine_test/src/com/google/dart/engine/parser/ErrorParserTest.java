@@ -34,6 +34,20 @@ import static com.google.dart.engine.scanner.TokenFactory.token;
  * that errors are correctly reported, and in some cases, not reported.
  */
 public class ErrorParserTest extends ParserTestCase {
+  public void fail_deprecatedClassTypeAlias() throws Exception {
+    // TODO(scheglov) report error when VM and dart2js start to accept new syntax
+    parseCompilationUnit(
+        "typedef C = abstract S with M;",
+        ParserErrorCode.DEPRECATED_CLASS_TYPE_ALIAS);
+  }
+
+  public void fail_deprecatedClassTypeAlias_withGeneric() throws Exception {
+    // TODO(scheglov) report error when VM and dart2js start to accept new syntax
+    parseCompilationUnit(
+        "typedef C<T> = abstract S<T> with M;",
+        ParserErrorCode.DEPRECATED_CLASS_TYPE_ALIAS);
+  }
+
   public void fail_expectedListOrMapLiteral() throws Exception {
     // It isn't clear that this test can ever pass. The parser is currently create a synthetic list
     // literal in this case, but isSynthetic() isn't overridden for ListLiteral. The problem is that
@@ -495,8 +509,8 @@ public class ErrorParserTest extends ParserTestCase {
     parseStatement("void}", ParserErrorCode.EXPECTED_TOKEN, ParserErrorCode.MISSING_IDENTIFIER);
   }
 
-  public void test_expectedToken_semicolonAfterTypedef() throws Exception {
-    Token token = token(Keyword.TYPEDEF);
+  public void test_expectedToken_semicolonAfterClass() throws Exception {
+    Token token = token(Keyword.CLASS);
     parse(
         "parseClassTypeAlias",
         new Object[] {emptyCommentAndMetadata(), token},

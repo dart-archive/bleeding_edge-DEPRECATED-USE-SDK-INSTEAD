@@ -476,7 +476,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "class B {}",
         "class C {}",
         "class G<E extends A> {}",
-        "typedef D = G<B> with C;"));
+        "class D = G<B> with C;"));
     resolve(source);
     assertErrors(source, StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS);
     verify(source);

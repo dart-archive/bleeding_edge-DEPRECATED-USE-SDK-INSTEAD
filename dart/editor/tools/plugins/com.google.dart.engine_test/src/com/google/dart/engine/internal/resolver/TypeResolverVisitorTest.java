@@ -211,7 +211,7 @@ public class TypeResolverVisitorTest extends EngineTestCase {
   }
 
   public void test_visitClassTypeAlias() {
-    // typedef A = B with C implements D;
+    // class A = B with C implements D;
     ClassElement elementA = classElement("A");
     ClassElement elementB = classElement("B");
     ClassElement elementC = classElement("C");

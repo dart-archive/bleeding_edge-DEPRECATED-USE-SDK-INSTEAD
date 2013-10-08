@@ -821,6 +821,32 @@ public class SimpleParserTest extends ParserTestCase {
     assertNull(declaration.getTypeParameters());
   }
 
+  public void test_parseClassDeclaration_typeAlias_implementsC() throws Exception {
+    ClassTypeAlias typeAlias = parse("parseClassDeclaration", new Object[] {
+        emptyCommentAndMetadata(), null}, "class A = Object with B implements C;");
+    assertNotNull(typeAlias.getKeyword());
+    assertNotNull(typeAlias.getName());
+    assertNull(typeAlias.getTypeParameters());
+    assertNotNull(typeAlias.getWithClause());
+    assertNotNull(typeAlias.getImplementsClause());
+    assertNotNull(typeAlias.getImplementsClause().getKeyword());
+    assertEquals(1, typeAlias.getImplementsClause().getInterfaces().size());
+    assertNotNull(typeAlias.getSemicolon());
+  }
+
+  public void test_parseClassDeclaration_typeAlias_withB() throws Exception {
+    ClassTypeAlias typeAlias = parse("parseClassDeclaration", new Object[] {
+        emptyCommentAndMetadata(), null}, "class A = Object with B;");
+    assertNotNull(typeAlias.getKeyword());
+    assertNotNull(typeAlias.getName());
+    assertNull(typeAlias.getTypeParameters());
+    assertNotNull(typeAlias.getWithClause());
+    assertNotNull(typeAlias.getWithClause().getWithKeyword());
+    assertEquals(1, typeAlias.getWithClause().getMixinTypes().size());
+    assertNull(typeAlias.getImplementsClause());
+    assertNotNull(typeAlias.getSemicolon());
+  }
+
   public void test_parseClassDeclaration_typeParameters() throws Exception {
     ClassDeclaration declaration = parse("parseClassDeclaration", new Object[] {
         emptyCommentAndMetadata(), null}, "class A<B> {}");
@@ -1147,7 +1173,7 @@ public class SimpleParserTest extends ParserTestCase {
   }
 
   public void test_parseClassTypeAlias() throws Exception {
-    Token token = token(Keyword.TYPEDEF);
+    Token token = token(Keyword.CLASS);
     ClassTypeAlias classTypeAlias = parse("parseClassTypeAlias", new Object[] {
         emptyCommentAndMetadata(), token}, "A = B;");
     assertNotNull(classTypeAlias.getKeyword());
@@ -1161,7 +1187,7 @@ public class SimpleParserTest extends ParserTestCase {
   }
 
   public void test_parseClassTypeAlias_abstract() throws Exception {
-    Token token = token(Keyword.TYPEDEF);
+    Token token = token(Keyword.CLASS);
     ClassTypeAlias classTypeAlias = parse("parseClassTypeAlias", new Object[] {
         emptyCommentAndMetadata(), token}, "A = abstract B;");
     assertNotNull(classTypeAlias.getKeyword());
@@ -1175,7 +1201,7 @@ public class SimpleParserTest extends ParserTestCase {
   }
 
   public void test_parseClassTypeAlias_implements() throws Exception {
-    Token token = token(Keyword.TYPEDEF);
+    Token token = token(Keyword.CLASS);
     ClassTypeAlias classTypeAlias = parse("parseClassTypeAlias", new Object[] {
         emptyCommentAndMetadata(), token}, "A = B implements C;");
     assertNotNull(classTypeAlias.getKeyword());
@@ -1189,7 +1215,7 @@ public class SimpleParserTest extends ParserTestCase {
   }
 
   public void test_parseClassTypeAlias_with() throws Exception {
-    Token token = token(Keyword.TYPEDEF);
+    Token token = token(Keyword.CLASS);
     ClassTypeAlias classTypeAlias = parse("parseClassTypeAlias", new Object[] {
         emptyCommentAndMetadata(), token}, "A = B with C;");
     assertNotNull(classTypeAlias.getKeyword());
@@ -1203,7 +1229,7 @@ public class SimpleParserTest extends ParserTestCase {
   }
 
   public void test_parseClassTypeAlias_with_implements() throws Exception {
-    Token token = token(Keyword.TYPEDEF);
+    Token token = token(Keyword.CLASS);
     ClassTypeAlias classTypeAlias = parse("parseClassTypeAlias", new Object[] {
         emptyCommentAndMetadata(), token}, "A = B with C implements D;");
     assertNotNull(classTypeAlias.getKeyword());
@@ -1712,11 +1738,11 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(declaration.getPropertyKeyword());
   }
 
-  public void test_parseCompilationUnitMember_typedef_class_abstract() throws Exception {
+  public void test_parseCompilationUnitMember_typeAlias_abstract() throws Exception {
     ClassTypeAlias typeAlias = parse(
         "parseCompilationUnitMember",
         new Object[] {emptyCommentAndMetadata()},
-        "typedef C = abstract S with M;");
+        "class C = abstract S with M;");
     assertNotNull(typeAlias.getKeyword());
     assertEquals("C", typeAlias.getName().getName());
     assertNull(typeAlias.getTypeParameters());
@@ -1728,11 +1754,11 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(typeAlias.getSemicolon());
   }
 
-  public void test_parseCompilationUnitMember_typedef_class_generic() throws Exception {
+  public void test_parseCompilationUnitMember_typeAlias_generic() throws Exception {
     ClassTypeAlias typeAlias = parse(
         "parseCompilationUnitMember",
         new Object[] {emptyCommentAndMetadata()},
-        "typedef C<E> = S<E> with M<E> implements I<E>;");
+        "class C<E> = S<E> with M<E> implements I<E>;");
     assertNotNull(typeAlias.getKeyword());
     assertEquals("C", typeAlias.getName().getName());
     assertSize(1, typeAlias.getTypeParameters().getTypeParameters());
@@ -1744,11 +1770,11 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(typeAlias.getSemicolon());
   }
 
-  public void test_parseCompilationUnitMember_typedef_class_implements() throws Exception {
+  public void test_parseCompilationUnitMember_typeAlias_implements() throws Exception {
     ClassTypeAlias typeAlias = parse(
         "parseCompilationUnitMember",
         new Object[] {emptyCommentAndMetadata()},
-        "typedef C = S with M implements I;");
+        "class C = S with M implements I;");
     assertNotNull(typeAlias.getKeyword());
     assertEquals("C", typeAlias.getName().getName());
     assertNull(typeAlias.getTypeParameters());
@@ -1760,11 +1786,11 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(typeAlias.getSemicolon());
   }
 
-  public void test_parseCompilationUnitMember_typedef_class_noImplements() throws Exception {
+  public void test_parseCompilationUnitMember_typeAlias_noImplements() throws Exception {
     ClassTypeAlias typeAlias = parse(
         "parseCompilationUnitMember",
         new Object[] {emptyCommentAndMetadata()},
-        "typedef C = S with M;");
+        "class C = S with M;");
     assertNotNull(typeAlias.getKeyword());
     assertEquals("C", typeAlias.getName().getName());
     assertNull(typeAlias.getTypeParameters());
@@ -1776,7 +1802,7 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(typeAlias.getSemicolon());
   }
 
-  public void test_parseCompilationUnitMember_typedef_function() throws Exception {
+  public void test_parseCompilationUnitMember_typedef() throws Exception {
     FunctionTypeAlias typeAlias = parse(
         "parseCompilationUnitMember",
         new Object[] {emptyCommentAndMetadata()},
@@ -4159,36 +4185,6 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(clause.getBody());
     assertNotNull(statement.getFinallyKeyword());
     assertNotNull(statement.getFinallyBlock());
-  }
-
-  public void test_parseTypeAlias_class_implementsC() throws Exception {
-    ClassTypeAlias typeAlias = parse(
-        "parseTypeAlias",
-        new Object[] {emptyCommentAndMetadata()},
-        "typedef A = Object with B implements C;");
-    assertNotNull(typeAlias.getKeyword());
-    assertNotNull(typeAlias.getName());
-    assertNull(typeAlias.getTypeParameters());
-    assertNotNull(typeAlias.getWithClause());
-    assertNotNull(typeAlias.getImplementsClause());
-    assertNotNull(typeAlias.getImplementsClause().getKeyword());
-    assertEquals(1, typeAlias.getImplementsClause().getInterfaces().size());
-    assertNotNull(typeAlias.getSemicolon());
-  }
-
-  public void test_parseTypeAlias_class_withB() throws Exception {
-    ClassTypeAlias typeAlias = parse(
-        "parseTypeAlias",
-        new Object[] {emptyCommentAndMetadata()},
-        "typedef A = Object with B;");
-    assertNotNull(typeAlias.getKeyword());
-    assertNotNull(typeAlias.getName());
-    assertNull(typeAlias.getTypeParameters());
-    assertNotNull(typeAlias.getWithClause());
-    assertNotNull(typeAlias.getWithClause().getWithKeyword());
-    assertEquals(1, typeAlias.getWithClause().getMixinTypes().size());
-    assertNull(typeAlias.getImplementsClause());
-    assertNotNull(typeAlias.getSemicolon());
   }
 
   public void test_parseTypeAlias_function_noParameters() throws Exception {

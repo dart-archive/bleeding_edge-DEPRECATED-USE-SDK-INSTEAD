@@ -417,11 +417,11 @@ public class RenameUnitMemberRefactoringImplTest extends RenameRefactoringImplTe
             "}"));
   }
 
-  public void test_createChange_ClassElement_typedef() throws Exception {
+  public void test_createChange_ClassElement_typeAlias() throws Exception {
     indexTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {}",
-        "typedef Test = Object with A;",
+        "class Test = Object with A;",
         "f(Test t) {",
         "}");
     // configure refactoring
@@ -432,7 +432,7 @@ public class RenameUnitMemberRefactoringImplTest extends RenameRefactoringImplTe
     assertSuccessfulRename(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {}",
-        "typedef NewName = Object with A;",
+        "class NewName = Object with A;",
         "f(NewName t) {",
         "}");
   }

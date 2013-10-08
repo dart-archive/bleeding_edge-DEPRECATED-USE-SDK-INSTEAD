@@ -288,13 +288,13 @@ public class ToSourceVisitorTest extends EngineTestCase {
 
   public void test_visitClassTypeAlias_abstract() {
     assertSource(
-        "typedef C = abstract S with M1;",
+        "class C = abstract S with M1;",
         classTypeAlias("C", null, Keyword.ABSTRACT, typeName("S"), withClause(typeName("M1")), null));
   }
 
   public void test_visitClassTypeAlias_abstract_implements() {
     assertSource(
-        "typedef C = abstract S with M1 implements I;",
+        "class C = abstract S with M1 implements I;",
         classTypeAlias(
             "C",
             null,
@@ -306,7 +306,7 @@ public class ToSourceVisitorTest extends EngineTestCase {
 
   public void test_visitClassTypeAlias_generic() {
     assertSource(
-        "typedef C<E> = S<E> with M1<E>;",
+        "class C<E> = S<E> with M1<E>;",
         classTypeAlias(
             "C",
             typeParameterList("E"),
@@ -318,7 +318,7 @@ public class ToSourceVisitorTest extends EngineTestCase {
 
   public void test_visitClassTypeAlias_implements() {
     assertSource(
-        "typedef C = S with M1 implements I;",
+        "class C = S with M1 implements I;",
         classTypeAlias(
             "C",
             null,
@@ -330,13 +330,13 @@ public class ToSourceVisitorTest extends EngineTestCase {
 
   public void test_visitClassTypeAlias_minimal() {
     assertSource(
-        "typedef C = S with M1;",
+        "class C = S with M1;",
         classTypeAlias("C", null, null, typeName("S"), withClause(typeName("M1")), null));
   }
 
   public void test_visitClassTypeAlias_parameters_abstract() {
     assertSource(
-        "typedef C<E> = abstract S with M1;",
+        "class C<E> = abstract S with M1;",
         classTypeAlias(
             "C",
             typeParameterList("E"),
@@ -348,7 +348,7 @@ public class ToSourceVisitorTest extends EngineTestCase {
 
   public void test_visitClassTypeAlias_parameters_abstract_implements() {
     assertSource(
-        "typedef C<E> = abstract S with M1 implements I;",
+        "class C<E> = abstract S with M1 implements I;",
         classTypeAlias(
             "C",
             typeParameterList("E"),
@@ -360,7 +360,7 @@ public class ToSourceVisitorTest extends EngineTestCase {
 
   public void test_visitClassTypeAlias_parameters_implements() {
     assertSource(
-        "typedef C<E> = S with M1 implements I;",
+        "class C<E> = S with M1 implements I;",
         classTypeAlias(
             "C",
             typeParameterList("E"),

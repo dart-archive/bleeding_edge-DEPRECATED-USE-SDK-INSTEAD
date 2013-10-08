@@ -236,7 +236,7 @@ public class IndexContributorTest extends AbstractDartTest {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class Mix {}",
-        "typedef MyClass = Object with Mix;");
+        "class MyClass = Object with Mix;");
     Element classElement = findElement("MyClass =");
     // index
     index.visitCompilationUnit(testUnit);
@@ -580,7 +580,7 @@ public class IndexContributorTest extends AbstractDartTest {
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {} // 1",
         "class B {} // 2",
-        "typedef C = A with B; // 3",
+        "class C = A with B; // 3",
         "");
     // prepare elements
     ClassElement classElementA = findElement("A {} // 1");
@@ -623,7 +623,7 @@ public class IndexContributorTest extends AbstractDartTest {
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {} // 1",
         "class B {} // 2",
-        "typedef C = Object with A implements B; // 3",
+        "class C = Object with A implements B; // 3",
         "");
     // prepare elements
     ClassElement classElementB = findElement("B {} // 2");
@@ -735,7 +735,7 @@ public class IndexContributorTest extends AbstractDartTest {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {} // 1",
-        "typedef C = Object with A; // 2",
+        "class C = Object with A; // 2",
         "");
     // prepare elements
     ClassElement classElementA = findElement("A {} // 1");
@@ -912,7 +912,7 @@ public class IndexContributorTest extends AbstractDartTest {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {}",
-        "typedef B = Object with A;",
+        "class B = Object with A;",
         "topLevelFunction(B p) {",
         "  B v;",
         "}");
@@ -1038,6 +1038,26 @@ public class IndexContributorTest extends AbstractDartTest {
           IndexConstants.IS_REFERENCED_BY,
           new ExpectedLocation(mainElement, findOffset("foo());"), "foo"));
     }
+  }
+
+  public void test_isReferencedBy_FunctionTypeAliasElement() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "typedef A();",
+        "main2(A p) {",
+        "}");
+    // prepare elements
+    ParameterElement pElement = findElement("p) {");
+    FunctionTypeAliasElement classElementA = findElement("A();");
+    // index
+    index.visitCompilationUnit(testUnit);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    assertRecordedRelation(
+        relations,
+        classElementA,
+        IndexConstants.IS_REFERENCED_BY,
+        new ExpectedLocation(pElement, findOffset("A p)"), "A"));
   }
 
   /**
@@ -1356,26 +1376,6 @@ public class IndexContributorTest extends AbstractDartTest {
         parameterElement,
         IndexConstants.IS_REFERENCED_BY,
         new ExpectedLocation(mainElement, findOffset("p: 1"), "p"));
-  }
-
-  public void test_isReferencedBy_TypeAliasElement() throws Exception {
-    parseTestUnit(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "typedef A();",
-        "main2(A p) {",
-        "}");
-    // prepare elements
-    ParameterElement pElement = findElement("p) {");
-    FunctionTypeAliasElement classElementA = findElement("A();");
-    // index
-    index.visitCompilationUnit(testUnit);
-    // verify
-    List<RecordedRelation> relations = captureRecordedRelations();
-    assertRecordedRelation(
-        relations,
-        classElementA,
-        IndexConstants.IS_REFERENCED_BY,
-        new ExpectedLocation(pElement, findOffset("A p)"), "A"));
   }
 
   public void test_isReferencedBy_typeInVariableList() throws Exception {

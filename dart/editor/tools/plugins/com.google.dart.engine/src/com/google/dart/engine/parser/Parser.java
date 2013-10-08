@@ -1397,7 +1397,8 @@ public class Parser {
    * 
    * <pre>
    * classDeclaration ::=
-   *     metadata 'abstract'? 'class' name typeParameterList? (extendsClause withClause?)? implementsClause? '{' classMembers '}'
+   *     metadata 'abstract'? 'class' name typeParameterList? (extendsClause withClause?)? implementsClause? '{' classMembers '}' |
+   *     metadata 'abstract'? 'class' mixinApplicationClass
    * </pre>
    * 
    * @param commentAndMetadata the metadata to be associated with the member
@@ -1405,11 +1406,25 @@ public class Parser {
    *          not given
    * @return the class declaration that was parsed
    */
-  private ClassDeclaration parseClassDeclaration(CommentAndMetadata commentAndMetadata,
+  private CompilationUnitMember parseClassDeclaration(CommentAndMetadata commentAndMetadata,
       Token abstractKeyword) {
     Token keyword = expect(Keyword.CLASS);
+
+    if (matchesIdentifier()) {
+      Token next = peek();
+      if (matches(next, TokenType.LT)) {
+        next = skipTypeParameterList(next);
+        if (next != null && matches(next, TokenType.EQ)) {
+          return parseClassTypeAlias(commentAndMetadata, keyword);
+        }
+      } else if (matches(next, TokenType.EQ)) {
+        return parseClassTypeAlias(commentAndMetadata, keyword);
+      }
+    }
+
     SimpleIdentifier name = parseSimpleIdentifier();
     String className = name.getName();
+
     TypeParameterList typeParameters = null;
     if (matches(TokenType.LT)) {
       typeParameters = parseTypeParameterList();
@@ -5186,10 +5201,16 @@ public class Parser {
       if (matches(next, TokenType.LT)) {
         next = skipTypeParameterList(next);
         if (next != null && matches(next, TokenType.EQ)) {
-          return parseClassTypeAlias(commentAndMetadata, keyword);
+          TypeAlias typeAlias = parseClassTypeAlias(commentAndMetadata, keyword);
+          // TODO(scheglov) report error when VM and dart2js start to accept new syntax
+//          reportError(ParserErrorCode.DEPRECATED_CLASS_TYPE_ALIAS, keyword);
+          return typeAlias;
         }
       } else if (matches(next, TokenType.EQ)) {
-        return parseClassTypeAlias(commentAndMetadata, keyword);
+        TypeAlias typeAlias = parseClassTypeAlias(commentAndMetadata, keyword);
+        // TODO(scheglov) report error when VM and dart2js start to accept new syntax
+//        reportError(ParserErrorCode.DEPRECATED_CLASS_TYPE_ALIAS, keyword);
+        return typeAlias;
       }
     }
     return parseFunctionTypeAlias(commentAndMetadata, keyword);

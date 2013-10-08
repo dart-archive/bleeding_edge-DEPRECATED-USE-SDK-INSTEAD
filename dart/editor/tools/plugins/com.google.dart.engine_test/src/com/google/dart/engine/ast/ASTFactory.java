@@ -199,7 +199,7 @@ public final class ASTFactory {
     return new ClassTypeAlias(
         null,
         null,
-        token(Keyword.TYPEDEF),
+        token(Keyword.CLASS),
         identifier(name),
         typeParameters,
         token(TokenType.EQ),
