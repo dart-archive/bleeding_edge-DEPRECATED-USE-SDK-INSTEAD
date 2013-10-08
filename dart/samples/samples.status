@@ -23,7 +23,6 @@ third_party/todomvc: Pass, Fail, Timeout # Flaky? Issue 12865
 
 [ $runtime == safari ]
 promise_based_test: Skip
-third_party/todomvc: Pass, Fail # Flaky? Issue 12865
 
 [ $system == windows && $runtime == ff ]
 third_party/todomvc: Pass, Timeout # Issue 13260
