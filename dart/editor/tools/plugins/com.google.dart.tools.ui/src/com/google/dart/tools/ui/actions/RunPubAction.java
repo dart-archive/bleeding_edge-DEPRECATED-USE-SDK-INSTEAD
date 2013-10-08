@@ -48,7 +48,7 @@ public class RunPubAction extends InstrumentedSelectionDispatchAction {
 
   public static RunPubAction createPubDeployAction(IWorkbenchWindow window) {
     RunPubAction action = new RunPubAction(window, RunPubJob.DEPLOY_COMMAND);
-    action.setText(NLS.bind(ActionMessages.RunPubAction_commandText, "Deploy"));
+    action.setText(NLS.bind(ActionMessages.RunPubAction_commandText, "Build"));
     action.setDescription(NLS.bind(
         ActionMessages.RunPubAction_commandDesc,
         RunPubJob.DEPLOY_COMMAND));
@@ -57,7 +57,7 @@ public class RunPubAction extends InstrumentedSelectionDispatchAction {
 
   public static RunPubAction createPubInstallAction(IWorkbenchWindow window) {
     RunPubAction action = new RunPubAction(window, RunPubJob.INSTALL_COMMAND);
-    action.setText(NLS.bind(ActionMessages.RunPubAction_commandText, "Install"));
+    action.setText(NLS.bind(ActionMessages.RunPubAction_commandText, "Get"));
     action.setDescription(NLS.bind(
         ActionMessages.RunPubAction_commandDesc,
         RunPubJob.INSTALL_COMMAND));
@@ -66,7 +66,7 @@ public class RunPubAction extends InstrumentedSelectionDispatchAction {
 
   public static RunPubAction createPubInstallOfflineAction(IWorkbenchWindow window) {
     RunPubAction action = new RunPubAction(window, RunPubJob.INSTALL_OFFLINE_COMMAND);
-    action.setText(NLS.bind(ActionMessages.RunPubAction_commandText, "Install Offline"));
+    action.setText(NLS.bind(ActionMessages.RunPubAction_commandText, "Get Offline"));
     action.setDescription(NLS.bind(
         ActionMessages.RunPubAction_commandDesc,
         RunPubJob.INSTALL_COMMAND));
@@ -75,7 +75,7 @@ public class RunPubAction extends InstrumentedSelectionDispatchAction {
 
   public static RunPubAction createPubUpdateAction(IWorkbenchWindow window) {
     RunPubAction action = new RunPubAction(window, RunPubJob.UPDATE_COMMAND);
-    action.setText(NLS.bind(ActionMessages.RunPubAction_commandText, "Update"));
+    action.setText(NLS.bind(ActionMessages.RunPubAction_commandText, "Upgrade"));
     action.setDescription(NLS.bind(
         ActionMessages.RunPubAction_commandDesc,
         RunPubJob.UPDATE_COMMAND));

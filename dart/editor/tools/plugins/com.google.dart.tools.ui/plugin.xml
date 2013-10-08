@@ -1173,15 +1173,15 @@
       </command>
       <command
             defaultHandler="com.google.dart.tools.ui.internal.handlers.PubInstallHandler"
-            description="Runs pub install "
+            description="Runs pub get"
             id="com.google.dart.tools.ui.commands.pubInstall"
-            name="Pub Install">
+            name="Pub Get">
       </command>
       <command
             defaultHandler="com.google.dart.tools.ui.internal.handlers.PubUpdateHandler"
-            description="Runs pub update"
+            description="Runs pub upgrade"
             id="com.google.dart.tools.ui.commands.pubUpdate"
-            name="Pub Update">
+            name="Pub Upgrade">
       </command>
       <command
             defaultHandler="com.google.dart.tools.ui.internal.handlers.RunScriptHandler"

@@ -241,7 +241,7 @@ public class OverviewFormPage extends FormPage implements IModelListener {
     GridLayoutFactory.fillDefaults().spacing(15, 5).applyTo(links);
 
     ImageHyperlink saveActionText = toolkit.createImageHyperlink(links, SWT.NONE);
-    saveActionText.setText("Run Pub install");
+    saveActionText.setText("Run Pub get");
     saveActionText.setImage(DartWebPlugin.getImage("pubspec.png"));
     saveActionText.addHyperlinkListener(new HyperlinkAdapter() {
       @Override
@@ -258,7 +258,7 @@ public class OverviewFormPage extends FormPage implements IModelListener {
     });
 
     ImageHyperlink deployActionText = toolkit.createImageHyperlink(links, SWT.NONE);
-    deployActionText.setText("Run pub deploy");
+    deployActionText.setText("Run pub build");
     deployActionText.setImage(DartWebPlugin.getImage("package_obj.gif"));
     deployActionText.addHyperlinkListener(new HyperlinkAdapter() {
       @Override

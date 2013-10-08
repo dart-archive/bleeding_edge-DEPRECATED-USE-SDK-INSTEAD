@@ -31,11 +31,11 @@ import java.util.List;
  */
 public class RunPubJob extends Job {
 
-  public static final String UPDATE_COMMAND = "update"; //$NON-NLS-1$
-  public static final String INSTALL_COMMAND = "install"; //$NON-NLS-1$
-  public static final String INSTALL_OFFLINE_COMMAND = "install --offline"; //$NON-NLS-1$
+  public static final String UPDATE_COMMAND = "upgrade"; //$NON-NLS-1$
+  public static final String INSTALL_COMMAND = "get"; //$NON-NLS-1$
+  public static final String INSTALL_OFFLINE_COMMAND = "get --offline"; //$NON-NLS-1$
   public static final String PUBLISH_COMMAND = "publish"; //$NON-NLS-1$
-  public static final String DEPLOY_COMMAND = "deploy"; //$NON-NLS-1$
+  public static final String DEPLOY_COMMAND = "build"; //$NON-NLS-1$
 
   /**
    * The pub command to be run (e.g. "install", "update")

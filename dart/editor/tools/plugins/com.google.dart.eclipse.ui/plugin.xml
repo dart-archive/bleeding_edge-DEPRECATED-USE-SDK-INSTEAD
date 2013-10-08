@@ -314,9 +314,9 @@
           
           <command
                 commandId="com.google.dart.tools.ui.commands.pubInstall"
-                label="Pub Install"
+                label="Pub Get"
                 style="push"
-                tooltip="Run pub install">
+                tooltip="Run pub get">
              <visibleWhen
                    checkEnabled="false">
                 <with
@@ -331,9 +331,9 @@
           </command>
           <command
                 commandId="com.google.dart.tools.ui.commands.pubUpdate"
-                label="Pub Update"
+                label="Pub Upgrade"
                 style="push"
-                tooltip="Run pub update">
+                tooltip="Run pub upgrade">
              <visibleWhen
                    checkEnabled="false">
                 <with
@@ -353,9 +353,9 @@
             locationURI="popup:org.eclipse.ui.navigator.ProjectExplorer#PopupMenu?after=group.generate">
          <command
                commandId="com.google.dart.tools.ui.commands.pubInstall"
-               label="Pub Install"
+               label="Pub Get"
                style="push"
-               tooltip="Run pub install">
+               tooltip="Run pub get">
                  <visibleWhen
                   checkEnabled="false">
                   <with
@@ -379,9 +379,9 @@
          </command>
          <command
                commandId="com.google.dart.tools.ui.commands.pubUpdate"
-               label="Pub Update"
+               label="Pub Upgrade"
                style="push"
-               tooltip="Run pub update">
+               tooltip="Run pub upgrade">
                  <visibleWhen
                   checkEnabled="false">
                   <with
