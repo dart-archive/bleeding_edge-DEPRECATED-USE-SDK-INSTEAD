@@ -83,7 +83,7 @@ public class RunInBrowserPropertyTester extends PropertyTester {
         List<String> list = DartHtmlScriptHelper.getNonDartScripts(contents);
         if (!list.isEmpty()) {
           for (String string : list) {
-            if (string.contains("polymer/boot.js")) {
+            if (string != null && string.contains("polymer/boot.js")) {
               return true;
             }
           }
