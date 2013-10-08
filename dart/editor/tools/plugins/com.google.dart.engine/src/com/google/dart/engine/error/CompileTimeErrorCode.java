@@ -171,6 +171,14 @@ public enum CompileTimeErrorCode implements ErrorCode {
   CONST_INSTANCE_FIELD("Only static fields can be declared as 'const'"),
 
   /**
+   * 12.8 Maps: It is a compile-time error if the key of an entry in a constant map literal is an
+   * instance of a class that implements the operator <i>==</i> unless the key is a string or
+   * integer.
+   */
+  CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS(
+      "The constant map entry key expression type '%s' cannot override the == operator"),
+
+  /**
    * 5 Variables: A constant variable must be initialized to a compile-time constant (12.1) or a
    * compile-time error occurs.
    * 

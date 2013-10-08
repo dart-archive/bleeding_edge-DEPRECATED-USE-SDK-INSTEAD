@@ -556,6 +556,37 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_constMapKeyTypeImplementsEquals_direct() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  const A();",
+        "  operator ==(other) => false;",
+        "}",
+        "main() {",
+        "  const {const A() : 0};",
+        "}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS);
+    verify(source);
+  }
+
+  public void test_constMapKeyTypeImplementsEquals_super() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  const A();",
+        "  operator ==(other) => false;",
+        "}",
+        "class B extends A {",
+        "  const B();",
+        "}",
+        "main() {",
+        "  const {const B() : 0};",
+        "}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS);
+    verify(source);
+  }
+
   public void test_constWithInvalidTypeParameters() throws Exception {
     Source source = addSource(createSource(//
         "class A {",

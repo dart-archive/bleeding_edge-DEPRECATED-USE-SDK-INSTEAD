@@ -747,6 +747,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     }
     checkForNonConstMapAsExpressionStatement(node);
     checkForMapTypeNotAssignable(node);
+    checkForConstMapKeyExpressionTypeImplementsEquals(node);
     return super.visitMapLiteral(node);
   }
 
@@ -1979,27 +1980,14 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * @see CompileTimeErrorCode#CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS
    */
   private boolean checkForCaseExpressionTypeImplementsEquals(SwitchStatement node, Type type) {
-    // if the type is int or String, exit this check quickly
-    if (type == null || type.equals(typeProvider.getIntType())
-        || type.equals(typeProvider.getStringType())) {
-      return false;
-    }
-    // prepare ClassElement
-    Element element = type.getElement();
-    if (!(element instanceof ClassElement)) {
-      return false;
-    }
-    ClassElement classElement = (ClassElement) element;
-    // OK, no ==
-    MethodElement method = classElement.lookUpMethod("==", currentLibrary);
-    if (method == null || method.getEnclosingElement().getType().isObject()) {
+    if (!implementsEqualsWhenNotAllowed(type)) {
       return false;
     }
     // report error
     errorReporter.reportError(
         CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
         node.getKeyword(),
-        element.getDisplayName());
+        type.getDisplayName());
     return true;
   }
 
@@ -2392,6 +2380,49 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       return true;
     }
     return false;
+  }
+
+  /**
+   * This verifies that the passed expression (used as a key in constant map) has class type that
+   * does not declare operator <i>==<i>.
+   * 
+   * @param key the expression to evaluate
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS
+   */
+  private boolean checkForConstMapKeyExpressionTypeImplementsEquals(Expression key) {
+    Type type = key.getStaticType();
+    if (!implementsEqualsWhenNotAllowed(type)) {
+      return false;
+    }
+    // report error
+    errorReporter.reportError(
+        CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
+        key,
+        type.getDisplayName());
+    return true;
+  }
+
+  /**
+   * This verifies that the all keys of the passed map literal have class type that does not declare
+   * operator <i>==<i>.
+   * 
+   * @param key the map literal to evaluate
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS
+   */
+  private boolean checkForConstMapKeyExpressionTypeImplementsEquals(MapLiteral node) {
+    // OK, not const.
+    if (node.getConstKeyword() == null) {
+      return false;
+    }
+    // Check every map entry.
+    boolean hasProblems = false;
+    for (MapLiteralEntry entry : node.getEntries()) {
+      Expression key = entry.getKey();
+      hasProblems |= checkForConstMapKeyExpressionTypeImplementsEquals(key);
+    }
+    return hasProblems;
   }
 
   /**
@@ -4959,6 +4990,31 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       });
       checked.add(current);
     }
+  }
+
+  /**
+   * @return {@code true} if given {@link Type} implements operator <i>==</i>, and it is not
+   *         <i>int</i> or <i>String</i>.
+   */
+  private boolean implementsEqualsWhenNotAllowed(Type type) {
+    // ignore int or String
+    if (type == null || type.equals(typeProvider.getIntType())
+        || type.equals(typeProvider.getStringType())) {
+      return false;
+    }
+    // prepare ClassElement
+    Element element = type.getElement();
+    if (!(element instanceof ClassElement)) {
+      return false;
+    }
+    ClassElement classElement = (ClassElement) element;
+    // lookup for ==
+    MethodElement method = classElement.lookUpMethod("==", currentLibrary);
+    if (method == null || method.getEnclosingElement().getType().isObject()) {
+      return false;
+    }
+    // there is == that we don't like
+    return true;
   }
 
   private boolean isFunctionType(Type type) {
