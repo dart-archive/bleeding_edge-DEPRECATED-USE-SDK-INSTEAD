@@ -23,6 +23,7 @@ import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -114,7 +115,11 @@ public class DeployPolymerAppHandler extends AbstractHandler {
 
     console.printSeparator("build.dart --deploy");
     console.print(stringBuilder.toString());
-
+    try {
+      buildFile.getProject().refreshLocal(IResource.DEPTH_INFINITE, null);
+    } catch (CoreException e) {
+      // do nothing
+    }
   }
 
 }
