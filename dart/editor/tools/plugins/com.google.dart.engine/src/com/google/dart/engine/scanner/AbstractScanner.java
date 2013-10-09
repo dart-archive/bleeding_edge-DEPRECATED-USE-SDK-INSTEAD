@@ -74,13 +74,18 @@ public abstract class AbstractScanner {
   /**
    * A list containing the offsets of the first character of each line in the source code.
    */
-  private IntList lineStarts = new IntList();
+  private IntList lineStarts = new IntList(1024);
 
   /**
    * A list, treated something like a stack, of tokens representing the beginning of a matched pair.
    * It is used to pair the end tokens with the begin tokens.
    */
-  private List<BeginToken> groupingStack = new ArrayList<BeginToken>();
+  private List<BeginToken> groupingStack = new ArrayList<BeginToken>(128);
+
+  /**
+   * The index of the last item in the {@link #groupingStack}, or {@code -1} if the stack is empty.
+   */
+  private int stackEnd = -1;
 
   /**
    * A flag indicating whether any unmatched groups were found during the parse.
@@ -202,6 +207,7 @@ public abstract class AbstractScanner {
     }
     tail = tail.setNext(token);
     groupingStack.add(token);
+    stackEnd++;
   }
 
   private void appendCommentToken(TokenType type, String value) {
@@ -223,12 +229,11 @@ public abstract class AbstractScanner {
       lastComment = null;
     }
     tail = tail.setNext(token);
-    int last = groupingStack.size() - 1;
-    if (last >= 0) {
-      BeginToken begin = groupingStack.get(last);
+    if (stackEnd >= 0) {
+      BeginToken begin = groupingStack.get(stackEnd);
       if (begin.getType() == beginType) {
         begin.setEndToken(token);
-        groupingStack.remove(last);
+        groupingStack.remove(stackEnd--);
       }
     }
   }
@@ -245,7 +250,7 @@ public abstract class AbstractScanner {
     // The EOF token points to itself so that there is always infinite look-ahead.
     eofToken.setNext(eofToken);
     tail = tail.setNext(eofToken);
-    if (!groupingStack.isEmpty()) {
+    if (stackEnd >= 0) {
       hasUnmatchedGroups = true;
       // TODO(brianwilkerson) Fix the ungrouped tokens?
     }
@@ -491,16 +496,14 @@ public abstract class AbstractScanner {
    * @return the token to be paired with the closing brace
    */
   private BeginToken findTokenMatchingClosingBraceInInterpolationExpression() {
-    int last = groupingStack.size() - 1;
-    while (last >= 0) {
-      BeginToken begin = groupingStack.get(last);
+    while (stackEnd >= 0) {
+      BeginToken begin = groupingStack.get(stackEnd);
       if (begin.getType() == TokenType.OPEN_CURLY_BRACKET
           || begin.getType() == TokenType.STRING_INTERPOLATION_EXPRESSION) {
         return begin;
       }
       hasUnmatchedGroups = true;
-      groupingStack.remove(last);
-      last--;
+      groupingStack.remove(stackEnd--);
     }
     //
     // We should never get to this point because we wouldn't be inside a string interpolation

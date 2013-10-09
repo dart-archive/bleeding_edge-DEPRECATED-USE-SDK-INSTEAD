@@ -55,7 +55,7 @@ public class IntList {
   public void add(int value) {
     int length = values.length;
     if (count >= length) {
-      int[] newValues = new int[length + 64];
+      int[] newValues = new int[(length * 3) / 2 + 1];
       System.arraycopy(values, 0, newValues, 0, length);
       values = newValues;
     }
