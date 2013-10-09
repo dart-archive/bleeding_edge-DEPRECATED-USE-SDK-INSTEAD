@@ -273,6 +273,155 @@ public class NonHintCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_undefinedGetter_inSubtype() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "class B extends A {",
+        "  get b => 0;",
+        "}",
+        "f(var a) {",
+        "  if(a is A) {",
+        "    return a.b;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+  }
+
+  public void test_undefinedMethod_assignmentExpression_inSubtype() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "class B extends A {",
+        "  operator +(B b) {return new B();}",
+        "}",
+        "f(var a, var a2) {",
+        "  a = new A();",
+        "  a2 = new A();",
+        "  a += a2;",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+  }
+
+  public void test_undefinedMethod_inSubtype() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "class B extends A {",
+        "  b() {}",
+        "}",
+        "f() {",
+        "  var a = new A();",
+        "  a.b();",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+  }
+
+  public void test_undefinedOperator_binaryExpression_inSubtype() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "class B extends A {",
+        "  operator +(B b) {}",
+        "}",
+        "f(var a) {",
+        "  if(a is A) {",
+        "    a + 1;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+  }
+
+  public void test_undefinedOperator_indexBoth_inSubtype() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "class B extends A {",
+        "  operator [](int index) {}",
+        "}",
+        "f(var a) {",
+        "  if(a is A) {",
+        "    a[0]++;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+  }
+
+  public void test_undefinedOperator_indexGetter_inSubtype() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "class B extends A {",
+        "  operator [](int index) {}",
+        "}",
+        "f(var a) {",
+        "  if(a is A) {",
+        "    a[0];",
+        "  }",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+  }
+
+  public void test_undefinedOperator_indexSetter_inSubtype() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "class B extends A {",
+        "  operator []=(i, v) {}",
+        "}",
+        "f(var a) {",
+        "  if(a is A) {",
+        "    a[0] = 1;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+  }
+
+  public void test_undefinedOperator_postfixExpression() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "class B extends A {",
+        "  operator +(B b) {return new B();}",
+        "}",
+        "f(var a) {",
+        "  if(a is A) {",
+        "    a++;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+  }
+
+  public void test_undefinedOperator_prefixExpression() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "class B extends A {",
+        "  operator +(B b) {return new B();}",
+        "}",
+        "f(var a) {",
+        "  if(a is A) {",
+        "    ++a;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+  }
+
+  public void test_undefinedSetter_inSubtype() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "class B extends A {",
+        "  set b(x) {}",
+        "}",
+        "f(var a) {",
+        "  if(a is A) {",
+        "    a.b = 0;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+  }
+
   public void test_unnecessaryCast_dynamic_type() throws Exception {
     Source source = addSource(createSource(//
         "m(v) {",

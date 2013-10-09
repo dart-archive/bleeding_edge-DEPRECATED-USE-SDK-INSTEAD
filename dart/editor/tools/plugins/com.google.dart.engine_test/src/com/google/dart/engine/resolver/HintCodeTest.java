@@ -558,6 +558,18 @@ public class HintCodeTest extends ResolverTestCase {
     assertErrors(source, HintCode.UNDEFINED_METHOD);
   }
 
+  public void test_undefinedOperator_binaryExpression() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "f(var a) {",
+        "  if(a is A) {",
+        "    a + 1;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(source, HintCode.UNDEFINED_OPERATOR);
+  }
+
   public void test_undefinedOperator_indexBoth() throws Exception {
     Source source = addSource(createSource(//
         "class A {}",
@@ -588,18 +600,6 @@ public class HintCodeTest extends ResolverTestCase {
         "f(var a) {",
         "  if(a is A) {",
         "    a[0] = 1;",
-        "  }",
-        "}"));
-    resolve(source);
-    assertErrors(source, HintCode.UNDEFINED_OPERATOR);
-  }
-
-  public void test_undefinedOperator_plus() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {}",
-        "f(var a) {",
-        "  if(a is A) {",
-        "    a + 1;",
         "  }",
         "}"));
     resolve(source);
