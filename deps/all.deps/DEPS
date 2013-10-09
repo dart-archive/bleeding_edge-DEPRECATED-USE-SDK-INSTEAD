@@ -7,7 +7,7 @@ vars = {
   # If you do not know, use the full path while defining your new deps entry.
   "googlecode_url": "http://%s.googlecode.com/svn",
 
-  "gyp_rev": "@1617",
+  "gyp_rev": "@1752",
   "nss_rev": "@209026",
   "co19_rev": "@607",
   "chromium_url": "http://src.chromium.org/svn",

@@ -9,7 +9,7 @@ vars = {
   "dart_branch": "/branches/bleeding_edge",
   "chromium_url": "http://src.chromium.org/svn",
 
-  "gyp_rev": "@1617",
+  "gyp_rev": "@1752",
   "nss_rev": "@209026",
 
   "co19_rev": "@607",
