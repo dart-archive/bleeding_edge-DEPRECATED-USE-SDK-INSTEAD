@@ -995,6 +995,18 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @Override
+  public void setChangedContents(Source source, String contents, int offset, int oldLength,
+      int newLength) {
+    synchronized (cacheLock) {
+      if (sourceFactory.setContents(source, contents)) {
+        //TODO (danrubel): based upon the text that has changed, 
+        // mark only the given library as needing to be reanalyzed or all downstream dependencies.
+        sourceChanged(source);
+      }
+    }
+  }
+
+  @Override
   public void setContents(Source source, String contents) {
     synchronized (cacheLock) {
       if (sourceFactory.setContents(source, contents)) {

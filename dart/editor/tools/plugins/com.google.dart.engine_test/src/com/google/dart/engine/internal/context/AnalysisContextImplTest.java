@@ -860,6 +860,29 @@ public class AnalysisContextImplTest extends EngineTestCase {
     context.setAnalysisPriorityOrder(sources);
   }
 
+  public void test_setChangedContents_libraryWithPart() throws Exception {
+    context = AnalysisContextFactory.contextWithCore();
+    sourceFactory = context.getSourceFactory();
+    String oldCode = createSource(//
+        "library lib;",
+        "part 'part.dart';",
+        "int a = 0;");
+    Source librarySource = addSource("/lib.dart", oldCode);
+    Source partSource = addSource("/part.dart", createSource(//
+        "part of lib;",
+        "int b = a;"));
+    context.computeLibraryElement(librarySource);
+
+    int offset = oldCode.indexOf("int a") + 4;
+    String newCode = createSource(//
+        "library lib;",
+        "part 'part.dart';",
+        "int ya = 0;");
+    context.setChangedContents(librarySource, newCode, offset, 0, 1);
+    assertNull(context.getResolvedCompilationUnit(partSource, librarySource));
+    assertEquals(newCode, sourceFactory.getContentCache().getContents(librarySource));
+  }
+
   public void test_setContents_libraryWithPart() throws Exception {
     context = AnalysisContextFactory.contextWithCore();
     sourceFactory = context.getSourceFactory();

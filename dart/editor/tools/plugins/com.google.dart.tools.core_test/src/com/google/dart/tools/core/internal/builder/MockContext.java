@@ -379,6 +379,12 @@ public class MockContext implements AnalysisContext {
   }
 
   @Override
+  public void setChangedContents(Source source, String contents, int offset, int oldLength,
+      int newLength) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
   public void setContents(Source source, String contents) {
     throw new UnsupportedOperationException();
   }

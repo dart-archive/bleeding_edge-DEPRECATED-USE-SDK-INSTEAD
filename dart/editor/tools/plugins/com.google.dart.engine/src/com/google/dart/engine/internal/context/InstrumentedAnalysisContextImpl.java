@@ -621,6 +621,18 @@ public class InstrumentedAnalysisContextImpl implements InternalAnalysisContext 
   }
 
   @Override
+  public void setChangedContents(Source source, String contents, int offset, int oldLength,
+      int newLength) {
+    InstrumentationBuilder instrumentation = Instrumentation.builder("Analysis-setChangedContents");
+    try {
+      instrumentation.metric("contextId", contextId);
+      basis.setChangedContents(source, contents, offset, oldLength, newLength);
+    } finally {
+      instrumentation.log();
+    }
+  }
+
+  @Override
   public void setContents(Source source, String contents) {
     InstrumentationBuilder instrumentation = Instrumentation.builder("Analysis-setContents");
     try {

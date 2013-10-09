@@ -464,6 +464,20 @@ public interface AnalysisContext {
 
   /**
    * Set the contents of the given source to the given contents and mark the source as having
+   * changed. The additional offset and length information is used by the context to determine what
+   * reanalysis is necessary.
+   * 
+   * @param source the source whose contents are being overridden
+   * @param contents the text to replace the range in the current contents
+   * @param offset the offset into the current contents
+   * @param oldLength the number of characters in the original contents that were replaced
+   * @param newLength the number of characters in the replacement text
+   */
+  public void setChangedContents(Source source, String contents, int offset, int oldLength,
+      int newLength);
+
+  /**
+   * Set the contents of the given source to the given contents and mark the source as having
    * changed. This has the effect of overriding the default contents of the source. If the contents
    * are {@code null} the override is removed so that the default contents will be returned.
    * 

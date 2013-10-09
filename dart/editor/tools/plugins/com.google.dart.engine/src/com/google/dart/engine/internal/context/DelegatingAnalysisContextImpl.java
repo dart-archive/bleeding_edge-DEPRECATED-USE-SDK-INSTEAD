@@ -131,7 +131,8 @@ public class DelegatingAnalysisContextImpl extends AnalysisContextImpl {
   }
 
   @Override
-  public ResolvableCompilationUnit computeResolvableCompilationUnit(Source source) throws AnalysisException {
+  public ResolvableCompilationUnit computeResolvableCompilationUnit(Source source)
+      throws AnalysisException {
     if (source.isInSystemLibrary()) {
       return sdkAnalysisContext.computeResolvableCompilationUnit(source);
     } else {
@@ -341,6 +342,16 @@ public class DelegatingAnalysisContextImpl extends AnalysisContextImpl {
       return sdkAnalysisContext.resolveHtmlUnit(unitSource);
     } else {
       return super.resolveHtmlUnit(unitSource);
+    }
+  }
+
+  @Override
+  public void setChangedContents(Source source, String contents, int offset, int oldLength,
+      int newLength) {
+    if (source.isInSystemLibrary()) {
+      sdkAnalysisContext.setChangedContents(source, contents, offset, oldLength, newLength);
+    } else {
+      super.setChangedContents(source, contents, offset, oldLength, newLength);
     }
   }
 
