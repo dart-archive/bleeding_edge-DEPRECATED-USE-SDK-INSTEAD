@@ -66,6 +66,13 @@ public interface PropertyAccessorElement extends ExecutableElement {
   public boolean isAbstract();
 
   /**
+   * Return {@code true} if this setter for final variable, so it causes warning when used.
+   * 
+   * @return {@code true} if this accessor is excluded setter
+   */
+  public boolean isExcludedSetter();
+
+  /**
    * Return {@code true} if this accessor represents a getter.
    * 
    * @return {@code true} if this accessor represents a getter

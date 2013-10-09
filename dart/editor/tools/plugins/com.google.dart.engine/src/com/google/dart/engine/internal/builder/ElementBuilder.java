@@ -760,20 +760,18 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
       currentHolder.addAccessor(getter);
       variable.setGetter(getter);
 
-      if (!isFinal) {
-        PropertyAccessorElementImpl setter = new PropertyAccessorElementImpl(variable);
-        setter.setSetter(true);
-        setter.setStatic(variable.isStatic());
-        ParameterElementImpl parameter = new ParameterElementImpl(
-            "_" + variable.getName(),
-            variable.getNameOffset());
-        parameter.setSynthetic(true);
-        parameter.setParameterKind(ParameterKind.REQUIRED);
-        setter.setParameters(new ParameterElement[] {parameter});
+      PropertyAccessorElementImpl setter = new PropertyAccessorElementImpl(variable);
+      setter.setSetter(true);
+      setter.setStatic(variable.isStatic());
+      ParameterElementImpl parameter = new ParameterElementImpl(
+          "_" + variable.getName(),
+          variable.getNameOffset());
+      parameter.setSynthetic(true);
+      parameter.setParameterKind(ParameterKind.REQUIRED);
+      setter.setParameters(new ParameterElement[] {parameter});
 
-        currentHolder.addAccessor(setter);
-        variable.setSetter(setter);
-      }
+      currentHolder.addAccessor(setter);
+      variable.setSetter(setter);
     }
     return null;
   }

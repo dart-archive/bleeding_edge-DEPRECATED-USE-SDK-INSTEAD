@@ -64,6 +64,11 @@ public class PropertyAccessorElementHandle extends ExecutableElementHandle imple
   }
 
   @Override
+  public boolean isExcludedSetter() {
+    return getActualElement().isExcludedSetter();
+  }
+
+  @Override
   public boolean isGetter() {
     return getActualElement().isGetter();
   }

@@ -107,6 +107,11 @@ public class PropertyAccessorMember extends ExecutableMember implements Property
   }
 
   @Override
+  public boolean isExcludedSetter() {
+    return getBaseElement().isExcludedSetter();
+  }
+
+  @Override
   public boolean isGetter() {
     return getBaseElement().isGetter();
   }
