@@ -1575,7 +1575,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     //
     FunctionType constructorType = node.getElement().getType();
     Type constructorReturnType = constructorType.getReturnType();
-    if (!redirectedReturnType.isSubtypeOf(constructorReturnType)) {
+    if (!redirectedReturnType.isAssignableTo(constructorReturnType)) {
       errorReporter.reportError(
           StaticWarningCode.REDIRECT_TO_INVALID_RETURN_TYPE,
           redirectedNode,

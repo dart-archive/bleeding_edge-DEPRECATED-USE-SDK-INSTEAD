@@ -704,7 +704,7 @@ public enum StaticWarningCode implements ErrorCode {
    * @param redirectingName the name of the redirecting constructor return type
    */
   REDIRECT_TO_INVALID_RETURN_TYPE(
-      "The return type '%s' of the redirected constructor is not a subclass of '%s'"),
+      "The return type '%s' of the redirected constructor is not assignable to '%s'"),
 
   /**
    * 7.6.2 Factories: It is a static warning if type does not denote a class accessible in the

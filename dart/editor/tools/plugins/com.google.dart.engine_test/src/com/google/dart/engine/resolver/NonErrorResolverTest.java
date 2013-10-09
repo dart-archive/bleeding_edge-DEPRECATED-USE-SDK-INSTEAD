@@ -2565,6 +2565,19 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_redirectToInvalidReturnType() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  A() {}",
+        "}",
+        "class B extends A {",
+        "  factory B() = A;",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
   public void test_redirectToNonConstConstructor() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
