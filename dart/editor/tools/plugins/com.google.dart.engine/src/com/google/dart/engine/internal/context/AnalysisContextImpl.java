@@ -382,9 +382,17 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
               + source.getFullName());
         }
         if (dartEntry.getState(DartEntry.PARSED_UNIT) == CacheState.ERROR) {
-          throw new AnalysisException(
-              "Internal error: computeResolvableCompilationUnit could not parse "
-                  + source.getFullName());
+          AnalysisException cause = dartEntry.getException();
+          if (cause == null) {
+            throw new AnalysisException(
+                "Internal error: computeResolvableCompilationUnit could not parse "
+                    + source.getFullName());
+          } else {
+            throw new AnalysisException(
+                "Internal error: computeResolvableCompilationUnit could not parse "
+                    + source.getFullName(),
+                cause);
+          }
         }
         DartEntryImpl dartCopy = dartEntry.getWritableCopy();
         CompilationUnit unit = dartCopy.getResolvableCompilationUnit();
