@@ -69,7 +69,7 @@ deps = {
       "/third_party/apache_compress" + Var("apache_compress_rev"),
   "dart/third_party/args4j": "/third_party/args4j" + Var("args4j_rev"),
   "dart/third_party/bzip2": "/third_party/bzip2" + Var("bzip2_rev"),
-  "dart/runtime/vmservice/client/bootstrap_css":
+  "dart/runtime/bin/vmservice/client/bootstrap_css":
       "/third_party/bootstrap_css" + Var("bootstrap_css_rev"),
   "dart/third_party/chrome": "/third_party/chrome" + Var("chrome_rev"),
   "dart/third_party/commons-io":
