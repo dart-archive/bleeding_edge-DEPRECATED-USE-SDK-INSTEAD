@@ -408,7 +408,6 @@ public class HintCodeTest extends ResolverTestCase {
         "class A {}",
         "class B {}"));
     resolve(source);
-    // TODO(jwren) the following shouldn't have a HintCode.UNUSED_IMPORT, see test_duplicateImport2()
     assertErrors(source, HintCode.DUPLICATE_IMPORT, HintCode.UNUSED_IMPORT);
     verify(source);
   }
