@@ -49,7 +49,7 @@ public class SubtypeManager {
 
     // use the subtypeMap to compute the set of all subtypes and subtype's subtypes
     HashSet<ClassElement> allSubtypes = new HashSet<ClassElement>();
-    computeAllSubtypes(classElement, allSubtypes);
+    computeAllSubtypes(classElement, new HashSet<ClassElement>(), allSubtypes);
     return allSubtypes;
   }
 
@@ -68,21 +68,23 @@ public class SubtypeManager {
    * adds all of the subtypes of the {@link ClassElement} to the passed array.
    * 
    * @param classElement the type to compute the set of subtypes of
+   * @param visitedClasses the set of class elements that this method has already recursively seen
    * @param allSubtypes the computed set of subtypes of the passed class element
    */
-  private void computeAllSubtypes(ClassElement classElement, HashSet<ClassElement> allSubtypes) {
+  private void computeAllSubtypes(ClassElement classElement, HashSet<ClassElement> visitedClasses,
+      HashSet<ClassElement> allSubtypes) {
+    if (!visitedClasses.add(classElement)) {
+      // if this class has already been called on this class element
+      return;
+    }
     HashSet<ClassElement> subtypes = subtypeMap.get(classElement);
     if (subtypes == null) {
       return;
     }
     for (ClassElement subtype : subtypes) {
-      if (!allSubtypes.add(subtype)) {
-        return;
-      }
+      computeAllSubtypes(subtype, visitedClasses, allSubtypes);
     }
-    for (ClassElement subtype : subtypes) {
-      computeAllSubtypes(subtype, allSubtypes);
-    }
+    allSubtypes.addAll(subtypes);
   }
 
   /**
