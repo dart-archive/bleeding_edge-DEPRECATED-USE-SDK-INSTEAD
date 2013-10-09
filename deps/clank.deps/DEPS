@@ -8,16 +8,20 @@ execfile(os.path.join(path, 'clank.deps', 'DEPS.chromium')) # Include proper Chr
 
 vars.update({
   "chromium_url": "http://src.chromium.org/svn",
-  "chromium_revision": "195393",
+  "chromium_revision": "219647",
   "clank_gerrit": "ssh://gerrit-int.chromium.org:29419/clank/",
-  "clank_rev": "81b9cb030ed9cb96e40e6b81dc74aa1448ebe195",
+  # This revision number should be kept in sync with the version of clank that
+  # uses a similar chromium revision to that mentioned just above in
+  # "chromium_revision". You can check which might be a good revision at:
+  # https://chrome-internal.googlesource.com/clank/internal/apps/
+  "clank_rev": "ff2ac2e072e0a628b5447554fbc32141a9c1360d",
   # The Dart repository URL is pulled out here so that it can be easily
   # updated to "https" for committers.
   "dart_branch": "/branches/bleeding_edge",
   "multivm_url": "http://src.chromium.org/multivm/trunk",
   "dartium_webkit_trunk": "http://src.chromium.org/multivm/trunk/webkit",
-  "dartium_webkit_revision": "1230",
-  "dartium_tools_revision": "1215",
+  "dartium_webkit_revision": "1422",
+  "dartium_tools_revision": "1411",
 })
 
 def massage_deps(deps):
@@ -43,9 +47,7 @@ deps.update({
   "src":
     Var("chromium_url") + "/trunk/src@" + Var("chromium_revision"),
 
-  'src/clank': Var('clank_gerrit') + 'internal/apps.git@' + Var('clank_rev'),
-  'src/clank/java/geppetto': Var('clank_gerrit') + 'internal/geppetto.git',
-  'src/clank/tools': Var('clank_gerrit') + 'internal/tools.git',
+  'src/clank': Var('clank_gerrit') + "internal/apps.git@" + Var("clank_rev"),
   'src-internal': 'https://chrome-internal.googlesource.com/chrome/src-internal.git',
 
   "src/dart":
