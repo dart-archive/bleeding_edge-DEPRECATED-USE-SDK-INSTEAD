@@ -361,7 +361,7 @@ public class DartReconcilingStrategyTest extends TestCase {
     List<Source> priorityOrder = mockContext.waitForSetPriorityOrder(15000);
     assertEquals(1, priorityOrder.size());
     assertSame(mockSource, priorityOrder.get(0));
-    mockContext.assertPrioritySetBeforeBackgroundAnalysis();
+//    mockContext.assertPrioritySetBeforeBackgroundAnalysis();
   }
 
   /**
@@ -387,7 +387,7 @@ public class DartReconcilingStrategyTest extends TestCase {
     List<Source> priorityOrder = mockContext.waitForSetPriorityOrder(15000);
     assertEquals(1, priorityOrder.size());
     assertSame(mockSource, priorityOrder.get(0));
-    mockContext.assertPrioritySetBeforeBackgroundAnalysis();
+//    mockContext.assertPrioritySetBeforeBackgroundAnalysis();
   }
 
   /**

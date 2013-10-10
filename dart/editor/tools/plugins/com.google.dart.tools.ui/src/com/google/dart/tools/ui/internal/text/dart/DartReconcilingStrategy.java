@@ -280,37 +280,32 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
   }
 
   /**
-   * Answer the list of sources associated with the specified context that are open and visible.
-   * This method blocks until the information can be retrieved on the UI thread.
+   * Answer the visible editors displaying source for the given context. This must be called on the
+   * UI thread because it accesses windows, pages, and editors.
    * 
    * @param context the context (not {@code null})
    * @return a list of sources (not {@code null}, contains no {@code null}s)
    */
   private List<Source> getVisibleSourcesForContext(final AnalysisContext context) {
     final ArrayList<Source> sources = new ArrayList<Source>();
-    display.syncExec(new Runnable() {
-      @Override
-      public void run() {
-        IWorkbench workbench = PlatformUI.getWorkbench();
-        for (IWorkbenchWindow window : workbench.getWorkbenchWindows()) {
-          for (IWorkbenchPage page : window.getPages()) {
-            IEditorReference[] allEditors = page.getEditorReferences();
-            for (IEditorReference editorRef : allEditors) {
-              IEditorPart part = editorRef.getEditor(false);
-              if (part instanceof DartEditor) {
-                DartEditor otherEditor = (DartEditor) part;
-                if (otherEditor.getInputAnalysisContext() == context && otherEditor.isVisible()) {
-                  Source otherSource = otherEditor.getInputSource();
-                  if (otherSource != null) {
-                    sources.add(otherSource);
-                  }
-                }
+    IWorkbench workbench = PlatformUI.getWorkbench();
+    for (IWorkbenchWindow window : workbench.getWorkbenchWindows()) {
+      for (IWorkbenchPage page : window.getPages()) {
+        IEditorReference[] allEditors = page.getEditorReferences();
+        for (IEditorReference editorRef : allEditors) {
+          IEditorPart part = editorRef.getEditor(false);
+          if (part instanceof DartEditor) {
+            DartEditor otherEditor = (DartEditor) part;
+            if (otherEditor.getInputAnalysisContext() == context && otherEditor.isVisible()) {
+              Source otherSource = otherEditor.getInputSource();
+              if (otherSource != null) {
+                sources.add(otherSource);
               }
             }
           }
         }
       }
-    });
+    }
     return sources;
   }
 
@@ -353,29 +348,21 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
    *          from the priority list.
    */
   private void updateAnalysisPriorityOrder(final boolean isOpen) {
-    // TODO (danrubel): Revisit when reviewing performance of startup, open, and activate
-    AnalysisContext context = editor.getInputAnalysisContext();
-    Source source = editor.getInputSource();
+    final AnalysisContext context = editor.getInputAnalysisContext();
+    final Source source = editor.getInputSource();
     if (context != null && source != null) {
-      final List<Source> sources = getVisibleSourcesForContext(context);
-      sources.remove(source);
-      if (isOpen) {
-        sources.add(0, source);
-      }
-      // TODO (danrubel): Keep this off the UI thread until lock contention has been resolved
-      if (Display.getCurrent() == null) {
-        context.setAnalysisPriorityOrder(sources);
-      } else {
-        new Thread("updateAnalysisPriorityOrder") {
-          @Override
-          public void run() {
-            AnalysisContext context = editor.getInputAnalysisContext();
-            if (context != null) {
-              context.setAnalysisPriorityOrder(sources);
-            }
-          };
-        }.start();
-      }
+      // Bug 13972 :: Don't use sync as it can deadlock with debugger view when clicking rapidly
+      display.asyncExec(new Runnable() {
+        @Override
+        public void run() {
+          final List<Source> sources = getVisibleSourcesForContext(context);
+          sources.remove(source);
+          if (isOpen) {
+            sources.add(0, source);
+          }
+          context.setAnalysisPriorityOrder(sources);
+        }
+      });
     }
   }
 
