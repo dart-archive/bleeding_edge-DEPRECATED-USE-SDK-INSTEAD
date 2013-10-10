@@ -17,6 +17,7 @@ import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.internal.context.AnalysisOptionsImpl;
+import com.google.dart.engine.internal.context.InstrumentedAnalysisContextImpl;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
 import com.google.dart.engine.source.DartUriResolver;
@@ -318,13 +319,24 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
   public ResourceMap getResourceMap(AnalysisContext context) {
     synchronized (pubFolders) {
       for (PubFolder pubFolder : getPubFolders()) {
-        if (pubFolder.getContext() == context) {
+        AnalysisContext folderContext = pubFolder.getContext();
+        if (folderContext instanceof InstrumentedAnalysisContextImpl) {
+          folderContext = ((InstrumentedAnalysisContextImpl) folderContext).getBasis();
+        }
+        if (folderContext == context) {
           return pubFolder;
         }
       }
     }
-    if (defaultContext == context) {
-      return defaultResourceMap;
+
+    if (defaultContext instanceof InstrumentedAnalysisContextImpl) {
+      if (((InstrumentedAnalysisContextImpl) defaultContext).getBasis() == context) {
+        return defaultResourceMap;
+      }
+    } else {
+      if (defaultContext == context) {
+        return defaultResourceMap;
+      }
     }
     return null;
   }
