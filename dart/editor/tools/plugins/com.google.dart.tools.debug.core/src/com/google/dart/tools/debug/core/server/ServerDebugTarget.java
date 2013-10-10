@@ -17,10 +17,12 @@ package com.google.dart.tools.debug.core.server;
 import com.google.dart.tools.core.NotYetImplementedException;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin.BreakOnExceptions;
+import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.core.breakpoints.DartBreakpoint;
 import com.google.dart.tools.debug.core.server.VmConnection.BreakOnExceptionsType;
 
 import org.eclipse.core.resources.IMarkerDelta;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.DebugException;
@@ -69,6 +71,8 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
   // set wildcard breakpoints across all isolates.
   private VmIsolate mainIsolate;
 
+  private IProject currentProject;
+
   public ServerDebugTarget(ILaunch launch, IProcess process, int connectionPort) {
     this(launch, process, null, connectionPort);
   }
@@ -83,6 +87,10 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
     this.process = process;
 
     breakpointManager = new ServerBreakpointManager(this);
+
+    DartLaunchConfigWrapper wrapper = new DartLaunchConfigWrapper(launch.getLaunchConfiguration());
+
+    currentProject = wrapper.getProject();
 
     connection = new VmConnection(connectionHost, connectionPort);
     connection.addListener(this);
@@ -333,7 +341,15 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
 
   @Override
   public boolean supportsBreakpoint(IBreakpoint breakpoint) {
-    return breakpoint instanceof DartBreakpoint;
+    if (!(breakpoint instanceof DartBreakpoint)) {
+      return false;
+    }
+
+    if (currentProject == null) {
+      return true;
+    } else {
+      return currentProject.equals(((DartBreakpoint) breakpoint).getFile().getProject());
+    }
   }
 
   @Override

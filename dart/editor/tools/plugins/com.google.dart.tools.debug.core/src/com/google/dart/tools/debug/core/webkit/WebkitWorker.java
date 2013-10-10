@@ -15,6 +15,7 @@
 package com.google.dart.tools.debug.core.webkit;
 
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
+import com.google.dart.tools.debug.core.webkit.WebkitConnection.Callback;
 import com.google.dart.tools.debug.core.webkit.WebkitConnection.NotificationHandler;
 
 import org.json.JSONException;
@@ -63,6 +64,21 @@ public class WebkitWorker extends WebkitDomain {
 
   public void addWorkerListener(WorkerListener listener) {
     listeners.add(listener);
+  }
+
+  /**
+   * Tells whether browser supports workers inspection.
+   * 
+   * @param callback
+   * @throws IOException
+   */
+  public void canInspectWorkers(final WebkitCallback<Boolean> callback) throws IOException {
+    sendSimpleCommand("Worker.canInspectWorkers", new Callback() {
+      @Override
+      public void handleResult(JSONObject result) throws JSONException {
+        callback.handleResult(convertCanInspectWorkersResult(result));
+      }
+    });
   }
 
   public void connectToWorker(int workerId) throws IOException {
@@ -158,6 +174,17 @@ public class WebkitWorker extends WebkitDomain {
     } else {
       DartDebugCorePlugin.logInfo("unhandled notification: " + method);
     }
+  }
+
+  private WebkitResult<Boolean> convertCanInspectWorkersResult(JSONObject object)
+      throws JSONException {
+    WebkitResult<Boolean> result = WebkitResult.createFrom(object);
+
+    if (object.has("result")) {
+      result.setResult(Boolean.valueOf(object.getJSONObject("result").getBoolean("result")));
+    }
+
+    return result;
   }
 
 }
