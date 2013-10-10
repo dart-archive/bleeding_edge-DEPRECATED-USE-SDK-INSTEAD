@@ -13,10 +13,7 @@
  */
 package com.google.dart.engine.internal.type;
 
-import com.google.common.base.Objects;
-import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.TypeParameterElement;
-import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
 import com.google.dart.engine.type.TypeParameterType;
 import com.google.dart.engine.utilities.general.ObjectUtilities;
@@ -125,24 +122,6 @@ public class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType
     return this;
   }
 
-  /**
-   * Returns <i>Base</i> if given class is <i>Base&lt;T></i> where <i>T extends Base&lt;T></i>, or
-   * {@code null} otherwise.
-   */
-  private ClassElement getSelfBoundTypeParameterClass(InterfaceType interfaceType) {
-    Type[] typeArguments = interfaceType.getTypeArguments();
-    if (typeArguments.length == 1) {
-      Type typeArgument = typeArguments[0];
-      if (typeArgument instanceof TypeParameterType) {
-        TypeParameterType typeParameter = (TypeParameterType) typeArgument;
-        if (Objects.equal(typeParameter.getElement().getBound(), interfaceType)) {
-          return interfaceType.getElement();
-        }
-      }
-    }
-    return null;
-  }
-
   private boolean isMoreSpecificThan(Type s, Set<Type> visitedTypes) {
     // T is a type parameter and S is the upper bound of T.
     //
@@ -174,19 +153,6 @@ public class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType
       visitedTypes.add(bound);
       // Then check upper bound.
       return boundTypeParameter.isMoreSpecificThan(s, visitedTypes);
-    }
-
-    // <W extends Base<W>>  is the same as <U extends Base<U>>
-    if (bound instanceof InterfaceType && s instanceof InterfaceType) {
-      InterfaceType boundInterfaceType = (InterfaceType) bound;
-      InterfaceType sInterfaceType = (InterfaceType) s;
-      ClassElement sSelfClass = getSelfBoundTypeParameterClass(sInterfaceType);
-      if (sSelfClass != null) {
-        ClassElement boundSelfClass = getSelfBoundTypeParameterClass(boundInterfaceType);
-        if (sSelfClass.equals(boundSelfClass)) {
-          return true;
-        }
-      }
     }
 
     // Check interface type.

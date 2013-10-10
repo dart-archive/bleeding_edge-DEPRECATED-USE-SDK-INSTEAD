@@ -4527,18 +4527,23 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     if (node.getTypeArguments() == null) {
       return false;
     }
-    TypeParameterElement[] boundingElts = null;
+    // prepare Type
     Type type = node.getType();
     if (type == null) {
       return false;
     }
+    // prepare ClassElement
     Element element = type.getElement();
-    if (element instanceof ClassElement) {
-      boundingElts = ((ClassElement) element).getTypeParameters();
-    } else {
+    if (!(element instanceof ClassElement)) {
       return false;
     }
+    ClassElement classElement = (ClassElement) element;
+    // prepare type parameters
+    Type[] typeParameters = classElement.getType().getTypeArguments();
+    TypeParameterElement[] boundingElts = classElement.getTypeParameters();
+    // iterate over each bounded type parameter and corresponding argument
     NodeList<TypeName> typeNameArgList = node.getTypeArguments().getArguments();
+    Type[] typeArguments = ((InterfaceType) type).getTypeArguments();
     int loopThroughIndex = Math.min(typeNameArgList.size(), boundingElts.length);
     boolean foundError = false;
     for (int i = 0; i < loopThroughIndex; i++) {
@@ -4546,6 +4551,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       Type argType = argTypeName.getType();
       Type boundType = boundingElts[i].getBound();
       if (argType != null && boundType != null) {
+        boundType = boundType.substitute(typeArguments, typeParameters);
         if (!argType.isSubtypeOf(boundType)) {
           ErrorCode errorCode;
           if (isInConstConstructorInvocation(node)) {

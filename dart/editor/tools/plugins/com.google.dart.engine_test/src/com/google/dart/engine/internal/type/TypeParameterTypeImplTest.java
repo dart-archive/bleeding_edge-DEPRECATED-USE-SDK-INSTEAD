@@ -15,12 +15,10 @@ package com.google.dart.engine.internal.type;
 
 import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.element.ClassElement;
-import com.google.dart.engine.element.TypeParameterElement;
 import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.internal.element.TypeParameterElementImpl;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
-import com.google.dart.engine.type.TypeParameterType;
 
 import static com.google.dart.engine.ast.ASTFactory.identifier;
 import static com.google.dart.engine.element.ElementFactory.classElement;
@@ -84,26 +82,6 @@ public class TypeParameterTypeImplTest extends EngineTestCase {
 
     // E << E
     assertTrue(type.isMoreSpecificThan(type));
-  }
-
-  public void test_isMoreSpecificThan_typeArguments_selfBound() {
-    ClassElementImpl classBase = classElement("Base", "T");
-    ClassElementImpl classB = classElement("B", "U");
-    ClassElementImpl classC = classElement("C", "W");
-    InterfaceType typeBase = classBase.getType();
-
-    TypeParameterElement elementBU = classB.getTypeParameters()[0];
-    TypeParameterType typeVarBU = elementBU.getType();
-    InterfaceType baseBU = typeBase.substitute(new Type[] {typeVarBU});
-    ((TypeParameterElementImpl) elementBU).setBound(baseBU);
-
-    TypeParameterElement elementCW = classC.getTypeParameters()[0];
-    TypeParameterType typeVarCW = elementCW.getType();
-    InterfaceType baseCW = typeBase.substitute(new Type[] {typeVarCW});
-    ((TypeParameterElementImpl) elementCW).setBound(baseCW);
-
-    assertTrue(typeVarBU.isMoreSpecificThan(baseCW));
-    assertTrue(typeVarCW.isMoreSpecificThan(baseBU));
   }
 
   public void test_isMoreSpecificThan_typeArguments_transitivity_interfaceTypes() {

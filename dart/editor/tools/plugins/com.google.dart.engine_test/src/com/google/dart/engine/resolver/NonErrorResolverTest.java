@@ -2433,6 +2433,17 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_propagateTypeArgsIntoBounds() throws Exception {
+    Source source = addSource(createSource(//
+        "abstract class A<E> {}",
+        "abstract class B<F> implements A<F>{}",
+        "abstract class C<G, H extends A<G>> {}",
+        "class D<I> extends C<I, B<I>> {}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
   public void test_proxy_annotation_prefixed() throws Exception {
     Source source = addSource(createSource(//
         "library L;",
