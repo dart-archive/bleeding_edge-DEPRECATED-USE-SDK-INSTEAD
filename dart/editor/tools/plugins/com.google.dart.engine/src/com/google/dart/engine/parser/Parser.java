@@ -104,7 +104,7 @@ public class Parser {
       gatherTodoComments(token);
       return compilationUnit;
     } finally {
-      instrumentation.log();
+      instrumentation.log(2); //Record if takes over 1ms
     }
   }
 
