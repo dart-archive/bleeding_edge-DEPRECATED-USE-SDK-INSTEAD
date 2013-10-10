@@ -16,6 +16,7 @@ vars.update({
   "dartium_webkit_trunk": "http://src.chromium.org/multivm/trunk/webkit",
   "dartium_webkit_revision": "1427",
   "dartium_tools_revision": "1426",
+  "bootstrap_css_rev" : "@28387",
 
   "co19_rev": "@607",
 })
@@ -52,6 +53,9 @@ deps.update({
 
   "src/dartium_tools":
     Var("multivm_url") + "/tools@" + Var("dartium_tools_revision"),
+  
+  "src/dart/runtime/bin/vmservice/client/bootstrap_css":
+    "/third_party/bootstrap_css" + Var("bootstrap_css_rev"),
 })
 
 hooks[0:0] = [{
