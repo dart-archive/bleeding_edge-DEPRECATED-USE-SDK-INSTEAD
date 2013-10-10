@@ -74,6 +74,7 @@ public class RunScriptAction extends InstrumentedSelectionDispatchAction {
 
     @Override
     protected IStatus run(IProgressMonitor monitor) {
+
       IStatus status = ScriptUtils.runScript(scriptLocation, fileLocation, monitor);
       if (status.isOK()) {
         refreshEditor();
@@ -120,25 +121,7 @@ public class RunScriptAction extends InstrumentedSelectionDispatchAction {
 
       console.print("Running script '" + scriptName + "'...\n");
 
-      IFile file = null;
-      if (selection != null && !selection.isEmpty()) {
-        IWorkbenchPage page = DartToolsPlugin.getActivePage();
-        if (page == null) {
-          instrumentation.metric("Problem", "Page was null");
-        } else {
-          IEditorPart part = page.getActiveEditor();
-          if (part == null) {
-            instrumentation.metric("Problem", "Part was null");
-          } else {
-            IEditorInput editorInput = part.getEditorInput();
-            if (editorInput instanceof IFileEditorInput) {
-              file = ((IFileEditorInput) editorInput).getFile();
-              new RunScriptJob(file, scriptName).schedule();
-              return;
-            }
-          }
-        }
-      }
+      IFile file = getSelectedFile(instrumentation);
 
       new RunScriptJob(file, scriptName).schedule();
     }
@@ -150,13 +133,19 @@ public class RunScriptAction extends InstrumentedSelectionDispatchAction {
 
     String scriptName = getScript(event.keyCode);
     if (scriptName != null && !scriptName.isEmpty()) {
+      MessageConsole console = DartCore.getConsole();
+      console.clear();
+      console.print("Running script '" + scriptName + "'...\n");
+
       instrumentation.metric("Running script ", scriptName);
 
       if (!selection.isEmpty() && selection.getFirstElement() instanceof IResource) {
         IResource res = (IResource) selection.getFirstElement();
         new RunScriptJob(res, scriptName).schedule();
+        return;
       } else {
-        new RunScriptJob(null, scriptName).schedule();
+        IFile file = getSelectedFile(instrumentation);
+        new RunScriptJob(file, scriptName).schedule();
       }
     }
   }
@@ -182,6 +171,24 @@ public class RunScriptAction extends InstrumentedSelectionDispatchAction {
         break;
     }
     return properties.getProperty(key);
+  }
+
+  private IFile getSelectedFile(UIInstrumentationBuilder instrumentation) {
+    IWorkbenchPage page = DartToolsPlugin.getActivePage();
+    if (page == null) {
+      instrumentation.metric("Problem", "Page was null");
+    } else {
+      IEditorPart part = page.getActiveEditor();
+      if (part == null) {
+        instrumentation.metric("Problem", "Part was null");
+      } else {
+        IEditorInput editorInput = part.getEditorInput();
+        if (editorInput instanceof IFileEditorInput) {
+          return ((IFileEditorInput) editorInput).getFile();
+        }
+      }
+    }
+    return null;
   }
 
   /**
