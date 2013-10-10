@@ -1422,10 +1422,12 @@ public class SemanticHighlightings {
       oldValue = PreferenceConverter.getDefaultColor(store, key);
     }
 
-    PreferenceConverter.setDefault(store, key, newValue);
+    if (newValue != null) {
+      PreferenceConverter.setDefault(store, key, newValue);
 
-    if (oldValue != null && !oldValue.equals(newValue)) {
-      store.firePropertyChangeEvent(key, oldValue, newValue);
+      if (oldValue != null && !oldValue.equals(newValue)) {
+        store.firePropertyChangeEvent(key, oldValue, newValue);
+      }
     }
   }
 
