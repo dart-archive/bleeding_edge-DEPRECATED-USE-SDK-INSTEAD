@@ -20,6 +20,7 @@ vars = {
   "args4j_rev" : "@19997",
   "bzip2_rev" : "@19997",
   "chrome_rev" : "@19997",
+  "clang_rev" : "@28445",
   "commons-io_rev" : "@19997",
   "commons-lang_rev" : "@19997",
   "d8_rev" : "@27036",
@@ -72,6 +73,7 @@ deps = {
   "dart/runtime/bin/vmservice/client/bootstrap_css":
       "/third_party/bootstrap_css" + Var("bootstrap_css_rev"),
   "dart/third_party/chrome": "/third_party/chrome" + Var("chrome_rev"),
+  "dart/third_party/clang": "/third_party/clang" + Var("clang_rev"),
   "dart/third_party/commons-io":
       "/third_party/commons-io" + Var("commons-io_rev"),
   "dart/third_party/commons-lang":
