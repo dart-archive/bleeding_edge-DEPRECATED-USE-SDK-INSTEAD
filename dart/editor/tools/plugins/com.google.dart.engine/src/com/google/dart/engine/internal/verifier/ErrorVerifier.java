@@ -934,6 +934,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     checkForBuiltInIdentifierAsName(
         node.getName(),
         CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME);
+    checkForTypeParameterSupertypeOfItsBound(node);
     return super.visitTypeParameter(node);
   }
 
@@ -4581,6 +4582,32 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       }
     }
     return false;
+  }
+
+  /**
+   * This checks that if the passed type parameter is a supertype of its bound.
+   * 
+   * @param node the type parameter to evaluate
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see StaticTypeWarningCode#TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND
+   */
+  private boolean checkForTypeParameterSupertypeOfItsBound(TypeParameter node) {
+    TypeParameterElement element = node.getElement();
+    // prepare bound
+    Type bound = element.getBound();
+    if (bound == null) {
+      return false;
+    }
+    // OK, type parameter is not supertype of its bound
+    if (!bound.isMoreSpecificThan(element.getType())) {
+      return false;
+    }
+    // report problem
+    errorReporter.reportError(
+        StaticTypeWarningCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND,
+        node,
+        element.getDisplayName());
+    return true;
   }
 
   /**

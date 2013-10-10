@@ -19,20 +19,6 @@ import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.source.Source;
 
 public class StaticWarningCodeTest extends ResolverTestCase {
-  public void fail_argumentTypeNotAssignable_invocation_functionParameter_generic()
-      throws Exception {
-    // TODO(scheglov) requires fix for TypeParameterTypeImpl.isSubtypeOf()
-    Source source = addSource(createSource(//
-        "class A<K, V> {",
-        "  m(f(K k), V v) {",
-        "    f(v);",
-        "  }",
-        "}"));
-    resolve(source);
-    assertErrors(source, StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
-    verify(source);
-  }
-
   public void fail_commentReferenceConstructorNotVisible() throws Exception {
     Source source = addSource(createSource(//
     // TODO
@@ -478,6 +464,19 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
         "a(b(int p)) {",
         "  b('0');",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
+    verify(source);
+  }
+
+  public void test_argumentTypeNotAssignable_invocation_functionParameter_generic()
+      throws Exception {
+    Source source = addSource(createSource(//
+        "class A<K, V> {",
+        "  m(f(K k), V v) {",
+        "    f(v);",
+        "  }",
         "}"));
     resolve(source);
     assertErrors(source, StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);

@@ -1113,11 +1113,13 @@ public class InterfaceTypeImplTest extends EngineTestCase {
   }
 
   public void test_isSubtypeOf_typeArguments() {
+    Type dynamicType = DynamicTypeImpl.getInstance();
     ClassElement classA = classElement("A", "E");
     ClassElement classI = classElement("I");
     ClassElement classJ = classElement("J", classI.getType());
     ClassElement classK = classElement("K");
     InterfaceType typeA = classA.getType();
+    InterfaceType typeA_dynamic = typeA.substitute(new Type[] {dynamicType});
     InterfaceTypeImpl typeAI = new InterfaceTypeImpl(classA);
     InterfaceTypeImpl typeAJ = new InterfaceTypeImpl(classA);
     InterfaceTypeImpl typeAK = new InterfaceTypeImpl(classA);
@@ -1133,12 +1135,12 @@ public class InterfaceTypeImplTest extends EngineTestCase {
     assertTrue(typeAI.isSubtypeOf(typeAI));
 
     // A <: A<I> and A <: A<J>
-    assertTrue(typeA.isSubtypeOf(typeAI));
-    assertTrue(typeA.isSubtypeOf(typeAJ));
+    assertTrue(typeA_dynamic.isSubtypeOf(typeAI));
+    assertTrue(typeA_dynamic.isSubtypeOf(typeAJ));
 
     // A<I> <: A and A<J> <: A
-    assertTrue(typeAI.isSubtypeOf(typeA));
-    assertTrue(typeAJ.isSubtypeOf(typeA));
+    assertTrue(typeAI.isSubtypeOf(typeA_dynamic));
+    assertTrue(typeAJ.isSubtypeOf(typeA_dynamic));
 
     // A<I> !<: A<K> and A<K> !<: A<I>
     assertFalse(typeAI.isSubtypeOf(typeAK));

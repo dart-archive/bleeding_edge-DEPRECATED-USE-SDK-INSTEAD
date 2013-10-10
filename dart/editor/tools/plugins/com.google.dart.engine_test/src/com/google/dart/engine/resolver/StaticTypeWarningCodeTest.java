@@ -668,6 +668,15 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_typeParameterSupertypeOfItsBound() throws Exception {
+    Source source = addSource(createSource(//
+        "class A<T extends T> {",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticTypeWarningCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND);
+    verify(source);
+  }
+
   public void test_undefinedGetter() throws Exception {
     Source source = addSource(createSource(//
         "class T {}",

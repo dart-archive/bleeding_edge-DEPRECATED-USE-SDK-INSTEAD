@@ -14,31 +14,19 @@
 package com.google.dart.engine.internal.type;
 
 import com.google.dart.engine.EngineTestCase;
+import com.google.dart.engine.element.ClassElement;
+import com.google.dart.engine.element.TypeParameterElement;
 import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.internal.element.TypeParameterElementImpl;
+import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
+import com.google.dart.engine.type.TypeParameterType;
 
 import static com.google.dart.engine.ast.ASTFactory.identifier;
 import static com.google.dart.engine.element.ElementFactory.classElement;
 import static com.google.dart.engine.element.ElementFactory.getObject;
 
 public class TypeParameterTypeImplTest extends EngineTestCase {
-  public void fail_isMoreSpecificThan_typeArguments_object() {
-    TypeParameterElementImpl element = new TypeParameterElementImpl(identifier("E"));
-    TypeParameterTypeImpl type = new TypeParameterTypeImpl(element);
-
-    // E << Object
-    assertTrue(type.isMoreSpecificThan(getObject().getType()));
-  }
-
-  public void fail_isMoreSpecificThan_typeArguments_self() {
-    TypeParameterElementImpl element = new TypeParameterElementImpl(identifier("E"));
-    TypeParameterTypeImpl type = new TypeParameterTypeImpl(element);
-
-    // E << E
-    assertTrue(type.isMoreSpecificThan(type));
-  }
-
   public void test_creation() {
     assertNotNull(new TypeParameterTypeImpl(new TypeParameterElementImpl(identifier("E"))));
   }
@@ -47,6 +35,109 @@ public class TypeParameterTypeImplTest extends EngineTestCase {
     TypeParameterElementImpl element = new TypeParameterElementImpl(identifier("E"));
     TypeParameterTypeImpl type = new TypeParameterTypeImpl(element);
     assertEquals(element, type.getElement());
+  }
+
+  public void test_isMoreSpecificThan_typeArguments_bottom() {
+    TypeParameterElementImpl element = new TypeParameterElementImpl(identifier("E"));
+    TypeParameterTypeImpl type = new TypeParameterTypeImpl(element);
+
+    // E << bottom
+    assertTrue(type.isMoreSpecificThan(BottomTypeImpl.getInstance()));
+  }
+
+  public void test_isMoreSpecificThan_typeArguments_dynamic() {
+    TypeParameterElementImpl element = new TypeParameterElementImpl(identifier("E"));
+    TypeParameterTypeImpl type = new TypeParameterTypeImpl(element);
+
+    // E << dynamic
+    assertTrue(type.isMoreSpecificThan(DynamicTypeImpl.getInstance()));
+  }
+
+  public void test_isMoreSpecificThan_typeArguments_object() {
+    TypeParameterElementImpl element = new TypeParameterElementImpl(identifier("E"));
+    TypeParameterTypeImpl type = new TypeParameterTypeImpl(element);
+
+    // E << Object
+    assertTrue(type.isMoreSpecificThan(getObject().getType()));
+  }
+
+  public void test_isMoreSpecificThan_typeArguments_resursive() {
+    ClassElementImpl classS = classElement("A");
+
+    TypeParameterElementImpl typeParameterU = new TypeParameterElementImpl(identifier("U"));
+    TypeParameterTypeImpl typeParameterTypeU = new TypeParameterTypeImpl(typeParameterU);
+
+    TypeParameterElementImpl typeParameterT = new TypeParameterElementImpl(identifier("T"));
+    TypeParameterTypeImpl typeParameterTypeT = new TypeParameterTypeImpl(typeParameterT);
+
+    typeParameterT.setBound(typeParameterTypeU);
+    typeParameterU.setBound(typeParameterTypeU);
+
+    // <T extends U> and <U extends T>
+    // T << S
+    assertFalse(typeParameterTypeT.isMoreSpecificThan(classS.getType()));
+  }
+
+  public void test_isMoreSpecificThan_typeArguments_self() {
+    TypeParameterElementImpl element = new TypeParameterElementImpl(identifier("E"));
+    TypeParameterTypeImpl type = new TypeParameterTypeImpl(element);
+
+    // E << E
+    assertTrue(type.isMoreSpecificThan(type));
+  }
+
+  public void test_isMoreSpecificThan_typeArguments_selfBound() {
+    ClassElementImpl classBase = classElement("Base", "T");
+    ClassElementImpl classB = classElement("B", "U");
+    ClassElementImpl classC = classElement("C", "W");
+    InterfaceType typeBase = classBase.getType();
+
+    TypeParameterElement elementBU = classB.getTypeParameters()[0];
+    TypeParameterType typeVarBU = elementBU.getType();
+    InterfaceType baseBU = typeBase.substitute(new Type[] {typeVarBU});
+    ((TypeParameterElementImpl) elementBU).setBound(baseBU);
+
+    TypeParameterElement elementCW = classC.getTypeParameters()[0];
+    TypeParameterType typeVarCW = elementCW.getType();
+    InterfaceType baseCW = typeBase.substitute(new Type[] {typeVarCW});
+    ((TypeParameterElementImpl) elementCW).setBound(baseCW);
+
+    assertTrue(typeVarBU.isMoreSpecificThan(baseCW));
+    assertTrue(typeVarCW.isMoreSpecificThan(baseBU));
+  }
+
+  public void test_isMoreSpecificThan_typeArguments_transitivity_interfaceTypes() {
+    //  class A {}
+    //  class B extends A {}
+    //
+    ClassElement classA = classElement("A");
+    ClassElement classB = classElement("B", classA.getType());
+    InterfaceType typeA = classA.getType();
+    InterfaceType typeB = classB.getType();
+
+    TypeParameterElementImpl typeParameterT = new TypeParameterElementImpl(identifier("T"));
+    typeParameterT.setBound(typeB);
+    TypeParameterTypeImpl typeParameterTypeT = new TypeParameterTypeImpl(typeParameterT);
+
+    // <T extends B>
+    // T << A
+    assertTrue(typeParameterTypeT.isMoreSpecificThan(typeA));
+  }
+
+  public void test_isMoreSpecificThan_typeArguments_transitivity_typeParameters() {
+    ClassElementImpl classS = classElement("A");
+
+    TypeParameterElementImpl typeParameterU = new TypeParameterElementImpl(identifier("U"));
+    typeParameterU.setBound(classS.getType());
+    TypeParameterTypeImpl typeParameterTypeU = new TypeParameterTypeImpl(typeParameterU);
+
+    TypeParameterElementImpl typeParameterT = new TypeParameterElementImpl(identifier("T"));
+    typeParameterT.setBound(typeParameterTypeU);
+    TypeParameterTypeImpl typeParameterTypeT = new TypeParameterTypeImpl(typeParameterT);
+
+    // <T extends U> and <U extends S>
+    // T << S
+    assertTrue(typeParameterTypeT.isMoreSpecificThan(classS.getType()));
   }
 
   public void test_isMoreSpecificThan_typeArguments_upperBound() {

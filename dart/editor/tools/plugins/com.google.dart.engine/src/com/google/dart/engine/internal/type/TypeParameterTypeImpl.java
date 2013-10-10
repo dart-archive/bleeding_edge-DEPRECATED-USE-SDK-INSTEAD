@@ -13,10 +13,16 @@
  */
 package com.google.dart.engine.internal.type;
 
+import com.google.common.base.Objects;
+import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.TypeParameterElement;
+import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
 import com.google.dart.engine.type.TypeParameterType;
 import com.google.dart.engine.utilities.general.ObjectUtilities;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Instances of the class {@code TypeParameterTypeImpl} defines the behavior of objects representing
@@ -77,18 +83,35 @@ public class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType
   }
 
   @Override
-  public boolean isMoreSpecificThan(Type type) {
+  public boolean isMoreSpecificThan(Type s) {
     //
-    // T is a type parameter and S is the upper bound of T.
+    // A type T is more specific than a type S, written T << S,  if one of the following conditions
+    // is met:
     //
-    Type upperBound = getElement().getBound();
-    return type.equals(upperBound);
+    // Reflexivity: T is S.
+    //
+    if (this.equals(s)) {
+      return true;
+    }
+
+    // S is bottom.
+    //
+    if (s.isBottom()) {
+      return true;
+    }
+
+    // S is dynamic.
+    //
+    if (s.isDynamic()) {
+      return true;
+    }
+
+    return isMoreSpecificThan(s, new HashSet<Type>());
   }
 
   @Override
-  public boolean isSubtypeOf(Type type) {
-    // TODO(scheglov) really? without checking if this is another type parameter and bound?
-    return true;
+  public boolean isSubtypeOf(Type s) {
+    return isMoreSpecificThan(s);
   }
 
   @Override
@@ -100,5 +123,73 @@ public class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType
       }
     }
     return this;
+  }
+
+  /**
+   * Returns <i>Base</i> if given class is <i>Base&lt;T></i> where <i>T extends Base&lt;T></i>, or
+   * {@code null} otherwise.
+   */
+  private ClassElement getSelfBoundTypeParameterClass(InterfaceType interfaceType) {
+    Type[] typeArguments = interfaceType.getTypeArguments();
+    if (typeArguments.length == 1) {
+      Type typeArgument = typeArguments[0];
+      if (typeArgument instanceof TypeParameterType) {
+        TypeParameterType typeParameter = (TypeParameterType) typeArgument;
+        if (Objects.equal(typeParameter.getElement().getBound(), interfaceType)) {
+          return interfaceType.getElement();
+        }
+      }
+    }
+    return null;
+  }
+
+  private boolean isMoreSpecificThan(Type s, Set<Type> visitedTypes) {
+    // T is a type parameter and S is the upper bound of T.
+    //
+    Type bound = getElement().getBound();
+    if (s.equals(bound)) {
+      return true;
+    }
+
+    // T is a type parameter and S is Object.
+    //
+    if (s.isObject()) {
+      return true;
+    }
+
+    // We need upper bound to continue.
+    if (bound == null) {
+      return false;
+    }
+
+    //
+    // Transitivity: T << U and U << S.
+    //
+    if (bound instanceof TypeParameterTypeImpl) {
+      TypeParameterTypeImpl boundTypeParameter = (TypeParameterTypeImpl) bound;
+      // First check for infinite loops
+      if (visitedTypes.contains(bound)) {
+        return false;
+      }
+      visitedTypes.add(bound);
+      // Then check upper bound.
+      return boundTypeParameter.isMoreSpecificThan(s, visitedTypes);
+    }
+
+    // <W extends Base<W>>  is the same as <U extends Base<U>>
+    if (bound instanceof InterfaceType && s instanceof InterfaceType) {
+      InterfaceType boundInterfaceType = (InterfaceType) bound;
+      InterfaceType sInterfaceType = (InterfaceType) s;
+      ClassElement sSelfClass = getSelfBoundTypeParameterClass(sInterfaceType);
+      if (sSelfClass != null) {
+        ClassElement boundSelfClass = getSelfBoundTypeParameterClass(boundInterfaceType);
+        if (sSelfClass.equals(boundSelfClass)) {
+          return true;
+        }
+      }
+    }
+
+    // Check interface type.
+    return bound.isMoreSpecificThan(s);
   }
 }

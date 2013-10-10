@@ -176,6 +176,13 @@ public enum StaticTypeWarningCode implements ErrorCode {
   TYPE_ARGUMENT_NOT_MATCHING_BOUNDS("'%s' does not extend '%s'"),
 
   /**
+   * 10 Generics: It is a static type warning if a type parameter is a supertype of its upper bound.
+   * 
+   * @param typeParameterName the name of the type parameter
+   */
+  TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND("'%s' cannot be a supertype of its upper bound"),
+
+  /**
    * 12.17 Getter Invocation: Let <i>T</i> be the static type of <i>e</i>. It is a static type
    * warning if <i>T</i> does not have a getter named <i>m</i>.
    * 
