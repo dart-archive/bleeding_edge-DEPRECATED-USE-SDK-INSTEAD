@@ -19,13 +19,18 @@ import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.util.SWTUtil;
 
 import org.eclipse.debug.core.model.DebugElement;
+import org.eclipse.debug.internal.ui.elements.adapters.DefaultBreakpointsViewInput;
+import org.eclipse.debug.internal.ui.viewers.model.provisional.IPresentationContext;
 import org.eclipse.debug.internal.ui.viewers.model.provisional.TreeModelViewer;
 import org.eclipse.debug.internal.ui.views.variables.details.DetailPaneProxy;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
+import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ListViewer;
+import org.eclipse.jface.viewers.StructuredSelection;
+import org.eclipse.jface.viewers.TreeSelection;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
@@ -97,6 +102,30 @@ public class BreakpointsView extends
 
     manager.add(removeAllBreakpointsAction);
     manager.update(true);
+  }
+
+  @Override
+  protected void contextActivated(ISelection selection) {
+    IPresentationContext presentationContext = getTreeModelViewer().getPresentationContext();
+
+    if (selection == null || selection.isEmpty()) {
+      Object input = new DefaultBreakpointsViewInput(presentationContext);
+      super.contextActivated(new StructuredSelection(input));
+    } else {
+      if (selection instanceof TreeSelection) {
+        if (((TreeSelection) selection).getFirstElement() instanceof DebugElement) {
+          super.contextActivated(new StructuredSelection(new DefaultBreakpointsViewInput(
+              presentationContext)));
+        } else {
+          super.contextActivated(selection);
+        }
+      } else {
+        super.contextActivated(selection);
+      }
+    }
+    if (isAvailable() && isVisible()) {
+      updateAction("ContentAssist"); //$NON-NLS-1$
+    }
   }
 
   @Override
