@@ -25,7 +25,7 @@ vars = {
   "d8_rev" : "@27036",
   "eclipse_rev" : "@27489",
   "fest_rev" : "@19997",
-  "firefox_jsshell_rev" : "@25263",
+  "firefox_jsshell_rev" : "@28444",
   "gsutil_rev" : "@19997",
   "guava_rev" : "@19997",
   "hamcrest_rev" : "@19997",
