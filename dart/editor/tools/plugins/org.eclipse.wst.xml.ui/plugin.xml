@@ -161,7 +161,7 @@
 			<contentType id="org.eclipse.wst.xml.core.xmlsource" />
 		</adapterFactoryDescription>
 	</extension>
-	<extension point="org.eclipse.ui.preferencePages">
+	<!-- <extension point="org.eclipse.ui.preferencePages"> -->
 		<!-- The "top-level" XML category -->
 		<!-- <page
 			name="%XML.name"
@@ -224,8 +224,8 @@
             class="org.eclipse.wst.xml.ui.internal.preferences.XMLValidatorPreferencePage"
             id="org.eclipse.wst.sse.ui.preferences.xml.validation">
        	    <keywordReference id="org.eclipse.wst.xml.ui.severities"/>
-    	</page> -->
-	</extension>
+    	</page>
+	</extension> -->
 	
 	<!-- Web content settings -->
 	<!-- <extension point="org.eclipse.ui.propertyPages">

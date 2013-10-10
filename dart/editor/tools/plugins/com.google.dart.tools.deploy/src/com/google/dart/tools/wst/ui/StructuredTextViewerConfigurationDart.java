@@ -13,14 +13,19 @@
  */
 package com.google.dart.tools.wst.ui;
 
+import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.wst.ui.autoedit.AutoEditStrategyForDart;
+import com.google.dart.tools.wst.ui.contentassist.DartStructuredContentAssistProcessor;
+import com.google.dart.tools.wst.ui.style.LineStyleProviderForDart;
 
 import org.eclipse.jface.text.IAutoEditStrategy;
+import org.eclipse.jface.text.contentassist.IContentAssistProcessor;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.wst.html.core.internal.text.StructuredTextPartitionerForHTML;
 import org.eclipse.wst.html.core.text.IHTMLPartitions;
 import org.eclipse.wst.html.ui.StructuredTextViewerConfigurationHTML;
 import org.eclipse.wst.sse.core.text.IStructuredPartitions;
+import org.eclipse.wst.sse.ui.internal.provisional.style.LineStyleProvider;
 import org.eclipse.wst.xml.core.internal.text.rules.StructuredTextPartitionerForXML;
 
 @SuppressWarnings("restriction")
@@ -91,4 +96,30 @@ public class StructuredTextViewerConfigurationDart extends StructuredTextViewerC
     return configuredContentTypes;
   }
 
+  @Override
+  public LineStyleProvider[] getLineStyleProviders(ISourceViewer sourceViewer, String partitionType) {
+    if (partitionType.equals("org.eclipse.wst.html.SCRIPT.type.APPLICATION/DART")
+        || partitionType.equals("org.eclipse.wst.html.SCRIPT.EVENTHANDLER.type.APPLICATION/DART")) {
+      // This duplicates the XML in plugin.xml. It is a place-holder for future use.
+      return new LineStyleProvider[] {new LineStyleProviderForDart()};
+    } else {
+      return super.getLineStyleProviders(sourceViewer, partitionType);
+    }
+  }
+
+  @Override
+  protected IContentAssistProcessor[] getContentAssistProcessors(ISourceViewer sourceViewer,
+      String partitionType) {
+    if (partitionType.equals("org.eclipse.wst.html.SCRIPT.type.APPLICATION/DART")
+        || partitionType.equals("org.eclipse.wst.html.SCRIPT.EVENTHANDLER.type.APPLICATION/DART")) {
+      IContentAssistProcessor processor = new DartStructuredContentAssistProcessor(
+          this.getContentAssistant(),
+          partitionType,
+          sourceViewer,
+          DartToolsPlugin.getDefault().getPreferenceStore());
+      return new IContentAssistProcessor[] {processor};
+    } else {
+      return super.getContentAssistProcessors(sourceViewer, partitionType);
+    }
+  }
 }

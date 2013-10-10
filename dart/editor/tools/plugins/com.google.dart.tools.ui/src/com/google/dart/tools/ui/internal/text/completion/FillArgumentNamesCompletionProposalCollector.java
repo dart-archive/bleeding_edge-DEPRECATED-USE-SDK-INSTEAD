@@ -36,7 +36,7 @@ public final class FillArgumentNamesCompletionProposalCollector extends Completi
   private final boolean fIsGuessArguments;
 
   public FillArgumentNamesCompletionProposalCollector(DartContentAssistInvocationContext context) {
-    super(context.getCompilationUnit(), true);
+    super(context.getCompilationUnit(), false);
     setInvocationContext(context);
     IPreferenceStore preferenceStore = DartToolsPlugin.getDefault().getPreferenceStore();
     fIsGuessArguments = preferenceStore.getBoolean(PreferenceConstants.CODEASSIST_GUESS_METHOD_ARGUMENTS);

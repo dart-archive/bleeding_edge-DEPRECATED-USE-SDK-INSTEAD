@@ -14,16 +14,16 @@
 package com.google.dart.tools.wst.ui.style;
 
 import com.google.common.collect.Maps;
-import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
-import com.google.dart.engine.context.ChangeSet;
+import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.LibraryElement;
-import com.google.dart.engine.internal.context.AnalysisOptionsImpl;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.analysis.model.Project;
+import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor.EclipsePreferencesAdapter;
 import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
@@ -36,8 +36,13 @@ import com.google.dart.tools.ui.text.DartTextTools;
 import com.google.dart.tools.ui.text.IColorManager;
 import com.google.dart.tools.ui.text.IColorManagerExtension;
 
+import org.eclipse.core.filebuffers.FileBuffers;
+import org.eclipse.core.filebuffers.ITextFileBuffer;
+import org.eclipse.core.filebuffers.ITextFileBufferManager;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ProjectScope;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.PreferenceConverter;
 import org.eclipse.jface.text.BadLocationException;
@@ -85,6 +90,9 @@ public class LineStyleProviderForDart extends AbstractLineStyleProvider implemen
     }
   }
 
+  public static CompilationUnit LINE_HACK_UNIT;
+  public static AnalysisContext LINE_HACK_CONTEXT;
+
   private static final Map<Highlighting, SemanticHighlighting> styleToHighlighting = Maps.newHashMap();
   private static final SemanticHighlighting[] highlighters = SemanticHighlightings.getSemanticHighlightings();
   private static final Highlighting[] styles = new Highlighting[highlighters.length];
@@ -122,33 +130,36 @@ public class LineStyleProviderForDart extends AbstractLineStyleProvider implemen
       int lineRequestLength, Collection holdResults) {
 
     List<StyleRange> positions = new ArrayList<StyleRange>();
+    IStructuredDocument document = getDocument();
     // semantic highlighting
     try {
       int offset = typedRegion.getOffset();
       int length = typedRegion.getLength();
-      String source = getDocument().get(offset, length);
-      CompilationUnit unit = parseUnit(source);
+      String source = document.get(offset, length);
+      CompilationUnit unit = parseUnit(document, source);
       SemanticHighlightingEngine engine = new SemanticHighlightingEngine(
           semanticHighlightings,
           highlightings);
       engine.analyze(getDocument(), offset, unit, positions);
     } catch (BadLocationException ex) {
       // do nothing
-    } catch (Exception all) {
-      // do nothing
+    } catch (CoreException ex) {
+      // log it
+    } catch (AnalysisException ex) {
+      // log it
     }
 
     // syntax highlighting
     {
       DartTextTools tools = DartToolsPlugin.getDefault().getDartTextTools();
       IDocumentPartitioner part = tools.createDocumentPartitioner();
-      part.connect(getDocument());
-      IDocumentExtension3 doc3 = (IDocumentExtension3) getDocument();
+      part.connect(document);
+      IDocumentExtension3 doc3 = (IDocumentExtension3) document;
       doc3.setDocumentPartitioner(DartPartitions.DART_PARTITIONING, part);
       SyntacticHighlightingEngine engine = new SyntacticHighlightingEngine(
           colorManager,
           preferenceStore);
-      engine.analyze(getDocument(), typedRegion, positions);
+      engine.analyze(document, typedRegion, positions);
       doc3.setDocumentPartitioner(DartPartitions.DART_PARTITIONING, null);
       part.disconnect();
     }
@@ -184,16 +195,6 @@ public class LineStyleProviderForDart extends AbstractLineStyleProvider implemen
     }
   }
 
-  private String convertPath(String path) {
-    if (File.separator.equals("/")) {
-      // We're on a unix-ish OS.
-      return path;
-    } else {
-      // On windows, the path separator is '\'.
-      return path.replaceAll("/", "\\\\");
-    }
-  }
-
   // TODO(messick) Refactor to unify with copy in DartEditor.
   @SuppressWarnings("deprecation")
   private IPreferenceStore createCombinedPreferenceStore(IEditorInput input) {
@@ -209,16 +210,6 @@ public class LineStyleProviderForDart extends AbstractLineStyleProvider implemen
     stores.add(EditorsUI.getPreferenceStore());
 
     return new ChainedPreferenceStore(stores.toArray(new IPreferenceStore[stores.size()]));
-  }
-
-  private void ensureAnalysisContext() {
-    if (analysisContext == null) {
-      analysisContext = AnalysisEngine.getInstance().createAnalysisContext();
-      analysisContext.setSourceFactory(sourceFactory);
-      AnalysisOptionsImpl analysisOptionsImpl = new AnalysisOptionsImpl();
-      analysisOptionsImpl.setHint(false);
-      analysisContext.setAnalysisOptions(analysisOptionsImpl);
-    }
   }
 
   // Copied from SemanticHighlightingManager
@@ -258,27 +249,28 @@ public class LineStyleProviderForDart extends AbstractLineStyleProvider implemen
     }
   }
 
-  private CompilationUnit parseUnit(String code) throws Exception {
-    return parseUnit("/highlight.dart", code);
-  }
-
-  private CompilationUnit parseUnit(String path, String code) throws Exception {
-    ensureAnalysisContext();
+  private CompilationUnit parseUnit(IStructuredDocument document, String code)
+      throws CoreException, AnalysisException {
+    ITextFileBufferManager fileManager = FileBuffers.getTextFileBufferManager();
+    ITextFileBuffer fileBuffer = fileManager.getTextFileBuffer(document);
+    File file;
+    file = fileBuffer.getFileStore().toLocalFile(0, null);
+    IResource resource = ResourceUtil.getResource(file);
+    IProject project = resource.getProject();
+    Project dartProject = DartCore.getProjectManager().getProject(project);
+    analysisContext = dartProject.getContext(resource);
+    sourceFactory = analysisContext.getSourceFactory();
     // configure Source
-    Source source = new FileBasedSource(
-        sourceFactory.getContentCache(),
-        new File(convertPath(path)).getAbsoluteFile());
-    {
-      sourceFactory.setContents(source, "");
-      ChangeSet changeSet = new ChangeSet();
-      changeSet.added(source);
-      analysisContext.applyChanges(changeSet);
-    }
+    file = new File(file.getParentFile(), file.getName() + ".dart");
+    Source source = new FileBasedSource(sourceFactory.getContentCache(), file);
+//    Source source = dartProject.getSource((IFile) resource);
     // update Source
     analysisContext.setContents(source, code);
     // parse and resolve
     LibraryElement library = analysisContext.computeLibraryElement(source);
     CompilationUnit libraryUnit = analysisContext.resolveCompilationUnit(source, library);
+    LINE_HACK_UNIT = libraryUnit;
+    LINE_HACK_CONTEXT = analysisContext;
     return libraryUnit;
   }
 
