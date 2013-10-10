@@ -20,6 +20,7 @@ import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.utilities.source.LineInfo;
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.internal.analysis.model.ProjectManagerImpl;
 import com.google.dart.tools.core.internal.model.DartIgnoreManager;
@@ -91,6 +92,25 @@ public class AnalysisMarkerManagerTest extends TestCase {
 
     fileRes.assertMarkersDeleted();
     assertTrue(fileRes.getMarkers().size() > 0);
+  }
+
+  public void test_translateMarkers_ignoredResource() throws Exception {
+    AnalysisMarkerManager markerManager = new AnalysisMarkerManager(workspace);
+
+    LineInfo lineInfo = new LineInfo(new int[] {0, 10});
+    ParserErrorCode errCode = ParserErrorCode.DIRECTIVE_AFTER_DECLARATION;
+    AnalysisError[] errors = new AnalysisError[] {new AnalysisError(source, 0, 10, errCode)};
+    DartCore.addToIgnores(fileRes);
+    try {
+      markerManager.queueErrors(fileRes, lineInfo, errors);
+      markerManager.done();
+      markerManager.waitForMarkers(10000);
+    } finally {
+      DartCore.removeFromIgnores(fileRes);
+    }
+
+    fileRes.assertMarkersDeleted();
+    assertTrue(fileRes.getMarkers().size() == 0);
   }
 
   @Override

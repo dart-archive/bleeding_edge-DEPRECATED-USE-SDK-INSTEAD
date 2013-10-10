@@ -213,7 +213,7 @@ public class AnalysisEngineParticipantTest extends AbstractDartCoreTest {
     participant = new AnalysisEngineParticipant(manager, markerManager) {
       @Override
       protected void performAnalysis(AnalysisWorker worker) {
-        worker.performAnalysis();
+        worker.performAnalysis(null);
       }
     };
   }

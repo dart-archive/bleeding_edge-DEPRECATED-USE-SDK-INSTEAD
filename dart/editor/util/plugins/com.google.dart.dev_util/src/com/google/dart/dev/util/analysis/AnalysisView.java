@@ -14,6 +14,7 @@ import com.google.dart.engine.utilities.io.PrintStringWriter;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.analysis.model.PubFolder;
+import com.google.dart.tools.core.internal.builder.AnalysisManager;
 import com.google.dart.tools.core.internal.builder.AnalysisWorker;
 
 import org.apache.commons.lang3.ArrayUtils;
@@ -158,8 +159,8 @@ public class AnalysisView extends ViewPart {
   }
 
   private static List<AnalysisContextData> getContexts() {
-    AnalysisWorker[] queueWorkers = AnalysisWorker.getQueueWorkers();
-    AnalysisWorker activeWorker = AnalysisWorker.getActiveWorker();
+    AnalysisWorker[] queueWorkers = AnalysisManager.getInstance().getQueueWorkers();
+    AnalysisWorker activeWorker = AnalysisManager.getInstance().getActiveWorker();
     List<AnalysisContextData> contexts = Lists.newArrayList();
     for (Project project : DartCore.getProjectManager().getProjects()) {
       String projectName = project.getResource().getName();
@@ -519,7 +520,7 @@ public class AnalysisView extends ViewPart {
         } else {
           msg.print("Index: statistics = " + index.getStatistics());
         }
-        int pauseCount = AnalysisWorker.getPauseCount();
+        int pauseCount = AnalysisManager.getInstance().getPauseCount();
         if (pauseCount > 0) {
           msg.print(" >>> PAUSED[" + pauseCount + "]");
         }

@@ -19,8 +19,6 @@ import com.google.dart.engine.context.ChangeNotice;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.source.Source;
-import com.google.dart.engine.utilities.instrumentation.Instrumentation;
-import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.engine.utilities.source.LineInfo;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.AnalysisEvent;
@@ -33,12 +31,6 @@ import com.google.dart.tools.core.model.DartSdkManager;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
-import org.eclipse.core.runtime.jobs.Job;
-
-import java.util.ArrayList;
 
 /**
  * Instances of {@code AnalysisWorker} perform analysis by repeatedly calling
@@ -49,7 +41,10 @@ import java.util.ArrayList;
  */
 public class AnalysisWorker {
 
-  public class Event implements ResolvedEvent, AnalysisEvent {
+  /**
+   * Internal implementation of events broadcast by the worker.
+   */
+  private class Event implements ResolvedEvent, AnalysisEvent {
     private final AnalysisContext context;
     CompilationUnit unit;
     Source source;
@@ -84,66 +79,6 @@ public class AnalysisWorker {
       return unit;
     }
   }
-
-  /**
-   * A build level job processing workers in {@link AnalysisWorker#backgroundQueue}.
-   */
-  private static class BackgroundAnalysisJob extends Job {
-    public BackgroundAnalysisJob() {
-      super("Analyzing");
-    }
-
-    @Override
-    protected IStatus run(IProgressMonitor monitor) {
-      while (true) {
-        AnalysisWorker worker;
-        synchronized (backgroundQueue) {
-          if (backgroundQueue.isEmpty() || pauseCount > 0) {
-            backgroundJob = null;
-            backgroundQueue.notifyAll();
-            return Status.OK_STATUS;
-          }
-          worker = backgroundQueue.remove(0);
-        }
-
-        if (worker.contextManager instanceof Project) {
-          setName("Analyzing " + ((Project) worker.contextManager).getResource().getName());
-        } else if (worker.contextManager instanceof ProjectManager) {
-          setName("Analyzing SDK");
-        }
-        activeWorker = worker;
-        try {
-          worker.performAnalysis();
-        } finally {
-          activeWorker = null;
-        }
-      }
-    }
-  }
-
-  /**
-   * A collection of workers to be run on a background job. Synchronize against this field before
-   * accessing it.
-   */
-  private static final ArrayList<AnalysisWorker> backgroundQueue = new ArrayList<AnalysisWorker>();
-
-  /**
-   * The background job on which the queued workers are executed, or {@code null} if none.
-   * Synchronize against {@link #backgroundQueue} before accessing this field.
-   */
-  private static BackgroundAnalysisJob backgroundJob = null;
-
-  /**
-   * The number of times {@link #pauseBackgroundAnalysis()} has been called without a balancing call
-   * to {@link #resumeBackgroundAnalysis()}. Synchronize against {@link #backgroundQueue} before
-   * accessing this field.
-   */
-  private static int pauseCount = 0;
-
-  /**
-   * The currently executing {@link AnalysisWorker}.
-   */
-  private static AnalysisWorker activeWorker = null;
 
   /**
    * Objects to be notified when each compilation unit has been resolved. Contents of this array
@@ -181,44 +116,10 @@ public class AnalysisWorker {
   }
 
   /**
-   * @return the currently executing {@link AnalysisWorker}, may be {@code null}.
-   */
-  public static AnalysisWorker getActiveWorker() {
-    return activeWorker;
-  }
-
-  /**
-   * Answer the number of times {@link #pauseBackgroundAnalysis()} has been called without a
-   * balancing call to {@link #resumeBackgroundAnalysis()}.
-   */
-  public static int getPauseCount() {
-    synchronized (backgroundQueue) {
-      return pauseCount;
-    }
-  }
-
-  /**
-   * @return the {@link AnalysisWorker}s in the queue, may be empty, but not {@code null}.
-   */
-  public static AnalysisWorker[] getQueueWorkers() {
-    synchronized (backgroundQueue) {
-      return backgroundQueue.toArray(new AnalysisWorker[backgroundQueue.size()]);
-    }
-  }
-
-  /**
    * Pause background analysis until {@link #resumeBackgroundAnalysis()} is called.
    */
   public static void pauseBackgroundAnalysis() {
-    InstrumentationBuilder instrumentation = Instrumentation.builder("AnalysisWorker-pause");
-    try {
-      synchronized (backgroundQueue) {
-        pauseCount++;
-        instrumentation.metric("PauseCount", pauseCount);
-      }
-    } finally {
-      instrumentation.log();
-    }
+    AnalysisManager.getInstance().pauseBackgroundAnalysis();
   }
 
   /**
@@ -226,14 +127,10 @@ public class AnalysisWorker {
    * 
    * @param manager the manager containing the context to be analyzed (not {@code null})
    * @param context the context to be analyzed (not {@code null})
-   * @see #performAnalysis()
+   * @see #performAnalysis(AnalysisManager)
    */
   public static void performAnalysisInBackground(ContextManager manager, AnalysisContext context) {
-    synchronized (backgroundQueue) {
-      if (backgroundQueue.size() == 0 || backgroundQueue.get(0).getContext() != context) {
-        new AnalysisWorker(manager, context).performAnalysisInBackground();
-      }
-    }
+    AnalysisManager.getInstance().performAnalysisInBackground(manager, context);
   }
 
   /**
@@ -260,23 +157,7 @@ public class AnalysisWorker {
    * Resume background analysis.
    */
   public static void resumeBackgroundAnalysis() {
-    InstrumentationBuilder instrumentation = Instrumentation.builder("AnalysisWorker-resume");
-    try {
-      synchronized (backgroundQueue) {
-        if (pauseCount > 0) {
-          pauseCount--;
-          instrumentation.metric("PauseCount", pauseCount);
-          if (pauseCount == 0) {
-            startBackgroundAnalysis();
-          }
-        } else {
-          instrumentation.metric("Problem", "resume-called-before-pause");
-          DartCore.logError(new RuntimeException("Resume called before pause"));
-        }
-      }
-    } finally {
-      instrumentation.log();
-    }
+    AnalysisManager.getInstance().resumeBackgroundAnalysis();
   }
 
   /**
@@ -286,34 +167,7 @@ public class AnalysisWorker {
    * @return {@code true} if the background analysis has completed, else {@code false}
    */
   public static boolean waitForBackgroundAnalysis(long milliseconds) {
-    synchronized (backgroundQueue) {
-      long end = System.currentTimeMillis() + milliseconds;
-      while (backgroundJob != null) {
-        long delta = end - System.currentTimeMillis();
-        if (delta <= 0) {
-          return false;
-        }
-        try {
-          backgroundQueue.wait(delta);
-        } catch (InterruptedException e) {
-          //$FALL-THROUGH$
-        }
-      }
-      return true;
-    }
-  }
-
-  /**
-   * Start a job to perform background analysis if it has not already been started.
-   */
-  private static void startBackgroundAnalysis() {
-    synchronized (backgroundQueue) {
-      if (backgroundJob == null) {
-        backgroundJob = new BackgroundAnalysisJob();
-        backgroundJob.setPriority(Job.BUILD);
-      }
-      backgroundJob.schedule();
-    }
+    return AnalysisManager.getInstance().waitForBackgroundAnalysis(milliseconds);
   }
 
   /**
@@ -399,8 +253,10 @@ public class AnalysisWorker {
   /**
    * Perform analysis by repeatedly calling {@link AnalysisContext#performAnalysisTask()} and update
    * both the index and the error markers based upon the analysis results.
+   * 
+   * @param manager the {@link AnalysisManager} or {@code null} if is performed without a manager
    */
-  public void performAnalysis() {
+  public void performAnalysis(AnalysisManager manager) {
 
     // Check for a valid context and SDK
     DartSdk sdk;
@@ -418,13 +274,8 @@ public class AnalysisWorker {
 
     boolean analysisComplete = false;
     while (true) {
-
-      // If background analysis has been paused, push the receiver back on the queue
-      synchronized (backgroundQueue) {
-        if (pauseCount > 0) {
-          backgroundQueue.add(0, this);
-          return;
-        }
+      if (manager != null && manager.checkPaused(this)) {
+        return;
       }
 
       // Check if the context has been set to null indicating that analysis should stop
@@ -463,19 +314,12 @@ public class AnalysisWorker {
   }
 
   /**
-   * Queue this worker to have {@link #performAnalysis()} called in a background job.
+   * Queue this worker to have {@link #performAnalysis(AnalysisManager)} called in a background job.
    * 
    * @see #performAnalysisInBackground(Project, AnalysisContext)
    */
   public void performAnalysisInBackground() {
-    synchronized (backgroundQueue) {
-      if (!backgroundQueue.contains(this)) {
-        backgroundQueue.add(0, this);
-        if (pauseCount == 0) {
-          startBackgroundAnalysis();
-        }
-      }
-    }
+    AnalysisManager.getInstance().addWorker(this);
   }
 
   /**

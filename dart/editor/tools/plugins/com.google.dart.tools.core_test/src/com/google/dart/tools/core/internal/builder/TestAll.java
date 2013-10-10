@@ -21,6 +21,7 @@ public class TestAll {
     TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
     suite.addTestSuite(AnalysisEngineParticipantTest.class);
     suite.addTestSuite(AnalysisMarkerManagerTest.class);
+    suite.addTestSuite(AnalysisManagerTest.class);
     suite.addTestSuite(AnalysisWorkerTest.class);
     suite.addTestSuite(BuildDartParticipantTest.class);
     suite.addTestSuite(BuildParticipantDeclarationTest.class);
