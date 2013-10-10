@@ -306,6 +306,11 @@ public class MockContext implements AnalysisContext {
   }
 
   @Override
+  public Source[] getRefactoringUnsafeSources() {
+    return Source.EMPTY_ARRAY;
+  }
+
+  @Override
   public CompilationUnit getResolvedCompilationUnit(Source unitSource, LibraryElement library) {
     return null;
   }

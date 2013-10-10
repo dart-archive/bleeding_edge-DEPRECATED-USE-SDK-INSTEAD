@@ -427,6 +427,11 @@ public class InstrumentedAnalysisContextImpl implements InternalAnalysisContext 
   }
 
   @Override
+  public Source[] getRefactoringUnsafeSources() {
+    return basis.getRefactoringUnsafeSources();
+  }
+
+  @Override
   public CompilationUnit getResolvedCompilationUnit(Source unitSource, LibraryElement library) {
     InstrumentationBuilder instrumentation = Instrumentation.builder("Analysis-getResolvedCompilationUnit");
     try {

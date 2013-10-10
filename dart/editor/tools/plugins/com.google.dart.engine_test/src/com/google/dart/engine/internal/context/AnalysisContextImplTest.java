@@ -635,6 +635,21 @@ public class AnalysisContextImplTest extends EngineTestCase {
     assertNull(context.getPublicNamespace(source));
   }
 
+  public void test_getRefactoringUnsafeSources() throws Exception {
+    // not sources initially
+    Source[] sources = context.getRefactoringUnsafeSources();
+    assertLength(0, sources);
+    // add new source, unresolved
+    Source source = addSource("/test.dart", "library lib;");
+    sources = context.getRefactoringUnsafeSources();
+    assertLength(1, sources);
+    assertEquals(source, sources[0]);
+    // resolve source
+    context.computeLibraryElement(source);
+    sources = context.getRefactoringUnsafeSources();
+    assertLength(0, sources);
+  }
+
   public void test_getResolvedCompilationUnit_library() throws Exception {
     context = AnalysisContextFactory.contextWithCore();
     sourceFactory = context.getSourceFactory();

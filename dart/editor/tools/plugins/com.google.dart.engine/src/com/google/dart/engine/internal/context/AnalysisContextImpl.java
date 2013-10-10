@@ -742,6 +742,22 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @Override
+  public Source[] getRefactoringUnsafeSources() {
+    ArrayList<Source> sources = new ArrayList<Source>();
+    synchronized (cacheLock) {
+      for (Map.Entry<Source, SourceEntry> entry : cache.entrySet()) {
+        SourceEntry sourceEntry = entry.getValue();
+        if (sourceEntry instanceof DartEntry) {
+          if (!((DartEntry) sourceEntry).isRefactoringSafe()) {
+            sources.add(entry.getKey());
+          }
+        }
+      }
+    }
+    return sources.toArray(new Source[sources.size()]);
+  }
+
+  @Override
   public CompilationUnit getResolvedCompilationUnit(Source unitSource, LibraryElement library) {
     if (library == null) {
       return null;

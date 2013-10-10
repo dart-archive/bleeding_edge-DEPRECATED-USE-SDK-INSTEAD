@@ -166,4 +166,9 @@ public interface DartEntry extends SourceEntry {
 
   @Override
   public DartEntryImpl getWritableCopy();
+
+  /**
+   * Return {@code true} if this data is safe to use in refactoring.
+   */
+  public boolean isRefactoringSafe();
 }

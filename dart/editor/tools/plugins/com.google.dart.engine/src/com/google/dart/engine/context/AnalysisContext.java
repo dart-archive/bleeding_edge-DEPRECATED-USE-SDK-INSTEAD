@@ -306,6 +306,15 @@ public interface AnalysisContext {
   public LineInfo getLineInfo(Source source);
 
   /**
+   * Return an array containing all of the sources known to this context and their resolution state
+   * is not valid or flush. So, these sources are not safe to update during refactoring, because we
+   * may be don't know all the references in them.
+   * 
+   * @return the sources known to this context and are not safe for refactoring
+   */
+  public Source[] getRefactoringUnsafeSources();
+
+  /**
    * Return a fully resolved AST for a single compilation unit within the given library, or
    * {@code null} if the resolved AST is not already computed.
    * 

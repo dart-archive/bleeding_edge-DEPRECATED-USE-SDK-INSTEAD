@@ -611,6 +611,19 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     resolutionState.invalidateAllResolutionInformation();
   }
 
+  @Override
+  public boolean isRefactoringSafe() {
+    ResolutionState state = resolutionState;
+    while (state != null) {
+      CacheState resolvedState = state.resolvedUnitState;
+      if (resolvedState != CacheState.VALID && resolvedState != CacheState.FLUSHED) {
+        return false;
+      }
+      state = state.nextState;
+    }
+    return true;
+  }
+
   /**
    * Record that an error occurred while attempting to scan or parse the entry represented by this
    * entry. This will set the state of all information, including any resolution-based information,
