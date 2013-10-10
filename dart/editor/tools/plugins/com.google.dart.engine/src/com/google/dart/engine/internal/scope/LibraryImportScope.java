@@ -93,7 +93,7 @@ public class LibraryImportScope extends Scope {
         if (foundElement == null) {
           foundElement = element;
         } else if (foundElement != element) {
-          foundElement = new MultiplyDefinedElementImpl(
+          foundElement = MultiplyDefinedElementImpl.fromElements(
               definingLibrary.getContext(),
               foundElement,
               element);

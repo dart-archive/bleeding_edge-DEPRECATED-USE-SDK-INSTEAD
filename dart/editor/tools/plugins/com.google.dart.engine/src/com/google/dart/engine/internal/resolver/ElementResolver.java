@@ -1650,7 +1650,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
           if (element == null) {
             element = importedElement;
           } else {
-            element = new MultiplyDefinedElementImpl(
+            element = MultiplyDefinedElementImpl.fromElements(
                 definingLibrary.getContext(),
                 element,
                 importedElement);
