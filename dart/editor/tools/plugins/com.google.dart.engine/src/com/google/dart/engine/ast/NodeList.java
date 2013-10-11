@@ -42,9 +42,9 @@ public class NodeList<E extends ASTNode> extends AbstractList<E> {
   private final ASTNode owner;
 
   /**
-   * The elements of the list, or {@code null} if the list is empty.
+   * The elements contained in the list.
    */
-  private ASTNode[] elements = null;
+  private ASTNode[] elements = ASTNode.EMPTY_ARRAY;
 
   /**
    * Initialize a newly created list of nodes to be empty.
@@ -61,9 +61,6 @@ public class NodeList<E extends ASTNode> extends AbstractList<E> {
    * @param visitor the visitor to be used to visit the elements of this list
    */
   public void accept(ASTVisitor<?> visitor) {
-    if (elements == null) {
-      return;
-    }
     for (ASTNode element : elements) {
       element.accept(visitor);
     }
@@ -71,38 +68,25 @@ public class NodeList<E extends ASTNode> extends AbstractList<E> {
 
   @Override
   public void add(int index, E node) {
-    if (elements == null) {
-      if (index != 0) {
-        throw new IndexOutOfBoundsException("Index: " + index + ", Size: 0");
-      }
-      owner.becomeParentOf(node);
-      elements = new ASTNode[] {node};
-      return;
-    }
     int length = elements.length;
     if (index < 0 || index > length) {
       throw new IndexOutOfBoundsException("Index: " + index + ", Size: " + elements.length);
     }
-    ASTNode[] newElements = new ASTNode[length + 1];
     owner.becomeParentOf(node);
-    System.arraycopy(elements, 0, newElements, 0, index);
-    newElements[index] = node;
-    System.arraycopy(elements, index, newElements, index + 1, length - index);
-    elements = newElements;
+    if (length == 0) {
+      elements = new ASTNode[] {node};
+    } else {
+      ASTNode[] newElements = new ASTNode[length + 1];
+      System.arraycopy(elements, 0, newElements, 0, index);
+      newElements[index] = node;
+      System.arraycopy(elements, index, newElements, index + 1, length - index);
+      elements = newElements;
+    }
   }
 
   @Override
   public boolean addAll(Collection<? extends E> nodes) {
     if (nodes != null && !nodes.isEmpty()) {
-      if (elements == null) {
-        elements = new ASTNode[nodes.size()];
-        int index = 0;
-        for (E node : nodes) {
-          owner.becomeParentOf(node);
-          elements[index++] = node;
-        }
-        return true;
-      }
       int oldCount = elements.length;
       int newCount = nodes.size();
       ASTNode[] newElements = new ASTNode[oldCount + newCount];
@@ -121,9 +105,7 @@ public class NodeList<E extends ASTNode> extends AbstractList<E> {
   @Override
   @SuppressWarnings("unchecked")
   public E get(int index) {
-    if (elements == null) {
-      throw new IndexOutOfBoundsException("Index: " + index + ", Size: 0");
-    } else if (index < 0 || index >= elements.length) {
+    if (index < 0 || index >= elements.length) {
       throw new IndexOutOfBoundsException("Index: " + index + ", Size: " + elements.length);
     }
     return (E) elements[index];
@@ -135,7 +117,7 @@ public class NodeList<E extends ASTNode> extends AbstractList<E> {
    * @return the first token included in this node's source range
    */
   public Token getBeginToken() {
-    if (elements == null) {
+    if (elements.length == 0) {
       return null;
     }
     return elements[0].getBeginToken();
@@ -147,7 +129,7 @@ public class NodeList<E extends ASTNode> extends AbstractList<E> {
    * @return the last token included in this node list's source range
    */
   public Token getEndToken() {
-    if (elements == null) {
+    if (elements.length == 0) {
       return null;
     }
     return elements[elements.length - 1].getEndToken();
@@ -165,15 +147,13 @@ public class NodeList<E extends ASTNode> extends AbstractList<E> {
   @Override
   @SuppressWarnings("unchecked")
   public E remove(int index) {
-    if (elements == null) {
-      throw new IndexOutOfBoundsException("Index: " + index + ", Size: 0");
-    } else if (index < 0 || index >= elements.length) {
+    if (index < 0 || index >= elements.length) {
       throw new IndexOutOfBoundsException("Index: " + index + ", Size: " + elements.length);
     }
     E removedNode = (E) elements[index];
     int length = elements.length;
     if (length == 1) {
-      elements = null;
+      elements = ASTNode.EMPTY_ARRAY;
       return removedNode;
     }
     ASTNode[] newElements = new ASTNode[length - 1];
@@ -186,9 +166,7 @@ public class NodeList<E extends ASTNode> extends AbstractList<E> {
   @Override
   @SuppressWarnings("unchecked")
   public E set(int index, E node) {
-    if (elements == null) {
-      throw new IndexOutOfBoundsException("Index: " + index + ", Size: 0");
-    } else if (index < 0 || index >= elements.length) {
+    if (index < 0 || index >= elements.length) {
       throw new IndexOutOfBoundsException("Index: " + index + ", Size: " + elements.length);
     }
     E replacedNode = (E) elements[index];
@@ -199,9 +177,6 @@ public class NodeList<E extends ASTNode> extends AbstractList<E> {
 
   @Override
   public int size() {
-    if (elements == null) {
-      return 0;
-    }
     return elements.length;
   }
 }

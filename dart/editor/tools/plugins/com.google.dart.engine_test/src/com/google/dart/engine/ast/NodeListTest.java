@@ -35,6 +35,16 @@ public class NodeListTest extends EngineTestCase {
     assertSame(secondNode, list.get(1));
     assertSame(parent, firstNode.getParent());
     assertSame(parent, secondNode.getParent());
+
+    ASTNode thirdNode = booleanLiteral(false);
+    list.add(1, thirdNode);
+    assertSize(3, list);
+    assertSame(firstNode, list.get(0));
+    assertSame(thirdNode, list.get(1));
+    assertSame(secondNode, list.get(2));
+    assertSame(parent, firstNode.getParent());
+    assertSame(parent, secondNode.getParent());
+    assertSame(parent, thirdNode.getParent());
   }
 
   public void test_add_negative() {
@@ -59,18 +69,34 @@ public class NodeListTest extends EngineTestCase {
 
   public void test_addAll() {
     ASTNode parent = argumentList();
-    ArrayList<ASTNode> nodes = new ArrayList<ASTNode>();
+    ArrayList<ASTNode> firstNodes = new ArrayList<ASTNode>();
     ASTNode firstNode = booleanLiteral(true);
     ASTNode secondNode = booleanLiteral(false);
-    nodes.add(firstNode);
-    nodes.add(secondNode);
+    firstNodes.add(firstNode);
+    firstNodes.add(secondNode);
     NodeList<ASTNode> list = new NodeList<ASTNode>(parent);
-    list.addAll(nodes);
+    list.addAll(firstNodes);
     assertSize(2, list);
     assertSame(firstNode, list.get(0));
     assertSame(secondNode, list.get(1));
     assertSame(parent, firstNode.getParent());
     assertSame(parent, secondNode.getParent());
+
+    ArrayList<ASTNode> secondNodes = new ArrayList<ASTNode>();
+    ASTNode thirdNode = booleanLiteral(true);
+    ASTNode fourthNode = booleanLiteral(false);
+    secondNodes.add(thirdNode);
+    secondNodes.add(fourthNode);
+    list.addAll(secondNodes);
+    assertSize(4, list);
+    assertSame(firstNode, list.get(0));
+    assertSame(secondNode, list.get(1));
+    assertSame(thirdNode, list.get(2));
+    assertSame(fourthNode, list.get(3));
+    assertSame(parent, firstNode.getParent());
+    assertSame(parent, secondNode.getParent());
+    assertSame(parent, thirdNode.getParent());
+    assertSame(parent, fourthNode.getParent());
   }
 
   public void test_create() {
