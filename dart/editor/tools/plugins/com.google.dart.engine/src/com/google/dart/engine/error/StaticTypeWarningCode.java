@@ -156,8 +156,6 @@ public enum StaticTypeWarningCode implements ErrorCode {
    * expression are not subtypes of the bounds of the corresponding formal type parameters of
    * <i>G</i>.
    * <p>
-   * 10 Generics: It is a static type warning if a type parameter is a supertype of its upper bound.
-   * <p>
    * 15.8 Parameterized Types: If <i>S</i> is the static type of a member <i>m</i> of <i>G</i>, then
    * the static type of the member <i>m</i> of <i>G&lt;A<sub>1</sub>, &hellip; A<sub>n</sub>&gt;</i>
    * is <i>[A<sub>1</sub>, &hellip;, A<sub>n</sub>/T<sub>1</sub>, &hellip;, T<sub>n</sub>]S</i>
@@ -172,6 +170,7 @@ public enum StaticTypeWarningCode implements ErrorCode {
    * @param boundedTypeName the name of the type used in the instance creation that should be
    *          limited by the bound as specified in the class declaration
    * @param boundingTypeName the name of the bounding type
+   * @see #TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND
    */
   TYPE_ARGUMENT_NOT_MATCHING_BOUNDS("'%s' does not extend '%s'"),
 
@@ -179,6 +178,7 @@ public enum StaticTypeWarningCode implements ErrorCode {
    * 10 Generics: It is a static type warning if a type parameter is a supertype of its upper bound.
    * 
    * @param typeParameterName the name of the type parameter
+   * @see #TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
    */
   TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND("'%s' cannot be a supertype of its upper bound"),
 
