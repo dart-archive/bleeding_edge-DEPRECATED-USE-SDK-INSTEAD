@@ -51,7 +51,6 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.console.IConsoleConstants;
 import org.eclipse.ui.internal.WorkbenchPlugin;
 import org.eclipse.ui.internal.themes.ThemeElementHelper;
 import org.eclipse.ui.themes.ITheme;
@@ -316,7 +315,15 @@ public class FontPreferencePage extends PreferencePage implements IWorkbenchPref
       if (key == EDITOR_FONT_KEY) {
         persistFont(WST_FONT_KEY, baseData);
       }
-      persistFont(IConsoleConstants.P_FONT, baseData);
+      if (key == VIEW_FONT_KEY) {
+        persistFont(
+            "org.eclipse.debug.ui.VariableTextFont" /*IDebugUIConstants.PREF_VARIABLE_TEXT_FONT*/,
+            baseData);
+        persistFont(
+            "org.eclipse.debug.ui.DetailPaneFont" /*IDebugUIConstants.PREF_DETAIL_PANE_FONT*/,
+            baseData);
+      }
+
       /*
        * The following block of code adjusts fonts in dialogs. There are some issues, like much of the
        * non-framework section of the page not getting changed. For now, it is commented out.

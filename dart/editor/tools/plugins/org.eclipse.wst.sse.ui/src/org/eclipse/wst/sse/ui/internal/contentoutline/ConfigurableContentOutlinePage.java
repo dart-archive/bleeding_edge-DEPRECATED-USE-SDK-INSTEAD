@@ -7,6 +7,8 @@
  *******************************************************************************/
 package org.eclipse.wst.sse.ui.internal.contentoutline;
 
+import com.google.dart.tools.ui.internal.util.SWTUtil;
+
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.ListenerList;
 import org.eclipse.core.runtime.Platform;
@@ -385,6 +387,8 @@ public class ConfigurableContentOutlinePage extends ContentOutlinePage implement
     }
     getTreeViewer().addDoubleClickListener(fDoubleClickProvider);
     getSite().setSelectionProvider(fSelectionProvider);
+    
+    SWTUtil.bindJFaceResourcesFontToControl(getTreeViewer().getControl());
   }
 
   public void dispose() {
