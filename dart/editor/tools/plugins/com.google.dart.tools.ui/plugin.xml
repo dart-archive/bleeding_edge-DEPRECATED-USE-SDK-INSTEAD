@@ -2430,6 +2430,36 @@
             sequence="CTRL+SHIFT+TAB">
       </key>
       <key
+            commandId="org.eclipse.ui.edit.text.set.mark"
+            contextId="org.eclipse.ui.textEditorScope"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
+            sequence="M1+M3+["
+            />
+      <key
+            commandId="org.eclipse.ui.edit.text.clear.mark"
+            contextId="org.eclipse.ui.textEditorScope"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
+            sequence="M1+M3+]"
+            />
+      <key
+            commandId="org.eclipse.ui.edit.text.recenter"
+            contextId="org.eclipse.ui.textEditorScope"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
+            sequence="CTRL+SHIFT+ALT+R">
+      </key>
+      <key
+            commandId="org.eclipse.ui.edit.text.shiftLeft"
+            contextId="org.eclipse.ui.textEditorScope"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
+            sequence="CTRL+SHIFT+ALT+ARROW_LEFT">
+      </key>
+      <key
+            commandId="org.eclipse.ui.edit.text.shiftRight"
+            contextId="org.eclipse.ui.textEditorScope"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
+            sequence="CTRL+SHIFT+ALT+ARROW_RIGHT">
+      </key>
+      <key
             commandId="org.eclipse.ui.edit.text.hippieCompletion"
             contextId="org.eclipse.ui.textEditorScope"
             sequence="M3+/"
