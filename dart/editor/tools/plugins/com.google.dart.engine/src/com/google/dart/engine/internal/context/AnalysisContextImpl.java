@@ -35,12 +35,14 @@ import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.internal.cache.AnalysisCache;
+import com.google.dart.engine.internal.cache.CacheRetentionPolicy;
 import com.google.dart.engine.internal.cache.CacheState;
 import com.google.dart.engine.internal.cache.DartEntry;
 import com.google.dart.engine.internal.cache.DartEntryImpl;
 import com.google.dart.engine.internal.cache.DataDescriptor;
 import com.google.dart.engine.internal.cache.HtmlEntry;
 import com.google.dart.engine.internal.cache.HtmlEntryImpl;
+import com.google.dart.engine.internal.cache.RetentionPriority;
 import com.google.dart.engine.internal.cache.SourceEntry;
 import com.google.dart.engine.internal.cache.SourceEntryImpl;
 import com.google.dart.engine.internal.element.ElementImpl;
@@ -128,6 +130,48 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     }
   }
 
+  private class ContextRetentionPolicy implements CacheRetentionPolicy {
+    @Override
+    public RetentionPriority getAstPriority(Source source, SourceEntry sourceEntry) {
+      for (Source prioritySource : priorityOrder) {
+        if (source.equals(prioritySource)) {
+          return RetentionPriority.HIGH;
+        }
+      }
+      if (sourceEntry instanceof DartEntry) {
+        DartEntry dartEntry = (DartEntry) sourceEntry;
+        if (dartEntry.getKind() == SourceKind.LIBRARY) {
+          if (astIsNeeded(dartEntry, source)) {
+            return RetentionPriority.MEDIUM;
+          }
+        } else {
+          for (Source librarySource : getLibrariesContaining(source)) {
+            if (astIsNeeded(dartEntry, librarySource)) {
+              return RetentionPriority.MEDIUM;
+            }
+          }
+        }
+      }
+      return RetentionPriority.LOW;
+    }
+
+    private boolean astIsNeeded(DartEntry dartEntry, Source librarySource) {
+      CacheState state = dartEntry.getState(DartEntry.HINTS, librarySource);
+      if (state == CacheState.INVALID) {
+        return true;
+      }
+      state = dartEntry.getState(DartEntry.VERIFICATION_ERRORS, librarySource);
+      if (state == CacheState.INVALID) {
+        return true;
+      }
+      state = dartEntry.getState(DartEntry.RESOLUTION_ERRORS, librarySource);
+      if (state == CacheState.INVALID) {
+        return true;
+      }
+      return false;
+    }
+  }
+
   /**
    * The set of analysis options controlling the behavior of this context.
    */
@@ -141,7 +185,14 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   /**
    * A table mapping the sources known to the context to the information known about the source.
    */
-  private final AnalysisCache cache = new AnalysisCache(MAX_CACHE_SIZE);
+  private final AnalysisCache cache = new AnalysisCache(
+      MAX_CACHE_SIZE,
+      new ContextRetentionPolicy());
+
+  /**
+   * An array containing sources for which data should not be flushed.
+   */
+  private Source[] priorityOrder = Source.EMPTY_ARRAY;
 
   /**
    * A table mapping sources to the change notices that are waiting to be returned related to that
@@ -794,7 +845,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       //
       // Look for priority sources that need to be analyzed.
       //
-      for (Source source : cache.getPriorityOrder()) {
+      for (Source source : priorityOrder) {
         getSourcesNeedingProcessing(source, cache.get(source), true, hintsEnabled, sources);
       }
       //
@@ -995,13 +1046,13 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   public void setAnalysisPriorityOrder(List<Source> sources) {
     synchronized (cacheLock) {
       if (sources == null || sources.isEmpty()) {
-        cache.setPriorityOrder(Source.EMPTY_ARRAY);
+        priorityOrder = Source.EMPTY_ARRAY;
       } else {
         while (sources.remove(null)) {
           // Nothing else to do.
         }
         if (sources.isEmpty()) {
-          cache.setPriorityOrder(Source.EMPTY_ARRAY);
+          priorityOrder = Source.EMPTY_ARRAY;
         }
         //
         // Cap the size of the priority list to being less than the cache size. Failure to do so can
@@ -1009,11 +1060,10 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         // can cause another priority source's AST structure to be flushed.
         //
         int count = Math.min(sources.size(), MAX_PRIORITY_LIST_SIZE);
-        Source[] priorityOrder = new Source[count];
+        priorityOrder = new Source[count];
         for (int i = 0; i < count; i++) {
           priorityOrder[i] = sources.get(i);
         }
-        cache.setPriorityOrder(priorityOrder);
       }
     }
   }
@@ -1596,7 +1646,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       //
       // Look for a priority source that needs to be analyzed.
       //
-      for (Source source : cache.getPriorityOrder()) {
+      for (Source source : priorityOrder) {
         AnalysisTask task = getNextTaskAnalysisTask(source, cache.get(source), true, hintsEnabled);
         if (task != null) {
           return task;

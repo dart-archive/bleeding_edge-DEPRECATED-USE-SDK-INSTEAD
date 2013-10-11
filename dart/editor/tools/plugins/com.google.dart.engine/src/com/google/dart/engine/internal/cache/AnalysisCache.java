@@ -37,6 +37,11 @@ public class AnalysisCache {
   private int maxCacheSize;
 
   /**
+   * The policy used to determine which pieces of data to remove from the cache.
+   */
+  private CacheRetentionPolicy retentionPolicy;
+
+  /**
    * A list containing the most recently accessed sources with the most recently used at the end of
    * the list. When more sources are added than the maximum allowed then the least recently used
    * source will be removed and will have it's cached AST structure flushed.
@@ -44,25 +49,17 @@ public class AnalysisCache {
   private ArrayList<Source> recentlyUsed;
 
   /**
-   * An array containing sources for which data should not be flushed.
-   */
-  private Source[] priorityOrder = Source.EMPTY_ARRAY;
-
-  /**
-   * The number of times that the flushing of information from the cache has been disabled without
-   * being re-enabled.
-   */
-  private int cacheRemovalCount = 0;
-
-  /**
    * Initialize a newly created cache to maintain at most the given number of AST structures in the
    * cache.
    * 
    * @param maxCacheSize the maximum number of sources for which AST structures should be kept in
    *          the cache
+   * @param retentionPolicy the policy used to determine which pieces of data to remove from the
+   *          cache
    */
-  public AnalysisCache(int maxCacheSize) {
+  public AnalysisCache(int maxCacheSize, CacheRetentionPolicy retentionPolicy) {
     this.maxCacheSize = maxCacheSize;
+    this.retentionPolicy = retentionPolicy;
     recentlyUsed = new ArrayList<Source>(maxCacheSize);
   }
 
@@ -76,32 +73,12 @@ public class AnalysisCache {
       recentlyUsed.add(source);
       return;
     }
-    if (cacheRemovalCount == 0 && recentlyUsed.size() >= maxCacheSize) {
-      flushAstFromCache();
-    }
-    recentlyUsed.add(source);
-  }
-
-  /**
-   * Disable flushing information from the cache until {@link #enableCacheRemoval()} has been
-   * called.
-   */
-  public void disableCacheRemoval() {
-    cacheRemovalCount++;
-  }
-
-  /**
-   * Re-enable flushing information from the cache.
-   */
-  public void enableCacheRemoval() {
-    if (cacheRemovalCount > 0) {
-      cacheRemovalCount--;
-    }
-    if (cacheRemovalCount == 0) {
-      while (recentlyUsed.size() > maxCacheSize) {
-        flushAstFromCache();
+    while (recentlyUsed.size() >= maxCacheSize) {
+      if (!flushAstFromCache()) {
+        break;
       }
     }
+    recentlyUsed.add(source);
   }
 
   /**
@@ -125,15 +102,6 @@ public class AnalysisCache {
   }
 
   /**
-   * Return an array containing sources for which data should not be flushed.
-   * 
-   * @return an array containing sources for which data should not be flushed
-   */
-  public Source[] getPriorityOrder() {
-    return priorityOrder;
-  }
-
-  /**
    * Associate the given entry with the given source.
    * 
    * @param source the source with which the entry is to be associated
@@ -153,19 +121,15 @@ public class AnalysisCache {
   }
 
   /**
-   * Set the sources for which data should not be flushed to the given array.
+   * Attempt to flush one AST structure from the cache.
    * 
-   * @param sources the sources for which data should not be flushed
+   * @return {@code true} if a structure was flushed
    */
-  public void setPriorityOrder(Source[] sources) {
-    priorityOrder = sources;
-  }
-
-  /**
-   * Flush one AST structure from the cache.
-   */
-  private void flushAstFromCache() {
+  private boolean flushAstFromCache() {
     Source removedSource = removeAstToFlush();
+    if (removedSource == null) {
+      return false;
+    }
     SourceEntry sourceEntry = sourceMap.get(removedSource);
     if (sourceEntry instanceof HtmlEntry) {
       HtmlEntryImpl htmlCopy = ((HtmlEntry) sourceEntry).getWritableCopy();
@@ -176,20 +140,7 @@ public class AnalysisCache {
       dartCopy.flushAstStructures();
       sourceMap.put(removedSource, dartCopy);
     }
-  }
-
-  /**
-   * Return {@code true} if the given source is in the array of priority sources.
-   * 
-   * @return {@code true} if the given source is in the array of priority sources
-   */
-  private boolean isPrioritySource(Source source) {
-    for (Source prioritySource : priorityOrder) {
-      if (source.equals(prioritySource)) {
-        return true;
-      }
-    }
-    return false;
+    return true;
   }
 
   /**
@@ -200,16 +151,22 @@ public class AnalysisCache {
    * @return the source that was removed
    */
   private Source removeAstToFlush() {
+    int sourceToRemove = -1;
     for (int i = 0; i < recentlyUsed.size(); i++) {
       Source source = recentlyUsed.get(i);
-      if (!isPrioritySource(source)) {
+      RetentionPriority priority = retentionPolicy.getAstPriority(source, sourceMap.get(source));
+      if (priority == RetentionPriority.LOW) {
         return recentlyUsed.remove(i);
+      } else if (priority == RetentionPriority.MEDIUM && sourceToRemove < 0) {
+        sourceToRemove = i;
       }
     }
-    AnalysisEngine.getInstance().getLogger().logError(
-        "Internal error: The number of priority sources (" + priorityOrder.length
-            + ") is greater than the maximum cache size (" + maxCacheSize + ")",
-        new Exception());
-    return recentlyUsed.remove(0);
+    if (sourceToRemove < 0) {
+      AnalysisEngine.getInstance().getLogger().logError(
+          "Internal error: Could not flush data from the cache",
+          new Exception());
+      return null;
+    }
+    return recentlyUsed.remove(sourceToRemove);
   }
 }
