@@ -127,7 +127,6 @@ public class AnalyzerOptions {
   usage = "The path to the Dart SDK")
   private File dartSdkPath = null;
 
-  @SuppressWarnings("unused")
   @Option(name = "--verbose", //
   aliases = {"-v"})
   // TODO(devoncarew): document this flag when it is supported
@@ -157,11 +156,9 @@ public class AnalyzerOptions {
   private boolean warningsAreFatal = false;
 
   // TODO(devoncarew): this is unused, and is only for dartc compatibility
-  @SuppressWarnings("unused")
   @Option(name = "--fatal-type-errors")
   private boolean fatalTypeError = false;
 
-  @SuppressWarnings("unused")
   @Option(name = "--ignore-unrecognized-flags")
   private boolean ignoreUnrecognizedFlags;
 

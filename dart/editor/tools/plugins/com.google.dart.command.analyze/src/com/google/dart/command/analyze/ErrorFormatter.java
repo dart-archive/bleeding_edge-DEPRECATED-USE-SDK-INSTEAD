@@ -143,6 +143,8 @@ public class ErrorFormatter {
             warnCount++;
           }
         }
+      } else if (severity.equals(ErrorSeverity.INFO)) {
+        hintCount++;
       }
 
       formatError(error);

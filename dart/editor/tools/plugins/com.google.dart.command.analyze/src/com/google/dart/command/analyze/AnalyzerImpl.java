@@ -20,6 +20,7 @@ import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.ErrorSeverity;
+import com.google.dart.engine.error.ErrorType;
 import com.google.dart.engine.internal.context.AnalysisOptionsImpl;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
@@ -137,7 +138,7 @@ class AnalyzerImpl {
     // prepare errors
     Set<Source> sources = getAllSources(library);
     getAllErrors(context, sources, errors);
-    filterInfoLevelErrors(errors);
+    filterOutTodos(errors);
     return getMaxErrorSeverity(errors);
   }
 
@@ -199,11 +200,15 @@ class AnalyzerImpl {
     }
   }
 
-  private void filterInfoLevelErrors(List<AnalysisError> errors) {
+  /**
+   * Remove any todo error (ErrorSeverity.INFO severity and ErrorType.TODO type) from the passed
+   * list.
+   */
+  private void filterOutTodos(List<AnalysisError> errors) {
     for (int i = errors.size() - 1; i >= 0; i--) {
       AnalysisError error = errors.get(i);
 
-      if (error.getErrorCode().getErrorSeverity() == ErrorSeverity.INFO) {
+      if (error.getErrorCode().getType() == ErrorType.TODO) {
         errors.remove(i);
       }
     }
