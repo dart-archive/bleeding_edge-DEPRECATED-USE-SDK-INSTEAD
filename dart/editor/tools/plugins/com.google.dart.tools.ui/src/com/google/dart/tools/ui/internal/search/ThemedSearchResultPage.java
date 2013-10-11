@@ -38,7 +38,7 @@ abstract public class ThemedSearchResultPage extends AbstractTextSearchViewPage 
     @Override
     public void propertyChange(PropertyChangeEvent event) {
       if (getViewer() != null) {
-        if (FontPreferencePage.BASE_FONT_KEY.equals(event.getProperty())) {
+        if (FontPreferencePage.EDITOR_BASE_FONT_KEY.equals(event.getProperty())) {
           if (getViewer() instanceof TreeViewer) {
             updateTreeFont();
           } else {
@@ -121,7 +121,7 @@ abstract public class ThemedSearchResultPage extends AbstractTextSearchViewPage 
   }
 
   protected void updateTableFont() {
-    Font newFont = JFaceResources.getFont(FontPreferencePage.BASE_FONT_KEY);
+    Font newFont = JFaceResources.getFont(FontPreferencePage.EDITOR_BASE_FONT_KEY);
     TableViewer treeViewer = (TableViewer) getViewer();
     Font oldFont = treeViewer.getTable().getFont();
     Font font = SWTUtil.changeFontSize(oldFont, newFont);
@@ -129,7 +129,7 @@ abstract public class ThemedSearchResultPage extends AbstractTextSearchViewPage 
   }
 
   protected void updateTreeFont() {
-    Font newFont = JFaceResources.getFont(FontPreferencePage.BASE_FONT_KEY);
+    Font newFont = JFaceResources.getFont(FontPreferencePage.EDITOR_BASE_FONT_KEY);
     TreeViewer treeViewer = (TreeViewer) getViewer();
     Font oldFont = treeViewer.getTree().getFont();
     Font font = SWTUtil.changeFontSize(oldFont, newFont);

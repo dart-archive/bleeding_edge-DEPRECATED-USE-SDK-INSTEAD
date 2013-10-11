@@ -46,6 +46,7 @@ import org.eclipse.ui.console.IConsole;
 import org.eclipse.ui.console.IConsoleView;
 import org.eclipse.ui.console.IOConsole;
 import org.eclipse.ui.console.MessageConsole;
+import org.eclipse.ui.console.TextConsole;
 import org.eclipse.ui.dialogs.PreferencesUtil;
 import org.eclipse.ui.part.IPageBookViewPage;
 import org.eclipse.ui.part.PageSite;
@@ -93,7 +94,7 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
   private class FontPropertyChangeListener implements IPropertyChangeListener {
     @Override
     public void propertyChange(final PropertyChangeEvent event) {
-      if (FontPreferencePage.BASE_FONT_KEY.equals(event.getProperty())) {
+      if (FontPreferencePage.VIEW_BASE_FONT_KEY.equals(event.getProperty())) {
         updateFont();
       }
     }
@@ -470,10 +471,11 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
     Display.getDefault().asyncExec(new Runnable() {
       @Override
       public void run() {
-        Font newFont = JFaceResources.getFont(FontPreferencePage.BASE_FONT_KEY);
+        Font newFont = JFaceResources.getFont(FontPreferencePage.VIEW_BASE_FONT_KEY);
         if (page != null && page.getControl() != null) {
           Font oldFont = page.getControl().getFont();
           Font font = SWTUtil.changeFontSize(oldFont, newFont);
+          ((TextConsole) console).setFont(font);
           page.getControl().setFont(font);
         }
       }

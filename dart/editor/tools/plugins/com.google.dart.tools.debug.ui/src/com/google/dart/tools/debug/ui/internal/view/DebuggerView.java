@@ -16,7 +16,6 @@ package com.google.dart.tools.debug.ui.internal.view;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 import com.google.dart.tools.debug.ui.internal.DartUtil;
 import com.google.dart.tools.ui.DartToolsPlugin;
-import com.google.dart.tools.ui.internal.preferences.FontPreferencePage;
 import com.google.dart.tools.ui.internal.util.SWTUtil;
 
 import org.eclipse.debug.core.DebugPlugin;
@@ -43,7 +42,6 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.events.ControlAdapter;
 import org.eclipse.swt.events.ControlEvent;
-import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Composite;
@@ -64,19 +62,6 @@ import org.eclipse.ui.PartInitException;
  */
 @SuppressWarnings("restriction")
 public class DebuggerView extends LaunchView implements ILaunchesListener {
-
-  private class FontPropertyChangeListener implements IPropertyChangeListener {
-    @Override
-    public void propertyChange(PropertyChangeEvent event) {
-      if (treeViewer != null) {
-        if (FontPreferencePage.BASE_FONT_KEY.equals(event.getProperty())) {
-          updateTreeFont();
-          treeViewer.refresh();
-        }
-      }
-    }
-  }
-
   public static final String ID = "com.google.dart.tools.debug.debuggerView";
 
   private static final String SASH_WEIGHTS = "sashWeights";
@@ -94,7 +79,6 @@ public class DebuggerView extends LaunchView implements ILaunchesListener {
 
   private TreeModelViewer treeViewer;
   private IPreferenceStore preferences;
-  private IPropertyChangeListener fontPropertyChangeListener = new FontPropertyChangeListener();
   private IPropertyChangeListener propertyChangeListener = new IPropertyChangeListener() {
     @Override
     public void propertyChange(PropertyChangeEvent event) {
@@ -174,10 +158,6 @@ public class DebuggerView extends LaunchView implements ILaunchesListener {
     DebugPlugin.getDefault().getLaunchManager().removeLaunchListener(this);
 
     variablesView.dispose();
-    if (fontPropertyChangeListener != null) {
-      JFaceResources.getFontRegistry().removeListener(fontPropertyChangeListener);
-      fontPropertyChangeListener = null;
-    }
     if (propertyChangeListener != null) {
       getPreferences().removePropertyChangeListener(propertyChangeListener);
       propertyChangeListener = null;
@@ -264,9 +244,7 @@ public class DebuggerView extends LaunchView implements ILaunchesListener {
         SWTUtil.eraseSelection(event, treeViewer.getTree(), getPreferences());
       }
     });
-    JFaceResources.getFontRegistry().addListener(fontPropertyChangeListener);
-    updateTreeFont();
-    getPreferences().addPropertyChangeListener(propertyChangeListener);
+    SWTUtil.bindJFaceResourcesFontToControl(treeViewer.getTree());
     updateColors();
     return treeViewer;
   }
@@ -281,13 +259,6 @@ public class DebuggerView extends LaunchView implements ILaunchesListener {
 
   protected void updateColors() {
     SWTUtil.setColors(treeViewer.getTree(), getPreferences());
-  }
-
-  protected void updateTreeFont() {
-    Font newFont = JFaceResources.getFont(FontPreferencePage.BASE_FONT_KEY);
-    Font oldFont = treeViewer.getTree().getFont();
-    Font font = SWTUtil.changeFontSize(oldFont, newFont);
-    treeViewer.getTree().setFont(font);
   }
 
   void updateSashOrientation(SashForm sash) {

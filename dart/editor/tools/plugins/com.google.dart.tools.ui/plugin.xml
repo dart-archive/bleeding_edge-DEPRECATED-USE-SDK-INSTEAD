@@ -439,6 +439,44 @@
             %defaultEditorFontDefintion.description
          </description>
       </fontDefinition>
+
+      <fontDefinition
+            label="%javaEditorFontDefiniton.label"
+            defaultsTo="com.google.dart.tools.ui.views.textfont.default"
+            categoryId="com.google.dart.tools.ui.presentation"
+            id="com.google.dart.tools.ui.views.textfont">
+         <description>
+            %javaEditorFontDefintion.description
+         </description>
+      </fontDefinition>
+      <fontDefinition
+            label="%baseEditorFontDefiniton.label"
+            defaultsTo="com.google.dart.tools.ui.views.basefont.default"
+            categoryId="com.google.dart.tools.ui.presentation"
+            id="com.google.dart.tools.ui.views.basefont">
+         <description>
+            %baseEditorFontDefintion.description
+         </description>
+      </fontDefinition>
+      <fontDefinition
+            label="%baseEditorFontDefiniton.label"
+            defaultsTo="org.eclipse.jface.textfont"
+            categoryId="com.google.dart.tools.ui.presentation"
+            id="com.google.dart.tools.ui.views.basefont.default">
+         <description>
+            %baseEditorFontDefintion.description
+         </description>
+      </fontDefinition>
+      <fontDefinition
+            label="%defaultEditorFontDefiniton.label"
+            defaultsTo="org.eclipse.jface.textfont"
+            categoryId="com.google.dart.tools.ui.presentation"
+            id="com.google.dart.tools.ui.views.textfont.default">
+         <description>
+            %defaultEditorFontDefintion.description
+         </description>
+      </fontDefinition>
+
     </extension>
    
    

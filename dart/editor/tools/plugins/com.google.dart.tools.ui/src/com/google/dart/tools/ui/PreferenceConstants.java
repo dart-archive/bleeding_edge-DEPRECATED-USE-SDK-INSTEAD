@@ -3169,6 +3169,12 @@ public class PreferenceConstants {
   public final static String EDITOR_SOURCE_HOVER_BACKGROUND_COLOR_SYSTEM_DEFAULT = "sourceHoverBackgroundColor.SystemDefault"; //$NON-NLS-1$
 
   /**
+   * The symbolic font name for the Dart views text font (value
+   * <code>&quot;com.google.dart.tools.ui.views.textfont&quot;</code>).
+   */
+  public final static String VIEW_TEXT_FONT = "com.google.dart.tools.ui.views.textfont"; //$NON-NLS-1$
+
+  /**
    * Decodes an encoded JRE library and returns its class path entries.
    * 
    * @param encodedLibrary the encoded library

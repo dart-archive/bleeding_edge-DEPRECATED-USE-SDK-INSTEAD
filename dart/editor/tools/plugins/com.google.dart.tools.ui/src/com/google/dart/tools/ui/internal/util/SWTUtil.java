@@ -81,7 +81,7 @@ public class SWTUtil {
       @Override
       public void propertyChange(PropertyChangeEvent event) {
         if (!control.isDisposed()) {
-          if (FontPreferencePage.BASE_FONT_KEY.equals(event.getProperty())) {
+          if (FontPreferencePage.VIEW_BASE_FONT_KEY.equals(event.getProperty())) {
             updateFontSizeFromJFaceResources(control);
           }
         }
@@ -418,7 +418,7 @@ public class SWTUtil {
    * {@link JFaceResources}.
    */
   private static void updateFontSizeFromJFaceResources(Control control) {
-    Font newFont = JFaceResources.getFont(FontPreferencePage.BASE_FONT_KEY);
+    Font newFont = JFaceResources.getFont(FontPreferencePage.VIEW_BASE_FONT_KEY);
     Font oldFont = control.getFont();
     Font font = SWTUtil.changeFontSize(oldFont, newFont);
     control.setFont(font);
