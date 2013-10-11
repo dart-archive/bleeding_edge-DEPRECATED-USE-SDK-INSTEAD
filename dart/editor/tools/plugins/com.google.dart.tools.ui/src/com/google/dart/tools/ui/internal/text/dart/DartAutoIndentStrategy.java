@@ -433,7 +433,7 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
     Parser parser = new Parser(null, errorListener);
     CompilationUnit unit = parser.parseCompilationUnit(token);
     AnalysisError[] errors = errorListener.getErrors(null);
-    unit.setParsingErrors(errors);
+//    unit.setParsingErrors(errors);
     return unit;
   }
 

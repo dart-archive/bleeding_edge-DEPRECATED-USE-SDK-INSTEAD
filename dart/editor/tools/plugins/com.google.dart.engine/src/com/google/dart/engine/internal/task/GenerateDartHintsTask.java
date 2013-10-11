@@ -125,7 +125,6 @@ public class GenerateDartHintsTask extends AnalysisTask {
       hintMap.put(source, new TimestampedData<AnalysisError[]>(
           unitData.getModificationTime(),
           errors));
-      unitData.getData().setHints(errors);
     }
   }
 

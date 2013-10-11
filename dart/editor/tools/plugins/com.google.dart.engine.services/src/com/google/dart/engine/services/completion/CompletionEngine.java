@@ -2165,7 +2165,7 @@ public class CompletionEngine {
   }
 
   private boolean hasErrorBeforeCompletionLocation() {
-    AnalysisError[] errors = context.getCompilationUnit().getErrors();
+    AnalysisError[] errors = context.getErrors();
     if (errors == null || errors.length == 0) {
       return false;
     }

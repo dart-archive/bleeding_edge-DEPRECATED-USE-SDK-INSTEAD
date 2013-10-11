@@ -18,7 +18,6 @@ import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.services.assist.AssistContext;
-import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
@@ -146,7 +145,7 @@ public class DartCorrectionAssistant extends QuickAssistAssistant {
       return null;
     }
     // find AnalysisError
-    AnalysisError[] errors = context.getCompilationUnit().getErrors();
+    AnalysisError[] errors = context.getErrors();
     for (AnalysisError error : errors) {
       if (error.getErrorCode() == errorCode && error.getOffset() == markerOffset
           && error.getLength() == markerLength) {
@@ -186,12 +185,11 @@ public class DartCorrectionAssistant extends QuickAssistAssistant {
         return;
       }
       // prepare errors
-      Source source = context.getSource();
       AnalysisContext analysisContext = context.getAnalysisContext();
       if (analysisContext == null) {
         return;
       }
-      AnalysisError[] errors = analysisContext.getErrors(source).getErrors();
+      AnalysisError[] errors = context.getErrors();
       // prepare current line range
       IRegion lineInfo = getRegionOfInterest(editor, currOffset);
       if (lineInfo == null) {

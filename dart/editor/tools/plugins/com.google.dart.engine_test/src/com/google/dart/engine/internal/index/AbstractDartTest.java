@@ -389,8 +389,8 @@ public class AbstractDartTest extends TestCase {
     testUnit = analysisContext.resolveCompilationUnit(testSource, testLibraryElement);
     testUnitElement = testUnit.getElement();
     if (verifyNoTestUnitErrors) {
-      assertThat(testUnit.getParsingErrors()).describedAs(testCode).isEmpty();
-      assertThat(testUnit.getResolutionErrors()).isEmpty();
+      assertThat(analysisContext.getErrors(testUnitElement.getSource()).getErrors()).describedAs(
+          testCode).isEmpty();
     }
   }
 
@@ -433,8 +433,8 @@ public class AbstractDartTest extends TestCase {
     testUnitElement = testUnit.getElement();
     testLibraryElement = testUnitElement.getEnclosingElement();
     if (verifyNoTestUnitErrors) {
-      assertThat(testUnit.getParsingErrors()).describedAs(testCode).isEmpty();
-      assertThat(testUnit.getResolutionErrors()).isEmpty();
+      assertThat(analysisContext.getErrors(testUnitElement.getSource()).getErrors()).describedAs(
+          testCode).isEmpty();
     }
     testSource = testUnitElement.getSource();
     testCode = getSourceContent(testSource);;

@@ -20,6 +20,7 @@ import com.google.dart.engine.ast.visitor.NodeLocator;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.source.SourceRange;
@@ -106,6 +107,17 @@ public class AssistContext {
       coveringNode = locator.searchWithin(compilationUnit);
     }
     return coveringNode;
+  }
+
+  /**
+   * @return the errors associated with the {@link Source}.
+   */
+  public AnalysisError[] getErrors() {
+    Source source = getSource();
+    if (analysisContext == null || source == null) {
+      return AnalysisError.NO_ERRORS;
+    }
+    return analysisContext.getErrors(source).getErrors();
   }
 
   /**

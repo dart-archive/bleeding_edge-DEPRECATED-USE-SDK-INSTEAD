@@ -232,7 +232,7 @@ public class HtmlUnitBuilder implements XmlVisitor<Void> {
           // so that clients such as builder can scan, parse, and get errors without resolving
           Parser parser = new Parser(htmlSource, errorListener);
           CompilationUnit unit = parser.parseCompilationUnit(firstToken);
-          unit.setLineInfo(new LineInfo(lineStarts));
+//          unit.setLineInfo(new LineInfo(lineStarts));
 
           try {
             LibraryResolver resolver = new LibraryResolver(context);

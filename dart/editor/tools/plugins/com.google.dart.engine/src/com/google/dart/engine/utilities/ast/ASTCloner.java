@@ -184,10 +184,6 @@ public class ASTCloner implements ASTVisitor<ASTNode> {
         clone(node.getDirectives()),
         clone(node.getDeclarations()),
         node.getEndToken());
-    clone.setLineInfo(node.getLineInfo());
-    clone.setParsingErrors(node.getParsingErrors());
-    clone.setResolutionErrors(node.getResolutionErrors());
-    clone.setHints(node.getHints());
     return clone;
   }
 

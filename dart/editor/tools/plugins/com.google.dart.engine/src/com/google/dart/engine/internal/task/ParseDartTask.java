@@ -284,8 +284,6 @@ public class ParseDartTask extends AnalysisTask {
           hasPartOfDirective = true;
         }
       }
-      unit.setParsingErrors(errors);
-      unit.setLineInfo(lineInfo);
     } finally {
       timeCounterParse.stop();
     }

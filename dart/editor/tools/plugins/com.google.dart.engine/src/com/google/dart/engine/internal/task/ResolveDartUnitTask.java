@@ -190,7 +190,6 @@ public class ResolveDartUnitTask extends AnalysisTask {
     //
     // Capture the results.
     //
-    unit.setResolutionErrors(errorListener.getErrors());
     resolvedUnit = unit;
   }
 

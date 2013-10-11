@@ -14,10 +14,8 @@
 package com.google.dart.engine.ast;
 
 import com.google.dart.engine.element.CompilationUnitElement;
-import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
-import com.google.dart.engine.utilities.source.LineInfo;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -84,26 +82,6 @@ public class CompilationUnit extends ASTNode {
   private CompilationUnitElement element;
 
   /**
-   * The line information for this compilation unit.
-   */
-  private LineInfo lineInfo;
-
-  /**
-   * The parsing errors encountered when the receiver was parsed.
-   */
-  private AnalysisError[] parsingErrors = AnalysisError.NO_ERRORS;
-
-  /**
-   * The resolution errors encountered when the receiver was resolved.
-   */
-  private AnalysisError[] resolutionErrors = AnalysisError.NO_ERRORS;
-
-  /**
-   * The hints reported when the receiver was analyzed.
-   */
-  private AnalysisError[] hints = AnalysisError.NO_ERRORS;
-
-  /**
    * Initialize a newly created compilation unit to have the given directives and declarations.
    * 
    * @param beginToken the first token in the token stream
@@ -164,47 +142,6 @@ public class CompilationUnit extends ASTNode {
     return endToken;
   }
 
-  /**
-   * Return an array containing all of the errors associated with the receiver. The array will be
-   * empty if the receiver has not been resolved and there were no parse errors.
-   * 
-   * @return the errors associated with the receiver
-   */
-  public AnalysisError[] getErrors() {
-    AnalysisError[] parserErrors = getParsingErrors();
-    AnalysisError[] resolverErrors = getResolutionErrors();
-    AnalysisError[] hints = getHints();
-    if (resolverErrors.length == 0 && hints.length == 0) {
-      return parserErrors;
-    } else if (parserErrors.length == 0 && hints.length == 0) {
-      return resolverErrors;
-    } else if (parserErrors.length == 0 && resolverErrors.length == 0) {
-      return hints;
-    } else {
-      AnalysisError[] allErrors = new AnalysisError[parserErrors.length + resolverErrors.length
-          + hints.length];
-      System.arraycopy(parserErrors, 0, allErrors, 0, parserErrors.length);
-      System.arraycopy(resolverErrors, 0, allErrors, parserErrors.length, resolverErrors.length);
-      System.arraycopy(
-          hints,
-          0,
-          allErrors,
-          parserErrors.length + resolverErrors.length,
-          hints.length);
-      return allErrors;
-    }
-  }
-
-  /**
-   * Return an array containing all of the hints associated with the receiver. The array will be
-   * empty if the receiver has not been analyzed.
-   * 
-   * @return the hints associated with the receiver
-   */
-  public AnalysisError[] getHints() {
-    return hints;
-  }
-
   @Override
   public int getLength() {
     Token endToken = getEndToken();
@@ -214,37 +151,9 @@ public class CompilationUnit extends ASTNode {
     return endToken.getOffset() + endToken.getLength();
   }
 
-  /**
-   * Return the line information for this compilation unit.
-   * 
-   * @return the line information for this compilation unit
-   */
-  public LineInfo getLineInfo() {
-    return lineInfo;
-  }
-
   @Override
   public int getOffset() {
     return 0;
-  }
-
-  /**
-   * Return an array containing all of the parsing errors associated with the receiver.
-   * 
-   * @return the parsing errors associated with the receiver
-   */
-  public AnalysisError[] getParsingErrors() {
-    return parsingErrors;
-  }
-
-  /**
-   * Return an array containing all of the resolution errors associated with the receiver. The array
-   * will be empty if the receiver has not been resolved.
-   * 
-   * @return the resolution errors associated with the receiver
-   */
-  public AnalysisError[] getResolutionErrors() {
-    return resolutionErrors;
   }
 
   /**
@@ -264,42 +173,6 @@ public class CompilationUnit extends ASTNode {
    */
   public void setElement(CompilationUnitElement element) {
     this.element = element;
-  }
-
-  /**
-   * Set the reported hints associated with this compilation unit.
-   * 
-   * @param the hints to be associated with this compilation unit
-   */
-  public void setHints(AnalysisError[] errors) {
-    hints = errors == null ? AnalysisError.NO_ERRORS : errors;
-  }
-
-  /**
-   * Set the line information for this compilation unit to the given line information.
-   * 
-   * @param errors the line information to associate with this compilation unit
-   */
-  public void setLineInfo(LineInfo lineInfo) {
-    this.lineInfo = lineInfo;
-  }
-
-  /**
-   * Set the parse errors associated with this compilation unit to the given errors.
-   * 
-   * @param the parse errors to be associated with this compilation unit
-   */
-  public void setParsingErrors(AnalysisError[] errors) {
-    parsingErrors = errors == null ? AnalysisError.NO_ERRORS : errors;
-  }
-
-  /**
-   * Set the resolution errors associated with this compilation unit to the given errors.
-   * 
-   * @param the resolution errors to be associated with this compilation unit
-   */
-  public void setResolutionErrors(AnalysisError[] errors) {
-    resolutionErrors = errors == null ? AnalysisError.NO_ERRORS : errors;
   }
 
   /**
