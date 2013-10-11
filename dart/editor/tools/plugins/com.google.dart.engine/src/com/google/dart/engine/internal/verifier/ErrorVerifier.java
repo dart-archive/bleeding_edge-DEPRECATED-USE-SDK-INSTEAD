@@ -432,6 +432,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       checkForMemberWithClassName();
       checkForNoDefaultSuperConstructorImplicit(node);
       checkForAllMixinErrorCodes(withClause);
+      checkForConflictingTypeVariableErrorCodes(node);
       if (implementsClause != null || extendsClause != null) {
         if (!checkForImplementsDisallowedClass(implementsClause)
             && !checkForExtendsDisallowedClass(extendsClause)) {
@@ -2277,6 +2278,41 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
         nameNode,
         memberType.getDisplayName());
     return true;
+  }
+
+  /**
+   * This verifies all conflicts between type variable and enclosing class. TODO(scheglov)
+   * 
+   * @param node the class declaration to evaluate
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#CONFLICTING_TYPE_VARIABLE_AND_CLASS
+   * @see CompileTimeErrorCode#CONFLICTING_TYPE_VARIABLE_AND_MEMBER
+   */
+  private boolean checkForConflictingTypeVariableErrorCodes(ClassDeclaration node) {
+    boolean problemReported = false;
+    for (TypeParameterElement typeParameter : enclosingClass.getTypeParameters()) {
+      String name = typeParameter.getName();
+      // name is same as the name of the enclosing class
+      if (enclosingClass.getName().equals(name)) {
+        errorReporter.reportError(
+            CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_CLASS,
+            typeParameter.getNameOffset(),
+            name.length(),
+            name);
+        problemReported = true;
+      }
+      // check members
+      if (enclosingClass.getMethod(name) != null || enclosingClass.getGetter(name) != null
+          || enclosingClass.getSetter(name) != null) {
+        errorReporter.reportError(
+            CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER,
+            typeParameter.getNameOffset(),
+            name.length(),
+            name);
+        problemReported = true;
+      }
+    }
+    return problemReported;
   }
 
   /**

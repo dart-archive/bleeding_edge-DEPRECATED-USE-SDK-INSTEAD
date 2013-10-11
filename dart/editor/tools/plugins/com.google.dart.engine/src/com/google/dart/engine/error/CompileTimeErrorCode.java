@@ -116,6 +116,20 @@ public enum CompileTimeErrorCode implements ErrorCode {
       "'%s' cannot be used to name a constructor and a method in this class"),
 
   /**
+   * 7. Classes: It is a compile time error if a generic class declares a type variable with the
+   * same name as the class or any of its members or constructors.
+   */
+  CONFLICTING_TYPE_VARIABLE_AND_CLASS(
+      "'%s' cannot be used to name a type varaible in a class with the same name"),
+
+  /**
+   * 7. Classes: It is a compile time error if a generic class declares a type variable with the
+   * same name as the class or any of its members or constructors.
+   */
+  CONFLICTING_TYPE_VARIABLE_AND_MEMBER(
+      "'%s' cannot be used to name a type varaible and member in this class"),
+
+  /**
    * 12.11.2 Const: It is a compile-time error if evaluation of a constant object results in an
    * uncaught exception being thrown.
    */

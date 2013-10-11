@@ -307,6 +307,65 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_conflictingTypeVariableAndClass() throws Exception {
+    Source source = addSource(createSource(//
+        "class T<T> {",
+        "}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_CLASS);
+    verify(source);
+  }
+
+  public void test_conflictingTypeVariableAndMember_field() throws Exception {
+    Source source = addSource(createSource(//
+        "class A<T> {",
+        "  var T;",
+        "}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER);
+    verify(source);
+  }
+
+  public void test_conflictingTypeVariableAndMember_getter() throws Exception {
+    Source source = addSource(createSource(//
+        "class A<T> {",
+        "  get T => null;",
+        "}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER);
+    verify(source);
+  }
+
+  public void test_conflictingTypeVariableAndMember_method() throws Exception {
+    Source source = addSource(createSource(//
+        "class A<T> {",
+        "  T() {}",
+        "}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER);
+    verify(source);
+  }
+
+  public void test_conflictingTypeVariableAndMember_method_static() throws Exception {
+    Source source = addSource(createSource(//
+        "class A<T> {",
+        "  static T() {}",
+        "}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER);
+    verify(source);
+  }
+
+  public void test_conflictingTypeVariableAndMember_setter() throws Exception {
+    Source source = addSource(createSource(//
+        "class A<T> {",
+        "  set T(x) {}",
+        "}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER);
+    verify(source);
+  }
+
   public void test_constConstructorWithNonConstSuper_explicit() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
