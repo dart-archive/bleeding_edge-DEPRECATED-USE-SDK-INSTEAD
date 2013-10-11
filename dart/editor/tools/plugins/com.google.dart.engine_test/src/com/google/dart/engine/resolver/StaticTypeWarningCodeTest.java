@@ -733,6 +733,23 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
     assertErrors(source, StaticTypeWarningCode.UNDEFINED_METHOD);
   }
 
+  public void test_undefinedMethod_private() throws Exception {
+    addSource("/lib.dart", createSource(//
+        "library lib;",
+        "class A {",
+        "  _foo() {}",
+        "}"));
+    Source source = addSource(createSource(//
+        "import 'lib.dart';",
+        "class B extends A {",
+        "  test() {",
+        "    _foo();",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticTypeWarningCode.UNDEFINED_METHOD);
+  }
+
   public void test_undefinedOperator_indexBoth() throws Exception {
     Source source = addSource(createSource(//
         "class A {}",

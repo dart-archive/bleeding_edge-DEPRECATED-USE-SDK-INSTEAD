@@ -1864,7 +1864,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     visitedInterfaces.add(targetClass);
     if (includeTargetType) {
       PropertyAccessorElement getter = targetType.getGetter(getterName);
-      if (getter != null) {
+      if (getter != null && getter.isAccessibleIn(resolver.getDefiningLibrary())) {
         return getter;
       }
     }
@@ -2090,7 +2090,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     visitedInterfaces.add(targetClass);
     if (includeTargetType) {
       MethodElement method = targetType.getMethod(methodName);
-      if (method != null) {
+      if (method != null && method.isAccessibleIn(resolver.getDefiningLibrary())) {
         return method;
       }
     }
@@ -2173,7 +2173,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     visitedInterfaces.add(targetClass);
     if (includeTargetType) {
       PropertyAccessorElement setter = targetType.getSetter(setterName);
-      if (setter != null) {
+      if (setter != null && setter.isAccessibleIn(resolver.getDefiningLibrary())) {
         return setter;
       }
     }

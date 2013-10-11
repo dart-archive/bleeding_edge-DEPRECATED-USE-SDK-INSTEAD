@@ -2268,6 +2268,40 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     assertErrors(source, StaticWarningCode.UNDEFINED_IDENTIFIER);
   }
 
+  public void test_undefinedIdentifier_private_getter() throws Exception {
+    addSource("/lib.dart", createSource(//
+        "library lib;",
+        "class A {",
+        "  var _foo;",
+        "}"));
+    Source source = addSource(createSource(//
+        "import 'lib.dart';",
+        "class B extends A {",
+        "  test() {",
+        "    var v = _foo;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.UNDEFINED_IDENTIFIER);
+  }
+
+  public void test_undefinedIdentifier_private_setter() throws Exception {
+    addSource("/lib.dart", createSource(//
+        "library lib;",
+        "class A {",
+        "  var _foo;",
+        "}"));
+    Source source = addSource(createSource(//
+        "import 'lib.dart';",
+        "class B extends A {",
+        "  test() {",
+        "    _foo = 42;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.UNDEFINED_IDENTIFIER);
+  }
+
   public void test_undefinedNamedParameter() throws Exception {
     Source source = addSource(createSource(//
         "f({a, b}) {}",
