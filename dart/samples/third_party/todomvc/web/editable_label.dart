@@ -46,6 +46,7 @@ class EditableLabel extends PolymerElement {
   }
 }
 
-void main() {
+@initMethod
+void _init() {
   Polymer.register('editable-label', EditableLabel);
 }
