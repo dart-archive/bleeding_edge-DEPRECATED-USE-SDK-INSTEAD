@@ -210,6 +210,8 @@ class DartiumProcess extends PlatformObject implements IProcess {
   }
 
   private void fireTerminateEvent() {
+    isTerminated = true;
+
     fireEvent(new DebugEvent(this, DebugEvent.TERMINATE));
   }
 

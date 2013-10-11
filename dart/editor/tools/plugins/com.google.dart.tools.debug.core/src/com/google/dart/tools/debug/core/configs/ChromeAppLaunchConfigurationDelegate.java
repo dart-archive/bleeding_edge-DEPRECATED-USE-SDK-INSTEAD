@@ -17,14 +17,22 @@ package com.google.dart.tools.debug.core.configs;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.model.DartSdkManager;
+import com.google.dart.tools.core.utilities.net.NetUtils;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.core.DartLaunchConfigurationDelegate;
 import com.google.dart.tools.debug.core.DebugUIHelper;
+import com.google.dart.tools.debug.core.dartium.DartiumDebugTarget;
 import com.google.dart.tools.debug.core.util.BrowserManager;
+import com.google.dart.tools.debug.core.util.IResourceResolver;
+import com.google.dart.tools.debug.core.webkit.ChromiumConnector;
+import com.google.dart.tools.debug.core.webkit.ChromiumTabInfo;
+import com.google.dart.tools.debug.core.webkit.WebkitConnection;
 
 import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -44,36 +52,18 @@ import java.util.List;
 import java.util.Map;
 
 //[ {
-//  "devtoolsFrontendUrl": "/devtools/devtools.html?ws=localhost:1234/devtools/page/1",
-//  "faviconUrl": "",
-//  "id": "1",
-//  "thumbnailUrl": "/thumb/chrome://newtab/",
 //  "title": "New Tab",
 //  "type": "page",
 //  "url": "chrome://newtab/",
-//  "webSocketDebuggerUrl": "ws://localhost:1234/devtools/page/1"
 //}, {
-//  "devtoolsFrontendUrl": "/devtools/devtools.html?ws=localhost:1234/devtools/page/2",
-//  "faviconUrl": "",
-//  "id": "2",
-//  "thumbnailUrl": "/thumb/chrome-extension://becjelbpddbpmopbobpojhgneicbhlgj/_generated_background_page.html",
 //  "title": "chrome-extension://becjelbpddbpmopbobpojhgneicbhlgj/_generated_background_page.html",
 //  "type": "other",
 //  "url": "chrome-extension://becjelbpddbpmopbobpojhgneicbhlgj/_generated_background_page.html",
-//  "webSocketDebuggerUrl": "ws://localhost:1234/devtools/page/2"
 //}, {
-//  "devtoolsFrontendUrl": "/devtools/devtools.html?ws=localhost:1234/devtools/page/3",
-//  "faviconUrl": "",
-//  "id": "3",
-//  "thumbnailUrl": "/thumb/chrome-extension://becjelbpddbpmopbobpojhgneicbhlgj/packy.html",
 //  "title": "Packy",
 //  "type": "other",
 //  "url": "chrome-extension://becjelbpddbpmopbobpojhgneicbhlgj/packy.html",
-//  "webSocketDebuggerUrl": "ws://localhost:1234/devtools/page/3"
 //} ]
-
-// TODO(devoncarew): connect debugger to chrome-extension://becj... * ...bhlgj/_generated_background_page.html ?
-// will we get console.log output, even though it starts running before we connect?
 
 /**
  * A ILaunchConfigurationDelegate implementation that can launch Chrome applications. We
@@ -81,6 +71,102 @@ import java.util.Map;
  * Dartium the path to the manifest file's parent directory via the --load-extension flag.
  */
 public class ChromeAppLaunchConfigurationDelegate extends DartLaunchConfigurationDelegate {
+
+  private static class ChromeAppResourceResolver implements IResourceResolver {
+    private IContainer container;
+
+    String prefix;
+
+    public ChromeAppResourceResolver(IContainer container, ChromiumTabInfo tab) {
+      this.container = container;
+
+      prefix = tab.getUrl();
+      int index = prefix.indexOf("//");
+
+      if (index != -1) {
+        index = prefix.indexOf('/', index + 2);
+
+        if (index != -1) {
+          prefix = prefix.substring(0, index + 1);
+        }
+      }
+    }
+
+    @Override
+    public String getUrlForFile(File file) {
+      IFile[] files = ResourcesPlugin.getWorkspace().getRoot().findFilesForLocationURI(file.toURI());
+
+      if (files.length > 0) {
+        return getUrlForResource(files[0]);
+      } else {
+        return null;
+      }
+    }
+
+    @Override
+    public String getUrlForResource(IResource resource) {
+      String relPath = calcRelPath(container, resource);
+
+      if (relPath != null) {
+        return prefix + relPath;
+      } else {
+        return null;
+      }
+    }
+
+    @Override
+    public String getUrlRegexForResource(IResource resource) {
+      //final String PACKAGES = "/packages/";
+
+      String relPath = calcRelPath(container, resource);
+
+      if (relPath != null) {
+        return relPath;
+      }
+
+      return resource.getFullPath().toString();
+
+//      if (resourcePath.contains(PACKAGES)) {
+//        int index = resourcePath.indexOf(PACKAGES);
+//
+//        return resourcePath.substring(index + PACKAGES.length());
+//      }
+//
+//      return null;
+    }
+
+    @Override
+    public IResource resolveUrl(String url) {
+      if (url.startsWith(prefix)) {
+        return container.findMember(url.substring(prefix.length()));
+      } else {
+        return null;
+      }
+    }
+
+    private String calcRelPath(IContainer container, IResource resource) {
+      if (container == null) {
+        return null;
+      }
+
+      String containerPath = container.getFullPath().toString();
+      String resourcePath = resource.getFullPath().toString();
+
+      if (resourcePath.startsWith(containerPath)) {
+        String relPath = resourcePath.substring(containerPath.length());
+
+        if (relPath.startsWith("/")) {
+          return relPath.substring(1);
+        } else {
+          return relPath;
+        }
+      } else {
+        return null;
+      }
+    }
+  }
+
+  private static final int DEFAULT_DEBUGGER_PORT = 9422;
 
   private static Process chromeAppBrowserProcess;
 
@@ -94,7 +180,6 @@ public class ChromeAppLaunchConfigurationDelegate extends DartLaunchConfiguratio
   @Override
   public void doLaunch(ILaunchConfiguration configuration, String mode, ILaunch launch,
       IProgressMonitor monitor, InstrumentationBuilder instrumentation) throws CoreException {
-
     if (!ILaunchManager.RUN_MODE.equals(mode) && !ILaunchManager.DEBUG_MODE.equals(mode)) {
       throw new CoreException(DartDebugCorePlugin.createErrorStatus("Execution mode '" + mode
           + "' is not supported."));
@@ -140,15 +225,17 @@ public class ChromeAppLaunchConfigurationDelegate extends DartLaunchConfiguratio
     }
 
     commandsList.add("--load-and-launch-app=" + extensionPath);
-    //commandsList.add("--remote-debugging-port=1234");
 
     for (String arg : wrapper.getArgumentsAsArray()) {
       commandsList.add(arg);
     }
 
-    if (enableDebugging) {
-      // TODO(devoncarew):
+    int devToolsPortNumber = DEFAULT_DEBUGGER_PORT;
 
+    if (enableDebugging) {
+      devToolsPortNumber = NetUtils.findUnusedPort(DEFAULT_DEBUGGER_PORT);
+
+      commandsList.add("--remote-debugging-port=" + devToolsPortNumber);
     }
 
     monitor.beginTask("Dartium", IProgressMonitor.UNKNOWN);
@@ -177,34 +264,133 @@ public class ChromeAppLaunchConfigurationDelegate extends DartLaunchConfiguratio
       throw newDebugException(ioe);
     }
 
-    Map<String, String> processAttributes = new HashMap<String, String>();
-
-    processAttributes.put(IProcess.ATTR_PROCESS_TYPE, "Dartium");
-
-    IProcess eclipseProcess = DebugPlugin.newProcess(
-        launch,
-        runtimeProcess,
-        configuration.getName(),
-        processAttributes);
-
-    if (eclipseProcess == null) {
-      throw newDebugException("Error starting Dartium");
-    }
-
     saveLaunchedProcess(runtimeProcess);
 
     if (enableDebugging) {
-      // TODO(devoncarew):
+      try {
+        // Poll until we find a good tab to connect to.
+        ChromiumTabInfo tab = getChromiumTab(runtimeProcess, devToolsPortNumber);
 
+        if (tab != null && tab.getWebSocketDebuggerUrl() != null) {
+          WebkitConnection connection = new WebkitConnection(
+              tab.getHost(),
+              tab.getPort(),
+              tab.getWebSocketDebuggerFile());
+
+          final DartiumDebugTarget debugTarget = new DartiumDebugTarget(
+              dartium.getName(),
+              connection,
+              launch,
+              runtimeProcess,
+              new ChromeAppResourceResolver(jsonResource.getParent(), tab),
+              true,
+              false);
+
+          monitor.worked(1);
+
+          launch.setAttribute(DebugPlugin.ATTR_CONSOLE_ENCODING, "UTF-8");
+          launch.addDebugTarget(debugTarget);
+          launch.addProcess(debugTarget.getProcess());
+
+          try {
+            debugTarget.openConnection();
+          } catch (IOException ioe) {
+            DartDebugCorePlugin.logError(ioe);
+          }
+        }
+
+        // Give the app a little time to open the main window.
+        sleep(500);
+
+        DebugUIHelper.getHelper().activateApplication(dartium, "Chromium");
+      } catch (CoreException ce) {
+        DartDebugCorePlugin.logError(ce);
+      }
+    } else {
+      Map<String, String> processAttributes = new HashMap<String, String>();
+
+      processAttributes.put(IProcess.ATTR_PROCESS_TYPE, "Dartium");
+
+      IProcess eclipseProcess = DebugPlugin.newProcess(
+          launch,
+          runtimeProcess,
+          configuration.getName(),
+          processAttributes);
+
+      if (eclipseProcess == null) {
+        throw newDebugException("Error starting Dartium");
+      }
+
+      // We need to wait until the process is started before we can try and activate the window.
+      sleep(1000);
+
+      DebugUIHelper.getHelper().activateApplication(dartium, "Chromium");
     }
 
-    // TODO(devoncarew): we need to wait until the process is started before we can try and activate
-    // the window. We need to find a better way to do this then just a fixed delay.
-    sleep(1000);
-
-    DebugUIHelper.getHelper().activateApplication(dartium, "Chromium");
-
     monitor.done();
+  }
+
+  private ChromiumTabInfo findTargetTab(List<ChromiumTabInfo> tabs) {
+    for (ChromiumTabInfo tab : tabs) {
+      if (tab.getTitle().startsWith("chrome-extension://")) {
+        continue;
+      }
+
+      // chrome-extension://kohcodfehgoaolndkcophkcmhjenpfmc/_generated_background_page.html
+      if (tab.getTitle().endsWith("_generated_background_page.html")) {
+        continue;
+      }
+
+      if (tab.getUrl().startsWith("chrome-extension://") && tab.getTitle().length() > 0) {
+        return tab;
+      }
+    }
+
+    return null;
+  }
+
+  private ChromiumTabInfo getChromiumTab(Process process, int port) throws CoreException {
+    // Give Chromium 10 seconds to start up.
+    final int maxStartupDelay = 10 * 1000;
+
+    long endTime = System.currentTimeMillis() + maxStartupDelay;
+
+    while (true) {
+      if (isProcessTerminated(process)) {
+        throw new CoreException(new Status(
+            IStatus.ERROR,
+            DartDebugCorePlugin.PLUGIN_ID,
+            "Could not launch browser - process terminated while trying to connect. "
+                + "Try closing any running Dartium instances."));
+      }
+
+      try {
+        List<ChromiumTabInfo> tabs = ChromiumConnector.getAvailableTabs(port);
+
+        ChromiumTabInfo targetTab = findTargetTab(tabs);
+
+        if (targetTab != null) {
+          return targetTab;
+        }
+      } catch (IOException exception) {
+        if (System.currentTimeMillis() > endTime) {
+          throw new CoreException(new Status(
+              IStatus.ERROR,
+              DartDebugCorePlugin.PLUGIN_ID,
+              "Could not connect to Dartium",
+              exception));
+        }
+      }
+
+      if (System.currentTimeMillis() > endTime) {
+        throw new CoreException(new Status(
+            IStatus.ERROR,
+            DartDebugCorePlugin.PLUGIN_ID,
+            "Timed out trying to connect to Dartium"));
+      }
+
+      sleep(250);
+    }
   }
 
   /**
@@ -220,6 +406,18 @@ public class ChromeAppLaunchConfigurationDelegate extends DartLaunchConfiguratio
 
     // Return the parent of this directory.
     return containingFile.getParentFile();
+  }
+
+  private boolean isProcessTerminated(Process process) {
+    try {
+      if (process != null) {
+        process.exitValue();
+      }
+
+      return true;
+    } catch (IllegalThreadStateException ex) {
+      return false;
+    }
   }
 
   private DebugException newDebugException(String message) {

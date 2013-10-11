@@ -37,7 +37,8 @@ public class DartiumSourcePathComputerDelegate implements ISourcePathComputerDel
 
     return new ISourceContainer[] {
         new WorkspaceSourceContainer(), new DartiumPackageSourceContainer(launchConfig),
-        new DartiumRemoteScriptSourceContainer(), new DartiumUrlScriptSourceContainer()};
+        new ChromeAppSourceContainer(), new DartiumRemoteScriptSourceContainer(),
+        new DartiumUrlScriptSourceContainer()};
   }
 
 }

@@ -389,7 +389,7 @@ public class BrowserManager {
         });
       }
 
-      debugTarget.openConnection(url);
+      debugTarget.openConnection(url, true);
 
       if (DartDebugCorePlugin.LOGGING) {
         System.out.println("Connected to WIP debug agent on port " + devToolsPortNumber);

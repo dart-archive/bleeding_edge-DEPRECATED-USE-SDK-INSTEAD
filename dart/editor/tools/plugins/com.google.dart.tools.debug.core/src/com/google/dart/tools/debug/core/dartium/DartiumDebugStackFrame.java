@@ -408,7 +408,7 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
     if (script != null) {
       String url = script.getUrl();
 
-      if (script.isSystemScript() || script.isDataUrl()) {
+      if (script.isSystemScript() || script.isDataUrl() || script.isChromeExtensionUrl()) {
         return url;
       }
 

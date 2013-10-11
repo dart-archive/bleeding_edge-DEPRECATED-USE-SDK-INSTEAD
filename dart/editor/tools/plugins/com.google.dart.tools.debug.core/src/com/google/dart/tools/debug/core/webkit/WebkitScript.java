@@ -123,6 +123,11 @@ public class WebkitScript {
     return scriptSource != null;
   }
 
+  public boolean isChromeExtensionUrl() {
+    // chrome-extension://kohcodfehgoaolndkcophkcmhjenpfmc/demo.dart
+    return url.startsWith("chrome-extension://");
+  }
+
   public boolean isContentScript() {
     return isContentScript;
   }

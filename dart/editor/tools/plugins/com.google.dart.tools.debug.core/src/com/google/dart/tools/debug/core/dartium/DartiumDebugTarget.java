@@ -293,10 +293,10 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
   }
 
   public void openConnection() throws IOException {
-    openConnection(null);
+    openConnection(null, false);
   }
 
-  public void openConnection(final String url) throws IOException {
+  public void openConnection(final String url, boolean listenForInspectorDetach) throws IOException {
     connection.addConnectionListener(new WebkitConnectionListener() {
       @Override
       public void connectionClosed(WebkitConnection connection) {
@@ -333,17 +333,19 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
       });
     }
 
-    connection.getDom().addInspectorListener(new InspectorListener() {
-      @Override
-      public void detached(String reason) {
-        handleInspectorDetached(reason);
-      }
+    if (listenForInspectorDetach) {
+      connection.getDom().addInspectorListener(new InspectorListener() {
+        @Override
+        public void detached(String reason) {
+          handleInspectorDetached(reason);
+        }
 
-      @Override
-      public void targetCrashed() {
+        @Override
+        public void targetCrashed() {
 
-      }
-    });
+        }
+      });
+    }
 
     connection.getDebugger().addDebuggerListener(new DebuggerListenerAdapter() {
       @Override
@@ -426,7 +428,7 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
   }
 
   public void reopenConnection() throws IOException {
-    openConnection(null);
+    openConnection(null, true);
   }
 
   @Override
