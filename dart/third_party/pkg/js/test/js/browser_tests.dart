@@ -279,7 +279,7 @@ main() {
       expect(js.context.invokeCallback(), equals(42));
     };
 
-    runAsync(expectAsync0(subtest));
+    scheduleMicrotask(expectAsync0(subtest));
   });
 
   test('global scope', () {
@@ -517,6 +517,6 @@ main() {
     final verifyNoLeaks = expectAsync0(() => expect(0, js.proxyCount()));
     // Run this check asychnronously to ensure that any current scope is
     // cleared first.
-    runAsync(verifyNoLeaks);
+    scheduleMicrotask(verifyNoLeaks);
   });
 }

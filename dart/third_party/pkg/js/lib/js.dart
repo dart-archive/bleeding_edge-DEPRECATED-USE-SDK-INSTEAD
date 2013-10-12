@@ -733,7 +733,7 @@ get _depth => _proxiedObjectTable._scopeIndices.length;
 void _enterScopeIfNeeded() {
   if (_depth == 0) {
     var depth = _enterScope();
-    runAsync(() => _exitScope(depth));
+    scheduleMicrotask(() => _exitScope(depth));
   }
 }
 
