@@ -350,6 +350,11 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
   }
 
   @Override
+  public boolean isContextInProject(AnalysisContext context) {
+    return getResourceMap(context) != null;
+  }
+
+  @Override
   public void pubspecAdded(IContainer container) {
     synchronized (pubFolders) {
       if (!isInitialized()) {

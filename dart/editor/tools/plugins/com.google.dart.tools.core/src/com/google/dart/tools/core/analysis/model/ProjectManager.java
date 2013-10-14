@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.core.analysis.model;
 
+import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.source.Source;
@@ -83,6 +84,14 @@ public interface ProjectManager extends ContextManager {
    * @return the project, may be {@code null} if resource doesn't exist
    */
   Project getProject(IProject resource);
+
+  /**
+   * Answer the Eclipse project associated with this analysis context.
+   * 
+   * @param context the analysis context
+   * @return the associated project, may be {@code null} if project doesn't exist
+   */
+  IProject getProjectForContext(AnalysisContext context);
 
   /**
    * Answer an array containing all of the projects currently defined in the workspace

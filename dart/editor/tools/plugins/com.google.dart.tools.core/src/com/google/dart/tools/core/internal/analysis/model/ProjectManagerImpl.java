@@ -223,6 +223,16 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
   }
 
   @Override
+  public IProject getProjectForContext(AnalysisContext context) {
+    for (Project project : getProjects()) {
+      if (project.isContextInProject(context)) {
+        return project.getResource();
+      }
+    }
+    return null;
+  }
+
+  @Override
   public Project[] getProjects() {
     IProject[] childResources = resource.getProjects();
     List<Project> result = new ArrayList<Project>();

@@ -53,6 +53,14 @@ public interface Project extends ContextManager {
   IProject getResource();
 
   /**
+   * Test if the given context is associated with this project.
+   * 
+   * @param context the context to test
+   * @return {@code true} if the given context is associated with this project
+   */
+  boolean isContextInProject(AnalysisContext context);
+
+  /**
    * Called when a pubspec file is added
    * 
    * @param container the container (not {@code null}) to which a pubspec file was added

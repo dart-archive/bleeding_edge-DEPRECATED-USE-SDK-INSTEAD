@@ -218,6 +218,11 @@ public class ScanTimings extends TestCase {
     }
 
     @Override
+    public IProject getProjectForContext(AnalysisContext context) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
     public Project[] getProjects() {
       throw new UnsupportedOperationException();
     }
