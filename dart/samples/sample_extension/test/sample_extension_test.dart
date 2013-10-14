@@ -41,7 +41,8 @@ String getNativeLibraryPath(String buildDirectory) {
 void main() {
   String scriptDirectory = dirname(Platform.script);
   String buildDirectory = dirname(Platform.executable);
-  Directory tempDirectory = new Directory('').createTempSync();
+  Directory tempDirectory =
+      Directory.systemTemp.createTempSync('sample_extension_');
   String testDirectory = tempDirectory.path;
   String sourceDirectory = join(scriptDirectory, '..');
 
