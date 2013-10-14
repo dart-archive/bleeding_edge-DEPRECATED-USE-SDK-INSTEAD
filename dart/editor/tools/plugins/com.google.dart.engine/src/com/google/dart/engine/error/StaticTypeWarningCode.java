@@ -23,6 +23,24 @@ package com.google.dart.engine.error;
  */
 public enum StaticTypeWarningCode implements ErrorCode {
   /**
+   * 12.7 Lists: A fresh instance (7.6.1) <i>a</i>, of size <i>n</i>, whose class implements the
+   * built-in class <i>List&lt;E></i> is allocated.
+   * 
+   * @param numTypeArgument the number of provided type arguments
+   */
+  EXPECTED_ONE_LIST_TYPE_ARGUMENTS(
+      "List literal requires exactly one type arguments or none, but %d found"),
+
+  /**
+   * 12.8 Maps: A fresh instance (7.6.1) <i>m</i>, of size <i>n</i>, whose class implements the
+   * built-in class <i>Map&lt;K, V></i> is allocated.
+   * 
+   * @param numTypeArgument the number of provided type arguments
+   */
+  EXPECTED_TWO_MAP_TYPE_ARGUMENTS(
+      "Map literal requires exactly two type arguments or none, but %d found"),
+
+  /**
    * 12.18 Assignment: Let <i>T</i> be the static type of <i>e<sub>1</sub></i>. It is a static type
    * warning if <i>T</i> does not have an accessible instance setter named <i>v=</i>.
    * 

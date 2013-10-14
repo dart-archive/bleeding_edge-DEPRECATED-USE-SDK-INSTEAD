@@ -729,6 +729,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
         }
       }
     }
+    checkForExpectedOneListTypeArgument(node);
     checkForListElementTypeNotAssignable(node);
     return super.visitListLiteral(node);
   }
@@ -746,6 +747,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
         }
       }
     }
+    checkExpectedTwoMapTypeArguments(typeArguments);
     checkForNonConstMapAsExpressionStatement(node);
     checkForMapTypeNotAssignable(node);
     checkForConstMapKeyExpressionTypeImplementsEquals(node);
@@ -978,6 +980,31 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   public Void visitWhileStatement(WhileStatement node) {
     checkForNonBoolCondition(node.getCondition());
     return super.visitWhileStatement(node);
+  }
+
+  /**
+   * This verifies if the passed map literal has type arguments then there is exactly two.
+   * 
+   * @param node the map literal to evaluate
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see StaticTypeWarningCode#EXPECTED_TWO_MAP_TYPE_ARGUMENTS
+   */
+  private boolean checkExpectedTwoMapTypeArguments(TypeArgumentList typeArguments) {
+    // has type arguments
+    if (typeArguments == null) {
+      return false;
+    }
+    // check number of type arguments
+    int num = typeArguments.getArguments().size();
+    if (num == 2) {
+      return false;
+    }
+    // report problem
+    errorReporter.reportError(
+        StaticTypeWarningCode.EXPECTED_TWO_MAP_TYPE_ARGUMENTS,
+        typeArguments,
+        num);
+    return true;
   }
 
   /**
@@ -2707,6 +2734,32 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
         name.length(),
         name,
         inheritedMember.getEnclosingElement().getDisplayName());
+    return true;
+  }
+
+  /**
+   * This verifies if the passed list literal has type arguments then there is exactly one.
+   * 
+   * @param node the list literal to evaluate
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see StaticTypeWarningCode#EXPECTED_ONE_LIST_TYPE_ARGUMENTS
+   */
+  private boolean checkForExpectedOneListTypeArgument(ListLiteral node) {
+    // prepare type arguments
+    TypeArgumentList typeArguments = node.getTypeArguments();
+    if (typeArguments == null) {
+      return false;
+    }
+    // check number of type arguments
+    int num = typeArguments.getArguments().size();
+    if (num == 1) {
+      return false;
+    }
+    // report problem
+    errorReporter.reportError(
+        StaticTypeWarningCode.EXPECTED_ONE_LIST_TYPE_ARGUMENTS,
+        typeArguments,
+        num);
     return true;
   }
 

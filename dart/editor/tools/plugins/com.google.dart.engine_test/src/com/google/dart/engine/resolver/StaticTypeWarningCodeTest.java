@@ -26,6 +26,36 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_expectedOneListTypeArgument() throws Exception {
+    Source source = addSource(createSource(//
+        "main() {",
+        "  <int, int> [];",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticTypeWarningCode.EXPECTED_ONE_LIST_TYPE_ARGUMENTS);
+    verify(source);
+  }
+
+  public void test_expectedTwoMapTypeArguments_one() throws Exception {
+    Source source = addSource(createSource(//
+        "main() {",
+        "  <int> {};",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticTypeWarningCode.EXPECTED_TWO_MAP_TYPE_ARGUMENTS);
+    verify(source);
+  }
+
+  public void test_expectedTwoMapTypeArguments_three() throws Exception {
+    Source source = addSource(createSource(//
+        "main() {",
+        "  <int, int, int> {};",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticTypeWarningCode.EXPECTED_TWO_MAP_TYPE_ARGUMENTS);
+    verify(source);
+  }
+
   public void test_inconsistentMethodInheritance_paramCount() throws Exception {
     Source source = addSource(createSource(//
         "abstract class A {",

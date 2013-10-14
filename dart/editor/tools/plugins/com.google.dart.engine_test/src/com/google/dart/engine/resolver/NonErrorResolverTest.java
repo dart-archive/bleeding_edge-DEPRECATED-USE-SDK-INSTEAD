@@ -649,6 +649,26 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_expectedOneListTypeArgument() throws Exception {
+    Source source = addSource(createSource(//
+        "main() {",
+        "  <int> [];",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_expectedTwoMapTypeArguments() throws Exception {
+    Source source = addSource(createSource(//
+        "main() {",
+        "  <int, int> {};",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
   public void test_exportOfNonLibrary_libraryDeclared() throws Exception {
     Source source = addSource(createSource(//
         "library L;",
