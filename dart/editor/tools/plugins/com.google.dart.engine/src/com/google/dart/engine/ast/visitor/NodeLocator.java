@@ -24,7 +24,7 @@ import com.google.dart.engine.ast.ASTNode;
  * 
  * @coverage dart.engine.ast
  */
-public class NodeLocator extends GeneralizingASTVisitor<Void> {
+public class NodeLocator extends UnifyingASTVisitor<Void> {
   /**
    * Instances of the class {@code NodeFoundException} are used to cancel visiting after a node has
    * been found.

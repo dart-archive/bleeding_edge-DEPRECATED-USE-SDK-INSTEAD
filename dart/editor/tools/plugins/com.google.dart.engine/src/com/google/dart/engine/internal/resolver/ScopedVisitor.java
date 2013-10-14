@@ -44,7 +44,7 @@ import com.google.dart.engine.ast.TopLevelVariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationStatement;
 import com.google.dart.engine.ast.WhileStatement;
-import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
+import com.google.dart.engine.ast.visitor.UnifyingASTVisitor;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
@@ -70,7 +70,7 @@ import com.google.dart.engine.source.Source;
  * 
  * @coverage dart.engine.resolver
  */
-public abstract class ScopedVisitor extends GeneralizingASTVisitor<Void> {
+public abstract class ScopedVisitor extends UnifyingASTVisitor<Void> {
   /**
    * The element for the library containing the compilation unit being visited.
    */

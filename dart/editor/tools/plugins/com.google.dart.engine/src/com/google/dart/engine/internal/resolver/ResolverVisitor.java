@@ -19,6 +19,7 @@ import com.google.dart.engine.ast.AsExpression;
 import com.google.dart.engine.ast.AssertStatement;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.Block;
+import com.google.dart.engine.ast.BlockFunctionBody;
 import com.google.dart.engine.ast.BreakStatement;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.CommentReference;
@@ -33,12 +34,12 @@ import com.google.dart.engine.ast.DeclaredIdentifier;
 import com.google.dart.engine.ast.Directive;
 import com.google.dart.engine.ast.DoStatement;
 import com.google.dart.engine.ast.Expression;
+import com.google.dart.engine.ast.ExpressionFunctionBody;
 import com.google.dart.engine.ast.ExpressionStatement;
 import com.google.dart.engine.ast.FieldDeclaration;
 import com.google.dart.engine.ast.ForEachStatement;
 import com.google.dart.engine.ast.ForStatement;
 import com.google.dart.engine.ast.FormalParameter;
-import com.google.dart.engine.ast.FunctionBody;
 import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.FunctionExpression;
 import com.google.dart.engine.ast.FunctionExpressionInvocation;
@@ -228,6 +229,17 @@ public class ResolverVisitor extends ScopedVisitor {
   }
 
   @Override
+  public Void visitBlockFunctionBody(BlockFunctionBody node) {
+    try {
+      overrideManager.enterScope();
+      super.visitBlockFunctionBody(node);
+    } finally {
+      overrideManager.exitScope();
+    }
+    return null;
+  }
+
+  @Override
   public Void visitBreakStatement(BreakStatement node) {
     //
     // We do not visit the label because it needs to be visited in the context of the statement.
@@ -392,6 +404,28 @@ public class ResolverVisitor extends ScopedVisitor {
     return null;
   }
 
+//  @Override
+//  public Void visitEmptyFunctionBody(EmptyFunctionBody node) {
+//    try {
+//      overrideManager.enterScope();
+//      super.visitEmptyFunctionBody(node);
+//    } finally {
+//      overrideManager.exitScope();
+//    }
+//    return null;
+//  }
+
+  @Override
+  public Void visitExpressionFunctionBody(ExpressionFunctionBody node) {
+    try {
+      overrideManager.enterScope();
+      super.visitExpressionFunctionBody(node);
+    } finally {
+      overrideManager.exitScope();
+    }
+    return null;
+  }
+
   @Override
   public Void visitFieldDeclaration(FieldDeclaration node) {
     try {
@@ -421,17 +455,6 @@ public class ResolverVisitor extends ScopedVisitor {
     try {
       overrideManager.enterScope();
       super.visitForStatement(node);
-    } finally {
-      overrideManager.exitScope();
-    }
-    return null;
-  }
-
-  @Override
-  public Void visitFunctionBody(FunctionBody node) {
-    try {
-      overrideManager.enterScope();
-      super.visitFunctionBody(node);
     } finally {
       overrideManager.exitScope();
     }

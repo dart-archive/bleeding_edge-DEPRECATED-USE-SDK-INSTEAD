@@ -41,7 +41,7 @@ import com.google.dart.engine.ast.SimpleStringLiteral;
 import com.google.dart.engine.ast.StringInterpolation;
 import com.google.dart.engine.ast.StringLiteral;
 import com.google.dart.engine.ast.SymbolLiteral;
-import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
+import com.google.dart.engine.ast.visitor.UnifyingASTVisitor;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ConstructorElement;
@@ -89,7 +89,7 @@ import com.google.dart.engine.scanner.TokenType;
  * </ul>
  * </blockquote>
  */
-public class ConstantVisitor extends GeneralizingASTVisitor<EvaluationResultImpl> {
+public class ConstantVisitor extends UnifyingASTVisitor<EvaluationResultImpl> {
   /**
    * Initialize a newly created constant visitor.
    */

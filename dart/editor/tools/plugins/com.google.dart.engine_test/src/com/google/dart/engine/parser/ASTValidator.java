@@ -15,7 +15,7 @@ package com.google.dart.engine.parser;
 
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.CompilationUnit;
-import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
+import com.google.dart.engine.ast.visitor.UnifyingASTVisitor;
 
 import junit.framework.Assert;
 
@@ -25,7 +25,7 @@ import java.util.ArrayList;
  * Instances of the class {@code ASTValidator} are used to validate the correct construction of an
  * AST structure.
  */
-public class ASTValidator extends GeneralizingASTVisitor<Void> {
+public class ASTValidator extends UnifyingASTVisitor<Void> {
   /**
    * A list containing the errors found while traversing the AST structure.
    */
