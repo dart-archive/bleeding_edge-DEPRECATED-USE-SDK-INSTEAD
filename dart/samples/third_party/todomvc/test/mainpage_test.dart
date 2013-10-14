@@ -4,6 +4,7 @@
 
 library todomvc.test.mainpage_test;
 
+import 'dart:async';
 import 'dart:html';
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
@@ -16,6 +17,8 @@ import '../web/model.dart';
 // TODO(jmesserly): verify some styles (colors, fonts, relative size) as well.
 main() {
   useHtmlConfiguration();
+
+  setUp(() => new Future.delayed(Duration.ZERO));
 
   test('initial state', () {
     final todoApp = query('todo-app');

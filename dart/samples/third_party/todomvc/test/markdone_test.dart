@@ -4,6 +4,7 @@
 
 library todomvc.test.markdone_test;
 
+import 'dart:async';
 import 'dart:html';
 import 'package:polymer/polymer.dart';
 import 'package:unittest/unittest.dart';
@@ -48,6 +49,8 @@ Node findShadowHost(Node node, ShadowRoot root) {
  */
 main() {
   useHtmlConfiguration();
+
+  setUp(() => new Future.delayed(Duration.ZERO));
 
   test('mark done', () {
     appModel.todos.add(new Todo('one (unchecked)'));

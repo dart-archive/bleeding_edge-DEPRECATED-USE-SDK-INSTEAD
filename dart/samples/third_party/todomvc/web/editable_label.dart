@@ -52,5 +52,5 @@ class EditableLabel extends PolymerElement {
 
 @initMethod
 void _init() {
-  Polymer.register('editable-label', type: EditableLabel);
+  Polymer.register('editable-label', EditableLabel);
 }
