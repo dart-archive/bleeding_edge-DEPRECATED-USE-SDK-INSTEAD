@@ -4,19 +4,23 @@
 
 library todomvc.web.todo_row;
 
+import 'dart:html';
 import 'package:polymer/polymer.dart';
 import 'model.dart';
 
 @CustomTag('todo-row')
-class TodoRow extends PolymerElement {
+class TodoRow extends LIElement with Polymer, ObservableMixin {
   @published Todo todo;
 
   bool get applyAuthorStyles => true;
 
-  void created() {
-    super.created();
+  factory TodoRow() => new Element.tag('todo-row');
+
+  TodoRow.created() : super.created() {
+    polymerCreated();
+
     var root = getShadowRoot("todo-row");
-    var label = root.query('#label').xtag;
+    var label = root.query('#label');
     var item = root.query('.todo-item');
 
     bindCssClass(item, 'completed', this, 'todo.done');

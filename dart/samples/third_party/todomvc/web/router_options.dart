@@ -18,11 +18,15 @@ import 'package:polymer/polymer.dart';
 @CustomTag('router-options')
 class RouterOptions extends PolymerElement {
 
+  factory RouterOptions() => new Element.tag('router-options');
+
+  RouterOptions.created() : super.created();
+
   bool get applyAuthorStyles => true;
   var _sub;
 
-  void inserted() {
-    super.inserted();
+  void enteredView() {
+    super.enteredView();
 
     var anchors = this.queryAll('a');
 
@@ -42,8 +46,8 @@ class RouterOptions extends PolymerElement {
     _sub = windowLocation.changes.listen(_updateHash);
   }
 
-  void removed() {
+  void leftView() {
     _sub.cancel();
-    super.removed();
+    super.leftView();
   }
 }

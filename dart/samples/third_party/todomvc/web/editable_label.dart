@@ -15,6 +15,10 @@ class EditableLabel extends PolymerElement {
   @observable bool editing = false;
   @published String value = '';
 
+  factory EditableLabel() => new Element.tag('editable-label');
+
+  EditableLabel.created() : super.created();
+
   bool get applyAuthorStyles => true;
 
   InputElement get _editBox => getShadowRoot("editable-label").query('#edit');
@@ -48,5 +52,5 @@ class EditableLabel extends PolymerElement {
 
 @initMethod
 void _init() {
-  Polymer.register('editable-label', EditableLabel);
+  Polymer.register('editable-label', type: EditableLabel);
 }

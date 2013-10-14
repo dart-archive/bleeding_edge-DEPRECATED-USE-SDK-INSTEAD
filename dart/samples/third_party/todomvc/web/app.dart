@@ -8,13 +8,14 @@ import 'dart:html';
 import 'package:polymer/polymer.dart';
 import 'model.dart';
 
-@CustomTag("todo-app")
+@CustomTag('todo-app')
 class TodoApp extends PolymerElement {
   @observable AppModel app;
   bool get applyAuthorStyles => true;
 
-  void created() {
-    super.created();
+  factory TodoApp() => new Element.tag('TodoApp');
+
+  TodoApp.created() : super.created() {
     app = appModel;
   }
 
