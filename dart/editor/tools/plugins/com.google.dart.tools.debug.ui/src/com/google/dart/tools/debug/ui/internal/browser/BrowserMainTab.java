@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, the Dart project authors.
+ * Copyright (c) 2013, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -13,20 +13,17 @@
  */
 package com.google.dart.tools.debug.ui.internal.browser;
 
+import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
-import com.google.dart.tools.debug.ui.internal.dartium.DartiumLaunchMessages;
-import com.google.dart.tools.debug.ui.internal.dartium.DartiumMainTab;
+import com.google.dart.tools.debug.ui.internal.util.LaunchTargetComposite;
 
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
-import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.debug.ui.AbstractLaunchConfigurationTab;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
-import org.eclipse.jface.layout.PixelConverter;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.Image;
@@ -35,14 +32,16 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 
 /**
  * Main launch tab for Browser launch configurations
  */
-public class BrowserMainTab extends DartiumMainTab {
+public class BrowserMainTab extends AbstractLaunchConfigurationTab {
 
   private static Font italicFont;
 
@@ -62,61 +61,19 @@ public class BrowserMainTab extends DartiumMainTab {
   private Text dart2jsFlagsText;
   private int hIndent = 20;
   private Button runDart2jsButton;
+  private LaunchTargetComposite launchTargetGroup;
 
   @Override
   public void createControl(Composite parent) {
     Composite composite = new Composite(parent, SWT.NONE);
     GridLayoutFactory.swtDefaults().spacing(1, 3).applyTo(composite);
 
-    // Project group
-    Group group = new Group(composite, SWT.NONE);
-    group.setText(Messages.BrowserMainTab_LaunchTarget);
-    GridDataFactory.fillDefaults().grab(true, false).applyTo(group);
-    GridLayoutFactory.swtDefaults().numColumns(3).applyTo(group);
+    launchTargetGroup = new LaunchTargetComposite(composite, SWT.NONE);
+    launchTargetGroup.addListener(SWT.Modify, new Listener() {
 
-    createHtmlField(group);
-
-    Label filler = new Label(group, SWT.NONE);
-    GridDataFactory.swtDefaults().span(3, 1).hint(-1, 4).applyTo(filler);
-
-    urlButton = new Button(group, SWT.RADIO);
-    urlButton.setText(DartiumLaunchMessages.DartiumMainTab_UrlLabel);
-    urlButton.addSelectionListener(new SelectionAdapter() {
       @Override
-      public void widgetSelected(SelectionEvent e) {
-        updateEnablements(false);
+      public void handleEvent(Event event) {
         notifyPanelChanged();
-      }
-    });
-
-    urlText = new Text(group, SWT.BORDER | SWT.SINGLE);
-    urlText.addModifyListener(textModifyListener);
-    GridDataFactory.swtDefaults().align(SWT.FILL, SWT.CENTER).grab(true, false).applyTo(urlText);
-
-    // spacer
-    new Label(group, SWT.NONE);
-
-    Label projectLabel = new Label(group, SWT.NONE);
-    projectLabel.setText(DartiumLaunchMessages.DartiumMainTab_SourceDirectoryLabel);
-    GridDataFactory.swtDefaults().indent(hIndent, 0).applyTo(projectLabel);
-    projectLabel.pack();
-    int labelWidth = projectLabel.getSize().x;
-
-    sourceDirectoryText = new Text(group, SWT.BORDER | SWT.SINGLE);
-    sourceDirectoryText.setCursor(group.getShell().getDisplay().getSystemCursor(SWT.CURSOR_ARROW));
-    GridDataFactory.swtDefaults().align(SWT.FILL, SWT.CENTER).grab(true, false).applyTo(
-        sourceDirectoryText);
-
-    projectBrowseButton = new Button(group, SWT.PUSH);
-    projectBrowseButton.setText(DartiumLaunchMessages.DartiumMainTab_Browse);
-    PixelConverter converter = new PixelConverter(htmlBrowseButton);
-    int widthHint = converter.convertHorizontalDLUsToPixels(IDialogConstants.BUTTON_WIDTH);
-    GridDataFactory.swtDefaults().align(SWT.FILL, SWT.BEGINNING).hint(widthHint, -1).applyTo(
-        projectBrowseButton);
-    projectBrowseButton.addSelectionListener(new SelectionAdapter() {
-      @Override
-      public void widgetSelected(SelectionEvent e) {
-        handleSourceDirectoryBrowseButton();
       }
     });
 
@@ -133,20 +90,22 @@ public class BrowserMainTab extends DartiumMainTab {
 
     Label dart2jsLabel = new Label(dart2jsGroup, SWT.NONE);
     dart2jsLabel.setText("Compiler flags:");
-    GridDataFactory.swtDefaults().hint(labelWidth + hIndent, -1).applyTo(dart2jsLabel);
+    GridDataFactory.swtDefaults().hint(launchTargetGroup.getLabelColumnWidth() + hIndent, -1).applyTo(
+        dart2jsLabel);
 
     dart2jsFlagsText = new Text(dart2jsGroup, SWT.BORDER | SWT.SINGLE);
     GridDataFactory.swtDefaults().align(SWT.FILL, SWT.CENTER).grab(true, false).applyTo(
         dart2jsFlagsText);
 
     Label label = new Label(dart2jsGroup, SWT.NONE);
-    GridDataFactory.swtDefaults().hint(widthHint, -1).applyTo(label);
+    GridDataFactory.swtDefaults().hint(launchTargetGroup.getButtonWidthHint(), -1).applyTo(label);
 
     label = new Label(dart2jsGroup, SWT.NONE);
     label.setText("(e.g. --minify)");
     label.setFont(getItalicFont(label.getFont()));
-    GridDataFactory.swtDefaults().indent(hIndent + labelWidth, SWT.DEFAULT).span(3, 1).applyTo(
-        label);
+    GridDataFactory.swtDefaults().indent(
+        hIndent + launchTargetGroup.getLabelColumnWidth(),
+        SWT.DEFAULT).span(3, 1).applyTo(label);
 
     setControl(composite);
   }
@@ -164,13 +123,11 @@ public class BrowserMainTab extends DartiumMainTab {
 
   @Override
   public String getErrorMessage() {
-    String message = super.getErrorMessage();
-
-    if (message != null) {
-      return message;
+    if (performSdkCheck() != null) {
+      return performSdkCheck();
     }
 
-    return null;
+    return launchTargetGroup.getErrorMessage();
   }
 
   /**
@@ -199,8 +156,20 @@ public class BrowserMainTab extends DartiumMainTab {
    */
   @Override
   public void initializeFrom(ILaunchConfiguration config) {
-    super.initializeFrom(config);
+
     DartLaunchConfigWrapper wrapper = new DartLaunchConfigWrapper(config);
+    launchTargetGroup.setHtmlTextValue(wrapper.appendQueryParams(wrapper.getApplicationName()));
+    launchTargetGroup.setUrlTextValue(wrapper.getUrl());
+
+    launchTargetGroup.setSourceDirectoryTextValue(wrapper.getSourceDirectoryName());
+
+    if (wrapper.getShouldLaunchFile()) {
+      launchTargetGroup.setHtmlButtonSelection(true);
+      updateEnablements(true);
+    } else {
+      launchTargetGroup.setHtmlButtonSelection(false);
+      updateEnablements(false);
+    }
     runDart2jsButton.setSelection(wrapper.getRunDart2js());
     dart2jsFlagsText.setText(wrapper.getDart2jsFlags());
   }
@@ -210,9 +179,25 @@ public class BrowserMainTab extends DartiumMainTab {
    */
   @Override
   public void performApply(ILaunchConfigurationWorkingCopy config) {
-    super.performApply(config);
 
     DartLaunchConfigWrapper wrapper = new DartLaunchConfigWrapper(config);
+    wrapper.setShouldLaunchFile(launchTargetGroup.getHtmlButtonSelection());
+
+    String fileUrl = launchTargetGroup.getHtmlFileName();
+
+    if (fileUrl.indexOf('?') == -1) {
+      wrapper.setApplicationName(fileUrl);
+      wrapper.setUrlQueryParams("");
+    } else {
+      int index = fileUrl.indexOf('?');
+
+      wrapper.setApplicationName(fileUrl.substring(0, index));
+      wrapper.setUrlQueryParams(fileUrl.substring(index + 1));
+    }
+
+    wrapper.setUrl(launchTargetGroup.getUrlString());
+    wrapper.setSourceDirectoryName(launchTargetGroup.getSourceDirectory());
+
     wrapper.setRunDart2js(runDart2jsButton.getSelection());
     wrapper.setDart2jsFlags(dart2jsFlagsText.getText().trim());
 
@@ -220,21 +205,28 @@ public class BrowserMainTab extends DartiumMainTab {
 
   @Override
   public void setDefaults(ILaunchConfigurationWorkingCopy configuration) {
-    super.setDefaults(configuration);
     DartLaunchConfigWrapper wrapper = new DartLaunchConfigWrapper(configuration);
+    wrapper.setShouldLaunchFile(true);
+    wrapper.setApplicationName(""); //$NON-NLS-1$
     wrapper.setRunDart2js(true);
   }
 
-  @Override
-  protected String performSdkCheck() {
-    // This tab does not care if the Dart SDK is installed or not.
-
-    return null;
+  private void notifyPanelChanged() {
+    setDirty(true);
+    updateEnablements(launchTargetGroup.getHtmlButtonSelection());
+    updateLaunchConfigurationDialog();
   }
 
-  @Override
-  protected void updateEnablements(boolean isFile) {
-    super.updateEnablements(isFile);
+  private String performSdkCheck() {
+    if (!DartSdkManager.getManager().hasSdk()) {
+      return "Dart2js is not installed ("
+          + DartSdkManager.getManager().getSdk().getDart2JsExecutable() + ")";
+    } else {
+      return null;
+    }
+  }
+
+  private void updateEnablements(boolean isFile) {
     runDart2jsButton.setEnabled(isFile);
     dart2jsFlagsText.setEnabled(isFile);
   }
