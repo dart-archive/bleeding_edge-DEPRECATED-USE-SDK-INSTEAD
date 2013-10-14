@@ -78,9 +78,9 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
    * Asserts that the "actual" locations have all the "expected" locations and only them.
    */
   private static void assertLocations(Location[] actual, Location... expected) {
-    List<LocationEqualsWrapper> actualWrappers = wrapLocations(actual);
-    List<LocationEqualsWrapper> expectedWrappers = wrapLocations(expected);
-    assertThat(actualWrappers).isEqualTo(expectedWrappers);
+    LocationEqualsWrapper[] actualWrappers = wrapLocations(actual);
+    LocationEqualsWrapper[] expectedWrappers = wrapLocations(expected);
+    assertThat(actualWrappers).containsOnly((Object[]) expectedWrappers);
   }
 
   /**
@@ -111,12 +111,12 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
   /**
    * Wraps the given locations into {@link LocationEqualsWrapper}.
    */
-  private static List<LocationEqualsWrapper> wrapLocations(Location[] locations) {
+  private static LocationEqualsWrapper[] wrapLocations(Location[] locations) {
     List<LocationEqualsWrapper> wrappers = Lists.newArrayList();
     for (Location location : locations) {
       wrappers.add(new LocationEqualsWrapper(location));
     }
-    return wrappers;
+    return wrappers.toArray(new LocationEqualsWrapper[wrappers.size()]);
   }
 
   private MemoryIndexStoreImpl store = new MemoryIndexStoreImpl();

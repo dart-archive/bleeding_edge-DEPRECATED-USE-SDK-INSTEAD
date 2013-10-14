@@ -35,6 +35,7 @@ import com.google.dart.engine.source.SourceContainer;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -95,7 +96,7 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
   /**
    * The mapping of {@link ElementRelationKey} to the {@link Location}s, one-to-many.
    */
-  final Map<ElementRelationKey, List<Location>> keyToLocations = Maps.newHashMap();
+  final Map<ElementRelationKey, Set<Location>> keyToLocations = Maps.newHashMap();
 
   /**
    * The mapping of the {@link Location} to its {@link ElementRelationKey}, one-to-one. It is used
@@ -134,7 +135,7 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
       if (sourceLocations != null) {
         for (Location location : sourceLocations) {
           ElementRelationKey key = locationToKey.remove(location);
-          List<Location> relLocations = keyToLocations.get(key);
+          Set<Location> relLocations = keyToLocations.get(key);
           if (relLocations != null) {
             relLocations.remove(location);
             locationCount--;
@@ -161,7 +162,7 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
   @Override
   public Location[] getRelationships(Element element, Relationship relationship) {
     ElementRelationKey key = new ElementRelationKey(element, relationship);
-    List<Location> locations = keyToLocations.get(key);
+    Set<Location> locations = keyToLocations.get(key);
     if (locations != null) {
       return locations.toArray(new Location[locations.size()]);
     }
@@ -181,7 +182,7 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
   @VisibleForTesting
   public int internalGetLocationCount() {
     int count = 0;
-    for (List<Location> locations : keyToLocations.values()) {
+    for (Set<Location> locations : keyToLocations.values()) {
       count += locations.size();
     }
     return count;
@@ -191,7 +192,7 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
   public int internalGetLocationCount(AnalysisContext context) {
     context = unwrapContext(context);
     int count = 0;
-    for (List<Location> locations : keyToLocations.values()) {
+    for (Set<Location> locations : keyToLocations.values()) {
       for (Location location : locations) {
         if (location.getElement().getContext() == context) {
           count++;
@@ -240,9 +241,9 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
     // record: key -> location(s)
     ElementRelationKey key = new ElementRelationKey(element, relationship);
     {
-      List<Location> locations = keyToLocations.remove(key);
+      Set<Location> locations = keyToLocations.remove(key);
       if (locations == null) {
-        locations = Lists.newArrayList();
+        locations = Sets.newSetFromMap(new IdentityHashMap<Location, Boolean>(4));
       } else {
         keyCount--;
       }
@@ -306,7 +307,7 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
       Set<ElementRelationKey> keys = sourceToKeys.remove(source);
       if (keys != null) {
         for (ElementRelationKey key : keys) {
-          List<Location> locations = keyToLocations.remove(key);
+          Set<Location> locations = keyToLocations.remove(key);
           if (locations != null) {
             keyCount--;
             locationCount -= locations.size();

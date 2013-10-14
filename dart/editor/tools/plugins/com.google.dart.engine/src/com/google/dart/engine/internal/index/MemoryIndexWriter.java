@@ -25,6 +25,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Helper to write {@link MemoryIndexStoreImpl} to {@link OutputStream}.
@@ -66,7 +67,7 @@ class MemoryIndexWriter {
       dos.writeUTF(key.relationship.getIdentifier());
       // prepare Location(s) to write
       List<Location> locationsToWrite = Lists.newArrayList();
-      List<Location> contributedLocations = impl.keyToLocations.get(key);
+      Set<Location> contributedLocations = impl.keyToLocations.get(key);
       for (Location location : contributedLocations) {
         // TODO(scheglov) restore when we will share Elements between contexts
 //        Element locationElement = location.getElement();
