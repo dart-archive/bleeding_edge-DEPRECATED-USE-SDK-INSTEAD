@@ -1,10 +1,11 @@
-library clickcounter;
-
 import 'package:polymer/polymer.dart';
 
+/**
+ * A Polymer click counter element. 
+ */
 @CustomTag('click-counter')
-class ClickCounter extends PolymerElement with ObservableMixin {
-  @observable int count = 0;
+class ClickCounter extends PolymerElement {
+  @published int count = 0;
 
   void increment() {
     count++;

@@ -36,7 +36,6 @@ public class PolymerSample extends AbstractSample {
         "name: {name}\ndescription: A sample Polymer application\n"
             + "dependencies:\n    polymer: any\n"});
     templates.add(new String[] {"build.dart", "@webui/build.dart"});
-    templates.add(new String[] {"web/{name.lower}.dart", "@webui/webapp.dart"});
     templates.add(new String[] {"web/{name.lower}.html", "@webui/webapp.html"});
     templates.add(new String[] {"web/{name.lower}.css", "@webui/webapp.css"});
     templates.add(new String[] {"web/clickcounter.dart", "@webui/clickcounter.dart"});
