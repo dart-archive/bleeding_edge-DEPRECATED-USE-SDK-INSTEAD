@@ -1676,7 +1676,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         cache.put(source, dartCopy);
         return new ParseDartTask(this, source);
       }
-      if (isPriority) {
+      if (isPriority && parseErrorsState != CacheState.ERROR) {
         CompilationUnit parseUnit = dartEntry.getAnyParsedCompilationUnit();
         if (parseUnit == null) {
           DartEntryImpl dartCopy = dartEntry.getWritableCopy();
