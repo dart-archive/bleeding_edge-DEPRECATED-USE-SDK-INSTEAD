@@ -41,8 +41,6 @@ public class PolymerSampleTest extends TestCase {
       IFile clickCounterFile = parent.getFile(new Path("clickcounter.dart"));
       assertTrue(clickCounterFile.exists());
 
-      IFile fooDartFile = parent.getFile(new Path("foo.dart"));
-      assertTrue(fooDartFile.exists());
       // TODO(keertip): fix this to analyze against package directory built during the 
       // build process.
       // GeneratorUtils.assertNoAnalysisErrors(fooDartFile);
