@@ -168,6 +168,16 @@ public interface DartEntry extends SourceEntry {
   public DartEntryImpl getWritableCopy();
 
   /**
+   * Return {@code true} if the data represented by the given descriptor is marked as being invalid.
+   * If the descriptor represents library-specific data then this method will return {@code true} if
+   * the data associated with any library it marked as invalid.
+   * 
+   * @param descriptor the descriptor representing which data is being tested
+   * @return {@code true} if the data is marked as being invalid
+   */
+  public boolean hasInvalidData(DataDescriptor<?> descriptor);
+
+  /**
    * Return {@code true} if this data is safe to use in refactoring.
    */
   public boolean isRefactoringSafe();

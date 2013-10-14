@@ -46,6 +46,7 @@ public class DartEntryImplTest extends EngineTestCase {
     assertSame(CacheState.INVALID, entry.getState(DartEntry.PARSE_ERRORS));
     assertSame(CacheState.INVALID, entry.getState(DartEntry.PARSED_UNIT));
     assertSame(CacheState.INVALID, entry.getState(DartEntry.PUBLIC_NAMESPACE));
+    assertTrue(entry.hasInvalidData(DartEntry.SOURCE_KIND));
   }
 
   public void test_getAllErrors() {
@@ -148,6 +149,45 @@ public class DartEntryImplTest extends EngineTestCase {
     DartEntryImpl copy = entry.getWritableCopy();
     assertNotNull(copy);
     assertNotSame(entry, copy);
+  }
+
+  public void test_hasInvalidData_false() throws Exception {
+    DartEntryImpl entry = new DartEntryImpl();
+    entry.recordParseError();
+    assertFalse(entry.hasInvalidData(DartEntry.ELEMENT));
+    assertFalse(entry.hasInvalidData(DartEntry.EXPORTED_LIBRARIES));
+    assertFalse(entry.hasInvalidData(DartEntry.IMPORTED_LIBRARIES));
+    assertFalse(entry.hasInvalidData(DartEntry.INCLUDED_PARTS));
+    assertFalse(entry.hasInvalidData(DartEntry.IS_CLIENT));
+    assertFalse(entry.hasInvalidData(DartEntry.IS_LAUNCHABLE));
+    assertFalse(entry.hasInvalidData(SourceEntry.LINE_INFO));
+    assertFalse(entry.hasInvalidData(DartEntry.PARSE_ERRORS));
+    assertFalse(entry.hasInvalidData(DartEntry.PARSED_UNIT));
+    assertFalse(entry.hasInvalidData(DartEntry.PUBLIC_NAMESPACE));
+    assertFalse(entry.hasInvalidData(DartEntry.SOURCE_KIND));
+    assertFalse(entry.hasInvalidData(DartEntry.RESOLUTION_ERRORS));
+    assertFalse(entry.hasInvalidData(DartEntry.RESOLVED_UNIT));
+    assertFalse(entry.hasInvalidData(DartEntry.VERIFICATION_ERRORS));
+    assertFalse(entry.hasInvalidData(DartEntry.HINTS));
+  }
+
+  public void test_hasInvalidData_true() throws Exception {
+    DartEntryImpl entry = new DartEntryImpl();
+    assertTrue(entry.hasInvalidData(DartEntry.ELEMENT));
+    assertTrue(entry.hasInvalidData(DartEntry.EXPORTED_LIBRARIES));
+    assertTrue(entry.hasInvalidData(DartEntry.IMPORTED_LIBRARIES));
+    assertTrue(entry.hasInvalidData(DartEntry.INCLUDED_PARTS));
+    assertTrue(entry.hasInvalidData(DartEntry.IS_CLIENT));
+    assertTrue(entry.hasInvalidData(DartEntry.IS_LAUNCHABLE));
+    assertTrue(entry.hasInvalidData(SourceEntry.LINE_INFO));
+    assertTrue(entry.hasInvalidData(DartEntry.PARSE_ERRORS));
+    assertTrue(entry.hasInvalidData(DartEntry.PARSED_UNIT));
+    assertTrue(entry.hasInvalidData(DartEntry.PUBLIC_NAMESPACE));
+    assertTrue(entry.hasInvalidData(DartEntry.SOURCE_KIND));
+    assertTrue(entry.hasInvalidData(DartEntry.RESOLUTION_ERRORS));
+    assertTrue(entry.hasInvalidData(DartEntry.RESOLVED_UNIT));
+    assertTrue(entry.hasInvalidData(DartEntry.VERIFICATION_ERRORS));
+    assertTrue(entry.hasInvalidData(DartEntry.HINTS));
   }
 
   public void test_invalidateAllInformation() throws Exception {

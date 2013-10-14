@@ -140,35 +140,17 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       }
       if (sourceEntry instanceof DartEntry) {
         DartEntry dartEntry = (DartEntry) sourceEntry;
-        if (dartEntry.getKind() == SourceKind.LIBRARY) {
-          if (astIsNeeded(dartEntry, source)) {
-            return RetentionPriority.MEDIUM;
-          }
-        } else {
-          for (Source librarySource : getLibrariesContaining(source)) {
-            if (astIsNeeded(dartEntry, librarySource)) {
-              return RetentionPriority.MEDIUM;
-            }
-          }
+        if (astIsNeeded(dartEntry)) {
+          return RetentionPriority.MEDIUM;
         }
       }
       return RetentionPriority.LOW;
     }
 
-    private boolean astIsNeeded(DartEntry dartEntry, Source librarySource) {
-      CacheState state = dartEntry.getState(DartEntry.HINTS, librarySource);
-      if (state == CacheState.INVALID) {
-        return true;
-      }
-      state = dartEntry.getState(DartEntry.VERIFICATION_ERRORS, librarySource);
-      if (state == CacheState.INVALID) {
-        return true;
-      }
-      state = dartEntry.getState(DartEntry.RESOLUTION_ERRORS, librarySource);
-      if (state == CacheState.INVALID) {
-        return true;
-      }
-      return false;
+    private boolean astIsNeeded(DartEntry dartEntry) {
+      return dartEntry.hasInvalidData(DartEntry.HINTS)
+          || dartEntry.hasInvalidData(DartEntry.VERIFICATION_ERRORS)
+          || dartEntry.hasInvalidData(DartEntry.RESOLUTION_ERRORS);
     }
   }
 

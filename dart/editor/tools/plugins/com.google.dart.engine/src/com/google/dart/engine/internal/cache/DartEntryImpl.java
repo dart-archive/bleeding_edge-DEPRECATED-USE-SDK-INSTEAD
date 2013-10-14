@@ -566,6 +566,48 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     return copy;
   }
 
+  @Override
+  public boolean hasInvalidData(DataDescriptor<?> descriptor) {
+    if (descriptor == ELEMENT) {
+      return elementState == CacheState.INVALID;
+    } else if (descriptor == EXPORTED_LIBRARIES) {
+      return exportedLibrariesState == CacheState.INVALID;
+    } else if (descriptor == IMPORTED_LIBRARIES) {
+      return importedLibrariesState == CacheState.INVALID;
+    } else if (descriptor == INCLUDED_PARTS) {
+      return includedPartsState == CacheState.INVALID;
+    } else if (descriptor == IS_CLIENT) {
+      return clientServerState == CacheState.INVALID;
+    } else if (descriptor == IS_LAUNCHABLE) {
+      return launchableState == CacheState.INVALID;
+    } else if (descriptor == PARSE_ERRORS) {
+      return parseErrorsState == CacheState.INVALID;
+    } else if (descriptor == PARSED_UNIT) {
+      return parsedUnitState == CacheState.INVALID;
+    } else if (descriptor == PUBLIC_NAMESPACE) {
+      return publicNamespaceState == CacheState.INVALID;
+    } else if (descriptor == SOURCE_KIND) {
+      return sourceKindState == CacheState.INVALID;
+    } else if (descriptor == RESOLUTION_ERRORS || descriptor == RESOLVED_UNIT
+        || descriptor == VERIFICATION_ERRORS || descriptor == HINTS) {
+      ResolutionState state = resolutionState;
+      while (state != null) {
+        if (descriptor == RESOLUTION_ERRORS) {
+          return state.resolutionErrorsState == CacheState.INVALID;
+        } else if (descriptor == RESOLVED_UNIT) {
+          return state.resolvedUnitState == CacheState.INVALID;
+        } else if (descriptor == VERIFICATION_ERRORS) {
+          return state.verificationErrorsState == CacheState.INVALID;
+        } else if (descriptor == HINTS) {
+          return state.hintsState == CacheState.INVALID;
+        }
+      }
+      return false;
+    } else {
+      return super.getState(descriptor) == CacheState.INVALID;
+    }
+  }
+
   /**
    * Invalidate all of the information associated with the compilation unit.
    */
