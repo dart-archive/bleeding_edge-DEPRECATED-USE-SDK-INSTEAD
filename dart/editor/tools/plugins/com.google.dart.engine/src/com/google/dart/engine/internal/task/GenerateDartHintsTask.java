@@ -102,12 +102,24 @@ public class GenerateDartHintsTask extends AnalysisTask {
     Source unitSource = libraryElement.getDefiningCompilationUnit().getSource();
     TimestampedData<CompilationUnit> resolvedUnit = getCompilationUnit(unitSource);
     timestampMap.put(unitSource, resolvedUnit);
-    compilationUnits[0] = resolvedUnit.getData();
+    CompilationUnit unit = resolvedUnit.getData();
+    if (unit == null) {
+      throw new AnalysisException(
+          "Internal error: GenerateDartHintsTask failed to access resolved compilation unit for "
+              + unitSource.getFullName());
+    }
+    compilationUnits[0] = unit;
     for (int i = 0; i < partCount; i++) {
       unitSource = parts[i].getSource();
       resolvedUnit = getCompilationUnit(unitSource);
       timestampMap.put(unitSource, resolvedUnit);
-      compilationUnits[i + 1] = resolvedUnit.getData();
+      unit = resolvedUnit.getData();
+      if (unit == null) {
+        throw new AnalysisException(
+            "Internal error: GenerateDartHintsTask failed to access resolved compilation unit for "
+                + unitSource.getFullName());
+      }
+      compilationUnits[i + 1] = unit;
     }
     //
     // Analyze all of the units.
