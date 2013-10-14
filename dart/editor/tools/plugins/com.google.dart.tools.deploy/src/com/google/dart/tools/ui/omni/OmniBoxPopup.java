@@ -41,7 +41,6 @@ import org.eclipse.jface.resource.LocalResourceManager;
 import org.eclipse.jface.util.Util;
 import org.eclipse.jface.viewers.ColumnWeightData;
 import org.eclipse.jface.window.IShellProvider;
-import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTException;
 import org.eclipse.swt.custom.BusyIndicator;
@@ -201,7 +200,7 @@ public class OmniBoxPopup extends BasePopupDialog {
   public OmniBoxPopup(IWorkbenchWindow window, final Command invokingCommand) {
     super(ProgressManagerUtil.getDefaultParent(), SWT.NONE, true, false, /* persist size */
     false, /* but not location */
-    false, false, null, null /* OmniBoxMessages.OmniBox_StartTypingToFindMatches */);
+    false, false, null, "foo" /*null*//* OmniBoxMessages.OmniBox_StartTypingToFindMatches */);
 
     this.window = window;
     BusyIndicator.showWhile(
@@ -301,6 +300,20 @@ public class OmniBoxPopup extends BasePopupDialog {
       case SWT.ESC:
         close();
         break;
+    }
+
+    if (!table.isDisposed()) {
+      TableItem[] items = table.getSelection();
+      if (items.length > 0) {
+        TableItem selection = items[0];
+        Object data = selection.getData();
+        String info = "";
+        if (data instanceof OmniEntry) {
+          OmniElement element = ((OmniEntry) data).getElement();
+          info = element.getInfoLabel();
+        }
+        setInfoText(info);
+      }
     }
 
   }
@@ -960,24 +973,24 @@ public class OmniBoxPopup extends BasePopupDialog {
       }
     }
 
-    if (filter.length() == 0) {
-      setInfoText(OmniBoxMessages.OmniBox_StartTypingToFindMatches);
-    } else {
-      TriggerSequence[] sequences = getInvokingCommandKeySequences();
-      if (sequences != null && sequences.length != 0) {
-        if (showAllMatches) {
-          setInfoText(NLS.bind(
-              OmniBoxMessages.OmniBox_PressKeyToShowInitialMatches,
-              sequences[0].format()));
-        } else {
-          setInfoText(NLS.bind(
-              OmniBoxMessages.OmniBox_PressKeyToShowAllMatches,
-              sequences[0].format()));
-        }
-      } else {
-        setInfoText(""); //$NON-NLS-1$
-      }
-    }
+//    if (filter.length() == 0) {
+//      setInfoText(OmniBoxMessages.OmniBox_StartTypingToFindMatches);
+//    } else {
+//      TriggerSequence[] sequences = getInvokingCommandKeySequences();
+//      if (sequences != null && sequences.length != 0) {
+//        if (showAllMatches) {
+//          setInfoText(NLS.bind(
+//              OmniBoxMessages.OmniBox_PressKeyToShowInitialMatches,
+//              sequences[0].format()));
+//        } else {
+//          setInfoText(NLS.bind(
+//              OmniBoxMessages.OmniBox_PressKeyToShowAllMatches,
+//              sequences[0].format()));
+//        }
+//      } else {
+//        setInfoText(""); //$NON-NLS-1$
+//      }
+//    }
   }
 
   private int refreshTable(OmniElement perfectMatch, List<OmniEntry>[] entries) {

@@ -16,6 +16,8 @@ package com.google.dart.tools.ui.omni.elements;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.source.Source;
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.ui.DartElementLabels;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
@@ -24,12 +26,15 @@ import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.omni.OmniElement;
 import com.google.dart.tools.ui.omni.OmniProposalProvider;
 
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.resource.ImageDescriptor;
 
 /**
  * {@link OmniElement} for types.
  */
 public class TypeElement extends OmniElement {
+  private static final String DEFAULT_PROJECT = "Dart SDK";
   private final Element element;
 
   public TypeElement(OmniProposalProvider provider, Element element) {
@@ -48,6 +53,24 @@ public class TypeElement extends OmniElement {
       return DartPluginImages.DESC_DART_FUNCTIONTYPE_PUBLIC;
     }
     return DartPluginImages.DESC_DART_CLASS_PUBLIC;
+  }
+
+  @Override
+  public String getInfoLabel() {
+    String info = "";
+    Source source = element.getSource();
+    IResource resource = DartCore.getProjectManager().getResource(source);
+    if (resource != null) {
+      info = resource.getProject().getName();
+    } else {
+      IProject project = DartCore.getProjectManager().getProjectForContext(element.getContext());
+      if (project != null) {
+        info = project.getName();
+      } else {
+        info = DEFAULT_PROJECT;
+      }
+    }
+    return info;
   }
 
   @Override

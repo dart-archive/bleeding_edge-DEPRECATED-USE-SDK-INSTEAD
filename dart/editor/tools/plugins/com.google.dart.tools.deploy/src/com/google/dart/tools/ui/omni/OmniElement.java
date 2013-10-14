@@ -89,6 +89,14 @@ public abstract class OmniElement {
   public abstract ImageDescriptor getImageDescriptor();
 
   /**
+   * Returns an in info label, that used with the detailed label can further disambiguate duplicate
+   * matches. In the UI this label is used in the "info" area at the bottom of the omni box.
+   */
+  public String getInfoLabel() {
+    return "";
+  }
+
+  /**
    * Returns the label to be displayed to the user.
    * 
    * @return the label

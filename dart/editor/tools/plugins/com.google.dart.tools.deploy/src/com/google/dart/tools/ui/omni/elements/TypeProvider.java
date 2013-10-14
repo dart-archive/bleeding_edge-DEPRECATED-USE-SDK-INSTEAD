@@ -191,6 +191,7 @@ public class TypeProvider extends OmniProposalProvider {
               @Override
               public void matchFound(SearchMatch match) {
                 Element element = match.getElement();
+
                 // TODO(scheglov) may be do something smarter with duplicates
                 if (!uniqueElements.add(element)) {
                   return;

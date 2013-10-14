@@ -73,6 +73,11 @@ public class FileElement extends OmniElement {
   }
 
   @Override
+  public String getInfoLabel() {
+    return file.getFullPath().toOSString();
+  }
+
+  @Override
   public String getLabel() {
     return isDuplicate() ? getDetailedLabel() : getBasicLabel();
   }

@@ -1440,10 +1440,11 @@ public class BasePopupDialog extends Window {
       infoColor.dispose();
     }
     infoColor = null;
-    if (infoFont != null && !infoFont.isDisposed()) {
-      infoFont.dispose();
-    }
-    infoFont = null;
+    //TODO (pquitslund): stop doing this
+//    if (infoFont != null && !infoFont.isDisposed()) {
+//      infoFont.dispose();
+//    }
+//    infoFont = null;
     if (titleFont != null && !titleFont.isDisposed()) {
       titleFont.dispose();
     }
