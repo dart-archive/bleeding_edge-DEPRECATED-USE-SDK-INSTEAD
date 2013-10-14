@@ -506,7 +506,17 @@ public final class DartUI {
     if (map == null) {
       return null;
     }
-    return map.getResource(elementSource);
+    IFile file = map.getResource(elementSource);
+    // TODO(keertip): move this to a check for sources that are referenced by package: only. We cannot
+    // quite figure this out right now, so we do this for all files. Package sources have their canonical
+    // path, so look for a resource with the same path in the workspace.
+    if (file != null) {
+      IResource resource = DartCore.getProjectManager().getResource(elementSource);
+      if (resource instanceof IFile) {
+        file = (IFile) resource;
+      }
+    }
+    return file;
   }
 
   /**
