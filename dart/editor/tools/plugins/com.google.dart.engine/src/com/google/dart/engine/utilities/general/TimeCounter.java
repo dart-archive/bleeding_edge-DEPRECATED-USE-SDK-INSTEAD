@@ -29,7 +29,7 @@ public class TimeCounter {
      */
     public void stop() {
       synchronized (TimeCounter.this) {
-        result += System.currentTimeMillis() - startTime;
+        result += (System.currentTimeMillis() - startTime);
       }
     }
   }

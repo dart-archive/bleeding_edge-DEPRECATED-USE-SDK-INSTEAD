@@ -119,12 +119,13 @@ public class GenerateDartErrorsTask extends AnalysisTask {
 
   @Override
   protected void internalPerform() throws AnalysisException {
+    InternalAnalysisContext context = getContext();
+    TimestampedData<CompilationUnit> data = context.internalResolveCompilationUnit(
+        source,
+        libraryElement);
+
     TimeCounterHandle timeCounter = PerformanceStatistics.errors.start();
     try {
-      InternalAnalysisContext context = getContext();
-      TimestampedData<CompilationUnit> data = context.internalResolveCompilationUnit(
-          source,
-          libraryElement);
       modificationTime = data.getModificationTime();
       CompilationUnit unit = data.getData();
       RecordingErrorListener errorListener = new RecordingErrorListener();

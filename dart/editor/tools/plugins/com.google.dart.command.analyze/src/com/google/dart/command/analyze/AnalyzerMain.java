@@ -161,10 +161,10 @@ public class AnalyzerMain {
         : System.out, options);
 
     List<AnalysisError> errors = new ArrayList<AnalysisError>();
-    long startTime = System.currentTimeMillis();
 
     formatter.startAnalysis();
 
+    long startTime = System.currentTimeMillis();
     AnalyzerImpl analyzer = new AnalyzerImpl(options);
     ErrorSeverity status = analyzer.analyze(sourceFile, errors);
 
