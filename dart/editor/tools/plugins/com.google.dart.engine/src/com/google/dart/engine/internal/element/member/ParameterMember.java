@@ -16,6 +16,7 @@ package com.google.dart.engine.internal.element.member;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementVisitor;
+import com.google.dart.engine.element.FieldFormalParameterElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
@@ -46,12 +47,16 @@ public class ParameterMember extends VariableMember implements ParameterElement 
     if (baseParameter == null || definingType.getTypeArguments().length == 0) {
       return baseParameter;
     }
-    Type baseType = baseParameter.getType();
-    Type[] argumentTypes = definingType.getTypeArguments();
-    Type[] parameterTypes = TypeParameterTypeImpl.getTypes(definingType.getTypeParameters());
-    Type substitutedType = baseType.substitute(argumentTypes, parameterTypes);
-    if (baseType.equals(substitutedType)) {
-      return baseParameter;
+    // Check if parameter type depends on defining type type arguments.
+    // It is possible that we did not resolve field formal parameter yet, so skip this check for it.
+    if (!(baseParameter instanceof FieldFormalParameterElement)) {
+      Type baseType = baseParameter.getType();
+      Type[] argumentTypes = definingType.getTypeArguments();
+      Type[] parameterTypes = TypeParameterTypeImpl.getTypes(definingType.getTypeParameters());
+      Type substitutedType = baseType.substitute(argumentTypes, parameterTypes);
+      if (baseType.equals(substitutedType)) {
+        return baseParameter;
+      }
     }
     // TODO(brianwilkerson) Consider caching the substituted type in the instance. It would use more
     // memory but speed up some operations. We need to see how often the type is being re-computed.

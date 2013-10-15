@@ -118,6 +118,22 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_argumentTypeNotAssignable_fieldFormalParameterElement_member() throws Exception {
+    Source source = addSource(createSource(//
+        "class ObjectSink<T> {",
+        "  void sink(T object) {",
+        "    new TimestampedObject<T>(object);",
+        "  }",
+        "}",
+        "class TimestampedObject<E> {",
+        "  E object2;",
+        "  TimestampedObject(this.object2);",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
   public void test_argumentTypeNotAssignable_invocation_functionParameter_generic()
       throws Exception {
     Source source = addSource(createSource(//
