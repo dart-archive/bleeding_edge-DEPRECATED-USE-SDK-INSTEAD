@@ -17,7 +17,9 @@ import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.omni.elements.FileProvider;
 import com.google.dart.tools.ui.omni.elements.HeaderElement;
+import com.google.dart.tools.ui.omni.elements.TextSearchElement;
 import com.google.dart.tools.ui.omni.elements.TextSearchProvider;
+import com.google.dart.tools.ui.omni.elements.TypeElement;
 import com.google.dart.tools.ui.omni.elements.TypeProvider;
 
 import org.eclipse.core.commands.Command;
@@ -144,10 +146,6 @@ public class OmniBoxPopup extends BasePopupDialog {
   private static final int INITIAL_COUNT_PER_PROVIDER = 5;
 
   private static final int MAX_COUNT_TOTAL = 20;
-
-  private static OmniProposalProvider createTypeProvider(IProgressMonitor pm) {
-    return new TypeProvider(pm);
-  }
 
   private OmniProposalProvider[] providers;
 
@@ -732,6 +730,31 @@ public class OmniBoxPopup extends BasePopupDialog {
     }
   }
 
+  private OmniElement calculateDefaultSelection(String text) {
+    //A simple heuristic: default to the first type proposal
+    for (TableItem item : table.getItems()) {
+      Object data = item.getData();
+      if (data instanceof OmniEntry) {
+        OmniElement element = ((OmniEntry) data).element;
+        if (element instanceof TypeElement) {
+          return element;
+        }
+      }
+    }
+    //Fall back to text search
+    for (TableItem item : table.getItems()) {
+      Object data = item.getData();
+      if (data instanceof OmniEntry) {
+        OmniElement element = ((OmniEntry) data).element;
+        if (element instanceof TextSearchElement) {
+          return element;
+        }
+      }
+    }
+    //Shouldn't get here
+    return null;
+  }
+
   private List<OmniEntry>[] computeMatchingEntries(String filter, OmniElement perfectMatch,
       int maxCount) {
     // collect matches in an array of lists
@@ -814,9 +837,12 @@ public class OmniBoxPopup extends BasePopupDialog {
   }
 
   private OmniProposalProvider[] createProviders() {
+
+    IProgressMonitor pm = getProgressMonitor();
+
     return new OmniProposalProvider[] {
-        new PreviousPicksProvider(), new TextSearchProvider(this),
-        createTypeProvider(getProgressMonitor()), new FileProvider(getProgressMonitor()),
+        new PreviousPicksProvider(), new TextSearchProvider(this), new TypeProvider(pm),
+        new FileProvider(pm),
 //        new EditorProvider(),
 //        new ActionProvider(),
 //        new PreferenceProvider(),
@@ -870,7 +896,12 @@ public class OmniBoxPopup extends BasePopupDialog {
     String text = getFilterText();
     if (table.getSelectionCount() == 1) {
       OmniEntry entry = (OmniEntry) table.getSelection()[0].getData();
-      selectedElement = entry == null ? null : entry.element;
+      if (entry != null) {
+        OmniElement element = entry.element;
+        //If a header is selected, do better and calculate a sensible default
+        selectedElement = element instanceof HeaderElement ? calculateDefaultSelection(text)
+            : element;
+      }
     }
     close();
     if (selectedElement != null) {
