@@ -200,7 +200,7 @@ public class OmniBoxPopup extends BasePopupDialog {
   public OmniBoxPopup(IWorkbenchWindow window, final Command invokingCommand) {
     super(ProgressManagerUtil.getDefaultParent(), SWT.NONE, true, false, /* persist size */
     false, /* but not location */
-    false, false, null, "foo" /*null*//* OmniBoxMessages.OmniBox_StartTypingToFindMatches */);
+    false, false, null, "" /*null*//* OmniBoxMessages.OmniBox_StartTypingToFindMatches */);
 
     this.window = window;
     BusyIndicator.showWhile(
