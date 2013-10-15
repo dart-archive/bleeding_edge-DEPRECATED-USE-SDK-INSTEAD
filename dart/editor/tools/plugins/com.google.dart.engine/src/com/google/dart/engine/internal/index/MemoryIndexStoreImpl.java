@@ -99,13 +99,6 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
   final Map<ElementRelationKey, Set<Location>> keyToLocations = Maps.newHashMap();
 
   /**
-   * The mapping of the {@link Location} to its {@link ElementRelationKey}, one-to-one. It is used
-   * in {@link #clearSource(AnalysisContext, Source)} to find {@link Location}s list in
-   * {@link #keyToLocations} to remove locations from.
-   */
-  final Map<Location, ElementRelationKey> locationToKey = Maps.newHashMap();
-
-  /**
    * The mapping of {@link Source} to the {@link ElementRelationKey}s. It is used in
    * {@link #removeSource(AnalysisContext, Source)} to identify keys to remove from
    * {@link #keyToLocations}.
@@ -134,7 +127,7 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
       List<Location> sourceLocations = sourceToLocations.remove(source);
       if (sourceLocations != null) {
         for (Location location : sourceLocations) {
-          ElementRelationKey key = locationToKey.remove(location);
+          ElementRelationKey key = (ElementRelationKey) location.internalKey;
           Set<Location> relLocations = keyToLocations.get(key);
           if (relLocations != null) {
             relLocations.remove(location);
@@ -253,7 +246,7 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
       locationCount++;
     }
     // record: location -> key
-    locationToKey.put(location, key);
+    location.internalKey = key;
     // record: element source -> keys
     {
       Map<Source, Set<ElementRelationKey>> sourceToKeys = contextToSourceToKeys.get(elementContext);

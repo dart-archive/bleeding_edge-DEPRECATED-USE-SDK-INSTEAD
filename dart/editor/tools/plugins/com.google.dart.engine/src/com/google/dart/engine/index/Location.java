@@ -45,6 +45,11 @@ public class Location {
   private final int length;
 
   /**
+   * Internal field used to hold a key that is referenced at this location.
+   */
+  public Object internalKey;
+
+  /**
    * Initialize a newly create location to be relative to the given element at the given offset with
    * the given length.
    * 
