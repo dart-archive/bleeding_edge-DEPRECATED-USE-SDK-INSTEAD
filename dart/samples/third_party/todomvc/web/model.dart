@@ -8,6 +8,7 @@ import 'package:polymer/polymer.dart';
 
 final appModel = new AppModel._();
 
+@reflectable
 class AppModel extends ObservableBase {
   final ObservableList<Todo> todos = new ObservableList<Todo>();
   @observable int doneCount;

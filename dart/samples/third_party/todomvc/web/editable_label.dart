@@ -11,6 +11,10 @@ import 'package:polymer/polymer.dart';
  * Label whose [value] can be edited by double clicking. When editing, it
  * displays a form and input element, otherwise it displays the label.
  */
+// For illustration purposes this type uses Polymer.register instead of
+// CustomTag. We must mark it @reflectable to ensure its members
+// (the event handlers) are preserved and can be referenced from HTML.
+@reflectable
 class EditableLabel extends PolymerElement {
   @observable bool editing = false;
   @published String value = '';
