@@ -94,6 +94,11 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
   private final Map<AnalysisContext, Object> removedContexts = new MapMaker().weakKeys().makeMap();
 
   /**
+   * This map is used to canonicalize equal keys.
+   */
+  private final Map<ElementRelationKey, ElementRelationKey> canonicalKeys = Maps.newHashMap();
+
+  /**
    * The mapping of {@link ElementRelationKey} to the {@link Location}s, one-to-many.
    */
   final Map<ElementRelationKey, Set<Location>> keyToLocations = Maps.newHashMap();
@@ -134,6 +139,7 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
             locationCount--;
             // no locations with this key
             if (relLocations.isEmpty()) {
+              canonicalKeys.remove(key);
               keyToLocations.remove(key);
               keyCount--;
               // remove key
@@ -232,7 +238,7 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
       element = ((Member) element).getBaseElement();
     }
     // record: key -> location(s)
-    ElementRelationKey key = new ElementRelationKey(element, relationship);
+    ElementRelationKey key = getCanonicalKey(element, relationship);
     {
       Set<Location> locations = keyToLocations.remove(key);
       if (locations == null) {
@@ -300,6 +306,7 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
       Set<ElementRelationKey> keys = sourceToKeys.remove(source);
       if (keys != null) {
         for (ElementRelationKey key : keys) {
+          canonicalKeys.remove(key);
           Set<Location> locations = keyToLocations.remove(key);
           if (locations != null) {
             keyCount--;
@@ -340,5 +347,19 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
   public void writeIndex(AnalysisContext context, OutputStream output) throws IOException {
     context = unwrapContext(context);
     new MemoryIndexWriter(this, context, output).write();
+  }
+
+  /**
+   * @return the canonical {@link ElementRelationKey} for given {@link Element} and
+   *         {@link Relationship}, i.e. unique instance for this combination.
+   */
+  private ElementRelationKey getCanonicalKey(Element element, Relationship relationship) {
+    ElementRelationKey key = new ElementRelationKey(element, relationship);
+    ElementRelationKey canonicalKey = canonicalKeys.get(key);
+    if (canonicalKey == null) {
+      canonicalKey = key;
+      canonicalKeys.put(key, canonicalKey);
+    }
+    return canonicalKey;
   }
 }
