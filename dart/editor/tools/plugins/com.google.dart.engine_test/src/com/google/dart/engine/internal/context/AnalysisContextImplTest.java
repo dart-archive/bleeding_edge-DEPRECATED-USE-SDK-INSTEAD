@@ -136,7 +136,7 @@ public class AnalysisContextImplTest extends EngineTestCase {
 
   public void test_applyChanges_empty() {
     context.applyChanges(new ChangeSet());
-    assertNull(context.performAnalysisTask());
+    assertNull(context.performAnalysisTask().getChangeNotices());
   }
 
   public void test_applyChanges_remove() throws Exception {
@@ -776,7 +776,7 @@ public class AnalysisContextImplTest extends EngineTestCase {
     int maxCount = 5;
     context.performAnalysisTask();
     for (int count = 0; count < maxCount; count++) {
-      if (context.performAnalysisTask() == null) {
+      if (context.performAnalysisTask().getChangeNotices() == null) {
         return;
       }
     }
@@ -796,12 +796,12 @@ public class AnalysisContextImplTest extends EngineTestCase {
     sourceFactory.getContentCache().setContents(source, "library test;");
     assertTrue(initialTime != source.getModificationStamp());
     for (int i = 0; i < 100; i++) {
-      ChangeNotice[] notice = context.performAnalysisTask();
+      ChangeNotice[] notice = context.performAnalysisTask().getChangeNotices();
       if (notice == null) {
         break;
       }
     }
-    ChangeNotice[] notice = context.performAnalysisTask();
+    ChangeNotice[] notice = context.performAnalysisTask().getChangeNotices();
     if (notice != null) {
       fail("performAnalysisTask failed to terminate after analyzing all sources");
     }
@@ -825,12 +825,12 @@ public class AnalysisContextImplTest extends EngineTestCase {
     context.applyChanges(changeSet);
     context.setAnalysisPriorityOrder(sources);
     for (int i = 0; i < (sourceCount * 5) + 100; i++) {
-      ChangeNotice[] notice = context.performAnalysisTask();
+      ChangeNotice[] notice = context.performAnalysisTask().getChangeNotices();
       if (notice == null) {
         break;
       }
     }
-    ChangeNotice[] notice = context.performAnalysisTask();
+    ChangeNotice[] notice = context.performAnalysisTask().getChangeNotices();
     if (notice != null) {
       fail("performAnalysisTask failed to terminate after analyzing all sources");
     }

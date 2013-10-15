@@ -16,7 +16,7 @@ package com.google.dart.tools.ui.internal.text.dart;
 import com.google.common.base.Joiner;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
-import com.google.dart.engine.context.ChangeNotice;
+import com.google.dart.engine.context.AnalysisResult;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
@@ -171,7 +171,7 @@ public class DartReconcilingStrategyTest extends TestCase {
     }
 
     @Override
-    public ChangeNotice[] performAnalysisTask() {
+    public AnalysisResult performAnalysisTask() {
       if (performAnalysisTaskTime == 0) {
         performAnalysisTaskTime = System.currentTimeMillis();
         if (performAnalysisTaskTime == setPriorityOrderTime) {

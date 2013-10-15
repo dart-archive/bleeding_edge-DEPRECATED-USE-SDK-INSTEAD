@@ -25,6 +25,7 @@ import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisErrorInfo;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.context.AnalysisOptions;
+import com.google.dart.engine.context.AnalysisResult;
 import com.google.dart.engine.context.ChangeNotice;
 import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.element.CompilationUnitElement;
@@ -956,13 +957,16 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @Override
-  public ChangeNotice[] performAnalysisTask() {
+  public AnalysisResult performAnalysisTask() {
+    long getStart = System.currentTimeMillis();
     AnalysisTask task = getNextTaskAnalysisTask();
+    long getEnd = System.currentTimeMillis();
     if (task == null) {
-      return getChangeNotices(true);
+      return new AnalysisResult(getChangeNotices(true), getEnd - getStart, null, -1L);
     }
+    //System.out.println(task);
+    long performStart = System.currentTimeMillis();
     try {
-      //System.out.println(task);
       task.perform(resultRecorder);
     } catch (AnalysisException exception) {
       if (!(exception.getCause() instanceof IOException)) {
@@ -971,7 +975,12 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
             exception);
       }
     }
-    return getChangeNotices(false);
+    long performEnd = System.currentTimeMillis();
+    return new AnalysisResult(
+        getChangeNotices(false),
+        getEnd - getStart,
+        task.getClass().getName(),
+        performEnd - performStart);
   }
 
   @Override

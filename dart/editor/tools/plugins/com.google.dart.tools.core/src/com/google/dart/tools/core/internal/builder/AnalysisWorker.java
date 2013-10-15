@@ -15,10 +15,13 @@ package com.google.dart.tools.core.internal.builder;
 
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.context.AnalysisResult;
 import com.google.dart.engine.context.ChangeNotice;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.utilities.instrumentation.Instrumentation;
+import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.engine.utilities.source.LineInfo;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.AnalysisEvent;
@@ -288,13 +291,20 @@ public class AnalysisWorker {
       }
 
       // Exit if no more analysis to be performed (changes == null)
-      ChangeNotice[] changes;
+      AnalysisResult result;
+      InstrumentationBuilder builder = Instrumentation.builder("AnalysisWorker.performAnalysis");
       try {
-        changes = context.performAnalysisTask();
+        result = context.performAnalysisTask();
+        builder.metric("getTime", result.getGetTime());
+        builder.metric("taskClassName", result.getTaskClassName());
+        builder.metric("performTime", result.getPerformTime());
       } catch (RuntimeException e) {
         DartCore.logError("Analysis Failed: " + contextManager, e);
         break;
+      } finally {
+        builder.log();
       }
+      ChangeNotice[] changes = result.getChangeNotices();
       if (changes == null) {
         analysisComplete = true;
         break;

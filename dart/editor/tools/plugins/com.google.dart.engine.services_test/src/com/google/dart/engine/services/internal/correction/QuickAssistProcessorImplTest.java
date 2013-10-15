@@ -84,7 +84,7 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
     addSource("/my_app.dart", libCode);
     Source testSource = addSource("/test.dart", testCode);
     // build LibrarySource(s)
-    while (analysisContext.performAnalysisTask() != null) {
+    while (analysisContext.performAnalysisTask().getChangeNotices() != null) {
     }
     // use parsed, but not resolved test.dart
     CompilationUnit testUnit = analysisContext.parseCompilationUnit(testSource);

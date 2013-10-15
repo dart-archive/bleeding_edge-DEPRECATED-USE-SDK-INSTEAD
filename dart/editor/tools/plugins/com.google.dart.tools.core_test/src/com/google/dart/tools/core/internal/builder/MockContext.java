@@ -5,7 +5,7 @@ import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisErrorInfo;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.context.AnalysisOptions;
-import com.google.dart.engine.context.ChangeNotice;
+import com.google.dart.engine.context.AnalysisResult;
 import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementLocation;
@@ -351,9 +351,9 @@ public class MockContext implements AnalysisContext {
   }
 
   @Override
-  public ChangeNotice[] performAnalysisTask() {
+  public AnalysisResult performAnalysisTask() {
     // indicate no analysis to be performed
-    return null;
+    return new AnalysisResult(null, 0L, null, -1L);
   }
 
   @Override

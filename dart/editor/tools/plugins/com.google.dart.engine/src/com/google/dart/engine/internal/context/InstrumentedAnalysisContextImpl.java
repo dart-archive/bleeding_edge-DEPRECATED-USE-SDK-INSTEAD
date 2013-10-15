@@ -6,7 +6,7 @@ import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisErrorInfo;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.context.AnalysisOptions;
-import com.google.dart.engine.context.ChangeNotice;
+import com.google.dart.engine.context.AnalysisResult;
 import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementLocation;
@@ -540,15 +540,15 @@ public class InstrumentedAnalysisContextImpl implements InternalAnalysisContext 
   }
 
   @Override
-  public ChangeNotice[] performAnalysisTask() {
+  public AnalysisResult performAnalysisTask() {
     InstrumentationBuilder instrumentation = Instrumentation.builder("Analysis-performAnalysisTask");
     try {
       instrumentation.metric("contextId", contextId);
-      ChangeNotice[] ret = basis.performAnalysisTask();
-      if (ret != null) {
-        instrumentation.metric("ChangeNotice-count", ret.length);
+      AnalysisResult result = basis.performAnalysisTask();
+      if (result.getChangeNotices() != null) {
+        instrumentation.metric("ChangeNotice-count", result.getChangeNotices().length);
       }
-      return ret;
+      return result;
     } finally {
       instrumentation.log(2); //Log if over 1ms
     }
