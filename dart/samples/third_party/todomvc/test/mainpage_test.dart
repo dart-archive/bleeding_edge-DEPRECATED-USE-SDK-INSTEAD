@@ -4,10 +4,10 @@
 
 library todomvc.test.mainpage_test;
 
-import 'dart:async';
 import 'dart:html';
-import 'package:unittest/unittest.dart';
+import 'package:polymer/polymer.dart';
 import 'package:unittest/html_config.dart';
+import 'package:unittest/unittest.dart';
 import '../web/app.dart';
 import '../web/model.dart';
 
@@ -18,12 +18,12 @@ import '../web/model.dart';
 main() {
   useHtmlConfiguration();
 
-  setUp(() => new Future.delayed(Duration.ZERO));
+  setUp(() => Polymer.onReady);
 
   test('initial state', () {
     final todoApp = query('todo-app');
     expect(appModel.todos.length, 0);
-    expect(todoApp.xtag is TodoApp, true, reason: 'TodoApp should bee created');
+    expect(todoApp.xtag is TodoApp, true, reason: 'TodoApp should be created');
 
     final root = todoApp.shadowRoot;
     final newTodo = root.query('#new-todo');

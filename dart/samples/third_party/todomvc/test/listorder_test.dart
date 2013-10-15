@@ -4,7 +4,6 @@
 
 library todomvc.test.listorder_test;
 
-import 'dart:async';
 import 'dart:html';
 import 'package:polymer/polymer.dart';
 import 'package:unittest/unittest.dart';
@@ -21,7 +20,7 @@ main() {
 
   final root = query('todo-app').shadowRoot;
 
-  setUp(() => new Future.delayed(Duration.ZERO));
+  setUp(() => Polymer.onReady);
 
   test('programmatically add items to model', () {
     appModel.todos.addAll([
