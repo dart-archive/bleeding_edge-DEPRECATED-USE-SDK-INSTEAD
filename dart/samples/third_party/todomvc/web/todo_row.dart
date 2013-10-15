@@ -18,7 +18,9 @@ class TodoRow extends LIElement with Polymer, ObservableMixin {
 
   TodoRow.created() : super.created() {
     polymerCreated();
+  }
 
+  void ready() {
     var root = getShadowRoot("todo-row");
     var label = root.query('#label');
     var item = root.query('.todo-item');
