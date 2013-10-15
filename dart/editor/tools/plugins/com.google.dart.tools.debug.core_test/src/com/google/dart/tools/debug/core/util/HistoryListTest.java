@@ -26,6 +26,11 @@ public class HistoryListTest extends TestCase {
     }
 
     @Override
+    public void historyAboutToChange(String current) {
+
+    }
+
+    @Override
     public void historyChanged(String current) {
       changed = current;
     }

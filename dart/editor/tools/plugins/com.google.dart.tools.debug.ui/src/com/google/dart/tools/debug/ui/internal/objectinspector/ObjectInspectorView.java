@@ -108,8 +108,6 @@ import org.eclipse.ui.texteditor.IUpdate;
 import java.util.HashMap;
 import java.util.Map;
 
-// TODO: we need to populate the tree in a lazy manner
-
 // TODO: add the ability to navigate to the source code definition
 
 // TODO: refresh the view after an assignment (or any evaluation)
@@ -118,7 +116,7 @@ import java.util.Map;
 
 // TODO: make the expr. eval text area more discoverable
 
-// TODO: multiple open inspectors?
+// TODO: open multiple inspectors
 
 // TODO: navigate to the code for an object
 
@@ -163,7 +161,7 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
 
     @Override
     public void run() {
-      String selection = getCurrentSelection();
+      String selection = getTextToEval();
 
       final UIInstrumentationBuilder instrumentation = UIInstrumentation.builder(getClass());
       Document document = new Document(selection);
@@ -193,7 +191,7 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
 
     @Override
     public void update() {
-      setEnabled(hasActiveConnection() && !getCurrentSelection().isEmpty());
+      setEnabled(hasActiveConnection());
     }
   }
 
@@ -206,7 +204,7 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
 
     @Override
     public void run() {
-      String selection = getCurrentSelection();
+      String selection = getTextToEval();
 
       final UIInstrumentationBuilder instrumentation = UIInstrumentation.builder(getClass());
       Document document = new Document(selection);
@@ -237,7 +235,7 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
 
     @Override
     public void update() {
-      setEnabled(hasActiveConnection() && !getCurrentSelection().isEmpty());
+      setEnabled(hasActiveConnection());
     }
   }
 
@@ -279,7 +277,7 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
   private PrintItAction printItAction;
   private InspectItAction inspectItAction;
 
-  private HistoryList<IValue> historyList = new HistoryList<IValue>();
+  private HistoryList<ObjectInspectorHistoryItem> historyList = new HistoryList<ObjectInspectorHistoryItem>();
 
   static Object EXPRESSION_EVAL_JOB_FAMILY = new Object();
 
@@ -405,13 +403,27 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
 
     updateSashOrientation(sash);
 
-    historyList.addListener(new HistoryListListener<IValue>() {
+    historyList.addListener(new HistoryListListener<ObjectInspectorHistoryItem>() {
       @Override
-      public void historyChanged(IValue current) {
+      public void historyAboutToChange(final ObjectInspectorHistoryItem current) {
+        Display.getDefault().syncExec(new Runnable() {
+          @Override
+          public void run() {
+            saveSourceViewerInfo(current);
+          }
+        });
+      }
+
+      @Override
+      public void historyChanged(ObjectInspectorHistoryItem current) {
         Display.getDefault().asyncExec(new Runnable() {
           @Override
           public void run() {
-            inspectValueImpl(historyList.getCurrent());
+            ObjectInspectorHistoryItem item = historyList.getCurrent();
+
+            inspectValueImpl(item.getValue());
+
+            restoreSourceViewerInfo(item);
           }
         });
       }
@@ -525,16 +537,20 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
     manager.add(inspectItAction);
   }
 
-  protected String getCurrentSelection() {
-    return ((ITextSelection) sourceViewer.getSelection()).getText();
-  }
-
   protected IAction getInspectItAction() {
     return inspectItAction;
   }
 
   protected IAction getPrintItAction() {
     return printItAction;
+  }
+
+  protected String getTextToEval() {
+    if (getCurrentSelection().isEmpty()) {
+      return getCurrentLine();
+    } else {
+      return getCurrentSelection();
+    }
   }
 
   protected boolean hasActiveConnection() {
@@ -552,7 +568,7 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
   }
 
   protected void inspectValue(IValue value) {
-    historyList.add(value);
+    historyList.add(new ObjectInspectorHistoryItem(value));
   }
 
   protected void inspectValueImpl(IValue value) {
@@ -584,10 +600,10 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
   }
 
   protected void removeTerminated() {
-    historyList.removeMatching(new HistoryListMatcher<IValue>() {
+    historyList.removeMatching(new HistoryListMatcher<ObjectInspectorHistoryItem>() {
       @Override
-      public boolean matches(IValue value) {
-        return value.getDebugTarget().isTerminated();
+      public boolean matches(ObjectInspectorHistoryItem value) {
+        return value.getValue().getDebugTarget().isTerminated();
       }
     });
   }
@@ -714,6 +730,10 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
     }
   }
 
+  private String getCurrentSelection() {
+    return ((ITextSelection) sourceViewer.getSelection()).getText();
+  }
+
   private IDebugContextService getDebugContextService() {
     return DebugUITools.getDebugContextManager().getContextService(getSite().getWorkbenchWindow());
   }
@@ -779,6 +799,20 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
     getSite().registerContextMenu(textMenuManager.getId(), textMenuManager, sourceViewer);
   }
 
+  private void restoreSourceViewerInfo(ObjectInspectorHistoryItem item) {
+    sourceViewer.getDocument().set(item.getText());
+    if (item.getSelection() != null) {
+      sourceViewer.setSelection(item.getSelection());
+    }
+    sourceViewer.setTopIndex(item.getTopIndex());
+  }
+
+  private void saveSourceViewerInfo(ObjectInspectorHistoryItem item) {
+    item.setText(sourceViewer.getDocument().get());
+    item.setSelection(sourceViewer.getSelection());
+    item.setTopIndex(sourceViewer.getTopIndex());
+  }
+
   private void syncDebugContext() {
     Display display = Display.getDefault();
 
@@ -786,8 +820,6 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
       display.asyncExec(new Runnable() {
         @Override
         public void run() {
-          // TODO: implement
-
           Object context = null;
           ISelection sel = getDebugContextService().getActiveContext();
 
@@ -797,8 +829,6 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
 
           @SuppressWarnings("unused")
           IThread isolate = AdapterUtilities.getAdapter(context, IThread.class);
-
-          //System.out.println("current isolate = " + isolate);
 
           updateActions();
         }

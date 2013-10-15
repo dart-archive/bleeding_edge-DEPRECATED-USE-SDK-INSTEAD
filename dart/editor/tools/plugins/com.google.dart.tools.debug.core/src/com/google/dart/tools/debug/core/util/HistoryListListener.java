@@ -21,6 +21,8 @@ package com.google.dart.tools.debug.core.util;
  */
 public interface HistoryListListener<T> {
 
+  public void historyAboutToChange(T current);
+
   public void historyChanged(T current);
 
 }

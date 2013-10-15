@@ -50,6 +50,11 @@ class HistoryAction<T> extends Action implements HistoryListListener<T> {
   }
 
   @Override
+  public void historyAboutToChange(T current) {
+
+  }
+
+  @Override
   public void historyChanged(T current) {
     updateEnablement();
   }

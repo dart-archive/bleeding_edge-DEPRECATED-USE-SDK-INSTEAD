@@ -32,7 +32,6 @@ import org.eclipse.jface.action.ToolBarManager;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.jface.preference.IPreferenceStore;
-import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.jface.viewers.DecorationOverlayIcon;
@@ -54,9 +53,6 @@ import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.IMemento;
 import org.eclipse.ui.PartInitException;
 
-// see LaunchView
-// see VariablesView
-
 /**
  * A custom debugger view that combines the stack trace view and the variables view together.
  */
@@ -75,6 +71,7 @@ public class DebuggerView extends LaunchView implements ILaunchesListener {
   private static Image NOT_CONNECTED_IMAGE;
 
   private ShowBreakpointsAction showBreakpointsAction;
+  private ShowInspectorAction showInspectorAction;
   private ShowExpressionsAction showExpressionsAction;
 
   private TreeModelViewer treeViewer;
@@ -213,6 +210,7 @@ public class DebuggerView extends LaunchView implements ILaunchesListener {
     manager.removeAll();
 
     manager.add(showBreakpointsAction);
+    manager.add(showInspectorAction);
     manager.add(showExpressionsAction);
     manager.add(new Separator());
     manager.add(new ToggleLogicalStructureAction(variablesView));
@@ -227,6 +225,9 @@ public class DebuggerView extends LaunchView implements ILaunchesListener {
 
     showBreakpointsAction = new ShowBreakpointsAction();
     setAction("showBreakpointsAction", showBreakpointsAction);
+
+    showInspectorAction = new ShowInspectorAction();
+    setAction("showInspectorAction", showInspectorAction);
 
     showExpressionsAction = new ShowExpressionsAction();
     setAction("showExpressionsAction", showExpressionsAction);

@@ -39,6 +39,8 @@ public class HistoryList<T> {
       throw new IllegalArgumentException("null not allowed");
     }
 
+    fireAboutToChange(getCurrent());
+
     // trim off any items past the current pointer
     while (hasNext()) {
       list.remove(list.size() - 1);
@@ -47,7 +49,7 @@ public class HistoryList<T> {
     list.add(t);
     current = list.size() - 1;
 
-    fireEvent(getCurrent());
+    fireChanged(getCurrent());
   }
 
   public void addListener(HistoryListListener<T> listener) {
@@ -60,7 +62,7 @@ public class HistoryList<T> {
     current = -1;
     list.clear();
 
-    fireEvent(getCurrent());
+    fireChanged(getCurrent());
   }
 
   public T getCurrent() {
@@ -81,17 +83,21 @@ public class HistoryList<T> {
 
   public void navigateNext() {
     if (hasNext()) {
+      fireAboutToChange(getCurrent());
+
       current++;
 
-      fireEvent(getCurrent());
+      fireChanged(getCurrent());
     }
   }
 
   public void navigatePrevious() {
     if (hasPrevious()) {
+      fireAboutToChange(getCurrent());
+
       current--;
 
-      fireEvent(getCurrent());
+      fireChanged(getCurrent());
     }
   }
 
@@ -101,6 +107,8 @@ public class HistoryList<T> {
 
   public void removeMatching(HistoryListMatcher<T> matcher) {
     boolean removedItem = false;
+
+    T oldCurrent = getCurrent();
 
     for (int i = list.size() - 1; i >= 0; i--) {
       T t = list.get(i);
@@ -120,7 +128,8 @@ public class HistoryList<T> {
     }
 
     if (removedItem) {
-      fireEvent(getCurrent());
+      fireAboutToChange(oldCurrent);
+      fireChanged(getCurrent());
     }
   }
 
@@ -128,7 +137,15 @@ public class HistoryList<T> {
     return list.size();
   }
 
-  private void fireEvent(T current) {
+  private void fireAboutToChange(T current) {
+    if (current != null && !listeners.isEmpty()) {
+      for (HistoryListListener<T> l : listeners) {
+        l.historyAboutToChange(current);
+      }
+    }
+  }
+
+  private void fireChanged(T current) {
     if (!listeners.isEmpty()) {
       for (HistoryListListener<T> l : listeners) {
         l.historyChanged(current);
