@@ -94,24 +94,10 @@ public class SearchMatchTest extends EngineTestCase {
     assertEquals(element, match.getElement());
     assertEquals(new SourceRange(10, 5), match.getSourceRange());
     // defaults
-    assertEquals(null, match.getImportPrefix());
     assertEquals(false, match.isQualified());
     // toString()
     assertEquals("SearchMatch(kind=TYPE_REFERENCE, quality=EXACT, element=null, "
         + "range=[offset=10, length=5], qualified=false)", match.toString());
-  }
-
-  public void test_setImportPrefix() throws Exception {
-    SearchMatch match = new SearchMatch(
-        MatchQuality.EXACT,
-        MatchKind.TYPE_REFERENCE,
-        element,
-        new SourceRange(10, 5));
-    match.setImportPrefix("prf");
-    assertEquals("prf", match.getImportPrefix());
-    // toString()
-    assertEquals("SearchMatch(kind=TYPE_REFERENCE, quality=EXACT, element=null, "
-        + "range=[offset=10, length=5], qualified=false, importPrefix=prf)", match.toString());
   }
 
   public void test_setQualified() throws Exception {

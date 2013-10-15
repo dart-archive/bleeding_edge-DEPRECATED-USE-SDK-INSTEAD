@@ -24,32 +24,18 @@ public class LocationTest extends EngineTestCase {
     Element element = mock(Element.class);
     when(element.toString()).thenReturn("myElement");
     // test Location
-    Location location = new Location(element, 1, 2, null);
+    Location location = new Location(element, 1, 2);
     assertSame(element, location.getElement());
     assertEquals(1, location.getOffset());
     assertEquals(2, location.getLength());
-    assertSame(null, location.getImportPrefix());
     assertEquals("[1 - 3) in myElement", location.toString());
   }
 
   public void test_new_nullElement() throws Exception {
     try {
-      new Location(null, 1, 2, null);
+      new Location(null, 1, 2);
       fail();
     } catch (IllegalArgumentException e) {
     }
-  }
-
-  public void test_new_withPrefix() throws Exception {
-    Element element = mock(Element.class);
-    when(element.toString()).thenReturn("myElement");
-    when(element.toString()).thenReturn("myElement");
-    // test Location
-    Location location = new Location(element, 1, 2, "pref");
-    assertSame(element, location.getElement());
-    assertEquals(1, location.getOffset());
-    assertEquals(2, location.getLength());
-    assertEquals("pref", location.getImportPrefix());
-    assertEquals("[1 - 3) in myElement with prefix 'pref'", location.toString());
   }
 }

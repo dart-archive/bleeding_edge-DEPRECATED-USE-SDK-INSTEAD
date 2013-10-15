@@ -45,12 +45,6 @@ public class Location {
   private final int length;
 
   /**
-   * The name of the import prefix used at this location, or {@code null} if the location does not
-   * involve the use of a prefix.
-   */
-  private final String importPrefix;
-
-  /**
    * Initialize a newly create location to be relative to the given element at the given offset with
    * the given length.
    * 
@@ -58,19 +52,18 @@ public class Location {
    * @param offset the offset of this location within the resource containing the element
    * @param length the length of this location
    */
-  public Location(Element element, int offset, int length, String importPrefix) {
+  public Location(Element element, int offset, int length) {
     if (element == null) {
       throw new IllegalArgumentException("element location cannot be null");
     }
     this.element = element;
     this.offset = offset;
     this.length = length;
-    this.importPrefix = importPrefix;
   }
 
   @Override
   public Location clone() {
-    return new Location(element, offset, length, importPrefix);
+    return new Location(element, offset, length);
   }
 
   /**
@@ -78,13 +71,6 @@ public class Location {
    */
   public Element getElement() {
     return element;
-  }
-
-  /**
-   * @return the name of the import prefix, may be {@code null}.
-   */
-  public String getImportPrefix() {
-    return importPrefix;
   }
 
   /**
@@ -107,10 +93,6 @@ public class Location {
 
   @Override
   public String toString() {
-    String result = "[" + offset + " - " + (offset + length) + ") in " + element;
-    if (importPrefix != null) {
-      result += " with prefix '" + importPrefix + "'";
-    }
-    return result;
+    return "[" + offset + " - " + (offset + length) + ") in " + element;
   }
 }

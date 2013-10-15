@@ -115,7 +115,6 @@ public class SearchEngineImpl implements SearchEngine {
         SearchMatch match = new SearchMatch(quality, matchKind, targetElement, range);
         match.setQualified(relationship == IndexConstants.IS_REFERENCED_BY_QUALIFIED
             || relationship == IndexConstants.IS_INVOKED_BY_QUALIFIED);
-        match.setImportPrefix(location.getImportPrefix());
         listener.matchFound(match);
       }
       listener.searchComplete();

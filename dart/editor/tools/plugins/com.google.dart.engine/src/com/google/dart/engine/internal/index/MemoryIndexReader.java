@@ -85,11 +85,7 @@ class MemoryIndexReader {
     Element locationElement = readElement();
     int offset = dis.readInt();
     int length = dis.readInt();
-    String importPrefix = dis.readUTF();
-    if (importPrefix.isEmpty()) {
-      importPrefix = null;
-    }
-    return new Location(locationElement, offset, length, importPrefix);
+    return new Location(locationElement, offset, length);
   }
 
   private Relationship readRelationship() throws IOException {

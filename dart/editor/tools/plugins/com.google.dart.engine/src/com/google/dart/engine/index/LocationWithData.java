@@ -23,22 +23,18 @@ public class LocationWithData<D> extends Location {
   private final D data;
 
   public LocationWithData(Location location, D data) {
-    super(
-        location.getElement(),
-        location.getOffset(),
-        location.getLength(),
-        location.getImportPrefix());
+    super(location.getElement(), location.getOffset(), location.getLength());
     this.data = data;
   }
 
-  private LocationWithData(Element element, int offset, int length, String importPrefix, D data) {
-    super(element, offset, length, importPrefix);
+  private LocationWithData(Element element, int offset, int length, D data) {
+    super(element, offset, length);
     this.data = data;
   }
 
   @Override
   public Location clone() {
-    return new LocationWithData<D>(getElement(), getOffset(), getLength(), getImportPrefix(), data);
+    return new LocationWithData<D>(getElement(), getOffset(), getLength(), data);
   }
 
   /**

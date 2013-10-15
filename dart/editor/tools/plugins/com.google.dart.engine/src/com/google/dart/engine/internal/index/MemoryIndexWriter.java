@@ -82,7 +82,6 @@ class MemoryIndexWriter {
         writeElementLocation(location.getElement());
         dos.writeInt(location.getOffset());
         dos.writeInt(location.getLength());
-        writeMayBeNull(location.getImportPrefix());
       }
     }
   }
@@ -100,15 +99,5 @@ class MemoryIndexWriter {
    */
   private void writeElementLocation(Element element) throws IOException {
     dos.writeUTF(element.getLocation().getEncoding());
-  }
-
-  /**
-   * Write may be {@code null} {@link String}.
-   */
-  private void writeMayBeNull(String str) throws IOException {
-    if (str == null) {
-      str = "";
-    }
-    dos.writeUTF(str);
   }
 }

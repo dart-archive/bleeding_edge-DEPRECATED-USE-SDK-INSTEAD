@@ -110,8 +110,7 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
     if (element != null) {
       int offset = element.getNameOffset();
       int length = element.getDisplayName().length();
-      String prefix = null;
-      return new Location(element, offset, length, prefix);
+      return new Location(element, offset, length);
     }
     return null;
   }
@@ -134,24 +133,6 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
     String prefix = prefixNode.getName();
     Map<ImportElement, Set<Element>> importElementsMap = Maps.newHashMap();
     return getImportElement(libraryElement, prefix, usedElement, importElementsMap);
-  }
-
-  /**
-   * @return the library import prefix name, may be {@code null}.
-   */
-  @VisibleForTesting
-  static String getLibraryImportPrefix(ASTNode node) {
-    // "prefix.Type" or "prefix.topLevelVariable"
-    if (node.getParent() instanceof PrefixedIdentifier) {
-      PrefixedIdentifier propertyAccess = (PrefixedIdentifier) node.getParent();
-      SimpleIdentifier qualifier = propertyAccess.getPrefix();
-      if (qualifier instanceof SimpleIdentifier
-          && qualifier.getStaticElement() instanceof LibraryElement) {
-        return qualifier.getName();
-      }
-    }
-    // no prefix
-    return null;
   }
 
   /**
@@ -405,7 +386,7 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
             recordRelationship(
                 objectElement,
                 IndexConstants.IS_EXTENDED_BY,
-                createLocation(node.getName().getOffset(), 0, null));
+                createLocation(node.getName().getOffset(), 0));
           }
         }
       }
@@ -487,10 +468,10 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
       if (node.getName() != null) {
         int start = node.getPeriod().getOffset();
         int end = node.getName().getEnd();
-        location = createLocation(start, end - start, null);
+        location = createLocation(start, end - start);
       } else {
         int start = node.getReturnType().getEnd();
-        location = createLocation(start, 0, null);
+        location = createLocation(start, 0);
       }
       recordRelationship(element, IndexConstants.IS_DEFINED_BY, location);
     }
@@ -510,10 +491,10 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
     if (node.getName() != null) {
       int start = node.getPeriod().getOffset();
       int end = node.getName().getEnd();
-      location = createLocation(start, end - start, null);
+      location = createLocation(start, end - start);
     } else {
       int start = node.getType().getEnd();
-      location = createLocation(start, 0, null);
+      location = createLocation(start, 0);
     }
     recordRelationship(element, IndexConstants.IS_REFERENCED_BY, location);
     return super.visitConstructorName(node);
@@ -701,10 +682,10 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
     if (node.getConstructorName() != null) {
       int start = node.getPeriod().getOffset();
       int end = node.getConstructorName().getEnd();
-      location = createLocation(start, end - start, null);
+      location = createLocation(start, end - start);
     } else {
       int start = node.getKeyword().getEnd();
-      location = createLocation(start, 0, null);
+      location = createLocation(start, 0);
     }
     recordRelationship(element, IndexConstants.IS_REFERENCED_BY, location);
     return super.visitSuperConstructorInvocation(node);
@@ -789,27 +770,25 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
    * @return the {@link Location} representing location of the {@link ASTNode}.
    */
   private Location createLocation(ASTNode node) {
-    String prefix = getLibraryImportPrefix(node);
-    return createLocation(node.getOffset(), node.getLength(), prefix);
+    return createLocation(node.getOffset(), node.getLength());
   }
 
   /**
    * @param offset the offset of the location within {@link Source}
    * @param length the length of the location
-   * @param prefix the import prefix of top-level element, may be {@code null}
    * @return the {@link Location} representing the given offset and length within the inner-most
    *         {@link Element}.
    */
-  private Location createLocation(int offset, int length, String prefix) {
+  private Location createLocation(int offset, int length) {
     Element element = peekElement();
-    return new Location(element, offset, length, prefix);
+    return new Location(element, offset, length);
   }
 
   /**
    * @return the {@link Location} representing location of the {@link Token}.
    */
   private Location createLocation(Token token) {
-    return createLocation(token.getOffset(), token.getLength(), null);
+    return createLocation(token.getOffset(), token.getLength());
   }
 
   /**
@@ -855,7 +834,7 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
     Element element = node.getStaticElement();
     ImportElement importElement = getImportElement(libraryElement, null, element, importElementsMap);
     if (importElement != null) {
-      Location location = createLocation(node.getOffset(), 0, null);
+      Location location = createLocation(node.getOffset(), 0);
       recordRelationship(importElement, IndexConstants.IS_REFERENCED_BY, location);
     }
   }
@@ -883,7 +862,7 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
     if (importElement != null) {
       int offset = prefixNode.getOffset();
       int length = prefixed.getPeriod().getEnd() - offset;
-      Location location = createLocation(offset, length, null);
+      Location location = createLocation(offset, length);
       recordRelationship(importElement, IndexConstants.IS_REFERENCED_BY, location);
     }
   }

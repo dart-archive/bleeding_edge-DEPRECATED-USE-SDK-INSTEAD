@@ -64,23 +64,16 @@ public class IndexContributorTest extends AbstractDartTest {
     Element element;
     int offset;
     String name;
-    String prefix;
 
     ExpectedLocation(Element element, int offset, String name) {
-      this(element, offset, name, null);
-    }
-
-    ExpectedLocation(Element element, int offset, String name, String prefix) {
       this.element = element;
       this.offset = offset;
       this.name = name;
-      this.prefix = prefix;
     }
 
     @Override
     public String toString() {
-      return Objects.toStringHelper(this).addValue(element).addValue(offset).addValue(name.length()).addValue(
-          prefix).toString();
+      return Objects.toStringHelper(this).addValue(element).addValue(offset).addValue(name.length()).toString();
     }
   }
 
@@ -122,11 +115,10 @@ public class IndexContributorTest extends AbstractDartTest {
    * Asserts that actual {@link Location} has given properties.
    */
   private static void assertLocation(Location actual, Element expectedElement, int expectedOffset,
-      String expectedNameForLength, String expectedPrefix) {
+      String expectedNameForLength) {
     assertEquals(expectedElement, actual.getElement());
     assertEquals(expectedOffset, actual.getOffset());
     assertEquals(expectedNameForLength.length(), actual.getLength());
-    assertEquals(expectedPrefix, actual.getImportPrefix());
   }
 
   /**
@@ -173,18 +165,17 @@ public class IndexContributorTest extends AbstractDartTest {
    * @return {@code true} if given {@link Location} has specified expected properties.
    */
   private static boolean equalsLocation(Location actual, Element expectedElement,
-      int expectedOffset, String expectedNameForLength, String expectedPrefix) {
+      int expectedOffset, String expectedNameForLength) {
     return Objects.equal(expectedElement, actual.getElement())
         && Objects.equal(expectedOffset, actual.getOffset())
-        && Objects.equal(expectedNameForLength.length(), actual.getLength())
-        && Objects.equal(expectedPrefix, actual.getImportPrefix());
+        && Objects.equal(expectedNameForLength.length(), actual.getLength());
   }
 
   /**
    * @return {@code true} if given {@link Location} has specified expected properties.
    */
   private static boolean equalsLocation(Location actual, ExpectedLocation expected) {
-    return equalsLocation(actual, expected.element, expected.offset, expected.name, expected.prefix);
+    return equalsLocation(actual, expected.element, expected.offset, expected.name);
   }
 
   private static boolean equalsRecordedRelation(RecordedRelation recordedRelation,
@@ -210,7 +201,7 @@ public class IndexContributorTest extends AbstractDartTest {
     ElementLocation elementLocation = mock(ElementLocation.class);
     Element element = mockElement(Element.class, elementLocation, 42, "myName");
     Location location = IndexContributor.createLocation(element);
-    assertLocation(location, element, 42, "myName", null);
+    assertLocation(location, element, 42, "myName");
   }
 
   public void test_createElementLocation_null() throws Exception {
@@ -880,32 +871,6 @@ public class IndexContributorTest extends AbstractDartTest {
         classElementA,
         IndexConstants.IS_REFERENCED_BY,
         new ExpectedLocation(functionElement, findOffset("A.field); // 3"), "A"));
-  }
-
-  public void test_isReferencedBy_ClassElement_withPrefix() throws Exception {
-    // Turn off verify of no errors since "pref.MyClass" is an undefined class.
-    verifyNoTestUnitErrors = false;
-    parseTestUnit(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "main() {",
-        "  pref.MyClass v;",
-        "}");
-    verifyNoTestUnitErrors = true;
-    // prepare elements
-    VariableElement vElement = findElement("v;");
-    LibraryElement libraryElement = mock(LibraryElement.class);
-    ClassElement classElement = mock(ClassElement.class);
-    findSimpleIdentifier("MyClass v;").setStaticElement(classElement);
-    findSimpleIdentifier("pref.MyClass").setStaticElement(libraryElement);
-    // index
-    index.visitCompilationUnit(testUnit);
-    // verify
-    List<RecordedRelation> relations = captureRecordedRelations();
-    assertRecordedRelation(
-        relations,
-        classElement,
-        IndexConstants.IS_REFERENCED_BY,
-        new ExpectedLocation(vElement, findOffset("MyClass v;"), "MyClass", "pref"));
   }
 
   public void test_isReferencedBy_ClassTypeAlias() throws Exception {

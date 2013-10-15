@@ -52,11 +52,6 @@ public class SearchMatch {
   private boolean qualified;
 
   /**
-   * Is not {@code null} if matched element was imported with this prefix.
-   */
-  private String importPrefix;
-
-  /**
    * A comparator that can be used to sort the matches based on the names of the matched elements.
    */
   public static final Comparator<SearchMatch> SORT_BY_ELEMENT_NAME = new Comparator<SearchMatch>() {
@@ -93,8 +88,7 @@ public class SearchMatch {
     }
     SearchMatch o = (SearchMatch) obj;
     return kind == o.kind && quality == o.quality && qualified == o.qualified
-        && Objects.equal(importPrefix, o.importPrefix) && Objects.equal(sourceRange, o.sourceRange)
-        && Objects.equal(element, o.element);
+        && Objects.equal(sourceRange, o.sourceRange) && Objects.equal(element, o.element);
   }
 
   /**
@@ -104,13 +98,6 @@ public class SearchMatch {
    */
   public Element getElement() {
     return element;
-  }
-
-  /**
-   * @return the import prefix used to import this match of element, may be {@code null}.
-   */
-  public String getImportPrefix() {
-    return importPrefix;
   }
 
   /**
@@ -155,13 +142,6 @@ public class SearchMatch {
   }
 
   /**
-   * @see #getImportPrefix()
-   */
-  public void setImportPrefix(String importPrefix) {
-    this.importPrefix = importPrefix;
-  }
-
-  /**
    * Specifies if field or method access is done using qualifier.
    */
   public void setQualified(boolean qualified) {
@@ -181,10 +161,6 @@ public class SearchMatch {
     builder.append(sourceRange);
     builder.append(", qualified="); //$NON-NLS-1$
     builder.append(qualified);
-    if (importPrefix != null) {
-      builder.append(", importPrefix="); //$NON-NLS-1$
-      builder.append(importPrefix);
-    }
     builder.append(")"); //$NON-NLS-1$
     return builder.toString();
   }

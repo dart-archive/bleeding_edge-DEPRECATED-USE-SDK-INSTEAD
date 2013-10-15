@@ -76,32 +76,26 @@ public class SearchEngineImplTest extends EngineTestCase {
     MatchQuality quality;
     SourceRange range;
     boolean qualified;
-    String prefix;
 
     public ExpectedMatch(Element element, MatchKind kind, int offset, int length) {
-      this(element, kind, MatchQuality.EXACT, offset, length, null);
+      this(element, kind, MatchQuality.EXACT, offset, length);
     }
 
     public ExpectedMatch(Element element, MatchKind kind, int offset, int length, boolean qualified) {
-      this(element, kind, MatchQuality.EXACT, offset, length, null, qualified);
-    }
-
-    public ExpectedMatch(Element element, MatchKind kind, int offset, int length, String prefix) {
-      this(element, kind, MatchQuality.EXACT, offset, length, prefix);
+      this(element, kind, MatchQuality.EXACT, offset, length, qualified);
     }
 
     public ExpectedMatch(Element element, MatchKind kind, MatchQuality quality, int offset,
-        int length, String prefix) {
-      this(element, kind, quality, offset, length, prefix, false);
+        int length) {
+      this(element, kind, quality, offset, length, false);
     }
 
     public ExpectedMatch(Element element, MatchKind kind, MatchQuality quality, int offset,
-        int length, String prefix, boolean qualified) {
+        int length, boolean qualified) {
       this.element = element;
       this.kind = kind;
       this.quality = quality;
       this.range = new SourceRange(offset, length);
-      this.prefix = prefix;
       this.qualified = qualified;
     }
   }
@@ -120,7 +114,6 @@ public class SearchEngineImplTest extends EngineTestCase {
         if (Objects.equal(match.getElement(), expectedMatch.element)
             && match.getKind() == expectedMatch.kind && match.getQuality() == expectedMatch.quality
             && Objects.equal(match.getSourceRange(), expectedMatch.range)
-            && Objects.equal(match.getImportPrefix(), expectedMatch.prefix)
             && match.isQualified() == expectedMatch.qualified) {
           found = true;
           break;
@@ -160,7 +153,7 @@ public class SearchEngineImplTest extends EngineTestCase {
     final Type typeB = mock(Type.class);
     final Type typeC = mock(Type.class);
     {
-      Location location = new Location(elementA, 1, 10, null);
+      Location location = new Location(elementA, 1, 10);
       location = new LocationWithData<Type>(location, typeA);
       indexStore.recordRelationship(
           setterElement,
@@ -168,7 +161,7 @@ public class SearchEngineImplTest extends EngineTestCase {
           location);
     }
     {
-      Location location = new Location(elementB, 2, 20, null);
+      Location location = new Location(elementB, 2, 20);
       location = new LocationWithData<Type>(location, typeB);
       indexStore.recordRelationship(
           setterElement,
@@ -177,7 +170,7 @@ public class SearchEngineImplTest extends EngineTestCase {
     }
     // will be filtered by scope
     {
-      Location location = new Location(elementC, 3, 30, null);
+      Location location = new Location(elementC, 3, 30);
       location = new LocationWithData<Type>(location, typeC);
       indexStore.recordRelationship(
           setterElement,
@@ -186,7 +179,7 @@ public class SearchEngineImplTest extends EngineTestCase {
     }
     // not LocationWithData
     {
-      Location location = new Location(elementD, 4, 40, null);
+      Location location = new Location(elementD, 4, 40);
       indexStore.recordRelationship(
           setterElement,
           IndexConstants.IS_REFERENCED_BY_QUALIFIED,
@@ -213,12 +206,12 @@ public class SearchEngineImplTest extends EngineTestCase {
     final Type typeA = mock(Type.class);
     final Type typeB = mock(Type.class);
     {
-      Location location = new Location(elementA, 10, 1, null);
+      Location location = new Location(elementA, 10, 1);
       location = new LocationWithData<Type>(location, typeA);
       indexStore.recordRelationship(fieldElement, IndexConstants.IS_DEFINED_BY, location);
     }
     {
-      Location location = new Location(elementB, 20, 1, null);
+      Location location = new Location(elementB, 20, 1);
       location = new LocationWithData<Type>(location, typeB);
       indexStore.recordRelationship(fieldElement, IndexConstants.IS_REFERENCED_BY, location);
     }
@@ -236,11 +229,11 @@ public class SearchEngineImplTest extends EngineTestCase {
   public void test_searchDeclarations_String() throws Exception {
     Element referencedElement = new NameElementImpl("test");
     {
-      Location locationA = new Location(elementA, 1, 2, null);
+      Location locationA = new Location(elementA, 1, 2);
       indexStore.recordRelationship(referencedElement, IndexConstants.IS_DEFINED_BY, locationA);
     }
     {
-      Location locationB = new Location(elementB, 10, 20, null);
+      Location locationB = new Location(elementB, 10, 20);
       indexStore.recordRelationship(referencedElement, IndexConstants.IS_DEFINED_BY, locationB);
     }
     // search matches
@@ -286,14 +279,14 @@ public class SearchEngineImplTest extends EngineTestCase {
 
   public void test_searchFunctionDeclarations_inUniverse() throws Exception {
     {
-      Location locationA = new Location(elementA, 1, 2, null);
+      Location locationA = new Location(elementA, 1, 2);
       indexStore.recordRelationship(
           IndexConstants.UNIVERSE,
           IndexConstants.DEFINES_FUNCTION,
           locationA);
     }
     {
-      Location locationB = new Location(elementB, 10, 20, null);
+      Location locationB = new Location(elementB, 10, 20);
       indexStore.recordRelationship(
           IndexConstants.UNIVERSE,
           IndexConstants.DEFINES_FUNCTION,
@@ -358,11 +351,11 @@ public class SearchEngineImplTest extends EngineTestCase {
   public void test_searchReferences_ClassElement() throws Exception {
     ClassElement referencedElement = mock2(ClassElement.class, ElementKind.CLASS);
     {
-      Location locationA = new Location(elementA, 1, 2, null);
+      Location locationA = new Location(elementA, 1, 2);
       indexStore.recordRelationship(referencedElement, IndexConstants.IS_REFERENCED_BY, locationA);
     }
     {
-      Location locationB = new Location(elementB, 10, 20, null);
+      Location locationB = new Location(elementB, 10, 20);
       indexStore.recordRelationship(referencedElement, IndexConstants.IS_REFERENCED_BY, locationB);
     }
     // search matches
@@ -380,12 +373,12 @@ public class SearchEngineImplTest extends EngineTestCase {
     ClassElement referencedElement = mock2(ClassElement.class, ElementKind.CLASS);
     {
       when(elementA.getAncestor(LibraryElement.class)).thenReturn(libraryA);
-      Location locationA = new Location(elementA, 1, 2, null);
+      Location locationA = new Location(elementA, 1, 2);
       indexStore.recordRelationship(referencedElement, IndexConstants.IS_REFERENCED_BY, locationA);
     }
     {
       when(elementB.getAncestor(LibraryElement.class)).thenReturn(libraryB);
-      Location locationB = new Location(elementB, 10, 20, null);
+      Location locationB = new Location(elementB, 10, 20);
       indexStore.recordRelationship(referencedElement, IndexConstants.IS_REFERENCED_BY, locationB);
     }
     // search matches, in "libraryA"
@@ -395,31 +388,12 @@ public class SearchEngineImplTest extends EngineTestCase {
     assertMatches(matches, new ExpectedMatch(elementA, MatchKind.TYPE_REFERENCE, 1, 2));
   }
 
-  public void test_searchReferences_ClassElement_withPrefix() throws Exception {
-    ClassElement referencedElement = mock2(ClassElement.class, ElementKind.CLASS);
-    {
-      Location locationA = new Location(elementA, 1, 2, "prefA");
-      indexStore.recordRelationship(referencedElement, IndexConstants.IS_REFERENCED_BY, locationA);
-    }
-    {
-      Location locationB = new Location(elementB, 10, 20, "prefB");
-      indexStore.recordRelationship(referencedElement, IndexConstants.IS_REFERENCED_BY, locationB);
-    }
-    // search matches
-    List<SearchMatch> matches = searchReferencesSync(Element.class, referencedElement);
-    // verify
-    assertMatches(
-        matches,
-        new ExpectedMatch(elementA, MatchKind.TYPE_REFERENCE, 1, 2, "prefA"),
-        new ExpectedMatch(elementB, MatchKind.TYPE_REFERENCE, 10, 20, "prefB"));
-  }
-
   public void test_searchReferences_CompilationUnitElement() throws Exception {
     CompilationUnitElement referencedElement = mock2(
         CompilationUnitElement.class,
         ElementKind.COMPILATION_UNIT);
     {
-      Location location = new Location(elementA, 1, 2, null);
+      Location location = new Location(elementA, 1, 2);
       indexStore.recordRelationship(referencedElement, IndexConstants.IS_REFERENCED_BY, location);
     }
     // search matches
@@ -431,15 +405,15 @@ public class SearchEngineImplTest extends EngineTestCase {
   public void test_searchReferences_ConstructorElement() throws Exception {
     ConstructorElement referencedElement = mock2(ConstructorElement.class, ElementKind.CONSTRUCTOR);
     {
-      Location location = new Location(elementA, 10, 1, null);
+      Location location = new Location(elementA, 10, 1);
       indexStore.recordRelationship(referencedElement, IndexConstants.IS_DEFINED_BY, location);
     }
     {
-      Location location = new Location(elementB, 20, 2, null);
+      Location location = new Location(elementB, 20, 2);
       indexStore.recordRelationship(referencedElement, IndexConstants.IS_REFERENCED_BY, location);
     }
     {
-      Location location = new Location(elementC, 30, 3, null);
+      Location location = new Location(elementC, 30, 3);
       indexStore.recordRelationship(referencedElement, IndexConstants.IS_REFERENCED_BY, location);
     }
     // search matches
@@ -464,28 +438,28 @@ public class SearchEngineImplTest extends EngineTestCase {
     when(fieldElement.getGetter()).thenReturn(getterElement);
     when(fieldElement.getSetter()).thenReturn(setterElement);
     {
-      Location location = new Location(elementA, 1, 10, null);
+      Location location = new Location(elementA, 1, 10);
       indexStore.recordRelationship(
           getterElement,
           IndexConstants.IS_REFERENCED_BY_UNQUALIFIED,
           location);
     }
     {
-      Location location = new Location(elementB, 2, 20, null);
+      Location location = new Location(elementB, 2, 20);
       indexStore.recordRelationship(
           getterElement,
           IndexConstants.IS_REFERENCED_BY_QUALIFIED,
           location);
     }
     {
-      Location location = new Location(elementC, 3, 30, null);
+      Location location = new Location(elementC, 3, 30);
       indexStore.recordRelationship(
           setterElement,
           IndexConstants.IS_REFERENCED_BY_UNQUALIFIED,
           location);
     }
     {
-      Location location = new Location(elementD, 4, 40, null);
+      Location location = new Location(elementD, 4, 40);
       indexStore.recordRelationship(
           setterElement,
           IndexConstants.IS_REFERENCED_BY_QUALIFIED,
@@ -505,11 +479,11 @@ public class SearchEngineImplTest extends EngineTestCase {
   public void test_searchReferences_FieldElement2() throws Exception {
     FieldElement fieldElement = mock2(FieldElement.class, ElementKind.FIELD);
     {
-      Location location = new Location(elementA, 1, 10, null);
+      Location location = new Location(elementA, 1, 10);
       indexStore.recordRelationship(fieldElement, IndexConstants.IS_REFERENCED_BY, location);
     }
     {
-      Location location = new Location(elementB, 2, 20, null);
+      Location location = new Location(elementB, 2, 20);
       indexStore.recordRelationship(
           fieldElement,
           IndexConstants.IS_REFERENCED_BY_QUALIFIED,
@@ -527,11 +501,11 @@ public class SearchEngineImplTest extends EngineTestCase {
   public void test_searchReferences_FunctionElement() throws Exception {
     FunctionElement referencedElement = mock2(FunctionElement.class, ElementKind.FUNCTION);
     {
-      Location location = new Location(elementA, 1, 10, null);
+      Location location = new Location(elementA, 1, 10);
       indexStore.recordRelationship(referencedElement, IndexConstants.IS_INVOKED_BY, location);
     }
     {
-      Location location = new Location(elementB, 2, 20, null);
+      Location location = new Location(elementB, 2, 20);
       indexStore.recordRelationship(referencedElement, IndexConstants.IS_REFERENCED_BY, location);
     }
     // search matches
@@ -546,11 +520,11 @@ public class SearchEngineImplTest extends EngineTestCase {
   public void test_searchReferences_ImportElement() throws Exception {
     ImportElement referencedElement = mock2(ImportElement.class, ElementKind.IMPORT);
     {
-      Location locationA = new Location(elementA, 1, 2, null);
+      Location locationA = new Location(elementA, 1, 2);
       indexStore.recordRelationship(referencedElement, IndexConstants.IS_REFERENCED_BY, locationA);
     }
     {
-      Location locationB = new Location(elementB, 10, 0, null);
+      Location locationB = new Location(elementB, 10, 0);
       indexStore.recordRelationship(referencedElement, IndexConstants.IS_REFERENCED_BY, locationB);
     }
     // search matches
@@ -565,7 +539,7 @@ public class SearchEngineImplTest extends EngineTestCase {
   public void test_searchReferences_LibraryElement() throws Exception {
     LibraryElement referencedElement = mock2(LibraryElement.class, ElementKind.LIBRARY);
     {
-      Location location = new Location(elementA, 1, 2, null);
+      Location location = new Location(elementA, 1, 2);
       indexStore.recordRelationship(referencedElement, IndexConstants.IS_REFERENCED_BY, location);
     }
     // search matches
@@ -577,28 +551,28 @@ public class SearchEngineImplTest extends EngineTestCase {
   public void test_searchReferences_MethodElement() throws Exception {
     MethodElement referencedElement = mock2(MethodElement.class, ElementKind.METHOD);
     {
-      Location location = new Location(elementA, 1, 10, null);
+      Location location = new Location(elementA, 1, 10);
       indexStore.recordRelationship(
           referencedElement,
           IndexConstants.IS_INVOKED_BY_UNQUALIFIED,
           location);
     }
     {
-      Location location = new Location(elementB, 2, 20, null);
+      Location location = new Location(elementB, 2, 20);
       indexStore.recordRelationship(
           referencedElement,
           IndexConstants.IS_INVOKED_BY_QUALIFIED,
           location);
     }
     {
-      Location location = new Location(elementC, 3, 30, null);
+      Location location = new Location(elementC, 3, 30);
       indexStore.recordRelationship(
           referencedElement,
           IndexConstants.IS_REFERENCED_BY_UNQUALIFIED,
           location);
     }
     {
-      Location location = new Location(elementD, 4, 40, null);
+      Location location = new Location(elementD, 4, 40);
       indexStore.recordRelationship(
           referencedElement,
           IndexConstants.IS_REFERENCED_BY_QUALIFIED,
@@ -618,28 +592,28 @@ public class SearchEngineImplTest extends EngineTestCase {
   public void test_searchReferences_MethodMember() throws Exception {
     MethodElement referencedElement = mock2(MethodElement.class, ElementKind.METHOD);
     {
-      Location location = new Location(elementA, 1, 10, null);
+      Location location = new Location(elementA, 1, 10);
       indexStore.recordRelationship(
           referencedElement,
           IndexConstants.IS_INVOKED_BY_UNQUALIFIED,
           location);
     }
     {
-      Location location = new Location(elementB, 2, 20, null);
+      Location location = new Location(elementB, 2, 20);
       indexStore.recordRelationship(
           referencedElement,
           IndexConstants.IS_INVOKED_BY_QUALIFIED,
           location);
     }
     {
-      Location location = new Location(elementC, 3, 30, null);
+      Location location = new Location(elementC, 3, 30);
       indexStore.recordRelationship(
           referencedElement,
           IndexConstants.IS_REFERENCED_BY_UNQUALIFIED,
           location);
     }
     {
-      Location location = new Location(elementD, 4, 40, null);
+      Location location = new Location(elementD, 4, 40);
       indexStore.recordRelationship(
           referencedElement,
           IndexConstants.IS_REFERENCED_BY_QUALIFIED,
@@ -660,19 +634,19 @@ public class SearchEngineImplTest extends EngineTestCase {
   public void test_searchReferences_ParameterElement() throws Exception {
     ParameterElement referencedElement = mock2(ParameterElement.class, ElementKind.PARAMETER);
     {
-      Location location = new Location(elementA, 1, 10, null);
+      Location location = new Location(elementA, 1, 10);
       indexStore.recordRelationship(referencedElement, IndexConstants.IS_READ_BY, location);
     }
     {
-      Location location = new Location(elementB, 2, 20, null);
+      Location location = new Location(elementB, 2, 20);
       indexStore.recordRelationship(referencedElement, IndexConstants.IS_WRITTEN_BY, location);
     }
     {
-      Location location = new Location(elementC, 3, 30, null);
+      Location location = new Location(elementC, 3, 30);
       indexStore.recordRelationship(referencedElement, IndexConstants.IS_READ_WRITTEN_BY, location);
     }
     {
-      Location location = new Location(elementD, 4, 40, null);
+      Location location = new Location(elementD, 4, 40);
       indexStore.recordRelationship(referencedElement, IndexConstants.IS_REFERENCED_BY, location);
     }
     // search matches
@@ -690,11 +664,11 @@ public class SearchEngineImplTest extends EngineTestCase {
   public void test_searchReferences_PropertyAccessorElement_getter() throws Exception {
     PropertyAccessorElement accessor = mock2(PropertyAccessorElement.class, ElementKind.GETTER);
     {
-      Location location = new Location(elementA, 1, 10, null);
+      Location location = new Location(elementA, 1, 10);
       indexStore.recordRelationship(accessor, IndexConstants.IS_REFERENCED_BY_UNQUALIFIED, location);
     }
     {
-      Location location = new Location(elementB, 2, 20, null);
+      Location location = new Location(elementB, 2, 20);
       indexStore.recordRelationship(accessor, IndexConstants.IS_REFERENCED_BY_QUALIFIED, location);
     }
     // search matches
@@ -711,11 +685,11 @@ public class SearchEngineImplTest extends EngineTestCase {
   public void test_searchReferences_PropertyAccessorElement_setter() throws Exception {
     PropertyAccessorElement accessor = mock2(PropertyAccessorElement.class, ElementKind.SETTER);
     {
-      Location location = new Location(elementA, 1, 10, null);
+      Location location = new Location(elementA, 1, 10);
       indexStore.recordRelationship(accessor, IndexConstants.IS_REFERENCED_BY_UNQUALIFIED, location);
     }
     {
-      Location location = new Location(elementB, 2, 20, null);
+      Location location = new Location(elementB, 2, 20);
       indexStore.recordRelationship(accessor, IndexConstants.IS_REFERENCED_BY_QUALIFIED, location);
     }
     // search matches
@@ -738,14 +712,14 @@ public class SearchEngineImplTest extends EngineTestCase {
     when(topVariableElement.getGetter()).thenReturn(getterElement);
     when(topVariableElement.getSetter()).thenReturn(setterElement);
     {
-      Location location = new Location(elementA, 1, 10, null);
+      Location location = new Location(elementA, 1, 10);
       indexStore.recordRelationship(
           getterElement,
           IndexConstants.IS_REFERENCED_BY_UNQUALIFIED,
           location);
     }
     {
-      Location location = new Location(elementC, 2, 20, null);
+      Location location = new Location(elementC, 2, 20);
       indexStore.recordRelationship(
           setterElement,
           IndexConstants.IS_REFERENCED_BY_UNQUALIFIED,
@@ -765,11 +739,11 @@ public class SearchEngineImplTest extends EngineTestCase {
         FunctionTypeAliasElement.class,
         ElementKind.FUNCTION_TYPE_ALIAS);
     {
-      Location locationA = new Location(elementA, 1, 2, null);
+      Location locationA = new Location(elementA, 1, 2);
       indexStore.recordRelationship(referencedElement, IndexConstants.IS_REFERENCED_BY, locationA);
     }
     {
-      Location locationB = new Location(elementB, 10, 20, null);
+      Location locationB = new Location(elementB, 10, 20);
       indexStore.recordRelationship(referencedElement, IndexConstants.IS_REFERENCED_BY, locationB);
     }
     // search matches
@@ -786,11 +760,11 @@ public class SearchEngineImplTest extends EngineTestCase {
         TypeParameterElement.class,
         ElementKind.TYPE_PARAMETER);
     {
-      Location locationA = new Location(elementA, 1, 2, null);
+      Location locationA = new Location(elementA, 1, 2);
       indexStore.recordRelationship(referencedElement, IndexConstants.IS_REFERENCED_BY, locationA);
     }
     {
-      Location locationB = new Location(elementB, 10, 20, null);
+      Location locationB = new Location(elementB, 10, 20);
       indexStore.recordRelationship(referencedElement, IndexConstants.IS_REFERENCED_BY, locationB);
     }
     // search matches
@@ -807,15 +781,15 @@ public class SearchEngineImplTest extends EngineTestCase {
         LocalVariableElement.class,
         ElementKind.LOCAL_VARIABLE);
     {
-      Location location = new Location(elementA, 1, 10, null);
+      Location location = new Location(elementA, 1, 10);
       indexStore.recordRelationship(referencedElement, IndexConstants.IS_READ_BY, location);
     }
     {
-      Location location = new Location(elementB, 2, 20, null);
+      Location location = new Location(elementB, 2, 20);
       indexStore.recordRelationship(referencedElement, IndexConstants.IS_WRITTEN_BY, location);
     }
     {
-      Location location = new Location(elementC, 3, 30, null);
+      Location location = new Location(elementC, 3, 30);
       indexStore.recordRelationship(referencedElement, IndexConstants.IS_READ_WRITTEN_BY, location);
     }
     // search matches
@@ -831,15 +805,15 @@ public class SearchEngineImplTest extends EngineTestCase {
   public void test_searchSubtypes() throws Exception {
     final ClassElement referencedElement = mock2(ClassElement.class, ElementKind.CLASS);
     {
-      Location locationA = new Location(elementA, 10, 1, null);
+      Location locationA = new Location(elementA, 10, 1);
       indexStore.recordRelationship(referencedElement, IndexConstants.IS_EXTENDED_BY, locationA);
     }
     {
-      Location locationB = new Location(elementB, 20, 2, null);
+      Location locationB = new Location(elementB, 20, 2);
       indexStore.recordRelationship(referencedElement, IndexConstants.IS_MIXED_IN_BY, locationB);
     }
     {
-      Location locationC = new Location(elementC, 30, 3, null);
+      Location locationC = new Location(elementC, 30, 3);
       indexStore.recordRelationship(referencedElement, IndexConstants.IS_IMPLEMENTED_BY, locationC);
     }
     // search matches
@@ -862,7 +836,7 @@ public class SearchEngineImplTest extends EngineTestCase {
     LibraryElement library = mock2(LibraryElement.class, ElementKind.LIBRARY);
     {
       when(elementA.getAncestor(LibraryElement.class)).thenReturn(library);
-      Location locationA = new Location(elementA, 1, 2, null);
+      Location locationA = new Location(elementA, 1, 2);
       indexStore.recordRelationship(library, IndexConstants.DEFINES_CLASS, locationA);
     }
     scope = new LibrarySearchScope(library);
@@ -876,7 +850,7 @@ public class SearchEngineImplTest extends EngineTestCase {
     LibraryElement library = mock2(LibraryElement.class, ElementKind.LIBRARY);
     {
       when(elementA.getAncestor(LibraryElement.class)).thenReturn(library);
-      Location locationA = new Location(elementA, 1, 2, null);
+      Location locationA = new Location(elementA, 1, 2);
       indexStore.recordRelationship(library, IndexConstants.DEFINES_CLASS, locationA);
     }
     scope = new LibrarySearchScope(library);
@@ -890,7 +864,7 @@ public class SearchEngineImplTest extends EngineTestCase {
     LibraryElement library = mock2(LibraryElement.class, ElementKind.LIBRARY);
     {
       when(elementA.getAncestor(LibraryElement.class)).thenReturn(library);
-      Location locationA = new Location(elementA, 1, 2, null);
+      Location locationA = new Location(elementA, 1, 2);
       indexStore.recordRelationship(library, IndexConstants.DEFINES_CLASS_ALIAS, locationA);
     }
     scope = new LibrarySearchScope(library);
@@ -904,7 +878,7 @@ public class SearchEngineImplTest extends EngineTestCase {
     LibraryElement library = mock2(LibraryElement.class, ElementKind.LIBRARY);
     {
       when(elementA.getAncestor(LibraryElement.class)).thenReturn(library);
-      Location locationA = new Location(elementA, 1, 2, null);
+      Location locationA = new Location(elementA, 1, 2);
       indexStore.recordRelationship(library, IndexConstants.DEFINES_FUNCTION_TYPE, locationA);
     }
     scope = new LibrarySearchScope(library);
@@ -917,14 +891,14 @@ public class SearchEngineImplTest extends EngineTestCase {
   public void test_searchUnresolvedQualifiedReferences() throws Exception {
     Element referencedElement = new NameElementImpl("test");
     {
-      Location locationA = new Location(elementA, 1, 2, null);
+      Location locationA = new Location(elementA, 1, 2);
       indexStore.recordRelationship(
           referencedElement,
           IndexConstants.IS_REFERENCED_BY_QUALIFIED_RESOLVED,
           locationA);
     }
     {
-      Location locationB = new Location(elementB, 10, 20, null);
+      Location locationB = new Location(elementB, 10, 20);
       indexStore.recordRelationship(
           referencedElement,
           IndexConstants.IS_REFERENCED_BY_QUALIFIED_UNRESOLVED,
@@ -1004,12 +978,12 @@ public class SearchEngineImplTest extends EngineTestCase {
   private void defineFunctionsAB(LibraryElement library) {
     {
       when(elementA.getAncestor(LibraryElement.class)).thenReturn(library);
-      Location locationA = new Location(elementA, 1, 2, null);
+      Location locationA = new Location(elementA, 1, 2);
       indexStore.recordRelationship(library, IndexConstants.DEFINES_FUNCTION, locationA);
     }
     {
       when(elementB.getAncestor(LibraryElement.class)).thenReturn(library);
-      Location locationB = new Location(elementB, 10, 20, null);
+      Location locationB = new Location(elementB, 10, 20);
       indexStore.recordRelationship(library, IndexConstants.DEFINES_FUNCTION, locationB);
     }
   }
@@ -1017,12 +991,12 @@ public class SearchEngineImplTest extends EngineTestCase {
   private void defineVariablesAB(LibraryElement library) {
     {
       when(elementA.getAncestor(LibraryElement.class)).thenReturn(library);
-      Location locationA = new Location(elementA, 1, 2, null);
+      Location locationA = new Location(elementA, 1, 2);
       indexStore.recordRelationship(library, IndexConstants.DEFINES_VARIABLE, locationA);
     }
     {
       when(elementB.getAncestor(LibraryElement.class)).thenReturn(library);
-      Location locationB = new Location(elementB, 10, 20, null);
+      Location locationB = new Location(elementB, 10, 20);
       indexStore.recordRelationship(library, IndexConstants.DEFINES_VARIABLE, locationB);
     }
   }

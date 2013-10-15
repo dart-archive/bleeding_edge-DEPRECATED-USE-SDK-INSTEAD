@@ -64,8 +64,7 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
       LocationEqualsWrapper other = (LocationEqualsWrapper) obj;
       return other.location.getOffset() == other.location.getOffset()
           && other.location.getLength() == other.location.getLength()
-          && Objects.equal(other.location.getElement(), location.getElement())
-          && Objects.equal(other.location.getImportPrefix(), location.getImportPrefix());
+          && Objects.equal(other.location.getElement(), location.getElement());
     }
 
     @Override
@@ -232,7 +231,7 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
 
   public void test_recordRelationship_noLocationElement() throws Exception {
     Element elementWithoutEnclosing = mock(Element.class);
-    Location location = new Location(elementWithoutEnclosing, 0, 0, null);
+    Location location = new Location(elementWithoutEnclosing, 0, 0);
     store.recordRelationship(elementA, relationship, location);
     assertEquals(0, store.internalGetLocationCount());
   }
@@ -490,8 +489,8 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
     when(elementA.getContext()).thenReturn(contextA);
     when(elementB.getContext()).thenReturn(contextB);
     // fill store
-    Location locationA = new Location(elementA, 0, 0, null);
-    Location locationB = new Location(elementB, 0, 0, null);
+    Location locationA = new Location(elementA, 0, 0);
+    Location locationB = new Location(elementB, 0, 0);
     store.recordRelationship(elementA, relationship, locationA);
     store.recordRelationship(elementB, relationship, locationB);
     assertEquals(2, store.internalGetKeyCount());
