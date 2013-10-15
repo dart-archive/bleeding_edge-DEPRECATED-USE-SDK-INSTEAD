@@ -7,6 +7,7 @@
 # Dart Editor promote and google storage cleanup tools.
 
 import gsutil
+import imp
 import optparse
 import os
 import subprocess
@@ -22,7 +23,11 @@ INTEGRATION = 'gs://dart-editor-archive-integration'
 RELEASE = 'gs://dart-editor-archive-release'
 INTERNAL = 'gs://dart-editor-archive-internal'
 
-DART_PATH = os.path.join('..', '..', '..', 'dart')
+DART_PATH = os.path.abspath(os.path.join(__file__, '..', '..', '..'))
+BOT_UTILS = os.path.abspath(os.path.join(
+    DART_PATH,  'tools', 'bots', 'bot_utils.py'))
+
+bot_utils = imp.load_source('bot_utils', BOT_UTILS)
 
 def _BuildOptions():
   """Setup the argument processing for this program.
@@ -76,6 +81,9 @@ def _BuildOptions():
   group.add_option('--integration',
                    help='Promote from integration',
                    action='store_true')
+  group.add_option('--channel', type='string',
+                   help='Promote from this channel',
+                   default=None)
   result.add_option_group(group)
 
   result.add_option('--gsbucketuri',
@@ -112,8 +120,10 @@ def main():
       parser.print_help()
       sys.exit(3)
     if not (options.continuous or options.integration or
-            options.testing or options.trunk or options.internal):
-      print 'Specify --continuous, --integration, --testing, or --trunk'
+            options.testing or options.trunk or options.internal or
+            options.channel):
+      print ('Specify --continuous, --integration, --testing, --trunk or '
+            '--channel=be/dev/stable')
       parser.print_help()
       sys.exit(4)
     if options.continuous and options.integration:
@@ -165,8 +175,11 @@ def main():
     version_dirs = _ReadBucket(gsu, '{0}/{1}'.format(bucket, '[0-9]*'))
     _RemoveElements(gsu, bucket, version_dirs, options.keepcount)
   elif command == 'promote':
-    _PromoteBuild(options.revision, bucket_from, bucket_to)
-    _UpdateDocs()
+    if options.channel:
+      _PromoteDartArchiveBuild(options.channel, options.revision)
+    else:
+      _PromoteBuild(options.revision, bucket_from, bucket_to)
+      _UpdateDocs()
 
 
 def _UpdateDocs():
@@ -268,6 +281,54 @@ def _PromoteBuild(revision, from_bucket, to_bucket):
   _Gsutil(['cp', '-a', 'public-read', srcVersion, destUpdate + 'plugins/'])
   _Gsutil(['cp', '-r', '-a', 'public-read', src + '*', dest])
 
+def _PromoteDartArchiveBuild(channel, revision):
+  # These namer objects will be used to create GCS object URIs. For the
+  # structure we use, please see tools/bots/bot_utils.py:GCSNamer
+  raw_namer = bot_utils.GCSNamer(channel, bot_utils.ReleaseType.RAW)
+  signed_namer = bot_utils.GCSNamer(channel, bot_utils.ReleaseType.SIGNED)
+  release_namer = bot_utils.GCSNamer(channel, bot_utils.ReleaseType.RELEASE)
+
+  def promote(to_revision):
+    # Copy VERSION file.
+    from_loc = raw_namer.version_filepath(revision)
+    to_loc = release_namer.version_filepath(to_revision)
+    _Gsutil(['cp', '-a', 'public-read', from_loc, to_loc])
+
+    # Copy sdk directory.
+    from_loc = raw_namer.sdk_directory(revision)
+    to_loc = release_namer.sdk_directory(to_revision)
+    _Gsutil(['-m', 'cp', '-a', 'public-read', '-R', from_loc, to_loc])
+
+    # Copy eclipse update directory.
+    from_loc = raw_namer.editor_eclipse_update_directory(revision)
+    to_loc = release_namer.editor_eclipse_update_directory(to_revision)
+    _Gsutil(['-m', 'cp', '-a', 'public-read', '-R', from_loc, to_loc])
+
+    # Copy api-docs directory.
+    from_loc = raw_namer.apidocs_directory(revision)
+    to_loc = release_namer.apidocs_directory(to_revision)
+    _Gsutil(['-m', 'cp', '-a', 'public-read', '-R', from_loc, to_loc])
+
+    # Copy dartium directory.
+    from_loc = raw_namer.dartium_directory(revision)
+    to_loc = release_namer.dartium_directory(to_revision)
+    _Gsutil(['-m', 'cp', '-a', 'public-read', '-R', from_loc, to_loc])
+
+    # Copy editor zip files.
+    for system in ['windows', 'macos', 'linux']:
+      for arch in ['ia32', 'x64']:
+        from_namer = raw_namer
+        # We have signed versions of the editor for windows and macos.
+        if system == 'windows' or system == 'macos':
+          from_namer = signed_namer
+        from_loc = from_namer.editor_zipfilepath(revision, system, arch)
+        to_loc = release_namer.editor_zipfilepath(to_revision, system, arch)
+        _Gsutil(['cp', '-a', 'public-read', from_loc, to_loc])
+        _Gsutil(['cp', '-a', 'public-read', from_loc + '.md5sum',
+                 to_loc + '.md5sum'])
+
+  promote(revision)
+  promote('latest')
 
 def _PrintSeparator(text):
   print '================================'
