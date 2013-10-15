@@ -338,7 +338,7 @@ class View implements Positionable {
       changedComplete = true;
     });
 
-    window.setImmediate(() {
+    scheduleMicrotask(() {
       if (!changedComplete) {
         changed.complete(false);
       }
@@ -355,7 +355,7 @@ class View implements Positionable {
     if (ViewLayout.hasCustomLayout(this)) {
       // TODO(10459): code should not use Completer.sync.
       Completer sizeCompleter = new Completer<Size>.sync();
-      window.setImmediate(() {
+      scheduleMicrotask(() {
         sizeCompleter.complete(
             new Size(_node.client.width, _node.client.height));
       });

@@ -135,7 +135,7 @@ class PagedColumnView extends View {
   // TODO(jmesserly): would be better to not have this code in enterDocument.
   // But we need computedStyle to read our CSS properties.
   void enterDocument() {
-    window.setImmediate(() {
+    scheduleMicrotask(() {
       var style = contentView.node.getComputedStyle();
       _computeColumnGap(style);
 
@@ -183,7 +183,7 @@ class PagedColumnView extends View {
     // The content needs to have its height explicitly set, or columns don't
     // flow to the right correctly. So we copy our own height and set the height
     // of the content.
-    window.setImmediate(() {
+    scheduleMicrotask(() {
       contentView.node.style.height = '${node.offset.height}px';
     });
     _updatePageCount(null);
@@ -191,7 +191,7 @@ class PagedColumnView extends View {
 
   bool _updatePageCount(Callback callback) {
     int pageLength = 1;
-    window.setImmediate(() {
+    scheduleMicrotask(() {
       if (_container.scrollWidth > _container.offset.width) {
         pageLength = (_container.scrollWidth / _computePageSize(_container))
             .ceil();
@@ -216,7 +216,7 @@ class PagedColumnView extends View {
   }
 
   void _onContentMoved(Event e) {
-    window.setImmediate(() {
+    scheduleMicrotask(() {
       num current = scroller.contentOffset.x;
       int pageSize = _computePageSize(_container);
       pages.current.value = -(current / pageSize).round();
@@ -226,7 +226,7 @@ class PagedColumnView extends View {
   void _snapToPage(Event e) {
     num current = scroller.contentOffset.x;
     num currentTarget = scroller.currentTarget.x;
-    window.setImmediate(() {
+    scheduleMicrotask(() {
       int pageSize = _computePageSize(_container);
       int destination;
       num currentPageNumber = -(current / pageSize).round();
@@ -277,7 +277,7 @@ class PagedColumnView extends View {
   }
 
   void _onPageSelected() {
-    window.setImmediate(() {
+    scheduleMicrotask(() {
       int translate = -pages.target.value * _computePageSize(_container);
       scroller.throwTo(translate, 0);
     });

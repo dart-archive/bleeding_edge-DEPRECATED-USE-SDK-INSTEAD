@@ -289,7 +289,7 @@ class GenericListView<D> extends View {
 
   void onResize() {
     int lastViewLength = _viewLength;
-    window.setImmediate(() {
+    scheduleMicrotask(() {
       _viewLength = _vertical ? node.offset.height : node.offset.width;
       if (_viewLength != lastViewLength) {
         if (_scrollbar != null) {

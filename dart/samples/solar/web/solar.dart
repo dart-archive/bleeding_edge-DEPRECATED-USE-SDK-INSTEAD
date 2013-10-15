@@ -8,12 +8,13 @@
 
 library solar;
 
+import 'dart:async';
 import 'dart:html';
 import 'dart:math';
 
 void main() {
   CanvasElement canvas = query("#area");
-  window.setImmediate(new SolarSystem(canvas).start);
+  scheduleMicrotask(new SolarSystem(canvas).start);
 }
 
 Element notes = query("#fps");

@@ -563,7 +563,7 @@ class Scroller implements Draggable, MomentumDelegate {
    * and maxPoint allowed for scrolling.
    */
   void _resize(Callback callback) {
-    window.setImmediate(() {
+    scheduleMicrotask(() {
       if (_lookupContentSizeDelegate != null) {
         _contentSize = _lookupContentSizeDelegate();
       } else {
