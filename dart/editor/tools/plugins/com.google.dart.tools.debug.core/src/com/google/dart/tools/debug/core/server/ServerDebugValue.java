@@ -136,6 +136,19 @@ public class ServerDebugValue extends ServerDebugElement implements IValue, IDar
   }
 
   @Override
+  public String getId() {
+    if (value == null || value.isNull()) {
+      return null;
+    }
+
+    if (!value.isPrimitive() || value.isString()) {
+      return Integer.toString(value.getObjectId());
+    } else {
+      return null;
+    }
+  }
+
+  @Override
   public String getReferenceTypeName() throws DebugException {
     try {
       if (value == null) {

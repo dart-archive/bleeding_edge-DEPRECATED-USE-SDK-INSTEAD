@@ -14,6 +14,8 @@
 
 package com.google.dart.tools.debug.ui.internal.objectinspector;
 
+import com.google.dart.tools.debug.core.util.IDartDebugValue;
+
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.model.IValue;
 import org.eclipse.debug.core.model.IVariable;
@@ -47,9 +49,14 @@ class ValueLabelProvider extends DelegatingStyledCellLabelProvider {
 
         str.append(value.getValueString());
 
-        // TODO(devoncarew): add a suitable styled decoration
-        //str.append(' ');
-        //str.append(value.getReferenceTypeName(), StyledString.DECORATIONS_STYLER);
+        if (value instanceof IDartDebugValue) {
+          IDartDebugValue debugValue = (IDartDebugValue) value;
+
+          if (debugValue.getId() != null) {
+            str.append(' ');
+            str.append("[id=" + debugValue.getId() + "]", StyledString.DECORATIONS_STYLER);
+          }
+        }
       } catch (DebugException e) {
         e.printStackTrace();
       }

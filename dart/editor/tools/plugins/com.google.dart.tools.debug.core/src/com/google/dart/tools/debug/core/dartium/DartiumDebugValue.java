@@ -29,6 +29,7 @@ import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.model.IValue;
 import org.eclipse.debug.core.model.IVariable;
 import org.eclipse.debug.core.model.IWatchExpressionListener;
+import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -200,6 +201,19 @@ public class DartiumDebugValue extends DartiumDebugElement implements IValue, ID
   }
 
   @Override
+  public String getId() {
+    if (value == null || value.isNull()) {
+      return null;
+    }
+
+    if (!value.isPrimitive() || value.isString()) {
+      return parseObjectId(value.getObjectId());
+    } else {
+      return null;
+    }
+  }
+
+  @Override
   public String getReferenceTypeName() {
     return value.getClassName();
   }
@@ -292,6 +306,19 @@ public class DartiumDebugValue extends DartiumDebugElement implements IValue, ID
               DartDebugCorePlugin.PLUGIN_ID,
               e.toString(),
               e))));
+    }
+  }
+
+  private String parseObjectId(String objectId) {
+    if (objectId == null) {
+      return null;
+    }
+
+    try {
+      JSONObject obj = new JSONObject(objectId);
+      return obj.getString("id");
+    } catch (Throwable t) {
+      return null;
     }
   }
 

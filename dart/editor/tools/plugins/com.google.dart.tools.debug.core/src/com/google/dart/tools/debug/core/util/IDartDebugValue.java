@@ -24,6 +24,11 @@ import org.eclipse.debug.core.model.IValue;
 public interface IDartDebugValue extends IValue, IExpressionEvaluator {
 
   /**
+   * @return a user-presentable id for this value
+   */
+  public String getId();
+
+  /**
    * @return whether this value represents a list
    */
   public boolean isListValue();

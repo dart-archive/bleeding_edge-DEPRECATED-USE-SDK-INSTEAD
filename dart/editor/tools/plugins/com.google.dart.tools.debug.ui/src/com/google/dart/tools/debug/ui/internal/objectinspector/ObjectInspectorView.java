@@ -421,7 +421,7 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
           public void run() {
             ObjectInspectorHistoryItem item = historyList.getCurrent();
 
-            inspectValueImpl(item.getValue());
+            inspectValueImpl((item != null && item.getValue() != null) ? item.getValue() : null);
 
             restoreSourceViewerInfo(item);
           }
@@ -800,11 +800,14 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
   }
 
   private void restoreSourceViewerInfo(ObjectInspectorHistoryItem item) {
-    sourceViewer.getDocument().set(item.getText());
-    if (item.getSelection() != null) {
-      sourceViewer.setSelection(item.getSelection());
+    sourceViewer.getDocument().set(item == null ? "" : item.getText());
+
+    if (item != null) {
+      if (item.getSelection() != null) {
+        sourceViewer.setSelection(item.getSelection());
+      }
+      sourceViewer.setTopIndex(item.getTopIndex());
     }
-    sourceViewer.setTopIndex(item.getTopIndex());
   }
 
   private void saveSourceViewerInfo(ObjectInspectorHistoryItem item) {
