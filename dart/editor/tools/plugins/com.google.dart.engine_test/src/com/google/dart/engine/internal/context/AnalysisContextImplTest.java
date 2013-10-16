@@ -768,21 +768,6 @@ public class AnalysisContextImplTest extends EngineTestCase {
     assertNotNull(unit);
   }
 
-  public void xtest_performAnalysisTask_IOException() throws Exception {
-    addSourceWithException("/test.dart");
-    //
-    // Simulate a typical analysis worker.
-    //
-    int maxCount = 25;
-    context.performAnalysisTask();
-    for (int count = 0; count < maxCount; count++) {
-      if (context.performAnalysisTask().getChangeNotices() == null) {
-        return;
-      }
-    }
-    fail("Did not finish analysis after " + maxCount + " iterations");
-  }
-
   public void test_performAnalysisTask_modifiedAfterParse() throws Exception {
     Source source = addSource("/test.dart", "library lib;");
     long initialTime = source.getModificationStamp();
@@ -808,33 +793,6 @@ public class AnalysisContextImplTest extends EngineTestCase {
     assertNotNull(
         "performAnalysisTask failed to compute an element model",
         context.getLibraryElement(source));
-  }
-
-  public void test_performAnalysisTask_stress() throws Exception {
-    int maxCacheSize = 4;
-    AnalysisOptionsImpl options = (AnalysisOptionsImpl) context.getAnalysisOptions();
-    options.setCacheSize(maxCacheSize);
-    context.setAnalysisOptions(options);
-    int sourceCount = maxCacheSize + 2;
-    ArrayList<Source> sources = new ArrayList<Source>(sourceCount);
-    ChangeSet changeSet = new ChangeSet();
-    for (int i = 0; i < sourceCount; i++) {
-      Source source = addSource("/lib" + i + ".dart", "library lib" + i + ";");
-      sources.add(source);
-      changeSet.added(source);
-    }
-    context.applyChanges(changeSet);
-    context.setAnalysisPriorityOrder(sources);
-    for (int i = 0; i < (sourceCount * 5) + 100; i++) {
-      ChangeNotice[] notice = context.performAnalysisTask().getChangeNotices();
-      if (notice == null) {
-        break;
-      }
-    }
-    ChangeNotice[] notice = context.performAnalysisTask().getChangeNotices();
-    if (notice != null) {
-      fail("performAnalysisTask failed to terminate after analyzing all sources");
-    }
   }
 
   public void test_resolveCompilationUnit_library() throws Exception {
@@ -931,6 +889,48 @@ public class AnalysisContextImplTest extends EngineTestCase {
     SourceFactory factory = new SourceFactory();
     context.setSourceFactory(factory);
     assertEquals(factory, context.getSourceFactory());
+  }
+
+  public void xtest_performAnalysisTask_IOException() throws Exception {
+    addSourceWithException("/test.dart");
+    //
+    // Simulate a typical analysis worker.
+    //
+    int maxCount = 25;
+    context.performAnalysisTask();
+    for (int count = 0; count < maxCount; count++) {
+      if (context.performAnalysisTask().getChangeNotices() == null) {
+        return;
+      }
+    }
+    fail("Did not finish analysis after " + maxCount + " iterations");
+  }
+
+  public void xtest_performAnalysisTask_stress() throws Exception {
+    int maxCacheSize = 4;
+    AnalysisOptionsImpl options = (AnalysisOptionsImpl) context.getAnalysisOptions();
+    options.setCacheSize(maxCacheSize);
+    context.setAnalysisOptions(options);
+    int sourceCount = maxCacheSize + 2;
+    ArrayList<Source> sources = new ArrayList<Source>(sourceCount);
+    ChangeSet changeSet = new ChangeSet();
+    for (int i = 0; i < sourceCount; i++) {
+      Source source = addSource("/lib" + i + ".dart", "library lib" + i + ";");
+      sources.add(source);
+      changeSet.added(source);
+    }
+    context.applyChanges(changeSet);
+    context.setAnalysisPriorityOrder(sources);
+    for (int i = 0; i < (sourceCount * 5) + 100; i++) {
+      ChangeNotice[] notice = context.performAnalysisTask().getChangeNotices();
+      if (notice == null) {
+        break;
+      }
+    }
+    ChangeNotice[] notice = context.performAnalysisTask().getChangeNotices();
+    if (notice != null) {
+      fail("performAnalysisTask failed to terminate after analyzing all sources");
+    }
   }
 
   private Source addSource(String fileName, String contents) {
