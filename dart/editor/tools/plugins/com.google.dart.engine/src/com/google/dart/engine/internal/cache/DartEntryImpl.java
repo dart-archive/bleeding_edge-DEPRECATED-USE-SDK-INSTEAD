@@ -165,9 +165,6 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
      * will not change the state of any parse results.
      */
     public void recordResolutionError() {
-      nextState = null;
-      librarySource = null;
-
       resolvedUnitState = CacheState.ERROR;
       resolvedUnit = null;
 
@@ -179,6 +176,10 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
 
       hintsState = CacheState.ERROR;
       hints = AnalysisError.NO_ERRORS;
+
+      if (nextState != null) {
+        nextState.recordResolutionError();
+      }
     }
 
     /**

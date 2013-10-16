@@ -45,7 +45,6 @@ import com.google.dart.engine.utilities.source.LineInfo;
 import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
 
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -774,7 +773,7 @@ public class AnalysisContextImplTest extends EngineTestCase {
     //
     // Simulate a typical analysis worker.
     //
-    int maxCount = 5;
+    int maxCount = 25;
     context.performAnalysisTask();
     for (int count = 0; count < maxCount; count++) {
       if (context.performAnalysisTask().getChangeNotices() == null) {
@@ -812,9 +811,10 @@ public class AnalysisContextImplTest extends EngineTestCase {
   }
 
   public void test_performAnalysisTask_stress() throws Exception {
-    Field field = AnalysisContextImpl.class.getDeclaredField("MAX_CACHE_SIZE");
-    field.setAccessible(true);
-    int maxCacheSize = field.getInt(null);
+    int maxCacheSize = 4;
+    AnalysisOptionsImpl options = (AnalysisOptionsImpl) context.getAnalysisOptions();
+    options.setCacheSize(maxCacheSize);
+    context.setAnalysisOptions(options);
     int sourceCount = maxCacheSize + 2;
     ArrayList<Source> sources = new ArrayList<Source>(sourceCount);
     ChangeSet changeSet = new ChangeSet();

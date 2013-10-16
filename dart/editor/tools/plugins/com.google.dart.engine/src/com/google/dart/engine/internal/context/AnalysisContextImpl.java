@@ -1721,13 +1721,19 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
           CacheState resolvedUnitState = dartEntry.getState(DartEntry.RESOLVED_UNIT, librarySource);
           if (resolvedUnitState == CacheState.INVALID
               || (isPriority && resolvedUnitState == CacheState.FLUSHED)) {
-            LibraryElement libraryElement = libraryEntry.getValue(DartEntry.ELEMENT);
-            if (libraryElement != null) {
-              DartEntryImpl dartCopy = dartEntry.getWritableCopy();
-              dartCopy.setState(DartEntry.RESOLVED_UNIT, librarySource, CacheState.IN_PROCESS);
-              cache.put(source, dartCopy);
-              return new ResolveDartUnitTask(this, source, libraryElement);
-            }
+            //
+            // The commented out lines below are an optimization that doesn't quite work yet. The
+            // problem is that if the source was not resolved because it wasn't part of any library,
+            // then there won't be any elements in the element model that we can use to resolve it.
+            //
+            //LibraryElement libraryElement = libraryEntry.getValue(DartEntry.ELEMENT);
+            //if (libraryElement != null) {
+            DartEntryImpl dartCopy = dartEntry.getWritableCopy();
+            dartCopy.setState(DartEntry.RESOLVED_UNIT, librarySource, CacheState.IN_PROCESS);
+            cache.put(source, dartCopy);
+            //return new ResolveDartUnitTask(this, source, libraryElement);
+            return new ResolveDartLibraryTask(this, source, librarySource);
+            //}
           }
           CacheState verificationErrorsState = dartEntry.getState(
               DartEntry.VERIFICATION_ERRORS,
