@@ -1248,11 +1248,12 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
           overriddenExecutable.getEnclosingElement().getDisplayName());
       return true;
     }
-    if (overridingPositionalPT.length < overriddenPositionalPT.length) {
+    if (overridingNormalPT.length + overridingPositionalPT.length < overriddenPositionalPT.length
+        + overriddenNormalPT.length) {
       errorReporter.reportError(
           StaticWarningCode.INVALID_OVERRIDE_POSITIONAL,
           errorNameTarget,
-          overriddenPositionalPT.length,
+          overriddenPositionalPT.length + overriddenNormalPT.length,
           overriddenExecutable.getEnclosingElement().getDisplayName());
       return true;
     }

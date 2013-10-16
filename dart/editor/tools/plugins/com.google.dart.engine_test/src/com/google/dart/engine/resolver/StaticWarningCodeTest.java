@@ -1450,13 +1450,39 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_invalidOverridePositional() throws Exception {
+  public void test_invalidOverridePositional_optional() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
         "  m([a, b]) {}",
         "}",
         "class B extends A {",
         "  m([a]) {}",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.INVALID_OVERRIDE_POSITIONAL);
+    verify(source);
+  }
+
+  public void test_invalidOverridePositional_optionalAndRequired() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  m(a, b, [c, d]) {}",
+        "}",
+        "class B extends A {",
+        "  m(a, b, [c]) {}",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.INVALID_OVERRIDE_POSITIONAL);
+    verify(source);
+  }
+
+  public void test_invalidOverridePositional_optionalAndRequired2() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  m(a, b, [c, d]) {}",
+        "}",
+        "class B extends A {",
+        "  m(a, [c, d]) {}",
         "}"));
     resolve(source);
     assertErrors(source, StaticWarningCode.INVALID_OVERRIDE_POSITIONAL);

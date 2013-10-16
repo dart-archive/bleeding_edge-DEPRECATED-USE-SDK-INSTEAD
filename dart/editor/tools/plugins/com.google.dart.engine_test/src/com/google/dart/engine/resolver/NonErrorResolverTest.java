@@ -1525,7 +1525,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  m(a, b) {}",
         "}",
         "class B extends A {",
-        "  m(a) {}",
+        "  m(a, [b]) {}",
         "}"));
     resolve(source);
     assertNoErrors(source);
