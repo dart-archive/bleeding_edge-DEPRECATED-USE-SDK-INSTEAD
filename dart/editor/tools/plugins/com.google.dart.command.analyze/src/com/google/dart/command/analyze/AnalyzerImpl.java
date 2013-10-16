@@ -45,6 +45,11 @@ import java.util.Set;
  * Scans, parses, and analyzes a library.
  */
 class AnalyzerImpl {
+  /**
+   * The maximum number of sources for which AST structures should be kept in the cache.
+   */
+  private static final int MAX_CACHE_SIZE = 256;
+
   private static final HashMap<File, DirectoryBasedDartSdk> sdkMap = new HashMap<File, DirectoryBasedDartSdk>();
 
   private static ErrorSeverity getMaxErrorSeverity(List<AnalysisError> errors) {
@@ -121,6 +126,7 @@ class AnalyzerImpl {
 
     // create options for context
     AnalysisOptionsImpl contextOptions = new AnalysisOptionsImpl();
+    contextOptions.setCacheSize(MAX_CACHE_SIZE);
     contextOptions.setHint(!options.getDisableHints());
 
     // prepare AnalysisContext
