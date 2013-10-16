@@ -39,7 +39,9 @@ BSD-style license that can be found in the LICENSE file.
             class="nav-glyph glyphicon glyphicon-minus">
         </div>
         <div class="element-container">
-          <task-form-element task="{{task}}" on-notneeded="toggleFormDisplay">
+          <task-form-element task="{{task}}"
+              on-notneeded="toggleFormDisplay"
+              on-cancelform="toggleFormDisplay">
           </task-form-element>
         </div>
       </div>

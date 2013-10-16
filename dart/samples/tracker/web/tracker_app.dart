@@ -41,6 +41,13 @@ class TrackerApp extends PolymerElement with ObservableMixin {
     usingForm = !usingForm;
   }
 
+  showEmptyForm() {
+    newTask = new Task.unsaved();
+    if (!usingForm) {
+      toggleFormDisplay();
+    }
+  }
+
   search() {
     tasks.addAll(filteredOutTasks);
     filteredOutTasks.clear();

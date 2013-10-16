@@ -35,7 +35,7 @@ BSD-style license that can be found in the LICENSE file.
 
         <template if="{{!usingForm}}">
           <div class="col-md-2">
-            <button id="new-task-button" on-click="toggleFormDisplay"
+            <button id="new-task-button" on-click="showEmptyForm"
                 type="button" class="btn btn-primary">
               Add task
             </button>
@@ -53,7 +53,8 @@ BSD-style license that can be found in the LICENSE file.
             <div>
               <div class="element-container">
                 <task-form-element task="{{newTask}}"
-                      on-notneeded="toggleFormDisplay">
+                    on-notneeded="showEmptyForm"
+                    on-cancelform="toggleFormDisplay">
                 </task-form-element>
               </div>
             </div>

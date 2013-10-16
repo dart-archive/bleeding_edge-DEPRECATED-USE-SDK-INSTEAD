@@ -83,6 +83,10 @@ class TaskFormElement extends PolymerElement with ObservableMixin {
     dispatchEvent(new CustomEvent('notneeded'));
   }
 
+  void dispatchCancelForm() {
+    dispatchEvent(new CustomEvent('cancelform'));
+  }
+
   createTask() {
     DateTime now = new DateTime.now();
     var random = new Random();

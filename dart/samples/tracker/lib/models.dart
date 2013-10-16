@@ -17,7 +17,6 @@ class Tracker extends ObservableBase {
   @observable List<Task> tasks;
 }
 
-
 /**
  * A model for creating a single task.
  *
@@ -55,4 +54,3 @@ class Task extends ObservableBase {
 
   bool get saved => taskID != null;
 }
-
