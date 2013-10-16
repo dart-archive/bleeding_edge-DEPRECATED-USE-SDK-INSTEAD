@@ -156,6 +156,14 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
+   * The difference between the maximum cache size and the maximum priority order size. The priority
+   * list must be capped so that it is less than the cache size. Failure to do so can result in an
+   * infinite loop in performAnalysisTask() because re-caching one AST structure can cause another
+   * priority source's AST structure to be flushed.
+   */
+  private static final int PRIORITY_ORDER_SIZE_DELTA = 4;
+
+  /**
    * The set of analysis options controlling the behavior of this context.
    */
   private AnalysisOptionsImpl options = new AnalysisOptionsImpl();
@@ -199,14 +207,6 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
    * The object used to record the results of performing an analysis task.
    */
   private AnalysisTaskResultRecorder resultRecorder;
-
-  /**
-   * The maximum number of sources that can be on the priority list. This <b>must</b> be less than
-   * the {@link AnalysisOptionsImpl#DEFAULT_CACHE_SIZE} in order to prevent an infinite loop in performAnalysisTask().
-   * 
-   * @see #setAnalysisPriorityOrder(List)
-   */
-  private static final int MAX_PRIORITY_LIST_SIZE = AnalysisOptionsImpl.DEFAULT_CACHE_SIZE - 4;
 
   /**
    * Initialize a newly created analysis context.
@@ -1030,6 +1030,17 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       if (this.options.getCacheSize() != cacheSize) {
         this.options.setCacheSize(cacheSize);
         cache.setMaxCacheSize(cacheSize);
+        //
+        // Cap the size of the priority list to being less than the cache size. Failure to do so can
+        // result in an infinite loop in performAnalysisTask() because re-caching one AST structure
+        // can cause another priority source's AST structure to be flushed.
+        //
+        int maxPriorityOrderSize = cacheSize - PRIORITY_ORDER_SIZE_DELTA;
+        if (priorityOrder.length > maxPriorityOrderSize) {
+          Source[] newPriorityOrder = new Source[maxPriorityOrderSize];
+          System.arraycopy(priorityOrder, 0, newPriorityOrder, 0, maxPriorityOrderSize);
+          priorityOrder = newPriorityOrder;
+        }
       }
       this.options.setDart2jsHint(options.getDart2jsHint());
       this.options.setHint(options.getHint());
@@ -1058,7 +1069,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         // result in an infinite loop in performAnalysisTask() because re-caching one AST structure
         // can cause another priority source's AST structure to be flushed.
         //
-        int count = Math.min(sources.size(), MAX_PRIORITY_LIST_SIZE);
+        int count = Math.min(sources.size(), options.getCacheSize() - PRIORITY_ORDER_SIZE_DELTA);
         priorityOrder = new Source[count];
         for (int i = 0; i < count; i++) {
           priorityOrder[i] = sources.get(i);

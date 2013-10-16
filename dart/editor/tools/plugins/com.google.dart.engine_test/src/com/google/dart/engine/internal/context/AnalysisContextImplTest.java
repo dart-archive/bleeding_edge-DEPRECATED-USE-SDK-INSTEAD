@@ -45,6 +45,7 @@ import com.google.dart.engine.utilities.source.LineInfo;
 import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -832,8 +833,31 @@ public class AnalysisContextImplTest extends EngineTestCase {
     assertEquals(options.getStrictMode(), result.getStrictMode());
   }
 
+  public void test_setAnalysisOptions_reduceAnalysisPriorityOrder() throws Exception {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl(context.getAnalysisOptions());
+    ArrayList<Source> sources = new ArrayList<Source>();
+    for (int index = 0; index < options.getCacheSize(); index++) {
+      sources.add(addSource("/lib.dart" + index, ""));
+    }
+    context.setAnalysisPriorityOrder(sources);
+    int oldPriorityOrderSize = getPriorityOrder(context).length;
+    options.setCacheSize(options.getCacheSize() - 10);
+    context.setAnalysisOptions(options);
+    assertTrue(oldPriorityOrderSize > getPriorityOrder(context).length);
+  }
+
   public void test_setAnalysisPriorityOrder_empty() {
     context.setAnalysisPriorityOrder(new ArrayList<Source>());
+  }
+
+  public void test_setAnalysisPriorityOrder_lessThanCacheSize() throws Exception {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl(context.getAnalysisOptions());
+    ArrayList<Source> sources = new ArrayList<Source>();
+    for (int index = 0; index < options.getCacheSize(); index++) {
+      sources.add(addSource("/lib.dart" + index, ""));
+    }
+    context.setAnalysisPriorityOrder(sources);
+    assertTrue(options.getCacheSize() > getPriorityOrder(context).length);
   }
 
   public void test_setAnalysisPriorityOrder_nonEmpty() {
@@ -970,5 +994,11 @@ public class AnalysisContextImplTest extends EngineTestCase {
       }
     }
     return null;
+  }
+
+  private Source[] getPriorityOrder(AnalysisContextImpl context2) throws Exception {
+    Field field = AnalysisContextImpl.class.getDeclaredField("priorityOrder");
+    field.setAccessible(true);
+    return (Source[]) field.get(context2);
   }
 }
