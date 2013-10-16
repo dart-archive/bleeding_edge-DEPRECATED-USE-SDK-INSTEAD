@@ -93,8 +93,11 @@ def CreateManifestFile(options):
 
 def GetJavacPath():
   if 'JAVA_HOME' in os.environ:
+    print 'JAVA HOME'
+    print join(os.environ['JAVA_HOME'], 'bin', 'javac' + GetExecutableExtension())
     return join(os.environ['JAVA_HOME'], 'bin', 'javac' + GetExecutableExtension())
   else:
+    print 'returning javac'
     return "javac"
 
 def GetJarToolPath():
