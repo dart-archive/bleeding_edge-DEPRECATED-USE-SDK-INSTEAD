@@ -151,7 +151,7 @@ public class LibraryImportScopeTest extends ResolverTestCase {
     Scope scope = new LibraryImportScope(importingLibrary, errorListener);
 
     assertEquals(type, scope.lookup(identifier(typeName), importingLibrary));
-    errorListener.assertNoErrors();
+    errorListener.assertErrors(StaticWarningCode.CONFLICTING_DART_IMPORT);
   }
 
   public void test_nonConflictingImports_sameElement() {

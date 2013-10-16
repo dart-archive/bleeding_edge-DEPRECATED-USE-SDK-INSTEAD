@@ -146,6 +146,21 @@ public enum StaticWarningCode implements ErrorCode {
   CONCRETE_CLASS_WITH_ABSTRACT_MEMBER("'%s' must have a method body because '%s' is not abstract"),
 
   /**
+   * 14.1 Imports: If a name <i>N</i> is referenced by a library <i>L</i> and <i>N</i> would be
+   * introduced into the top level scope of <i>L</i> by an import from a library whose URI begins
+   * with <i>dart:</i> and an import from a library whose URI does not begin with <i>dart:</i>:
+   * <ul>
+   * <li>The import from <i>dart:</i> is implicitly extended by a hide N clause.</li>
+   * <li>A static warning is issued.</li>
+   * </ul>
+   * 
+   * @param ambiguousName the ambiguous name
+   * @param sdkLibraryName the name of the dart: library that the element is found
+   * @param otherLibraryName the name of the non-dart: library that the element is found
+   */
+  CONFLICTING_DART_IMPORT("Element '%s' from SDK library '%s' is implicitly hidden by '%s'"),
+
+  /**
    * 7.2 Getters: It is a static warning if a class <i>C</i> declares an instance getter named
    * <i>v</i> and an accessible static member named <i>v</i> or <i>v=</i> is declared in a
    * superclass of <i>C</i>.

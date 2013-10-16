@@ -796,6 +796,19 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_conflictingDartImport() throws Exception {
+    Source source = addSource(createSource(//
+        "import 'lib.dart';",
+        "import 'dart:async';",
+        "Future f = null;",
+        "Stream s;"));
+    addSource("/lib.dart", createSource(//
+        "library lib;",
+        "class Future {}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.CONFLICTING_DART_IMPORT);
+  }
+
   public void test_conflictingInstanceGetterAndSuperclassMember_direct_field() throws Exception {
     Source source = addSource(createSource(//
         "class A {",

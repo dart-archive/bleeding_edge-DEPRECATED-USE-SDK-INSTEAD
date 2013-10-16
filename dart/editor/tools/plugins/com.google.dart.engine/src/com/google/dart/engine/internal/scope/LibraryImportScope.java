@@ -101,20 +101,13 @@ public class LibraryImportScope extends Scope {
       }
     }
     if (foundElement instanceof MultiplyDefinedElementImpl) {
-      foundElement = removeSdkElements((MultiplyDefinedElementImpl) foundElement);
+      foundElement = removeSdkElements(identifier, name, (MultiplyDefinedElementImpl) foundElement);
     }
     if (foundElement instanceof MultiplyDefinedElementImpl) {
       String foundEltName = foundElement.getDisplayName();
-      String libName1 = "", libName2 = "";
       Element[] conflictingMembers = ((MultiplyDefinedElementImpl) foundElement).getConflictingElements();
-      LibraryElement enclosingLibrary = conflictingMembers[0].getAncestor(LibraryElement.class);
-      if (enclosingLibrary != null) {
-        libName1 = enclosingLibrary.getDefiningCompilationUnit().getDisplayName();
-      }
-      enclosingLibrary = conflictingMembers[1].getAncestor(LibraryElement.class);
-      if (enclosingLibrary != null) {
-        libName2 = enclosingLibrary.getDefiningCompilationUnit().getDisplayName();
-      }
+      String libName1 = getLibraryName(conflictingMembers[0], "");
+      String libName2 = getLibraryName(conflictingMembers[1], "");
       // TODO (jwren) Change the error message to include a list of all library names instead of
       // just the first two
       errorListener.onError(new AnalysisError(
@@ -148,6 +141,24 @@ public class LibraryImportScope extends Scope {
   }
 
   /**
+   * Returns the name of the library that defines given element.
+   * 
+   * @param element the element to get library name
+   * @param def the default name to use
+   * @return the name of the library that defines given element
+   */
+  private String getLibraryName(Element element, String def) {
+    if (element == null) {
+      return def;
+    }
+    LibraryElement library = element.getLibrary();
+    if (library == null) {
+      return def;
+    }
+    return library.getDefiningCompilationUnit().getDisplayName();
+  }
+
+  /**
    * Return the source that contains the given identifier, or the source associated with this scope
    * if the source containing the identifier could not be determined.
    * 
@@ -172,17 +183,36 @@ public class LibraryImportScope extends Scope {
    * Given a collection of elements that a single name could all be mapped to, remove from the list
    * all of the names defined in the SDK. Return the element(s) that remain.
    * 
+   * @param identifier the identifier node to lookup element for, used to report correct kind of a
+   *          problem and associate problem with
+   * @param name the name associated with the element
    * @param foundElement the element encapsulating the collection of elements
    * @return all of the elements that are not defined in the SDK
    */
-  private Element removeSdkElements(MultiplyDefinedElementImpl foundElement) {
+  private Element removeSdkElements(Identifier identifier, String name,
+      MultiplyDefinedElementImpl foundElement) {
     Element[] conflictingMembers = foundElement.getConflictingElements();
     int length = conflictingMembers.length;
     int to = 0;
+    Element sdkElement = null;
     for (Element member : conflictingMembers) {
-      if (!member.getLibrary().isInSdk()) {
+      if (member.getLibrary().isInSdk()) {
+        sdkElement = member;
+      } else {
         conflictingMembers[to++] = member;
       }
+    }
+    if (sdkElement != null && to > 0) {
+      String sdkLibName = getLibraryName(sdkElement, "");
+      String otherLibName = getLibraryName(conflictingMembers[0], "");
+      errorListener.onError(new AnalysisError(
+          getSource(identifier),
+          identifier.getOffset(),
+          identifier.getLength(),
+          StaticWarningCode.CONFLICTING_DART_IMPORT,
+          name,
+          sdkLibName,
+          otherLibName));
     }
     if (to == length) {
       // None of the members were removed
