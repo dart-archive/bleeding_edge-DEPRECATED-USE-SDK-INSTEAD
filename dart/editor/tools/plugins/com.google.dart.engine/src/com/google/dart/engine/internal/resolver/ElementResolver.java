@@ -773,17 +773,14 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
         }
       }
     }
-    Element element = node.getElement();
-    if (element instanceof ImportElement) {
+    ImportElement importElement = node.getElement();
+    if (importElement != null) {
       // The element is null when the URI is invalid
-      // TODO(brianwilkerson) Figure out whether the element can ever be something other than an
-      // ImportElement
-      ImportElement importElement = (ImportElement) element;
       LibraryElement library = importElement.getImportedLibrary();
       if (library != null) {
         resolveCombinators(library, node.getCombinators());
       }
-      setMetadata(element, node);
+      setMetadata(importElement, node);
     }
     return null;
   }

@@ -542,7 +542,7 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
 
   @Override
   public Void visitImportDirective(ImportDirective node) {
-    ImportElement element = (ImportElement) node.getElement();
+    ImportElement element = node.getElement();
     if (element != null) {
       LibraryElement impLibrary = element.getImportedLibrary();
       recordLibraryReference(node, impLibrary);

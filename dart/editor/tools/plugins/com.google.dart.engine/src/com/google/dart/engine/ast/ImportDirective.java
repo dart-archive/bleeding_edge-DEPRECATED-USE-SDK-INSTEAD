@@ -13,7 +13,6 @@
  */
 package com.google.dart.engine.ast;
 
-import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.scanner.Token;
@@ -176,6 +175,11 @@ public class ImportDirective extends NamespaceDirective {
     return asToken;
   }
 
+  @Override
+  public ImportElement getElement() {
+    return (ImportElement) super.getElement();
+  }
+
   /**
    * Return the prefix to be used with the imported names, or {@code null} if the imported names are
    * not prefixed.
@@ -188,11 +192,11 @@ public class ImportDirective extends NamespaceDirective {
 
   @Override
   public LibraryElement getUriElement() {
-    Element element = getElement();
-    if (element instanceof ImportElement) {
-      return ((ImportElement) element).getImportedLibrary();
+    ImportElement element = getElement();
+    if (element == null) {
+      return null;
     }
-    return null;
+    return element.getImportedLibrary();
   }
 
   /**

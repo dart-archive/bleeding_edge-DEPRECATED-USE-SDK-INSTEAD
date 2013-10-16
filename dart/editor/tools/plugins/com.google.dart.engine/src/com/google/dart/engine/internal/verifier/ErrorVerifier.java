@@ -3155,11 +3155,10 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    */
   private boolean checkForImportDuplicateLibraryName(ImportDirective node) {
     // prepare import element
-    Element nodeElement = node.getElement();
-    if (!(nodeElement instanceof ImportElement)) {
+    ImportElement nodeImportElement = node.getElement();
+    if (nodeImportElement == null) {
       return false;
     }
-    ImportElement nodeImportElement = (ImportElement) nodeElement;
     // prepare imported library
     LibraryElement nodeLibrary = nodeImportElement.getImportedLibrary();
     if (nodeLibrary == null) {
@@ -3198,11 +3197,10 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       return false;
     }
     // prepare import element
-    Element element = node.getElement();
-    if (!(element instanceof ImportElement)) {
+    ImportElement importElement = node.getElement();
+    if (importElement == null) {
       return false;
     }
-    ImportElement importElement = (ImportElement) element;
     // should be private
     DartSdk sdk = currentLibrary.getContext().getSourceFactory().getDartSdk();
     String uri = importElement.getUri();

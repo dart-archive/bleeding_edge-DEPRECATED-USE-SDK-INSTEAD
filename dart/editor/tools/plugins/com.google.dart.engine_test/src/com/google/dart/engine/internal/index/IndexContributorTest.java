@@ -1071,9 +1071,7 @@ public class IndexContributorTest extends AbstractDartTest {
         "}",
         "");
     // set elements
-    ImportElement importElement = (ImportElement) findNode(
-        "import 'Lib.dart",
-        ImportDirective.class).getElement();
+    ImportElement importElement = findNode("import 'Lib.dart", ImportDirective.class).getElement();
     Element mainElement = findElement("main(");
     // index
     index.visitCompilationUnit(testUnit);
@@ -1110,12 +1108,8 @@ public class IndexContributorTest extends AbstractDartTest {
         "");
     // set elements
     Element mainElement = findElement("main(");
-    ImportElement importElementA = (ImportElement) findNode(
-        "import 'LibA.dart",
-        ImportDirective.class).getElement();
-    ImportElement importElementB = (ImportElement) findNode(
-        "import 'LibB.dart",
-        ImportDirective.class).getElement();
+    ImportElement importElementA = findNode("import 'LibA.dart", ImportDirective.class).getElement();
+    ImportElement importElementB = findNode("import 'LibB.dart", ImportDirective.class).getElement();
     // index
     index.visitCompilationUnit(testUnit);
     // verify
@@ -1153,10 +1147,10 @@ public class IndexContributorTest extends AbstractDartTest {
         "");
     // set elements
     Element mainElement = findElement("main(");
-    ImportElement importElementA = (ImportElement) findNode(
+    ImportElement importElementA = findNode(
         "import 'Lib.dart' as pref show A",
         ImportDirective.class).getElement();
-    ImportElement importElementB = (ImportElement) findNode(
+    ImportElement importElementB = findNode(
         "import 'Lib.dart' as pref show B",
         ImportDirective.class).getElement();
     // index
@@ -1192,7 +1186,7 @@ public class IndexContributorTest extends AbstractDartTest {
         "");
     // set elements
     Element mainElement = findElement("main(");
-    ImportElement importElementA = (ImportElement) findNode(
+    ImportElement importElementA = findNode(
         "import 'Lib.dart' as pref show A",
         ImportDirective.class).getElement();
     // index
@@ -1282,9 +1276,7 @@ public class IndexContributorTest extends AbstractDartTest {
         "");
     // set elements
     Element mainElement = testUnitElement;
-    LibraryElement referencedElement = ((ImportElement) findNode(
-        "import 'Lib.dart",
-        ImportDirective.class).getElement()).getImportedLibrary();
+    LibraryElement referencedElement = findNode("import 'Lib.dart", ImportDirective.class).getElement().getImportedLibrary();
     // index
     index.visitCompilationUnit(testUnit);
     // verify
@@ -1654,9 +1646,7 @@ public class IndexContributorTest extends AbstractDartTest {
         "");
     // set elements
     Element mainElement = findElement("main(");
-    ImportElement importElement = (ImportElement) findNode(
-        "import 'Lib.dart",
-        ImportDirective.class).getElement();
+    ImportElement importElement = findNode("import 'Lib.dart", ImportDirective.class).getElement();
     CompilationUnitElement impUnit = importElement.getImportedLibrary().getDefiningCompilationUnit();
     TopLevelVariableElement myVar = impUnit.getTopLevelVariables()[0];
     PropertyAccessorElement getter = myVar.getGetter();

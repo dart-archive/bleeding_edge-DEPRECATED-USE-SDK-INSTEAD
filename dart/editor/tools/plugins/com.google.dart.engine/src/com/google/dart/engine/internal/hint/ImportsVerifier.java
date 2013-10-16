@@ -148,9 +148,8 @@ public class ImportsVerifier extends RecursiveASTVisitor<Void> {
   public void generateUnusedImportHints(ErrorReporter errorReporter) {
     for (ImportDirective unusedImport : unusedImports) {
       // Check that the import isn't dart:core
-      Element element = unusedImport.getElement();
-      if (element instanceof ImportElement) {
-        ImportElement importElement = ((ImportElement) element);
+      ImportElement importElement = unusedImport.getElement();
+      if (importElement != null) {
         LibraryElement libraryElement = importElement.getImportedLibrary();
         if (libraryElement != null && libraryElement.isDartCore()) {
           continue;
@@ -307,7 +306,7 @@ public class ImportsVerifier extends RecursiveASTVisitor<Void> {
     Namespace namespace = namespaceMap.get(importDirective);
     if (namespace == null) {
       // If the namespace isn't in the namespaceMap, then compute and put it in the map
-      ImportElement importElement = (ImportElement) importDirective.getElement();
+      ImportElement importElement = importDirective.getElement();
       if (importElement != null) {
         NamespaceBuilder builder = new NamespaceBuilder();
         namespace = builder.createImportNamespace(importElement);

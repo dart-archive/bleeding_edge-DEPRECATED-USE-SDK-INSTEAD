@@ -456,7 +456,7 @@ public class SemanticHighlightings {
       ASTNode node = token.getNode();
       if (node instanceof StringLiteral && node.getParent() instanceof ImportDirective) {
         ImportDirective importDirective = (ImportDirective) node.getParent();
-        ImportElement importElement = (ImportElement) importDirective.getElement();
+        ImportElement importElement = importDirective.getElement();
         if (importElement != null) {
           LibraryElement importedLibrary = importElement.getImportedLibrary();
           return isDeprecatedElement(importedLibrary);
