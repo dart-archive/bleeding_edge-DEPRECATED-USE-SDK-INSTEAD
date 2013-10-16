@@ -18,6 +18,7 @@ import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisResult;
 import com.google.dart.engine.context.ChangeNotice;
 import com.google.dart.engine.error.AnalysisError;
+import com.google.dart.engine.internal.context.AnalysisOptionsImpl;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
@@ -84,6 +85,18 @@ public class AnalysisWorker {
   }
 
   /**
+   * The {@link AnalysisContext} cache size for a context when background analysis is not being
+   * performed on that context.
+   */
+  private static final int IDLE_CACHE_SIZE = AnalysisOptionsImpl.DEFAULT_CACHE_SIZE;
+
+  /**
+   * The {@link AnalysisContext} cache size for a context when background analysis is being
+   * performed on that context.
+   */
+  private static final int WORKING_CACHE_SIZE = IDLE_CACHE_SIZE * 2;
+
+  /**
    * Objects to be notified when each compilation unit has been resolved. Contents of this array
    * will not change, but the array itself may be replaced. Synchronize against
    * {@link #allListenersLock} before accessing this field.
@@ -119,13 +132,6 @@ public class AnalysisWorker {
   }
 
   /**
-   * Pause background analysis until {@link #resumeBackgroundAnalysis()} is called.
-   */
-  public static void pauseBackgroundAnalysis() {
-    AnalysisManager.getInstance().pauseBackgroundAnalysis();
-  }
-
-  /**
    * Ensure that a worker is at the front of the queue to update the analysis for the context.
    * 
    * @param manager the manager containing the context to be analyzed (not {@code null})
@@ -154,13 +160,6 @@ public class AnalysisWorker {
         }
       }
     }
-  }
-
-  /**
-   * Resume background analysis.
-   */
-  public static void resumeBackgroundAnalysis() {
-    AnalysisManager.getInstance().resumeBackgroundAnalysis();
   }
 
   /**
@@ -275,17 +274,22 @@ public class AnalysisWorker {
       return;
     }
 
-    boolean analysisComplete = false;
-    while (true) {
-      if (manager != null && manager.checkPaused(this)) {
+    // Check if the context has been set to null indicating that analysis should stop
+    AnalysisContext context;
+    synchronized (lock) {
+      if (this.context == null) {
         return;
       }
+      context = this.context;
+    }
+    setCacheSize(context, WORKING_CACHE_SIZE);
+
+    boolean analysisComplete = false;
+    while (true) {
 
       // Check if the context has been set to null indicating that analysis should stop
-      AnalysisContext context;
       synchronized (lock) {
-        context = this.context;
-        if (context == null) {
+        if (this.context == null) {
           break;
         }
       }
@@ -314,6 +318,8 @@ public class AnalysisWorker {
       processChanges(context, changes);
       checkResults(context);
     }
+
+    setCacheSize(context, IDLE_CACHE_SIZE);
     stop();
     markerManager.done();
 
@@ -443,5 +449,11 @@ public class AnalysisWorker {
         notifyResolved(context, unit, source, res);
       }
     }
+  }
+
+  private void setCacheSize(AnalysisContext context, int cacheSize) {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl(context.getAnalysisOptions());
+    options.setCacheSize(cacheSize);
+    context.setAnalysisOptions(options);
   }
 }

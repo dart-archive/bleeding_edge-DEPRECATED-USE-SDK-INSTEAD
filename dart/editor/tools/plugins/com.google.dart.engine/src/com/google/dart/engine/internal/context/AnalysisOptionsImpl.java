@@ -20,10 +20,16 @@ import com.google.dart.engine.context.AnalysisOptions;
  * control the behavior of an analysis context.
  */
 public class AnalysisOptionsImpl implements AnalysisOptions {
+
+  /**
+   * The maximum number of sources for which data should be kept in the cache.
+   */
+  public static final int DEFAULT_CACHE_SIZE = 64;
+
   /**
    * The maximum number of sources for which AST structures should be kept in the cache.
    */
-  private int cacheSize = 64;
+  private int cacheSize = DEFAULT_CACHE_SIZE;
 
   /**
    * A flag indicating whether analysis is to generate dart2js related hint results.
