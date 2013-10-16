@@ -56,6 +56,12 @@ deps.update({
   
   "src/dart/runtime/bin/vmservice/client/bootstrap_css":
     "/third_party/bootstrap_css" + Var("bootstrap_css_rev"),
+
+  "src/dart/runtime/bin/vmservice/client/web/bootstrap_css":
+    "/third_party/bootstrap_css" + Var("bootstrap_css_rev"),
+
+  "src/dart/runtime/bin/vmservice/client/out/web/bootstrap_css":
+    "/third_party/bootstrap_css" + Var("bootstrap_css_rev"),
 })
 
 hooks[0:0] = [{
