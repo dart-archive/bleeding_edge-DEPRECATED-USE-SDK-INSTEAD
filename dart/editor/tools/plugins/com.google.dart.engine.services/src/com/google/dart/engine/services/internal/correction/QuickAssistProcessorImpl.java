@@ -33,6 +33,7 @@ import com.google.dart.engine.ast.FunctionBody;
 import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.FunctionExpression;
 import com.google.dart.engine.ast.IfStatement;
+import com.google.dart.engine.ast.ImportDirective;
 import com.google.dart.engine.ast.IsExpression;
 import com.google.dart.engine.ast.LibraryIdentifier;
 import com.google.dart.engine.ast.MethodDeclaration;
@@ -54,12 +55,15 @@ import com.google.dart.engine.ast.visitor.NodeLocator;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.formatter.edit.Edit;
 import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.KeywordToken;
 import com.google.dart.engine.scanner.TokenClass;
 import com.google.dart.engine.scanner.TokenType;
+import com.google.dart.engine.search.SearchEngine;
+import com.google.dart.engine.search.SearchMatch;
 import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.engine.services.change.Change;
 import com.google.dart.engine.services.change.CompositeChange;
@@ -84,13 +88,17 @@ import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.engine.utilities.source.SourceRange;
 
 import static com.google.dart.engine.services.correction.CorrectionKind.QA_ADD_TYPE_ANNOTATION;
+import static com.google.dart.engine.services.correction.CorrectionKind.QA_ASSIGN_TO_LOCAL_VARIABLE;
 import static com.google.dart.engine.services.correction.CorrectionKind.QA_CONVERT_INTO_BLOCK_BODY;
 import static com.google.dart.engine.services.correction.CorrectionKind.QA_CONVERT_INTO_EXPRESSION_BODY;
 import static com.google.dart.engine.services.correction.CorrectionKind.QA_CONVERT_INTO_IS_NOT;
 import static com.google.dart.engine.services.correction.CorrectionKind.QA_CONVERT_INTO_IS_NOT_EMPTY;
 import static com.google.dart.engine.services.correction.CorrectionKind.QA_EXCHANGE_OPERANDS;
 import static com.google.dart.engine.services.correction.CorrectionKind.QA_EXTRACT_CLASS;
+import static com.google.dart.engine.services.correction.CorrectionKind.QA_IMPORT_ADD_SHOW;
 import static com.google.dart.engine.services.correction.CorrectionKind.QA_INVERT_IF_STATEMENT;
+import static com.google.dart.engine.services.correction.CorrectionKind.QA_JOIN_IF_WITH_INNER;
+import static com.google.dart.engine.services.correction.CorrectionKind.QA_JOIN_IF_WITH_OUTER;
 import static com.google.dart.engine.services.correction.CorrectionKind.QA_JOIN_VARIABLE_DECLARATION;
 import static com.google.dart.engine.services.correction.CorrectionKind.QA_REMOVE_TYPE_ANNOTATION;
 import static com.google.dart.engine.services.correction.CorrectionKind.QA_REPLACE_CONDITIONAL_WITH_IF_ELSE;
@@ -183,6 +191,7 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
   private final List<CorrectionProposal> proposals = Lists.newArrayList();
   private final List<Edit> textEdits = Lists.newArrayList();
 
+  private AssistContext assistContext;
   private AnalysisContext analysisContext;
   private Source source;
   private CompilationUnit unit;
@@ -226,6 +235,7 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
     if (context == null) {
       return NO_PROPOSALS;
     }
+    assistContext = context;
     proposals.clear();
     source = context.getSource();
     unit = context.getCompilationUnit();
@@ -378,7 +388,7 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
     builder.append(" = ");
     // add proposal
     addInsertEdit(builder);
-    addUnitCorrectionProposal(CorrectionKind.QA_ASSIGN_TO_LOCAL_VARIABLE);
+    addUnitCorrectionProposal(QA_ASSIGN_TO_LOCAL_VARIABLE);
   }
 
   void addProposal_convertToBlockFunctionBody() throws Exception {
@@ -640,6 +650,39 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
     proposals.add(new ChangeCorrectionProposal(compositeChange, QA_EXTRACT_CLASS, fileName));
   }
 
+  void addProposal_importAddShow() throws Exception {
+    // prepare ImportDirective
+    ImportDirective importDirective = node.getAncestor(ImportDirective.class);
+    if (importDirective == null) {
+      return;
+    }
+    // there should be no existing combinators
+    if (!importDirective.getCombinators().isEmpty()) {
+      return;
+    }
+    // prepare whole import namespace
+    ImportElement importElement = (ImportElement) importDirective.getElement();
+    Map<String, Element> namespace = CorrectionUtils.getImportNamespace(importElement);
+    // prepare names of referenced elements (from this import)
+    Set<String> referencedNames = Sets.newTreeSet();
+    SearchEngine searchEngine = assistContext.getSearchEngine();
+    for (Element element : namespace.values()) {
+      List<SearchMatch> references = searchEngine.searchReferences(element, null, null);
+      for (SearchMatch match : references) {
+        LibraryElement library = match.getElement().getLibrary();
+        if (unitLibraryElement.equals(library)) {
+          referencedNames.add(element.getDisplayName());
+          break;
+        }
+      }
+    }
+    // prepare change
+    String sb = " show " + StringUtils.join(referencedNames, ", ");
+    addInsertEdit(importDirective.getEnd() - 1, sb.toString());
+    // add proposal
+    addUnitCorrectionProposal(QA_IMPORT_ADD_SHOW);
+  }
+
   void addProposal_invertIf() throws Exception {
     if (!(node instanceof IfStatement)) {
       return;
@@ -718,7 +761,7 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
           MessageFormat.format("if ({0}) '{'{1}{2}{3}'}'", condition, eol, newSource, prefix));
     }
     // done
-    addUnitCorrectionProposal(CorrectionKind.QA_JOIN_IF_WITH_INNER);
+    addUnitCorrectionProposal(QA_JOIN_IF_WITH_INNER);
   }
 
   void addProposal_joinIfStatementOuter() throws Exception {
@@ -777,7 +820,7 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
           MessageFormat.format("if ({0}) '{'{1}{2}{3}'}'", condition, eol, newSource, prefix));
     }
     // done
-    addUnitCorrectionProposal(CorrectionKind.QA_JOIN_IF_WITH_OUTER);
+    addUnitCorrectionProposal(QA_JOIN_IF_WITH_OUTER);
   }
 
   void addProposal_joinVariableDeclaration_onAssignment() throws Exception {

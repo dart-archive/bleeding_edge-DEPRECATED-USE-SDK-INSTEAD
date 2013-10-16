@@ -41,7 +41,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class QuickAssistProcessorImplTest extends AbstractDartTest {
+public class QuickAssistProcessorImplTest extends RefactoringImplTest {
   private static final QuickAssistProcessor PROCESSOR = CorrectionProcessors.getQuickAssistProcessor();
   private static CharMatcher NOT_IDENTIFIER_MATCHER = CharMatcher.JAVA_LETTER_OR_DIGIT.negate();
 
@@ -678,6 +678,56 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
           "}",
           ""), fileChange.getContent());
     }
+  }
+
+  public void test_importAddShow_BAD_hasShow() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "import 'dart:math' show PI;",
+        "main() {",
+        "  PI;",
+        "}");
+    assert_importAddShow_BAD(initial, "import 'dart:math");
+  }
+
+  public void test_importAddShow_OK_onDirective() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "import 'dart:math';",
+        "main() {",
+        "  PI;",
+        "  E;",
+        "  max(1, 2);",
+        "}");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "import 'dart:math' show E, PI, max;",
+        "main() {",
+        "  PI;",
+        "  E;",
+        "  max(1, 2);",
+        "}");
+    assert_importAddShow(initial, "art:math", expected);
+  }
+
+  public void test_importAddShow_OK_onUri() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "import 'dart:math';",
+        "main() {",
+        "  PI;",
+        "  E;",
+        "  max(1, 2);",
+        "}");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "import 'dart:math' show E, PI, max;",
+        "main() {",
+        "  PI;",
+        "  E;",
+        "  max(1, 2);",
+        "}");
+    assert_importAddShow(initial, "import 'dart:math", expected);
   }
 
   public void test_invertIfStatement_blocks() throws Exception {
@@ -2083,6 +2133,20 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
     assert_exchangeBinaryExpressionArguments_success(expression, offsetPattern, expression);
   }
 
+  private void assert_importAddShow(String initialSource, String offsetPattern,
+      String expectedSource) throws Exception {
+    assert_runProcessor(
+        CorrectionKind.QA_IMPORT_ADD_SHOW,
+        initialSource,
+        offsetPattern,
+        expectedSource);
+  }
+
+  private void assert_importAddShow_BAD(String initialSource, String offsetPattern)
+      throws Exception {
+    assert_importAddShow(initialSource, offsetPattern, initialSource);
+  }
+
   private void assert_invertIfStatement(String initialSource, String offsetPattern,
       String expectedSource) throws Exception {
     assert_runProcessor(
@@ -2188,7 +2252,7 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
    */
   private void assert_runProcessor(CorrectionKind kind, String initialSource, String offsetPattern,
       String expectedSource) throws Exception {
-    parseTestUnit(initialSource);
+    indexTestUnit(initialSource);
     selectionOffset = findOffset(offsetPattern);
     assert_runProcessor(kind, expectedSource);
   }
@@ -2257,7 +2321,7 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
 
   private CorrectionProposal[] getProposals() throws Exception {
     AssistContext context = new AssistContext(
-        null,
+        searchEngine,
         analysisContext,
         testUnit,
         selectionOffset,
