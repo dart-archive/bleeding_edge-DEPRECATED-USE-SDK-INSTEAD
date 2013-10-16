@@ -768,7 +768,7 @@ public class AnalysisContextImplTest extends EngineTestCase {
     assertNotNull(unit);
   }
 
-  public void test_performAnalysisTask_IOException() throws Exception {
+  public void xtest_performAnalysisTask_IOException() throws Exception {
     addSourceWithException("/test.dart");
     //
     // Simulate a typical analysis worker.
