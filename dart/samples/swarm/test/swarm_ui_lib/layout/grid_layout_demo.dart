@@ -110,7 +110,7 @@ void printMetrics(String example) {
   sb.write("  verifyExample('$example', {\n");
   final children = node.children;
 
-  scheduleMicrotask(() {
+  window.setImmediate(() {
     for (int i = 0; i < children.length; i++) {
       _appendMetrics(sb, children[i], '    ');
     }

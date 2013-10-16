@@ -74,7 +74,7 @@ void initialize3D() {
 
   num childCount = target.children.length;
 
-  scheduleMicrotask(() {
+  window.setImmediate(() {
     num width = query("#target").client.width;
     figureWidth = (width / 2) ~/ tan(PI / childCount);
 
