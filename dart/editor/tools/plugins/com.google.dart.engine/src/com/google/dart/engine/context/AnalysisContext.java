@@ -161,7 +161,9 @@ public interface AnalysisContext {
   public AnalysisContext extractContext(SourceContainer container);
 
   /**
-   * Return the set of analysis options controlling the behavior of this context.
+   * Return the set of analysis options controlling the behavior of this context. Changes to the
+   * return options will not affect this context. The options can only be set by invoking the method
+   * {@link #setAnalysisOptions(AnalysisOptions)}.
    * 
    * @return the set of analysis options controlling the behavior of this context
    */

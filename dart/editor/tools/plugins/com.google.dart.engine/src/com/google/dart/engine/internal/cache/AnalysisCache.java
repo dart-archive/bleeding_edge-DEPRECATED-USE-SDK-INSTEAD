@@ -121,6 +121,29 @@ public class AnalysisCache {
   }
 
   /**
+   * Set the maximum size of the cache to the given size.
+   * 
+   * @param size the maximum number of sources for which AST structures should be kept in the cache
+   */
+  public void setMaxCacheSize(int size) {
+    maxCacheSize = size;
+    while (recentlyUsed.size() > maxCacheSize) {
+      if (!flushAstFromCache()) {
+        break;
+      }
+    }
+  }
+
+  /**
+   * Return the number of sources that are mapped to cache entries.
+   * 
+   * @return the number of sources that are mapped to cache entries
+   */
+  public int size() {
+    return sourceMap.size();
+  }
+
+  /**
    * Attempt to flush one AST structure from the cache.
    * 
    * @return {@code true} if a structure was flushed

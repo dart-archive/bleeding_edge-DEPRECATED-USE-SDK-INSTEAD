@@ -158,7 +158,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   /**
    * The set of analysis options controlling the behavior of this context.
    */
-  private AnalysisOptions options = new AnalysisOptionsImpl();
+  private AnalysisOptionsImpl options = new AnalysisOptionsImpl();
 
   /**
    * The source factory used to create the sources that can be analyzed in this context.
@@ -496,7 +496,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
 
   @Override
   public AnalysisOptions getAnalysisOptions() {
-    return options;
+    return new AnalysisOptionsImpl(options);
   }
 
   @Override
@@ -1028,8 +1028,21 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   @Override
   public void setAnalysisOptions(AnalysisOptions options) {
     synchronized (cacheLock) {
-      this.options = options;
-      invalidateAllResolutionInformation();
+      boolean needsRecompute = this.options.getDart2jsHint() != options.getDart2jsHint()
+          || (this.options.getHint() && !options.getHint());
+
+      int cacheSize = options.getCacheSize();
+      if (this.options.getCacheSize() != cacheSize) {
+        this.options.setCacheSize(cacheSize);
+        cache.setMaxCacheSize(cacheSize);
+      }
+      this.options.setDart2jsHint(options.getDart2jsHint());
+      this.options.setHint(options.getHint());
+      this.options.setStrictMode(options.getStrictMode());
+
+      if (needsRecompute) {
+        invalidateAllResolutionInformation();
+      }
     }
   }
 

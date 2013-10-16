@@ -19,6 +19,13 @@ package com.google.dart.engine.context;
  */
 public interface AnalysisOptions {
   /**
+   * Return the maximum number of sources for which AST structures should be kept in the cache.
+   * 
+   * @return the maximum number of sources for which AST structures should be kept in the cache
+   */
+  public int getCacheSize();
+
+  /**
    * Return {@code true} if analysis is to generate dart2js related hint results.
    * 
    * @return {@code true} if analysis is to generate dart2js related hint results

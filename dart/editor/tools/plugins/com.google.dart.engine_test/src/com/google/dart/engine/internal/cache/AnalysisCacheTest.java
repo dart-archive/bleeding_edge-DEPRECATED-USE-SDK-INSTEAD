@@ -17,6 +17,8 @@ import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.TestSource;
 
+import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
+
 import java.util.Collection;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -50,5 +52,47 @@ public class AnalysisCacheTest extends EngineTestCase {
     DartEntryImpl entry = new DartEntryImpl();
     cache.put(source, entry);
     assertSame(entry, cache.get(source));
+  }
+
+  public void test_setMaxCacheSize() {
+    AnalysisCache cache = new AnalysisCache(8, new CacheRetentionPolicy() {
+      @Override
+      public RetentionPriority getAstPriority(Source source, SourceEntry sourceEntry) {
+        return RetentionPriority.LOW;
+      }
+    });
+    int size = 6;
+    for (int i = 0; i < size; i++) {
+      Source source = new TestSource(null, createFile("/test" + i + ".dart"), "");
+      DartEntryImpl entry = new DartEntryImpl();
+      entry.setValue(DartEntry.PARSED_UNIT, null);
+      cache.put(source, entry);
+      cache.accessed(source);
+    }
+    assertNonFlushedCount(size, cache);
+    int newSize = size - 2;
+    cache.setMaxCacheSize(newSize);
+    assertNonFlushedCount(newSize, cache);
+  }
+
+  public void test_size() {
+    AnalysisCache cache = new AnalysisCache(8, null);
+    int size = 4;
+    for (int i = 0; i < size; i++) {
+      Source source = new TestSource(null, createFile("/test" + i + ".dart"), "");
+      cache.put(source, new DartEntryImpl());
+      cache.accessed(source);
+    }
+    assertEquals(size, cache.size());
+  }
+
+  private void assertNonFlushedCount(int expectedCount, AnalysisCache cache) {
+    int nonFlushedCount = 0;
+    for (Map.Entry<Source, SourceEntry> entry : cache.entrySet()) {
+      if (entry.getValue().getState(DartEntry.PARSED_UNIT) != CacheState.FLUSHED) {
+        nonFlushedCount++;
+      }
+    }
+    assertEquals(expectedCount, nonFlushedCount);
   }
 }

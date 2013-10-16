@@ -140,12 +140,16 @@ public class AbstractDartTest extends TestCase {
 
   protected static void disableContextHints() {
     ensureAnalysisContext();
-    ((AnalysisOptionsImpl) analysisContext.getAnalysisOptions()).setHint(false);
+    AnalysisOptionsImpl options = (AnalysisOptionsImpl) analysisContext.getAnalysisOptions();
+    options.setHint(false);
+    analysisContext.setAnalysisOptions(options);
   }
 
   protected static void enableContextHints() {
     ensureAnalysisContext();
-    ((AnalysisOptionsImpl) analysisContext.getAnalysisOptions()).setHint(true);
+    AnalysisOptionsImpl options = (AnalysisOptionsImpl) analysisContext.getAnalysisOptions();
+    options.setHint(true);
+    analysisContext.setAnalysisOptions(options);
   }
 
   /**

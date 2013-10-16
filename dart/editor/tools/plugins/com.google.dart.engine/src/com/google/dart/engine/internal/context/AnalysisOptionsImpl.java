@@ -21,10 +21,14 @@ import com.google.dart.engine.context.AnalysisOptions;
  */
 public class AnalysisOptionsImpl implements AnalysisOptions {
   /**
-   * A flag indicating whether analysis is to use strict mode. In strict mode, error reporting is
-   * based exclusively on the static type information.
+   * The maximum number of sources for which AST structures should be kept in the cache.
    */
-  private boolean strictMode = true;
+  private int cacheSize = 64;
+
+  /**
+   * A flag indicating whether analysis is to generate dart2js related hint results.
+   */
+  private boolean dart2jsHint = true;
 
   /**
    * A flag indicating whether analysis is to generate hint results (e.g. type inference based
@@ -33,14 +37,33 @@ public class AnalysisOptionsImpl implements AnalysisOptions {
   private boolean hint = true;
 
   /**
-   * A flag indicating whether analysis is to generate dart2js related hint results.
+   * A flag indicating whether analysis is to use strict mode. In strict mode, error reporting is
+   * based exclusively on the static type information.
    */
-  private boolean dart2jsHint = true;
+  private boolean strictMode = true;
 
   /**
    * Initialize a newly created set of analysis options to have their default values.
    */
   public AnalysisOptionsImpl() {
+  }
+
+  /**
+   * Initialize a newly created set of analysis options to have the same values as those in the
+   * given set of analysis options.
+   * 
+   * @param options the analysis options whose values are being copied
+   */
+  public AnalysisOptionsImpl(AnalysisOptions options) {
+    cacheSize = options.getCacheSize();
+    dart2jsHint = options.getDart2jsHint();
+    hint = options.getHint();
+    strictMode = options.getStrictMode();
+  }
+
+  @Override
+  public int getCacheSize() {
+    return cacheSize;
   }
 
   @Override
@@ -62,6 +85,17 @@ public class AnalysisOptionsImpl implements AnalysisOptions {
   @Override
   public boolean getStrictMode() {
     return strictMode;
+  }
+
+  /**
+   * Set the maximum number of sources for which AST structures should be kept in the cache to the
+   * given size.
+   * 
+   * @param cacheSize the maximum number of sources for which AST structures should be kept in the
+   *          cache
+   */
+  public void setCacheSize(int cacheSize) {
+    this.cacheSize = cacheSize;
   }
 
   /**
