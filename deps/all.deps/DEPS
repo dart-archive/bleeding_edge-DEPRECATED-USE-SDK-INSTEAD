@@ -72,6 +72,10 @@ deps = {
   "dart/third_party/bzip2": "/third_party/bzip2" + Var("bzip2_rev"),
   "dart/runtime/bin/vmservice/client/bootstrap_css":
       "/third_party/bootstrap_css" + Var("bootstrap_css_rev"),
+  "dart/runtime/bin/vmservice/client/web/bootstrap_css":
+      "/third_party/bootstrap_css" + Var("bootstrap_css_rev"),
+  "dart/runtime/bin/vmservice/client/out/web/bootstrap_css":
+      "/third_party/bootstrap_css" + Var("bootstrap_css_rev"),
   "dart/third_party/chrome": "/third_party/chrome" + Var("chrome_rev"),
   "dart/third_party/commons-io":
       "/third_party/commons-io" + Var("commons-io_rev"),
