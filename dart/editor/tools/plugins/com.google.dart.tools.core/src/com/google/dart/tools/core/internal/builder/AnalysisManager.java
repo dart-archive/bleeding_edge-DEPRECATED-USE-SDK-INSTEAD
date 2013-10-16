@@ -14,6 +14,9 @@
 package com.google.dart.tools.core.internal.builder;
 
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.utilities.instrumentation.Instrumentation;
+import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.ContextManager;
 import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
@@ -50,6 +53,13 @@ public class AnalysisManager {
   private final ArrayList<AnalysisWorker> backgroundQueue = new ArrayList<AnalysisWorker>();
 
   /**
+   * The number of times {@link pauseBackgroundAnalysis()} has been called without a balancing call
+   * to {@link resumeBackgroundAnalysis()}. Synchronize against {@link backgroundQueue} before
+   * accessing this field.
+   */
+  private int pauseCount = 0;
+
+  /**
    * The background job on which the queued workers are executed, or {@code null} if none.
    * Synchronize against {@link backgroundQueue} before accessing this field.
    */
@@ -69,7 +79,9 @@ public class AnalysisManager {
     synchronized (backgroundQueue) {
       if (!backgroundQueue.contains(worker)) {
         backgroundQueue.add(0, worker);
-        startBackgroundAnalysis();
+        if (pauseCount == 0) {
+          startBackgroundAnalysis();
+        }
       }
     }
   }
@@ -90,12 +102,22 @@ public class AnalysisManager {
    */
   public AnalysisWorker getNextWorker() {
     synchronized (backgroundQueue) {
-      if (backgroundQueue.isEmpty()) {
+      if (backgroundQueue.isEmpty() || pauseCount > 0) {
         backgroundJob = null;
         backgroundQueue.notifyAll();
         return null;
       }
       return backgroundQueue.remove(0);
+    }
+  }
+
+  /**
+   * Answer the number of times {@link pauseBackgroundAnalysis()} has been called without a
+   * balancing call to {@link resumeBackgroundAnalysis()}.
+   */
+  public int getPauseCount() {
+    synchronized (backgroundQueue) {
+      return pauseCount;
     }
   }
 
@@ -107,6 +129,21 @@ public class AnalysisManager {
   public AnalysisWorker[] getQueueWorkers() {
     synchronized (backgroundQueue) {
       return backgroundQueue.toArray(new AnalysisWorker[backgroundQueue.size()]);
+    }
+  }
+
+  /**
+   * Pause background analysis until {@link resumeBackgroundAnalysis()} is called.
+   */
+  public void pauseBackgroundAnalysis() {
+    InstrumentationBuilder instrumentation = Instrumentation.builder("AnalysisWorker-pause");
+    try {
+      synchronized (backgroundQueue) {
+        pauseCount++;
+        instrumentation.metric("PauseCount", pauseCount);
+      }
+    } finally {
+      instrumentation.log();
     }
   }
 
@@ -156,6 +193,29 @@ public class AnalysisManager {
   }
 
   /**
+   * Resume background analysis.
+   */
+  public void resumeBackgroundAnalysis() {
+    InstrumentationBuilder instrumentation = Instrumentation.builder("AnalysisWorker-resume");
+    try {
+      synchronized (backgroundQueue) {
+        if (pauseCount > 0) {
+          pauseCount--;
+          instrumentation.metric("PauseCount", pauseCount);
+          if (pauseCount == 0) {
+            startBackgroundAnalysis();
+          }
+        } else {
+          instrumentation.metric("Problem", "resume-called-before-pause");
+          DartCore.logError(new RuntimeException("Resume called before pause"));
+        }
+      }
+    } finally {
+      instrumentation.log();
+    }
+  }
+
+  /**
    * Start a job to perform background analysis if it has not already been started.
    */
   public void startBackgroundAnalysis() {
@@ -196,5 +256,23 @@ public class AnalysisManager {
       }
       return true;
     }
+  }
+
+  /**
+   * If the receiver's analysis is paused, then add the specified worker to the queue and return
+   * {@code true}, else do nothing and return {@code false}.
+   * 
+   * @param worker the worker (not {@code null})
+   * @return {@code true} if the worker should pause its analysis, else {@code false}
+   */
+  boolean checkPaused(AnalysisWorker worker) {
+    boolean isPaused = false;
+    synchronized (backgroundQueue) {
+      if (pauseCount > 0) {
+        backgroundQueue.add(0, worker);
+        isPaused = true;
+      }
+    }
+    return isPaused;
   }
 }

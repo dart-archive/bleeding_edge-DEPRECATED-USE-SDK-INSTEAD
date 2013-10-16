@@ -169,7 +169,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
    * A table mapping the sources known to the context to the information known about the source.
    */
   private final AnalysisCache cache = new AnalysisCache(
-      AnalysisOptionsImpl.DEFAULT_CACHE_SIZE,
+      MAX_CACHE_SIZE,
       new ContextRetentionPolicy());
 
   /**
@@ -201,12 +201,17 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   private AnalysisTaskResultRecorder resultRecorder;
 
   /**
+   * The maximum number of sources for which data should be kept in the cache.
+   */
+  private static final int MAX_CACHE_SIZE = 64;
+
+  /**
    * The maximum number of sources that can be on the priority list. This <b>must</b> be less than
-   * the {@link AnalysisOptionsImpl#DEFAULT_CACHE_SIZE} in order to prevent an infinite loop in performAnalysisTask().
+   * the {@link #MAX_CACHE_SIZE} in order to prevent an infinite loop in performAnalysisTask().
    * 
    * @see #setAnalysisPriorityOrder(List)
    */
-  private static final int MAX_PRIORITY_LIST_SIZE = AnalysisOptionsImpl.DEFAULT_CACHE_SIZE - 4;
+  private static final int MAX_PRIORITY_LIST_SIZE = MAX_CACHE_SIZE - 4;
 
   /**
    * Initialize a newly created analysis context.

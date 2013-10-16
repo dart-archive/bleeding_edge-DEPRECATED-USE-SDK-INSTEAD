@@ -52,13 +52,11 @@ public class AnalysisWorkerTest extends AbstractDartCoreTest {
     @Override
     public void complete(AnalysisEvent event) {
       completed.add(event.getContext());
-      assertEquals(originalCacheSize, event.getContext().getAnalysisOptions().getCacheSize());
     }
 
     @Override
     public void resolved(ResolvedEvent event) {
       resolved.add(event.getResource());
-      assertEquals(originalCacheSize * 2, event.getContext().getAnalysisOptions().getCacheSize());
     }
 
     void assertCompleted(AnalysisContext expected) {
@@ -79,7 +77,6 @@ public class AnalysisWorkerTest extends AbstractDartCoreTest {
   private final MockProject project = root.add(new MockProject(root, getClass().getSimpleName()));
   private final ContextManager contextManager = mock(ContextManager.class);
   private final AnalysisContext analysisContext = AnalysisContextFactory.contextWithCore();
-  private final int originalCacheSize = analysisContext.getAnalysisOptions().getCacheSize();
   private final AnalysisMarkerManager markerManager = mock(AnalysisMarkerManager.class);
   private final Listener listener = new Listener();
 
@@ -115,7 +112,6 @@ public class AnalysisWorkerTest extends AbstractDartCoreTest {
     verify(markerManager).done();
     listener.assertCompleted(analysisContext);
     listener.assertResolved(libFile);
-    assertEquals(originalCacheSize, analysisContext.getAnalysisOptions().getCacheSize());
   }
 
   public void test_performAnalysis_nothingToDo() throws Exception {
@@ -127,7 +123,6 @@ public class AnalysisWorkerTest extends AbstractDartCoreTest {
     verify(markerManager).done();
     verifyNoMoreInteractions(markerManager);
     listener.assertCompleted(analysisContext);
-    assertEquals(originalCacheSize, analysisContext.getAnalysisOptions().getCacheSize());
   }
 
   public void test_performAnalysis_nullContext() throws Exception {
@@ -135,7 +130,20 @@ public class AnalysisWorkerTest extends AbstractDartCoreTest {
     worker.performAnalysis(null);
     verifyNoMoreInteractions(markerManager);
     listener.assertNotCompleted(analysisContext);
-    assertEquals(originalCacheSize, analysisContext.getAnalysisOptions().getCacheSize());
+  }
+
+  public void test_performAnalysis_paused() throws Exception {
+    AnalysisManager analysisManager = new AnalysisManager();
+    analysisManager.pauseBackgroundAnalysis();
+    when(contextManager.getResource()).thenReturn(project);
+    AnalysisWorker worker = new AnalysisWorker(contextManager, analysisContext, null, markerManager);
+    assertEquals(0, analysisManager.getQueueWorkers().length);
+    worker.performAnalysis(analysisManager);
+    verify(markerManager).queueHasDartSdk(project, true);
+    verifyNoMoreInteractions(markerManager);
+    listener.assertNotCompleted(analysisContext);
+    assertEquals(1, analysisManager.getQueueWorkers().length);
+    assertSame(worker, analysisManager.getQueueWorkers()[0]);
   }
 
   public void test_performAnalysis_stop() throws Exception {
@@ -155,7 +163,6 @@ public class AnalysisWorkerTest extends AbstractDartCoreTest {
     worker.performAnalysis(analysisManager);
     verifyNoMoreInteractions(markerManager);
     listener.assertNotCompleted(analysisContext);
-    assertEquals(originalCacheSize, analysisContext.getAnalysisOptions().getCacheSize());
   }
 
   public void test_stop() throws Exception {

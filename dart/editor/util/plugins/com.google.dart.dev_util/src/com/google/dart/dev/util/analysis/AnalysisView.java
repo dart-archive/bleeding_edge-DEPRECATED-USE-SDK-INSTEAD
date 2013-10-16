@@ -520,6 +520,10 @@ public class AnalysisView extends ViewPart {
         } else {
           msg.print("Index: statistics = " + index.getStatistics());
         }
+        int pauseCount = AnalysisManager.getInstance().getPauseCount();
+        if (pauseCount > 0) {
+          msg.print(" >>> PAUSED[" + pauseCount + "]");
+        }
         setContentDescription(msg.toString());
       }
     });

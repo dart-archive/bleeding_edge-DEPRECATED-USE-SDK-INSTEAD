@@ -16,6 +16,8 @@ package com.google.dart.tools.core.internal.builder;
 import com.google.dart.tools.core.AbstractDartCoreTest;
 import com.google.dart.tools.core.analysis.model.ContextManager;
 
+import org.eclipse.core.runtime.IStatus;
+
 import static org.mockito.Mockito.mock;
 
 import java.util.concurrent.CountDownLatch;
@@ -85,6 +87,21 @@ public class AnalysisManagerTest extends AbstractDartCoreTest {
     assertNull(target.getNextWorker());
   }
 
+  public void test_getPause() throws Exception {
+    assertEquals(0, target.getPauseCount());
+  }
+
+  public void test_pause() throws Exception {
+    MockWorker worker = new MockWorker();
+    target.pauseBackgroundAnalysis();
+    assertEquals(1, target.getPauseCount());
+    target.addWorker(worker);
+    target.performAnalysis(null);
+    worker.assertAnalysisCount(0);
+    assertEquals(1, target.getQueueWorkers().length);
+    assertSame(worker, target.getQueueWorkers()[0]);
+  }
+
   public void test_performAnalysis() throws Exception {
     MockWorker worker = new MockWorker();
     target.performAnalysis(null);
@@ -93,6 +110,28 @@ public class AnalysisManagerTest extends AbstractDartCoreTest {
     worker.assertAnalysisCount(0);
     target.performAnalysis(null);
     worker.assertAnalysisCount(1);
+  }
+
+  public void test_resume() throws Exception {
+    MockWorker worker = new MockWorker();
+    target.pauseBackgroundAnalysis();
+    assertEquals(1, target.getPauseCount());
+    target.addWorker(worker);
+    target.performAnalysis(null);
+    worker.assertAnalysisCount(0);
+    assertEquals(1, target.getQueueWorkers().length);
+    assertSame(worker, target.getQueueWorkers()[0]);
+    target.assertBackgroundAnalysisCount(0);
+    target.resumeBackgroundAnalysis();
+    target.assertBackgroundAnalysisCount(1);
+    assertEquals(0, target.getPauseCount());
+    target.performAnalysis(null);
+    worker.assertAnalysisCount(1);
+  }
+
+  public void test_resumeBeforePause() throws Exception {
+    target.resumeBackgroundAnalysis();
+    LOG.assertEntries(IStatus.ERROR);
   }
 
   public void test_startBackgroundAnalysis() throws Exception {
