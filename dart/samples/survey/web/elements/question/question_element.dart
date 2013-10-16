@@ -41,15 +41,12 @@ class QuestionElement extends PolymerElement with ObservableMixin {
 
   @observable String get widgetSelection => widgetOptions[widgetSelectedIndex];
 
-  // TODO(shailen): remove once it's easier to pass attrs to polymer elements.
-  @observable List multiSelectAttrs;
-
   @observable bool get usingTextWidget => widgetSelectedIndex == 0;
 
-
   QuestionElement() {
-    bindProperty(this, const Symbol('widgetSelectedIndex'),
-        () => notifyProperty(this, const Symbol('widgetSelection')));
+    new PathObserver(this, 'widgetSelectedIndex').changes.listen((_) {
+      notifyProperty(this, #widgetSelection);
+    });
   }
 
   edit() {
@@ -101,7 +98,6 @@ class QuestionElement extends PolymerElement with ObservableMixin {
       question.answerOptions = optionInputs.where((opt) {
         return opt.isNotEmpty;
       }).toList();
-      multiSelectAttrs = toObservable([question.answerOptions, true]);
       editing = false;
     } else {
       optionInputs.add('');

@@ -51,9 +51,18 @@ BSD-style license that can be found in the LICENSE file.
 
       .display {
         background: #fff;
-        border: 6px solid #357ebd;
-        border-radius: 8px;
-        padding: 20px;
+        border: 4px solid #357ebd;
+        border-radius: 4px;
+        padding: 10px;
+      }
+      
+      .answer {
+        background: #fff;
+        color: #345;
+        border: 1px solid #357ebd;
+        border-radius: 4px;
+        padding: 10px;
+        margin-top: 10px;
       }
 
       .display textarea {
@@ -75,7 +84,6 @@ BSD-style license that can be found in the LICENSE file.
       .italic-text {
         font-style: italic;
       }
-
     </style>
 
     <div class="row">
@@ -112,9 +120,9 @@ BSD-style license that can be found in the LICENSE file.
         <template if="{{!editing}}">
           <div class="display">
             <div class="strong-text">{{question.text}}</div>
-              <div class="italic-text" hidden?="{{question.helpText.isEmpty}}">
-                Hint: {{question.helpText}}
-              </div>
+            <div class="italic-text" hidden?="{{question.helpText.isEmpty}}">
+              Hint: {{question.helpText}}
+            </div>
 
             <template if="{{widgetSelection == textfield_opt}}">
               <textarea class="form-control" placeholder="Add response here"
@@ -128,12 +136,13 @@ BSD-style license that can be found in the LICENSE file.
             </template>
 
             <template if="{{widgetSelection == many_from_many_opt}}">
-              <selection-element values="{{multiSelectAttrs[0]}}"
-                  multi="{{multiSelectAttrs[1]}}"
+              <selection-element values="{{question.answerOptions}}"
+                  multi="true"
                   on-selectionmade="setSelectionAnswers">
               </selection-element>
             </template>
-
+          </div> 
+          <div class="answer">
             <div class="strong-text">Answer:</div>
             <ul>
               <template repeat="{{question.answers}}">
