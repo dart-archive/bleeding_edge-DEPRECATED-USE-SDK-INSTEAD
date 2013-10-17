@@ -16,7 +16,6 @@ package com.google.dart.tools.ui.internal.text.dart;
 import com.google.common.base.Joiner;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
-import com.google.dart.engine.context.AnalysisResult;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
@@ -26,10 +25,8 @@ import com.google.dart.engine.source.FileUriResolver;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.engine.source.TestSource;
-import com.google.dart.tools.core.analysis.model.AnalysisEvent;
-import com.google.dart.tools.core.analysis.model.AnalysisListener;
 import com.google.dart.tools.core.analysis.model.Project;
-import com.google.dart.tools.core.analysis.model.ResolvedEvent;
+import com.google.dart.tools.core.internal.builder.AnalysisManager;
 import com.google.dart.tools.core.internal.builder.AnalysisWorker;
 
 import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
@@ -42,51 +39,28 @@ import org.eclipse.jface.text.reconciler.DirtyRegion;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.FocusListener;
 
-import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
 
 public class DartReconcilingStrategyTest extends TestCase {
 
   /**
-   * Content cache that can wait for contents to be set.
-   * 
-   * @see #expectSetContentsFor(Source)
-   * @see #waitForSetContents(Source, long)
+   * AnalysisManager that does not perform background analysis.
    */
-  private class MockCache extends ContentCache {
-    private Source expectedSource = null;
-    private CountDownLatch expectedLatch = null;
+  private final class MockAnalysisManager extends AnalysisManager {
+    private int backgroundAnalysisCount = 0;
 
-    public void expectSetContentsFor(Source source) {
-      expectedSource = source;
-      expectedLatch = new CountDownLatch(1);
+    public void assertBackgroundAnalysis(int expected) {
+      assertEquals(expected, backgroundAnalysisCount);
+      AnalysisWorker[] workers = getQueueWorkers();
+      assertEquals(1, workers.length);
+      assertSame(mockContext, workers[0].getContext());
     }
 
     @Override
-    public boolean setContents(Source source, String contents) {
-      boolean result = super.setContents(source, contents);
-      if (source == expectedSource) {
-        expectedLatch.countDown();
-      }
-      return result;
-    }
-
-    public String waitForSetContents(Source source, long milliseconds) {
-      if (source != expectedSource) {
-        throw new IllegalArgumentException("Should call expectSetContentsFor");
-      }
-      try {
-        assertTrue(expectedLatch.await(milliseconds, TimeUnit.MILLISECONDS));
-      } catch (InterruptedException e) {
-        assertEquals(0, expectedLatch.getCount());
-      }
-      expectedSource = null;
-      expectedLatch = null;
-      return getContents(source);
+    public void startBackgroundAnalysis() {
+      backgroundAnalysisCount++;
     }
   }
 
@@ -94,144 +68,47 @@ public class DartReconcilingStrategyTest extends TestCase {
    * Analysis context that can wait for priority order and resolution.
    */
   private class MockContext extends AnalysisContextImpl {
-    private CountDownLatch priorityOrderLatch = null;
-    private List<Source> priorityOrder = null;
-    private long performAnalysisTaskTime = 0;
-    private long setPriorityOrderTime = 0;
-    private CountDownLatch resolvedLatch = null;
-    private Source resolvedSource = null;
-    private CompilationUnit resolvedUnit = null;
-    private int flushCount = 0;
-    private int sourceChangedCount = 0;
-
-    private final AnalysisListener backgroundAnalysisListener = new AnalysisListener() {
-      @Override
-      public void complete(AnalysisEvent event) {
-        synchronized (this) {
-          if (resolvedLatch != null && resolvedLatch.getCount() > 0) {
-            if (event.getContext() == MockContext.this) {
-              resolvedUnit = getResolvedCompilationUnit(resolvedSource, resolvedSource);
-              resolvedLatch.countDown();
-            }
-          }
-        }
-      }
-
-      @Override
-      public void resolved(ResolvedEvent event) {
-        synchronized (this) {
-          if (resolvedLatch != null && resolvedLatch.getCount() > 0) {
-            if (event.getContext() == MockContext.this && event.getSource() == resolvedSource) {
-              resolvedUnit = event.getUnit();
-              resolvedLatch.countDown();
-            }
-          }
-        }
-      }
-    };
-
-    public void assertPrioritySetBeforeBackgroundAnalysis() {
-      assertTrue(setPriorityOrderTime > 0);
-      assertTrue(setPriorityOrderTime < performAnalysisTaskTime || performAnalysisTaskTime == 0);
-    }
-
-    public void expectResolved(Source source) {
-      synchronized (backgroundAnalysisListener) {
-        resolvedSource = source;
-        resolvedLatch = new CountDownLatch(1);
-        resolvedUnit = null;
-        AnalysisWorker.addListener(backgroundAnalysisListener);
-      }
-    }
-
-    public void expectSetPriorityOrder() {
-      priorityOrderLatch = new CountDownLatch(1);
-    }
-
-    /**
-     * Flush the resolved compilation unit for the specified source by creating and resolving other
-     * sources.
-     * 
-     * @param source the source of the compilation unit to be flushed (not <code>null</code>)
-     */
-    public void flushCompilationUnit(Source source) throws Exception {
-      for (int i = 0; i < 128; i++) {
-        File newFile = createFile("/test_" + ++flushCount + ".dart");
-        Source newSource = new TestSource(mockCache, newFile, INITIAL_CONTENTS);
-        assertNotNull(resolveCompilationUnit(newSource, newSource));
-      }
-    }
+    private List<Source> priorityOrder = new ArrayList<Source>();
+    private int setContentsCount = 0;
+    private int setChangedContentsCount = 0;
 
     public List<Source> getPriorityOrder() {
       return priorityOrder;
     }
 
-    public int getSourceChangedCount() {
-      return sourceChangedCount;
-    }
-
-    @Override
-    public AnalysisResult performAnalysisTask() {
-      if (performAnalysisTaskTime == 0) {
-        performAnalysisTaskTime = System.currentTimeMillis();
-        if (performAnalysisTaskTime == setPriorityOrderTime) {
-          performAnalysisTaskTime++;
-        }
-      }
-      return super.performAnalysisTask();
-    }
-
     @Override
     public void setAnalysisPriorityOrder(List<Source> sources) {
       super.setAnalysisPriorityOrder(sources);
-      if (setPriorityOrderTime == 0) {
-        setPriorityOrderTime = System.currentTimeMillis();
-        if (setPriorityOrderTime == performAnalysisTaskTime) {
-          setPriorityOrderTime++;
-        }
+      priorityOrder = sources;
+    }
+
+    @Override
+    public void setChangedContents(Source source, String contents, int offset, int oldLength,
+        int newLength) {
+      if (source == mockSource) {
+        setChangedContentsCount++;
       }
-      if (priorityOrderLatch != null) {
-        priorityOrder = sources;
-        priorityOrderLatch.countDown();
-      }
+      super.setChangedContents(source, contents, offset, oldLength, newLength);
     }
 
     @Override
     public void setContents(Source source, String contents) {
       if (source == mockSource) {
-        sourceChangedCount++;
+        setContentsCount++;
       }
+      setContentsForTest(source, contents);
+    }
+
+    void assertSetChangedContentsCount(int expected) {
+      assertEquals(expected, setChangedContentsCount);
+    }
+
+    void assertSetContentsCount(int expected) {
+      assertEquals(expected, setContentsCount);
+    }
+
+    void setContentsForTest(Source source, String contents) {
       super.setContents(source, contents);
-    }
-
-    public CompilationUnit waitForResolution(Source source, long milliseconds) {
-      if (source != resolvedSource) {
-        throw new IllegalArgumentException("Call expectResolved");
-      }
-      try {
-        assertTrue(resolvedLatch.await(milliseconds, TimeUnit.MILLISECONDS));
-      } catch (InterruptedException e) {
-        assertEquals(0, resolvedLatch.getCount());
-      }
-      synchronized (backgroundAnalysisListener) {
-        AnalysisWorker.removeListener(backgroundAnalysisListener);
-        resolvedLatch = null;
-        resolvedSource = null;
-        return resolvedUnit;
-      }
-    }
-
-    public List<Source> waitForSetPriorityOrder(long milliseconds) {
-      if (priorityOrderLatch == null) {
-        throw new IllegalStateException("Call expectSetPriorityOrder");
-      }
-      try {
-        assertTrue(priorityOrderLatch.await(milliseconds, TimeUnit.MILLISECONDS));
-      } catch (InterruptedException e) {
-        assertEquals(0, priorityOrderLatch.getCount());
-      }
-      priorityOrderLatch = null;
-      return priorityOrder;
     }
   }
 
@@ -239,7 +116,6 @@ public class DartReconcilingStrategyTest extends TestCase {
    * Mock editor for testing {@link DartReconcilingStrategy}
    */
   private final class MockEditor implements DartReconcilingEditor {
-    private Semaphore applied = null;
     private CompilationUnit appliedUnit = null;
     private DisposeListener disposeListener = null;
     private FocusListener focusListener = null;
@@ -263,14 +139,10 @@ public class DartReconcilingStrategyTest extends TestCase {
     @Override
     public void applyCompilationUnitElement(CompilationUnit unit) {
       appliedUnit = unit;
-      if (applied != null) {
-        applied.release();
-      }
     }
 
-    public void expectApply() {
-      applied = new Semaphore(0);
-      appliedUnit = null;
+    public CompilationUnit getAppliedCompilationUnit() {
+      return appliedUnit;
     }
 
     public DisposeListener getDisposeListener() {
@@ -297,34 +169,29 @@ public class DartReconcilingStrategyTest extends TestCase {
     public String getTitle() {
       return mockSource.getShortName();
     }
-
-    public CompilationUnit waitForApply(long milliseconds) {
-      if (applied == null) {
-        throw new IllegalStateException("Call expectApply");
-      }
-      try {
-        assertTrue(applied.tryAcquire(milliseconds, TimeUnit.MILLISECONDS));
-      } catch (InterruptedException e) {
-        assertTrue(applied.tryAcquire());
-      }
-      return appliedUnit;
-    }
   }
 
   private final static String EOL = System.getProperty("line.separator", "\n");
   private static final String INITIAL_CONTENTS = Joiner.on(EOL).join(//
       "library a;",
-      "class A { foo() => 'two'; }");
+      "class A { foo() => this; }");
 
   MockEditor mockEditor = new MockEditor();
-  MockCache mockCache = new MockCache();
+  ContentCache mockCache = new ContentCache();
   Source mockSource = new TestSource(mockCache, createFile("/test.dart"), INITIAL_CONTENTS);
   MockContext mockContext = new MockContext();
   Document mockDocument = new Document(INITIAL_CONTENTS);
-  DartReconcilingStrategy strategy = new DartReconcilingStrategy(mockEditor) {
+  MockAnalysisManager analysisManager = new MockAnalysisManager();
+  List<Source> visibleSources = Arrays.asList(mockSource);
+  DartReconcilingStrategy strategy = new DartReconcilingStrategy(mockEditor, analysisManager) {
     @Override
-    public void reconcile(DirtyRegion dirtyRegion, org.eclipse.jface.text.IRegion subRegion) {
-      super.reconcile(dirtyRegion, subRegion);
+    protected List<Source> getVisibleSourcesForContext(AnalysisContext context) {
+      return new ArrayList<Source>(visibleSources);
+    };
+
+    @Override
+    protected void updateAnalysisPriorityOrder(boolean isOpen) {
+      updateAnalysisPriorityOrderOnUiThread(isOpen);
     };
   };
 
@@ -332,62 +199,49 @@ public class DartReconcilingStrategyTest extends TestCase {
    * Assert reconciler clears cached contents when disposed
    */
   public void test_dispose() throws Exception {
-    mockContext.setContents(mockSource, INITIAL_CONTENTS);
+    mockContext.setContentsForTest(mockSource, INITIAL_CONTENTS);
     mockContext.setAnalysisPriorityOrder(Arrays.asList(new Source[] {mockSource}));
-    mockCache.expectSetContentsFor(mockSource);
-    mockContext.expectSetPriorityOrder();
 
+    visibleSources = Arrays.asList();
     mockEditor.getDisposeListener().widgetDisposed(null);
 
-    assertEquals(0, mockContext.waitForSetPriorityOrder(5000).size());
-    assertNull(mockCache.waitForSetContents(mockSource, 5000));
+    // Assert reconciler requested background analysis
+    analysisManager.assertBackgroundAnalysis(1);
+
+    assertEquals(0, mockContext.getPriorityOrder().size());
+    assertNull(mockCache.getContents(mockSource));
   }
 
   /**
    * Assert unit resolved, applied, and order set during initialReconcile
    */
   public void test_initialReconcile() {
-    mockEditor.expectApply();
-    mockContext.expectResolved(mockSource);
-    mockContext.expectSetPriorityOrder();
-
     strategy.initialReconcile();
 
-    assertNotNull(mockEditor.waitForApply(5000));
-    CompilationUnit unit = mockContext.waitForResolution(mockSource, 50000);
-    assertNotNull(unit);
-    unit = mockEditor.waitForApply(5000);
-    assertNotNull(unit);
-    List<Source> priorityOrder = mockContext.waitForSetPriorityOrder(15000);
-    assertEquals(1, priorityOrder.size());
-    assertSame(mockSource, priorityOrder.get(0));
-//    mockContext.assertPrioritySetBeforeBackgroundAnalysis();
+    assertEquals(1, mockContext.getPriorityOrder().size());
+    assertSame(mockSource, mockContext.getPriorityOrder().get(0));
+    assertNotNull(mockEditor.getAppliedCompilationUnit());
+    analysisManager.assertBackgroundAnalysis(1);
+
+    analysisManager.performAnalysis(null);
+
+    assertNotNull(mockEditor.getAppliedCompilationUnit());
   }
 
   /**
-   * Assert unit resolved, applied, and order set during initialReconcile after AST has been removed
-   * from the cache
+   * Assert unit resolved, applied, and order set during initialReconcile
    */
-  public void test_initialReconcile_afterFlush() throws Exception {
-    assertNotNull(mockContext.resolveCompilationUnit(mockSource, mockSource));
-    mockContext.flushCompilationUnit(mockSource);
-    assertNull(mockContext.getResolvedCompilationUnit(mockSource, mockSource));
+  public void test_initialReconcile_cachedUnit() {
+    analysisManager.performAnalysis(null);
 
-    mockEditor.expectApply();
-    mockContext.expectResolved(mockSource);
-    mockContext.expectSetPriorityOrder();
+    assertNull(mockEditor.getAppliedCompilationUnit());
 
     strategy.initialReconcile();
 
-    assertNotNull(mockEditor.waitForApply(5000));
-    CompilationUnit unit = mockContext.waitForResolution(mockSource, 15000);
-    assertNotNull(unit);
-    unit = mockEditor.waitForApply(5000);
-    assertNotNull(unit);
-    List<Source> priorityOrder = mockContext.waitForSetPriorityOrder(15000);
-    assertEquals(1, priorityOrder.size());
-    assertSame(mockSource, priorityOrder.get(0));
-//    mockContext.assertPrioritySetBeforeBackgroundAnalysis();
+    assertEquals(1, mockContext.getPriorityOrder().size());
+    assertSame(mockSource, mockContext.getPriorityOrder().get(0));
+    assertNotNull(mockEditor.getAppliedCompilationUnit());
+    analysisManager.assertBackgroundAnalysis(1);
   }
 
   /**
@@ -408,101 +262,152 @@ public class DartReconcilingStrategyTest extends TestCase {
   public void test_initialState() throws Exception {
     assertNull(mockCache.getContents(mockSource));
     assertNull(mockContext.getResolvedCompilationUnit(mockSource, mockSource));
-    assertNull(mockContext.getPriorityOrder());
+    assertEquals(0, mockContext.getPriorityOrder().size());
   }
 
   /**
    * Assert that a document change clears the cached unit and a resolve resets it
    */
   public void test_reconcileDirtyRegionIRegion() throws Exception {
-    String newText = "//comment\n";
+    String insertedText = "//comment\n";
 
-    mockEditor.expectApply();
     strategy.initialReconcile();
-    assertNotNull(mockEditor.waitForApply(5000));
+    analysisManager.assertBackgroundAnalysis(1);
+    analysisManager.performAnalysis(null);
 
-    mockEditor.expectApply();
-    mockDocument.replace(0, 0, newText);
-    assertNull(mockEditor.waitForApply(5000));
+    assertNotNull(mockEditor.getAppliedCompilationUnit());
 
-    mockEditor.expectApply();
-    strategy.reconcile(new DirtyRegion(0, 0, DirtyRegion.INSERT, newText), new Region(0, 0));
-    CompilationUnit unit = mockEditor.waitForApply(10000);
-    assertNotNull(unit);
+    mockDocument.replace(0, 0, insertedText);
+
+    assertNull(mockEditor.getAppliedCompilationUnit());
+
+    strategy.reconcile(new DirtyRegion(0, 0, DirtyRegion.INSERT, insertedText), new Region(0, 0));
+
+    assertNull(mockEditor.getAppliedCompilationUnit());
+    analysisManager.assertBackgroundAnalysis(2);
+
+    analysisManager.performAnalysis(null);
+
+    assertNotNull(mockEditor.getAppliedCompilationUnit());
+  }
+
+  /**
+   * Assert that a document change clears the cached unit and a resolve resets it
+   */
+  public void test_reconcileDirtyRegionIRegion_delete() throws Exception {
+    strategy.initialReconcile();
+    analysisManager.assertBackgroundAnalysis(1);
+    analysisManager.performAnalysis(null);
+
+    assertNotNull(mockEditor.getAppliedCompilationUnit());
+
+    mockDocument.replace(0, 10, "");
+
+    assertNull(mockEditor.getAppliedCompilationUnit());
+
+    strategy.reconcile(new DirtyRegion(0, 10, DirtyRegion.REMOVE, null), new Region(0, 0));
+
+    assertNull(mockEditor.getAppliedCompilationUnit());
+    analysisManager.assertBackgroundAnalysis(2);
+
+    analysisManager.performAnalysis(null);
+
+    assertNotNull(mockEditor.getAppliedCompilationUnit());
   }
 
   /**
    * Assert editor with no context does not throw exception
    */
   public void test_reconcileDirtyRegionIRegion_nullContext() throws Exception {
-    String newText = "//comment\n";
+    String insertedText = "//comment\n";
 
     mockContext = null;
     strategy.initialReconcile();
-    mockDocument.replace(0, 0, newText);
-    strategy.reconcile(new DirtyRegion(0, 0, DirtyRegion.INSERT, newText), new Region(0, 0));
+    mockDocument.replace(0, 0, insertedText);
+    strategy.reconcile(new DirtyRegion(0, 0, DirtyRegion.INSERT, insertedText), new Region(0, 0));
+    analysisManager.performAnalysis(null);
 
     // test infrastructure asserts no exceptions
   }
 
   /**
-   * Assert that multiple document changes in quick succession only result in a single analysis
+   * Assert that a "." triggers immediate analysis
    */
-  public void test_reconcileDirtyRegionIRegion_twice() throws Exception {
-    String newText = "//comment\n";
+  public void test_reconcileDirtyRegionIRegion_period() throws Exception {
+    String insertedText = ".";
+    int offset = INITIAL_CONTENTS.indexOf("this") + 4;
+    assert offset > 5;
+    String newText = INITIAL_CONTENTS.substring(0, offset) + insertedText
+        + INITIAL_CONTENTS.substring(offset);
 
-    mockEditor.expectApply();
     strategy.initialReconcile();
-    assertNotNull(mockEditor.waitForApply(5000));
+    analysisManager.assertBackgroundAnalysis(1);
+    analysisManager.performAnalysis(null);
 
-    mockDocument.replace(0, 0, newText);
-    strategy.reconcile(new DirtyRegion(0, 0, DirtyRegion.INSERT, newText), new Region(0, 0));
-    assertEquals(1, mockContext.getSourceChangedCount());
+    assertNotNull(mockEditor.getAppliedCompilationUnit());
 
-    mockDocument.replace(0, 0, newText);
-    strategy.reconcile(new DirtyRegion(0, 0, DirtyRegion.INSERT, newText), new Region(0, 0));
-    assertEquals(2, mockContext.getSourceChangedCount());
+    mockDocument.replace(offset, 0, insertedText);
 
-    mockDocument.replace(0, 0, newText);
-    mockDocument.replace(0, 0, newText);
-    strategy.reconcile(new DirtyRegion(0, 0, DirtyRegion.INSERT, newText), new Region(0, 0));
-    assertEquals(3, mockContext.getSourceChangedCount());
-    strategy.reconcile(new DirtyRegion(0, 0, DirtyRegion.INSERT, newText), new Region(0, 0));
-    assertEquals(3, mockContext.getSourceChangedCount());
-
-    mockDocument.replace(0, 0, newText);
-    strategy.reconcile(new DirtyRegion(0, 0, DirtyRegion.INSERT, newText), new Region(0, 0));
-    assertEquals(4, mockContext.getSourceChangedCount());
+    // assert "." causes immediate update of the context
+    assertEquals(newText, mockCache.getContents(mockSource));
+    assertNull(mockEditor.getAppliedCompilationUnit());
+    analysisManager.assertBackgroundAnalysis(2);
   }
 
   public void test_reconcileIRegion() throws Exception {
-    String newText = "//comment\n";
+    String insertedText = "//comment\n";
 
-    mockEditor.expectApply();
     strategy.initialReconcile();
-    assertNotNull(mockEditor.waitForApply(5000));
+    analysisManager.assertBackgroundAnalysis(1);
+    analysisManager.performAnalysis(null);
 
-    mockEditor.expectApply();
-    mockDocument.replace(0, 0, newText);
-    assertNull(mockEditor.waitForApply(5000));
+    assertNotNull(mockEditor.getAppliedCompilationUnit());
 
-    mockEditor.expectApply();
-    strategy.reconcile(new Region(0, newText.length()));
-    // TODO (danrubel): Refactor tests to make them more stable
-//    CompilationUnit unit = mockEditor.waitForApply(5000);
-//    assertNotNull(unit);
+    mockDocument.replace(0, 0, insertedText);
+
+    assertNull(mockEditor.getAppliedCompilationUnit());
+
+    strategy.reconcile(new Region(0, insertedText.length()));
+
+    assertNull(mockEditor.getAppliedCompilationUnit());
+    analysisManager.assertBackgroundAnalysis(2);
+
+    analysisManager.performAnalysis(null);
+
+    assertNotNull(mockEditor.getAppliedCompilationUnit());
+  }
+
+  public void test_reconcileIRegion_delete() throws Exception {
+    strategy.initialReconcile();
+    analysisManager.assertBackgroundAnalysis(1);
+    analysisManager.performAnalysis(null);
+
+    assertNotNull(mockEditor.getAppliedCompilationUnit());
+
+    mockDocument.replace(0, 10, "");
+
+    assertNull(mockEditor.getAppliedCompilationUnit());
+
+    strategy.reconcile(new Region(0, 10));
+
+    assertNull(mockEditor.getAppliedCompilationUnit());
+    analysisManager.assertBackgroundAnalysis(2);
+
+    analysisManager.performAnalysis(null);
+
+    assertNotNull(mockEditor.getAppliedCompilationUnit());
   }
 
   /**
    * Assert editor with no context does not throw exception
    */
   public void test_reconcileIRegion_nullContext() throws Exception {
-    String newText = "//comment\n";
+    String insertedText = "//comment\n";
 
     mockContext = null;
     strategy.initialReconcile();
-    mockDocument.replace(0, 0, newText);
-    strategy.reconcile(new Region(0, newText.length()));
+    mockDocument.replace(0, 0, insertedText);
+    strategy.reconcile(new Region(0, insertedText.length()));
 
     // test infrastructure asserts no exceptions
   }
