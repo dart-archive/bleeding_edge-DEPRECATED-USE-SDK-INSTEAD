@@ -57,7 +57,13 @@ public class ServerVariableLabelProvider extends VariableLabelProvider {
     if (value instanceof ServerDebugValue) {
       ServerDebugValue val = (ServerDebugValue) value;
 
-      return val.getDisplayString();
+      String str = val.getDisplayString();
+
+      if (str.length() > 0 && val.getId() != null) {
+        str += " [id=" + val.getId() + "]";
+      }
+
+      return str;
     } else {
       return super.getValueText(variable, value, context);
     }
