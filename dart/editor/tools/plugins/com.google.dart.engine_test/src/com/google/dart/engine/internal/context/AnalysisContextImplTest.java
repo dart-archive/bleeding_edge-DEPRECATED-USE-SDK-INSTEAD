@@ -851,7 +851,7 @@ public class AnalysisContextImplTest extends EngineTestCase {
   }
 
   public void test_setAnalysisPriorityOrder_lessThanCacheSize() throws Exception {
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl(context.getAnalysisOptions());
+    AnalysisOptions options = context.getAnalysisOptions();
     ArrayList<Source> sources = new ArrayList<Source>();
     for (int index = 0; index < options.getCacheSize(); index++) {
       sources.add(addSource("/lib.dart" + index, ""));
@@ -932,7 +932,7 @@ public class AnalysisContextImplTest extends EngineTestCase {
 
   public void xtest_performAnalysisTask_stress() throws Exception {
     int maxCacheSize = 4;
-    AnalysisOptionsImpl options = (AnalysisOptionsImpl) context.getAnalysisOptions();
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl(context.getAnalysisOptions());
     options.setCacheSize(maxCacheSize);
     context.setAnalysisOptions(options);
     int sourceCount = maxCacheSize + 2;

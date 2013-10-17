@@ -306,7 +306,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
 
   @Override
   public AnalysisError[] computeErrors(Source source) throws AnalysisException {
-    boolean enableHints = getAnalysisOptions().getHint();
+    boolean enableHints = options.getHint();
     SourceEntry sourceEntry = getReadableSourceEntry(source);
     if (sourceEntry instanceof DartEntry) {
       ArrayList<AnalysisError> errors = new ArrayList<AnalysisError>();
@@ -491,7 +491,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
 
   @Override
   public AnalysisOptions getAnalysisOptions() {
-    return new AnalysisOptionsImpl(options);
+    return options;
   }
 
   @Override
@@ -819,7 +819,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   public List<Source> getSourcesNeedingProcessing() {
     HashSet<Source> sources = new HashSet<Source>();
     synchronized (cacheLock) {
-      boolean hintsEnabled = getAnalysisOptions().getHint();
+      boolean hintsEnabled = options.getHint();
       //
       // Look for priority sources that need to be analyzed.
       //
@@ -1652,7 +1652,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
    */
   private AnalysisTask getNextTaskAnalysisTask() {
     synchronized (cacheLock) {
-      boolean hintsEnabled = getAnalysisOptions().getHint();
+      boolean hintsEnabled = options.getHint();
       //
       // Look for a priority source that needs to be analyzed.
       //

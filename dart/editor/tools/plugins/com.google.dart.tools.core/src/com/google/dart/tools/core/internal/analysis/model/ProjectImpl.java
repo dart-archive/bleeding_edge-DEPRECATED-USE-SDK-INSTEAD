@@ -445,16 +445,18 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
   @Override
   public void setDart2JSHintOption(boolean enableDart2JSHints) {
     for (AnalysisContext context : getAnalysisContexts()) {
-      AnalysisOptionsImpl options = (AnalysisOptionsImpl) context.getAnalysisOptions();
+      AnalysisOptionsImpl options = new AnalysisOptionsImpl(context.getAnalysisOptions());
       options.setDart2jsHint(enableDart2JSHints);
+      context.setAnalysisOptions(options);
     }
   }
 
   @Override
   public void setHintOption(boolean enableHint) {
     for (AnalysisContext context : getAnalysisContexts()) {
-      AnalysisOptionsImpl options = (AnalysisOptionsImpl) context.getAnalysisOptions();
+      AnalysisOptionsImpl options = new AnalysisOptionsImpl(context.getAnalysisOptions());
       options.setHint(enableHint);
+      context.setAnalysisOptions(options);
     }
   }
 

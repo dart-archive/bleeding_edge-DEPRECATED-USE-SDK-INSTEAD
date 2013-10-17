@@ -70,7 +70,8 @@ public final class AnalysisContextFactory {
         provider.getListType().getElement(), provider.getMapType().getElement(),
         provider.getNullType().getElement(), provider.getNumType().getElement(),
         provider.getObjectType().getElement(), provider.getStackTraceType().getElement(),
-        provider.getStringType().getElement(), provider.getTypeType().getElement()});
+        provider.getStringType().getElement(), provider.getSymbolType().getElement(),
+        provider.getTypeType().getElement()});
     coreUnit.setFunctions(new FunctionElement[] {functionElement(
         "identical",
         provider.getBoolType().getElement(),
