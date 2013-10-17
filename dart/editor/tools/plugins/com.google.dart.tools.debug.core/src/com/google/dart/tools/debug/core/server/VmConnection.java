@@ -1004,7 +1004,7 @@ public class VmConnection {
     if (object.has("result")) {
       JSONObject jsonResult = object.getJSONObject("result");
 
-      result.setResult(VmVariable.createFrom(isolate, jsonResult.optJSONArray("globals")));
+      result.setResult(VmVariable.createFrom(isolate, jsonResult.optJSONArray("globals"), true));
     }
 
     return result;

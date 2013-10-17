@@ -29,7 +29,7 @@ public class VmObject extends VmRef {
 
     // { classId : Integer , fields : FieldList }
     vmObject.classId = obj.optInt("classId");
-    vmObject.fields = VmVariable.createFrom(isolate, obj.optJSONArray("fields"));
+    vmObject.fields = VmVariable.createFrom(isolate, obj.optJSONArray("fields"), true);
 
     return vmObject;
   }

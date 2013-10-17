@@ -51,7 +51,7 @@ public class VmLibrary {
     }
 
     // globals
-    lib.globals = VmVariable.createFrom(isolate, obj.optJSONArray("globals"));
+    lib.globals = VmVariable.createFrom(isolate, obj.optJSONArray("globals"), true);
 
     return lib;
   }

@@ -56,7 +56,7 @@ public class VmCallFrame extends VmRef {
 
     frame.functionName = JsonUtils.getString(object, "functionName");
     frame.location = VmLocation.createFrom(isolate, object.getJSONObject("location"));
-    frame.locals = VmVariable.createFrom(isolate, object.optJSONArray("locals"));
+    frame.locals = VmVariable.createFrom(isolate, object.optJSONArray("locals"), false);
 
     return frame;
   }

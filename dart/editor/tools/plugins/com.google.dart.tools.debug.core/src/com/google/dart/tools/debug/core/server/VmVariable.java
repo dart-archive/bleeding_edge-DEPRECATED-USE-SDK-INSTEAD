@@ -83,7 +83,8 @@ public class VmVariable extends VmRef implements Comparable<VmVariable> {
     return var;
   }
 
-  static List<VmVariable> createFrom(VmIsolate isolate, JSONArray arr) throws JSONException {
+  static List<VmVariable> createFrom(VmIsolate isolate, JSONArray arr, boolean sort)
+      throws JSONException {
     if (arr == null) {
       return null;
     }
@@ -94,7 +95,9 @@ public class VmVariable extends VmRef implements Comparable<VmVariable> {
       variables.add(createFrom(isolate, arr.getJSONObject(i)));
     }
 
-    Collections.sort(variables);
+    if (sort) {
+      Collections.sort(variables);
+    }
 
     return variables;
   }
