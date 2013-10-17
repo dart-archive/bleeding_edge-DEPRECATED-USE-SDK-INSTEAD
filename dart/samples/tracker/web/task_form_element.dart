@@ -10,7 +10,7 @@ import 'dart:html';
 import 'dart:math';
 
 @CustomTag('task-form-element')
-class TaskFormElement extends PolymerElement with ObservableMixin {
+class TaskFormElement extends PolymerElement with Observable {
   bool get applyAuthorStyles => true;
   @observable Task task;
   @observable String titleErrorMessage = '';

@@ -15,7 +15,7 @@ import 'package:polymer/polymer.dart';
  * the user to select 0 or 1 option.
  */
 @CustomTag('selection-element')
-class SelectionElement extends PolymerElement with ObservableMixin {
+class SelectionElement extends PolymerElement with Observable {
   bool get applyAuthorStyles => true;
 
   @observable List<String> values = toObservable([]);

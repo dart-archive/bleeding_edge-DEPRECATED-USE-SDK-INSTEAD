@@ -9,7 +9,7 @@ import 'package:polymer/polymer.dart';
 final appModel = new AppModel._();
 
 @reflectable
-class AppModel extends ObservableBase {
+class AppModel extends Observable {
   final ObservableList<Todo> todos = new ObservableList<Todo>();
   @observable int doneCount;
   @observable int remaining;
@@ -59,7 +59,7 @@ class AppModel extends ObservableBase {
   void clearDone() => todos.removeWhere((t) => t.done);
 }
 
-class Todo extends ObservableBase {
+class Todo extends Observable {
   @observable String task;
   @observable bool done = false;
 

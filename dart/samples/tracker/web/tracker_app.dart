@@ -9,7 +9,7 @@ import 'package:tracker/models.dart';
 import 'package:tracker/seed.dart' as seed;
 
 @CustomTag('tracker-app')
-class TrackerApp extends PolymerElement with ObservableMixin {
+class TrackerApp extends PolymerElement with Observable {
   bool get applyAuthorStyles => true;
   @observable final ObservableList<Task> tasks = toObservable([]);
   @observable Tracker app;

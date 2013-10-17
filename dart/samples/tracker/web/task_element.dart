@@ -8,7 +8,7 @@ import 'package:polymer/polymer.dart';
 import 'package:tracker/models.dart';
 
 @CustomTag('task-element')
-class TaskElement extends PolymerElement with ObservableMixin {
+class TaskElement extends PolymerElement with Observable {
   bool get applyAuthorStyles => true;
   @observable Task task;
   @observable bool usingForm = false;

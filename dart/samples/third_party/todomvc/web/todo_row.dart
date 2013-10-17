@@ -9,7 +9,7 @@ import 'package:polymer/polymer.dart';
 import 'model.dart';
 
 @CustomTag('todo-row')
-class TodoRow extends LIElement with Polymer, ObservableMixin {
+class TodoRow extends LIElement with Polymer, Observable {
   @published Todo todo;
 
   bool get applyAuthorStyles => true;

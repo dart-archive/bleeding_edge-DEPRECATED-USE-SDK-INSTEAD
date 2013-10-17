@@ -11,7 +11,7 @@ final appModel = new SurveyApp();
 /*
  * The model for the SurveyApp.
  */
-class SurveyApp extends ObservableBase {
+class SurveyApp extends Observable {
   @observable String title = '';
   @observable String description = '';
   @observable List<Question> questions;
@@ -23,7 +23,7 @@ class SurveyApp extends ObservableBase {
  * Model for a survey question. [answerOptions] is the list of options from
  * which the user picks one or more [answers].
  */
-class Question extends ObservableBase {
+class Question extends Observable {
   @observable String text;
   @observable String helpText;
   @observable List<String> answerOptions = [];

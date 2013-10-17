@@ -13,7 +13,7 @@ final appModel = new Tracker();
  *
  * [tasks] contains all tasks used in this app.
  */
-class Tracker extends ObservableBase {
+class Tracker extends Observable {
   @observable List<Task> tasks;
 }
 
@@ -26,7 +26,7 @@ class Tracker extends ObservableBase {
  * the view layer to validate a task before assigning a taskID to the task. A
  * task with a taskID is considered saved.
  */
-class Task extends ObservableBase {
+class Task extends Observable {
   static bool TITLE_REQUIRED = true;
   static const MAX_TITLE_LENGTH = 40;
   static const MAX_DESCRIPTION_LENGTH = 200;

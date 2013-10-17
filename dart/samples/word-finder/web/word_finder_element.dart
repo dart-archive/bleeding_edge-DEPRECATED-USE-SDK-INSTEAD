@@ -9,7 +9,7 @@ import 'dart:async';
 import 'package:polymer/polymer.dart';
 
 @CustomTag('word-finder-element')
-class WordFinderElement extends PolymerElement with ObservableMixin {
+class WordFinderElement extends PolymerElement with Observable {
   bool get applyAuthorStyles => true;
 
   @observable List<String> charsList = toObservable(

@@ -13,7 +13,7 @@ import 'package:survey/models.dart';
  * The view for a survey element. Use this to add questions to the survey.
  */
 @CustomTag('survey-element')
-class SurveyElement extends PolymerElement with ObservableMixin {
+class SurveyElement extends PolymerElement with Observable {
   bool get applyAuthorStyles => true;
   @observable SurveyApp app = new SurveyApp();
 

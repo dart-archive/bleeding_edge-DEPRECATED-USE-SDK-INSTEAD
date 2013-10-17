@@ -14,7 +14,7 @@ import 'package:survey/models.dart';
  *  provide answer options to the user, and pick the widget that the user sees.
  */
 @CustomTag('question-element')
-class QuestionElement extends PolymerElement with ObservableMixin {
+class QuestionElement extends PolymerElement with Observable {
   static const String TEXTFIELD_OPT = 'Use a text field';
   static const String ONE_FROM_MANY_OPT = 'Select one from many options';
   static const String MANY_FROM_MANY_OPT = 'Select many from many options';
