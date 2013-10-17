@@ -41,7 +41,9 @@ solar: Skip
 sunflower: Skip
 swarm: Skip
 swipe: Skip
-third_party/todomvc: Skip
+
+[ $runtime == vm || $runtime == d8 || $runtime == jsshell ]
+third_party/todomvc: Skip # uses dart:html
 
 [ $compiler == dart2js && $browser ]
 
