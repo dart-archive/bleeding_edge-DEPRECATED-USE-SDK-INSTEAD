@@ -25,7 +25,7 @@ third_party/todomvc: Pass, Fail, Timeout # Flaky? Issue 12865
 promise_based_test: Skip
 
 [ $system == windows && $runtime == ff ]
-third_party/todomvc: Pass, Timeout # Issue 13260
+third_party/todomvc: Pass, Fail, Timeout # Issue 13260, 14162
 
 [ $system == windows && $runtime == chrome ]
 third_party/todomvc: Pass, Timeout # Issue 13260

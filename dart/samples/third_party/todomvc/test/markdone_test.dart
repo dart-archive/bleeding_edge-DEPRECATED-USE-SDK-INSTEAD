@@ -61,7 +61,7 @@ Node findShadowHost(Node node, ShadowRoot root) {
     var body = query('body');
 
     var label = findWithText(body, 'four (checked)');
-    expect(label is LabelElement, isTrue, reason: 'text is in a label');
+    expect(label is LabelElement, isTrue, reason: 'text is in a label: $label');
 
     var host = findShadowHost(body, label.parentNode);
     var node = host.parent.query('input');
