@@ -197,25 +197,23 @@ public class ResourceLabelProvider implements IStyledLabelProvider, ILabelProvid
           }
 
           // Append the library name to library units.
-          if (DartCoreDebug.EXPERIMENTAL) {
-            ProjectManager projectManager = DartCore.getProjectManager();
-            SourceKind kind = projectManager.getSourceKind((IFile) resource);
+          ProjectManager projectManager = DartCore.getProjectManager();
+          SourceKind kind = projectManager.getSourceKind((IFile) resource);
 
-            if (kind == SourceKind.LIBRARY) {
-              LibraryElement libraryElement = projectManager.getLibraryElementOrNull((IFile) resource);
+          if (kind == SourceKind.LIBRARY) {
+            LibraryElement libraryElement = projectManager.getLibraryElementOrNull((IFile) resource);
 
-              if (libraryElement != null) {
-                String name = libraryElement.getName();
+            if (libraryElement != null) {
+              String name = libraryElement.getName();
 
-                if (name == null || name.length() == 0) {
+              if (name == null || name.length() == 0) {
 
-                  if (libraryElement.getEntryPoint() != null) {
-                    name = FilenameUtils.removeExtension(resource.getName());
-                  }
+                if (libraryElement.getEntryPoint() != null) {
+                  name = FilenameUtils.removeExtension(resource.getName());
                 }
-
-                string.append(" [" + name + "]", StyledString.QUALIFIER_STYLER); //$NON-NLS-1$ //$NON-NLS-2$
               }
+
+              string.append(" [" + name + "]", StyledString.QUALIFIER_STYLER); //$NON-NLS-1$ //$NON-NLS-2$
             }
           }
         }
