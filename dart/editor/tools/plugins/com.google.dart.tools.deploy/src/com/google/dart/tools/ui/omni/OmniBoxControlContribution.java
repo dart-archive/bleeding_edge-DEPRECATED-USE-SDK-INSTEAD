@@ -35,7 +35,6 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -245,8 +244,10 @@ public class OmniBoxControlContribution {
     if (Util.isLinux()) {
       GridDataFactory.fillDefaults().indent(0, 1).grab(true, true).applyTo(text);
     }
-    // Disables the default context menu for native SWT text boxes
-    text.setMenu(new Menu(parent));
+    // As a short-term work-around to failing pastes on some platforms (e.g., at least 64bit GTK)
+    // re-enable context menus so that paste is at least possible (dartbug.com/13693).
+    // Disables the default context menu for native SWT text boxes 
+    // text.setMenu(new Menu(parent));
     return text;
   }
 
