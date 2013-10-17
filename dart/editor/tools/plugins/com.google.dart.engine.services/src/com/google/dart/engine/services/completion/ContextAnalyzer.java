@@ -14,6 +14,7 @@ import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.ast.InstanceCreationExpression;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.PrefixedIdentifier;
+import com.google.dart.engine.ast.PropertyAccess;
 import com.google.dart.engine.ast.SimpleFormalParameter;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.SwitchStatement;
@@ -152,6 +153,20 @@ class ContextAnalyzer extends GeneralizingASTVisitor<Void> {
       }
     }
     return super.visitPrefixedIdentifier(node);
+  }
+
+  @Override
+  public Void visitPropertyAccess(PropertyAccess node) {
+    if (node == completionNode || node.getPropertyName() == completionNode) {
+      Expression target = node.getRealTarget();
+      if (target instanceof Identifier
+          && ((Identifier) target).getBestElement() instanceof ClassElement) {
+        state.prohibitsInstanceReferences();
+      } else {
+        state.prohibitsStaticReferences();
+      }
+    }
+    return super.visitPropertyAccess(node);
   }
 
   @Override

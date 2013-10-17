@@ -1597,6 +1597,31 @@ public class CompletionTests extends CompletionTestCase {
         "1-List");
   }
 
+  public void testCompletion_propertyAccess_whenClassTarget() throws Exception {
+    test(createSource(//
+        "class A {",
+        "  static int FIELD;",
+        "  int field;",
+        "}",
+        "main() {",
+        "  A.!1",
+        "}"), "1+FIELD", "1-field");
+  }
+
+  public void testCompletion_propertyAccess_whenInstanceTarget() throws Exception {
+    test(createSource(//
+        "class A {",
+        "  static int FIELD;",
+        "  int field;",
+        "}",
+        "class B {",
+        "  A a;",
+        "}",
+        "main(B b) {",
+        "  b.a.!1",
+        "}"), "1-FIELD", "1+field");
+  }
+
   public void testCompletion_return_withIdentifierPrefix() throws Exception {
     test("f() { var vvv = 42; return v!1 }", "1+vvv");
   }
