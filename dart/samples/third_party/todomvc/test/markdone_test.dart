@@ -46,7 +46,7 @@ Node findShadowHost(Node node, ShadowRoot root) {
  * This test runs the TodoMVC app, adds a few todos, marks some as done
  * programatically, and clicks on a checkbox to mark others via the UI.
  */
-main() {
+@initMethod init() {
   useHtmlConfiguration();
 
   setUp(() => Polymer.onReady);

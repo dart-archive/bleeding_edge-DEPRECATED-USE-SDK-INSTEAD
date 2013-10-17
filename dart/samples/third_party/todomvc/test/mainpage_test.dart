@@ -15,7 +15,7 @@ import '../web/model.dart';
  * This test runs the TodoMVC app and checks the state of the initial page.
  */
 // TODO(jmesserly): verify some styles (colors, fonts, relative size) as well.
-main() {
+@initMethod _main() {
   useHtmlConfiguration();
 
   setUp(() => Polymer.onReady);

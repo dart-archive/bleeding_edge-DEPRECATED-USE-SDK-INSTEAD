@@ -16,11 +16,12 @@ import 'package:polymer/polymer.dart';
  * `class="selected"`, and other links will have that CSS class removed.
  */
 @CustomTag('router-options')
-class RouterOptions extends PolymerElement {
+class RouterOptions extends UListElement with Polymer, ObservableMixin {
+  factory RouterOptions() => new Element.tag('ul', 'router-options');
 
-  factory RouterOptions() => new Element.tag('router-options');
-
-  RouterOptions.created() : super.created();
+  RouterOptions.created() : super.created() {
+    polymerCreated();
+  }
 
   bool get applyAuthorStyles => true;
   var _sub;
