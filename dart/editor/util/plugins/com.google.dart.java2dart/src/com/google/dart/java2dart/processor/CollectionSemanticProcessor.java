@@ -226,6 +226,10 @@ public class CollectionSemanticProcessor extends SemanticProcessor {
           nameNode.setToken(TokenFactory.token("insert"));
           return null;
         }
+        if (isMethodInClass(node, "set", "java.util.List")) {
+          replaceNode(node, methodInvocation("javaListSet", target, args.get(0), args.get(1)));
+          return null;
+        }
         if (isMethodInClass(node, "add", "java.util.Set")) {
           replaceNode(node, methodInvocation("javaSetAdd", target, args.get(0)));
           return null;

@@ -457,6 +457,23 @@ public class CollectionSemanticProcessorTest extends SemanticProcessorTest {
         "}");
   }
 
+  public void test_List_set() throws Exception {
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "import java.util.List;",
+        "public class Test {",
+        "  public String foo(List<String> items) {",
+        "    return items.set(2, 42);",
+        "  }",
+        "}");
+    runProcessor();
+    assertFormattedSource(//
+        "class Test {",
+        "  String foo(List<String> items) => javaListSet(items, 2, 42);",
+        "}");
+  }
+
   public void test_List_toArray() throws Exception {
     translateSingleFile(
         "// filler filler filler filler filler filler filler filler filler filler",

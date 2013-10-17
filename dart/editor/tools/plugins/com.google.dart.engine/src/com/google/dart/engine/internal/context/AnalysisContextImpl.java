@@ -176,9 +176,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   /**
    * A table mapping the sources known to the context to the information known about the source.
    */
-  private final AnalysisCache cache = new AnalysisCache(
-      AnalysisOptionsImpl.DEFAULT_CACHE_SIZE,
-      new ContextRetentionPolicy());
+  private final AnalysisCache cache;
 
   /**
    * An array containing sources for which data should not be flushed.
@@ -214,6 +212,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   public AnalysisContextImpl() {
     super();
     resultRecorder = new AnalysisTaskResultRecorder();
+    cache = new AnalysisCache(AnalysisOptionsImpl.DEFAULT_CACHE_SIZE, new ContextRetentionPolicy());
   }
 
   @Override

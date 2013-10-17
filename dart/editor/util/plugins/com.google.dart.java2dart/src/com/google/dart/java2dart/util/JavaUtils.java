@@ -219,6 +219,10 @@ public class JavaUtils {
     if (methodBinding == null) {
       return NO_METHOD_BINDING_SIGNATURE;
     }
+    IMethodBinding overriddenMethod = Bindings.findOverriddenMethod(methodBinding, true);
+    if (overriddenMethod != null) {
+      methodBinding = overriddenMethod;
+    }
     return getMethodSignature(methodBinding.getMethodDeclaration(), true);
   }
 

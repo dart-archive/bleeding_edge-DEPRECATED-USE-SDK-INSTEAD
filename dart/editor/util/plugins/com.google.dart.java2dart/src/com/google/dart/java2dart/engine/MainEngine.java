@@ -440,8 +440,6 @@ public class MainEngine {
     unit.getDirectives().add(importDirective("dart:collection", null));
     unit.getDirectives().add(importDirective("java_core.dart", null));
     unit.getDirectives().add(importDirective("java_engine.dart", null));
-    unit.getDirectives().add(importDirective("error.dart", null));
-    unit.getDirectives().add(importDirective("source.dart", null, importShowCombinator("LineInfo")));
     unit.getDirectives().add(importDirective("scanner.dart", null));
     unit.getDirectives().add(
         importDirective("engine.dart", null, importShowCombinator("AnalysisEngine")));

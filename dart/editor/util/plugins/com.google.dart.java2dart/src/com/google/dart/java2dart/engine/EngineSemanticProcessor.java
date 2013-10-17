@@ -31,6 +31,7 @@ import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.ExpressionStatement;
 import com.google.dart.engine.ast.FieldDeclaration;
 import com.google.dart.engine.ast.FormalParameter;
+import com.google.dart.engine.ast.InstanceCreationExpression;
 import com.google.dart.engine.ast.ListLiteral;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.MethodInvocation;
@@ -585,6 +586,25 @@ public class EngineSemanticProcessor extends SemanticProcessor {
             }
           }
         }
+        return null;
+      }
+
+      @Override
+      public Void visitInstanceCreationExpression(InstanceCreationExpression node) {
+        super.visitInstanceCreationExpression(node);
+        Object binding = context.getNodeBinding(node);
+        if (binding instanceof IMethodBinding) {
+          IMethodBinding methodBinding = (IMethodBinding) binding;
+          // new IntList(5) -> new List()
+          if (isMethodInClass2(
+              methodBinding,
+              "<init>(int)",
+              "com.google.dart.engine.utilities.collection.IntList")) {
+            node.getArgumentList().getArguments().clear();
+            return null;
+          }
+        }
+        // done
         return null;
       }
 
