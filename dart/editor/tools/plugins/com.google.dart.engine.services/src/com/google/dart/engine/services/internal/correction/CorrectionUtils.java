@@ -348,9 +348,17 @@ public class CorrectionUtils {
     if (library == null) {
       return null;
     }
-    // TODO(scheglov) may be replace with some API for this
+    return getExportNamespace(library).get(name);
+  }
+
+  /**
+   * TODO(scheglov) may be replace with some API for this
+   * 
+   * @return the export namespace of the given {@link LibraryElement}.
+   */
+  public static Map<String, Element> getExportNamespace(LibraryElement library) {
     Namespace namespace = new NamespaceBuilder().createExportNamespace(library);
-    return namespace.getDefinedNames().get(name);
+    return namespace.getDefinedNames();
   }
 
   /**

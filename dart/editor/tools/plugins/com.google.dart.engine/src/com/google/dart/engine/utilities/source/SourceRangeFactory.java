@@ -15,6 +15,7 @@ package com.google.dart.engine.utilities.source;
 
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.ShowElementCombinator;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.scanner.Token;
 
@@ -28,7 +29,7 @@ import java.util.List;
  */
 public class SourceRangeFactory {
   /**
-   * @return the name {@link SourceRange} of the given {@link Element};
+   * @return the name {@link SourceRange} of the given {@link Element}.
    */
   public static SourceRange rangeElementName(Element element) {
     return rangeStartLength(element.getNameOffset(), element.getDisplayName().length());
@@ -184,6 +185,13 @@ public class SourceRangeFactory {
     ASTNode first = nodes.get(0);
     ASTNode last = nodes.get(nodes.size() - 1);
     return rangeStartEnd(first, last);
+  }
+
+  /**
+   * @return the name {@link SourceRange} of the given {@link ShowElementCombinator}.
+   */
+  public static SourceRange rangeShowCombinator(ShowElementCombinator element) {
+    return rangeStartEnd(element.getOffset(), element.getEnd());
   }
 
   /**

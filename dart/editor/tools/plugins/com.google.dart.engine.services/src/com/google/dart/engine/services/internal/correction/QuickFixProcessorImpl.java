@@ -56,9 +56,11 @@ import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
+import com.google.dart.engine.element.NamespaceCombinator;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
+import com.google.dart.engine.element.ShowElementCombinator;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.element.visitor.RecursiveElementVisitor;
 import com.google.dart.engine.error.AnalysisError;
@@ -100,6 +102,7 @@ import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeEn
 import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeEndStart;
 import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeError;
 import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeNode;
+import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeShowCombinator;
 import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeStartLength;
 import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeStartStart;
 import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeToken;
@@ -110,6 +113,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.io.File;
 import java.net.URI;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -861,13 +865,8 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
     if (name.startsWith("_")) {
       return;
     }
-    // may be there is existing import, but it is with prefix and we don't use this prefix
+    // may be there is an existing import, but it is with prefix and we don't use this prefix
     for (ImportElement imp : unitLibraryElement.getImports()) {
-      // prepare prefix
-      PrefixElement prefix = imp.getPrefix();
-      if (prefix == null) {
-        continue;
-      }
       // prepare element
       LibraryElement libraryElement = imp.getImportedLibrary();
       Element element = CorrectionUtils.getExportedElement(libraryElement, name);
@@ -880,13 +879,40 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
       if (element.getKind() != kind) {
         continue;
       }
-      // insert prefix
-      SourceRange range = rangeStartLength(node, 0);
-      addReplaceEdit(range, prefix.getDisplayName() + ".");
-      addUnitCorrectionProposal(
-          CorrectionKind.QF_IMPORT_LIBRARY_PREFIX,
-          libraryElement.getDisplayName(),
-          prefix.getDisplayName());
+      // may be apply prefix
+      PrefixElement prefix = imp.getPrefix();
+      if (prefix != null) {
+        SourceRange range = rangeStartLength(node, 0);
+        addReplaceEdit(range, prefix.getDisplayName() + ".");
+        addUnitCorrectionProposal(
+            CorrectionKind.QF_IMPORT_LIBRARY_PREFIX,
+            libraryElement.getDisplayName(),
+            prefix.getDisplayName());
+        continue;
+      }
+      // may be update "show" directive
+      NamespaceCombinator[] combinators = imp.getCombinators();
+      if (combinators.length == 1 && combinators[0] instanceof ShowElementCombinator) {
+        ShowElementCombinator showCombinator = (ShowElementCombinator) combinators[0];
+        // prepare new set of names to show
+        Set<String> showNames = Sets.newTreeSet();
+        Collections.addAll(showNames, showCombinator.getShownNames());
+        showNames.add(name);
+        // prepare library name - unit name or 'dart:name' for SDK library
+        String libraryName = libraryElement.getDefiningCompilationUnit().getDisplayName();
+        if (libraryElement.isInSdk()) {
+          libraryName = imp.getUri();
+        }
+        // update library
+        String newShowCode = "show " + StringUtils.join(showNames, ", ");
+        addReplaceEdit(rangeShowCombinator(showCombinator), newShowCode);
+        addUnitCorrectionProposal(
+            unitLibraryElement.getSource(),
+            CorrectionKind.QF_IMPORT_LIBRARY_SHOW,
+            libraryName);
+        // we support only one import without prefix
+        return;
+      }
     }
     // check SDK libraries
     AnalysisContext context = unitLibraryElement.getContext();

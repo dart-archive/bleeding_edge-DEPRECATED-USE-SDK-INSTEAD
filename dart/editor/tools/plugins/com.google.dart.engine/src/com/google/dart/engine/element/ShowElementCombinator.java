@@ -20,6 +20,21 @@ package com.google.dart.engine.element;
  * @coverage dart.engine.element
  */
 public interface ShowElementCombinator extends NamespaceCombinator {
+
+  /**
+   * Return the offset of the character immediately following the last character of this node.
+   * 
+   * @return the offset of the character just past this node
+   */
+  public int getEnd();
+
+  /**
+   * Return the offset of the 'show' keyword of this element.
+   * 
+   * @return the offset of the 'show' keyword of this element
+   */
+  public int getOffset();
+
   /**
    * Return an array containing the names that are to be made visible in the importing library if
    * they are defined in the imported library.

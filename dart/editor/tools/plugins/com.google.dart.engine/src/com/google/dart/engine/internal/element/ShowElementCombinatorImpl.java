@@ -30,6 +30,16 @@ public class ShowElementCombinatorImpl implements ShowElementCombinator {
   private String[] shownNames = StringUtilities.EMPTY_ARRAY;
 
   /**
+   * The offset of the character immediately following the last character of this node.
+   */
+  private int end = -1;
+
+  /**
+   * The offset of the 'show' keyword of this element.
+   */
+  private int offset;
+
+  /**
    * Initialize a newly created combinator.
    */
   public ShowElementCombinatorImpl() {
@@ -37,8 +47,32 @@ public class ShowElementCombinatorImpl implements ShowElementCombinator {
   }
 
   @Override
+  public int getEnd() {
+    return end;
+  }
+
+  @Override
+  public int getOffset() {
+    return offset;
+  }
+
+  @Override
   public String[] getShownNames() {
     return shownNames;
+  }
+
+  /**
+   * Set the the offset of the character immediately following the last character of this node.
+   */
+  public void setEnd(int endOffset) {
+    this.end = endOffset;
+  }
+
+  /**
+   * Sets the offset of the 'show' keyword of this directive.
+   */
+  public void setOffset(int offset) {
+    this.offset = offset;
   }
 
   /**

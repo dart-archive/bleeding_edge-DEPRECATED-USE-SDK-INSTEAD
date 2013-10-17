@@ -389,6 +389,8 @@ public class LibraryResolver {
         combinators.add(hide);
       } else {
         ShowElementCombinatorImpl show = new ShowElementCombinatorImpl();
+        show.setOffset(combinator.getOffset());
+        show.setEnd(combinator.getEnd());
         show.setShownNames(getIdentifiers(((ShowCombinator) combinator).getShownNames()));
         combinators.add(show);
       }

@@ -16,6 +16,7 @@ package com.google.dart.engine.utilities.source;
 import com.google.common.collect.ImmutableList;
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.ShowElementCombinator;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.scanner.Token;
 
@@ -192,6 +193,14 @@ public class SourceRangeFactoryTest extends TestCase {
     List<ASTNode> nodes = ImmutableList.of();
     SourceRange range = SourceRangeFactory.rangeNodes(nodes);
     assertRange(range, 0, 0);
+  }
+
+  public void test_rangeShowCombinator() throws Exception {
+    ShowElementCombinator element = mock(ShowElementCombinator.class);
+    when(element.getOffset()).thenReturn(5);
+    when(element.getEnd()).thenReturn(20);
+    SourceRange range = SourceRangeFactory.rangeShowCombinator(element);
+    assertRange(range, 5, 20 - 5);
   }
 
   public void test_rangeStartEnd_IN() throws Exception {
