@@ -31,7 +31,9 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.text.BadLocationException;
+import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.IDocumentListener;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.wst.sse.ui.internal.reconcile.validator.ISourceValidator;
 import org.eclipse.wst.validation.internal.core.ValidationException;
@@ -55,6 +57,16 @@ public class EmbeddedDartReconcilerHook implements ISourceValidator, IValidator 
   private IDocument document;
   private int partOffset;
   private int partLength;
+  private IDocumentListener documentListener = new IDocumentListener() {
+    @Override
+    public void documentAboutToBeChanged(DocumentEvent event) {
+      partLength = -1;
+    }
+
+    @Override
+    public void documentChanged(DocumentEvent event) {
+    }
+  };
 
   public EmbeddedDartReconcilerHook() {
   }
@@ -89,11 +101,13 @@ public class EmbeddedDartReconcilerHook implements ISourceValidator, IValidator 
     dartProject = DartCore.getProjectManager().getProject(project);
     analysisContext = dartProject.getContext(resource);
     DartReconcilerManager.getInstance().reconcileWith(document, this);
+    document.addPrenotifiedDocumentListener(documentListener);
   }
 
   @Override
   public void disconnect(IDocument document) {
     // ISourceValidator
+    document.removePrenotifiedDocumentListener(documentListener);
     DartReconcilerManager.getInstance().reconcileWith(document, null);
     this.document = null;
   }
