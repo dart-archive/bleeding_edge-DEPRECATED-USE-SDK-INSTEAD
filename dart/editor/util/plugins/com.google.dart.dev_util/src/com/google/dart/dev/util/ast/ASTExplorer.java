@@ -619,7 +619,7 @@ public class ASTExplorer extends ViewPart implements AnalysisErrorListener {
   private CompilationUnit getCompilationUnit() {
     IEditorPart editor = getActiveEditor();
     if (editor instanceof CompilationUnitEditor) {
-      CompilationUnit unit = ((CompilationUnitEditor) editor).getCompilationUnit();
+      CompilationUnit unit = ((CompilationUnitEditor) editor).getInputUnit();
       if (unit != null) {
         return unit;
       }

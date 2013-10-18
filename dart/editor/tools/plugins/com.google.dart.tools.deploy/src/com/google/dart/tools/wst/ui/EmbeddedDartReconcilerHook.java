@@ -33,7 +33,7 @@ public class EmbeddedDartReconcilerHook implements DartReconcilingEditor {
   }
 
   @Override
-  public void applyCompilationUnitElement(CompilationUnit unit) {
+  public void applyResolvedUnit(CompilationUnit unit) {
   }
 
   @Override

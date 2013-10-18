@@ -43,7 +43,7 @@ public class DartOutlineElementProvider implements IInformationProvider,
     if (fEditor == null) {
       return null;
     }
-    return fEditor.getParsedUnit();
+    return fEditor.getInputUnit();
   }
 
   @Override

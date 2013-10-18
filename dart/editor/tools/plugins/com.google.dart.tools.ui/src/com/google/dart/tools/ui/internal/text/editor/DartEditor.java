@@ -1727,7 +1727,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
   private IFile inputResourceFile;
 
   private File inputJavaFile;
-  private volatile com.google.dart.engine.ast.CompilationUnit parsedUnit;
   private volatile com.google.dart.engine.ast.CompilationUnit resolvedUnit;
   private SourceRange textSelectionRange;
 
@@ -1959,7 +1958,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
   }
 
   @Override
-  public void applyCompilationUnitElement(com.google.dart.engine.ast.CompilationUnit unit) {
+  public void applyResolvedUnit(com.google.dart.engine.ast.CompilationUnit unit) {
     if (isDisposed()) {
       return;
     }
@@ -1979,43 +1978,20 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
         if (isDisposed()) {
           return;
         }
-        if (resolvedUnit != null) {
-          applyParsedUnitAndSelection(resolvedUnit, true, null);
+        // update Outline
+        if (resolvedUnit != null && fOutlinePage != null) {
+          if (fOutlinePage != null) {
+            fOutlinePage.setInput(resolvedUnit);
+          }
+          applySelectionToOutline();
         }
+        // update selection listeners
         fireDartSelectionListeners();
         // update occurrences
         fForcedMarkOccurrencesSelection = getSelectionProvider().getSelection();
         updateOccurrenceAnnotations((ITextSelection) fForcedMarkOccurrencesSelection, resolvedUnit);
       }
     });
-  }
-
-  /**
-   * This method is invoked periodically by {@link DartReconciler} to inform about underlying
-   * {@link com.google.dart.engine.ast.CompilationUnit} or selection change.
-   */
-  public void applyParsedUnitAndSelection(com.google.dart.engine.ast.CompilationUnit unit,
-      boolean newUnit, Point selectionRange) {
-    if (isDisposed()) {
-      return;
-    }
-    parsedUnit = unit;
-    DartOutlinePage outlinePage = fOutlinePage;
-    // may be update Outline
-    if (newUnit && outlinePage != null) {
-      outlinePage.setInput(unit);
-    }
-    // these notifications are asynchronous, so actual selection may be changed
-    if (!newUnit) {
-      selectionRange = getDocumentSelectionRange();
-    }
-    // apply selection
-    if (selectionRange != null) {
-      LightNodeElement element = computeHighlightRangeSourceElement(unit, selectionRange.x);
-      if (element != null && outlinePage != null) {
-        outlinePage.select(element);
-      }
-    }
   }
 
   /**
@@ -2135,7 +2111,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
 
     super.dispose();
 
-    parsedUnit = null;
     resolvedUnit = null;
   }
 
@@ -2317,13 +2292,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     return fCachedSelectedRange;
   }
 
-  public com.google.dart.engine.ast.CompilationUnit getCompilationUnit() {
-    if (resolvedUnit != null) {
-      return resolvedUnit;
-    }
-    return parsedUnit;
-  }
-
   // TODO(scheglov)
   public Point getDocumentSelectionRange() {
     ISourceViewer sourceViewer = getSourceViewer();
@@ -2417,10 +2385,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
   @Override
   public int getOrientation() {
     return SWT.LEFT_TO_RIGHT; // Dart editors are always left to right by default
-  }
-
-  public com.google.dart.engine.ast.CompilationUnit getParsedUnit() {
-    return parsedUnit;
   }
 
   public IPreferenceStore getPreferences() {
@@ -3909,7 +3873,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     updateOccurrenceAnnotations((ITextSelection) fForcedMarkOccurrencesSelection, getInputUnit());
     // TODO(scheglov)
     LightNodeElement element = computeHighlightRangeSourceElement(
-        parsedUnit,
+        resolvedUnit,
         ((ITextSelection) fForcedMarkOccurrencesSelection).getOffset());
 //      if (getPreferenceStore().getBoolean(PreferenceConstants.EDITOR_SYNC_OUTLINE_ON_CURSOR_MOVE)) {
 //        synchronizeOutlinePage(element);
@@ -3938,7 +3902,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     if (page == null) {
       return;
     }
-    page.setInput(parsedUnit);
+    page.setInput(resolvedUnit);
   }
 
   /**

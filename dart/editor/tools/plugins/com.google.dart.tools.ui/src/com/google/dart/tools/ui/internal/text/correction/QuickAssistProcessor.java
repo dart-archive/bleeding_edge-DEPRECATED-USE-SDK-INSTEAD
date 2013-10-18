@@ -132,7 +132,7 @@ public class QuickAssistProcessor {
    */
   private void addUnresolvedProposals() throws Exception {
     // prepare parsed CompilationUnit
-    CompilationUnit unit = editor.getParsedUnit();
+    CompilationUnit unit = editor.getInputUnit();
     if (unit == null) {
       return;
     }

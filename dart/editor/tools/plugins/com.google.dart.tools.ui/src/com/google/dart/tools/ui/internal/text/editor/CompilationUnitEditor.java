@@ -1226,8 +1226,8 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
   }
 
   @Override
-  public void applyCompilationUnitElement(com.google.dart.engine.ast.CompilationUnit unit) {
-    super.applyCompilationUnitElement(unit);
+  public void applyResolvedUnit(com.google.dart.engine.ast.CompilationUnit unit) {
+    super.applyResolvedUnit(unit);
     if (unit != null) {
       // notify listeners
       {

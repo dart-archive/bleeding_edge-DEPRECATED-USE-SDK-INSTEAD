@@ -137,7 +137,7 @@ public class DartReconcilingStrategyTest extends TestCase {
     }
 
     @Override
-    public void applyCompilationUnitElement(CompilationUnit unit) {
+    public void applyResolvedUnit(CompilationUnit unit) {
       appliedUnit = unit;
     }
 

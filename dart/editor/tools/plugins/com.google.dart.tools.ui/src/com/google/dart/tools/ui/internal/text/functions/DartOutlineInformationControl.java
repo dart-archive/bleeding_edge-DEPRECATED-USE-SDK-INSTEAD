@@ -234,7 +234,7 @@ public class DartOutlineInformationControl extends PopupDialog implements IInfor
     viewer.addFilter(new NameFilter());
     viewer.setContentProvider(LightNodeElements.newTreeContentProvider(editor));
     viewer.setLabelProvider(LightNodeElements.newLabelProvider());
-    viewer.setInput(editor.getParsedUnit());
+    viewer.setInput(editor.getInputUnit());
     selectElementEnclosingEditorSelection();
     // close on ESC
     tree.addKeyListener(new KeyAdapter() {

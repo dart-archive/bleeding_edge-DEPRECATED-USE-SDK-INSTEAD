@@ -45,7 +45,7 @@ public interface DartReconcilingEditor {
    * 
    * @param unit the unit or {@code null} if none
    */
-  void applyCompilationUnitElement(CompilationUnit unit);
+  void applyResolvedUnit(CompilationUnit unit);
 
   /**
    * Answer the analysis context to be used when resolving the source displayed in the editor.

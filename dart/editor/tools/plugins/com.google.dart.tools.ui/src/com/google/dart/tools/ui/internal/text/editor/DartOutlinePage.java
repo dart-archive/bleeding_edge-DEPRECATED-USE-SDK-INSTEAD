@@ -323,6 +323,7 @@ public class DartOutlinePage extends Page implements IContentOutlinePage {
   public void select(LightNodeElement element) {
     if (viewer != null) {
       setSelection(new StructuredSelection(element));
+      viewer.reveal(element);
     }
   }
 

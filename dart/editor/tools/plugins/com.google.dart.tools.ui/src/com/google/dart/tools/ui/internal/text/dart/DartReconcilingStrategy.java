@@ -128,7 +128,7 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
     @Override
     public void documentChanged(DocumentEvent event) {
       sourceChangedTime = System.currentTimeMillis();
-      editor.applyCompilationUnitElement(null);
+      editor.applyResolvedUnit(null);
 
       // Start analysis immediately if "." pressed to improve code completion response
 
@@ -209,7 +209,7 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
           // TODO (danrubel): Push this into background analysis
           // once AnalysisWorker notifies listeners when units are parsed before resolved
           CompilationUnit unit = context.parseCompilationUnit(source);
-          editor.applyCompilationUnitElement(unit);
+          editor.applyResolvedUnit(unit);
           performAnalysisInBackground();
         }
       } catch (AnalysisException e) {
@@ -347,7 +347,7 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
    */
   private void applyAnalysisResult(CompilationUnit unit) {
     if (notifyContextTime >= sourceChangedTime && unit != null) {
-      editor.applyCompilationUnitElement(unit);
+      editor.applyResolvedUnit(unit);
     }
   }
 
