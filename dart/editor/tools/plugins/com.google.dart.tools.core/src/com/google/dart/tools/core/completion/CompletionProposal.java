@@ -634,6 +634,9 @@ public class CompletionProposal {
     return new InternalCompletionProposal(kind, completionOffset);
   }
 
+  public void applyPartitionOffset(int partitionOffset) {
+  }
+
   /**
    * Finds the method parameter names. This information is relevant to method reference (and method
    * declaration proposals). Returns <code>null</code> if not available or not relevant.

@@ -15,6 +15,8 @@ package com.google.dart.engine.services.completion;
 
 public interface CompletionProposal {
 
+  void applyPartitionOffset(int partitionOffset);
+
   String getCompletion();
 
   String getDeclaringType();

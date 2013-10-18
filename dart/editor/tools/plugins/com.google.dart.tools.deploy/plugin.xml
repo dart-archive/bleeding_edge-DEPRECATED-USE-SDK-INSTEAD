@@ -715,8 +715,8 @@
       target="org.eclipse.wst.html.SCRIPT,org.eclipse.wst.html.SCRIPT.EVENTHANDLER" />
     <provisionalConfiguration
       type="characterpairmatcher"
-      class="org.eclipse.wst.jsdt.web.ui.internal.text.JsDocumentRegionEdgeMatcher"
-      target="org.eclipse.wst.html.SCRIPT,org.eclipse.wst.html.SCRIPT.EVENTHANDLER" />
+      class="com.google.dart.tools.wst.ui.text.DartDocumentRegionEdgeMatcher"
+      target="org.eclipse.wst.html.SCRIPT.type.APPLICATION/DART,org.eclipse.wst.html.SCRIPT.EVENTHANDLER.type.APPLICATION/DART,org.eclipse.wst.html.SCRIPT,org.eclipse.wst.html.SCRIPT.EVENTHANDLER" />
       -->
     <provisionalConfiguration
       type="autoeditstrategy"
@@ -757,6 +757,18 @@
         </partitionType>
       </contentType>
     </proposalComputer>
+  </extension>
+
+  <extension point="org.eclipse.wst.sse.ui.sourcevalidation">
+    <validator
+      scope="partial"
+      class="com.google.dart.tools.wst.ui.EmbeddedDartReconcilerHook"
+      id="com.google.dart.tools.wst.ui.EmbeddedDartReconcilerHook">
+      <contentTypeIdentifier id="org.eclipse.wst.html.core.htmlsource">
+        <partitionType id="org.eclipse.wst.html.SCRIPT.type.APPLICATION/DART"/>
+        <partitionType id="org.eclipse.wst.html.SCRIPT.EVENTHANDLER.type.APPLICATION/DART"/>
+      </contentTypeIdentifier>
+    </validator>
   </extension>
 
 </plugin>

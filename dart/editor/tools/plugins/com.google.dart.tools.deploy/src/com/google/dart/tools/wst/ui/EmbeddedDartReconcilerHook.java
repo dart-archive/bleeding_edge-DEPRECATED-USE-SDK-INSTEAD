@@ -15,51 +15,154 @@ package com.google.dart.tools.wst.ui;
 
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.context.AnalysisException;
+import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.Project;
-import com.google.dart.tools.ui.internal.text.dart.DartReconcilingEditor;
-import com.google.dart.tools.ui.internal.text.dart.DartReconcilingStrategy;
+import com.google.dart.tools.core.internal.util.ResourceUtil;
+import com.google.dart.tools.deploy.Activator;
 
-import org.eclipse.swt.events.DisposeListener;
-import org.eclipse.swt.events.FocusListener;
+import org.eclipse.core.filebuffers.FileBuffers;
+import org.eclipse.core.filebuffers.ITextFileBuffer;
+import org.eclipse.core.filebuffers.ITextFileBufferManager;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.jface.text.BadLocationException;
+import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.IRegion;
+import org.eclipse.wst.sse.ui.internal.reconcile.validator.ISourceValidator;
+import org.eclipse.wst.validation.internal.core.ValidationException;
+import org.eclipse.wst.validation.internal.provisional.core.IReporter;
+import org.eclipse.wst.validation.internal.provisional.core.IValidationContext;
+import org.eclipse.wst.validation.internal.provisional.core.IValidator;
 
-public class EmbeddedDartReconcilerHook implements DartReconcilingEditor {
+import java.io.File;
 
-  @Override
-  public void addViewerDisposeListener(DisposeListener listener) {
+/**
+ * Attempt to bridge the impedance mismatch between Dart's reconciler and that of WST.
+ */
+@SuppressWarnings("restriction")
+public class EmbeddedDartReconcilerHook implements ISourceValidator, IValidator {
+
+  private File file;
+  private AnalysisContext analysisContext;
+  private Project dartProject;
+  private Source source;
+  private CompilationUnit resolvedUnit;
+  private IDocument document;
+  private int partOffset;
+  private int partLength;
+
+  public EmbeddedDartReconcilerHook() {
   }
 
   @Override
-  public void addViewerFocusListener(FocusListener listener) {
+  public void cleanup(IReporter reporter) {
+    // IValidator -- not needed
   }
 
   @Override
-  public void applyResolvedUnit(CompilationUnit unit) {
+  public void connect(IDocument document) {
+    // ISourceValidator
+    this.document = document;
+    ITextFileBufferManager fileManager = FileBuffers.getTextFileBufferManager();
+    ITextFileBuffer fileBuffer = fileManager.getTextFileBuffer(document);
+    try {
+      file = fileBuffer.getFileStore().toLocalFile(0, null);
+    } catch (CoreException ex) {
+      Activator.logError(ex);
+      return;
+    }
+    IResource resource = ResourceUtil.getResource(file);
+    if (resource == null) {
+      // TODO(messick) How to handle html files in packages?
+      this.document = null;
+      this.file = null;
+      this.dartProject = null;
+      this.analysisContext = null;
+      return;
+    }
+    IProject project = resource.getProject();
+    dartProject = DartCore.getProjectManager().getProject(project);
+    analysisContext = dartProject.getContext(resource);
+    DartReconcilerManager.getInstance().reconcileWith(document, this);
   }
 
   @Override
+  public void disconnect(IDocument document) {
+    // ISourceValidator
+    DartReconcilerManager.getInstance().reconcileWith(document, null);
+    this.document = null;
+  }
+
+  public IDocument getDocument() {
+    return document;
+  }
+
   public AnalysisContext getInputAnalysisContext() {
-    return null;
+    // DartReconcilingEditor
+    return analysisContext;
   }
 
-  @Override
   public Project getInputProject() {
-    return null;
+    // DartReconcilingEditor
+    return dartProject;
   }
 
-  @Override
   public Source getInputSource() {
-    return null;
+    // DartReconcilingEditor
+    return source;
+  }
+
+  public CompilationUnit getResolvedUnit(int offset, int length, IDocument document) {
+    if (resolvedUnit != null && partOffset == offset && partLength == length) {
+      return resolvedUnit;
+    }
+    if (this.document == null) {
+      connect(document);
+    }
+    resetSource(offset, length);
+    return resolvedUnit;
   }
 
   @Override
-  public String getTitle() {
-    return null;
+  public void validate(IRegion dirtyRegion, IValidationContext helper, IReporter reporter) {
+    // ISourceValidator
+    if (file == null) {
+      return;
+    }
+    int start = dirtyRegion.getOffset();
+    int length = dirtyRegion.getLength();
+    resetSource(start, length);
   }
 
   @Override
-  public void setDartReconcilingStrategy(DartReconcilingStrategy dartReconcilingStrategy) {
-    // ignored
+  public void validate(IValidationContext helper, IReporter reporter) throws ValidationException {
+    // IValidator -- hopefully, not used
   }
 
+  private void resetSource(int offset, int length) {
+    if (document != null && analysisContext != null) {
+      try {
+        String code = document.get(offset, length);
+        File tempFile = new File(file.getParentFile(), file.getName() + offset + ".dart");
+        source = new FileBasedSource(analysisContext.getSourceFactory().getContentCache(), tempFile);
+        analysisContext.setContents(source, code);
+        LibraryElement library = analysisContext.computeLibraryElement(source);
+        CompilationUnit libraryUnit = analysisContext.resolveCompilationUnit(source, library);
+        resolvedUnit = libraryUnit;
+        partOffset = offset;
+        partLength = length;
+      } catch (BadLocationException ex) {
+        Activator.logError(ex);
+        return;
+      } catch (AnalysisException ex) {
+        Activator.logError(ex);
+        return;
+      }
+    }
+  }
 }

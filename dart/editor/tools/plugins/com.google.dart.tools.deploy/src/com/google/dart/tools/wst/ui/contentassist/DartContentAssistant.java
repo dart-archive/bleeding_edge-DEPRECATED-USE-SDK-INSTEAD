@@ -22,7 +22,8 @@ import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.ui.internal.text.dart.DartCompletionProposalComputer;
 import com.google.dart.tools.ui.text.dart.ContentAssistInvocationContext;
 import com.google.dart.tools.ui.text.dart.DartContentAssistInvocationContext;
-import com.google.dart.tools.wst.ui.style.LineStyleProviderForDart;
+import com.google.dart.tools.wst.ui.DartReconcilerManager;
+import com.google.dart.tools.wst.ui.EmbeddedDartReconcilerHook;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.text.ITextViewer;
@@ -35,19 +36,24 @@ import org.eclipse.wst.sse.ui.contentassist.ICompletionProposalComputer;
 
 import java.util.List;
 
+/**
+ * Content assist for Dart code embedded in HTML.
+ */
 @SuppressWarnings("restriction")
 public class DartContentAssistant implements ICompletionProposalComputer {
 
   private static class HtmlDartCompletionContext extends DartContentAssistInvocationContext {
 
-    CompilationUnit unit;
-    AnalysisContext context;
+    private CompilationUnit unit;
+    private AnalysisContext context;
+    private int partitionOffset;
 
     HtmlDartCompletionContext(CompilationUnit unit, int offset, ITextViewer viewer,
-        AnalysisContext context) {
+        AnalysisContext context, int partitionOffset) {
       super(viewer, offset, null);
       this.unit = unit;
       this.context = context;
+      this.partitionOffset = partitionOffset;
     }
 
     @Override
@@ -56,8 +62,25 @@ public class DartContentAssistant implements ICompletionProposalComputer {
           SearchEngineFactory.createSearchEngine(DartCore.getProjectManager().getIndex()),
           context,
           unit,
-          getInvocationOffset(),
+          super.getInvocationOffset(),
           0);
+    }
+
+    /**
+     * The invocation offset needs to be adjusted to account for completion analysis beginning at
+     * the start of the Dart script partition, not the beginning of the file.
+     */
+    @Override
+    public int getInvocationOffset() {
+      return super.getInvocationOffset() + partitionOffset;
+    }
+
+    /**
+     * Return the offset of the beginning of the Dart script partition.
+     */
+    @Override
+    public int getPartitionOffset() {
+      return partitionOffset;
     }
   }
 
@@ -95,13 +118,21 @@ public class DartContentAssistant implements ICompletionProposalComputer {
     IStructuredDocument document = (IStructuredDocument) context.getDocument();
     int offset = context.getInvocationOffset();
     IStructuredDocumentRegion region = document.getRegionAtCharacterOffset(offset);
-    offset -= region.getStartOffset();
-    CompilationUnit unit = LineStyleProviderForDart.LINE_HACK_UNIT;
-    AnalysisContext analysisContext = LineStyleProviderForDart.LINE_HACK_CONTEXT;
-    if (!DartCoreDebug.EXPERIMENTAL || unit == null) {
-      return new ContentAssistInvocationContext(viewer, offset);
+    int delta = offset - region.getStartOffset();
+    int length = region.getLength();
+    if (!DartCoreDebug.EXPERIMENTAL) {
+      return new ContentAssistInvocationContext(viewer, delta);
     }
-    return new HtmlDartCompletionContext(unit, offset, viewer, analysisContext);
+    EmbeddedDartReconcilerHook reconciler = DartReconcilerManager.getInstance().reconcilerFor(
+        document);
+    if (reconciler != null) {
+      CompilationUnit unit = reconciler.getResolvedUnit(region.getStartOffset(), length, document);
+      AnalysisContext ac = reconciler.getInputAnalysisContext();
+      if (unit != null) {
+        return new HtmlDartCompletionContext(unit, delta, viewer, ac, region.getStartOffset());
+      }
+    }
+    return new ContentAssistInvocationContext(viewer, delta);
   }
 
 }

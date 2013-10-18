@@ -43,6 +43,11 @@ public class CompletionProposalImpl implements CompletionProposal {
   private int relevance = 1;
 
   @Override
+  public void applyPartitionOffset(int partitionOffset) {
+    location += partitionOffset;
+  }
+
+  @Override
   public String getCompletion() {
     return completion;
   }

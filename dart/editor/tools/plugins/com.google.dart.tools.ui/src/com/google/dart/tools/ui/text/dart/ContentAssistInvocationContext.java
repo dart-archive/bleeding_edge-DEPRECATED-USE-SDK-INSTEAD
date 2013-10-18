@@ -185,7 +185,7 @@ public class ContentAssistInvocationContext {
    * 
    * @return the invocation offset
    */
-  public final int getInvocationOffset() {
+  public int getInvocationOffset() {
     return fOffset;
   }
 
@@ -194,7 +194,7 @@ public class ContentAssistInvocationContext {
    * 
    * @return the viewer, possibly <code>null</code>
    */
-  public final ITextViewer getViewer() {
+  public ITextViewer getViewer() {
     return fViewer;
   }
 

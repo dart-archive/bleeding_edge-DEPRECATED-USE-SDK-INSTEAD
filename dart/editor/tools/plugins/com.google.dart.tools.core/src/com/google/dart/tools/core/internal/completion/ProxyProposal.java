@@ -32,6 +32,11 @@ public class ProxyProposal extends CompletionProposal {
   }
 
   @Override
+  public void applyPartitionOffset(int partitionOffset) {
+    proposal.applyPartitionOffset(partitionOffset);
+  }
+
+  @Override
   public char[][] findParameterNames(IProgressMonitor monitor) {
     return getParameterNames();
   }

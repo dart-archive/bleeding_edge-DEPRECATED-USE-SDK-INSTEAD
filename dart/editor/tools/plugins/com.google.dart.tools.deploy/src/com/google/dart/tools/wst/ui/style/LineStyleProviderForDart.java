@@ -16,14 +16,7 @@ package com.google.dart.tools.wst.ui.style;
 import com.google.common.collect.Maps;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
-import com.google.dart.engine.context.AnalysisException;
-import com.google.dart.engine.element.LibraryElement;
-import com.google.dart.engine.source.FileBasedSource;
-import com.google.dart.engine.source.Source;
-import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.analysis.model.Project;
-import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor.EclipsePreferencesAdapter;
 import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
@@ -35,17 +28,13 @@ import com.google.dart.tools.ui.text.DartPartitions;
 import com.google.dart.tools.ui.text.DartTextTools;
 import com.google.dart.tools.ui.text.IColorManager;
 import com.google.dart.tools.ui.text.IColorManagerExtension;
+import com.google.dart.tools.wst.ui.DartReconcilerManager;
+import com.google.dart.tools.wst.ui.EmbeddedDartReconcilerHook;
 
-import org.eclipse.core.filebuffers.FileBuffers;
-import org.eclipse.core.filebuffers.ITextFileBuffer;
-import org.eclipse.core.filebuffers.ITextFileBufferManager;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ProjectScope;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.PreferenceConverter;
-import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocumentExtension3;
 import org.eclipse.jface.text.IDocumentPartitioner;
 import org.eclipse.jface.text.ITypedRegion;
@@ -62,7 +51,6 @@ import org.eclipse.wst.sse.ui.internal.provisional.style.AbstractLineStyleProvid
 import org.eclipse.wst.sse.ui.internal.provisional.style.LineStyleProvider;
 import org.eclipse.wst.sse.ui.internal.provisional.style.ReconcilerHighlighter;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -103,11 +91,6 @@ public class LineStyleProviderForDart extends AbstractLineStyleProvider implemen
     }
   }
 
-  // Parsing follows the model used in junit tests. Feels like a hack. Almost certainly has the wrong
-  // analysis context, which will cause problems.
-  // TODO(messick) Work with danrubel to get this hooked up correctly.
-  private AnalysisContext analysisContext = DartCore.getProjectManager().getSdkContext();
-  private SourceFactory sourceFactory = analysisContext.getSourceFactory();
   private SemanticHighlighting[] semanticHighlightings;
   private Highlighting[] highlightings;
   private IPreferenceStore preferenceStore;
@@ -132,21 +115,20 @@ public class LineStyleProviderForDart extends AbstractLineStyleProvider implemen
     List<StyleRange> positions = new ArrayList<StyleRange>();
     IStructuredDocument document = getDocument();
     // semantic highlighting
-    try {
+    {
       int offset = typedRegion.getOffset();
       int length = typedRegion.getLength();
-      String source = document.get(offset, length);
-      CompilationUnit unit = parseUnit(document, source);
-      SemanticHighlightingEngine engine = new SemanticHighlightingEngine(
-          semanticHighlightings,
-          highlightings);
-      engine.analyze(getDocument(), offset, unit, positions);
-    } catch (BadLocationException ex) {
-      // do nothing
-    } catch (CoreException ex) {
-      // log it
-    } catch (AnalysisException ex) {
-      // log it
+      EmbeddedDartReconcilerHook reconciler = DartReconcilerManager.getInstance().reconcilerFor(
+          document);
+      if (reconciler != null) {
+        CompilationUnit unit = reconciler.getResolvedUnit(offset, length, document);
+        if (unit != null) {
+          SemanticHighlightingEngine engine = new SemanticHighlightingEngine(
+              semanticHighlightings,
+              highlightings);
+          engine.analyze(getDocument(), offset, unit, positions);
+        }
+      }
     }
 
     // syntax highlighting
@@ -247,31 +229,6 @@ public class LineStyleProviderForDart extends AbstractLineStyleProvider implemen
           null,
           style), isEnabled);
     }
-  }
-
-  private CompilationUnit parseUnit(IStructuredDocument document, String code)
-      throws CoreException, AnalysisException {
-    ITextFileBufferManager fileManager = FileBuffers.getTextFileBufferManager();
-    ITextFileBuffer fileBuffer = fileManager.getTextFileBuffer(document);
-    File file;
-    file = fileBuffer.getFileStore().toLocalFile(0, null);
-    IResource resource = ResourceUtil.getResource(file);
-    IProject project = resource.getProject();
-    Project dartProject = DartCore.getProjectManager().getProject(project);
-    analysisContext = dartProject.getContext(resource);
-    sourceFactory = analysisContext.getSourceFactory();
-    // configure Source
-    file = new File(file.getParentFile(), file.getName() + ".dart");
-    Source source = new FileBasedSource(sourceFactory.getContentCache(), file);
-//    Source source = dartProject.getSource((IFile) resource);
-    // update Source
-    analysisContext.setContents(source, code);
-    // parse and resolve
-    LibraryElement library = analysisContext.computeLibraryElement(source);
-    CompilationUnit libraryUnit = analysisContext.resolveCompilationUnit(source, library);
-    LINE_HACK_UNIT = libraryUnit;
-    LINE_HACK_CONTEXT = analysisContext;
-    return libraryUnit;
   }
 
 }

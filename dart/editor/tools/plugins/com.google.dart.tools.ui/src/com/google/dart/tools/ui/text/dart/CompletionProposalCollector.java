@@ -205,6 +205,8 @@ public class CompletionProposalCollector extends CompletionRequestor {
         return;
       }
 
+      DartContentAssistInvocationContext ctxt = getInvocationContext();
+      proposal.applyPartitionOffset(ctxt.getPartitionOffset());
       if (proposal.getKind() == CompletionProposal.POTENTIAL_METHOD_DECLARATION) {
         acceptPotentialMethodDeclaration(proposal);
       } else {

@@ -233,6 +233,10 @@ public class DartContentAssistInvocationContext extends ContentAssistInvocationC
     return fLabelProvider;
   }
 
+  public int getPartitionOffset() {
+    return 0;
+  }
+
   /**
    * Returns the project of the compilation unit that content assist is invoked in,
    * <code>null</code> if none.
