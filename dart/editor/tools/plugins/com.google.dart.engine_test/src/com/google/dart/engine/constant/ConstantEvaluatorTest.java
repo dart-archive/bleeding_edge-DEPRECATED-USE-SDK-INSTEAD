@@ -184,7 +184,10 @@ public class ConstantEvaluatorTest extends ResolverTestCase {
   }
 
   public void test_leftShift_int_int() throws Exception {
-    assertValue(64L, "16 << 2");
+    EvaluationResult result = getExpressionValue("16 << 2");
+    assertTrue(result.isValid());
+    // we cannot always evaluate "shift left" because of possible overflow
+    assertEquals(0, result.getValue());
   }
 
   public void test_lessThan_int_int() throws Exception {

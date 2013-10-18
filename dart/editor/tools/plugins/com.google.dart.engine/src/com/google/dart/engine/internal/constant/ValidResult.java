@@ -41,7 +41,7 @@ public class ValidResult extends EvaluationResultImpl {
    * A result object representing the an arbitrary integer on which no further operations can be
    * performed.
    */
-  public static final ValidResult RESULT_INT = new ValidResult(null);
+  public static final ValidResult RESULT_INT = new ValidResult(0);
 
   /**
    * A result object representing the {@code null} value.
@@ -252,6 +252,12 @@ public class ValidResult extends EvaluationResultImpl {
       return valueOf(((Double) value).toString());
     } else if (value instanceof String) {
       return this;
+    } else if (isSomeBool()) {
+      return valueOf("<some bool>");
+    } else if (isSomeInt()) {
+      return valueOf("<some int>");
+    } else if (isSomeNum()) {
+      return valueOf("<some num>");
     }
     return error(node);
   }
@@ -867,7 +873,8 @@ public class ValidResult extends EvaluationResultImpl {
       return error(node.getRightOperand());
     } else if (leftValue instanceof BigInteger) {
       if (value instanceof BigInteger) {
-        return valueOf(((BigInteger) leftValue).shiftLeft(((BigInteger) value).intValue()));
+        // we cannot always evaluate "shift left" because of possible overflow
+        return RESULT_INT;
       }
       return error(node.getRightOperand());
     }
