@@ -956,6 +956,23 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_functionWithoutCall() throws Exception {
+    Source source = addSource(createSource(//
+        "abstract class A implements Function {", // abstract class
+        "}",
+        "class B implements A {", // implements directly
+        "  void call() {}",
+        "}",
+        "class C extends A {", // implements directly
+        "  void call() {}",
+        "}",
+        "class D extends C {", // implements indirectly
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
   public void test_implicitThisReferenceInInitializer_constructorName() throws Exception {
     Source source = addSource(createSource(//
         "class A {",

@@ -1118,6 +1118,37 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_functionWithoutCall_direct() throws Exception {
+    Source source = addSource(createSource(//
+        "class A implements Function {",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.FUNCTION_WITHOUT_CALL);
+    verify(source);
+  }
+
+  public void test_functionWithoutCall_indirect_extends() throws Exception {
+    Source source = addSource(createSource(//
+        "abstract class A implements Function {",
+        "}",
+        "class B extends A {",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.FUNCTION_WITHOUT_CALL);
+    verify(source);
+  }
+
+  public void test_functionWithoutCall_indirect_implements() throws Exception {
+    Source source = addSource(createSource(//
+        "abstract class A implements Function {",
+        "}",
+        "class B implements A {",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.FUNCTION_WITHOUT_CALL);
+    verify(source);
+  }
+
   public void test_importDuplicatedLibraryName() throws Exception {
     Source source = addSource(createSource(//
         "library test;",

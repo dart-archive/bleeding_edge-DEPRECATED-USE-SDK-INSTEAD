@@ -457,6 +457,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       checkForDuplicateDefinitionInheritance();
       checkForConflictingGetterAndMethod();
       checkImplementsSuperClass(node);
+      checkImplementsFunctionWithoutCall(node);
       return super.visitClassDeclaration(node);
     } finally {
       isInNativeClass = false;
@@ -4886,6 +4887,33 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       errorReporter.reportError(
           CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER,
           setterName);
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * This verifies that if the given class declaration implements the class Function that it has a
+   * concrete implementation of the call method.
+   * 
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see StaticWarningCode#FUNCTION_WITHOUT_CALL
+   */
+  private boolean checkImplementsFunctionWithoutCall(ClassDeclaration node) {
+    if (node.getAbstractKeyword() != null) {
+      return false;
+    }
+    ClassElement classElement = node.getElement();
+    if (classElement == null) {
+      return false;
+    }
+    if (!classElement.getType().isSubtypeOf(typeProvider.getFunctionType())) {
+      return false;
+    }
+    ExecutableElement callMethod = inheritanceManager.lookupMember(classElement, "call");
+    if (callMethod == null || !(callMethod instanceof MethodElement)
+        || ((MethodElement) callMethod).isAbstract()) {
+      errorReporter.reportError(StaticWarningCode.FUNCTION_WITHOUT_CALL, node.getName());
       return true;
     }
     return false;

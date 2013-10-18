@@ -289,6 +289,12 @@ public enum StaticWarningCode implements ErrorCode {
   FINAL_NOT_INITIALIZED("The final variable '%s' must be initialized"),
 
   /**
+   * 15.5 Function Types: It is a static warning if a concrete class implements Function and does
+   * not have a concrete method named call().
+   */
+  FUNCTION_WITHOUT_CALL("Concrete classes that implement Function must implement the method call()"),
+
+  /**
    * 14.1 Imports: It is a static warning to import two different libraries with the same name.
    * 
    * @param uri1 the uri pointing to a first library
