@@ -233,7 +233,7 @@ public class PubBuildParticipant implements BuildParticipant, BuildVisitor {
       } else {
         MessageConsole console = DartCore.getConsole();
         console.printSeparator("");
-        console.println("Run Tools > Pub Install to install packages");
+        console.println("Run Tools > Pub Get to install packages");
       }
 
     } finally {
