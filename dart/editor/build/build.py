@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+# Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
@@ -127,6 +127,14 @@ def DartArchiveUploadVersionFile(version_file):
   for revision in [REVISION, 'latest']:
     DartArchiveFile(version_file, namer.version_filepath(revision),
         create_md5sum=False)
+
+def DartArchiveUploadInstaller(
+      arch, installer_file, extension, release_type=bot_utils.ReleaseType.RAW):
+  namer = bot_utils.GCSNamer(CHANNEL, release_type)
+  for revision in [REVISION, 'latest']:
+    gsu_path = namer.editor_installer_zipfilepath(
+        revision, SYSTEM, arch, extension)
+    DartArchiveFile(installer_file, gsu_path, create_md5sum=False)
 
 class AntWrapper(object):
   """A wrapper for ant build invocations"""
@@ -261,6 +269,9 @@ def BuildOptions():
   result.add_option('--dest',
                     help='Output Directory.',
                     action='store')
+  result.add_option('--build-installer',
+                    help='Fetch editor, build installer and archive it.',
+                    action='store_true', default=False)
   return result
 
 def main():
@@ -311,16 +322,6 @@ def main():
   sdk_zip = None
 
   try:
-    ant_property_file = tempfile.NamedTemporaryFile(suffix='.property',
-                                                    prefix='AntProperties',
-                                                    delete=False)
-    ant_property_file.close()
-    ant = AntWrapper(ant_property_file.name, os.path.join(antpath, 'bin'),
-                     bzip2libpath)
-
-    ant.RunAnt(os.getcwd(), '', '', '', '',
-               '', '', buildos, ['-diagnostics'])
-
     parser = BuildOptions()
     (options, args) = parser.parse_args()
     # Determine which targets to build. By default we build the "all" target.
@@ -369,14 +370,6 @@ def main():
     buildout = os.path.abspath(options.out)
     print 'buildout       = {0}'.format(buildout)
 
-    if not os.path.exists(buildout):
-      os.makedirs(buildout)
-
-    # clean out old build artifacts
-    for f in os.listdir(buildout):
-      if ('dartsdk-' in f) or ('darteditor-' in f) or ('dart-editor-' in f):
-        os.remove(join(buildout, f))
-
     # Get user name. If it does not start with chrome then deploy to the test
     # bucket; otherwise deploy to the continuous bucket.
     username = os.environ.get('USER')
@@ -387,10 +380,16 @@ def main():
       print 'Could not find username'
       return 6
 
+    build_skip_tests = os.environ.get('DART_SKIP_RUNNING_TESTS')
+    sdk_environment = os.environ
+    if sdk_environment.has_key('JAVA_HOME'):
+      print 'JAVA_HOME = {0}'.format(str(sdk_environment['JAVA_HOME']))
+
     # dart-editor[-trunk], dart-editor-(win/mac/linux)[-trunk/be/dev/stable]
     builder_name = str(options.name)
 
-    EDITOR_REGEXP = (r'^dart-editor(-(?P<system>(win|mac|linux)))?' +
+    EDITOR_REGEXP = (r'^dart-editor(-(?P<installer>(installer)))?'
+                      '(-(?P<system>(win|mac|linux)))?' +
                       '(-(?P<channel>(trunk|be|dev|stable)))?$')
     match = re.match(EDITOR_REGEXP, builder_name)
     if not match:
@@ -399,120 +398,197 @@ def main():
 
     CHANNEL = match.groupdict()['channel'] or 'be'
     SYSTEM = match.groupdict()['system']
+    BUILD_INSTALLER = bool(match.groupdict()['installer'])
 
     TRUNK_BUILD = CHANNEL == 'trunk'
     PLUGINS_BUILD = SYSTEM is None
     REVISION = revision
 
-    build_skip_tests = os.environ.get('DART_SKIP_RUNNING_TESTS')
-    sdk_environment = os.environ
+    # Make sure the buildername and the options agree
+    assert BUILD_INSTALLER == options.build_installer
+
     if username.startswith('chrome'):
       if TRUNK_BUILD:
-        to_bucket = 'gs://dart-editor-archive-trunk'
+        bucket = 'gs://dart-editor-archive-trunk'
       else:
-        to_bucket = 'gs://dart-editor-archive-continuous'
+        bucket = 'gs://dart-editor-archive-continuous'
       running_on_buildbot = True
     else:
-      to_bucket = 'gs://dart-editor-archive-testing'
+      bucket = 'gs://dart-editor-archive-testing'
       running_on_buildbot = False
       sdk_environment['DART_LOCAL_BUILD'] = 'dart-editor-archive-testing'
 
-    GSU_PATH_REV = '%s/%s' % (to_bucket, REVISION)
-    GSU_PATH_LATEST = '%s/%s' % (to_bucket, 'latest')
+    GSU_PATH_REV = '%s/%s' % (bucket, REVISION)
+    GSU_PATH_LATEST = '%s/%s' % (bucket, 'latest')
     GSU_API_DOCS_PATH = '%s/%s' % (GSU_API_DOCS_BUCKET, REVISION)
 
     homegsutil = join(DART_PATH, 'third_party', 'gsutil', 'gsutil')
     gsu = gsutil.GsUtil(False, homegsutil,
       running_on_buildbot=running_on_buildbot)
-    InstallDartium(buildroot, buildout, buildos, gsu)
-    if sdk_environment.has_key('JAVA_HOME'):
-      print 'JAVA_HOME = {0}'.format(str(sdk_environment['JAVA_HOME']))
 
-    if not PLUGINS_BUILD:
-      StartBuildStep('create_sdk')
-      EnsureDirectoryExists(buildout)
-      try:
-        sdk_zip = CreateSDK(buildout)
-      except:
-        BuildStepFailure()
+    def build_installer():
+      def old_location_pair(arch, extension):
+        """Returns a tuple (zip_file, installer_file) of google cloud storage
+           locations."""
+        os_rename = {'win': 'win32', 'mac': 'macos', 'linux': 'linux'}
+        system = os_rename[SYSTEM]
+        return (
+            ("%s/darteditor-%s-%s.zip" % (GSU_PATH_REV, system, arch)),
+            ("%s/darteditor-installer-%s-%s.%s"
+             % (GSU_PATH_REV, system, arch, extension)))
+
+      def create_mac_installer(arch):
+        with utils.TempDir('build_editor_installer') as temp_dir:
+          with utils.ChangedWorkingDirectory(temp_dir):
+            (gsu_editor_zip, gsu_editor_dmg) = old_location_pair(arch, 'dmg')
+            # Fetch the editor zip file from the old location.
+            if gsu.Copy(gsu_editor_zip, 'editor.zip', False):
+              raise Exception("gsutil command failed, aborting.")
+
+            # Unzip the editor (which contains a directory named 'dart').
+            bot_utils.run(['unzip', 'editor.zip'])
+            assert os.path.exists('dart') and os.path.isdir('dart')
+
+            # Build the dmg installer
+            dmg_installer = os.path.join(temp_dir,'darteditor-installer.dmg')
+            dart_folder_icon = os.path.join(DART_PATH,
+                'editor/tools/plugins/com.google.dart.tools.ui/' +
+                'icons/dart_about_140_160.png')
+            dmg_builder = os.path.join(DART_PATH, 'tools',
+                'mac_build_editor_dmg.sh')
+            bot_utils.run([dmg_builder, dmg_installer, 'dart',
+                dart_folder_icon, "Dart Distribution"])
+            assert os.path.isfile(dmg_installer)
+
+            # Archive to old bucket
+            # TODO(kustermann/ricow): Remove all the old archiving code,
+            # once everything points to the new location.
+            if gsu.Copy(dmg_installer, gsu_editor_dmg):
+              raise Exception("gsutil command failed, aborting.")
+
+            # Archive to new bucket
+            # NOTE: This is a little bit hackisch, we fetch the editor from
+            # the old bucket and archive the dmg to the new bucket here.
+            DartArchiveUploadInstaller(arch, dmg_installer, 'dmg',
+                release_type=bot_utils.ReleaseType.SIGNED)
+
+      if SYSTEM == 'mac':
+        for arch in ['32', '64']:
+          create_mac_installer(arch)
+      else:
+        raise Exception(
+            "We currently cannot build installers for %s" % SYSTEM)
+    def build_editor(sdk_zip):
+      ant_property_file = tempfile.NamedTemporaryFile(suffix='.property',
+                                                      prefix='AntProperties',
+                                                      delete=False)
+      ant_property_file.close()
+      ant = AntWrapper(ant_property_file.name, os.path.join(antpath, 'bin'),
+                       bzip2libpath)
+
+      ant.RunAnt(os.getcwd(), '', '', '', '',
+                 '', '', buildos, ['-diagnostics'])
+
+      if not os.path.exists(buildout):
+        os.makedirs(buildout)
+
+      # clean out old build artifacts
+      for f in os.listdir(buildout):
+        if ('dartsdk-' in f) or ('darteditor-' in f) or ('dart-editor-' in f):
+          os.remove(join(buildout, f))
+
+      InstallDartium(buildroot, buildout, buildos, gsu)
+
+      if not PLUGINS_BUILD:
+        StartBuildStep('create_sdk')
+        EnsureDirectoryExists(buildout)
+        try:
+          sdk_zip = CreateSDK(buildout)
+        except:
+          BuildStepFailure()
 
 
-    if builder_name.startswith('dart-editor-linux'):
-      StartBuildStep('api_docs')
-      try:
-        CreateApiDocs(buildout)
-      except:
-        BuildStepFailure()
+      if builder_name.startswith('dart-editor-linux'):
+        StartBuildStep('api_docs')
+        try:
+          CreateApiDocs(buildout)
+        except:
+          BuildStepFailure()
 
-    StartBuildStep(builder_name)
+      StartBuildStep(builder_name)
 
-    if PLUGINS_BUILD:
-      status = BuildUpdateSite(ant, revision, builder_name, buildroot, buildout,
-                               editorpath, buildos)
-      return status
-
-    with utils.TempDir('ExtraArtifacts') as extra_artifacts:
-      #tell the ant script where to write the sdk zip file so it can
-      #be expanded later
-      status = ant.RunAnt('.', 'build_rcp.xml', revision, builder_name,
-                          buildroot, buildout, editorpath, buildos,
-                          sdk_zip=sdk_zip,
-                          running_on_bot=running_on_buildbot,
-                          extra_artifacts=extra_artifacts)
-      #the ant script writes a property file in a known location so
-      #we can read it.
-      properties = ReadPropertyFile(buildos, ant_property_file.name)
-
-      if not properties:
-        raise Exception('no data was found in file {%s}'
-                        % ant_property_file.name)
-      if status:
-        if properties['build.runtime']:
-          PrintErrorLog(properties['build.runtime'])
+      if PLUGINS_BUILD:
+        status = BuildUpdateSite(ant, revision, builder_name, buildroot,
+                                 buildout, editorpath, buildos)
         return status
 
-      #For the dart-editor build, return at this point.
-      #We don't need to install the sdk+dartium, run tests, or copy to google
-      #storage.
-      if not buildos:
-        print 'skipping sdk and dartium steps for dart-editor build'
+      with utils.TempDir('ExtraArtifacts') as extra_artifacts:
+        # Tell the ant script where to write the sdk zip file so it can
+        # be expanded later
+        status = ant.RunAnt('.', 'build_rcp.xml', revision, builder_name,
+                            buildroot, buildout, editorpath, buildos,
+                            sdk_zip=sdk_zip,
+                            running_on_bot=running_on_buildbot,
+                            extra_artifacts=extra_artifacts)
+        # The ant script writes a property file in a known location so
+        # we can read it.
+        properties = ReadPropertyFile(buildos, ant_property_file.name)
+
+        if not properties:
+          raise Exception('no data was found in file {%s}'
+                          % ant_property_file.name)
+        if status:
+          if properties['build.runtime']:
+            PrintErrorLog(properties['build.runtime'])
+          return status
+
+        # For the dart-editor build, return at this point.
+        # We don't need to install the sdk+dartium, run tests, or copy to google
+        # storage.
+        if not buildos:
+          print 'skipping sdk and dartium steps for dart-editor build'
+          return 0
+
+        # This is an override for local testing
+        force_run_install = os.environ.get('FORCE_RUN_INSTALL')
+
+        if force_run_install or (not PLUGINS_BUILD):
+          InstallSdk(buildroot, buildout, buildos, buildout)
+          InstallDartium(buildroot, buildout, buildos, gsu)
+
+        if status:
+          return status
+
+        if not build_skip_tests:
+          RunEditorTests(buildout, buildos)
+
+        if buildos:
+          StartBuildStep('upload_artifacts')
+
+          _InstallArtifacts(buildout, buildos, extra_artifacts)
+
+          # dart-editor-linux.gtk.x86.zip --> darteditor-linux-32.zip
+          RenameRcpZipFiles(buildout)
+
+          PostProcessEditorBuilds(buildout)
+
+          if running_on_buildbot:
+            version_file = _FindVersionFile(buildout)
+            if version_file:
+              UploadFile(version_file, False)
+              DartArchiveUploadVersionFile(version_file)
+
+            found_zips = _FindRcpZipFiles(buildout)
+            for zipfile in found_zips:
+              UploadFile(zipfile)
+              DartArchiveUploadEditorZipFile(zipfile)
+
         return 0
 
-      #This is an override for local testing
-      force_run_install = os.environ.get('FORCE_RUN_INSTALL')
-
-      if force_run_install or (not PLUGINS_BUILD):
-        InstallSdk(buildroot, buildout, buildos, buildout)
-        InstallDartium(buildroot, buildout, buildos, gsu)
-
-      if status:
-        return status
-
-      if not build_skip_tests:
-        RunEditorTests(buildout, buildos)
-
-      if buildos:
-        StartBuildStep('upload_artifacts')
-
-        _InstallArtifacts(buildout, buildos, extra_artifacts)
-
-        # dart-editor-linux.gtk.x86.zip --> darteditor-linux-32.zip
-        RenameRcpZipFiles(buildout)
-
-        PostProcessEditorBuilds(buildout)
-
-        if running_on_buildbot:
-          version_file = _FindVersionFile(buildout)
-          if version_file:
-            UploadFile(version_file, False)
-            DartArchiveUploadVersionFile(version_file)
-
-          found_zips = _FindRcpZipFiles(buildout)
-          for zipfile in found_zips:
-            UploadFile(zipfile)
-            DartArchiveUploadEditorZipFile(zipfile)
-
-      return 0
+    if BUILD_INSTALLER:
+      build_installer()
+    else:
+      build_editor(sdk_zip)
   finally:
     if ant_property_file is not None:
       print 'cleaning up temp file {0}'.format(ant_property_file.name)
@@ -698,7 +774,8 @@ def InstallDartiumFromDartArchive(buildroot, buildout, buildos, gsu):
     # Always download as local_name.zip
     tmp_zip_file = os.path.join(tmp_dir, "%s.zip" % local_name)
     if not os.path.exists(tmp_zip_file):
-      gsu.Copy(dartiumFile, tmp_zip_file, False)
+      if gsu.Copy(dartiumFile, tmp_zip_file, False):
+        raise Exception("gsutil command failed, aborting.")
       # Dartium is unzipped into unzip_dir/dartium-*/
       dartium_zip = ziputils.ZipUtil(tmp_zip_file, buildos)
       dartium_zip.UnZip(unzip_dir)
@@ -776,7 +853,8 @@ def InstallDartiumFromOldDartiumArchive(buildroot, buildout, buildos, gsu):
         tmp_zip_file = os.path.join(tmp_dir, basename)
 
         if not os.path.exists(tmp_zip_file):
-          gsu.Copy(dartiumFile, tmp_zip_file, False)
+          if gsu.Copy(dartiumFile, tmp_zip_file, False):
+            raise Exception("gsutil command failed, aborting.")
 
           # Upload dartium zip to make sure we have consistent dartium downloads
           UploadFile(tmp_zip_file)
