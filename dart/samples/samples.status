@@ -13,9 +13,8 @@ time: Skip
 [ $compiler == dart2js && $runtime == drt ]
 swarm/test/swarm_test: Pass, Crash, Fail # Issue 10950
 
-[ $compiler == none && $runtime == drt ]
-
-[ $runtime == chrome || $runtime == ff || $runtime == safari ]
+[ $compiler == none && $runtime == drt && $mode == debug ]
+dromaeo_smoke_test: Crash # Issue 14218
 
 [ $runtime == ie9 ]
 swarm/test/swarm_ui_lib/layout/layout_test: Fail # http://dartbug.com/5132
