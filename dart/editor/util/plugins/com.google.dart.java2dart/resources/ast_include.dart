@@ -21,7 +21,7 @@ class NodeList<E extends ASTNode> extends Object with ListMixin<E> {
   /**
    * The elements contained in the list.
    */
-  List<ASTNode> _elements = ASTNode.EMPTY_ARRAY;
+  List<E> _elements = <E> [];
 
   /**
    * Initialize a newly created list of nodes to be empty.
@@ -36,7 +36,7 @@ class NodeList<E extends ASTNode> extends Object with ListMixin<E> {
    * @param visitor the visitor to be used to visit the elements of this list
    */
   accept(ASTVisitor visitor) {
-    for (ASTNode element in _elements) {
+    for (E element in _elements) {
       element.accept(visitor);
     }
   }
@@ -50,9 +50,9 @@ class NodeList<E extends ASTNode> extends Object with ListMixin<E> {
     }
     owner.becomeParentOf(node);
     if (length == 0) {
-      _elements = <ASTNode> [node];
+      _elements = <E> [node];
     } else {
-      List<ASTNode> newElements = new List<ASTNode>(length + 1);
+      List<E> newElements = new List<E>(length + 1);
       JavaSystem.arraycopy(_elements, 0, newElements, 0, index);
       newElements[index] = node;
       JavaSystem.arraycopy(_elements, index, newElements, index + 1, length - index);
@@ -63,7 +63,7 @@ class NodeList<E extends ASTNode> extends Object with ListMixin<E> {
     if (nodes != null && !nodes.isEmpty) {
       int oldCount = _elements.length;
       int newCount = nodes.length;
-      List<ASTNode> newElements = new List<ASTNode>(oldCount + newCount);
+      List<E> newElements = new List<E>(oldCount + newCount);
       JavaSystem.arraycopy(_elements, 0, newElements, 0, oldCount);
       int index = oldCount;
       for (E node in nodes) {
@@ -115,7 +115,7 @@ class NodeList<E extends ASTNode> extends Object with ListMixin<E> {
       _elements = ASTNode.EMPTY_ARRAY;
       return removedNode;
     }
-    List<ASTNode> newElements = new List<ASTNode>(length - 1);
+    List<E> newElements = new List<E>(length - 1);
     JavaSystem.arraycopy(_elements, 0, newElements, 0, index);
     JavaSystem.arraycopy(_elements, index + 1, newElements, index, length - index - 1);
     _elements = newElements;

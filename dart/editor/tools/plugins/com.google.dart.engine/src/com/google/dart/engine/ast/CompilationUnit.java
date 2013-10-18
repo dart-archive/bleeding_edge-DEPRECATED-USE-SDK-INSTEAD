@@ -16,6 +16,7 @@ package com.google.dart.engine.ast;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
+import com.google.dart.engine.utilities.source.LineInfo;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -80,6 +81,11 @@ public class CompilationUnit extends ASTNode {
    * been resolved.
    */
   private CompilationUnitElement element;
+
+  /**
+   * The line information for this compilation unit.
+   */
+  private LineInfo lineInfo;
 
   /**
    * Initialize a newly created compilation unit to have the given directives and declarations.
@@ -151,6 +157,15 @@ public class CompilationUnit extends ASTNode {
     return endToken.getOffset() + endToken.getLength();
   }
 
+  /**
+   * Return the line information for this compilation unit.
+   * 
+   * @return the line information for this compilation unit
+   */
+  public LineInfo getLineInfo() {
+    return lineInfo;
+  }
+
   @Override
   public int getOffset() {
     return 0;
@@ -173,6 +188,15 @@ public class CompilationUnit extends ASTNode {
    */
   public void setElement(CompilationUnitElement element) {
     this.element = element;
+  }
+
+  /**
+   * Set the line information for this compilation unit to the given line information.
+   * 
+   * @param errors the line information to associate with this compilation unit
+   */
+  public void setLineInfo(LineInfo lineInfo) {
+    this.lineInfo = lineInfo;
   }
 
   /**
