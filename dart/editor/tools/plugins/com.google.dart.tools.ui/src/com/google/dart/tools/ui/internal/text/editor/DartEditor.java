@@ -71,6 +71,7 @@ import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.text.IProductConstants;
 import com.google.dart.tools.ui.internal.text.ProductProperties;
 import com.google.dart.tools.ui.internal.text.dart.DartReconcilingEditor;
+import com.google.dart.tools.ui.internal.text.dart.DartReconcilingStrategy;
 import com.google.dart.tools.ui.internal.text.dart.hover.SourceViewerInformationControl;
 import com.google.dart.tools.ui.internal.text.editor.saveactions.RemoveTrailingWhitespaceAction;
 import com.google.dart.tools.ui.internal.text.editor.selectionactions.GoToNextPreviousMemberAction;
@@ -2290,6 +2291,15 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    */
   public Point getCachedSelectedRange() {
     return fCachedSelectedRange;
+  }
+
+  /**
+   * Answer the {@link DartReconcilingStrategy} associated with this editor.
+   * 
+   * @return the strategy or {@code null} if none
+   */
+  public DartReconcilingStrategy getDartReconcilingStrategy() {
+    return null;
   }
 
   // TODO(scheglov)

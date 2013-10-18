@@ -169,6 +169,11 @@ public class DartReconcilingStrategyTest extends TestCase {
     public String getTitle() {
       return mockSource.getShortName();
     }
+
+    @Override
+    public void setDartReconcilingStrategy(DartReconcilingStrategy dartReconcilingStrategy) {
+      // ignored
+    }
   }
 
   private final static String EOL = System.getProperty("line.separator", "\n");
@@ -263,6 +268,71 @@ public class DartReconcilingStrategyTest extends TestCase {
     assertNull(mockCache.getContents(mockSource));
     assertNull(mockContext.getResolvedCompilationUnit(mockSource, mockSource));
     assertEquals(0, mockContext.getPriorityOrder().size());
+  }
+
+  /**
+   * Assert that a document change clears the cached unit and a resolve resets it
+   */
+  public void test_reconcile() throws Exception {
+    String insertedText = "//comment\n";
+
+    strategy.initialReconcile();
+    analysisManager.assertBackgroundAnalysis(1);
+    analysisManager.performAnalysis(null);
+
+    assertNotNull(mockEditor.getAppliedCompilationUnit());
+
+    mockDocument.replace(0, 0, insertedText);
+
+    assertNull(mockEditor.getAppliedCompilationUnit());
+
+    strategy.reconcile();
+
+    assertNull(mockEditor.getAppliedCompilationUnit());
+    analysisManager.assertBackgroundAnalysis(2);
+
+    analysisManager.performAnalysis(null);
+
+    assertNotNull(mockEditor.getAppliedCompilationUnit());
+  }
+
+  /**
+   * Assert that a document change clears the cached unit and a resolve resets it
+   */
+  public void test_reconcile_delete() throws Exception {
+    strategy.initialReconcile();
+    analysisManager.assertBackgroundAnalysis(1);
+    analysisManager.performAnalysis(null);
+
+    assertNotNull(mockEditor.getAppliedCompilationUnit());
+
+    mockDocument.replace(0, 10, "");
+
+    assertNull(mockEditor.getAppliedCompilationUnit());
+
+    strategy.reconcile();
+
+    assertNull(mockEditor.getAppliedCompilationUnit());
+    analysisManager.assertBackgroundAnalysis(2);
+
+    analysisManager.performAnalysis(null);
+
+    assertNotNull(mockEditor.getAppliedCompilationUnit());
+  }
+
+  /**
+   * Assert editor with no context does not throw exception
+   */
+  public void test_reconcile_nullContext() throws Exception {
+    String insertedText = "//comment\n";
+
+    mockContext = null;
+    strategy.initialReconcile();
+    mockDocument.replace(0, 0, insertedText);
+    strategy.reconcile();
+    analysisManager.performAnalysis(null);
+
+    // test infrastructure asserts no exceptions
   }
 
   /**

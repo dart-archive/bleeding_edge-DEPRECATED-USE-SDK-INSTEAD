@@ -409,11 +409,9 @@ public class ContentAssistProcessor implements IContentAssistProcessor {
     // wait for AssistContext
     if (context instanceof DartContentAssistInvocationContext) {
       DartContentAssistInvocationContext dartContext = (DartContentAssistInvocationContext) context;
-      if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-        if (dartContext.waitAssistContext(500) == null) {
-          DartToolsPlugin.log("Timeout during AssistContext wait.");
-          return Collections.emptyList();
-        }
+      if (dartContext.waitAssistContext(500) == null) {
+        DartToolsPlugin.log("Timeout during AssistContext wait.");
+        return Collections.emptyList();
       }
     }
     //

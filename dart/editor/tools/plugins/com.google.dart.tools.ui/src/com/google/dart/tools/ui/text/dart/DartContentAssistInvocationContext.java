@@ -25,6 +25,7 @@ import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.SignatureUtil;
 import com.google.dart.tools.ui.internal.text.dart.ContentAssistHistory.RHSHistory;
+import com.google.dart.tools.ui.internal.text.dart.DartReconcilingStrategy;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
 
@@ -250,6 +251,10 @@ public class DartContentAssistInvocationContext extends ContentAssistInvocationC
    */
   public AssistContext waitAssistContext(long ms) {
     DartEditor dartEditor = (DartEditor) fEditor;
+    DartReconcilingStrategy strategy = dartEditor.getDartReconcilingStrategy();
+    if (strategy != null) {
+      strategy.reconcile();
+    }
     long endTime = System.currentTimeMillis() + ms;
     while (System.currentTimeMillis() < endTime) {
       assistContext = dartEditor.getAssistContext();

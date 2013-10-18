@@ -162,6 +162,7 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
     this.editor = editor;
     this.analysisManager = analysisManager;
     this.display = Display.getDefault();
+    editor.setDartReconcilingStrategy(this);
 
     // Prioritize analysis when editor becomes active
     editor.addViewerFocusListener(new FocusListener() {
@@ -220,6 +221,17 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
     }
   }
 
+  /**
+   * Activates reconciling of the current dirty region.
+   */
+  public void reconcile() {
+    if (analysisNeeded) {
+      analysisNeeded = false;
+      sourceChanged(document.get());
+      performAnalysisInBackground();
+    }
+  }
+
   @Override
   public void reconcile(DirtyRegion dirtyRegion, IRegion subRegion) {
     InstrumentationBuilder instrumentation = Instrumentation.builder("DartReconcilingStrategy-reconcile");
@@ -249,8 +261,11 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
 
   @Override
   public void reconcile(IRegion partition) {
-    sourceChanged(document.get());
-    performAnalysisInBackground();
+    if (analysisNeeded) {
+      analysisNeeded = false;
+      sourceChanged(document.get());
+      performAnalysisInBackground();
+    }
   }
 
   /**

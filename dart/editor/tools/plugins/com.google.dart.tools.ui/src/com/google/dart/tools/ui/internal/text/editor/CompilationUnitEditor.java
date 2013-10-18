@@ -39,6 +39,7 @@ import com.google.dart.tools.ui.internal.actions.NewSelectionConverter;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.text.DartStatusConstants;
 import com.google.dart.tools.ui.internal.text.comment.CommentFormattingContext;
+import com.google.dart.tools.ui.internal.text.dart.DartReconcilingStrategy;
 import com.google.dart.tools.ui.internal.text.dart.IDartReconcilingListener;
 import com.google.dart.tools.ui.internal.text.dart.IDartReconcilingListener_OLD;
 import com.google.dart.tools.ui.internal.text.functions.ContentAssistPreference;
@@ -1170,6 +1171,9 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
    */
   private final Object fReconcilerLock = new Object();
 
+  /** The reconciling strategy */
+  private DartReconcilingStrategy dartReconcilingStrategy;
+
   /**
    * Creates a new compilation unit editor.
    */
@@ -1359,6 +1363,11 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
     return super.getAdapter(required);
   }
 
+  @Override
+  public DartReconcilingStrategy getDartReconcilingStrategy() {
+    return dartReconcilingStrategy;
+  }
+
   /**
    * Returns the mutex for the reconciler. See https://bugs.eclipse.org/bugs/show_bug.cgi?id=63898
    * for a description of the problem.
@@ -1434,6 +1443,11 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
     synchronized (fReconcilingListeners) {
       fReconcilingListeners.remove(listener);
     }
+  }
+
+  @Override
+  public void setDartReconcilingStrategy(DartReconcilingStrategy dartReconcilingStrategy) {
+    this.dartReconcilingStrategy = dartReconcilingStrategy;
   }
 
   /*

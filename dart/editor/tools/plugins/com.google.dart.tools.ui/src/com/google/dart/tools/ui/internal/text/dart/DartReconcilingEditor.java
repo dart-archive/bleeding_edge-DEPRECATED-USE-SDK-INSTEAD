@@ -74,4 +74,11 @@ public interface DartReconcilingEditor {
    * @return the title or {@code null}
    */
   String getTitle();
+
+  /**
+   * Set the reconciling strategy associated with this editor
+   * 
+   * @param dartReconcilingStrategy the strategy or {@code null} if none
+   */
+  void setDartReconcilingStrategy(DartReconcilingStrategy dartReconcilingStrategy);
 }

@@ -18,6 +18,7 @@ import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.ui.internal.text.dart.DartReconcilingEditor;
+import com.google.dart.tools.ui.internal.text.dart.DartReconcilingStrategy;
 
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.FocusListener;
@@ -54,6 +55,11 @@ public class EmbeddedDartReconcilerHook implements DartReconcilingEditor {
   @Override
   public String getTitle() {
     return null;
+  }
+
+  @Override
+  public void setDartReconcilingStrategy(DartReconcilingStrategy dartReconcilingStrategy) {
+    // ignored
   }
 
 }
