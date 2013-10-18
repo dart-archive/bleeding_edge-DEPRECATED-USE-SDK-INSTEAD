@@ -26,7 +26,6 @@ import com.google.dart.tools.core.analysis.model.ContextManager;
 import com.google.dart.tools.core.analysis.model.ResolvedEvent;
 import com.google.dart.tools.core.internal.builder.AnalysisManager;
 import com.google.dart.tools.core.internal.builder.AnalysisWorker;
-import com.google.dart.tools.ui.instrumentation.util.Base64;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -57,6 +56,11 @@ import java.util.List;
 public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcilingStrategyExtension {
 
   /**
+   * The display in which the editor is visible.
+   */
+  private final Display display;
+
+  /**
    * The editor containing the document with source to be reconciled (not {@code null}).
    */
   private final DartReconcilingEditor editor;
@@ -73,26 +77,15 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
   private IDocument document;
 
   /**
-   * The display in which the editor is visible.
+   * Synchronize against this field before accessing {@link #dirtyRegion}
    */
-  private final Display display;
+  private final Object lock = new Object();
 
   /**
-   * The time when the context was last notified of a source change.
+   * The region of source that has changed, which may be empty. Synchronize against {@link #lock}
+   * before accessing this field.
    */
-  private volatile long notifyContextTime;
-
-  /**
-   * The time when the source was last modified.
-   */
-  private volatile long sourceChangedTime;
-
-  /**
-   * Flag indicating that a document change has occurred, but analysis context has not been
-   * notified. This is used to prevent a flurry rapid fire of document changes from triggering a
-   * flurry of delayed analysis requests.
-   */
-  private volatile boolean analysisNeeded = false;
+  private DartReconcilingRegion dirtyRegion = DartReconcilingRegion.EMPTY;
 
   /**
    * Listen for analysis results for the source being edited and update the editor.
@@ -127,19 +120,18 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
 
     @Override
     public void documentChanged(DocumentEvent event) {
-      sourceChangedTime = System.currentTimeMillis();
+
+      // Record the source region that has changed
+      String newText = event.getText();
+      int newLength = newText != null ? newText.length() : 0;
+      synchronized (lock) {
+        dirtyRegion = dirtyRegion.add(event.getOffset(), event.getLength(), newLength);
+      }
       editor.applyResolvedUnit(null);
 
       // Start analysis immediately if "." pressed to improve code completion response
-
-      // This may need to be modified or removed 
-      // if we enable/set content assist immediate-activation character(s)
-
-      if (".".equals(event.getText())) {
-        sourceChanged(document.get());
-        performAnalysisInBackground();
-      } else {
-        analysisNeeded = true;
+      if (".".equals(newText)) {
+        reconcile();
       }
     }
   };
@@ -225,47 +217,35 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
    * Activates reconciling of the current dirty region.
    */
   public void reconcile() {
-    if (analysisNeeded) {
-      analysisNeeded = false;
-      sourceChanged(document.get());
-      performAnalysisInBackground();
-    }
-  }
-
-  @Override
-  public void reconcile(DirtyRegion dirtyRegion, IRegion subRegion) {
     InstrumentationBuilder instrumentation = Instrumentation.builder("DartReconcilingStrategy-reconcile");
     try {
-      String newText = dirtyRegion.getText();
-      int offset = dirtyRegion.getOffset();
-      int oldLength = dirtyRegion.getLength();
       instrumentation.data("Name", editor.getTitle());
-      instrumentation.data("Offset", offset);
-      instrumentation.data("Length", oldLength);
-      int newLength = 0;
-      if (newText != null) {
-        newLength = newText.length();
-        instrumentation.data("NewText", Base64.encodeBytes(newText.getBytes()));
+      DartReconcilingRegion r;
+      synchronized (lock) {
+        if (dirtyRegion.isEmpty()) {
+          return;
+        }
+        r = dirtyRegion;
+        dirtyRegion = DartReconcilingRegion.EMPTY;
       }
-      if (analysisNeeded) {
-        analysisNeeded = false;
-        sourceChanged(document.get(), offset, oldLength, newLength);
-        performAnalysisInBackground();
-      } else {
-        instrumentation.data("AnalysisNeeded", false);
-      }
+      instrumentation.data("Offset", r.getOffset());
+      instrumentation.data("OldLength", r.getOldLength());
+      instrumentation.data("NewLength", r.getNewLength());
+      sourceChanged(document.get(), r.getOffset(), r.getOldLength(), r.getNewLength());
+      performAnalysisInBackground();
     } finally {
       instrumentation.log();
     }
   }
 
   @Override
+  public void reconcile(DirtyRegion dirtyRegion, IRegion subRegion) {
+    reconcile();
+  }
+
+  @Override
   public void reconcile(IRegion partition) {
-    if (analysisNeeded) {
-      analysisNeeded = false;
-      sourceChanged(document.get());
-      performAnalysisInBackground();
-    }
+    reconcile();
   }
 
   /**
@@ -361,9 +341,15 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
    * Apply analysis results only if there are no pending source changes.
    */
   private void applyAnalysisResult(CompilationUnit unit) {
-    if (notifyContextTime >= sourceChangedTime && unit != null) {
-      editor.applyResolvedUnit(unit);
+    if (unit == null) {
+      return;
     }
+    synchronized (lock) {
+      if (!dirtyRegion.isEmpty()) {
+        return;
+      }
+    }
+    editor.applyResolvedUnit(unit);
   }
 
   /**
@@ -408,7 +394,6 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
    * @param code the new source code or {@code null} if the source should be pulled from disk
    */
   private void sourceChanged(String code) {
-    notifyContextTime = System.currentTimeMillis();
     AnalysisContext context = editor.getInputAnalysisContext();
     Source source = editor.getInputSource();
     if (context != null && source != null) {
@@ -425,7 +410,6 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
    * @param newLength the number of characters in the replacement text
    */
   private void sourceChanged(String code, int offset, int oldLength, int newLength) {
-    notifyContextTime = System.currentTimeMillis();
     AnalysisContext context = editor.getInputAnalysisContext();
     Source source = editor.getInputSource();
     if (context != null && source != null) {

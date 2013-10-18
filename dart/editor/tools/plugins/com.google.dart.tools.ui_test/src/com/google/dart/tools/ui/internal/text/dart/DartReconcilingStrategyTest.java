@@ -71,6 +71,9 @@ public class DartReconcilingStrategyTest extends TestCase {
     private List<Source> priorityOrder = new ArrayList<Source>();
     private int setContentsCount = 0;
     private int setChangedContentsCount = 0;
+    private int changedOffset = 0;
+    private int changedOldLength = 0;
+    private int changedNewLength = 0;
 
     public List<Source> getPriorityOrder() {
       return priorityOrder;
@@ -87,6 +90,9 @@ public class DartReconcilingStrategyTest extends TestCase {
         int newLength) {
       if (source == mockSource) {
         setChangedContentsCount++;
+        changedOffset = offset;
+        changedOldLength = oldLength;
+        changedNewLength = newLength;
       }
       super.setChangedContents(source, contents, offset, oldLength, newLength);
     }
@@ -99,8 +105,12 @@ public class DartReconcilingStrategyTest extends TestCase {
       setContentsForTest(source, contents);
     }
 
-    void assertSetChangedContentsCount(int expected) {
-      assertEquals(expected, setChangedContentsCount);
+    void assertSetChangedContentsCount(int expectedCount, int expectedOffset,
+        int expectedOldLength, int expectedNewLength) {
+      assertEquals(expectedCount, setChangedContentsCount);
+      assertEquals(expectedOffset, changedOffset);
+      assertEquals(expectedOldLength, changedOldLength);
+      assertEquals(expectedNewLength, changedNewLength);
     }
 
     void assertSetContentsCount(int expected) {
@@ -218,11 +228,41 @@ public class DartReconcilingStrategyTest extends TestCase {
   }
 
   /**
+   * Assert that a "." triggers immediate analysis
+   */
+  public void test_docChange_period() throws Exception {
+    String insertedText = ".";
+    int offset = INITIAL_CONTENTS.indexOf("this") + 4;
+    assert offset > 5;
+    String newText = INITIAL_CONTENTS.substring(0, offset) + insertedText
+        + INITIAL_CONTENTS.substring(offset);
+
+    strategy.initialReconcile();
+    mockContext.assertSetChangedContentsCount(0, 0, 0, 0);
+    mockContext.assertSetContentsCount(0);
+    analysisManager.assertBackgroundAnalysis(1);
+    analysisManager.performAnalysis(null);
+
+    assertNotNull(mockEditor.getAppliedCompilationUnit());
+
+    mockDocument.replace(offset, 0, insertedText);
+
+    // assert "." causes immediate update of the context
+    assertEquals(newText, mockCache.getContents(mockSource));
+    assertNull(mockEditor.getAppliedCompilationUnit());
+    analysisManager.assertBackgroundAnalysis(2);
+    mockContext.assertSetChangedContentsCount(1, offset, 0, 1);
+    mockContext.assertSetContentsCount(0);
+  }
+
+  /**
    * Assert unit resolved, applied, and order set during initialReconcile
    */
   public void test_initialReconcile() {
     strategy.initialReconcile();
 
+    mockContext.assertSetChangedContentsCount(0, 0, 0, 0);
+    mockContext.assertSetContentsCount(0);
     assertEquals(1, mockContext.getPriorityOrder().size());
     assertSame(mockSource, mockContext.getPriorityOrder().get(0));
     assertNotNull(mockEditor.getAppliedCompilationUnit());
@@ -243,6 +283,8 @@ public class DartReconcilingStrategyTest extends TestCase {
 
     strategy.initialReconcile();
 
+    mockContext.assertSetChangedContentsCount(0, 0, 0, 0);
+    mockContext.assertSetContentsCount(0);
     assertEquals(1, mockContext.getPriorityOrder().size());
     assertSame(mockSource, mockContext.getPriorityOrder().get(0));
     assertNotNull(mockEditor.getAppliedCompilationUnit());
@@ -277,12 +319,14 @@ public class DartReconcilingStrategyTest extends TestCase {
     String insertedText = "//comment\n";
 
     strategy.initialReconcile();
+    mockContext.assertSetChangedContentsCount(0, 0, 0, 0);
+    mockContext.assertSetContentsCount(0);
     analysisManager.assertBackgroundAnalysis(1);
     analysisManager.performAnalysis(null);
 
     assertNotNull(mockEditor.getAppliedCompilationUnit());
 
-    mockDocument.replace(0, 0, insertedText);
+    mockDocument.replace(3, 7, insertedText);
 
     assertNull(mockEditor.getAppliedCompilationUnit());
 
@@ -290,6 +334,8 @@ public class DartReconcilingStrategyTest extends TestCase {
 
     assertNull(mockEditor.getAppliedCompilationUnit());
     analysisManager.assertBackgroundAnalysis(2);
+    mockContext.assertSetChangedContentsCount(1, 3, 7, insertedText.length());
+    mockContext.assertSetContentsCount(0);
 
     analysisManager.performAnalysis(null);
 
@@ -301,6 +347,8 @@ public class DartReconcilingStrategyTest extends TestCase {
    */
   public void test_reconcile_delete() throws Exception {
     strategy.initialReconcile();
+    mockContext.assertSetChangedContentsCount(0, 0, 0, 0);
+    mockContext.assertSetContentsCount(0);
     analysisManager.assertBackgroundAnalysis(1);
     analysisManager.performAnalysis(null);
 
@@ -311,6 +359,8 @@ public class DartReconcilingStrategyTest extends TestCase {
     assertNull(mockEditor.getAppliedCompilationUnit());
 
     strategy.reconcile();
+    mockContext.assertSetChangedContentsCount(1, 0, 10, 0);
+    mockContext.assertSetContentsCount(0);
 
     assertNull(mockEditor.getAppliedCompilationUnit());
     analysisManager.assertBackgroundAnalysis(2);
@@ -342,6 +392,8 @@ public class DartReconcilingStrategyTest extends TestCase {
     String insertedText = "//comment\n";
 
     strategy.initialReconcile();
+    mockContext.assertSetChangedContentsCount(0, 0, 0, 0);
+    mockContext.assertSetContentsCount(0);
     analysisManager.assertBackgroundAnalysis(1);
     analysisManager.performAnalysis(null);
 
@@ -353,6 +405,8 @@ public class DartReconcilingStrategyTest extends TestCase {
 
     strategy.reconcile(new DirtyRegion(0, 0, DirtyRegion.INSERT, insertedText), new Region(0, 0));
 
+    mockContext.assertSetChangedContentsCount(1, 0, 0, insertedText.length());
+    mockContext.assertSetContentsCount(0);
     assertNull(mockEditor.getAppliedCompilationUnit());
     analysisManager.assertBackgroundAnalysis(2);
 
@@ -366,6 +420,8 @@ public class DartReconcilingStrategyTest extends TestCase {
    */
   public void test_reconcileDirtyRegionIRegion_delete() throws Exception {
     strategy.initialReconcile();
+    mockContext.assertSetChangedContentsCount(0, 0, 0, 0);
+    mockContext.assertSetContentsCount(0);
     analysisManager.assertBackgroundAnalysis(1);
     analysisManager.performAnalysis(null);
 
@@ -377,6 +433,8 @@ public class DartReconcilingStrategyTest extends TestCase {
 
     strategy.reconcile(new DirtyRegion(0, 10, DirtyRegion.REMOVE, null), new Region(0, 0));
 
+    mockContext.assertSetChangedContentsCount(1, 0, 10, 0);
+    mockContext.assertSetContentsCount(0);
     assertNull(mockEditor.getAppliedCompilationUnit());
     analysisManager.assertBackgroundAnalysis(2);
 
@@ -400,34 +458,12 @@ public class DartReconcilingStrategyTest extends TestCase {
     // test infrastructure asserts no exceptions
   }
 
-  /**
-   * Assert that a "." triggers immediate analysis
-   */
-  public void test_reconcileDirtyRegionIRegion_period() throws Exception {
-    String insertedText = ".";
-    int offset = INITIAL_CONTENTS.indexOf("this") + 4;
-    assert offset > 5;
-    String newText = INITIAL_CONTENTS.substring(0, offset) + insertedText
-        + INITIAL_CONTENTS.substring(offset);
-
-    strategy.initialReconcile();
-    analysisManager.assertBackgroundAnalysis(1);
-    analysisManager.performAnalysis(null);
-
-    assertNotNull(mockEditor.getAppliedCompilationUnit());
-
-    mockDocument.replace(offset, 0, insertedText);
-
-    // assert "." causes immediate update of the context
-    assertEquals(newText, mockCache.getContents(mockSource));
-    assertNull(mockEditor.getAppliedCompilationUnit());
-    analysisManager.assertBackgroundAnalysis(2);
-  }
-
   public void test_reconcileIRegion() throws Exception {
     String insertedText = "//comment\n";
 
     strategy.initialReconcile();
+    mockContext.assertSetChangedContentsCount(0, 0, 0, 0);
+    mockContext.assertSetContentsCount(0);
     analysisManager.assertBackgroundAnalysis(1);
     analysisManager.performAnalysis(null);
 
@@ -439,6 +475,8 @@ public class DartReconcilingStrategyTest extends TestCase {
 
     strategy.reconcile(new Region(0, insertedText.length()));
 
+    mockContext.assertSetChangedContentsCount(1, 0, 0, insertedText.length());
+    mockContext.assertSetContentsCount(0);
     assertNull(mockEditor.getAppliedCompilationUnit());
     analysisManager.assertBackgroundAnalysis(2);
 
@@ -449,6 +487,8 @@ public class DartReconcilingStrategyTest extends TestCase {
 
   public void test_reconcileIRegion_delete() throws Exception {
     strategy.initialReconcile();
+    mockContext.assertSetChangedContentsCount(0, 0, 0, 0);
+    mockContext.assertSetContentsCount(0);
     analysisManager.assertBackgroundAnalysis(1);
     analysisManager.performAnalysis(null);
 
@@ -460,6 +500,8 @@ public class DartReconcilingStrategyTest extends TestCase {
 
     strategy.reconcile(new Region(0, 10));
 
+    mockContext.assertSetChangedContentsCount(1, 0, 10, 0);
+    mockContext.assertSetContentsCount(0);
     assertNull(mockEditor.getAppliedCompilationUnit());
     analysisManager.assertBackgroundAnalysis(2);
 
