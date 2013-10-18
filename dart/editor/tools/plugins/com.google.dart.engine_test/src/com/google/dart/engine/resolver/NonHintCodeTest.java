@@ -256,21 +256,77 @@ public class NonHintCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_unnecessaryCast_13855_parameter_A() throws Exception {
-    // dartbug.com/13855, dartbug.com/13732
+  public void test_proxy_annotation_prefixed() throws Exception {
     Source source = addSource(createSource(//
-        "class A{",
-        "  a() {}",
-        "}",
-        "class B<E> {",
-        "  E e;",
-        "  m() {",
-        "    (e as A).a();",
-        "  }",
+        "library L;",
+        "import 'meta.dart';",
+        "@proxy",
+        "class A {}",
+        "f(var a) {",
+        "  a = new A();",
+        "  a.m();",
+        "  var x = a.g;",
+        "  a.s = 1;",
+        "  var y = a + a;",
+        "  a++;",
+        "  ++a;",
         "}"));
+    addSource("/meta.dart", createSource(//
+        "library meta;",
+        "const proxy = const _Proxy();",
+        "class _Proxy { const _Proxy(); }"));
     resolve(source);
     assertNoErrors(source);
-    verify(source);
+  }
+
+  public void test_proxy_annotation_prefixed2() throws Exception {
+    Source source = addSource(createSource(//
+        "library L;",
+        "import 'meta.dart';",
+        "@proxy",
+        "class A {}",
+        "class B {",
+        "  f(var a) {",
+        "    a = new A();",
+        "    a.m();",
+        "    var x = a.g;",
+        "    a.s = 1;",
+        "    var y = a + a;",
+        "    a++;",
+        "    ++a;",
+        "  }",
+        "}"));
+    addSource("/meta.dart", createSource(//
+        "library meta;",
+        "const proxy = const _Proxy();",
+        "class _Proxy { const _Proxy(); }"));
+    resolve(source);
+    assertNoErrors(source);
+  }
+
+  public void test_proxy_annotation_prefixed3() throws Exception {
+    Source source = addSource(createSource(//
+        "library L;",
+        "import 'meta.dart';",
+        "class B {",
+        "  f(var a) {",
+        "    a = new A();",
+        "    a.m();",
+        "    var x = a.g;",
+        "    a.s = 1;",
+        "    var y = a + a;",
+        "    a++;",
+        "    ++a;",
+        "  }",
+        "}",
+        "@proxy",
+        "class A {}"));
+    addSource("/meta.dart", createSource(//
+        "library meta;",
+        "const proxy = const _Proxy();",
+        "class _Proxy { const _Proxy(); }"));
+    resolve(source);
+    assertNoErrors(source);
   }
 
   public void test_undefinedGetter_inSubtype() throws Exception {
@@ -420,6 +476,23 @@ public class NonHintCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertNoErrors(source);
+  }
+
+  public void test_unnecessaryCast_13855_parameter_A() throws Exception {
+    // dartbug.com/13855, dartbug.com/13732
+    Source source = addSource(createSource(//
+        "class A{",
+        "  a() {}",
+        "}",
+        "class B<E> {",
+        "  E e;",
+        "  m() {",
+        "    (e as A).a();",
+        "  }",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
   }
 
   public void test_unnecessaryCast_dynamic_type() throws Exception {

@@ -386,7 +386,8 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
           ErrorCode errorCode = shouldReportMissingMember_static
               ? StaticTypeWarningCode.UNDEFINED_METHOD : HintCode.UNDEFINED_METHOD;
           resolver.reportErrorProxyConditionalAnalysisError(
-              staticType.getElement(),
+              shouldReportMissingMember_static ? staticType.getElement()
+                  : propagatedType.getElement(),
               errorCode,
               operator,
               methodName,
@@ -437,7 +438,8 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
           ErrorCode errorCode = shouldReportMissingMember_static
               ? StaticTypeWarningCode.UNDEFINED_OPERATOR : HintCode.UNDEFINED_OPERATOR;
           resolver.reportErrorProxyConditionalAnalysisError(
-              staticType.getElement(),
+              shouldReportMissingMember_static ? staticType.getElement()
+                  : propagatedType.getElement(),
               errorCode,
               operator,
               methodName,
@@ -1084,7 +1086,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       ErrorCode errorCode = shouldReportMissingMember_static
           ? StaticTypeWarningCode.UNDEFINED_OPERATOR : HintCode.UNDEFINED_OPERATOR;
       resolver.reportErrorProxyConditionalAnalysisError(
-          staticType.getElement(),
+          shouldReportMissingMember_static ? staticType.getElement() : propagatedType.getElement(),
           errorCode,
           node.getOperator(),
           methodName,
@@ -1198,7 +1200,8 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
         ErrorCode errorCode = shouldReportMissingMember_static
             ? StaticTypeWarningCode.UNDEFINED_OPERATOR : HintCode.UNDEFINED_OPERATOR;
         resolver.reportErrorProxyConditionalAnalysisError(
-            staticType.getElement(),
+            shouldReportMissingMember_static ? staticType.getElement()
+                : propagatedType.getElement(),
             errorCode,
             operator,
             methodName,
@@ -1530,7 +1533,8 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
           ? StaticTypeWarningCode.UNDEFINED_OPERATOR : HintCode.UNDEFINED_OPERATOR;
       if (leftBracket == null || rightBracket == null) {
         resolver.reportErrorProxyConditionalAnalysisError(
-            staticType.getElement(),
+            shouldReportMissingMember_static ? staticType.getElement()
+                : propagatedType.getElement(),
             errorCode,
             node,
             methodName,
@@ -1540,7 +1544,8 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
         int offset = leftBracket.getOffset();
         int length = rightBracket.getOffset() - offset + 1;
         resolver.reportErrorProxyConditionalAnalysisError(
-            staticType.getElement(),
+            shouldReportMissingMember_static ? staticType.getElement()
+                : propagatedType.getElement(),
             errorCode,
             offset,
             length,
@@ -2613,55 +2618,52 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       // need to happen to possibly pass the propagated element into the
       // reportErrorProxyConditionalErrorCode calls below, or to always pass the static and
       // propagated information to the ProxyConditionalErrorCode
-      Element selectedElement = select(staticElement, propagatedElement);
-      boolean isStaticProperty = isStatic(selectedElement);
+      Element staticOrPropagatedEnclosingElt = shouldReportMissingMember_static
+          ? staticType.getElement() : propagatedType.getElement();
+      boolean isStaticProperty = isStatic(staticOrPropagatedEnclosingElt);
       if (propertyName.inSetterContext()) {
         if (isStaticProperty) {
           ErrorCode errorCode = shouldReportMissingMember_static
               ? StaticWarningCode.UNDEFINED_SETTER : HintCode.UNDEFINED_SETTER;
           resolver.reportErrorProxyConditionalAnalysisError(
-              staticType.getElement(),
+              staticOrPropagatedEnclosingElt,
               errorCode,
               propertyName,
               propertyName.getName(),
-              shouldReportMissingMember_static ? staticType.getDisplayName()
-                  : propagatedType.getDisplayName());
+              staticOrPropagatedEnclosingElt.getDisplayName());
         } else {
           ErrorCode errorCode = shouldReportMissingMember_static
               ? StaticTypeWarningCode.UNDEFINED_SETTER : HintCode.UNDEFINED_SETTER;
           resolver.reportErrorProxyConditionalAnalysisError(
-              staticType.getElement(),
+              staticOrPropagatedEnclosingElt,
               errorCode,
               propertyName,
               propertyName.getName(),
-              shouldReportMissingMember_static ? staticType.getDisplayName()
-                  : propagatedType.getDisplayName());
+              staticOrPropagatedEnclosingElt.getDisplayName());
         }
       } else if (propertyName.inGetterContext()) {
         if (isStaticProperty) {
           ErrorCode errorCode = shouldReportMissingMember_static
               ? StaticWarningCode.UNDEFINED_GETTER : HintCode.UNDEFINED_GETTER;
           resolver.reportErrorProxyConditionalAnalysisError(
-              staticType.getElement(),
+              staticOrPropagatedEnclosingElt,
               errorCode,
               propertyName,
               propertyName.getName(),
-              shouldReportMissingMember_static ? staticType.getDisplayName()
-                  : propagatedType.getDisplayName());
+              staticOrPropagatedEnclosingElt.getDisplayName());
         } else {
           ErrorCode errorCode = shouldReportMissingMember_static
               ? StaticTypeWarningCode.UNDEFINED_GETTER : HintCode.UNDEFINED_GETTER;
           resolver.reportErrorProxyConditionalAnalysisError(
-              staticType.getElement(),
+              staticOrPropagatedEnclosingElt,
               errorCode,
               propertyName,
               propertyName.getName(),
-              shouldReportMissingMember_static ? staticType.getDisplayName()
-                  : propagatedType.getDisplayName());
+              staticOrPropagatedEnclosingElt.getDisplayName());
         }
       } else {
         resolver.reportErrorProxyConditionalAnalysisError(
-            staticType.getElement(),
+            staticOrPropagatedEnclosingElt,
             StaticWarningCode.UNDEFINED_IDENTIFIER,
             propertyName,
             propertyName.getName());
