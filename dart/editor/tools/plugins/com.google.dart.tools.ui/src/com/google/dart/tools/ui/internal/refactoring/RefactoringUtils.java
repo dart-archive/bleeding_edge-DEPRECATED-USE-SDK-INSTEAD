@@ -165,8 +165,12 @@ public class RefactoringUtils {
     }
     // show unsafe sources
     if (sb.length() != 0) {
-      String msg = sb.toString();
-      DartCore.logInformation(msg);
+      String sourcesText = sb.toString();
+      String msg = "Sorry, something has gone wrong.\n"
+          + "It wouldn't be safe to perform the refactor right now.\n"
+          + "Please select Tools|Re-analyse sources, wait and try again.\n\n"
+          + "Please do send us feedback with the contents of this dialog.\n\n" + sourcesText;
+      DartCore.logInformation(sourcesText);
       MessageDialog.openError(
           DartToolsPlugin.getActiveWorkbenchShell(),
           "Not all sources have been analyzed",
