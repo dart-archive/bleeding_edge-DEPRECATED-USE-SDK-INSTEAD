@@ -19,6 +19,50 @@ import java.util.ArrayList;
 
 public class CompletionLibraryTests extends CompletionTestCase {
 
+  public void test_noPrivateElement_otherLibrary_constructor() throws Exception {
+    ArrayList<Source> sources = new ArrayList<Source>();
+    sources.add(addSource(//
+        "/lib.dart",
+        src(//
+            "library lib;",
+            "class A {",
+            "  A.c();",
+            "  A._c();",
+            "}",
+            "")));
+    test(//
+        src(//
+            "import 'lib.dart';",
+            "main() {",
+            "  new A.!1",
+            "}"),
+        sources,
+        "1-_c",
+        "1+c");
+  }
+
+  public void test_noPrivateElement_otherLibrary_member() throws Exception {
+    ArrayList<Source> sources = new ArrayList<Source>();
+    sources.add(addSource(//
+        "/lib.dart",
+        src(//
+            "library lib;",
+            "class A {",
+            "  var f;",
+            "  var _f;",
+            "}",
+            "")));
+    test(//
+        src(//
+            "import 'lib.dart';",
+            "main(A a) {",
+            "  a.!1",
+            "}"),
+        sources,
+        "1-_f",
+        "1+f");
+  }
+
   public void test001() throws Exception {
     ArrayList<Source> sources = new ArrayList<Source>();
     sources.add(addSource(//

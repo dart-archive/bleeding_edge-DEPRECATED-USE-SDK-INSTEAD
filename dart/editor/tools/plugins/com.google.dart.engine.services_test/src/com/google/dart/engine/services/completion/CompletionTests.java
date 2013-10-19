@@ -1334,8 +1334,8 @@ public class CompletionTests extends CompletionTestCase {
         "1+File",
         "1+File.fromPath",
         "1+FileMode",
-        "1-FileMode._internal1",
-        "1-FileMode._internal");
+        "1+FileMode._internal1",
+        "1+FileMode._internal");
   }
 
   public void testCommentSnippets078() throws Exception {
@@ -1597,8 +1597,30 @@ public class CompletionTests extends CompletionTestCase {
         "1-List");
   }
 
+  public void testCompletion_privateElement_sameLibrary_constructor() throws Exception {
+    test(src(//
+        "class A {",
+        "  A._c();",
+        "  A.c();",
+        "}",
+        "main() {",
+        "  new A.!1",
+        "}"), "1+_c", "1+c");
+  }
+
+  public void testCompletion_privateElement_sameLibrary_member() throws Exception {
+    test(src(//
+        "class A {",
+        "  _m() {}",
+        "  m() {}",
+        "}",
+        "main(A a) {",
+        "  a.!1",
+        "}"), "1+_m", "1+m");
+  }
+
   public void testCompletion_propertyAccess_whenClassTarget() throws Exception {
-    test(createSource(//
+    test(src(//
         "class A {",
         "  static int FIELD;",
         "  int field;",
@@ -1609,7 +1631,7 @@ public class CompletionTests extends CompletionTestCase {
   }
 
   public void testCompletion_propertyAccess_whenInstanceTarget() throws Exception {
-    test(createSource(//
+    test(src(//
         "class A {",
         "  static int FIELD;",
         "  int field;",

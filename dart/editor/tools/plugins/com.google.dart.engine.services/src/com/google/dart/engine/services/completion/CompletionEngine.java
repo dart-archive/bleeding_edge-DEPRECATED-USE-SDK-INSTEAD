@@ -291,7 +291,7 @@ public class CompletionEngine {
 
     private void mergeName(Element element) {
       String name = element.getDisplayName();
-      if (!filter.isPrivateDisallowed && Identifier.isPrivateName(name)) {
+      if (Identifier.isPrivateName(name)) {
         if (!isInCurrentLibrary(element)) {
           return;
         }
@@ -315,7 +315,6 @@ public class CompletionEngine {
     String prefix;
     String originalPrefix;
     Pattern pattern;
-    boolean isPrivateDisallowed = true;
 
     Filter(SimpleIdentifier ident) {
       this(ident, context.getSelectionOffset());
@@ -334,20 +333,8 @@ public class CompletionEngine {
       } else {
         prefix = "";
       }
-      if (prefix.length() >= 1) {
-        isPrivateDisallowed = !Identifier.isPrivateName(prefix);
-      }
       originalPrefix = prefix;
       prefix = prefix.toLowerCase();
-    }
-
-    boolean isPermitted(String name) {
-      if (isPrivateDisallowed) {
-        if (name.length() > 0 && Identifier.isPrivateName(name)) {
-          return false;
-        }
-      }
-      return true;
     }
 
     String makePattern() {
@@ -381,11 +368,11 @@ public class CompletionEngine {
     }
 
     boolean match(String name) {
-      // Return true if the filter passes. Return false for private elements that should not be visible
-      // in the current context.
-      return isPermitted(name)
-          && (name.toLowerCase().startsWith(prefix) || pattern != null
-              && pattern.matcher(name).matches());
+      // Return true if the filter passes.
+      if (name.toLowerCase().startsWith(prefix)) {
+        return true;
+      }
+      return pattern != null && pattern.matcher(name).matches();
     }
   }
 
@@ -1460,11 +1447,17 @@ public class CompletionEngine {
   private static final String C_VAR = "var";
   private static final String C_VOID = "void";
 
+  private static boolean isPrivate(Element element) {
+    String name = element.getDisplayName();
+    return Identifier.isPrivateName(name);
+  }
+
   private CompletionRequestor requestor;
   private CompletionFactory factory;
   private AssistContext context;
   private Filter filter;
   private CompletionState state;
+
   private LibraryElement[] libraries;
 
   public CompletionEngine(CompletionRequestor requestor, CompletionFactory factory) {
@@ -1914,9 +1907,8 @@ public class CompletionEngine {
     for (LibraryElement lib : libs) {
       String name = lib.getDisplayName();
       name = name.substring(5);
-      if (filter.isPermitted(name)) {
-        pName("dart:" + name, ProposalKind.IMPORT);
-      }
+      // TODO(scheglov)
+      pName("dart:" + name, ProposalKind.IMPORT);
     }
   }
 
@@ -1925,11 +1917,15 @@ public class CompletionEngine {
     if (filter == null) {
       filter = new Filter(identifier);
     }
+    // TODO(scheglov)
     for (ConstructorElement cons : classElement.getConstructors()) {
-      if ((state.isCompileTimeConstantRequired ? cons.isConst() : true)
-          && filter.isPermitted(cons.getDisplayName())) {
-        pNamedConstructor(classElement, cons, identifier);
+      if (!isVisible(cons)) {
+        continue;
       }
+      if (state.isCompileTimeConstantRequired && !cons.isConst()) {
+        continue;
+      }
+      pNamedConstructor(classElement, cons, identifier);
     }
   }
 
@@ -2047,8 +2043,24 @@ public class CompletionEngine {
     return newList;
   }
 
+  private CompletionProposal createProposal(Element element, String completion) {
+    ProposalKind kind = proposalKindOf(element);
+    CompletionProposal prop = createProposal(kind);
+    prop.setCompletion(completion);
+    prop.setDeprecated(isDeprecated(element));
+    if (isPrivate(element)) {
+      prop.setRelevance(0);
+    }
+    return prop;
+  }
+
   private CompletionProposal createProposal(ProposalKind kind) {
     return factory.createCompletionProposal(kind, completionLocation() - filter.prefix.length());
+  }
+
+  private CompletionProposal createProposal(Element element) {
+    String completion = element.getDisplayName();
+    return createProposal(element, completion);
   }
 
   private LibraryElement[] currentLibraryList() {
@@ -2218,6 +2230,10 @@ public class CompletionEngine {
     return true;
   }
 
+  private boolean isVisible(Element element) {
+    return !isPrivate(element) || isInCurrentLibrary(element);
+  }
+
   private LibraryElement[] librariesImportedByName(SimpleIdentifier libName) {
     ImportElement[] imps = getCurrentLibrary().getImports();
     String name = libName.getName();
@@ -2278,12 +2294,17 @@ public class CompletionEngine {
       boolean isPotentialMatch) {
     // Create a completion proposal for the element: function, method, getter, setter, constructor.
     String name = element.getDisplayName();
-    if (name.isEmpty() || filterDisallows(element)) {
+    if (name.isEmpty()) {
       return; // Simple constructors are not handled here
     }
-    ProposalKind kind = proposalKindOf(element);
-    CompletionProposal prop = createProposal(kind);
-    prop.setDeprecated(isDeprecated(element)).setPotentialMatch(isPotentialMatch);
+    if (filterDisallows(element)) {
+      return;
+    }
+    if (!isVisible(element)) {
+      return;
+    }
+    CompletionProposal prop = createProposal(element);
+    prop.setPotentialMatch(isPotentialMatch);
     if (isPotentialMatch) {
       prop.setRelevance(0);
     }
@@ -2302,10 +2323,7 @@ public class CompletionEngine {
     if (name.isEmpty() || filterDisallows(element)) {
       return; // Simple constructors are not handled here
     }
-    ProposalKind kind = proposalKindOf(element);
-    CompletionProposal prop = createProposal(kind);
-    prop.setDeprecated(isDeprecated(element));
-    prop.setCompletion(name);
+    CompletionProposal prop = createProposal(element);
     if (element.getType() != null) {
       prop.setReturnType(element.getType().getName());
     }
@@ -2322,14 +2340,10 @@ public class CompletionEngine {
 
   private void pField(FieldElement element, SimpleIdentifier identifier, ClassElement classElement) {
     // Create a completion proposal for the element: field only.
-    String name = element.getDisplayName();
     if (filterDisallows(element)) {
       return;
     }
-    ProposalKind kind = proposalKindOf(element);
-    CompletionProposal prop = createProposal(kind);
-    prop.setDeprecated(isDeprecated(element));
-    prop.setCompletion(name);
+    CompletionProposal prop = createProposal(element);
     Element container = element.getEnclosingElement();
     prop.setDeclaringType(container.getDisplayName());
     requestor.accept(prop);
@@ -2347,14 +2361,10 @@ public class CompletionEngine {
 
   private void pName(Element element) {
     // Create a completion proposal for the element: variable, field, class, function.
-    String name = element.getDisplayName();
     if (filterDisallows(element)) {
       return;
     }
-    ProposalKind kind = proposalKindOf(element);
-    CompletionProposal prop = createProposal(kind);
-    prop.setCompletion(name);
-    prop.setDeprecated(isDeprecated(element));
+    CompletionProposal prop = createProposal(element);
     Element container = element.getEnclosingElement();
     if (container != null) {
       prop.setDeclaringType(container.getDisplayName());
@@ -2389,11 +2399,9 @@ public class CompletionEngine {
     if (filterDisallows(name)) {
       return;
     }
-    ProposalKind kind = proposalKindOf(element);
-    CompletionProposal prop = createProposal(kind);
-    prop.setDeprecated(isDeprecated(element));
+    CompletionProposal prop = createProposal(element, name);
     setParameterInfo(element, prop);
-    prop.setCompletion(name).setReturnType(element.getType().getReturnType().getName());
+    prop.setReturnType(element.getType().getReturnType().getName());
     Element container = element.getEnclosingElement();
     prop.setDeclaringType(container.getDisplayName());
     requestor.accept(prop);
