@@ -50,7 +50,7 @@ import java.io.File;
 public class EmbeddedDartReconcilerHook implements ISourceValidator, IValidator {
 
   private File file;
-  private AnalysisContext analysisContext;
+  private IResource resource;
   private Project dartProject;
   private Source source;
   private CompilationUnit resolvedUnit;
@@ -94,14 +94,15 @@ public class EmbeddedDartReconcilerHook implements ISourceValidator, IValidator 
       this.document = null;
       this.file = null;
       this.dartProject = null;
-      this.analysisContext = null;
+      this.resource = null;
+      this.partLength = -1;
       return;
     }
     IProject project = resource.getProject();
     dartProject = DartCore.getProjectManager().getProject(project);
-    analysisContext = dartProject.getContext(resource);
     DartReconcilerManager.getInstance().reconcileWith(document, this);
     document.addPrenotifiedDocumentListener(documentListener);
+    this.resource = resource;
   }
 
   @Override
@@ -110,6 +111,9 @@ public class EmbeddedDartReconcilerHook implements ISourceValidator, IValidator 
     document.removePrenotifiedDocumentListener(documentListener);
     DartReconcilerManager.getInstance().reconcileWith(document, null);
     this.document = null;
+    this.file = null;
+    this.dartProject = null;
+    this.resource = null;
   }
 
   public IDocument getDocument() {
@@ -118,7 +122,7 @@ public class EmbeddedDartReconcilerHook implements ISourceValidator, IValidator 
 
   public AnalysisContext getInputAnalysisContext() {
     // DartReconcilingEditor
-    return analysisContext;
+    return dartProject.getContext(resource);
   }
 
   public Project getInputProject() {
@@ -159,8 +163,12 @@ public class EmbeddedDartReconcilerHook implements ISourceValidator, IValidator 
   }
 
   private void resetSource(int offset, int length) {
-    if (document != null && analysisContext != null) {
+    if (document != null && resource != null) {
       try {
+        AnalysisContext analysisContext = getInputAnalysisContext();
+        if (source != null && (partOffset != offset || partLength != length)) {
+          analysisContext.setContents(source, null);
+        }
         String code = document.get(offset, length);
         File tempFile = new File(file.getParentFile(), file.getName() + offset + ".dart");
         source = new FileBasedSource(analysisContext.getSourceFactory().getContentCache(), tempFile);
