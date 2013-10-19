@@ -166,7 +166,7 @@ public class TypeResolverVisitor extends ScopedVisitor {
       TypeName exceptionTypeName = node.getExceptionType();
       Type exceptionType;
       if (exceptionTypeName == null) {
-        exceptionType = getTypeProvider().getObjectType();
+        exceptionType = getTypeProvider().getDynamicType();
       } else {
         exceptionType = getType(exceptionTypeName);
       }

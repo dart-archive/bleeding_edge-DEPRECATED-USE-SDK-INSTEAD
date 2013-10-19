@@ -141,7 +141,7 @@ public class TypeResolverVisitorTest extends EngineTestCase {
     CatchClause clause = catchClause("e");
     SimpleIdentifier exceptionParameter = clause.getExceptionParameter();
     exceptionParameter.setStaticElement(new LocalVariableElementImpl(exceptionParameter));
-    resolve(clause, typeProvider.getObjectType(), null);
+    resolve(clause, typeProvider.getDynamicType(), null);
     listener.assertNoErrors();
   }
 
@@ -152,7 +152,7 @@ public class TypeResolverVisitorTest extends EngineTestCase {
     exceptionParameter.setStaticElement(new LocalVariableElementImpl(exceptionParameter));
     SimpleIdentifier stackTraceParameter = clause.getStackTraceParameter();
     stackTraceParameter.setStaticElement(new LocalVariableElementImpl(stackTraceParameter));
-    resolve(clause, typeProvider.getObjectType(), typeProvider.getStackTraceType());
+    resolve(clause, typeProvider.getDynamicType(), typeProvider.getStackTraceType());
     listener.assertNoErrors();
   }
 
@@ -352,7 +352,7 @@ public class TypeResolverVisitorTest extends EngineTestCase {
    * @param definedElements the elements that are to be defined in the scope in which the element is
    *          being resolved
    */
-  private void resolve(CatchClause node, InterfaceType exceptionType, InterfaceType stackTraceType,
+  private void resolve(CatchClause node, Type exceptionType, InterfaceType stackTraceType,
       Element... definedElements) {
     resolveNode(node, definedElements);
     SimpleIdentifier exceptionParameter = node.getExceptionParameter();
