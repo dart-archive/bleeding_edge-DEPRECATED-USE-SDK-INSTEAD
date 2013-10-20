@@ -16,6 +16,7 @@ package com.google.dart.engine.services.internal.refactoring;
 
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.services.change.Change;
+import com.google.dart.engine.services.change.SourceChange;
 import com.google.dart.engine.services.status.RefactoringStatusSeverity;
 import com.google.dart.engine.source.Source;
 
@@ -500,6 +501,48 @@ public class RenameClassMemberRefactoringImplTest extends RenameRefactoringImplT
         "  new A().newName();",
         "}");
     assertTrue(refactoring.requiresPreview());
+  }
+
+  public void test_createChange_MethodElement_potential_private_otherLibrary() throws Exception {
+    Source lib = addSource(
+        "/lib.dart",
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "library lib;",
+            "f(p) {",
+            "  p._test();",
+            "}"));
+    indexTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "import 'lib.dart';",
+        "class A {",
+        "  _test() {}",
+        "}",
+        "f(A a) {",
+        "  a._test();",
+        "}");
+    indexUnit(lib);
+    // configure refactoring
+    createRenameRefactoring("_test() {}");
+    assertEquals("Rename Method", refactoring.getRefactoringName());
+    refactoring.setNewName("newName");
+    // validate change
+    assertRefactoringStatusOK();
+    Change refactoringChange = refactoring.createChange(pm);
+    assertChangeResult(
+        refactoringChange,
+        testSource,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "import 'lib.dart';",
+            "class A {",
+            "  newName() {}",
+            "}",
+            "f(A a) {",
+            "  a.newName();",
+            "}"));
+    SourceChange noChangeExpected = getSourceChange(refactoringChange, lib);
+    assertNull(noChangeExpected);
   }
 
   public void test_createChange_multipleUnits() throws Exception {

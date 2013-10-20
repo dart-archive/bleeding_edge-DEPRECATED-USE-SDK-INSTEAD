@@ -90,8 +90,11 @@ public abstract class RefactoringImplTest extends AbstractDartTest {
       MergeCompositeChange mergeChange = (MergeCompositeChange) change;
       SourceChange executeChange = getSourceChange(mergeChange.getExecuteChange(), source);
       SourceChange previewChange = getSourceChange(mergeChange.getPreviewChange(), source);
-      if (executeChange == null || previewChange == null) {
-        return null;
+      if (executeChange != null && previewChange == null) {
+        return executeChange;
+      }
+      if (executeChange == null && previewChange != null) {
+        return previewChange;
       }
       return mergeSourceChanges(executeChange, previewChange);
     }

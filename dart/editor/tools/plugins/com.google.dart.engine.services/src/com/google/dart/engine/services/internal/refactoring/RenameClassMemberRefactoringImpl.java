@@ -14,10 +14,13 @@
 
 package com.google.dart.engine.services.internal.refactoring;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
+import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.FieldElement;
+import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.TypeParameterElement;
@@ -45,9 +48,20 @@ import java.util.List;
  * {@link Refactoring} for renaming {@link FieldElement} and {@link MethodElement}.
  */
 public class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
+  private static boolean isVisible(Element what, Element where) {
+    String name = what.getDisplayName();
+    if (!Identifier.isPrivateName(name)) {
+      return true;
+    }
+    LibraryElement whatLibrary = what.getLibrary();
+    LibraryElement whereLibrary = where.getLibrary();
+    return Objects.equal(whatLibrary, whereLibrary);
+  }
+
   private final Element element;
   private RenameClassMemberValidator validator;
   private List<SearchMatch> nameReferences;
+
   private boolean hasIgnoredElements = false;
 
   public RenameClassMemberRefactoringImpl(SearchEngine searchEngine, Element element) {
@@ -133,7 +147,11 @@ public class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
       SourceChangeManager previewManager = new SourceChangeManager();
       List<SearchMatch> uniqueNameRefs = getUniqueMatches(nameReferences);
       for (SearchMatch reference : uniqueNameRefs) {
-        Source refSource = reference.getElement().getSource();
+        Element refElement = reference.getElement();
+        if (!isVisible(element, refElement)) {
+          continue;
+        }
+        Source refSource = refElement.getSource();
         SourceChange refChange = previewManager.get(refSource);
         Edit edit = createReferenceEdit(reference, newName);
         addEdit(refChange, "Update reference @" + reference.getSourceRange().getOffset(), edit);
