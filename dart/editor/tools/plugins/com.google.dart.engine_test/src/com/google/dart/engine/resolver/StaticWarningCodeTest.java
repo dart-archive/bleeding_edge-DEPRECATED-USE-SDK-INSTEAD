@@ -19,51 +19,6 @@ import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.source.Source;
 
 public class StaticWarningCodeTest extends ResolverTestCase {
-  public void fail_commentReferenceConstructorNotVisible() throws Exception {
-    Source source = addSource(createSource(//
-    // TODO
-    ));
-    resolve(source);
-    assertErrors(source, StaticWarningCode.COMMENT_REFERENCE_CONSTRUCTOR_NOT_VISIBLE);
-    verify(source);
-  }
-
-  public void fail_commentReferenceIdentifierNotVisible() throws Exception {
-    Source source = addSource(createSource(//
-    // TODO
-    ));
-    resolve(source);
-    assertErrors(source, StaticWarningCode.COMMENT_REFERENCE_IDENTIFIER_NOT_VISIBLE);
-    verify(source);
-  }
-
-  public void fail_commentReferenceUndeclaredConstructor() throws Exception {
-    Source source = addSource(createSource(//
-    // TODO
-    ));
-    resolve(source);
-    assertErrors(source, StaticWarningCode.COMMENT_REFERENCE_UNDECLARED_CONSTRUCTOR);
-    verify(source);
-  }
-
-  public void fail_commentReferenceUndeclaredIdentifier() throws Exception {
-    Source source = addSource(createSource(//
-    // TODO
-    ));
-    resolve(source);
-    assertErrors(source, StaticWarningCode.COMMENT_REFERENCE_UNDECLARED_IDENTIFIER);
-    verify(source);
-  }
-
-  public void fail_commentReferenceUriNotLibrary() throws Exception {
-    Source source = addSource(createSource(//
-    // TODO
-    ));
-    resolve(source);
-    assertErrors(source, StaticWarningCode.COMMENT_REFERENCE_URI_NOT_LIBRARY);
-    verify(source);
-  }
-
   public void fail_mismatchedAccessorTypes_getterAndSuperSetter() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
