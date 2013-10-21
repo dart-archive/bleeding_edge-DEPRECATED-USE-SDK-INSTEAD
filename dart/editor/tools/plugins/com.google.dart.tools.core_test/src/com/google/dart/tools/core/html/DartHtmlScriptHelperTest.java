@@ -43,6 +43,14 @@ public class DartHtmlScriptHelperTest extends TestCase {
         + "<script type=\"application/dart\">foo foo!</script></html>", expectedScripts);
   }
 
+  public void test_getDartScripts_4() {
+    String html = "<html><script type=\"application/dart\" src=\"packages/polymer/init.dart\">foo!</script>\n"
+        + "<script type=\"application/dart\">foo foo!</script></html>";
+    List<String> scripts = DartHtmlScriptHelper.findDartScripts(html);
+    assertEquals(1, scripts.size());
+    assertTrue(scripts.get(0).contains("polymer/init.dart"));
+  }
+
   public void test_getNonDartScripts_1() {
     String html = "<html><script type=\"application/dart\">foo!</script>\n"
         + "<script type=\"application/dart\">foo foo!</script></html>";

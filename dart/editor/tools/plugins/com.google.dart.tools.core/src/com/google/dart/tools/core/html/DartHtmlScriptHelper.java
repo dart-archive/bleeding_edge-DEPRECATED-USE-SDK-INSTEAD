@@ -31,6 +31,22 @@ public class DartHtmlScriptHelper {
 
   private static final String APPLICATION_DART_TAG = "application/dart";
 
+  public static List<String> findDartScripts(String data) {
+    HtmlParser parser = new HtmlParser(data);
+
+    XmlDocument document = parser.parse();
+
+    List<String> scripts = new ArrayList<String>();
+
+    for (XmlNode child : document.getChildren()) {
+      if (child instanceof XmlElement) {
+        findDartScripts((XmlElement) child, scripts);
+      }
+    }
+
+    return scripts;
+  }
+
   /**
    * Parse the given html file and return the content and location of the "application/dart"
    * scripts.
@@ -83,10 +99,29 @@ public class DartHtmlScriptHelper {
     return scripts;
   }
 
+  private static void findDartScripts(XmlElement node, List<String> scripts) {
+    if ("script".equals(node.getLabel())) {
+      String type = node.getAttributeString("type");
+      boolean isDart = APPLICATION_DART_TAG.equalsIgnoreCase(type);
+      if (isDart) {
+        String src = node.getAttributeString("src");
+        if (src != null) {
+          scripts.add(src);
+        }
+      }
+    }
+
+    for (XmlNode child : node.getChildren()) {
+      if (child instanceof XmlElement) {
+        findDartScripts((XmlElement) child, scripts);
+      }
+    }
+  }
+
   private static void locateNonDartScripts(XmlElement node, List<String> scripts) {
     if ("script".equals(node.getLabel())) {
       String type = node.getAttributeString("type");
-      boolean isDart = type != null && APPLICATION_DART_TAG.equalsIgnoreCase(type);
+      boolean isDart = APPLICATION_DART_TAG.equalsIgnoreCase(type);
       if (!isDart) {
         String src = node.getAttributeString("src");
         if (src != null) {

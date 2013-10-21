@@ -46,7 +46,7 @@ public class RunInBrowserPropertyTester extends PropertyTester {
         Object o = ((IStructuredSelection) receiver).getFirstElement();
         if (o instanceof IFile) {
           IFile file = (IFile) o;
-          if (DartCore.isHtmlLikeFileName(((IFile) o).getName()) && !usesBootJs(file)) {
+          if (DartCore.isHtmlLikeFileName(((IFile) o).getName()) && !usesPolymer(file)) {
             return true;
           }
 
@@ -65,7 +65,7 @@ public class RunInBrowserPropertyTester extends PropertyTester {
         if (o instanceof IFile) {
           IFile file = (IFile) o;
           if (DartCore.isHtmlLikeFileName(((IFile) o).getName())) {
-            if (usesBootJs(file)) {
+            if (usesPolymer(file)) {
               return true;
             }
           }
@@ -76,14 +76,15 @@ public class RunInBrowserPropertyTester extends PropertyTester {
     return false;
   }
 
-  private boolean usesBootJs(IFile file) {
+  private boolean usesPolymer(IFile file) {
     try {
       String contents = FileUtilities.getContents(file.getLocation().toFile(), "UTF-8");
       if (contents != null) {
         List<String> list = DartHtmlScriptHelper.getNonDartScripts(contents);
+        list.addAll(DartHtmlScriptHelper.findDartScripts(contents));
         if (!list.isEmpty()) {
           for (String string : list) {
-            if (string != null && string.contains("polymer/boot.js")) {
+            if (string != null && string.contains("packages/polymer")) {
               return true;
             }
           }
