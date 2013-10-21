@@ -2043,6 +2043,11 @@ public class CompletionEngine {
     return newList;
   }
 
+  private CompletionProposal createProposal(Element element) {
+    String completion = element.getDisplayName();
+    return createProposal(element, completion);
+  }
+
   private CompletionProposal createProposal(Element element, String completion) {
     ProposalKind kind = proposalKindOf(element);
     CompletionProposal prop = createProposal(kind);
@@ -2056,11 +2061,6 @@ public class CompletionEngine {
 
   private CompletionProposal createProposal(ProposalKind kind) {
     return factory.createCompletionProposal(kind, completionLocation() - filter.prefix.length());
-  }
-
-  private CompletionProposal createProposal(Element element) {
-    String completion = element.getDisplayName();
-    return createProposal(element, completion);
   }
 
   private LibraryElement[] currentLibraryList() {
@@ -2304,16 +2304,26 @@ public class CompletionEngine {
       return;
     }
     CompletionProposal prop = createProposal(element);
+
     prop.setPotentialMatch(isPotentialMatch);
     if (isPotentialMatch) {
       prop.setRelevance(0);
     }
+
     setParameterInfo(element, prop);
     prop.setCompletion(name).setReturnType(element.getType().getReturnType().getName());
+
+    // If there is already argument list, then update only method name.
+    if (identifier.getParent() instanceof MethodInvocation
+        && ((MethodInvocation) identifier.getParent()).getArgumentList() != null) {
+      prop.setKind(ProposalKind.METHOD_NAME);
+    }
+
     Element container = element.getEnclosingElement();
     if (container != null) {
       prop.setDeclaringType(container.getDisplayName());
     }
+
     requestor.accept(prop);
   }
 

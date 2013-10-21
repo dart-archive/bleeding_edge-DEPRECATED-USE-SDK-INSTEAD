@@ -29,6 +29,7 @@ public enum ProposalKind {
   IMPORT,
   LIBRARY_PREFIX,
   METHOD,
+  METHOD_NAME,
   PARAMETER,
   SETTER,
   VARIABLE,
