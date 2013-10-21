@@ -15,7 +15,7 @@ vars.update({
   "multivm_url": "http://src.chromium.org/multivm/trunk",
   "dartium_webkit_trunk": "http://src.chromium.org/multivm/trunk/webkit",
   "dartium_webkit_revision": "1458",
-  "dartium_tools_revision": "1449",
+  "dartium_tools_revision": "1459",
   "bootstrap_css_rev" : "@28387",
 
   "co19_rev": "@623",
