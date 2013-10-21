@@ -469,8 +469,11 @@ def main():
             # Archive to new bucket
             # NOTE: This is a little bit hackisch, we fetch the editor from
             # the old bucket and archive the dmg to the new bucket here.
+            release_type = bot_utils.ReleaseType.SIGNED
+            if CHANNEL == 'be':
+              release_type = bot_utils.ReleaseType.RAW
             DartArchiveUploadInstaller(arch, dmg_installer, 'dmg',
-                release_type=bot_utils.ReleaseType.SIGNED)
+                release_type=release_type)
 
       if SYSTEM == 'mac':
         for arch in ['32', '64']:
