@@ -3078,6 +3078,44 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_referencedBeforeDeclaration_hideInBlock_function() throws Exception {
+    Source source = addSource(createSource(//
+        "var v = 1;",
+        "main() {",
+        "  print(v);",
+        "  v() {}",
+        "}",
+        "print(x) {}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION);
+  }
+
+  public void test_referencedBeforeDeclaration_hideInBlock_local() throws Exception {
+    Source source = addSource(createSource(//
+        "var v = 1;",
+        "main() {",
+        "  print(v);",
+        "  var v = 2;",
+        "}",
+        "print(x) {}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION);
+  }
+
+  public void test_referencedBeforeDeclaration_hideInBlock_subBlock() throws Exception {
+    Source source = addSource(createSource(//
+        "var v = 1;",
+        "main() {",
+        "  {",
+        "    print(v);",
+        "  }",
+        "  var v = 2;",
+        "}",
+        "print(x) {}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION);
+  }
+
   public void test_referenceToDeclaredVariableInInitializer_closure() throws Exception {
     Source source = addSource(createSource(//
         "f() {",

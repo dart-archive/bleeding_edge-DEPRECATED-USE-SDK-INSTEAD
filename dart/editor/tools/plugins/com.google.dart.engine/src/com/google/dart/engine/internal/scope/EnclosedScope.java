@@ -16,7 +16,9 @@ package com.google.dart.engine.internal.scope;
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
+import com.google.dart.engine.error.CompileTimeErrorCode;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -90,7 +92,13 @@ public class EnclosedScope extends Scope {
       return element;
     }
     if (hiddenNames.contains(name)) {
-      return null;
+      getErrorListener().onError(
+          new AnalysisError(
+              getSource(),
+              identifier.getOffset(),
+              identifier.getLength(),
+              CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION));
+      //return null;
     }
     return enclosingScope.lookup(identifier, name, referencingLibrary);
   }

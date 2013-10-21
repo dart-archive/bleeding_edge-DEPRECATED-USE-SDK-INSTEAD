@@ -2221,44 +2221,6 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_undefinedIdentifier_hideInBlock_function() throws Exception {
-    Source source = addSource(createSource(//
-        "var v = 1;",
-        "main() {",
-        "  print(v);",
-        "  v() {}",
-        "}",
-        "print(x) {}"));
-    resolve(source);
-    assertErrors(source, StaticWarningCode.UNDEFINED_IDENTIFIER);
-  }
-
-  public void test_undefinedIdentifier_hideInBlock_local() throws Exception {
-    Source source = addSource(createSource(//
-        "var v = 1;",
-        "main() {",
-        "  print(v);",
-        "  var v = 2;",
-        "}",
-        "print(x) {}"));
-    resolve(source);
-    assertErrors(source, StaticWarningCode.UNDEFINED_IDENTIFIER);
-  }
-
-  public void test_undefinedIdentifier_hideInBlock_subBlock() throws Exception {
-    Source source = addSource(createSource(//
-        "var v = 1;",
-        "main() {",
-        "  {",
-        "    print(v);",
-        "  }",
-        "  var v = 2;",
-        "}",
-        "print(x) {}"));
-    resolve(source);
-    assertErrors(source, StaticWarningCode.UNDEFINED_IDENTIFIER);
-  }
-
   public void test_undefinedIdentifier_initializer() throws Exception {
     Source source = addSource(createSource(//
     "var a = b;"));

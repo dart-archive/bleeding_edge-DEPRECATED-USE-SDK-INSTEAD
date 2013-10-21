@@ -1065,6 +1065,12 @@ public enum CompileTimeErrorCode implements ErrorCode {
       "The name '%s' cannot be referenced in the initializer of a variable with the same name"),
 
   /**
+   * 5 Variables: A local variable may only be referenced at a source code location that is after
+   * its initializer, if any, is complete, or a compile-time error occurs.
+   */
+  REFERENCED_BEFORE_DECLARATION("Local variables cannot be referenced before they are declared"),
+
+  /**
    * 12.8.1 Rethrow: It is a compile-time error if an expression of the form <i>rethrow;</i> is not
    * enclosed within a on-catch clause.
    */
