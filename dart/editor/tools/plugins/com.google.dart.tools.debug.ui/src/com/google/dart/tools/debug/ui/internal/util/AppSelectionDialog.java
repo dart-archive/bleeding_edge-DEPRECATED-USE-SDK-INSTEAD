@@ -31,6 +31,15 @@ public class AppSelectionDialog extends FilteredResourcesSelectionDialog {
     }
   }
 
+  public static class HtmlWebResourceFilter implements IResourceFilter {
+    @Override
+    public boolean matches(IResource resource) {
+      // TODO: should check web parent has pubspec?
+      return DartCore.isHtmlLikeFileName(resource.getName())
+          && resource.getParent().getName().equals("web");
+    }
+  }
+
   private IResourceFilter filter;
 
   /**

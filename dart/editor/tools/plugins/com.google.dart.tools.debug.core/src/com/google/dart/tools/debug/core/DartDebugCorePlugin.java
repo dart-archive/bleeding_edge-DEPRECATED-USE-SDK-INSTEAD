@@ -16,6 +16,8 @@ package com.google.dart.tools.debug.core;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.utilities.general.StringUtilities;
+import com.google.dart.tools.debug.core.pubserve.PubServeLaunchConfigurationDelegate;
+import com.google.dart.tools.debug.core.pubserve.PubServeManager;
 import com.google.dart.tools.debug.core.util.BrowserManager;
 import com.google.dart.tools.debug.core.util.ResourceChangeManager;
 import com.google.dart.tools.debug.core.util.ResourceServerManager;
@@ -84,6 +86,8 @@ public class DartDebugCorePlugin extends Plugin {
   public static final String DARTIUM_LAUNCH_CONFIG_ID = "com.google.dart.tools.debug.core.dartiumLaunchConfig";
 
   public static final String CHROMEAPP_LAUNCH_CONFIG_ID = "com.google.dart.tools.debug.core.chromeAppLaunchConfig";
+
+  public static final String PUBSERVE_LAUNCH_CONFIG_ID = "com.google.dart.tools.debug.core.pubServeLaunchConfig";
 
   private static IDebugEventSetListener debugEventListener;
 
@@ -424,6 +428,8 @@ public class DartDebugCorePlugin extends Plugin {
     ResourceServerManager.shutdown();
 
     BrowserManager.getManager().dispose();
+    PubServeManager.getManager().dispose();
+    PubServeLaunchConfigurationDelegate.dispose();
 
     if (debugEventListener != null) {
       DebugPlugin.getDefault().removeDebugEventListener(debugEventListener);

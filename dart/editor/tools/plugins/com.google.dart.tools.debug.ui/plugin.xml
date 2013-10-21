@@ -67,6 +67,11 @@
             icon="icons/chromium_16.png"
             id="com.google.dart.tools.debug.core.chromeLaunchConfigImage">
       </launchConfigurationTypeImage>
+      <launchConfigurationTypeImage
+            configTypeID="com.google.dart.tools.debug.core.pubServeLaunchConfig"
+            icon="icons/chromium_16_ps.png"
+            id="com.google.dart.tools.debug.ui.pubServeLaunchImage">
+      </launchConfigurationTypeImage>
    </extension>
 
    <extension
@@ -78,6 +83,17 @@
             description="Run a Dart web application in Dartium">
       </launchConfigurationTabGroup>
    </extension>
+  
+  <extension
+         point="org.eclipse.debug.ui.launchConfigurationTabGroups">
+      <launchConfigurationTabGroup
+            class="com.google.dart.tools.debug.ui.internal.pubserve.PubServeTabGroup"
+            id="com.google.dart.tools.debug.core.pubServeLaunchConfigTabGroup"
+            type="com.google.dart.tools.debug.core.pubServeLaunchConfig"
+            description="Run a Dart web application in Dartium using pub serve">
+      </launchConfigurationTabGroup>
+   </extension>
+
 
    <extension
          point="org.eclipse.debug.ui.launchShortcuts">
