@@ -62,6 +62,6 @@ deps_os = {
 hooks = [
   {
     "pattern": ".",
-    "action": ["python", "dart/tools/generate_projects.py", "runtime"],
+    "action": ["python", "dart/tools/gyp_dart.py", "runtime"],
   },
 ]
