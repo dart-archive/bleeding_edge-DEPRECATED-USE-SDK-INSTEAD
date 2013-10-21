@@ -4,6 +4,7 @@ TypeText downArrow, downArrow, downArrow
 TypeText enter
 Wait 10
 TypeText rightArrow
+TypeText rightArrow(* redundant *)
 WaitFor 30, "pubspec lock"
 Click "pubspec lock"
 TypeText downArrow,downArrow,downArrow,rightArrow
@@ -18,7 +19,9 @@ final List<Document> documents = toObservable([]
 TypeText rightArrow,";"
 TypeText enter
 Click (Text:"mainClass",CaseSensitive:"yes",IgnoreSpaces:"yes",IgnoreUnderscores:"yes",dpi:94)
-TypeText downArrow,downArrow,downArrow
+TypeText downArrow
+TypeText downArrow
+TypeText downArrow
 TypeText {{
 void createDocument() {
 // Create a new document.
@@ -30,14 +33,18 @@ TypeText {{
 documents.add(doc);
 selectDocument(doc);
 }}
-TypeText downArrow,downArrow,downArrow,downArrow
+Wait 1
+TypeText downArrow,downArrow
+TypeText downArrow,downArrow
 TypeText {{
 void deleteDocument(Document doc) {
 documents.remove(doc);
 
 // STEP 5: Also delete from local storage.
 }}
-TypeText downArrow,downArrow,downArrow,downArrow
+Wait 1
+TypeText downArrow,downArrow
+TypeText downArrow,downArrow
 TypeText {{
 void selectDocument(Document doc, {bool markActive: false}) {
 if (documents.isEmpty) {
@@ -47,6 +54,7 @@ activeDocument = null;
 activeDocument = doc;
 } else if (activeDocument != null && documents.contains(activeDocument)
 }}
+Wait 1
 TypeText rightArrow
 TypeText {{
 {
@@ -56,10 +64,11 @@ contentActive = markActive && doc == activeDocument;
 // Fall back to the last document.
 activeDocument = documents.last;
 }}
-TypeText commandKey,s
 Wait 5
-TypeText downArrow,downArrow,downArrow,downArrow,downArrow
-TypeText downArrow,downArrow,downArrow,downArrow,tab
+TypeText downArrow,downArrow
+TypeText downArrow,downArrow,downArrow
+TypeText downArrow,downArrow
+TypeText downArrow,downArrow,tab
 TypeText {{
 if (documents.isEmpty) createDocument();
 }}
@@ -74,19 +83,32 @@ DoubleClick (Text:"index.html",CaseSensitive:"yes",IgnoreSpaces:"yes",IgnoreUnde
 Click (Text:"Add a button",CaseSensitive:"yes",IgnoreSpaces:"yes",IgnoreUnderscores:"yes",dpi:94)
 TypeText downArrow,backspace,enter
 TypeText {{
-<button on-click="createDocument()">+</button>
+<button on-click="createDocument()
 }}
+TypeText rightArrow
+TypeText ">+"
 Click (Text:"Iterate over",CaseSensitive:"yes",IgnoreSpaces:"yes",IgnoreUnderscores:"yes",dpi:94)
 TypeText downArrow,backspace,enter
 TypeText {{
 <template iterate="doc in documents">
 
-<!-- STEP 4: Hide documents that don't match search filter. -->
-
-<!-- Our custom document element! -->
-<x-document-item doc="{{doc}}"></x-document-item>
-</template>
+<!-- STEP 4: Hide documents that don't match search filter.
 }}
+TypeText commandKey,rightArrow,enter
+
+TypeText {{
+<!-- Our custom document element!
+}}
+TypeText commandKey,rightArrow,enter
+TypeText{{
+<x-document-item doc="{{doc}}
+}}
+TypeText rightArrow
+TypeText {{
+></
+}}
+TypeText commandKey,rightArrow,enter
+TypeText "</"
 Wait 1
 TypeText shiftKey,downArrow,downArrow,downArrow
 Wait 5
@@ -99,12 +121,22 @@ Click (Text:"Class}}",CaseSensitive:"yes",IgnoreSpaces:"yes",IgnoreUnderscores:"
 TypeText rightArrow,rightArrow,rightArrow,rightArrow,rightArrow,rightArrow,backspace
 TypeText enter,tab
 TypeText {{
-on-click="app.selectDocument(doc, markActive: true)">
+on-click="app.selectDocument(doc, markActive: true)
 }}
+TypeText rightArrow
+TypeText ">"
 TypeText downArrow,downArrow,downArrow,downArrow,downArrow
 TypeText enter
 TypeText {{
-<button class="delete" on-click="app.deleteDocument(doc)">&times;</button>
+<button class="delete
+}}
+TypeText rightArrow
+TypeText {{
+ on-click="app.deleteDocument(doc)
+}}
+TypeText rightArrow
+TypeText {{
+>&times;
 }}
 TypeText commandKey,s
 Wait 30 (* Puzzle: why is analysis so slow? *)

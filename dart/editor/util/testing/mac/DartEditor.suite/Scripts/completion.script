@@ -1,6 +1,6 @@
 (* Check basic completion and type-specific completion *)
-Click (Text:").text;", CaseSensitive:"Yes") (* select middle of unique text region *)
-Click (Text:").text;", CaseSensitive:"Yes") (* select middle of unique text region *)
+Click (Text:").text;",CaseSensitive:"yes",IgnoreSpaces:"no",IgnoreUnderscores:"no",dpi:94) (* select middle of unique text region *)
+Click (Text:").text;",CaseSensitive:"yes",IgnoreSpaces:"no",IgnoreUnderscores:"no",dpi:94) (* select middle of unique text region *)
 Wait 1
 TypeText rightArrow
 TypeText rightArrow

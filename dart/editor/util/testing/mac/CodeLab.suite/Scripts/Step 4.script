@@ -63,19 +63,27 @@ DoubleClick "index html icon"
 Click (Text:"a input box",CaseSensitive:"yes",IgnoreSpaces:"no",IgnoreUnderscores:"no",dpi:94)
 TypeText downArrow,leftArrow,enter
 TypeText {{
-<input type="text" placeholder="Filter documents..." bind-value="searchFilter">
+<input type="text
 }}
+TypeText rightArrow
+TypeText {{
+ placeholder="Filter documents...
+}}
+TypeText rightArrow
+TypeText {{
+ bind-value="searchFilter
+}}
+TypeText rightArrow,">"
 Click (Text:"Hide docu",CaseSensitive:"yes",IgnoreSpaces:"no",IgnoreUnderscores:"no",dpi:94)
 TypeText downArrow,leftArrow,enter
 TypeText {{
-<template if="matchesSearchFilter(doc)">
+<template if="matchesSearchFilter(doc)
 }}
+TypeText rightArrow,">"
 Click (Text:"<x-docu",CaseSensitive:"yes",IgnoreSpaces:"no",IgnoreUnderscores:"no",dpi:94)
 TypeText commandKey,rightArrow (* end of line on Mac *)
 TypeText enter
-TypeText {{
-</template>
-}}
+TypeText "</"
 Wait 2
 TypeText commandKey,s
 Wait 30 (* Puzzle: why is analysis so slow? *)

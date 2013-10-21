@@ -1,7 +1,7 @@
 Click(Text:"Tools",CaseSensitive:"Yes")
 Click(Text:"Welcome Page",CaseSensitive:"Yes")
 Click "solar icon"
-Wait 5
+Wait 8
 Click "run button"
 WaitFor 5, "browser right arrow button"
 Click "browser right arrow button"

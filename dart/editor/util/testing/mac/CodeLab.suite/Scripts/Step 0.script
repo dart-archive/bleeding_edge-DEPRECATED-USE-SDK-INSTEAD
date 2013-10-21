@@ -1,7 +1,8 @@
 Run "open codelab file search"
 TypeText enter
-Wait 10
+Wait 20
 TypeText rightArrow
+TypeText rightArrow(* redundant *)
 WaitFor 30, "pubspec lock"
 TypeText downArrow,downArrow,downArrow,downArrow,downArrow
 TypeText rightArrow
@@ -13,7 +14,7 @@ Click (Text:"Untitled",CaseSensitive:"yes")
 Click "plus file"
 Click "red stripe"
 Click "delete file X"
-Click (Text:"master/io",CaseSensitive:"yes")
+Click (Text:"shed/web/out",CaseSensitive:"yes")
 TypeText commandKey,c
 RightClick "dart writer icon"
 RightClick (Text:"Close Tab",CaseSensitive:"yes")
@@ -44,7 +45,7 @@ Click "step out icon"
 Wait 2
 Click "step over icon"
 Wait 2
-Click (Text:"top-level",CaseSensitive:"yes")
+Click (Text:"top-level",CaseSensitive:"yes",IgnoreSpaces:"yes",IgnoreUnderscores:"yes",dpi:94)
 TypeText rightArrow
 DoubleClick (Text:"ObservableList",CaseSensitive:"yes")
 Click "stop debug button"

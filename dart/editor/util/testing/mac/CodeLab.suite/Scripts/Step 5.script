@@ -98,8 +98,10 @@ TypeText backspace
 TypeText enter
 TypeText tab
 TypeText {{
-on-key-up="saveDocument(activeDocument)" />
+on-key-up="saveDocument(activeDocument)
 }}
+TypeText rightArrow
+TypeText " />"
 TypeText downArrow,downArrow,downArrow,downArrow
 TypeText commandKey,f
 TypeText ".content"
@@ -108,7 +110,7 @@ TypeText rightArrow,rightArrow
 TypeText enter
 TypeText tab
 TypeText {{
-on-key-up="saveDocument(activeDocument)"
+on-key-up="saveDocument(activeDocument)
 }}
 TypeText commandKey,s
 Wait 5
@@ -151,7 +153,7 @@ removeDocument(doc);
 }}
 TypeText commandKey,s
 Wait 30 (* Puzzle: why is analysis so slow? *)
-RightClick (Text:"index.html",CaseSensitive:"yes")
+RightClick (Text:"out/index.html",CaseSensitive:"yes")
 Click (Text:"Run in Dartium",CaseSensitive:"yes")
 Wait 2
 WaitFor 10,"browser right arrow button"
@@ -173,7 +175,7 @@ Wait 1
 Click (Text:"Chromium",CaseSensitive:"yes")
 Click (Text:"Quit Chromium",CaseSensitive:"yes")
 Wait 30
-RightClick (Text:"index.html",CaseSensitive:"yes")
+RightClick (Text:"out/index.html",CaseSensitive:"yes")
 Click (Text:"Run in Dartium",CaseSensitive:"yes")
 Wait 2
 WaitFor 10,"browser right arrow button"

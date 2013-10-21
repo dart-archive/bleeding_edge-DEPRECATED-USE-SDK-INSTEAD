@@ -51,7 +51,7 @@ TypeText commandKey,s
 Wait 2
 Click "run button"
 WaitFor 10,"browser right arrow button"
-Click (Text:"Try typing",CaseSensitive:"yes",IgnoreSpaces:"no",IgnoreUnderscores:"no")
+Click (Text:"Try typing",CaseSensitive:"yes",IgnoreSpaces:"no",IgnoreUnderscores:"no",dpi:94)
 TypeText downArrow,enter
 TypeText "Lorem ipsum dolor sit amet"
 Click (Text:"10 words")
