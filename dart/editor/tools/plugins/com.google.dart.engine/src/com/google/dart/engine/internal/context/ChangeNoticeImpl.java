@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.internal.context;
 
+import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.ChangeNotice;
 import com.google.dart.engine.error.AnalysisError;
@@ -124,6 +125,9 @@ public class ChangeNoticeImpl implements ChangeNotice {
   public void setErrors(AnalysisError[] errors, LineInfo lineInfo) {
     this.errors = errors;
     this.lineInfo = lineInfo;
+    if (lineInfo == null && errors != null && errors.length != 0) {
+      AnalysisEngine.getInstance().getLogger().logError("No line info", new Exception());
+    }
   }
 
   @Override

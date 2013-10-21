@@ -442,6 +442,13 @@ public class AnalysisWorker {
             LineInfo lineInfo = change.getLineInfo();
             if (lineInfo == null) {
               DartCore.logError("Missing line information for: " + source);
+              // Sometimes this happens in UI tests, but we don't know what error.
+              StringBuilder sb = new StringBuilder();
+              for (AnalysisError error : errors) {
+                sb.append("Error: " + error.getErrorCode() + " " + error.getSource() + " "
+                    + error.getOffset() + " " + error.getLength() + " " + error.getMessage() + "\n");
+              }
+              DartCore.logError(sb.toString());
             } else {
               markerManager.queueErrors(res, lineInfo, errors);
             }
