@@ -65,7 +65,12 @@ public class RemoveTrailingWhitespaceAction {
 
     try {
       MultiTextEdit edit = CodeFormatEditFactory.removeTrailingWhitespace(document);
-      applyTextEdit(document, edit);
+      if (edit.hasChildren()) {
+        applyTextEdit(document, edit);
+        // using rewrite session causes horizontal scroll bar reset, so we need to show selection
+        // https://code.google.com/p/dart/issues/detail?id=11769
+        viewer.getTextWidget().showSelection();
+      }
     } catch (Throwable e) {
       throw new InvocationTargetException(e);
     }
