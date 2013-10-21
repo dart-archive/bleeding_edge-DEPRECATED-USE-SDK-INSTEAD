@@ -4,6 +4,7 @@
 
 library todomvc.test.markdone_test;
 
+import 'dart:async';
 import 'dart:html';
 import 'package:polymer/platform.dart' show endOfMicrotask;
 import 'package:polymer/polymer.dart';
@@ -47,7 +48,8 @@ Node findShadowHost(Node node, ShadowRoot root) {
  * This test runs the TodoMVC app, adds a few todos, marks some as done
  * programatically, and clicks on a checkbox to mark others via the UI.
  */
-@initMethod init() {
+main() {
+  initPolymer();
   useHtmlConfiguration();
 
   setUp(() => Polymer.onReady);
