@@ -67,9 +67,6 @@ public class DartDebugCorePlugin extends Plugin {
    */
   public static final boolean LOGGING = DartCoreDebug.LOGGING_DEBUGGER;
 
-  // TODO(devoncarew): remove this when the debugger supports pausing
-  public static boolean VM_SUPPORTS_PAUSING = false;
-
   // TODO(devoncarew): remove this when the debugger supports value modification
   public static boolean VM_SUPPORTS_VALUE_MODIFICATION = false;
 

@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.debug.core.dartium;
 
-import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.breakpoints.DartBreakpoint;
 import com.google.dart.tools.debug.core.webkit.WebkitCallFrame;
 import com.google.dart.tools.debug.core.webkit.WebkitDebugger.PausedReasonType;
@@ -77,7 +76,7 @@ public class DartiumDebugThread extends DartiumDebugElement implements IThread {
 
   @Override
   public boolean canSuspend() {
-    return DartDebugCorePlugin.VM_SUPPORTS_PAUSING && !isTerminated() && !isSuspended();
+    return !isTerminated() && !isSuspended();
   }
 
   @Override
