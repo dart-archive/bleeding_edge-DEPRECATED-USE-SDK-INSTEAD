@@ -19,9 +19,12 @@ import '../web/model.dart';
 _main() {
   useHtmlConfiguration();
 
-  final root = query('todo-app').shadowRoot;
 
-  setUp(() => Polymer.onReady);
+  ShadowRoot root;
+
+  setUp(() => Polymer.onReady.then((_) {
+    root = query('todo-app').shadowRoot;
+  }));
 
   test('programmatically add items to model', () {
     appModel.todos.addAll([
@@ -29,32 +32,36 @@ _main() {
       new Todo('two (checked)')..done = true,
       new Todo('three (unchecked)')
     ]);
-    performMicrotaskCheckpoint();
-    expect(root.queryAll('#todo-list li[is=todo-row]').length, 3);
+    endOfMicrotask(expectAsync0(() {
+      expect(root.queryAll('#todo-list li[is=todo-row]').length, 3);
 
-    // TODO(jmesserly): HTML Imports breaks relative hash links when the
-    // component is at a different path from the main HTML document. For now we
-    // fix it programmatically.
-    for (var a in root.queryAll('#filters > li > a')) {
-      a.href = '#${Uri.parse(a.href).fragment}';
-    }
+      // TODO(jmesserly): HTML Imports breaks relative hash links when the
+      // component is at a different path from the main HTML document. For now
+      // fix it programmatically.
+      for (var a in root.queryAll('#filters > li > a')) {
+        a.href = '#${Uri.parse(a.href).fragment}';
+      }
+    }));
   });
 
   test('navigate to #/active', () {
     windowLocation.hash = '#/active';
-    performMicrotaskCheckpoint();
-    expect(root.queryAll('#todo-list li[is=todo-row]').length, 2);
+    endOfMicrotask(expectAsync0(() {
+      expect(root.queryAll('#todo-list li[is=todo-row]').length, 2);
+    }));
   });
 
   test('navigate to #/completed', () {
     windowLocation.hash = '#/completed';
-    performMicrotaskCheckpoint();
-    expect(root.queryAll('#todo-list li[is=todo-row]').length, 1);
+    endOfMicrotask(expectAsync0(() {
+      expect(root.queryAll('#todo-list li[is=todo-row]').length, 1);
+    }));
   });
 
   test('navigate back to #/', () {
     windowLocation.hash = '#/';
-    performMicrotaskCheckpoint();
-    expect(root.queryAll('#todo-list li[is=todo-row]').length, 3);
+    endOfMicrotask(expectAsync0(() {
+      expect(root.queryAll('#todo-list li[is=todo-row]').length, 3);
+    }));
   });
 }

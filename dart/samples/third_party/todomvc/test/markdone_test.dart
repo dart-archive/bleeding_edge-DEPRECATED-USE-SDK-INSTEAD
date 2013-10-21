@@ -5,6 +5,7 @@
 library todomvc.test.markdone_test;
 
 import 'dart:html';
+import 'package:polymer/platform.dart' show endOfMicrotask;
 import 'package:polymer/polymer.dart';
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
@@ -57,19 +58,20 @@ Node findShadowHost(Node node, ShadowRoot root) {
     appModel.todos.add(new Todo('three (checked)')..done = true);
     appModel.todos.add(new Todo('four (checked)'));
 
-    performMicrotaskCheckpoint();
-    var body = query('body');
+    endOfMicrotask(expectAsync0(() {
+      var body = query('body');
 
-    var label = findWithText(body, 'four (checked)');
-    expect(label is LabelElement, isTrue, reason: 'text is in a label: $label');
+      var label = findWithText(body, 'four (checked)');
+      expect(label is LabelElement, true, reason: 'text is in a label: $label');
 
-    var host = findShadowHost(body, label.parentNode);
-    var node = host.parent.query('input');
-    expect(node is InputElement, isTrue, reason: 'node is a checkbox');
-    expect(node.type, 'checkbox', reason: 'node type is checkbox');
-    expect(node.checked, isFalse, reason: 'element is unchecked');
+      var host = findShadowHost(body, label.parentNode);
+      var node = host.parent.query('input');
+      expect(node is InputElement, true, reason: 'node is a checkbox');
+      expect(node.type, 'checkbox', reason: 'node type is checkbox');
+      expect(node.checked, isFalse, reason: 'element is unchecked');
 
-    node.dispatchEvent(new MouseEvent('click', detail: 1));
-    expect(node.checked, isTrue, reason: 'element is checked');
+      node.dispatchEvent(new MouseEvent('click', detail: 1));
+      expect(node.checked, true, reason: 'element is checked');
+    }));
   });
 }

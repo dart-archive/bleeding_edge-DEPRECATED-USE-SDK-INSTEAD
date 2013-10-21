@@ -25,19 +25,21 @@ class EditableLabel extends PolymerElement {
 
   bool get applyAuthorStyles => true;
 
-  InputElement get _editBox => getShadowRoot("editable-label").query('#edit');
+  ShadowRoot get _shadowRoot => getShadowRoot('editable-label');
+
+  InputElement get _editBox => _shadowRoot.query('#edit');
 
   void edit() {
     editing = true;
 
-    // This causes _editBox to be inserted.
-    performMicrotaskCheckpoint();
-
-    // For IE and Firefox: use .focus(), then reset the value to move the
-    // cursor to the end.
-    _editBox.focus();
-    _editBox.value = '';
-    _editBox.value = value;
+    // Wait for _editBox to be inserted.
+    onMutation(_shadowRoot, (_) {
+      // For IE and Firefox: use .focus(), then reset the value to move the
+      // cursor to the end.
+      _editBox.focus();
+      _editBox.value = '';
+      _editBox.value = value;
+    });
   }
 
   void update(Event e) {

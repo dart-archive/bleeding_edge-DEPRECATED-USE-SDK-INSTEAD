@@ -29,5 +29,5 @@ class TodoRow extends LIElement with Polymer, Observable {
     bindCssClass(item, 'editing', label, 'editing');
   }
 
-  void removeTodo() => appModel.todos.remove(todo);
+  void removeTodo() { appModel.todos.remove(todo); }
 }
