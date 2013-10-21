@@ -319,6 +319,13 @@ public enum CompileTimeErrorCode implements ErrorCode {
       "Default values aren't allowed in function type parameters"),
 
   /**
+   * 7.6.2 Factories: It is a compile-time error if <i>k</i> explicitly specifies a default value
+   * for an optional parameter.
+   */
+  DEFAULT_VALUE_IN_REDIRECTING_FACTORY_CONSTRUCTOR(
+      "Default values aren't allowed in factory constructors that redirect to another constructor"),
+
+  /**
    * 3.1 Scoping: It is a compile-time error if there is more than one entity with the same name
    * declared in the same scope.
    */

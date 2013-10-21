@@ -823,6 +823,20 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_defaultValueInRedirectingFactoryConstructor() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  factory A([int x = 0]) = B;",
+        "}",
+        "",
+        "class B implements A {",
+        "  B([int x = 1]) {}",
+        "}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.DEFAULT_VALUE_IN_REDIRECTING_FACTORY_CONSTRUCTOR);
+    verify(source);
+  }
+
   public void test_duplicateConstructorName_named() throws Exception {
     Source source = addSource(createSource(//
         "class A {",

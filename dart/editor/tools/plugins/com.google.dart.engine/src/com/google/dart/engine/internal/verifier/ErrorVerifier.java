@@ -1567,19 +1567,19 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     //
     // Prepare redirected constructor node
     //
-    ConstructorName redirectedNode = node.getRedirectedConstructor();
-    if (redirectedNode == null) {
+    ConstructorName redirectedConstructor = node.getRedirectedConstructor();
+    if (redirectedConstructor == null) {
       return false;
     }
     //
     // Prepare redirected constructor type
     //
-    ConstructorElement redirectedElement = redirectedNode.getStaticElement();
+    ConstructorElement redirectedElement = redirectedConstructor.getStaticElement();
     if (redirectedElement == null) {
       //
       // If the element is null, we check for the REDIRECT_TO_MISSING_CONSTRUCTOR case
       //
-      TypeName constructorTypeName = redirectedNode.getType();
+      TypeName constructorTypeName = redirectedConstructor.getType();
       Type redirectedType = constructorTypeName.getType();
       if (redirectedType != null && redirectedType.getElement() != null
           && !redirectedType.isDynamic()) {
@@ -1587,12 +1587,12 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
         // Prepare the constructor name
         //
         String constructorStrName = constructorTypeName.getName().getName();
-        if (redirectedNode.getName() != null) {
-          constructorStrName += '.' + redirectedNode.getName().getName();
+        if (redirectedConstructor.getName() != null) {
+          constructorStrName += '.' + redirectedConstructor.getName().getName();
         }
         errorReporter.reportError(
             StaticWarningCode.REDIRECT_TO_MISSING_CONSTRUCTOR,
-            redirectedNode,
+            redirectedConstructor,
             constructorStrName,
             redirectedType.getDisplayName());
         return true;
@@ -1609,7 +1609,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     if (!redirectedReturnType.isAssignableTo(constructorReturnType)) {
       errorReporter.reportError(
           StaticWarningCode.REDIRECT_TO_INVALID_RETURN_TYPE,
-          redirectedNode,
+          redirectedConstructor,
           redirectedReturnType,
           constructorReturnType);
       return true;
@@ -1620,7 +1620,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     if (!redirectedType.isSubtypeOf(constructorType)) {
       errorReporter.reportError(
           StaticWarningCode.REDIRECT_TO_INVALID_FUNCTION_TYPE,
-          redirectedNode,
+          redirectedConstructor,
           redirectedType,
           constructorType);
       return true;
@@ -4274,12 +4274,28 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * 
    * @param node the constructor declaration to evaluate
    * @return {@code true} if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#DEFAULT_VALUE_IN_REDIRECTING_FACTORY_CONSTRUCTOR
+   * @see CompileTimeErrorCode#FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR
    * @see CompileTimeErrorCode#MULTIPLE_REDIRECTING_CONSTRUCTOR_INVOCATIONS
    * @see CompileTimeErrorCode#SUPER_IN_REDIRECTING_CONSTRUCTOR
-   * @see CompileTimeErrorCode#FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR
    */
   private boolean checkForRedirectingConstructorErrorCodes(ConstructorDeclaration node) {
-    int numProblems = 0;
+    boolean errorReported = false;
+    //
+    // Check for default values in the parameters
+    //
+    ConstructorName redirectedConstructor = node.getRedirectedConstructor();
+    if (redirectedConstructor != null) {
+      for (FormalParameter parameter : node.getParameters().getParameters()) {
+        if (parameter instanceof DefaultFormalParameter
+            && ((DefaultFormalParameter) parameter).getDefaultValue() != null) {
+          errorReporter.reportError(
+              CompileTimeErrorCode.DEFAULT_VALUE_IN_REDIRECTING_FACTORY_CONSTRUCTOR,
+              parameter.getIdentifier());
+          errorReported = true;
+        }
+      }
+    }
     // check if there are redirected invocations
     int numRedirections = 0;
     for (ConstructorInitializer initializer : node.getInitializers()) {
@@ -4288,7 +4304,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
           errorReporter.reportError(
               CompileTimeErrorCode.MULTIPLE_REDIRECTING_CONSTRUCTOR_INVOCATIONS,
               initializer);
-          numProblems++;
+          errorReported = true;
         }
         numRedirections++;
       }
@@ -4300,18 +4316,18 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
           errorReporter.reportError(
               CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR,
               initializer);
-          numProblems++;
+          errorReported = true;
         }
         if (initializer instanceof ConstructorFieldInitializer) {
           errorReporter.reportError(
               CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR,
               initializer);
-          numProblems++;
+          errorReported = true;
         }
       }
     }
     // done
-    return numProblems != 0;
+    return errorReported;
   }
 
   /**
