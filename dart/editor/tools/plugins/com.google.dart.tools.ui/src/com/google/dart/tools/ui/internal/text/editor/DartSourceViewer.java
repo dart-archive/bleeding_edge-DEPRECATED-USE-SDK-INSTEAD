@@ -22,6 +22,8 @@ import com.google.dart.tools.ui.text.DartPartitions;
 import com.google.dart.tools.ui.text.DartSourceViewerConfiguration;
 import com.google.dart.tools.ui.text.IDartColorConstants;
 
+import com.ibm.icu.text.Bidi;
+
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.PreferenceConverter;
@@ -80,70 +82,114 @@ public class DartSourceViewer extends ProjectionViewer implements IPropertyChang
   public static final int SHOW_HIERARCHY = 53;
 
   /**
-   * Returns a segmentation of the line of the given document appropriate for BIDI rendering. The
-   * default implementation returns only the string literals of a java code line as segments.
+   * Returns a segmentation of the line of the given document appropriate for Bidi rendering.
    * 
    * @param document the document
-   * @param lineOffset the offset of the line
-   * @return the line's BIDI segmentation
+   * @param baseLevel the base level of the line
+   * @param lineStart the offset of the line
+   * @param lineText Text of the line to retrieve Bidi segments for
+   * @return the line's Bidi segmentation
    * @throws BadLocationException in case lineOffset is not valid in document
    */
-  protected static int[] getBidiLineSegments(IDocument document, int lineOffset)
-      throws BadLocationException {
+  protected static int[] getBidiLineSegments(IDocument document, int baseLevel, int lineStart,
+      String lineText) throws BadLocationException {
 
-    if (document == null) {
+    if (lineText == null || document == null) {
       return null;
     }
 
-    IRegion line = document.getLineInformationOfOffset(lineOffset);
+    int lineLength = lineText.length();
+    if (lineLength <= 2) {
+      return null;
+    }
+
+    // Have ICU compute embedding levels. Consume these levels to reduce
+    // the Bidi impact, by creating selective segments (preceding
+    // character runs with a level mismatching the base level).
+    // XXX: Alternatively, we could apply TextLayout. Pros would be full
+    // synchronization with the underlying StyledText's (i.e. native) Bidi
+    // implementation. Cons are performance penalty because of
+    // unavailability of such methods as isLeftToRight and getLevels.
+
+    Bidi bidi = new Bidi(lineText, baseLevel);
+    if (bidi.isLeftToRight()) {
+      // Bail out if this is not Bidi text.
+      return null;
+    }
+
+    IRegion line = document.getLineInformationOfOffset(lineStart);
     ITypedRegion[] linePartitioning = TextUtilities.computePartitioning(
         document,
         DartPartitions.DART_PARTITIONING,
-        lineOffset,
+        lineStart,
         line.getLength(),
         false);
-
-    List<ITypedRegion> segmentation = new ArrayList<ITypedRegion>();
-    for (int i = 0; i < linePartitioning.length; i++) {
-      if (DartPartitions.DART_STRING.equals(linePartitioning[i].getType())) {
-        segmentation.add(linePartitioning[i]);
-      }
-    }
-
-    if (segmentation.size() == 0) {
+    if (linePartitioning == null || linePartitioning.length < 1) {
       return null;
     }
 
-    int size = segmentation.size();
-    int[] segments = new int[size * 2 + 1];
+    int segmentIndex = 1;
+    int[] segments = new int[lineLength + 1];
+    byte[] levels = bidi.getLevels();
+    int nPartitions = linePartitioning.length;
+    for (int partitionIndex = 0; partitionIndex < nPartitions; partitionIndex++) {
 
-    int j = 0;
-    for (int i = 0; i < size; i++) {
-      ITypedRegion segment = segmentation.get(i);
+      ITypedRegion partition = linePartitioning[partitionIndex];
+      int lineOffset = partition.getOffset() - lineStart;
+      //Assert.isTrue(lineOffset >= 0 && lineOffset < lineLength);
 
-      if (i == 0) {
-        segments[j++] = 0;
+      if (lineOffset > 0 && isMismatchingLevel(levels[lineOffset], baseLevel)
+          && isMismatchingLevel(levels[lineOffset - 1], baseLevel)) {
+        // Indicate a Bidi segment at the partition start - provided
+        // levels of both character at the current offset and its
+        // preceding character mismatch the base paragraph level.
+        // Partition end will be covered either by the start of the next
+        // partition, a delimiter inside a next partition, or end of line.
+        segments[segmentIndex++] = lineOffset;
       }
-
-      int offset = segment.getOffset() - lineOffset;
-      if (offset > segments[j - 1]) {
-        segments[j++] = offset;
+      if (IDocument.DEFAULT_CONTENT_TYPE.equals(partition.getType())) {
+        int partitionEnd = Math.min(lineLength, lineOffset + partition.getLength());
+        while (++lineOffset < partitionEnd) {
+          if (isMismatchingLevel(levels[lineOffset], baseLevel)
+              && String.valueOf(lineText.charAt(lineOffset)).matches(BIDI_DELIMITERS)) {
+            // For default content types, indicate a segment before
+            // a delimiting character with a mismatching embedding
+            // level.
+            segments[segmentIndex++] = lineOffset;
+          }
+        }
       }
-
-      if (offset + segment.getLength() >= line.getLength()) {
-        break;
-      }
-
-      segments[j++] = offset + segment.getLength();
+    }
+    if (segmentIndex <= 1) {
+      return null;
     }
 
-    if (j < segments.length) {
-      int[] result = new int[j];
-      System.arraycopy(segments, 0, result, 0, j);
-      segments = result;
+    segments[0] = 0;
+    if (segments[segmentIndex - 1] != lineLength) {
+      segments[segmentIndex++] = lineLength;
     }
 
-    return segments;
+    if (segmentIndex == segments.length) {
+      return segments;
+    }
+
+    int[] newSegments = new int[segmentIndex];
+    System.arraycopy(segments, 0, newSegments, 0, segmentIndex);
+    return newSegments;
+  }
+
+  /**
+   * Checks if the given embedding level is consistent with the base level.
+   * 
+   * @param level Character embedding level to check.
+   * @param baseLevel Base level (direction) of the text.
+   * @return <code>true</code> if the character level is odd and the base level is even OR the
+   *         character level is even and the base level is odd, and return <code>false</code>
+   *         otherwise.
+   * @since 3.4
+   */
+  private static boolean isMismatchingLevel(int level, int baseLevel) {
+    return ((level ^ baseLevel) & 1) != 0;
   }
 
   private IInformationPresenter fOutlinePresenter;
@@ -190,6 +236,13 @@ public class DartSourceViewer extends ProjectionViewer implements IPropertyChang
    */
   private boolean fIsSetVisibleDocumentDelayed = false;
   private List<IVerticalRulerColumn> rulers = new ArrayList<IVerticalRulerColumn>();
+
+  /**
+   * BIDI delimtiers.
+   * 
+   * @since 3.4
+   */
+  private static final String BIDI_DELIMITERS = "[ \\p{Punct}&&[^_]]"; //$NON-NLS-1$
 
   public DartSourceViewer(Composite parent, IVerticalRuler verticalRuler,
       IOverviewRuler overviewRuler, boolean showAnnotationsOverview, int styles,
@@ -494,6 +547,9 @@ public class DartSourceViewer extends ProjectionViewer implements IPropertyChang
       styles |= SWT.LEFT_TO_RIGHT;
     }
 
+    final int baseLevel = (styles & SWT.RIGHT_TO_LEFT) != 0 ? Bidi.DIRECTION_RIGHT_TO_LEFT
+        : Bidi.DIRECTION_LEFT_TO_RIGHT;
+
     super.createControl(parent, styles);
 
     fBackspaceManager = new SmartBackspaceManager();
@@ -504,30 +560,18 @@ public class DartSourceViewer extends ProjectionViewer implements IPropertyChang
       @Override
       public void lineGetSegments(BidiSegmentEvent event) {
         if (redraws()) {
-          event.segments = getBidiLineSegments(event.lineOffset, event.lineText);
+          try {
+            event.segments = getBidiLineSegments(
+                getDocument(),
+                baseLevel,
+                widgetOffset2ModelOffset(event.lineOffset),
+                event.lineText);
+          } catch (BadLocationException e) {
+            // don't touch the segments
+          }
         }
       }
     });
-  }
-
-  /**
-   * Returns a segmentation of the given line appropriate for BIDI rendering. The default
-   * implementation returns only the string literals of a java code line as segments.
-   * 
-   * @param widgetLineOffset the offset of the line
-   * @param line the content of the line
-   * @return the line's BIDI segmentation
-   */
-  protected int[] getBidiLineSegments(int widgetLineOffset, String line) {
-    if (line != null && line.length() > 0) {
-      int lineOffset = widgetOffset2ModelOffset(widgetLineOffset);
-      try {
-        return getBidiLineSegments(getDocument(), lineOffset);
-      } catch (BadLocationException x) {
-        return null; // don't segment line in this case
-      }
-    }
-    return null;
   }
 
   /*
