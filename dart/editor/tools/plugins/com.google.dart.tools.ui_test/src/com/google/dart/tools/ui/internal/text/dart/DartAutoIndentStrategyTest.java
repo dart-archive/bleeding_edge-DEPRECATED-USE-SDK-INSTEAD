@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.ui.internal.text.dart;
 
-import com.google.common.base.Joiner;
 import com.google.dart.tools.internal.corext.refactoring.util.ReflectionUtils;
 import com.google.dart.tools.ui.text.DartPartitions;
 
@@ -27,13 +26,11 @@ import org.eclipse.jface.text.IDocument;
 import static org.fest.assertions.Assertions.assertThat;
 
 public class DartAutoIndentStrategyTest extends TestCase {
-  private final static String EOL = System.getProperty("line.separator", "\n");
-
-  protected static String makeSource(String... lines) {
-    return Joiner.on(EOL).join(lines);
-  }
+  private static final String EOL = System.getProperty("line.separator", "\n");
 
   private static void assertSmartInsertAfterNewLine(String initial, String expected) {
+    initial = StringUtils.replace(initial, "\n", EOL);
+    expected = StringUtils.replace(expected, "\n", EOL);
     int initialOffset = initial.indexOf('!');
     int expectedOffset = expected.indexOf('!');
     assertTrue("No cursor position in initial: " + initial, initialOffset != -1);
@@ -56,7 +53,7 @@ public class DartAutoIndentStrategyTest extends TestCase {
     };
     command.doit = true;
     command.offset = initialOffset;
-    command.text = "\n";
+    command.text = EOL;
     strategy.customizeDocumentCommand(document, command);
     // update document
     ReflectionUtils.invokeMethod(command, "execute(org.eclipse.jface.text.IDocument)", document);
