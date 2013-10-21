@@ -6,6 +6,7 @@ library todomvc.test.listorder_test;
 
 import 'dart:html';
 import 'package:polymer/polymer.dart';
+import 'package:polymer/platform.dart' show endOfMicrotask;
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
 import '../web/model.dart';
@@ -18,7 +19,6 @@ import '../web/model.dart';
 @initMethod
 _main() {
   useHtmlConfiguration();
-
 
   ShadowRoot root;
 
