@@ -65,6 +65,8 @@ import org.eclipse.ui.texteditor.ITextEditorExtension3;
 
 /**
  * Auto indent strategy sensitive to brackets.
+ * 
+ * @coverage dart.editor.ui.text.dart
  */
 public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
 
@@ -432,7 +434,7 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
     Token token = internalScan(contents, errorListener);
     Parser parser = new Parser(null, errorListener);
     CompilationUnit unit = parser.parseCompilationUnit(token);
-    AnalysisError[] errors = errorListener.getErrors(null);
+//    AnalysisError[] errors = errorListener.getErrors(null);
 //    unit.setParsingErrors(errors);
     return unit;
   }
@@ -608,6 +610,7 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
   private boolean fCloseBrace;
   private boolean fIsSmartMode;
   private boolean fIsSmartTab;
+
   private String fPartitioning;
 
   /**
@@ -660,6 +663,18 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
       // ignore
     }
 
+  }
+
+  protected boolean computeSmartMode() {
+    IWorkbenchPage page = DartToolsPlugin.getActivePage();
+    if (page != null) {
+      IEditorPart part = page.getActiveEditor();
+      if (part instanceof ITextEditorExtension3) {
+        ITextEditorExtension3 extension = (ITextEditorExtension3) part;
+        return extension.getInsertMode() == ITextEditorExtension3.SMART_INSERT;
+      }
+    }
+    return false;
   }
 
   /**
@@ -715,18 +730,6 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
 
   private boolean closeBrace() {
     return fCloseBrace;
-  }
-
-  private boolean computeSmartMode() {
-    IWorkbenchPage page = DartToolsPlugin.getActivePage();
-    if (page != null) {
-      IEditorPart part = page.getActiveEditor();
-      if (part instanceof ITextEditorExtension3) {
-        ITextEditorExtension3 extension = (ITextEditorExtension3) part;
-        return extension.getInsertMode() == ITextEditorExtension3.SMART_INSERT;
-      }
-    }
-    return false;
   }
 
   /**
@@ -1177,13 +1180,15 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
 
         // copy old content of line behind insertion point to new line
         // unless we think we are inserting an unnamed function argument
-
         int anonPos = -1;
-        if (c.offset == 0
-            || (anonPos = computeAnonymousPosition(d, c.offset - 1, fPartitioning, lineEnd)) == -1) {
-          if (lineEnd - contentStart > 0) {
-            c.length = lineEnd - c.offset;
-            buf.append(d.get(contentStart, lineEnd - contentStart).toCharArray());
+        boolean isInBlock = getBracketCount(d, region.getOffset(), c.offset, false) > 1;
+        if (isInBlock) {
+          if (c.offset == 0
+              || (anonPos = computeAnonymousPosition(d, c.offset - 1, fPartitioning, lineEnd)) == -1) {
+            if (lineEnd - contentStart > 0) {
+              c.length = lineEnd - c.offset;
+              buf.append(d.get(contentStart, lineEnd - contentStart).toCharArray());
+            }
           }
         }
 
