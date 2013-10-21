@@ -125,8 +125,8 @@ public class ChangeNoticeImpl implements ChangeNotice {
   public void setErrors(AnalysisError[] errors, LineInfo lineInfo) {
     this.errors = errors;
     this.lineInfo = lineInfo;
-    if (lineInfo == null && errors != null && errors.length != 0) {
-      AnalysisEngine.getInstance().getLogger().logError("No line info", new Exception());
+    if (lineInfo == null) {
+      AnalysisEngine.getInstance().getLogger().logError("No line info: " + source, new Exception());
     }
   }
 
