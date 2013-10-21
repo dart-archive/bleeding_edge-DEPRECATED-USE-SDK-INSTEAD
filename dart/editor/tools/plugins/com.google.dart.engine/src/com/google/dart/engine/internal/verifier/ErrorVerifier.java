@@ -3833,21 +3833,26 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       return false;
     }
 
-    // Store in local sets the set of all method and accessor names:
+    //
+    // Store in local sets the set of all method and accessor names
+    //
     MethodElement[] methods = enclosingClass.getMethods();
     PropertyAccessorElement[] accessors = enclosingClass.getAccessors();
     HashSet<String> methodsInEnclosingClass = new HashSet<String>();
-    HashSet<String> accessorsInEnclosingClass = new HashSet<String>();
     for (MethodElement method : methods) {
-      methodsInEnclosingClass.add(method.getName());
+      String methodName = method.getName();
+      // If the enclosing class declares the method noSuchMethod(), then return.
+      // From Spec:  It is a static warning if a concrete class does not have an implementation for
+      // a method in any of its superinterfaces unless it declares its own noSuchMethod
+      // method (7.10).
+      if (methodName.equals(ElementResolver.NO_SUCH_METHOD_METHOD_NAME)) {
+        return false;
+      }
+      methodsInEnclosingClass.add(methodName);
     }
+    HashSet<String> accessorsInEnclosingClass = new HashSet<String>();
     for (PropertyAccessorElement accessor : accessors) {
       accessorsInEnclosingClass.add(accessor.getName());
-    }
-
-    // If the enclosing class declares the method noSuchMethod(), then return.
-    if (methodsInEnclosingClass.contains(ElementResolver.NO_SUCH_METHOD_METHOD_NAME)) {
-      return false;
     }
 
     HashSet<ExecutableElement> missingOverrides = new HashSet<ExecutableElement>();
