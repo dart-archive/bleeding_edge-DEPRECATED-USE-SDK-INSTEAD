@@ -10,8 +10,6 @@ build_dart_simple: Skip
 sample_extension: Skip
 time: Skip
 
-third_party/todomvc: Pass, Fail, Timeout # Issue 14247
-
 [ $compiler == dart2js && $runtime == drt ]
 swarm/test/swarm_test: Pass, Crash, Fail # Issue 10950
 
