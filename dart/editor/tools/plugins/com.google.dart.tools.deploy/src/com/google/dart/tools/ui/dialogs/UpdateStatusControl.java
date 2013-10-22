@@ -223,7 +223,8 @@ public class UpdateStatusControl extends UpdateAdapter implements DisposeListene
 
         String link = "";
         try {
-          URL url = revision.getUrl();
+          //TODO (pquitslund): flip to true when the new naming scheme lands
+          URL url = revision.getUrl(false);
           //sanity check in case a custom URL is being used
           if (url.getPath().contains("integration")) {
             link = WHATS_NEW_LINK_TEXT;

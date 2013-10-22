@@ -26,6 +26,7 @@ import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.osgi.util.NLS;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 
 /**
@@ -65,24 +66,33 @@ public class DownloadUpdatesJob extends Job {
 
     File updateFile = null;
 
+    SubMonitor mon = SubMonitor.convert(
+        monitor,
+        UpdateJobMessages.DownloadUpdatesJob_progress_label,
+        100);
+
+    File updateDir = UpdateUtils.getUpdateDir();
+
     try {
 
-      SubMonitor mon = SubMonitor.convert(
-          monitor,
-          UpdateJobMessages.DownloadUpdatesJob_progress_label,
-          100);
-
-      File updateDir = UpdateUtils.getUpdateDir();
-
       updateFile = new File(updateDir, revision.toString() + ".zip"); //$NON-NLS-1$
-
       updateFile.createNewFile();
 
-      UpdateUtils.downloadFile(
-          revision.getUrl(),
-          updateFile,
-          NLS.bind(UpdateJobMessages.DownloadUpdatesJob_editor_rev_label, revision.toString()),
-          mon);
+      //TODO (pquitslund): remove retry when the new scheme has settled in
+      try {
+        UpdateUtils.downloadFile(
+            revision.getUrl(true),
+            updateFile,
+            NLS.bind(UpdateJobMessages.DownloadUpdatesJob_editor_rev_label, revision.toString()),
+            mon);
+      } catch (FileNotFoundException e) {
+        // fall back to old bucket
+        UpdateUtils.downloadFile(
+            revision.getUrl(false),
+            updateFile,
+            NLS.bind(UpdateJobMessages.DownloadUpdatesJob_editor_rev_label, revision.toString()),
+            mon);
+      }
 
     } finally {
       if (updateFile != null) {

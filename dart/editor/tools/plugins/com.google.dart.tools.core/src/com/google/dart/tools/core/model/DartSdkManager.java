@@ -330,6 +330,7 @@ public class DartSdkManager {
     File tempFile = File.createTempFile(SDK_DIR_NAME, ".zip");
     tempFile.deleteOnExit();
 
+    //TODO (pquitslund): fix this to work with the new bucket scheme (dartbug.com/14286)
     URI downloadURI = URI.create("http://commondatastorage.googleapis.com/dart-editor-archive-integration/latest/dartsdk-"
         + getPlatformCode() + "-" + getPlatformBititude() + ".zip");
 

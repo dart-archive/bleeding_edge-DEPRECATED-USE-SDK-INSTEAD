@@ -343,11 +343,15 @@ public class UpdateUtils {
    * Build a platform-aware download URL for the given revision.
    * 
    * @param revision the revision
+   * @param newBinaryNamingScheme <code>true</code> if the new binary naming scheme is to be used,
+   *          <code>false</code> otherwise
    * @return a download url
    * @throws MalformedURLException
    */
-  public static URL getUrl(Revision revision) throws MalformedURLException {
-    return new URL(UpdateCore.getUpdateUrl() + revision.toString() + "/" + getBinaryName());
+  public static URL getUrl(Revision revision, boolean newBinaryNamingScheme)
+      throws MalformedURLException {
+    return new URL(UpdateCore.getUpdateUrl() + revision.toString() + "/"
+        + getBinaryName(newBinaryNamingScheme));
   }
 
   /**
@@ -472,7 +476,9 @@ public class UpdateUtils {
           int mode = entry.getUnixMode();
 
           if ((mode & EXEC_MASK) != 0) {
-            file.setExecutable(true);
+            if (!file.setExecutable(true)) {
+              UpdateCore.logError("Unable to set exec bit on: " + file.getPath());
+            }
           }
         }
       }
@@ -518,8 +524,22 @@ public class UpdateUtils {
     }
   }
 
-  private static String getBinaryName() {
-    return "darteditor-" + OS.qualifier + "-" + ARCH.qualifier + ".zip";
+  private static String getBinaryName(boolean newNamingScheme) {
+    String os = OS.qualifier;
+    String arch = ARCH.qualifier;
+    if (newNamingScheme) {
+      if (arch.equals("32")) {
+        arch = "ia32";
+      } else if (arch.equals("64")) {
+        arch = "x64";
+      }
+      if (os.equals("win32")) {
+        os = "windows";
+      }
+      return "editor/darteditor-" + os + "-" + arch + ".zip";
+    } else {
+      return "darteditor-" + os + "-" + arch + ".zip";
+    }
   }
 
   @SuppressWarnings("static-access")
