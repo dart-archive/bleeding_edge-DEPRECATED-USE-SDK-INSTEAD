@@ -60,6 +60,9 @@ public class ElementLocationImpl implements ElementLocation {
 
   @Override
   public boolean equals(Object object) {
+    if (this == object) {
+      return true;
+    }
     if (!(object instanceof ElementLocationImpl)) {
       return false;
     }
@@ -69,16 +72,16 @@ public class ElementLocationImpl implements ElementLocation {
     if (otherComponents.length != length) {
       return false;
     }
-    if (length > 0 && !equalSourceComponents(components[0], otherComponents[0])) {
-      return false;
+    for (int i = length - 1; i >= 2; i--) {
+      if (!components[i].equals(otherComponents[i])) {
+        return false;
+      }
     }
     if (length > 1 && !equalSourceComponents(components[1], otherComponents[1])) {
       return false;
     }
-    for (int i = 2; i < length; i++) {
-      if (!components[i].equals(otherComponents[i])) {
-        return false;
-      }
+    if (length > 0 && !equalSourceComponents(components[0], otherComponents[0])) {
+      return false;
     }
     return true;
   }
@@ -185,15 +188,20 @@ public class ElementLocationImpl implements ElementLocation {
    * @return {@code true} if the given components are equal when the source type's are ignored
    */
   private boolean equalSourceComponents(String left, String right) {
+    // TODO(brianwilkerson) This method can go away when sources no longer have a URI kind.
     if (left == null) {
       return right == null;
     } else if (right == null) {
       return false;
     }
-    if (left.length() <= 1 || right.length() <= 1) {
+    int leftLength = left.length();
+    int rightLength = right.length();
+    if (leftLength != rightLength) {
+      return false;
+    } else if (leftLength <= 1 || rightLength <= 1) {
       return left.equals(right);
     }
-    return left.substring(1).equals(right.substring(1));
+    return left.regionMatches(1, right, 1, leftLength - 1);
   }
 
   /**
@@ -203,6 +211,7 @@ public class ElementLocationImpl implements ElementLocation {
    * @return the hash code of the given encoded source component
    */
   private int hashSourceComponent(String sourceComponent) {
+    // TODO(brianwilkerson) This method can go away when sources no longer have a URI kind.
     if (sourceComponent.length() <= 1) {
       return sourceComponent.hashCode();
     }

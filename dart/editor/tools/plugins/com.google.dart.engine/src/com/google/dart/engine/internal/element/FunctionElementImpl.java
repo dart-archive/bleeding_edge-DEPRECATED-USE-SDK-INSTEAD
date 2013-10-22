@@ -76,11 +76,6 @@ public class FunctionElementImpl extends ExecutableElementImpl implements Functi
   }
 
   @Override
-  public String getIdentifier() {
-    return getName() + "@" + getNameOffset();
-  }
-
-  @Override
   public ElementKind getKind() {
     return ElementKind.FUNCTION;
   }
@@ -118,5 +113,10 @@ public class FunctionElementImpl extends ExecutableElementImpl implements Functi
       builder.append(name);
     }
     super.appendTo(builder);
+  }
+
+  @Override
+  protected String getIdentifier() {
+    return getName() + "@" + getNameOffset();
   }
 }

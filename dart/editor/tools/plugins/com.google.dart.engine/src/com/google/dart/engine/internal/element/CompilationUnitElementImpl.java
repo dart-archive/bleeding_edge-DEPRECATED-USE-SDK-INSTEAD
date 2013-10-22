@@ -151,11 +151,6 @@ public class CompilationUnitElementImpl extends ElementImpl implements Compilati
   }
 
   @Override
-  public String getIdentifier() {
-    return getSource().getEncoding();
-  }
-
-  @Override
   public ElementKind getKind() {
     return ElementKind.COMPILATION_UNIT;
   }
@@ -291,5 +286,10 @@ public class CompilationUnitElementImpl extends ElementImpl implements Compilati
     } else {
       builder.append(source.getFullName());
     }
+  }
+
+  @Override
+  protected String getIdentifier() {
+    return getSource().getEncoding();
   }
 }

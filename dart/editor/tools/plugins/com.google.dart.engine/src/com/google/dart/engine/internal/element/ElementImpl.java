@@ -96,6 +96,9 @@ public abstract class ElementImpl implements Element {
 
   @Override
   public boolean equals(Object object) {
+    if (this == object) {
+      return true;
+    }
     return object != null && object.getClass() == getClass()
         && ((Element) object).getLocation().equals(getLocation());
   }

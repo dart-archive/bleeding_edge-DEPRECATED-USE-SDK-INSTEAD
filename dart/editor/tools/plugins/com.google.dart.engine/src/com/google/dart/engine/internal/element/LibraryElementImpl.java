@@ -196,11 +196,6 @@ public class LibraryElementImpl extends ElementImpl implements LibraryElement {
   }
 
   @Override
-  public String getIdentifier() {
-    return definingCompilationUnit.getSource().getEncoding();
-  }
-
-  @Override
   public LibraryElement[] getImportedLibraries() {
     HashSet<LibraryElement> libraries = new HashSet<LibraryElement>(imports.length);
     for (ImportElement element : imports) {
@@ -361,6 +356,11 @@ public class LibraryElementImpl extends ElementImpl implements LibraryElement {
     safelyVisitChildren(exports, visitor);
     safelyVisitChildren(imports, visitor);
     safelyVisitChildren(parts, visitor);
+  }
+
+  @Override
+  protected String getIdentifier() {
+    return definingCompilationUnit.getSource().getEncoding();
   }
 
   /**
