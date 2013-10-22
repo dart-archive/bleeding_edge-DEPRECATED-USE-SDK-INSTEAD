@@ -625,33 +625,26 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     parsedUnitAccessed = false;
     parsedUnitState = CacheState.INVALID;
 
-    invalidateAllResolutionInformation();
+    discardCachedResolutionInformation();
   }
 
   /**
    * Invalidate all of the resolution information associated with the compilation unit.
    */
   public void invalidateAllResolutionInformation() {
-    element = null;
-    elementState = CacheState.INVALID;
-
-    includedParts = Source.EMPTY_ARRAY;
-    includedPartsState = CacheState.INVALID;
-
-    exportedLibraries = Source.EMPTY_ARRAY;
-    exportedLibrariesState = CacheState.INVALID;
-
-    importedLibraries = Source.EMPTY_ARRAY;
-    importedLibrariesState = CacheState.INVALID;
-
-    bitmask = 0;
-    clientServerState = CacheState.INVALID;
-    launchableState = CacheState.INVALID;
-
-    publicNamespace = null;
-    publicNamespaceState = CacheState.INVALID;
-
-    resolutionState.invalidateAllResolutionInformation();
+    if (parsedUnitState == CacheState.FLUSHED) {
+      ResolutionState state = resolutionState;
+      while (state != null) {
+        if (state.resolvedUnitState == CacheState.VALID) {
+          parsedUnit = state.resolvedUnit;
+          parsedUnitAccessed = true;
+          parsedUnitState = CacheState.VALID;
+          break;
+        }
+        state = state.nextState;
+      }
+    }
+    discardCachedResolutionInformation();
   }
 
   @Override
@@ -1040,6 +1033,32 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     builder.append("; launchable = ");
     builder.append(launchableState);
     resolutionState.writeOn(builder);
+  }
+
+  /**
+   * Invalidate all of the resolution information associated with the compilation unit.
+   */
+  private void discardCachedResolutionInformation() {
+    element = null;
+    elementState = CacheState.INVALID;
+
+    includedParts = Source.EMPTY_ARRAY;
+    includedPartsState = CacheState.INVALID;
+
+    exportedLibraries = Source.EMPTY_ARRAY;
+    exportedLibrariesState = CacheState.INVALID;
+
+    importedLibraries = Source.EMPTY_ARRAY;
+    importedLibrariesState = CacheState.INVALID;
+
+    bitmask = 0;
+    clientServerState = CacheState.INVALID;
+    launchableState = CacheState.INVALID;
+
+    publicNamespace = null;
+    publicNamespaceState = CacheState.INVALID;
+
+    resolutionState.invalidateAllResolutionInformation();
   }
 
   /**
