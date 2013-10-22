@@ -121,7 +121,7 @@ public class LineStyleProviderForDart extends AbstractLineStyleProvider implemen
       EmbeddedDartReconcilerHook reconciler = DartReconcilerManager.getInstance().reconcilerFor(
           document);
       if (reconciler != null) {
-        CompilationUnit unit = reconciler.getResolvedUnit(offset, length, document);
+        CompilationUnit unit = reconciler.getParsedUnit(offset, length, document);
         if (unit != null) {
           SemanticHighlightingEngine engine = new SemanticHighlightingEngine(
               semanticHighlightings,

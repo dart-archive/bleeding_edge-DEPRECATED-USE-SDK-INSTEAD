@@ -53,14 +53,18 @@ public class EmbeddedDartReconcilerHook implements ISourceValidator, IValidator 
   private IResource resource;
   private Project dartProject;
   private Source source;
+  private CompilationUnit parsedUnit;
   private CompilationUnit resolvedUnit;
   private IDocument document;
   private int partOffset;
   private int partLength;
+  boolean isParsed;
+  boolean isResolved;
+
   private IDocumentListener documentListener = new IDocumentListener() {
     @Override
     public void documentAboutToBeChanged(DocumentEvent event) {
-      partLength = -1;
+      reset();
     }
 
     @Override
@@ -95,7 +99,7 @@ public class EmbeddedDartReconcilerHook implements ISourceValidator, IValidator 
       this.file = null;
       this.dartProject = null;
       this.resource = null;
-      this.partLength = -1;
+      reset();
       return;
     }
     IProject project = resource.getProject();
@@ -114,6 +118,7 @@ public class EmbeddedDartReconcilerHook implements ISourceValidator, IValidator 
     this.file = null;
     this.dartProject = null;
     this.resource = null;
+    reset();
   }
 
   public IDocument getDocument() {
@@ -122,6 +127,9 @@ public class EmbeddedDartReconcilerHook implements ISourceValidator, IValidator 
 
   public AnalysisContext getInputAnalysisContext() {
     // DartReconcilingEditor
+    if (resource == null || dartProject == null) {
+      return null;
+    }
     return dartProject.getContext(resource);
   }
 
@@ -135,15 +143,27 @@ public class EmbeddedDartReconcilerHook implements ISourceValidator, IValidator 
     return source;
   }
 
-  public CompilationUnit getResolvedUnit(int offset, int length, IDocument document) {
-    if (resolvedUnit != null && partOffset == offset && partLength == length) {
-      return resolvedUnit;
+  public CompilationUnit getParsedUnit(int offset, int length, IDocument document) {
+    if (isParsed(offset, length)) {
+      return parsedUnit;
     }
     if (this.document == null) {
       connect(document);
     }
-    resetSource(offset, length);
-    return resolvedUnit;
+    return parseSource(offset, length);
+  }
+
+  public CompilationUnit getResolvedUnit(int offset, int length, IDocument document) {
+    if (isResolved(offset, length)) {
+      return resolvedUnit;
+    }
+    if (isParsed(offset, length)) {
+      if (resolveParsedUnit() != null) {
+        return resolvedUnit;
+      }
+    }
+    getParsedUnit(offset, length, document);
+    return resolveParsedUnit();
   }
 
   @Override
@@ -154,7 +174,7 @@ public class EmbeddedDartReconcilerHook implements ISourceValidator, IValidator 
     }
     int start = dirtyRegion.getOffset();
     int length = dirtyRegion.getLength();
-    resetSource(start, length);
+    getResolvedUnit(start, length, document);
   }
 
   @Override
@@ -162,29 +182,61 @@ public class EmbeddedDartReconcilerHook implements ISourceValidator, IValidator 
     // IValidator -- hopefully, not used
   }
 
-  private void resetSource(int offset, int length) {
-    if (document != null && resource != null) {
-      try {
-        AnalysisContext analysisContext = getInputAnalysisContext();
-        if (source != null && (partOffset != offset || partLength != length)) {
-          analysisContext.setContents(source, null);
-        }
-        String code = document.get(offset, length);
-        File tempFile = new File(file.getParentFile(), file.getName() + offset + ".dart");
-        source = new FileBasedSource(analysisContext.getSourceFactory().getContentCache(), tempFile);
-        analysisContext.setContents(source, code);
-        LibraryElement library = analysisContext.computeLibraryElement(source);
-        CompilationUnit libraryUnit = analysisContext.resolveCompilationUnit(source, library);
-        resolvedUnit = libraryUnit;
-        partOffset = offset;
-        partLength = length;
-      } catch (BadLocationException ex) {
-        Activator.logError(ex);
-        return;
-      } catch (AnalysisException ex) {
-        Activator.logError(ex);
-        return;
-      }
+  private boolean isParsed(int offset, int length) {
+    return parsedUnit != null && partOffset == offset && partLength == length;
+  }
+
+  private boolean isResolved(int offset, int length) {
+    return resolvedUnit != null && partOffset == offset && partLength == length;
+  }
+
+  private CompilationUnit parseSource(int offset, int length) {
+    if (document == null || resource == null) {
+      return null;
     }
+    AnalysisContext analysisContext = getInputAnalysisContext();
+    if (analysisContext == null) {
+      return null;
+    }
+    if (source != null && (partOffset != offset || partLength != length)) {
+      analysisContext.setContents(source, null); // delete previous source
+    }
+    try {
+      String code = document.get(offset, length);
+      File tempFile = new File(file.getParentFile(), file.getName() + offset + ".dart");
+      source = new FileBasedSource(analysisContext.getSourceFactory().getContentCache(), tempFile);
+      analysisContext.setContents(source, code);
+      parsedUnit = analysisContext.parseCompilationUnit(source);
+    } catch (BadLocationException ex) {
+      Activator.logError(ex);
+      return null;
+    } catch (AnalysisException ex) {
+      Activator.logError(ex);
+      return null;
+    }
+    isParsed = true;
+    return parsedUnit;
+  }
+
+  private void reset() {
+    isParsed = isResolved = false;
+    partOffset = partLength = -1;
+    parsedUnit = resolvedUnit = null;
+  }
+
+  private CompilationUnit resolveParsedUnit() {
+    AnalysisContext analysisContext = getInputAnalysisContext();
+    if (analysisContext == null) {
+      return null;
+    }
+    try {
+      LibraryElement library = analysisContext.computeLibraryElement(source);
+      resolvedUnit = analysisContext.resolveCompilationUnit(source, library);
+    } catch (AnalysisException ex) {
+      Activator.logError(ex);
+      return null;
+    }
+    isResolved = true;
+    return resolvedUnit;
   }
 }
