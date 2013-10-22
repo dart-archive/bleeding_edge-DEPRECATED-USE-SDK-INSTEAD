@@ -20,6 +20,7 @@ import com.google.dart.engine.ast.ArgumentList;
 import com.google.dart.engine.ast.AssertStatement;
 import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.BinaryExpression;
+import com.google.dart.engine.ast.BlockFunctionBody;
 import com.google.dart.engine.ast.BreakStatement;
 import com.google.dart.engine.ast.CatchClause;
 import com.google.dart.engine.ast.ClassDeclaration;
@@ -306,6 +307,18 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   private ExecutableElement enclosingFunction;
 
   /**
+   * The number of return statements found in the method or function that we are currently visiting
+   * that have a return value.
+   */
+  private int returnWithCount = 0;
+
+  /**
+   * The number of return statements found in the method or function that we are currently visiting
+   * that do not have a return value.
+   */
+  private int returnWithoutCount = 0;
+
+  /**
    * This map is initialized when visiting the contents of a class declaration. If the visitor is
    * not in an enclosing class declaration, then the map is set to {@code null}.
    * <p>
@@ -404,6 +417,22 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   public Void visitBinaryExpression(BinaryExpression node) {
     checkForArgumentTypeNotAssignable(node.getRightOperand());
     return super.visitBinaryExpression(node);
+  }
+
+  @Override
+  public Void visitBlockFunctionBody(BlockFunctionBody node) {
+    int previousReturnWithCount = returnWithCount;
+    int previousReturnWithoutCount = returnWithoutCount;
+    try {
+      returnWithCount = 0;
+      returnWithoutCount = 0;
+      super.visitBlockFunctionBody(node);
+      checkForMixedReturns(node);
+    } finally {
+      returnWithCount = previousReturnWithCount;
+      returnWithoutCount = previousReturnWithoutCount;
+    }
+    return null;
   }
 
   @Override
@@ -869,6 +898,11 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
 
   @Override
   public Void visitReturnStatement(ReturnStatement node) {
+    if (node.getExpression() == null) {
+      returnWithoutCount++;
+    } else {
+      returnWithCount++;
+    }
     checkForAllReturnStatementErrorCodes(node);
     return super.visitReturnStatement(node);
   }
@@ -3631,6 +3665,22 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       return true;
     }
     // TODO(jwren): If this is a method.  Check our supertypes.
+    return false;
+  }
+
+  /**
+   * This verifies that the given function body does not contain return statements that both have
+   * and do not have return values.
+   * 
+   * @param node the function body being tested
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see StaticWarningCode#MIXED_RETURN_TYPES
+   */
+  private boolean checkForMixedReturns(BlockFunctionBody node) {
+    if (returnWithCount > 0 && returnWithoutCount > 0) {
+      errorReporter.reportError(StaticWarningCode.MIXED_RETURN_TYPES, node);
+      return true;
+    }
     return false;
   }
 

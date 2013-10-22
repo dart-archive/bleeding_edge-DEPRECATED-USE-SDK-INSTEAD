@@ -1558,6 +1558,51 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_mixedReturnTypes_localFunction() throws Exception {
+    Source source = addSource(createSource(//
+        "class C {",
+        "  m(int x) {",
+        "    return (int y) {",
+        "      if (y < 0) {",
+        "        return;",
+        "      }",
+        "      return 0;",
+        "    };",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.MIXED_RETURN_TYPES);
+    verify(source);
+  }
+
+  public void test_mixedReturnTypes_method() throws Exception {
+    Source source = addSource(createSource(//
+        "class C {",
+        "  m(int x) {",
+        "    if (x < 0) {",
+        "      return;",
+        "    }",
+        "    return 0;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.MIXED_RETURN_TYPES);
+    verify(source);
+  }
+
+  public void test_mixedReturnTypes_topLevelFunction() throws Exception {
+    Source source = addSource(createSource(//
+        "f(int x) {",
+        "  if (x < 0) {",
+        "    return;",
+        "  }",
+        "  return 0;",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.MIXED_RETURN_TYPES);
+    verify(source);
+  }
+
   public void test_newWithAbstractClass() throws Exception {
     Source source = addSource(createSource(//
         "abstract class A {}",

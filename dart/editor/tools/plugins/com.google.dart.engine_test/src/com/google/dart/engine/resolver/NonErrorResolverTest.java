@@ -1904,6 +1904,37 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_mixedReturnTypes_differentScopes() throws Exception {
+    Source source = addSource(createSource(//
+        "class C {",
+        "  m(int x) {",
+        "    f(int y) {",
+        "      return;",
+        "    }",
+        "    f(x);",
+        "    return 0;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_mixedReturnTypes_sameKind() throws Exception {
+    Source source = addSource(createSource(//
+        "class C {",
+        "  m(int x) {",
+        "    if (x < 0) {",
+        "      return 1;",
+        "    }",
+        "    return 0;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
   public void test_mixinDeclaresConstructor() throws Exception {
     Source source = addSource(createSource(//
         "class A {",

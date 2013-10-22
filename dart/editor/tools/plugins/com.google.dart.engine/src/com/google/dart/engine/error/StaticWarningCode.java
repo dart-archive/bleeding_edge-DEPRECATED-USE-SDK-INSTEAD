@@ -470,6 +470,12 @@ public enum StaticWarningCode implements ErrorCode {
       "The parameter type for setter '%s' is '%s' which is not assignable to its getter (of type '%s')"),
 
   /**
+   * 13.12 Return: It is a static warning if a function contains both one or more return statements
+   * of the form <i>return;</i> and one or more return statements of the form <i>return e;</i>.
+   */
+  MIXED_RETURN_TYPES("Methods and functions cannot use return both with and without values"),
+
+  /**
    * 12.11.1 New: It is a static warning if <i>q</i> is a constructor of an abstract class and
    * <i>q</i> is not a factory constructor.
    */
