@@ -3369,6 +3369,14 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_typeAliasCannotReferenceItself_typeVariableBounds() throws Exception {
+    Source source = addSource(createSource(// 
+    "typedef A<T extends A>();"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF);
+    verify(source);
+  }
+
   public void test_typeAliasCannotRereferenceItself_mixin_direct() throws Exception {
     Source source = addSource(createSource(//
     "class M = Object with M;"));

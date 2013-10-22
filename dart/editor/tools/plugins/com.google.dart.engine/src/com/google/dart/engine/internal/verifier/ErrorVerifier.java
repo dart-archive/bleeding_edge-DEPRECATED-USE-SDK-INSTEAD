@@ -5178,8 +5178,8 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
 
         @Override
         public Void visitTypeParameterElement(TypeParameterElement element) {
-          // it is OK to use typedef in a type parameter
-          return null;
+          addTypeToCheck(element.getBound());
+          return super.visitTypeParameterElement(element);
         }
 
         @Override

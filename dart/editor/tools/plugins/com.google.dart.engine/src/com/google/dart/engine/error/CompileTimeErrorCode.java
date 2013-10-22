@@ -1125,11 +1125,11 @@ public enum CompileTimeErrorCode implements ErrorCode {
   TYPE_ARGUMENT_NOT_MATCHING_BOUNDS("'%s' does not extend '%s'"),
 
   /**
-   * 15.3.1 Typedef: It is a compile-time error if a typedef refers to itself via a chain of
-   * references that does not include a class declaration.
+   * 15.3.1 Typedef: Any self reference, either directly, or recursively via another typedef, is a
+   * compile time error.
    */
   TYPE_ALIAS_CANNOT_REFERENCE_ITSELF(
-      "Type alias can reference itself only via the bounds of its generic parameters"),
+      "Type alias cannot reference itself directly or recursively via another typedef"),
 
   /**
    * 12.11.2 Const: It is a compile-time error if <i>T</i> is not a class accessible in the current
