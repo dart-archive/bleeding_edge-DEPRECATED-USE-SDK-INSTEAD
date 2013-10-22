@@ -787,10 +787,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "  a[0]++;",
         "}"));
     resolve(source);
-    assertErrors(
-        source,
-        StaticTypeWarningCode.UNDEFINED_OPERATOR,
-        StaticTypeWarningCode.UNDEFINED_OPERATOR);
+    assertErrors(source, StaticTypeWarningCode.UNDEFINED_OPERATOR);
   }
 
   public void test_undefinedOperator_indexGetter() throws Exception {

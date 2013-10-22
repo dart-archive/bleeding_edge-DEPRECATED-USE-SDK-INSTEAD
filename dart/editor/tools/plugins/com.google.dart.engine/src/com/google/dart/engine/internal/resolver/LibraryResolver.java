@@ -801,8 +801,10 @@ public class LibraryResolver {
     TimeCounterHandle timeCounter = PerformanceStatistics.resolve.start();
     try {
       for (Source source : library.getCompilationUnitSources()) {
+        CompilationUnit ast = library.getAST(source);
+        ast.accept(new VariableResolverVisitor(library, source, typeProvider));
         ResolverVisitor visitor = new ResolverVisitor(library, source, typeProvider);
-        library.getAST(source).accept(visitor);
+        ast.accept(visitor);
         for (ProxyConditionalAnalysisError conditionalCode : visitor.getProxyConditionalAnalysisErrors()) {
           if (conditionalCode.shouldIncludeErrorCode()) {
             visitor.reportError(conditionalCode.getAnalysisError());

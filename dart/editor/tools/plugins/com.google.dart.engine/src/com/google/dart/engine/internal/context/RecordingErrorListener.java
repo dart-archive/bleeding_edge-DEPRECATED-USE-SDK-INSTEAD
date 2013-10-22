@@ -22,7 +22,7 @@ import static com.google.dart.engine.error.AnalysisError.NO_ERRORS;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -38,7 +38,7 @@ public class RecordingErrorListener implements AnalysisErrorListener {
   /**
    * A HashMap of lists containing the errors that were collected, keyed by each {@link Source}.
    */
-  private Map<Source, List<AnalysisError>> errors = new HashMap<Source, List<AnalysisError>>();
+  private Map<Source, HashSet<AnalysisError>> errors = new HashMap<Source, HashSet<AnalysisError>>();
 
   /**
    * Add all of the errors recorded by the given listener to this listener.
@@ -57,13 +57,13 @@ public class RecordingErrorListener implements AnalysisErrorListener {
    * @return an array of errors (not {@code null}, contains no {@code null}s)
    */
   public AnalysisError[] getErrors() {
-    Collection<Entry<Source, List<AnalysisError>>> entrySet = errors.entrySet();
+    Collection<Entry<Source, HashSet<AnalysisError>>> entrySet = errors.entrySet();
     int numEntries = entrySet.size();
     if (numEntries == 0) {
       return NO_ERRORS;
     }
     ArrayList<AnalysisError> resultList = new ArrayList<AnalysisError>(numEntries);
-    for (Entry<Source, List<AnalysisError>> entry : entrySet) {
+    for (Entry<Source, HashSet<AnalysisError>> entry : entrySet) {
       resultList.addAll(entry.getValue());
     }
     return resultList.toArray(new AnalysisError[resultList.size()]);
@@ -77,7 +77,7 @@ public class RecordingErrorListener implements AnalysisErrorListener {
    * @return the errors collected by the listener for the passed {@link Source}
    */
   public AnalysisError[] getErrors(Source source) {
-    List<AnalysisError> errorsForSource = errors.get(source);
+    HashSet<AnalysisError> errorsForSource = errors.get(source);
     if (errorsForSource == null) {
       return NO_ERRORS;
     } else {
@@ -86,13 +86,13 @@ public class RecordingErrorListener implements AnalysisErrorListener {
   }
 
   @Override
-  public void onError(AnalysisError event) {
-    Source source = event.getSource();
-    List<AnalysisError> errorsForSource = errors.get(source);
+  public void onError(AnalysisError error) {
+    Source source = error.getSource();
+    HashSet<AnalysisError> errorsForSource = errors.get(source);
     if (errors.get(source) == null) {
-      errorsForSource = new ArrayList<AnalysisError>();
+      errorsForSource = new HashSet<AnalysisError>();
       errors.put(source, errorsForSource);
     }
-    errorsForSource.add(event);
+    errorsForSource.add(error);
   }
 }

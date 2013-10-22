@@ -578,7 +578,7 @@ public class HintCodeTest extends ResolverTestCase {
         "  }",
         "}"));
     resolve(source);
-    assertErrors(source, HintCode.UNDEFINED_OPERATOR, HintCode.UNDEFINED_OPERATOR);
+    assertErrors(source, HintCode.UNDEFINED_OPERATOR);
   }
 
   public void test_undefinedOperator_indexGetter() throws Exception {

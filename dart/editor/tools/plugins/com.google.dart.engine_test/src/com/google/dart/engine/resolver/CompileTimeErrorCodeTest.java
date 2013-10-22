@@ -872,10 +872,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  m(a) {}",
         "}"));
     resolve(source);
-    assertErrors(
-        source,
-        CompileTimeErrorCode.DUPLICATE_DEFINITION,
-        CompileTimeErrorCode.DUPLICATE_DEFINITION);
+    assertErrors(source, CompileTimeErrorCode.DUPLICATE_DEFINITION);
     verify(source);
   }
 
@@ -905,12 +902,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  int a;",
         "}"));
     resolve(source);
-    assertErrors(
-        source,
-        CompileTimeErrorCode.DUPLICATE_DEFINITION,
-        CompileTimeErrorCode.DUPLICATE_DEFINITION,
-        CompileTimeErrorCode.DUPLICATE_DEFINITION,
-        CompileTimeErrorCode.DUPLICATE_DEFINITION);
+    assertErrors(source, CompileTimeErrorCode.DUPLICATE_DEFINITION);
     verify(source);
   }
 
@@ -921,12 +913,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  static int x;",
         "}"));
     resolve(source);
-    assertErrors(
-        source,
-        CompileTimeErrorCode.DUPLICATE_DEFINITION,
-        CompileTimeErrorCode.DUPLICATE_DEFINITION,
-        CompileTimeErrorCode.DUPLICATE_DEFINITION,
-        CompileTimeErrorCode.DUPLICATE_DEFINITION);
+    assertErrors(source, CompileTimeErrorCode.DUPLICATE_DEFINITION);
     verify(source);
   }
 
@@ -937,10 +924,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  m() {}",
         "}"));
     resolve(source);
-    assertErrors(
-        source,
-        CompileTimeErrorCode.DUPLICATE_DEFINITION,
-        CompileTimeErrorCode.DUPLICATE_DEFINITION);
+    assertErrors(source, CompileTimeErrorCode.DUPLICATE_DEFINITION);
     verify(source);
   }
 
@@ -953,10 +937,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  }",
         "}"));
     resolve(source);
-    assertErrors(
-        source,
-        CompileTimeErrorCode.DUPLICATE_DEFINITION,
-        CompileTimeErrorCode.DUPLICATE_DEFINITION);
+    assertErrors(source, CompileTimeErrorCode.DUPLICATE_DEFINITION);
     verify(source);
   }
 
@@ -966,10 +947,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  f(f) {}",
         "}"));
     resolve(source);
-    assertErrors(
-        source,
-        CompileTimeErrorCode.DUPLICATE_DEFINITION,
-        CompileTimeErrorCode.DUPLICATE_DEFINITION);
+    assertErrors(source, CompileTimeErrorCode.DUPLICATE_DEFINITION);
     verify(source);
   }
 
@@ -979,10 +957,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  f(f) {}",
         "}"));
     resolve(source);
-    assertErrors(
-        source,
-        CompileTimeErrorCode.DUPLICATE_DEFINITION,
-        CompileTimeErrorCode.DUPLICATE_DEFINITION);
+    assertErrors(source, CompileTimeErrorCode.DUPLICATE_DEFINITION);
     verify(source);
   }
 
@@ -1417,10 +1392,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  get x => 0;",
         "}"));
     resolve(source);
-    assertErrors(
-        source,
-        CompileTimeErrorCode.GETTER_AND_METHOD_WITH_SAME_NAME,
-        CompileTimeErrorCode.GETTER_AND_METHOD_WITH_SAME_NAME);
+    assertErrors(source, CompileTimeErrorCode.GETTER_AND_METHOD_WITH_SAME_NAME);
     verify(source);
   }
 
@@ -2158,10 +2130,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  x(y) {}",
         "}"));
     resolve(source);
-    assertErrors(
-        source,
-        CompileTimeErrorCode.METHOD_AND_GETTER_WITH_SAME_NAME,
-        CompileTimeErrorCode.METHOD_AND_GETTER_WITH_SAME_NAME);
+    assertErrors(source, CompileTimeErrorCode.METHOD_AND_GETTER_WITH_SAME_NAME);
     verify(source);
   }
 

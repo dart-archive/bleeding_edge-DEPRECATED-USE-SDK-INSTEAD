@@ -136,6 +136,37 @@ public class AnalysisError {
     }
   }
 
+  @Override
+  public boolean equals(Object obj) {
+    if (obj == this) {
+      return true;
+    }
+    // prepare other AnalysisError
+    if (!(obj instanceof AnalysisError)) {
+      return false;
+    }
+    AnalysisError other = (AnalysisError) obj;
+    // Quick checks.
+    if (errorCode != other.errorCode) {
+      return false;
+    }
+    if (offset != other.offset || length != other.length) {
+      return false;
+    }
+    if (isStaticOnly != other.isStaticOnly) {
+      return false;
+    }
+    // Deep checks.
+    if (message == null && other.message != null || !message.equals(other.message)) {
+      return false;
+    }
+    if (source == null && other.source != null || !source.equals(other.source)) {
+      return false;
+    }
+    // OK
+    return true;
+  }
+
   /**
    * Return the correction to be displayed for this error, or {@code null} if there is no correction
    * information for this error. The correction should indicate how the user can fix the error.
