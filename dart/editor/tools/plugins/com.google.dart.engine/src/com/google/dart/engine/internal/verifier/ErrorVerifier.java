@@ -467,7 +467,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
             && !checkForExtendsDisallowedClass(extendsClause)) {
           checkForNonAbstractClassInheritsAbstractMember(node);
           checkForInconsistentMethodInheritance();
-          checkForRecursiveInterfaceInheritance(enclosingClass, new ArrayList<ClassElement>());
+          checkForRecursiveInterfaceInheritance(enclosingClass);
         }
       }
       // initialize initialFieldElementsMap
@@ -504,7 +504,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     ClassElement outerClassElement = enclosingClass;
     try {
       enclosingClass = node.getElement();
-      checkForRecursiveInterfaceInheritance(node.getElement(), new ArrayList<ClassElement>());
+      checkForRecursiveInterfaceInheritance(node.getElement());
       checkForTypeAliasCannotReferenceItself_mixin(node);
     } finally {
       enclosingClass = outerClassElement;
@@ -4242,36 +4242,45 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * This checks the class declaration is not a superinterface to itself.
    * 
    * @param classElt the class element to test
-   * @param list a list containing the potentially cyclic implements path
+   * @return {@code true} if and only if an error code is generated on the passed element
+   * @see CompileTimeErrorCode#RECURSIVE_INTERFACE_INHERITANCE
+   * @see CompileTimeErrorCode#RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_EXTENDS
+   * @see CompileTimeErrorCode#RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_IMPLEMENTS
+   */
+  private boolean checkForRecursiveInterfaceInheritance(ClassElement classElt) {
+    if (classElt == null) {
+      return false;
+    }
+    return checkForRecursiveInterfaceInheritance(classElt, new ArrayList<ClassElement>());
+  }
+
+  /**
+   * This checks the class declaration is not a superinterface to itself.
+   * 
+   * @param classElt the class element to test
+   * @param path a list containing the potentially cyclic implements path
    * @return {@code true} if and only if an error code is generated on the passed element
    * @see CompileTimeErrorCode#RECURSIVE_INTERFACE_INHERITANCE
    * @see CompileTimeErrorCode#RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_EXTENDS
    * @see CompileTimeErrorCode#RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_IMPLEMENTS
    */
   private boolean checkForRecursiveInterfaceInheritance(ClassElement classElt,
-      ArrayList<ClassElement> list) {
-    // Base case
-    if (classElt == null) {
-      return false;
-    }
-    InterfaceType supertype = classElt.getSupertype();
+      ArrayList<ClassElement> path) {
     // Detect error condition.
-    list.add(classElt);
-    // If this is not the base case (list.size() != 1), and the enclosing class is the passed class
+    int size = path.size();
+    // If this is not the base case (size > 0), and the enclosing class is the passed class
     // element then an error an error.
-    if (list.size() != 1 && enclosingClass.equals(classElt)) {
+    if (size > 0 && enclosingClass.equals(classElt)) {
       String enclosingClassName = enclosingClass.getDisplayName();
-      if (list.size() > 2) {
+      if (size > 1) {
         // Construct a string showing the cyclic implements path: "A, B, C, D, A"
         String separator = ", ";
-        int listLength = list.size();
         StringBuilder builder = new StringBuilder();
-        for (int i = 0; i < listLength; i++) {
-          builder.append(list.get(i).getDisplayName());
-          if (i != listLength - 1) {
-            builder.append(separator);
-          }
+        for (int i = 0; i < size; i++) {
+          builder.append(path.get(i).getDisplayName());
+          builder.append(separator);
         }
+        builder.append(classElt.getDisplayName());
         errorReporter.reportError(
             CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
             enclosingClass.getNameOffset(),
@@ -4279,8 +4288,9 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
             enclosingClassName,
             builder.toString());
         return true;
-      } else if (list.size() == 2) {
+      } else { // size == 1
         // RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_IMPLEMENTS or RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_EXTENDS
+        InterfaceType supertype = classElt.getSupertype();
         ErrorCode errorCode = supertype != null && enclosingClass.equals(supertype.getElement())
             ? CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_EXTENDS
             : CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_IMPLEMENTS;
@@ -4292,34 +4302,22 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
         return true;
       }
     }
-    // Before we recursively call ourselves, we need to check that there are no loops in the stack.
-    for (int i = 1; i < list.size() - 1; i++) {
-      if (classElt.equals(list.get(i))) {
-        list.remove(list.size() - 1);
-        return false;
-      }
+    if (path.indexOf(classElt) > 0) {
+      return false;
     }
+    path.add(classElt);
     // n-case
-    ClassElement[] interfaceElements;
-    InterfaceType[] interfaceTypes = classElt.getInterfaces();
-    if (supertype != null && !supertype.isObject()) {
-      interfaceElements = new ClassElement[interfaceTypes.length + 1];
-      interfaceElements[0] = supertype.getElement();
-      for (int i = 0; i < interfaceTypes.length; i++) {
-        interfaceElements[i + 1] = interfaceTypes[i].getElement();
-      }
-    } else {
-      interfaceElements = new ClassElement[interfaceTypes.length];
-      for (int i = 0; i < interfaceTypes.length; i++) {
-        interfaceElements[i] = interfaceTypes[i].getElement();
-      }
+    InterfaceType supertype = classElt.getSupertype();
+    if (supertype != null && checkForRecursiveInterfaceInheritance(supertype.getElement(), path)) {
+      return true;
     }
-    for (ClassElement classElt2 : interfaceElements) {
-      if (checkForRecursiveInterfaceInheritance(classElt2, list)) {
+    InterfaceType[] interfaceTypes = classElt.getInterfaces();
+    for (InterfaceType interfaceType : interfaceTypes) {
+      if (checkForRecursiveInterfaceInheritance(interfaceType.getElement(), path)) {
         return true;
       }
     }
-    list.remove(list.size() - 1);
+    path.remove(path.size() - 1);
     return false;
   }
 

@@ -99,7 +99,10 @@ public abstract class ElementImpl implements Element {
     if (this == object) {
       return true;
     }
-    return object != null && object.getClass() == getClass()
+    if (object == null || hashCode() != object.hashCode()) {
+      return false;
+    }
+    return object.getClass() == getClass()
         && ((Element) object).getLocation().equals(getLocation());
   }
 
