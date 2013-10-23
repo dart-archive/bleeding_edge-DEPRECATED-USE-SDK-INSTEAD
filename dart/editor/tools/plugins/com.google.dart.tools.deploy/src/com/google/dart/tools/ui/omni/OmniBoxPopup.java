@@ -138,6 +138,11 @@ public class OmniBoxPopup extends BasePopupDialog {
 
   }
 
+  // Ideally we'd like to NOT take focus on open ever but (GTK) linux has the unfortunate behavior
+  // of setting no focus control at all in that case.  At least here we know when it happens and
+  // can punt it back.  A better fix is still TBD (dartbug.com/3784).
+  private static final boolean FOCUS_ON_OPEN = !Util.isLinux();
+
   /**
    * Refresh interval (in ms) for asynchronous search results.
    */
@@ -199,7 +204,7 @@ public class OmniBoxPopup extends BasePopupDialog {
     super(
         ProgressManagerUtil.getDefaultParent(),
         SWT.NONE,
-        false /* take focus on opening*/,
+        FOCUS_ON_OPEN /* take focus on opening*/,
         false /* persist size */,
         false /* persist location */,
         false /* show dialog menu menu */,
