@@ -196,9 +196,16 @@ public class OmniBoxPopup extends BasePopupDialog {
   private boolean needsRefresh = true;
 
   public OmniBoxPopup(IWorkbenchWindow window, final Command invokingCommand) {
-    super(ProgressManagerUtil.getDefaultParent(), SWT.NONE, true, false, /* persist size */
-    false, /* but not location */
-    false, false, null, "" /*null*//* OmniBoxMessages.OmniBox_StartTypingToFindMatches */);
+    super(
+        ProgressManagerUtil.getDefaultParent(),
+        SWT.NONE,
+        false /* take focus on opening*/,
+        false /* persist size */,
+        false /* persist location */,
+        false /* show dialog menu menu */,
+        false /* show persist actions */,
+        null,
+        "" /*null*//* OmniBoxMessages.OmniBox_StartTypingToFindMatches */);
 
     this.window = window;
     BusyIndicator.showWhile(
