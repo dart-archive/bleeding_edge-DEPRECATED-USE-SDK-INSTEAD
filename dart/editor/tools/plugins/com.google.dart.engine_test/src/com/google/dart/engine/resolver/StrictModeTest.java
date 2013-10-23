@@ -110,7 +110,7 @@ public class StrictModeTest extends ResolverTestCase {
         "  return 0;",
         "}"));
     resolve(source);
-    assertErrors(source, StaticTypeWarningCode.UNDEFINED_OPERATOR);
+    assertNoErrors(source);
   }
 
   public void test_if_is() throws Exception {
@@ -122,7 +122,7 @@ public class StrictModeTest extends ResolverTestCase {
         "  return 0;",
         "}"));
     resolve(source);
-    assertErrors(source, StaticTypeWarningCode.UNDEFINED_OPERATOR);
+    assertNoErrors(source);
   }
 
   public void test_if_isNot() throws Exception {

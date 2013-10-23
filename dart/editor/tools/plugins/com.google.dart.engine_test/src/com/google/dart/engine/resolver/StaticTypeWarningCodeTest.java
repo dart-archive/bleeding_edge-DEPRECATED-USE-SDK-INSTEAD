@@ -707,6 +707,86 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_typePromotion_booleanAnd_useInRight_accessedInClosureRight_mutated()
+      throws Exception {
+    Source source = addSource(createSource(//
+        "callMe(f()) { f(); }",
+        "main(Object p) {",
+        "  (p is String) && callMe(() { p.length; });",
+        "  p = 0;",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticTypeWarningCode.UNDEFINED_GETTER);
+  }
+
+  public void test_typePromotion_booleanAnd_useInRight_mutatedInLeft() throws Exception {
+    Source source = addSource(createSource(//
+        "main(Object p) {",
+        "  ((p is String) && ((p = 42) == 42)) && p.length != 0;",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticTypeWarningCode.UNDEFINED_GETTER);
+  }
+
+  public void test_typePromotion_booleanAnd_useInRight_mutatedInRight() throws Exception {
+    Source source = addSource(createSource(//
+        "main(Object p) {",
+        "  (p is String) && (((p = 42) == 42) && p.length != 0);",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticTypeWarningCode.UNDEFINED_GETTER);
+  }
+
+  public void test_typePromotion_if_accessedInClosure_hasAssignment() throws Exception {
+    Source source = addSource(createSource(//
+        "callMe(f()) { f(); }",
+        "main(Object p) {",
+        "  if (p is String) {",
+        "    callMe(() {",
+        "      p.length;",
+        "    });",
+        "  }",
+        "  p = 0;",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticTypeWarningCode.UNDEFINED_GETTER);
+  }
+
+  public void test_typePromotion_if_and_right_hasAssignment() throws Exception {
+    Source source = addSource(createSource(//
+        "main(Object p) {",
+        "  if (p is String && (p = null) == null) {",
+        "    p.length;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticTypeWarningCode.UNDEFINED_GETTER);
+  }
+
+  public void test_typePromotion_if_hasAssignment_after() throws Exception {
+    Source source = addSource(createSource(//
+        "main(Object p) {",
+        "  if (p is String) {",
+        "    p.length;",
+        "    p = 0;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticTypeWarningCode.UNDEFINED_GETTER);
+  }
+
+  public void test_typePromotion_if_hasAssignment_before() throws Exception {
+    Source source = addSource(createSource(//
+        "main(Object p) {",
+        "  if (p is String) {",
+        "    p = 0;",
+        "    p.length;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticTypeWarningCode.UNDEFINED_GETTER);
+  }
+
   public void test_undefinedGetter() throws Exception {
     Source source = addSource(createSource(//
         "class T {}",

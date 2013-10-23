@@ -94,6 +94,16 @@ public abstract class VariableElementImpl extends ElementImpl implements Variabl
   }
 
   /**
+   * Return {@code true} if this variable is potentially mutated somewhere in its scope. This
+   * information is only available for local variables (including parameters).
+   * 
+   * @return {@code true} if this variable is potentially mutated somewhere in its scope
+   */
+  public boolean isPotentiallyMutated() {
+    return false;
+  }
+
+  /**
    * Set whether this variable is const to correspond to the given value.
    * 
    * @param isConst {@code true} if the variable is const

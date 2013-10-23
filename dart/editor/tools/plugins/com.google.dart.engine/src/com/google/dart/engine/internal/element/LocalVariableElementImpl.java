@@ -26,6 +26,11 @@ import com.google.dart.engine.utilities.source.SourceRange;
  */
 public class LocalVariableElementImpl extends VariableElementImpl implements LocalVariableElement {
   /**
+   * Is {@code true} if this variable is potentially mutated somewhere in its scope.
+   */
+  private boolean isPotentiallyMutated;
+
+  /**
    * The offset to the beginning of the visible range for this element.
    */
   private int visibleRangeOffset;
@@ -66,6 +71,18 @@ public class LocalVariableElementImpl extends VariableElementImpl implements Loc
       return null;
     }
     return new SourceRange(visibleRangeOffset, visibleRangeLength);
+  }
+
+  @Override
+  public boolean isPotentiallyMutated() {
+    return isPotentiallyMutated;
+  }
+
+  /**
+   * Specifies that this variable is potentially mutated somewhere in its scope.
+   */
+  public void markPotentiallyMutated() {
+    isPotentiallyMutated = true;
   }
 
   /**

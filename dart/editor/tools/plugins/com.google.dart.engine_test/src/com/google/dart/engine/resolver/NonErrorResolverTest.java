@@ -2987,6 +2987,119 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_typePromotion_booleanAnd_useInRight() throws Exception {
+    Source source = addSource(createSource(//
+        "main(Object p) {",
+        "  p is String && p.length != 0;",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_typePromotion_booleanAnd_useInRight_accessedInClosureRight_noAssignment()
+      throws Exception {
+    Source source = addSource(createSource(//
+        "callMe(f()) { f(); }",
+        "main(Object p) {",
+        "  (p is String) && callMe(() { p.length; });",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_typePromotion_if_accessedInClosure_noAssignment() throws Exception {
+    Source source = addSource(createSource(//
+        "callMe(f()) { f(); }",
+        "main(Object p) {",
+        "  if (p is String) {",
+        "    callMe(() {",
+        "      p.length;",
+        "    });",
+        "  }",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_typePromotion_if_hasAssignment_outsideAfter() throws Exception {
+    Source source = addSource(createSource(//
+        "main(Object p) {",
+        "  if (p is String) {",
+        "    p.length;",
+        "  }",
+        "  p = 0;",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_typePromotion_if_hasAssignment_outsideBefore() throws Exception {
+    Source source = addSource(createSource(//
+        "main(Object p, Object p2) {",
+        "  p = p2;",
+        "  if (p is String) {",
+        "    p.length;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_typePromotion_if_is_and_left() throws Exception {
+    Source source = addSource(createSource(//
+        "bool tt() => true;",
+        "main(Object p) {",
+        "  if (p is String && tt()) {",
+        "    p.length;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_typePromotion_if_is_and_right() throws Exception {
+    Source source = addSource(createSource(//
+        "bool tt() => true;",
+        "main(Object p) {",
+        "  if (tt() && p is String) {",
+        "    p.length;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_typePromotion_if_is_parenthesized() throws Exception {
+    Source source = addSource(createSource(//
+        "main(Object p) {",
+        "  if ((p is String)) {",
+        "    p.length;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_typePromotion_if_is_single() throws Exception {
+    Source source = addSource(createSource(//
+        "main(Object p) {",
+        "  if (p is String) {",
+        "    p.length;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
   public void test_undefinedConstructorInInitializer_explicit_named() throws Exception {
     Source source = addSource(createSource(//
         "class A {",

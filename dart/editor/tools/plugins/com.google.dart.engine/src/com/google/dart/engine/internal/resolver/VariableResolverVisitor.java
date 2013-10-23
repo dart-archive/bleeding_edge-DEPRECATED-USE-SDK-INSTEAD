@@ -23,6 +23,8 @@ import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.VariableElement;
+import com.google.dart.engine.internal.element.LocalVariableElementImpl;
+import com.google.dart.engine.internal.element.ParameterElementImpl;
 import com.google.dart.engine.source.Source;
 
 /**
@@ -74,8 +76,16 @@ public class VariableResolverVisitor extends ScopedVisitor {
     }
     // Must be local or parameter.
     ElementKind kind = element.getKind();
-    if (kind == ElementKind.LOCAL_VARIABLE || kind == ElementKind.PARAMETER) {
+    if (kind == ElementKind.LOCAL_VARIABLE) {
       node.setStaticElement(element);
+      if (node.inSetterContext()) {
+        ((LocalVariableElementImpl) element).markPotentiallyMutated();
+      }
+    } else if (kind == ElementKind.PARAMETER) {
+      node.setStaticElement(element);
+      if (node.inSetterContext()) {
+        ((ParameterElementImpl) element).markPotentiallyMutated();
+      }
     }
     return null;
   }

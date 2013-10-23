@@ -35,7 +35,6 @@ import com.google.dart.engine.ast.Statement;
 import com.google.dart.engine.ast.VariableDeclarationStatement;
 import com.google.dart.engine.ast.WhileStatement;
 import com.google.dart.engine.element.LibraryElement;
-import com.google.dart.engine.error.StaticTypeWarningCode;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
@@ -514,7 +513,7 @@ public class TypePropagationTest extends ResolverTestCase {
         "  }",
         "}"));
     LibraryElement library = resolve(source);
-    assertErrors(source, StaticTypeWarningCode.UNDEFINED_METHOD);
+    assertNoErrors(source);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     FunctionDeclaration function = (FunctionDeclaration) unit.getDeclarations().get(2);
     BlockFunctionBody body = (BlockFunctionBody) function.getFunctionExpression().getBody();

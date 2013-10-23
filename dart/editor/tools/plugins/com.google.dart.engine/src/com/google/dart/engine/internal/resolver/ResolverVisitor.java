@@ -68,8 +68,10 @@ import com.google.dart.engine.ast.ThrowExpression;
 import com.google.dart.engine.ast.TopLevelVariableDeclaration;
 import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.WhileStatement;
+import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.LocalVariableElement;
@@ -79,6 +81,7 @@ import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.error.ErrorCode;
+import com.google.dart.engine.internal.element.VariableElementImpl;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.source.Source;
@@ -129,6 +132,11 @@ public class ResolverVisitor extends ScopedVisitor {
   private TypeOverrideManager overrideManager = new TypeOverrideManager();
 
   /**
+   * The object keeping track of which elements have had their types promoted.
+   */
+  private TypePromotionManager promoteManager = new TypePromotionManager();
+
+  /**
    * Proxy conditional error codes.
    */
   private ArrayList<ProxyConditionalAnalysisError> proxyConditionalAnalysisErrors = new ArrayList<ProxyConditionalAnalysisError>();
@@ -174,6 +182,15 @@ public class ResolverVisitor extends ScopedVisitor {
     return overrideManager;
   }
 
+  /**
+   * Return the object keeping track of which elements have had their types promoted.
+   * 
+   * @return the object keeping track of which elements have had their types promoted
+   */
+  public TypePromotionManager getPromoteManager() {
+    return promoteManager;
+  }
+
   public ArrayList<ProxyConditionalAnalysisError> getProxyConditionalAnalysisErrors() {
     return proxyConditionalAnalysisErrors;
   }
@@ -202,10 +219,18 @@ public class ResolverVisitor extends ScopedVisitor {
       if (rightOperand != null) {
         try {
           overrideManager.enterScope();
+          promoteManager.enterScope();
           propagateTrueState(leftOperand);
+          // Type promotion.
+          promoteTypes(leftOperand);
+          clearTypePromotionsIfPotentiallyMutatedIn(leftOperand);
+          clearTypePromotionsIfPotentiallyMutatedIn(rightOperand);
+          clearTypePromotionsIfAccessedInScopeAndProtentiallyMutated(rightOperand);
+          // Visit right operand.
           rightOperand.accept(this);
         } finally {
           overrideManager.exitScope();
+          promoteManager.exitScope();
         }
       }
     } else if (operatorType == TokenType.BAR_BAR) {
@@ -516,11 +541,18 @@ public class ResolverVisitor extends ScopedVisitor {
     if (thenStatement != null) {
       try {
         overrideManager.enterScope();
+        promoteManager.enterScope();
         propagateTrueState(condition);
+        // Type promotion.
+        promoteTypes(condition);
+        clearTypePromotionsIfPotentiallyMutatedIn(thenStatement);
+        clearTypePromotionsIfAccessedInScopeAndProtentiallyMutated(thenStatement);
+        // Visit "then".
         visitStatementInScope(thenStatement);
       } finally {
         thenOverrides = overrideManager.captureLocalOverrides();
         overrideManager.exitScope();
+        promoteManager.exitScope();
       }
     }
     HashMap<Element, Type> elseOverrides = null;
@@ -792,6 +824,32 @@ public class ResolverVisitor extends ScopedVisitor {
   }
 
   /**
+   * Return the static element associated with the given expression whose type can be promoted, or
+   * {@code null} if there is no element whose type can be promoted.
+   * 
+   * @param expression the expression with which the element is associated
+   * @return the element associated with the given expression
+   */
+  protected VariableElement getPromotionStaticElement(Expression expression) {
+    if (!(expression instanceof SimpleIdentifier)) {
+      return null;
+    }
+    SimpleIdentifier identifier = (SimpleIdentifier) expression;
+    Element element = identifier.getStaticElement();
+    if (!(element instanceof VariableElement)) {
+      return null;
+    }
+    ElementKind kind = element.getKind();
+    if (kind == ElementKind.LOCAL_VARIABLE) {
+      return (VariableElement) element;
+    }
+    if (kind == ElementKind.PARAMETER) {
+      return (VariableElement) element;
+    }
+    return null;
+  }
+
+  /**
    * If it is appropriate to do so, override the current type of the static and propagated elements
    * associated with the given expression with the given type. Generally speaking, it is appropriate
    * if the given type is more specific than the current type.
@@ -833,6 +891,48 @@ public class ResolverVisitor extends ScopedVisitor {
     if (currentType == null || !currentType.isMoreSpecificThan(potentialType)) {
       overrideManager.setType(element, potentialType);
     }
+  }
+
+  /**
+   * If it is appropriate to do so, promotes the current type of the static element associated with
+   * the given expression with the given type. Generally speaking, it is appropriate if the given
+   * type is more specific than the current type.
+   * 
+   * @param expression the expression used to access the static element whose types might be
+   *          promoted
+   * @param potentialType the potential type of the elements
+   */
+  protected void promote(Expression expression, Type potentialType) {
+    VariableElement element = getPromotionStaticElement(expression);
+    if (element != null) {
+      promote(element, potentialType);
+    }
+  }
+
+  /**
+   * If it is appropriate to do so, promotes the current type of the given element with the given
+   * type. Generally speaking, it is appropriate if the given type is more specific than the current
+   * type.
+   * 
+   * @param element the element whose type might be promoted
+   * @param potentialType the potential type of the element
+   */
+  protected void promote(VariableElement element, Type potentialType) {
+    // Declared type should not be "dynamic".
+    Type type = element.getType();
+    if (type == null || type.isDynamic()) {
+      return;
+    }
+    // Promoted type should not be "dynamic".
+    if (potentialType == null || potentialType.isDynamic()) {
+      return;
+    }
+    // Promoted type should be more specific than declared.
+    if (!potentialType.isMoreSpecificThan(type)) {
+      return;
+    }
+    // Do promote type of variable.
+    promoteManager.setType(element, potentialType);
   }
 
   /**
@@ -936,6 +1036,37 @@ public class ResolverVisitor extends ScopedVisitor {
     }
     // TODO(brianwilkerson) If the loop can only be exited because the condition is false, then
     // propagateFalseState(condition);
+  }
+
+  /**
+   * Checks each promoted variable in the current scope for compliance with the following
+   * specification statement:
+   * <p>
+   * If the variable <i>v</i> is accessed by a closure in <i>s<sub>1</sub></i> then the variable
+   * <i>v</i> is not potentially mutated anywhere in the scope of <i>v</i>.
+   */
+  private void clearTypePromotionsIfAccessedInScopeAndProtentiallyMutated(ASTNode target) {
+    for (Element element : promoteManager.getPromotedElements()) {
+      if (((VariableElementImpl) element).isPotentiallyMutated()) {
+        if (isVariableAccessedInClosure(element, target)) {
+          promoteManager.setType(element, null);
+        }
+      }
+    }
+  }
+
+  /**
+   * Checks each promoted variable in the current scope for compliance with the following
+   * specification statement:
+   * <p>
+   * <i>v</i> is not potentially mutated in <i>s<sub>1</sub></i> or within a closure.
+   */
+  private void clearTypePromotionsIfPotentiallyMutatedIn(ASTNode target) {
+    for (Element element : promoteManager.getPromotedElements()) {
+      if (isVariablePotentiallyMutatedIn(element, target)) {
+        promoteManager.setType(element, null);
+      }
+    }
   }
 
   /**
@@ -1080,6 +1211,95 @@ public class ResolverVisitor extends ScopedVisitor {
       return isAbruptTermination(statements.get(size - 1));
     }
     return false;
+  }
+
+  /**
+   * Return {@code true} if the given variable is accessed within a closure in the given
+   * {@link ASTNode} and also mutated somewhere in variable scope. This information is only
+   * available for local variables (including parameters).
+   * 
+   * @param variable the variable to check
+   * @param target the {@link ASTNode} to check within
+   * @return {@code true} if this variable is potentially mutated somewhere in the given ASTNode
+   */
+  private boolean isVariableAccessedInClosure(final Element variable, ASTNode target) {
+    final boolean[] result = {false};
+    target.accept(new RecursiveASTVisitor<Void>() {
+      private boolean inClosure = false;
+
+      @Override
+      public Void visitFunctionExpression(FunctionExpression node) {
+        boolean inClosure = this.inClosure;
+        try {
+          this.inClosure = true;
+          return super.visitFunctionExpression(node);
+        } finally {
+          this.inClosure = inClosure;
+        }
+      }
+
+      @Override
+      public Void visitSimpleIdentifier(SimpleIdentifier node) {
+        if (result[0]) {
+          return null;
+        }
+        if (inClosure && node.getStaticElement() == variable) {
+          result[0] |= true;
+        }
+        return null;
+      }
+    });
+    return result[0];
+  }
+
+  /**
+   * Return {@code true} if the given variable is potentially mutated somewhere in the given
+   * {@link ASTNode}. This information is only available for local variables (including parameters).
+   * 
+   * @param variable the variable to check
+   * @param target the {@link ASTNode} to check within
+   * @return {@code true} if this variable is potentially mutated somewhere in the given ASTNode
+   */
+  private boolean isVariablePotentiallyMutatedIn(final Element variable, ASTNode target) {
+    final boolean[] result = {false};
+    target.accept(new RecursiveASTVisitor<Void>() {
+      @Override
+      public Void visitSimpleIdentifier(SimpleIdentifier node) {
+        if (result[0]) {
+          return null;
+        }
+        if (node.getStaticElement() == variable) {
+          if (node.inSetterContext()) {
+            result[0] |= true;
+          }
+        }
+        return null;
+      }
+    });
+    return result[0];
+  }
+
+  /**
+   * Promotes type information using given condition.
+   */
+  private void promoteTypes(Expression condition) {
+    if (condition instanceof BinaryExpression) {
+      BinaryExpression binary = (BinaryExpression) condition;
+      if (binary.getOperator().getType() == TokenType.AMPERSAND_AMPERSAND) {
+        Expression left = binary.getLeftOperand();
+        Expression right = binary.getRightOperand();
+        promoteTypes(left);
+        promoteTypes(right);
+        clearTypePromotionsIfPotentiallyMutatedIn(right);
+      }
+    } else if (condition instanceof IsExpression) {
+      IsExpression is = (IsExpression) condition;
+      if (is.getNotOperator() == null) {
+        promote(is.getExpression(), is.getType().getType());
+      }
+    } else if (condition instanceof ParenthesizedExpression) {
+      promoteTypes(((ParenthesizedExpression) condition).getExpression());
+    }
   }
 
   /**

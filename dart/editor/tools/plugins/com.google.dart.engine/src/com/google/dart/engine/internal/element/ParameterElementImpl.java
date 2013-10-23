@@ -27,6 +27,11 @@ import com.google.dart.engine.utilities.source.SourceRange;
  */
 public class ParameterElementImpl extends VariableElementImpl implements ParameterElement {
   /**
+   * Is {@code true} if this variable is potentially mutated somewhere in its scope.
+   */
+  private boolean isPotentiallyMutated;
+
+  /**
    * An array containing all of the parameters defined by this parameter element. There will only be
    * parameters if this parameter is a function typed parameter.
    */
@@ -123,6 +128,18 @@ public class ParameterElementImpl extends VariableElementImpl implements Paramet
   @Override
   public boolean isInitializingFormal() {
     return false;
+  }
+
+  @Override
+  public boolean isPotentiallyMutated() {
+    return isPotentiallyMutated;
+  }
+
+  /**
+   * Specifies that this variable is potentially mutated somewhere in its scope.
+   */
+  public void markPotentiallyMutated() {
+    isPotentiallyMutated = true;
   }
 
   /**

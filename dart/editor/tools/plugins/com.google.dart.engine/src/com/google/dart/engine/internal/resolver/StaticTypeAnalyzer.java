@@ -194,6 +194,11 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
   private TypeOverrideManager overrideManager;
 
   /**
+   * The object keeping track of which elements have had their types promoted.
+   */
+  private TypePromotionManager promoteManager;
+
+  /**
    * A table mapping {@link ExecutableElement}s to their propagated return types.
    */
   private HashMap<ExecutableElement, Type> propagatedReturnTypes = new HashMap<ExecutableElement, Type>();
@@ -214,6 +219,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
     typeProvider = resolver.getTypeProvider();
     dynamicType = typeProvider.getDynamicType();
     overrideManager = resolver.getOverrideManager();
+    promoteManager = resolver.getPromoteManager();
   }
 
   /**
@@ -1277,7 +1283,10 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
 //        type = typeProvider.getTypeType());
 //      }
     } else if (element instanceof VariableElement) {
-      staticType = ((VariableElement) element).getType();
+      staticType = promoteManager.getType(element);
+      if (staticType == null) {
+        staticType = ((VariableElement) element).getType();
+      }
     } else if (element instanceof PrefixElement) {
       return null;
     } else {
