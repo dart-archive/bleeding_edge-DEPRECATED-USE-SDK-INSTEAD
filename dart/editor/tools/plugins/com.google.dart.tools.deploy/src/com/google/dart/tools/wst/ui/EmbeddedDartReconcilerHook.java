@@ -15,14 +15,19 @@ package com.google.dart.tools.wst.ui;
 
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.context.AnalysisErrorInfo;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.utilities.source.LineInfo;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.Project;
+import com.google.dart.tools.core.internal.builder.AnalysisMarkerManager;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.deploy.Activator;
+import com.google.dart.tools.internal.corext.refactoring.util.ReflectionUtils;
 
 import org.eclipse.core.filebuffers.FileBuffers;
 import org.eclipse.core.filebuffers.ITextFileBuffer;
@@ -112,6 +117,7 @@ public class EmbeddedDartReconcilerHook implements ISourceValidator, IValidator 
   @Override
   public void disconnect(IDocument document) {
     // ISourceValidator
+    AnalysisMarkerManager.getInstance().clearMarkers(resource);
     document.removePrenotifiedDocumentListener(documentListener);
     DartReconcilerManager.getInstance().reconcileWith(document, null);
     this.document = null;
@@ -175,11 +181,41 @@ public class EmbeddedDartReconcilerHook implements ISourceValidator, IValidator 
     int start = dirtyRegion.getOffset();
     int length = dirtyRegion.getLength();
     getResolvedUnit(start, length, document);
+    AnalysisMarkerManager.getInstance().clearMarkers(resource);
+    AnalysisErrorInfo errorInfo = getInputAnalysisContext().getErrors(source);
+    adjustPosition(errorInfo.getErrors(), start);
+    AnalysisMarkerManager.getInstance().queueErrors(
+        resource,
+        new LineInfo(getLineStarts()),
+        errorInfo.getErrors());
   }
 
   @Override
   public void validate(IValidationContext helper, IReporter reporter) throws ValidationException {
     // IValidator -- hopefully, not used
+  }
+
+  private void adjustPosition(AnalysisError[] errors, int delta) {
+    for (AnalysisError error : errors) {
+      int offset = error.getOffset() + delta;
+      ReflectionUtils.setField(error, "offset", offset);
+    }
+  }
+
+  private int[] getLineStarts() {
+    int n = document.getNumberOfLines();
+    int[] starts = new int[n];
+    int pos = 0;
+    try {
+      for (int i = 0; i < n; i++) {
+        starts[i] = pos;
+        int len = document.getLineLength(i);
+        pos += len;
+      }
+    } catch (BadLocationException ex) {
+      return new int[1];
+    }
+    return starts;
   }
 
   private boolean isParsed(int offset, int length) {
@@ -214,6 +250,8 @@ public class EmbeddedDartReconcilerHook implements ISourceValidator, IValidator 
       Activator.logError(ex);
       return null;
     }
+    partOffset = offset;
+    partLength = length;
     isParsed = true;
     return parsedUnit;
   }
