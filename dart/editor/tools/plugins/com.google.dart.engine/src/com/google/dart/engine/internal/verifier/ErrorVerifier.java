@@ -3615,28 +3615,56 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * 
    * @param node the accessor currently being visited
    * @return {@code true} if and only if an error code is generated on the passed node
+   * @see StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES
+   * @see StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES_FROM_SUPERTYPE
    */
+  // TODO (jwren) In future nit CL, rename this method (and tests) to be consistent with name of error enum
+  // TODO (jwren) Revisit error code messages, to add more clarity, we may need the pair split into four codes
   private boolean checkForMismatchedAccessorTypes(Declaration accessorDeclaration,
       String accessorTextName) {
     ExecutableElement accessorElement = (ExecutableElement) accessorDeclaration.getElement();
     if (!(accessorElement instanceof PropertyAccessorElement)) {
       return false;
     }
-    PropertyAccessorElement counterpartAccessor = null;
     PropertyAccessorElement propertyAccessorElement = (PropertyAccessorElement) accessorElement;
+    PropertyAccessorElement counterpartAccessor = null;
+    ClassElement enclosingClassForCounterpart = null;
     if (propertyAccessorElement.isGetter()) {
       counterpartAccessor = propertyAccessorElement.getCorrespondingSetter();
     } else {
       counterpartAccessor = propertyAccessorElement.getCorrespondingGetter();
-      // if the setter and getter are in the same enclosing element, return
+      // If the setter and getter are in the same enclosing element, return, this prevents having
+      // MISMATCHED_GETTER_AND_SETTER_TYPES reported twice.
       if (counterpartAccessor != null
           && counterpartAccessor.getEnclosingElement() == propertyAccessorElement.getEnclosingElement()) {
         return false;
       }
     }
     if (counterpartAccessor == null) {
-      // Nothing to report.  There is no corresponding accessor
-      return false;
+      // If the accessor is declared in a class, check the superclasses.
+      if (enclosingClass != null) {
+        // Figure out the correct identifier to lookup in the inheritance graph, if 'x', then 'x=',
+        // or if 'x=', then 'x'.
+        String lookupIdentifier = propertyAccessorElement.getName();
+        if (lookupIdentifier.endsWith("=")) {
+          lookupIdentifier = lookupIdentifier.substring(0, lookupIdentifier.length() - 1);
+        } else {
+          lookupIdentifier += "=";
+        }
+        // lookup with the identifier.
+        ExecutableElement elementFromInheritance = inheritanceManager.lookupInheritance(
+            enclosingClass,
+            lookupIdentifier);
+        // Verify that we found something, and that it is an accessor
+        if (elementFromInheritance != null
+            && elementFromInheritance instanceof PropertyAccessorElement) {
+          enclosingClassForCounterpart = (ClassElement) elementFromInheritance.getEnclosingElement();
+          counterpartAccessor = (PropertyAccessorElement) elementFromInheritance;
+        }
+      }
+      if (counterpartAccessor == null) {
+        return false;
+      }
     }
 
     // Default of null == no accessor or no type (dynamic)
@@ -3649,22 +3677,30 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       setterType = getSetterType(counterpartAccessor);
     } else if (propertyAccessorElement.isSetter()) {
       setterType = getSetterType(propertyAccessorElement);
-      counterpartAccessor = propertyAccessorElement.getCorrespondingGetter();
       getterType = getGetterType(counterpartAccessor);
     }
 
     // If either types are not assignable to each other, report an error (if the getter is null,
     // it is dynamic which is assignable to everything).
     if (setterType != null && getterType != null && !getterType.isAssignableTo(setterType)) {
-      errorReporter.reportError(
-          StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES,
-          accessorDeclaration,
-          accessorTextName,
-          setterType.getDisplayName(),
-          getterType.getDisplayName());
-      return true;
+      if (enclosingClassForCounterpart == null) {
+        errorReporter.reportError(
+            StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES,
+            accessorDeclaration,
+            accessorTextName,
+            setterType.getDisplayName(),
+            getterType.getDisplayName());
+        return true;
+      } else {
+        errorReporter.reportError(
+            StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES_FROM_SUPERTYPE,
+            accessorDeclaration,
+            accessorTextName,
+            setterType.getDisplayName(),
+            getterType.getDisplayName(),
+            enclosingClassForCounterpart.getDisplayName());
+      }
     }
-    // TODO(jwren): If this is a method.  Check our supertypes.
     return false;
   }
 

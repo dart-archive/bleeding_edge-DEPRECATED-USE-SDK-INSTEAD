@@ -470,6 +470,14 @@ public enum StaticWarningCode implements ErrorCode {
       "The parameter type for setter '%s' is '%s' which is not assignable to its getter (of type '%s')"),
 
   /**
+   * 7.3 Setters: It is a static warning if a class has a setter named <i>v=</i> with argument type
+   * <i>T</i> and a getter named <i>v</i> with return type <i>S</i>, and <i>T</i> may not be
+   * assigned to <i>S</i>.
+   */
+  MISMATCHED_GETTER_AND_SETTER_TYPES_FROM_SUPERTYPE(
+      "The parameter type for setter '%s' is '%s' which is not assignable to its getter (of type '%s'), from superclass '%s'"),
+
+  /**
    * 13.12 Return: It is a static warning if a function contains both one or more return statements
    * of the form <i>return;</i> and one or more return statements of the form <i>return e;</i>.
    */
