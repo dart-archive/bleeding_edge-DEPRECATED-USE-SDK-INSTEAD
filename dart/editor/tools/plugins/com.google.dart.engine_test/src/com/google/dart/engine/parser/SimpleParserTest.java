@@ -20,9 +20,10 @@ import com.google.dart.engine.error.GatheringErrorListener;
 import com.google.dart.engine.internal.parser.CommentAndMetadata;
 import com.google.dart.engine.internal.parser.FinalConstVarOrType;
 import com.google.dart.engine.internal.parser.Modifiers;
+import com.google.dart.engine.scanner.CharSequenceReader;
 import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.KeywordToken;
-import com.google.dart.engine.scanner.StringScanner;
+import com.google.dart.engine.scanner.Scanner;
 import com.google.dart.engine.scanner.StringToken;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
@@ -4781,7 +4782,7 @@ public class SimpleParserTest extends ParserTestCase {
     //
     // Scan the source.
     //
-    StringScanner scanner = new StringScanner(null, source, listener);
+    Scanner scanner = new Scanner(null, new CharSequenceReader(source), listener);
     Token tokenStream = scanner.tokenize();
     //
     // Parse the source.
@@ -4835,7 +4836,7 @@ public class SimpleParserTest extends ParserTestCase {
     //
     // Scan the source.
     //
-    StringScanner scanner = new StringScanner(null, source, listener);
+    Scanner scanner = new Scanner(null, new CharSequenceReader(source), listener);
     Token tokenStream = scanner.tokenize();
     //
     // Parse the source.

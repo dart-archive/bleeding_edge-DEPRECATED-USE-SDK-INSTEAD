@@ -14,13 +14,12 @@
 package com.google.dart.engine.timing;
 
 import com.google.dart.engine.AnalysisEngine;
-import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.parser.Parser;
-import com.google.dart.engine.scanner.CharBufferScanner;
-import com.google.dart.engine.scanner.StringScanner;
+import com.google.dart.engine.scanner.CharSequenceReader;
+import com.google.dart.engine.scanner.Scanner;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
@@ -34,22 +33,11 @@ import junit.framework.TestCase;
 import java.nio.CharBuffer;
 
 public class SDKAnalysisTest extends TestCase {
-
   private static class ScanResult {
-    /**
-     * The time at which the contents of the source were last set.
-     */
-    private long modificationTime;
-
     /**
      * The first token in the token stream.
      */
     private Token token;
-
-    /**
-     * The line start information that was produced.
-     */
-    private int[] lineStarts;
 
     /**
      * Initialize a newly created result object to be empty.
@@ -122,30 +110,24 @@ public class SDKAnalysisTest extends TestCase {
 
   private void internalParse(final Source source, final AnalysisErrorListener errorListener)
       throws AnalysisException {
-
     final ScanResult result = new ScanResult();
-
     Source.ContentReceiver receiver = new Source.ContentReceiver() {
       @Override
       public void accept(CharBuffer contents, long modificationTime) {
-        CharBufferScanner scanner = new CharBufferScanner(source, contents, errorListener);
+        Scanner scanner = new Scanner(source, new CharSequenceReader(contents), errorListener);
         result.token = scanner.tokenize();
-
       }
 
       @Override
       public void accept(String contents, long modificationTime) {
-        StringScanner scanner = new StringScanner(source, contents, errorListener);
+        Scanner scanner = new Scanner(source, new CharSequenceReader(contents), errorListener);
         result.token = scanner.tokenize();
-
       }
     };
     try {
       source.getContents(receiver);
-
       Parser parser = new Parser(source, AnalysisErrorListener.NULL_LISTENER);
-      CompilationUnit unit = parser.parseCompilationUnit(result.token);
-
+      parser.parseCompilationUnit(result.token);
     } catch (Exception exception) {
       throw new AnalysisException(exception);
     }
@@ -153,25 +135,21 @@ public class SDKAnalysisTest extends TestCase {
 
   private void internalScan(final Source source, final AnalysisErrorListener errorListener)
       throws AnalysisException {
-
     Source.ContentReceiver receiver = new Source.ContentReceiver() {
       @Override
       public void accept(CharBuffer contents, long modificationTime) {
-        CharBufferScanner scanner = new CharBufferScanner(source, contents, errorListener);
+        Scanner scanner = new Scanner(source, new CharSequenceReader(contents), errorListener);
         scanner.tokenize();
-
       }
 
       @Override
       public void accept(String contents, long modificationTime) {
-        StringScanner scanner = new StringScanner(source, contents, errorListener);
+        Scanner scanner = new Scanner(source, new CharSequenceReader(contents), errorListener);
         scanner.tokenize();
-
       }
     };
     try {
       source.getContents(receiver);
-
     } catch (Exception exception) {
       throw new AnalysisException(exception);
     }

@@ -45,7 +45,8 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.parser.Parser;
-import com.google.dart.engine.scanner.StringScanner;
+import com.google.dart.engine.scanner.CharSequenceReader;
+import com.google.dart.engine.scanner.Scanner;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.type.Type;
 import com.google.dart.tools.core.utilities.io.FileUtilities;
@@ -640,7 +641,7 @@ public class ASTExplorer extends ViewPart implements AnalysisErrorListener {
 
           errors.clear();
 
-          StringScanner scanner = new StringScanner(null, contents, this);
+          Scanner scanner = new Scanner(null, new CharSequenceReader(contents), this);
           Parser parser = new Parser(null, this);
 
           Token token = scanner.tokenize();

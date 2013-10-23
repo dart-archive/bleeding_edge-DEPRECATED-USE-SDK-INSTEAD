@@ -29,9 +29,10 @@ import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.internal.context.RecordingErrorListener;
 import com.google.dart.engine.parser.Parser;
+import com.google.dart.engine.scanner.CharSequenceReader;
 import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.KeywordToken;
-import com.google.dart.engine.scanner.StringScanner;
+import com.google.dart.engine.scanner.Scanner;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.tools.ui.DartToolsPlugin;
@@ -441,7 +442,7 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
 
   private static Token internalScan(String contents, AnalysisErrorListener errorListener)
       throws AnalysisException {
-    StringScanner scanner = new StringScanner(null, contents, errorListener);
+    Scanner scanner = new Scanner(null, new CharSequenceReader(contents), errorListener);
     return scanner.tokenize();
   }
 

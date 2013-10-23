@@ -14,9 +14,10 @@
 package com.google.dart.engine.services.internal.util;
 
 import com.google.common.collect.Lists;
+import com.google.dart.engine.scanner.CharSequenceReader;
 import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.KeywordToken;
-import com.google.dart.engine.scanner.StringScanner;
+import com.google.dart.engine.scanner.Scanner;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
 
@@ -65,7 +66,7 @@ public class TokenUtils {
     ExecutionUtils.runIgnore(new RunnableEx() {
       @Override
       public void run() throws Exception {
-        StringScanner scanner = new StringScanner(null, s, null);
+        Scanner scanner = new Scanner(null, new CharSequenceReader(s), null);
         Token token = scanner.tokenize();
         while (token.getType() != TokenType.EOF) {
           tokens.add(token);

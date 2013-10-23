@@ -21,7 +21,7 @@ import com.google.dart.engine.utilities.source.LineInfo;
 
 import junit.framework.TestCase;
 
-public abstract class AbstractScannerTest extends TestCase {
+public class ScannerTest extends TestCase {
   /**
    * Instances of the class {@code ExpectedLocation} encode information about the expected location
    * of a given offset in source code.
@@ -569,6 +569,18 @@ public abstract class AbstractScannerTest extends TestCase {
     assertToken(TokenType.SEMICOLON, ";");
   }
 
+  public void test_setSourceStart() throws Exception {
+    int offsetDelta = 42;
+    GatheringErrorListener listener = new GatheringErrorListener();
+    Scanner scanner = new Scanner(null, new SubSequenceReader("a", offsetDelta), listener);
+    scanner.setSourceStart(3, 9);
+    scanner.tokenize();
+    int[] lineStarts = scanner.getLineStarts();
+    assertNotNull(lineStarts);
+    assertEquals(3, lineStarts.length);
+    assertEquals(33, lineStarts[2]);
+  }
+
   public void test_slash() throws Exception {
     assertToken(TokenType.SLASH, "/");
   }
@@ -782,8 +794,6 @@ public abstract class AbstractScannerTest extends TestCase {
     scan("'${(}'", listener);
   }
 
-  protected abstract Token scan(String source, GatheringErrorListener listener);
-
   private void assertComment(TokenType commentType, String source) throws Exception {
     //
     // Test without a trailing end-of-line marker
@@ -955,5 +965,12 @@ public abstract class AbstractScannerTest extends TestCase {
     Token token = scan(source, listener);
     listener.assertNoErrors();
     return token;
+  }
+
+  private Token scan(String source, GatheringErrorListener listener) {
+    Scanner scanner = new Scanner(null, new CharSequenceReader(source), listener);
+    Token result = scanner.tokenize();
+    listener.setLineInfo(new TestSource(), scanner.getLineStarts());
+    return result;
   }
 }

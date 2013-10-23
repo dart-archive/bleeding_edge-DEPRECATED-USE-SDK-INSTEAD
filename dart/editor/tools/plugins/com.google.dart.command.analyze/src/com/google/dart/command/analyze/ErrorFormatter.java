@@ -17,8 +17,8 @@ package com.google.dart.command.analyze;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.ErrorSeverity;
 import com.google.dart.engine.error.ErrorType;
-import com.google.dart.engine.scanner.CharBufferScanner;
-import com.google.dart.engine.scanner.StringScanner;
+import com.google.dart.engine.scanner.CharSequenceReader;
+import com.google.dart.engine.scanner.Scanner;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.source.LineInfo;
 import com.google.dart.engine.utilities.source.LineInfo.Location;
@@ -210,14 +210,14 @@ public class ErrorFormatter {
       source.getContents(new Source.ContentReceiver() {
         @Override
         public void accept(CharBuffer contents, long modificationTime) {
-          CharBufferScanner scanner = new CharBufferScanner(source, contents, null);
+          Scanner scanner = new Scanner(source, new CharSequenceReader(contents), null);
           scanner.tokenize();
           lineInfoMap.put(source, new LineInfo(scanner.getLineStarts()));
         }
 
         @Override
         public void accept(String contents, long modificationTime) {
-          StringScanner scanner = new StringScanner(source, contents, null);
+          Scanner scanner = new Scanner(source, new CharSequenceReader(contents), null);
           scanner.tokenize();
           lineInfoMap.put(source, new LineInfo(scanner.getLineStarts()));
         }

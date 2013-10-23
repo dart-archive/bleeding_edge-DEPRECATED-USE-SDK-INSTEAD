@@ -25,8 +25,9 @@ import com.google.dart.engine.internal.parser.Modifiers;
 import com.google.dart.engine.scanner.BeginToken;
 import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.KeywordToken;
-import com.google.dart.engine.scanner.StringScanner;
+import com.google.dart.engine.scanner.Scanner;
 import com.google.dart.engine.scanner.StringToken;
+import com.google.dart.engine.scanner.SubSequenceReader;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.source.Source;
@@ -1913,8 +1914,11 @@ public class Parser {
           errorFound[0] = true;
         }
       };
-      StringScanner scanner = new StringScanner(null, referenceSource, listener);
-      scanner.setSourceStart(1, 1, sourceOffset);
+      Scanner scanner = new Scanner(
+          null,
+          new SubSequenceReader(referenceSource, sourceOffset),
+          listener);
+      scanner.setSourceStart(1, 1);
       Token firstToken = scanner.tokenize();
       if (errorFound[0]) {
         return null;

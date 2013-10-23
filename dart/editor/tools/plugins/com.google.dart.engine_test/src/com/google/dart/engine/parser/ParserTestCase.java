@@ -23,7 +23,8 @@ import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.error.GatheringErrorListener;
 import com.google.dart.engine.internal.parser.CommentAndMetadata;
-import com.google.dart.engine.scanner.StringScanner;
+import com.google.dart.engine.scanner.CharSequenceReader;
+import com.google.dart.engine.scanner.Scanner;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.source.TestSource;
 
@@ -137,7 +138,7 @@ public class ParserTestCase extends EngineTestCase {
   public static CompilationUnit parseCompilationUnit(String source, ErrorCode... errorCodes)
       throws Exception {
     GatheringErrorListener listener = new GatheringErrorListener();
-    StringScanner scanner = new StringScanner(null, source, listener);
+    Scanner scanner = new Scanner(null, new CharSequenceReader(source), listener);
     listener.setLineInfo(new TestSource(), scanner.getLineStarts());
     Token token = scanner.tokenize();
     Parser parser = new Parser(null, listener);
@@ -160,7 +161,7 @@ public class ParserTestCase extends EngineTestCase {
   public static <E extends Expression> E parseExpression(String source, ErrorCode... errorCodes)
       throws Exception {
     GatheringErrorListener listener = new GatheringErrorListener();
-    StringScanner scanner = new StringScanner(null, source, listener);
+    Scanner scanner = new Scanner(null, new CharSequenceReader(source), listener);
     listener.setLineInfo(new TestSource(), scanner.getLineStarts());
     Token token = scanner.tokenize();
     Parser parser = new Parser(null, listener);
@@ -183,7 +184,7 @@ public class ParserTestCase extends EngineTestCase {
   public static <E extends Statement> E parseStatement(String source, ErrorCode... errorCodes)
       throws Exception {
     GatheringErrorListener listener = new GatheringErrorListener();
-    StringScanner scanner = new StringScanner(null, source, listener);
+    Scanner scanner = new Scanner(null, new CharSequenceReader(source), listener);
     listener.setLineInfo(new TestSource(), scanner.getLineStarts());
     Token token = scanner.tokenize();
     Parser parser = new Parser(null, listener);
@@ -207,7 +208,7 @@ public class ParserTestCase extends EngineTestCase {
   public static List<Statement> parseStatements(String source, int expectedCount,
       ErrorCode... errorCodes) throws Exception {
     GatheringErrorListener listener = new GatheringErrorListener();
-    StringScanner scanner = new StringScanner(null, source, listener);
+    Scanner scanner = new Scanner(null, new CharSequenceReader(source), listener);
     listener.setLineInfo(new TestSource(), scanner.getLineStarts());
     Token token = scanner.tokenize();
     Parser parser = new Parser(null, listener);
@@ -239,7 +240,7 @@ public class ParserTestCase extends EngineTestCase {
     //
     // Scan the source.
     //
-    StringScanner scanner = new StringScanner(null, source, listener);
+    Scanner scanner = new Scanner(null, new CharSequenceReader(source), listener);
     Token tokenStream = scanner.tokenize();
     listener.setLineInfo(new TestSource(), scanner.getLineStarts());
     //

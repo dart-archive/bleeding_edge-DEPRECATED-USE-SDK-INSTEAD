@@ -25,7 +25,8 @@ import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
 import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
-import com.google.dart.engine.scanner.StringScanner;
+import com.google.dart.engine.scanner.CharSequenceReader;
+import com.google.dart.engine.scanner.Scanner;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.ui.DartToolsPlugin;
@@ -540,7 +541,6 @@ public class DartFoldingStructureProvider implements IDartFoldingStructureProvid
   }
 
   private static class TokenStream {
-    StringScanner scanner;
     Token firstToken;
     Token currentToken;
     int begin;
@@ -553,7 +553,7 @@ public class DartFoldingStructureProvider implements IDartFoldingStructureProvid
           errorFound[0] = true;
         }
       };
-      scanner = new StringScanner(null, source, listener);
+      Scanner scanner = new Scanner(null, new CharSequenceReader(source), listener);
       if (errorFound[0]) {
         throw new InvalidSourceException();
       } else {

@@ -24,8 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * The abstract class {@code AbstractScanner} implements a scanner for Dart code. Subclasses are
- * required to implement the interface used to access the characters being scanned.
+ * The class {@code Scanner} implements a scanner for Dart code.
  * <p>
  * The lexical structure of Dart is ambiguous without knowledge of the context in which a token is
  * being scanned. For example, without context we cannot determine whether source of the form "<<"
@@ -35,11 +34,16 @@ import java.util.List;
  * 
  * @coverage dart.engine.parser
  */
-public abstract class AbstractScanner {
+public class Scanner {
   /**
    * The source being scanned.
    */
   private final Source source;
+
+  /**
+   * The reader used to access the characters in the source.
+   */
+  private CharacterReader reader;
 
   /**
    * The error listener that will be informed of any errors that are found during the scan.
@@ -96,10 +100,12 @@ public abstract class AbstractScanner {
    * Initialize a newly created scanner.
    * 
    * @param source the source being scanned
+   * @param reader the character reader used to read the characters in the source
    * @param errorListener the error listener that will be informed of any errors that are found
    */
-  public AbstractScanner(Source source, AnalysisErrorListener errorListener) {
+  public Scanner(Source source, CharacterReader reader, AnalysisErrorListener errorListener) {
     this.source = source;
+    this.reader = reader;
     this.errorListener = errorListener;
     tokens = new Token(TokenType.EOF, -1);
     tokens.setNext(tokens);
@@ -118,21 +124,34 @@ public abstract class AbstractScanner {
   }
 
   /**
-   * Return the current offset relative to the beginning of the file. Return the initial offset if
-   * the scanner has not yet scanned the source code, and one (1) past the end of the source code if
-   * the source code has been scanned.
-   * 
-   * @return the current offset of the scanner in the source
-   */
-  public abstract int getOffset();
-
-  /**
    * Return {@code true} if any unmatched groups were found during the parse.
    * 
    * @return {@code true} if any unmatched groups were found during the parse
    */
   public boolean hasUnmatchedGroups() {
     return hasUnmatchedGroups;
+  }
+
+  /**
+   * Record that the source begins on the given line and column at the current offset as given by
+   * the reader. The line starts for lines before the given line will not be correct.
+   * <p>
+   * This method must be invoked at most one time and must be invoked before scanning begins. The
+   * values provided must be sensible. The results are undefined if these conditions are violated.
+   * 
+   * @param line the one-based index of the line containing the first character of the source
+   * @param column the one-based index of the column in which the first character of the source
+   *          occurs
+   */
+  public void setSourceStart(int line, int column) {
+    int offset = reader.getOffset();
+    if (line < 1 || column < 1 || offset < 0 || (line + column - 2) >= offset) {
+      return;
+    }
+    for (int i = 2; i < line; i++) {
+      lineStarts.add(1);
+    }
+    lineStarts.add(offset - column + 1);
   }
 
   /**
@@ -146,7 +165,7 @@ public abstract class AbstractScanner {
     int tokenCounter = 0;
 
     try {
-      int next = advance();
+      int next = reader.advance();
       while (next != -1) {
         tokenCounter++;
         next = bigSwitch(next);
@@ -164,36 +183,10 @@ public abstract class AbstractScanner {
   }
 
   /**
-   * Advance the current position and return the character at the new current position.
-   * 
-   * @return the character at the new current position
-   */
-  protected abstract int advance();
-
-  /**
-   * Return the substring of the source code between the start offset and the modified current
-   * position. The current position is modified by adding the end delta.
-   * 
-   * @param start the offset to the beginning of the string, relative to the start of the file
-   * @param endDelta the number of character after the current location to be included in the
-   *          string, or the number of characters before the current location to be excluded if the
-   *          offset is negative
-   * @return the specified substring of the source code
-   */
-  protected abstract String getString(int start, int endDelta);
-
-  /**
-   * Return the character at the current position without changing the current position.
-   * 
-   * @return the character at the current position
-   */
-  protected abstract int peek();
-
-  /**
    * Record the fact that we are at the beginning of a new line in the source.
    */
   protected void recordStartOfLine() {
-    lineStarts.add(getOffset());
+    lineStarts.add(reader.getOffset());
   }
 
   private void appendBeginToken(TokenType type) {
@@ -241,9 +234,9 @@ public abstract class AbstractScanner {
   private void appendEofToken() {
     Token eofToken;
     if (firstComment == null) {
-      eofToken = new Token(TokenType.EOF, getOffset() + 1);
+      eofToken = new Token(TokenType.EOF, reader.getOffset() + 1);
     } else {
-      eofToken = new TokenWithComment(TokenType.EOF, getOffset() + 1, firstComment);
+      eofToken = new TokenWithComment(TokenType.EOF, reader.getOffset() + 1, firstComment);
       firstComment = null;
       lastComment = null;
     }
@@ -307,32 +300,32 @@ public abstract class AbstractScanner {
   }
 
   private void beginToken() {
-    tokenStart = getOffset();
+    tokenStart = reader.getOffset();
   }
 
   private int bigSwitch(int next) {
     beginToken();
 
     if (next == '\r') {
-      next = advance();
+      next = reader.advance();
       if (next == '\n') {
-        next = advance();
+        next = reader.advance();
       }
       recordStartOfLine();
       return next;
     } else if (next == '\n') {
-      next = advance();
+      next = reader.advance();
       recordStartOfLine();
       return next;
     } else if (next == '\t' || next == ' ') {
-      return advance();
+      return reader.advance();
     }
 
     if (next == 'r') {
-      int peek = peek();
+      int peek = reader.peek();
       if (peek == '"' || peek == '\'') {
-        int start = getOffset();
-        return tokenizeString(advance(), start, true);
+        int start = reader.getOffset();
+        return tokenizeString(reader.advance(), start, true);
       }
     }
 
@@ -341,7 +334,7 @@ public abstract class AbstractScanner {
     }
 
     if (('A' <= next && next <= 'Z') || next == '_' || next == '$') {
-      return tokenizeIdentifier(next, getOffset(), true);
+      return tokenizeIdentifier(next, reader.getOffset(), true);
     }
 
     if (next == '<') {
@@ -398,7 +391,7 @@ public abstract class AbstractScanner {
 
     if (next == '\\') {
       appendToken(TokenType.BACKSLASH);
-      return advance();
+      return reader.advance();
     }
 
     if (next == '#') {
@@ -407,52 +400,52 @@ public abstract class AbstractScanner {
 
     if (next == '(') {
       appendBeginToken(TokenType.OPEN_PAREN);
-      return advance();
+      return reader.advance();
     }
 
     if (next == ')') {
       appendEndToken(TokenType.CLOSE_PAREN, TokenType.OPEN_PAREN);
-      return advance();
+      return reader.advance();
     }
 
     if (next == ',') {
       appendToken(TokenType.COMMA);
-      return advance();
+      return reader.advance();
     }
 
     if (next == ':') {
       appendToken(TokenType.COLON);
-      return advance();
+      return reader.advance();
     }
 
     if (next == ';') {
       appendToken(TokenType.SEMICOLON);
-      return advance();
+      return reader.advance();
     }
 
     if (next == '?') {
       appendToken(TokenType.QUESTION);
-      return advance();
+      return reader.advance();
     }
 
     if (next == ']') {
       appendEndToken(TokenType.CLOSE_SQUARE_BRACKET, TokenType.OPEN_SQUARE_BRACKET);
-      return advance();
+      return reader.advance();
     }
 
     if (next == '`') {
       appendToken(TokenType.BACKPING);
-      return advance();
+      return reader.advance();
     }
 
     if (next == '{') {
       appendBeginToken(TokenType.OPEN_CURLY_BRACKET);
-      return advance();
+      return reader.advance();
     }
 
     if (next == '}') {
       appendEndToken(TokenType.CLOSE_CURLY_BRACKET, TokenType.OPEN_CURLY_BRACKET);
-      return advance();
+      return reader.advance();
     }
 
     if (next == '/') {
@@ -461,11 +454,11 @@ public abstract class AbstractScanner {
 
     if (next == '@') {
       appendToken(TokenType.AT);
-      return advance();
+      return reader.advance();
     }
 
     if (next == '"' || next == '\'') {
-      return tokenizeString(next, getOffset(), false);
+      return tokenizeString(next, reader.getOffset(), false);
     }
 
     if (next == '.') {
@@ -485,7 +478,7 @@ public abstract class AbstractScanner {
     }
 
     reportError(ScannerErrorCode.ILLEGAL_CHARACTER, Integer.valueOf(next));
-    return advance();
+    return reader.advance();
   }
 
   /**
@@ -532,14 +525,19 @@ public abstract class AbstractScanner {
    * @param arguments any arguments needed to complete the error message
    */
   private void reportError(ScannerErrorCode errorCode, Object... arguments) {
-    errorListener.onError(new AnalysisError(getSource(), getOffset(), 1, errorCode, arguments));
+    errorListener.onError(new AnalysisError(
+        getSource(),
+        reader.getOffset(),
+        1,
+        errorCode,
+        arguments));
   }
 
   private int select(char choice, TokenType yesType, TokenType noType) {
-    int next = advance();
+    int next = reader.advance();
     if (next == choice) {
       appendToken(yesType);
-      return advance();
+      return reader.advance();
     } else {
       appendToken(noType);
       return next;
@@ -547,10 +545,10 @@ public abstract class AbstractScanner {
   }
 
   private int select(char choice, TokenType yesType, TokenType noType, int offset) {
-    int next = advance();
+    int next = reader.advance();
     if (next == choice) {
       appendToken(yesType, offset);
-      return advance();
+      return reader.advance();
     } else {
       appendToken(noType, offset);
       return next;
@@ -559,13 +557,13 @@ public abstract class AbstractScanner {
 
   private int tokenizeAmpersand(int next) {
     // && &= &
-    next = advance();
+    next = reader.advance();
     if (next == '&') {
       appendToken(TokenType.AMPERSAND_AMPERSAND);
-      return advance();
+      return reader.advance();
     } else if (next == '=') {
       appendToken(TokenType.AMPERSAND_EQ);
-      return advance();
+      return reader.advance();
     } else {
       appendToken(TokenType.AMPERSAND);
       return next;
@@ -574,13 +572,13 @@ public abstract class AbstractScanner {
 
   private int tokenizeBar(int next) {
     // | || |=
-    next = advance();
+    next = reader.advance();
     if (next == '|') {
       appendToken(TokenType.BAR_BAR);
-      return advance();
+      return reader.advance();
     } else if (next == '=') {
       appendToken(TokenType.BAR_EQ);
-      return advance();
+      return reader.advance();
     } else {
       appendToken(TokenType.BAR);
       return next;
@@ -593,8 +591,8 @@ public abstract class AbstractScanner {
   }
 
   private int tokenizeDotOrNumber(int next) {
-    int start = getOffset();
-    next = advance();
+    int start = reader.getOffset();
+    next = reader.advance();
     if (('0' <= next && next <= '9')) {
       return tokenizeFractionPart(next, start);
     } else if ('.' == next) {
@@ -607,13 +605,13 @@ public abstract class AbstractScanner {
 
   private int tokenizeEquals(int next) {
     // = == =>
-    next = advance();
+    next = reader.advance();
     if (next == '=') {
       appendToken(TokenType.EQ_EQ);
-      return advance();
+      return reader.advance();
     } else if (next == '>') {
       appendToken(TokenType.FUNCTION);
-      return advance();
+      return reader.advance();
     }
     appendToken(TokenType.EQ);
     return next;
@@ -621,10 +619,10 @@ public abstract class AbstractScanner {
 
   private int tokenizeExclamation(int next) {
     // ! !=
-    next = advance();
+    next = reader.advance();
     if (next == '=') {
       appendToken(TokenType.BANG_EQ);
-      return advance();
+      return reader.advance();
     }
     appendToken(TokenType.BANG);
     return next;
@@ -632,7 +630,7 @@ public abstract class AbstractScanner {
 
   private int tokenizeExponent(int next) {
     if (next == '+' || next == '-') {
-      next = advance();
+      next = reader.advance();
     }
     boolean hasDigits = false;
     while (true) {
@@ -644,7 +642,7 @@ public abstract class AbstractScanner {
         }
         return next;
       }
-      next = advance();
+      next = reader.advance();
     }
   }
 
@@ -656,38 +654,42 @@ public abstract class AbstractScanner {
         hasDigit = true;
       } else if ('e' == next || 'E' == next) {
         hasDigit = true;
-        next = tokenizeExponent(advance());
+        next = tokenizeExponent(reader.advance());
         done = true;
         continue LOOP;
       } else {
         done = true;
         continue LOOP;
       }
-      next = advance();
+      next = reader.advance();
     }
     if (!hasDigit) {
-      appendStringToken(TokenType.INT, getString(start, -2));
+      appendStringToken(TokenType.INT, reader.getString(start, -2));
       if ('.' == next) {
-        return select('.', TokenType.PERIOD_PERIOD_PERIOD, TokenType.PERIOD_PERIOD, getOffset() - 1);
+        return select(
+            '.',
+            TokenType.PERIOD_PERIOD_PERIOD,
+            TokenType.PERIOD_PERIOD,
+            reader.getOffset() - 1);
       }
-      appendToken(TokenType.PERIOD, getOffset() - 1);
+      appendToken(TokenType.PERIOD, reader.getOffset() - 1);
       return bigSwitch(next);
     }
-    appendStringToken(TokenType.DOUBLE, getString(start, next < 0 ? 0 : -1));
+    appendStringToken(TokenType.DOUBLE, reader.getString(start, next < 0 ? 0 : -1));
     return next;
   }
 
   private int tokenizeGreaterThan(int next) {
     // > >= >> >>=
-    next = advance();
+    next = reader.advance();
     if ('=' == next) {
       appendToken(TokenType.GT_EQ);
-      return advance();
+      return reader.advance();
     } else if ('>' == next) {
-      next = advance();
+      next = reader.advance();
       if ('=' == next) {
         appendToken(TokenType.GT_GT_EQ);
-        return advance();
+        return reader.advance();
       } else {
         appendToken(TokenType.GT_GT);
         return next;
@@ -699,10 +701,10 @@ public abstract class AbstractScanner {
   }
 
   private int tokenizeHex(int next) {
-    int start = getOffset() - 1;
+    int start = reader.getOffset() - 1;
     boolean hasDigits = false;
     while (true) {
-      next = advance();
+      next = reader.advance();
       if (('0' <= next && next <= '9') || ('A' <= next && next <= 'F')
           || ('a' <= next && next <= 'f')) {
         hasDigits = true;
@@ -710,16 +712,16 @@ public abstract class AbstractScanner {
         if (!hasDigits) {
           reportError(ScannerErrorCode.MISSING_HEX_DIGIT);
         }
-        appendStringToken(TokenType.HEXADECIMAL, getString(start, next < 0 ? 0 : -1));
+        appendStringToken(TokenType.HEXADECIMAL, reader.getString(start, next < 0 ? 0 : -1));
         return next;
       }
     }
   }
 
   private int tokenizeHexOrNumber(int next) {
-    int x = peek();
+    int x = reader.peek();
     if (x == 'x' || x == 'X') {
-      advance();
+      reader.advance();
       return tokenizeHex(x);
     }
     return tokenizeNumber(next);
@@ -728,33 +730,33 @@ public abstract class AbstractScanner {
   private int tokenizeIdentifier(int next, int start, boolean allowDollar) {
     while (('a' <= next && next <= 'z') || ('A' <= next && next <= 'Z')
         || ('0' <= next && next <= '9') || next == '_' || (next == '$' && allowDollar)) {
-      next = advance();
+      next = reader.advance();
     }
-    appendStringToken(TokenType.IDENTIFIER, getString(start, next < 0 ? 0 : -1));
+    appendStringToken(TokenType.IDENTIFIER, reader.getString(start, next < 0 ? 0 : -1));
     return next;
   }
 
   private int tokenizeInterpolatedExpression(int next, int start) {
     appendBeginToken(TokenType.STRING_INTERPOLATION_EXPRESSION);
-    next = advance();
+    next = reader.advance();
     while (next != -1) {
       if (next == '}') {
         BeginToken begin = findTokenMatchingClosingBraceInInterpolationExpression();
         if (begin == null) {
           beginToken();
           appendToken(TokenType.CLOSE_CURLY_BRACKET);
-          next = advance();
+          next = reader.advance();
           beginToken();
           return next;
         } else if (begin.getType() == TokenType.OPEN_CURLY_BRACKET) {
           beginToken();
           appendEndToken(TokenType.CLOSE_CURLY_BRACKET, TokenType.OPEN_CURLY_BRACKET);
-          next = advance();
+          next = reader.advance();
           beginToken();
         } else if (begin.getType() == TokenType.STRING_INTERPOLATION_EXPRESSION) {
           beginToken();
           appendEndToken(TokenType.CLOSE_CURLY_BRACKET, TokenType.STRING_INTERPOLATION_EXPRESSION);
-          next = advance();
+          next = reader.advance();
           beginToken();
           return next;
         }
@@ -765,7 +767,7 @@ public abstract class AbstractScanner {
     if (next == -1) {
       return next;
     }
-    next = advance();
+    next = reader.advance();
     beginToken();
     return next;
   }
@@ -782,10 +784,10 @@ public abstract class AbstractScanner {
 
   private int tokenizeKeywordOrIdentifier(int next, boolean allowDollar) {
     KeywordState state = KeywordState.KEYWORD_STATE;
-    int start = getOffset();
+    int start = reader.getOffset();
     while (state != null && 'a' <= next && next <= 'z') {
       state = state.next((char) next);
-      next = advance();
+      next = reader.advance();
     }
     if (state == null || state.keyword() == null) {
       return tokenizeIdentifier(next, start, allowDollar);
@@ -802,10 +804,10 @@ public abstract class AbstractScanner {
 
   private int tokenizeLessThan(int next) {
     // < <= << <<=
-    next = advance();
+    next = reader.advance();
     if ('=' == next) {
       appendToken(TokenType.LT_EQ);
-      return advance();
+      return reader.advance();
     } else if ('<' == next) {
       return select('=', TokenType.LT_LT_EQ, TokenType.LT_LT);
     } else {
@@ -816,13 +818,13 @@ public abstract class AbstractScanner {
 
   private int tokenizeMinus(int next) {
     // - -- -=
-    next = advance();
+    next = reader.advance();
     if (next == '-') {
       appendToken(TokenType.MINUS_MINUS);
-      return advance();
+      return reader.advance();
     } else if (next == '=') {
       appendToken(TokenType.MINUS_EQ);
-      return advance();
+      return reader.advance();
     } else {
       appendToken(TokenType.MINUS);
       return next;
@@ -831,143 +833,143 @@ public abstract class AbstractScanner {
 
   private int tokenizeMultiLineComment(int next) {
     int nesting = 1;
-    next = advance();
+    next = reader.advance();
     while (true) {
       if (-1 == next) {
         reportError(ScannerErrorCode.UNTERMINATED_MULTI_LINE_COMMENT);
-        appendCommentToken(TokenType.MULTI_LINE_COMMENT, getString(tokenStart, 0));
+        appendCommentToken(TokenType.MULTI_LINE_COMMENT, reader.getString(tokenStart, 0));
         return next;
       } else if ('*' == next) {
-        next = advance();
+        next = reader.advance();
         if ('/' == next) {
           --nesting;
           if (0 == nesting) {
-            appendCommentToken(TokenType.MULTI_LINE_COMMENT, getString(tokenStart, 0));
-            return advance();
+            appendCommentToken(TokenType.MULTI_LINE_COMMENT, reader.getString(tokenStart, 0));
+            return reader.advance();
           } else {
-            next = advance();
+            next = reader.advance();
           }
         }
       } else if ('/' == next) {
-        next = advance();
+        next = reader.advance();
         if ('*' == next) {
-          next = advance();
+          next = reader.advance();
           ++nesting;
         }
       } else if (next == '\r') {
-        next = advance();
+        next = reader.advance();
         if (next == '\n') {
-          next = advance();
+          next = reader.advance();
         }
         recordStartOfLine();
       } else if (next == '\n') {
         recordStartOfLine();
-        next = advance();
+        next = reader.advance();
       } else {
-        next = advance();
+        next = reader.advance();
       }
     }
   }
 
   private int tokenizeMultiLineRawString(int quoteChar, int start) {
-    int next = advance();
+    int next = reader.advance();
     outer : while (next != -1) {
       while (next != quoteChar) {
-        next = advance();
+        next = reader.advance();
         if (next == -1) {
           break outer;
         } else if (next == '\r') {
-          next = advance();
+          next = reader.advance();
           if (next == '\n') {
-            next = advance();
+            next = reader.advance();
           }
           recordStartOfLine();
         } else if (next == '\n') {
           recordStartOfLine();
-          next = advance();
+          next = reader.advance();
         }
       }
-      next = advance();
+      next = reader.advance();
       if (next == quoteChar) {
-        next = advance();
+        next = reader.advance();
         if (next == quoteChar) {
-          appendStringToken(TokenType.STRING, getString(start, 0));
-          return advance();
+          appendStringToken(TokenType.STRING, reader.getString(start, 0));
+          return reader.advance();
         }
       }
     }
     reportError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL);
-    appendStringToken(TokenType.STRING, getString(start, 0));
-    return advance();
+    appendStringToken(TokenType.STRING, reader.getString(start, 0));
+    return reader.advance();
   }
 
   private int tokenizeMultiLineString(int quoteChar, int start, boolean raw) {
     if (raw) {
       return tokenizeMultiLineRawString(quoteChar, start);
     }
-    int next = advance();
+    int next = reader.advance();
     while (next != -1) {
       if (next == '$') {
-        appendStringToken(TokenType.STRING, getString(start, -1));
+        appendStringToken(TokenType.STRING, reader.getString(start, -1));
         beginToken();
         next = tokenizeStringInterpolation(start);
-        start = getOffset();
+        start = reader.getOffset();
         continue;
       }
       if (next == quoteChar) {
-        next = advance();
+        next = reader.advance();
         if (next == quoteChar) {
-          next = advance();
+          next = reader.advance();
           if (next == quoteChar) {
-            appendStringToken(TokenType.STRING, getString(start, 0));
-            return advance();
+            appendStringToken(TokenType.STRING, reader.getString(start, 0));
+            return reader.advance();
           }
         }
         continue;
       }
       if (next == '\\') {
-        next = advance();
+        next = reader.advance();
         if (next == -1) {
           break;
         }
         boolean missingCharacter = false;
         if (next == '\r') {
           missingCharacter = true;
-          next = advance();
+          next = reader.advance();
           if (next == '\n') {
-            next = advance();
+            next = reader.advance();
           }
           recordStartOfLine();
         } else if (next == '\n') {
           missingCharacter = true;
           recordStartOfLine();
-          next = advance();
+          next = reader.advance();
         } else {
-          next = advance();
+          next = reader.advance();
         }
         if (missingCharacter) {
           errorListener.onError(new AnalysisError(
               getSource(),
-              getOffset() - 1,
+              reader.getOffset() - 1,
               1,
               ScannerErrorCode.CHARACTER_EXPECTED_AFTER_SLASH));
         }
       } else if (next == '\r') {
-        next = advance();
+        next = reader.advance();
         if (next == '\n') {
-          next = advance();
+          next = reader.advance();
         }
         recordStartOfLine();
       } else if (next == '\n') {
         recordStartOfLine();
-        next = advance();
+        next = reader.advance();
       } else {
-        next = advance();
+        next = reader.advance();
       }
     }
     reportError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL);
-    appendStringToken(TokenType.STRING, getString(start, 0));
-    return advance();
+    appendStringToken(TokenType.STRING, reader.getString(start, 0));
+    return reader.advance();
   }
 
   private int tokenizeMultiply(int next) {
@@ -976,17 +978,17 @@ public abstract class AbstractScanner {
   }
 
   private int tokenizeNumber(int next) {
-    int start = getOffset();
+    int start = reader.getOffset();
     while (true) {
-      next = advance();
+      next = reader.advance();
       if ('0' <= next && next <= '9') {
         continue;
       } else if (next == '.') {
-        return tokenizeFractionPart(advance(), start);
+        return tokenizeFractionPart(reader.advance(), start);
       } else if (next == 'e' || next == 'E') {
         return tokenizeFractionPart(next, start);
       } else {
-        appendStringToken(TokenType.INT, getString(start, next < 0 ? 0 : -1));
+        appendStringToken(TokenType.INT, reader.getString(start, next < 0 ? 0 : -1));
         return next;
       }
     }
@@ -994,7 +996,7 @@ public abstract class AbstractScanner {
 
   private int tokenizeOpenSquareBracket(int next) {
     // [ []  []=
-    next = advance();
+    next = reader.advance();
     if (next == ']') {
       return select('=', TokenType.INDEX_EQ, TokenType.INDEX);
     } else {
@@ -1010,13 +1012,13 @@ public abstract class AbstractScanner {
 
   private int tokenizePlus(int next) {
     // + ++ +=
-    next = advance();
+    next = reader.advance();
     if ('+' == next) {
       appendToken(TokenType.PLUS_PLUS);
-      return advance();
+      return reader.advance();
     } else if ('=' == next) {
       appendToken(TokenType.PLUS_EQ);
-      return advance();
+      return reader.advance();
     } else {
       appendToken(TokenType.PLUS);
       return next;
@@ -1025,66 +1027,66 @@ public abstract class AbstractScanner {
 
   private int tokenizeSingleLineComment(int next) {
     while (true) {
-      next = advance();
+      next = reader.advance();
       if (-1 == next) {
-        appendCommentToken(TokenType.SINGLE_LINE_COMMENT, getString(tokenStart, 0));
+        appendCommentToken(TokenType.SINGLE_LINE_COMMENT, reader.getString(tokenStart, 0));
         return next;
       } else if ('\n' == next || '\r' == next) {
-        appendCommentToken(TokenType.SINGLE_LINE_COMMENT, getString(tokenStart, -1));
+        appendCommentToken(TokenType.SINGLE_LINE_COMMENT, reader.getString(tokenStart, -1));
         return next;
       }
     }
   }
 
   private int tokenizeSingleLineRawString(int next, int quoteChar, int start) {
-    next = advance();
+    next = reader.advance();
     while (next != -1) {
       if (next == quoteChar) {
-        appendStringToken(TokenType.STRING, getString(start, 0));
-        return advance();
+        appendStringToken(TokenType.STRING, reader.getString(start, 0));
+        return reader.advance();
       } else if (next == '\r' || next == '\n') {
         reportError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL);
-        appendStringToken(TokenType.STRING, getString(start, 0));
-        return advance();
+        appendStringToken(TokenType.STRING, reader.getString(start, 0));
+        return reader.advance();
       }
-      next = advance();
+      next = reader.advance();
     }
     reportError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL);
-    appendStringToken(TokenType.STRING, getString(start, 0));
-    return advance();
+    appendStringToken(TokenType.STRING, reader.getString(start, 0));
+    return reader.advance();
   }
 
   private int tokenizeSingleLineString(int next, int quoteChar, int start) {
     while (next != quoteChar) {
       if (next == '\\') {
-        next = advance();
+        next = reader.advance();
       } else if (next == '$') {
-        appendStringToken(TokenType.STRING, getString(start, -1));
+        appendStringToken(TokenType.STRING, reader.getString(start, -1));
         beginToken();
         next = tokenizeStringInterpolation(start);
-        start = getOffset();
+        start = reader.getOffset();
         continue;
       }
       if (next <= '\r' && (next == '\n' || next == '\r' || next == -1)) {
         reportError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL);
-        appendStringToken(TokenType.STRING, getString(start, 0));
-        return advance();
+        appendStringToken(TokenType.STRING, reader.getString(start, 0));
+        return reader.advance();
       }
-      next = advance();
+      next = reader.advance();
     }
-    appendStringToken(TokenType.STRING, getString(start, 0));
-    return advance();
+    appendStringToken(TokenType.STRING, reader.getString(start, 0));
+    return reader.advance();
   }
 
   private int tokenizeSlashOrComment(int next) {
-    next = advance();
+    next = reader.advance();
     if ('*' == next) {
       return tokenizeMultiLineComment(next);
     } else if ('/' == next) {
       return tokenizeSingleLineComment(next);
     } else if ('=' == next) {
       appendToken(TokenType.SLASH_EQ);
-      return advance();
+      return reader.advance();
     } else {
       appendToken(TokenType.SLASH);
       return next;
@@ -1093,15 +1095,15 @@ public abstract class AbstractScanner {
 
   private int tokenizeString(int next, int start, boolean raw) {
     int quoteChar = next;
-    next = advance();
+    next = reader.advance();
     if (quoteChar == next) {
-      next = advance();
+      next = reader.advance();
       if (quoteChar == next) {
         // Multiline string.
         return tokenizeMultiLineString(quoteChar, start, raw);
       } else {
         // Empty string.
-        appendStringToken(TokenType.STRING, getString(start, -1));
+        appendStringToken(TokenType.STRING, reader.getString(start, -1));
         return next;
       }
     }
@@ -1114,7 +1116,7 @@ public abstract class AbstractScanner {
 
   private int tokenizeStringInterpolation(int start) {
     beginToken();
-    int next = advance();
+    int next = reader.advance();
     if (next == '{') {
       return tokenizeInterpolatedExpression(next, start);
     } else {
@@ -1124,22 +1126,22 @@ public abstract class AbstractScanner {
 
   private int tokenizeTag(int next) {
     // # or #!.*[\n\r]
-    if (getOffset() == 0) {
-      if (peek() == '!') {
+    if (reader.getOffset() == 0) {
+      if (reader.peek() == '!') {
         do {
-          next = advance();
+          next = reader.advance();
         } while (next != '\n' && next != '\r' && next > 0);
-        appendStringToken(TokenType.SCRIPT_TAG, getString(tokenStart, 0));
+        appendStringToken(TokenType.SCRIPT_TAG, reader.getString(tokenStart, 0));
         return next;
       }
     }
     appendToken(TokenType.HASH);
-    return advance();
+    return reader.advance();
   }
 
   private int tokenizeTilde(int next) {
     // ~ ~/ ~/=
-    next = advance();
+    next = reader.advance();
     if (next == '/') {
       return select('=', TokenType.TILDE_SLASH_EQ, TokenType.TILDE_SLASH);
     } else {

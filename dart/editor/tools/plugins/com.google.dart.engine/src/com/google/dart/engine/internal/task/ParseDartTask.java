@@ -29,8 +29,8 @@ import com.google.dart.engine.internal.context.InternalAnalysisContext;
 import com.google.dart.engine.internal.context.PerformanceStatistics;
 import com.google.dart.engine.internal.context.RecordingErrorListener;
 import com.google.dart.engine.parser.Parser;
-import com.google.dart.engine.scanner.CharBufferScanner;
-import com.google.dart.engine.scanner.StringScanner;
+import com.google.dart.engine.scanner.CharSequenceReader;
+import com.google.dart.engine.scanner.Scanner;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.general.TimeCounter.TimeCounterHandle;
@@ -232,7 +232,7 @@ public class ParseDartTask extends AnalysisTask {
         @Override
         public void accept(CharBuffer contents, long modificationTime) {
           ParseDartTask.this.modificationTime = modificationTime;
-          CharBufferScanner scanner = new CharBufferScanner(source, contents, errorListener);
+          Scanner scanner = new Scanner(source, new CharSequenceReader(contents), errorListener);
           token[0] = scanner.tokenize();
           lineInfo = new LineInfo(scanner.getLineStarts());
         }
@@ -240,7 +240,7 @@ public class ParseDartTask extends AnalysisTask {
         @Override
         public void accept(String contents, long modificationTime) {
           ParseDartTask.this.modificationTime = modificationTime;
-          StringScanner scanner = new StringScanner(source, contents, errorListener);
+          Scanner scanner = new Scanner(source, new CharSequenceReader(contents), errorListener);
           token[0] = scanner.tokenize();
           lineInfo = new LineInfo(scanner.getLineStarts());
         }

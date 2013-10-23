@@ -24,7 +24,8 @@ import com.google.dart.engine.formatter.edit.EditBuilder;
 import com.google.dart.engine.formatter.edit.EditOperation;
 import com.google.dart.engine.formatter.edit.EditRecorder;
 import com.google.dart.engine.parser.Parser;
-import com.google.dart.engine.scanner.StringScanner;
+import com.google.dart.engine.scanner.CharSequenceReader;
+import com.google.dart.engine.scanner.Scanner;
 import com.google.dart.engine.scanner.Token;
 
 import java.util.List;
@@ -108,7 +109,7 @@ public class AbstractCodeFormatter<D, R> extends CodeFormatter<D, R> implements
   }
 
   private Token tokenize(String source) {
-    StringScanner scanner = new StringScanner(null, source, this);
+    Scanner scanner = new Scanner(null, new CharSequenceReader(source), this);
     Token start = scanner.tokenize();
     return start;
   }

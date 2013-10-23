@@ -36,7 +36,8 @@ import com.google.dart.engine.internal.element.LibraryElementImpl;
 import com.google.dart.engine.internal.resolver.Library;
 import com.google.dart.engine.internal.resolver.LibraryResolver;
 import com.google.dart.engine.parser.Parser;
-import com.google.dart.engine.scanner.StringScanner;
+import com.google.dart.engine.scanner.Scanner;
+import com.google.dart.engine.scanner.SubSequenceReader;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.io.UriUtilities;
 import com.google.dart.engine.utilities.source.LineInfo;
@@ -223,8 +224,11 @@ public class HtmlUnitBuilder implements XmlVisitor<Void> {
           // so that clients such as builder can scan, parse, and get errors without resolving
           int attributeEnd = node.getAttributeEnd().getEnd();
           Location location = lineInfo.getLocation(attributeEnd);
-          StringScanner scanner = new StringScanner(htmlSource, contents, errorListener);
-          scanner.setSourceStart(location.getLineNumber(), location.getColumnNumber(), attributeEnd);
+          Scanner scanner = new Scanner(
+              htmlSource,
+              new SubSequenceReader(contents, attributeEnd),
+              errorListener);
+          scanner.setSourceStart(location.getLineNumber(), location.getColumnNumber());
           com.google.dart.engine.scanner.Token firstToken = scanner.tokenize();
           int[] lineStarts = scanner.getLineStarts();
 

@@ -25,7 +25,8 @@ import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.parser.Parser;
-import com.google.dart.engine.scanner.StringScanner;
+import com.google.dart.engine.scanner.CharSequenceReader;
+import com.google.dart.engine.scanner.Scanner;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.UriKind;
@@ -165,7 +166,10 @@ public class SdkLibrariesReader {
       }
     };
     Source source = new FileBasedSource(null, librariesFile, UriKind.FILE_URI);
-    StringScanner scanner = new StringScanner(source, libraryFileContents, errorListener);
+    Scanner scanner = new Scanner(
+        source,
+        new CharSequenceReader(libraryFileContents),
+        errorListener);
     Parser parser = new Parser(source, errorListener);
     CompilationUnit unit = parser.parseCompilationUnit(scanner.tokenize());
     LibraryBuilder libraryBuilder = new LibraryBuilder();
