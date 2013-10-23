@@ -25,7 +25,14 @@ import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IDocumentListener;
 import org.eclipse.jface.text.IRegion;
+import org.eclipse.jface.text.source.ISourceViewer;
+import org.eclipse.jface.util.Util;
+import org.eclipse.swt.events.VerifyEvent;
+import org.eclipse.swt.events.VerifyListener;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.editors.text.TextEditor;
@@ -66,6 +73,27 @@ public abstract class WebEditor extends TextEditor {
         handleDocumentModified();
       }
     });
+
+    // Workaround a bug in 64 bit GTK linux that causes the active editor to steal 
+    // paste insertions from the omnibox and Glance find UI (dartbug.com/13693).
+    if (Util.isLinux()) {
+      final ISourceViewer viewer = getSourceViewer();
+      viewer.getTextWidget().addVerifyListener(new VerifyListener() {
+        @Override
+        public void verifyText(VerifyEvent e) {
+          Control focusControl = Display.getDefault().getFocusControl();
+          // If the focus control is not our text we have no business handling insertions.
+          // Redirect to the rightful target
+          if (focusControl != viewer.getTextWidget()) {
+            if (focusControl instanceof Text) {
+              Text text = (Text) focusControl;
+              text.setText(e.text);
+              e.doit = false;
+            }
+          }
+        }
+      });
+    }
   }
 
   public IDocument getDocument() {
