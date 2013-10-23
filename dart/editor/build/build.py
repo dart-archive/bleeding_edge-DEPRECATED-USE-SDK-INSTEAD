@@ -131,10 +131,9 @@ def DartArchiveUploadVersionFile(version_file):
 def DartArchiveUploadInstaller(
       arch, installer_file, extension, release_type=bot_utils.ReleaseType.RAW):
   namer = bot_utils.GCSNamer(CHANNEL, release_type)
-  for revision in [REVISION, 'latest']:
-    gsu_path = namer.editor_installer_zipfilepath(
-        revision, SYSTEM, arch, extension)
-    DartArchiveFile(installer_file, gsu_path, create_md5sum=False)
+  gsu_path = namer.editor_installer_zipfilepath(
+      REVISION, SYSTEM, arch, extension)
+  DartArchiveFile(installer_file, gsu_path, create_md5sum=False)
 
 class AntWrapper(object):
   """A wrapper for ant build invocations"""
@@ -427,6 +426,10 @@ def main():
       running_on_buildbot=running_on_buildbot)
 
     def build_installer():
+      release_type = bot_utils.ReleaseType.SIGNED
+      if CHANNEL == 'be':
+        release_type = bot_utils.ReleaseType.RAW
+
       def old_location_pair(arch, extension):
         """Returns a tuple (zip_file, installer_file) of google cloud storage
            locations."""
@@ -437,10 +440,21 @@ def main():
             ("%s/darteditor-installer-%s-%s.%s"
              % (GSU_PATH_REV, system, arch, extension)))
 
+      def new_location_pair(arch, extension):
+        namer = bot_utils.GCSNamer(CHANNEL, release_type)
+        editor_path = namer.editor_zipfilepath(REVISION, SYSTEM, arch)
+        installer_path = namer.editor_installer_zipfilepath(
+            REVISION, SYSTEM, arch, extension)
+        return (editor_path, installer_path)
+
       def create_mac_installer(arch):
         with utils.TempDir('build_editor_installer') as temp_dir:
           with utils.ChangedWorkingDirectory(temp_dir):
-            (gsu_editor_zip, gsu_editor_dmg) = old_location_pair(arch, 'dmg')
+            if CHANNEL == 'dev':
+              # On the dev channel we currently use the bits from trunk.
+              (gsu_editor_zip, gsu_editor_dmg) = old_location_pair(arch, 'dmg')
+            else:
+              (gsu_editor_zip, gsu_editor_dmg) = new_location_pair(arch, 'dmg')
             # Fetch the editor zip file from the old location.
             if gsu.Copy(gsu_editor_zip, 'editor.zip', False):
               raise Exception("gsutil command failed, aborting.")
@@ -469,9 +483,6 @@ def main():
             # Archive to new bucket
             # NOTE: This is a little bit hackisch, we fetch the editor from
             # the old bucket and archive the dmg to the new bucket here.
-            release_type = bot_utils.ReleaseType.SIGNED
-            if CHANNEL == 'be':
-              release_type = bot_utils.ReleaseType.RAW
             DartArchiveUploadInstaller(arch, dmg_installer, 'dmg',
                 release_type=release_type)
 
