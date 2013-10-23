@@ -159,6 +159,26 @@ public class NodeListTest extends EngineTestCase {
     assertSame(node.getEndToken(), list.getEndToken());
   }
 
+  public void test_indexOf() {
+    ArrayList<ASTNode> nodes = new ArrayList<ASTNode>();
+    ASTNode firstNode = booleanLiteral(true);
+    ASTNode secondNode = booleanLiteral(false);
+    ASTNode thirdNode = booleanLiteral(true);
+    ASTNode fourthNode = booleanLiteral(false);
+    nodes.add(firstNode);
+    nodes.add(secondNode);
+    nodes.add(thirdNode);
+    NodeList<ASTNode> list = new NodeList<ASTNode>(argumentList());
+    list.addAll(nodes);
+    assertSize(3, list);
+
+    assertEquals(0, list.indexOf(firstNode));
+    assertEquals(1, list.indexOf(secondNode));
+    assertEquals(2, list.indexOf(thirdNode));
+    assertEquals(-1, list.indexOf(fourthNode));
+    assertEquals(-1, list.indexOf(null));
+  }
+
   public void test_remove() {
     ArrayList<ASTNode> nodes = new ArrayList<ASTNode>();
     ASTNode firstNode = booleanLiteral(true);

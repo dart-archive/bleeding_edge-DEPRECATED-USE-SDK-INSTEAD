@@ -145,6 +145,16 @@ public class NodeList<E extends ASTNode> extends AbstractList<E> {
   }
 
   @Override
+  public int indexOf(Object o) {
+    for (int i = 0; i < elements.length; i++) {
+      if (elements[i] == o) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  @Override
   @SuppressWarnings("unchecked")
   public E remove(int index) {
     if (index < 0 || index >= elements.length) {
