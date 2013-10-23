@@ -58,7 +58,9 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
     IDartStackFrame, IExceptionStackFrame, IVariableResolver, IExpressionEvaluator {
   private IThread thread;
   private WebkitCallFrame webkitFrame;
+
   private boolean isExceptionStackFrame;
+
   private VariableCollector variableCollector = VariableCollector.empty();
 
   public DartiumDebugStackFrame(IDebugTarget target, IThread thread, WebkitCallFrame webkitFrame) {
@@ -473,6 +475,10 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
     return null;
   }
 
+  protected WebkitCallFrame getWebkitFrame() {
+    return webkitFrame;
+  }
+
   /**
    * Fill in the IVariables from the Webkit variables.
    * 
@@ -489,13 +495,9 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
       thisObject = webkitFrame.getThisObject();
     }
 
-    WebkitRemoteObject libraryObject = null;
-
     for (WebkitScope scope : webkitFrame.getScopeChain()) {
       if (!scope.isGlobal()) {
         remoteObjects.add(scope.getObject());
-      } else {
-        libraryObject = scope.getObject();
       }
     }
 
@@ -503,7 +505,7 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
         getTarget(),
         thisObject,
         remoteObjects,
-        libraryObject,
+        null,
         exception);
   }
 

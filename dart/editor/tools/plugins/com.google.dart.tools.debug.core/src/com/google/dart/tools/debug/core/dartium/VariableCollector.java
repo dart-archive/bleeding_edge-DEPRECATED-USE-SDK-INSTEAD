@@ -15,7 +15,6 @@
 package com.google.dart.tools.debug.core.dartium;
 
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
-import com.google.dart.tools.debug.core.util.DebuggerUtils;
 import com.google.dart.tools.debug.core.webkit.WebkitCallback;
 import com.google.dart.tools.debug.core.webkit.WebkitPropertyDescriptor;
 import com.google.dart.tools.debug.core.webkit.WebkitRemoteObject;
@@ -77,9 +76,9 @@ class VariableCollector {
       collector.createExceptionVariable(exception);
     }
 
-    if (libraryObject != null) {
-      collector.createLibraryVariable(libraryObject);
-    }
+//    if (libraryObject != null) {
+//      collector.createLibraryVariable(libraryObject);
+//    }
 
     if (thisObject != null) {
       collector.createThisVariable(thisObject);
@@ -246,13 +245,13 @@ class VariableCollector {
     variables.add(variable);
   }
 
-  private void createLibraryVariable(WebkitRemoteObject libraryObject) {
-    DartiumDebugVariable variable = new DartiumDebugVariable(
-        target,
-        WebkitPropertyDescriptor.createObjectDescriptor(libraryObject, DebuggerUtils.TOP_LEVEL_NAME));
-    variable.setIsLibraryObject(true);
-    variables.add(variable);
-  }
+//  private void createLibraryVariable(WebkitRemoteObject libraryObject) {
+//    DartiumDebugVariable variable = new DartiumDebugVariable(
+//        target,
+//        WebkitPropertyDescriptor.createObjectDescriptor(libraryObject, DebuggerUtils.TOP_LEVEL_NAME));
+//    variable.setIsLibraryObject(true);
+//    variables.add(variable);
+//  }
 
   private void createThisVariable(WebkitRemoteObject thisObject) {
     variables.add(new DartiumDebugVariable(target, WebkitPropertyDescriptor.createObjectDescriptor(

@@ -792,7 +792,27 @@
    
    <extension point="org.eclipse.ui.popupMenus">
       <objectContribution
-         id="com.google.dart.tools.debug.ui.openServerDeclarationContribution"
+         id="com.google.dart.tools.debug.ui.inspectLibraryContribution"
+         objectClass="org.eclipse.debug.core.model.IVariable">
+         <action
+            id="com.google.dart.tools.debug.ui.internal.objectinspector.OpenLibraryInspectorAction"
+            label="Inspect Library..."
+            icon="icons/obj16/watchlist_view.gif"
+            menubarPath="additions"
+            class="com.google.dart.tools.debug.ui.internal.objectinspector.OpenLibraryInspectorAction"
+            enablesFor="1">
+         </action>
+         <visibility>
+            <or>
+               <objectClass name="com.google.dart.tools.debug.core.server.ServerDebugVariable"/>
+               <objectClass name="com.google.dart.tools.debug.core.dartium.DartiumDebugVariable"/>
+               <objectClass name="com.google.dart.tools.debug.ui.internal.objectinspector.InspectorVariable"/>
+            </or>
+         </visibility>
+      </objectContribution>
+
+      <objectContribution
+         id="com.google.dart.tools.debug.ui.inspectClassContribution"
          objectClass="org.eclipse.debug.core.model.IVariable">
          <action
             id="com.google.dart.tools.debug.ui.internal.objectinspector.OpenClassInspectorAction"
@@ -812,7 +832,7 @@
       </objectContribution>
       
       <objectContribution
-         id="com.google.dart.tools.debug.ui.openServerDeclarationContribution"
+         id="com.google.dart.tools.debug.ui.inspectObjectContribution"
          objectClass="org.eclipse.debug.core.model.IVariable">
          <action
             id="com.google.dart.tools.debug.ui.internal.objectinspector.OpenInspectorAction"

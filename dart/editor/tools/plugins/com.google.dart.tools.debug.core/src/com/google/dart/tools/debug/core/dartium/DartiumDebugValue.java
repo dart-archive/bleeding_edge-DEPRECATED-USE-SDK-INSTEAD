@@ -157,7 +157,7 @@ public class DartiumDebugValue extends DartiumDebugElement implements IValue, ID
 
     try {
       for (WebkitPropertyDescriptor property : variableCollector.getWebkitProperties()) {
-        if (WebkitPropertyDescriptor.STATIC_FIELDS.equals(property.getName())) {
+        if (WebkitPropertyDescriptor.STATIC_FIELDS_OBJECT.equals(property.getName())) {
           return new DartiumDebugValue(getTarget(), null, property.getValue());
         }
       }
@@ -211,6 +211,24 @@ public class DartiumDebugValue extends DartiumDebugElement implements IValue, ID
     } else {
       return null;
     }
+  }
+
+  public IValue getLibraryValue() {
+    if (variableCollector == null) {
+      populate();
+    }
+
+    try {
+      for (WebkitPropertyDescriptor property : variableCollector.getWebkitProperties()) {
+        if (WebkitPropertyDescriptor.LIBRARY_OBJECT.equals(property.getName())) {
+          return new DartiumDebugValue(getTarget(), null, property.getValue());
+        }
+      }
+    } catch (InterruptedException e) {
+
+    }
+
+    return null;
   }
 
   @Override

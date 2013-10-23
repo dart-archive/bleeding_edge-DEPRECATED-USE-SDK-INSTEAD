@@ -14,13 +14,17 @@
 
 package com.google.dart.tools.debug.core.dartium;
 
+import com.google.dart.tools.debug.core.webkit.WebkitCallFrame;
+import com.google.dart.tools.debug.core.webkit.WebkitPropertyDescriptor;
+import com.google.dart.tools.debug.core.webkit.WebkitRemoteObject;
+
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.model.IRegisterGroup;
 import org.eclipse.debug.core.model.IStackFrame;
 import org.eclipse.debug.core.model.IThread;
 import org.eclipse.debug.core.model.IVariable;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -29,7 +33,6 @@ import java.util.List;
  */
 public class DartiumDebugIsolateFrame extends DartiumDebugElement implements IStackFrame {
   private DartiumDebugThread thread;
-  private List<IVariable> variables;
 
   public DartiumDebugIsolateFrame(DartiumDebugThread thread) {
     super(thread.getTarget());
@@ -102,13 +105,44 @@ public class DartiumDebugIsolateFrame extends DartiumDebugElement implements ISt
 
   @Override
   public IVariable[] getVariables() throws DebugException {
-    if (variables == null) {
-      // TODO(devoncarew): we need a way to retrieve all the globals,
-      // w/ library context, from Dartium.
-      variables = new ArrayList<IVariable>();
+    IVariable[] variables = new IVariable[0];
+
+    if (!isSuspended()) {
+      return variables;
     }
 
-    return variables.toArray(new IVariable[variables.size()]);
+    WebkitCallFrame frame = getWebkitFrame();
+
+    if (frame != null) {
+      WebkitRemoteObject globalScope = frame.getGlobalScope();
+
+      if (globalScope != null) {
+        VariableCollector variableCollector = VariableCollector.createCollector(
+            getTarget(),
+            null,
+            Collections.singletonList(globalScope));
+
+        try {
+          // Look for the special @libraries property in the global scope.
+          List<WebkitPropertyDescriptor> properties = variableCollector.getWebkitProperties();
+
+          for (WebkitPropertyDescriptor property : properties) {
+            if (WebkitPropertyDescriptor.LIBRARIES_OBJECT.equals(property.getName())) {
+              variableCollector = VariableCollector.createCollector(
+                  getTarget(),
+                  null,
+                  Collections.singletonList(property.getValue()));
+
+              variables = variableCollector.getVariables();
+            }
+          }
+        } catch (InterruptedException e) {
+
+        }
+      }
+    }
+
+    return variables;
   }
 
   @Override
@@ -164,6 +198,16 @@ public class DartiumDebugIsolateFrame extends DartiumDebugElement implements ISt
   @Override
   public void terminate() throws DebugException {
     thread.terminate();
+  }
+
+  private WebkitCallFrame getWebkitFrame() throws DebugException {
+    IStackFrame topFrame = thread.getTopStackFrame();
+
+    if (topFrame instanceof DartiumDebugStackFrame) {
+      return ((DartiumDebugStackFrame) topFrame).getWebkitFrame();
+    } else {
+      return null;
+    }
   }
 
 }

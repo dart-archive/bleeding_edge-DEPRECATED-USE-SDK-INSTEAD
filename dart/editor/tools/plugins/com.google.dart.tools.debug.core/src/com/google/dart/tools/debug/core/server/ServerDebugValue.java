@@ -148,6 +148,20 @@ public class ServerDebugValue extends ServerDebugElement implements IValue, IDar
     }
   }
 
+  public IValue getLibraryValue() {
+    if (value.getVmObject() != null) {
+      VmLibrary vmLibrary = getConnection().getLibraryPropertiesSync(value.getVmObject());
+
+      if (vmLibrary == null) {
+        return null;
+      } else {
+        return new ServerDebugValueLibrary(getTarget(), vmLibrary);
+      }
+    } else {
+      return null;
+    }
+  }
+
   @Override
   public String getReferenceTypeName() throws DebugException {
     try {

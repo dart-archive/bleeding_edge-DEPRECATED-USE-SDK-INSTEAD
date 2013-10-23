@@ -24,7 +24,6 @@ import java.util.List;
  * This class contains static utility methods for use by the debugger.
  */
 public class DebuggerUtils {
-  public static final String TOP_LEVEL_NAME = "top-level";
 
   /**
    * Returns whether the given frame needs some additional disambiguating information from its two

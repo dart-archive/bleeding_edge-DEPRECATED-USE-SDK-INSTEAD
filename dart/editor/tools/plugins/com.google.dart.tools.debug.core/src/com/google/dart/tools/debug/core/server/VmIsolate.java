@@ -25,6 +25,7 @@ public class VmIsolate {
   private boolean paused = true;
 
   private Map<Integer, VmClass> classInfoMap = new HashMap<Integer, VmClass>();
+  private Map<Integer, VmLibrary> libraryInfoMap = new HashMap<Integer, VmLibrary>();
 
   protected VmIsolate(int isolateId) {
     this.id = isolateId;
@@ -55,6 +56,10 @@ public class VmIsolate {
     return id;
   }
 
+  public VmLibrary getLibraryInfo(int libraryId) {
+    return libraryInfoMap.get(libraryId);
+  }
+
   public String getName() {
     return "isolate-" + getId();
   }
@@ -66,6 +71,10 @@ public class VmIsolate {
   @Override
   public int hashCode() {
     return getId();
+  }
+
+  public boolean hasLibraryInfo(int libraryId) {
+    return libraryInfoMap.containsKey(libraryId);
   }
 
   public boolean isPaused() {
@@ -83,10 +92,15 @@ public class VmIsolate {
 
   protected void clearClassInfoMap() {
     classInfoMap.clear();
+    libraryInfoMap.clear();
   }
 
   protected void setClassInfo(int classId, VmClass vmClass) {
     classInfoMap.put(classId, vmClass);
+  }
+
+  protected void setLibraryInfo(int libraryId, VmLibrary vmLibrary) {
+    libraryInfoMap.put(libraryId, vmLibrary);
   }
 
 }

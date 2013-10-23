@@ -92,6 +92,19 @@ public class WebkitCallFrame {
   }
 
   /**
+   * Returns the global scope object. This contains the special '@libraries' scope variable.
+   */
+  public WebkitRemoteObject getGlobalScope() {
+    for (WebkitScope scope : getScopeChain()) {
+      if (scope.isGlobal()) {
+        return scope.getObject();
+      }
+    }
+
+    return null;
+  }
+
+  /**
    * Location in the source code.
    */
   public WebkitLocation getLocation() {

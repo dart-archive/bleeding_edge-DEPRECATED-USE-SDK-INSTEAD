@@ -178,6 +178,18 @@ public class ServerDebugStackFrame extends ServerDebugElement implements IStackF
     return "Exception: " + exceptionValue.getDisplayString();
   }
 
+  public IValue getLibraryValue() {
+    VmLibrary vmLibrary = getConnection().getLibraryPropertiesSync(
+        vmFrame.getIsolate(),
+        vmFrame.getLibraryId());
+
+    if (vmLibrary == null) {
+      return null;
+    } else {
+      return new ServerDebugValueLibrary(getTarget(), vmLibrary);
+    }
+  }
+
   @Override
   public int getLineNumber() throws DebugException {
     VmLocation location = vmFrame.getLocation();
@@ -368,11 +380,11 @@ public class ServerDebugStackFrame extends ServerDebugElement implements IStackF
     } else {
       List<ServerDebugVariable> variables = new ArrayList<ServerDebugVariable>();
 
-      // create a synthetic globals variable
-      variables.add(ServerDebugVariable.createLibraryVariable(
-          getTarget(),
-          frame.getIsolate(),
-          vmFrame.getLibraryId()));
+//      // create a synthetic globals variable
+//      variables.add(ServerDebugVariable.createLibraryVariable(
+//          getTarget(),
+//          frame.getIsolate(),
+//          vmFrame.getLibraryId()));
 
       for (VmVariable var : frame.getLocals()) {
         ServerDebugVariable serverVariable = new ServerDebugVariable(getTarget(), var);
@@ -413,4 +425,5 @@ public class ServerDebugStackFrame extends ServerDebugElement implements IStackF
 
     return null;
   }
+
 }

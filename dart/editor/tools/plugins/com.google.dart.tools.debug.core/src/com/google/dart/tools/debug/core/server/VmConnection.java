@@ -186,12 +186,31 @@ public class VmConnection {
     }
   }
 
-  public void evaluateGlobal(VmIsolate isolate, String expression,
-      final VmCallback<VmValue> callback) {
-    // TODO(devoncarew): call through to the VM implementation when available
+  public void evaluateLibrary(final VmIsolate isolate, VmLibrary vmLibrary, String expression,
+      final VmCallback<VmValue> callback) throws IOException {
+    if (callback == null) {
+      throw new IllegalArgumentException("a callback is required");
+    }
 
-    VmResult<VmValue> result = VmResult.createErrorResult("unimplemented");
-    callback.handleResult(result);
+    try {
+      JSONObject request = new JSONObject();
+
+      request.put("command", "evaluateExpr");
+      request.put(
+          "params",
+          new JSONObject().put("libraryId", vmLibrary.getLibraryId()).put("expression", expression));
+
+      sendRequest(request, isolate.getId(), new Callback() {
+        @Override
+        public void handleResult(JSONObject result) throws JSONException {
+          VmResult<VmValue> evalResult = convertEvaluateObjectResult(isolate, result);
+
+          callback.handleResult(evalResult);
+        }
+      });
+    } catch (JSONException exception) {
+      throw new IOException(exception);
+    }
   }
 
   public void evaluateObject(final VmIsolate isolate, VmClass vmClass, String expression,
@@ -386,6 +405,24 @@ public class VmConnection {
     } catch (JSONException exception) {
       throw new IOException(exception);
     }
+  }
+
+  public VmLibrary getLibraryPropertiesSync(VmIsolate isolate, int libraryId) {
+    if (!isolate.hasLibraryInfo(libraryId)) {
+      populateLibraryInfo(isolate, libraryId);
+    }
+
+    return isolate.getLibraryInfo(libraryId);
+  }
+
+  public VmLibrary getLibraryPropertiesSync(VmObject obj) {
+    VmClass vmClass = getClassInfoSync(obj);
+
+    if (vmClass == null) {
+      return null;
+    }
+
+    return getLibraryPropertiesSync(obj.getIsolate(), vmClass.getLibraryId());
   }
 
   public int getLineNumberFromLocation(VmIsolate isolate, VmLocation location) {
@@ -1188,6 +1225,31 @@ public class VmConnection {
         public void handleResult(VmResult<VmClass> result) {
           if (!result.isError()) {
             isolate.setClassInfo(classId, result.getResult());
+          }
+
+          latch.countDown();
+        }
+      });
+    } catch (IOException e1) {
+      latch.countDown();
+    }
+
+    try {
+      latch.await();
+    } catch (InterruptedException e) {
+
+    }
+  }
+
+  private void populateLibraryInfo(final VmIsolate isolate, final int libraryId) {
+    final CountDownLatch latch = new CountDownLatch(1);
+
+    try {
+      getLibraryProperties(isolate, libraryId, new VmCallback<VmLibrary>() {
+        @Override
+        public void handleResult(VmResult<VmLibrary> result) {
+          if (!result.isError()) {
+            isolate.setLibraryInfo(libraryId, result.getResult());
           }
 
           latch.countDown();
