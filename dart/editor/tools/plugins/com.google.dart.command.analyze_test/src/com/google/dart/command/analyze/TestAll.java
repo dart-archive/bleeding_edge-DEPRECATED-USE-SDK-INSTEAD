@@ -22,6 +22,7 @@ public class TestAll {
   public static Test suite() {
     TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
     suite.addTestSuite(ErrorFormatterTest.class);
+    suite.addTestSuite(AnalyzerOptionsTest.class);
     return suite;
   }
 

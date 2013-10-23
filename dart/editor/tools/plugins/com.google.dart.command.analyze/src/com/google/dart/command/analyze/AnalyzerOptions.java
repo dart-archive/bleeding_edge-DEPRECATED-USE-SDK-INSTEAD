@@ -32,6 +32,10 @@ import java.util.List;
  */
 public class AnalyzerOptions {
 
+  enum AnalyzerOutputFormat {
+    MACHINE
+  }
+
   /**
    * Create a new AnalyzerOptions object from the given list of command-line args.
    * 
@@ -109,9 +113,13 @@ public class AnalyzerOptions {
     return result.toArray(new String[result.size()]);
   }
 
-  @Option(name = "--machine", //
+  @Option(name = "--machine", // deprecated - used --format=machine instead
   usage = "Print errors in a format suitable for parsing")
   private boolean machineFormat = false;
+
+  @Option(name = "--format", //
+  usage = "Print errors in the specified format")
+  private AnalyzerOutputFormat outputFormat = null;
 
   @Option(name = "--help", //
   aliases = {"-h"}, //
@@ -123,8 +131,8 @@ public class AnalyzerOptions {
   private boolean showVersion = false;
 
   @Option(name = "--dart-sdk", //
-  metaVar = "<dir>", //
-  usage = "The path to the Dart SDK")
+  metaVar = "<dir>")
+  // usage = "The path to the Dart SDK") // don't show in help
   private File dartSdkPath = null;
 
   @Option(name = "--verbose", //
@@ -134,6 +142,7 @@ public class AnalyzerOptions {
   private boolean enableVerbose = false;
 
   @Option(name = "--package-root", //
+  aliases = {"-p"}, //
   metaVar = "<dir>", //
   usage = "The path to the package root")
   private File packageRootPath = null;
@@ -141,7 +150,8 @@ public class AnalyzerOptions {
   @Option(name = "--use-package-map")
   private boolean usePackageMap = false;
 
-  @Option(name = "--show-package-warnings",//
+  @Option(name = "--package-warnings", //
+  aliases = {"--show-package-warnings"}, // deprecated alias
   usage = "Show warnings from package: imports")
   private boolean showPackageWarnings = false;
 
@@ -149,7 +159,9 @@ public class AnalyzerOptions {
   aliases = {"-batch"})
   private boolean batch = false;
 
-  @Option(name = "--show-sdk-warnings")
+  @Option(name = "--warnings", //
+  aliases = {"--show-sdk-warnings"} // deprecated alias
+  )
   private boolean showSdkWarnings = false;
 
   @Option(name = "--fatal-warnings")
@@ -169,6 +181,10 @@ public class AnalyzerOptions {
   @Option(name = "--perf",//
   usage = "Print performance statistics")
   private boolean perf = false;
+
+  @SuppressWarnings("unused")
+  @Option(name = "--diagnostic-colors")
+  private boolean diagnosticColors = false; // ignored for now
 
   @Argument
   private final String sourceFile = null;
@@ -193,7 +209,7 @@ public class AnalyzerOptions {
   }
 
   public boolean getMachineFormat() {
-    return machineFormat;
+    return machineFormat || outputFormat == AnalyzerOutputFormat.MACHINE;
   }
 
   /**

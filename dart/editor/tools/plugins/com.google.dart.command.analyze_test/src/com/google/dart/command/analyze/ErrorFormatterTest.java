@@ -27,6 +27,24 @@ import java.io.UnsupportedEncodingException;
 public class ErrorFormatterTest extends TestCase {
 
   public void test_format_machine() throws UnsupportedEncodingException {
+    AnalyzerOptions options = AnalyzerOptions.createFromArgs(new String[] {"--format=machine"});
+
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
+    ErrorFormatter formatter = new ErrorFormatter(new PrintStream(out), options);
+
+    AnalysisError error = new AnalysisError(
+        new TestSource(),
+        ResolverErrorCode.MISSING_LIBRARY_DIRECTIVE_WITH_PART);
+
+    formatter.formatError(error);
+
+    String actual = out.toString("UTF-8").trim();
+
+    assertEquals("ERROR|COMPILE_TIME_ERROR|MISSING_LIBRARY_DIRECTIVE_WITH_PART|/test.dart|1|1|0|"
+        + "Libraries that have parts must have a library directive", actual);
+  }
+
+  public void test_format_machine_deprecated() throws UnsupportedEncodingException {
     AnalyzerOptions options = AnalyzerOptions.createFromArgs(new String[] {"--machine"});
 
     ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -59,7 +77,7 @@ public class ErrorFormatterTest extends TestCase {
     String actual = out.toString("UTF-8").trim();
 
     assertEquals(
-        "[error] Libraries that have parts must have a library directive (/test.dart:1:1)",
+        "[error] Libraries that have parts must have a library directive (/test.dart, line 1, col 1)",
         actual);
   }
 }
