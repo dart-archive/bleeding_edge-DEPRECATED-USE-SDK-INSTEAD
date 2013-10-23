@@ -340,10 +340,17 @@ public class ResolverVisitor extends ScopedVisitor {
     if (thenExpression != null) {
       try {
         overrideManager.enterScope();
+        promoteManager.enterScope();
         propagateTrueState(condition);
+        // Type promotion.
+        promoteTypes(condition);
+        clearTypePromotionsIfPotentiallyMutatedIn(thenExpression);
+        clearTypePromotionsIfAccessedInScopeAndProtentiallyMutated(thenExpression);
+        // Visit "then" expression.
         thenExpression.accept(this);
       } finally {
         overrideManager.exitScope();
+        promoteManager.exitScope();
       }
     }
     Expression elseExpression = node.getElseExpression();

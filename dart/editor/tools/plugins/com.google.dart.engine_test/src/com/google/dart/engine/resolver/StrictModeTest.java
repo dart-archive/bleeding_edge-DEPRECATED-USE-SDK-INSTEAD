@@ -59,7 +59,7 @@ public class StrictModeTest extends ResolverTestCase {
         "  return (n is int && n > 0) ? n & 0x0F : 0;",
         "}"));
     resolve(source);
-    assertErrors(source, StaticTypeWarningCode.UNDEFINED_OPERATOR);
+    assertNoErrors(source);
   }
 
   public void test_conditional_is() throws Exception {
@@ -68,7 +68,7 @@ public class StrictModeTest extends ResolverTestCase {
         "  return (n is int) ? n & 0x0F : 0;",
         "}"));
     resolve(source);
-    assertErrors(source, StaticTypeWarningCode.UNDEFINED_OPERATOR);
+    assertNoErrors(source);
   }
 
   public void test_conditional_isNot() throws Exception {

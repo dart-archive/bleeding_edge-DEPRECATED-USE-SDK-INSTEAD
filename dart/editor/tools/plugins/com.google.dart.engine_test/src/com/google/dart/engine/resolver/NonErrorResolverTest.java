@@ -3009,6 +3009,28 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_typePromotion_conditional_useInThen() throws Exception {
+    Source source = addSource(createSource(//
+        "main(Object p) {",
+        "  p is String ? p.length : 0;",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_typePromotion_conditional_useInThen_accessedInClosure_noAssignment()
+      throws Exception {
+    Source source = addSource(createSource(//
+        "callMe(f()) { f(); }",
+        "main(Object p) {",
+        "  p is String ? callMe(() { p.length; }) : 0;",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
   public void test_typePromotion_if_accessedInClosure_noAssignment() throws Exception {
     Source source = addSource(createSource(//
         "callMe(f()) { f(); }",
