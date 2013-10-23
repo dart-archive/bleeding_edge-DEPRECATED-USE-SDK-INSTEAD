@@ -474,11 +474,12 @@ def main():
                 dart_folder_icon, "Dart Distribution"])
             assert os.path.isfile(dmg_installer)
 
-            # Archive to old bucket
-            # TODO(kustermann/ricow): Remove all the old archiving code,
-            # once everything points to the new location.
-            if gsu.Copy(dmg_installer, gsu_editor_dmg):
-              raise Exception("gsutil command failed, aborting.")
+            if CHANNEL == 'dev':
+              # Archive to old bucket
+              # TODO(kustermann/ricow): Remove all the old archiving code,
+              # once everything points to the new location.
+              if gsu.Copy(dmg_installer, gsu_editor_dmg):
+                raise Exception("gsutil command failed, aborting.")
 
             # Archive to new bucket
             # NOTE: This is a little bit hackisch, we fetch the editor from
