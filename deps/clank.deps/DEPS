@@ -15,13 +15,16 @@ vars.update({
   # "chromium_revision". You can check which might be a good revision at:
   # https://chrome-internal.googlesource.com/clank/internal/apps/
   "clank_rev": "ff2ac2e072e0a628b5447554fbc32141a9c1360d",
+  "chrome_internal": "https://chrome-internal.googlesource.com/",
   # The Dart repository URL is pulled out here so that it can be easily
   # updated to "https" for committers.
   "dart_branch": "/branches/bleeding_edge",
   "multivm_url": "http://src.chromium.org/multivm/trunk",
   "dartium_webkit_trunk": "http://src.chromium.org/multivm/trunk/webkit",
-  "dartium_webkit_revision": "1422",
-  "dartium_tools_revision": "1411",
+  "dartium_webkit_revision": "1462",
+  "dartium_tools_revision": "1459",
+  "bootstrap_css_rev" : "@28387",
+  "co19_rev": "@623",
 })
 
 def massage_deps(deps):
@@ -48,13 +51,25 @@ deps.update({
     Var("chromium_url") + "/trunk/src@" + Var("chromium_revision"),
 
   'src/clank': Var('clank_gerrit') + "internal/apps.git@" + Var("clank_rev"),
-  'src-internal': 'https://chrome-internal.googlesource.com/chrome/src-internal.git',
+  'src-internal': Var('chrome_internal') + "chrome/src-internal.git",
 
   "src/dart":
     Var("dart_branch") + "/dart",
 
+  "src/dart/tests/co19/src": ((Var("googlecode_url") % "co19") +
+      "/trunk/co19/tests/co19/src" + Var("co19_rev")),
+
   "src/dartium_tools":
     Var("multivm_url") + "/tools@" + Var("dartium_tools_revision"),
+
+  "src/dart/runtime/bin/vmservice/client/bootstrap_css":
+    "/third_party/bootstrap_css" + Var("bootstrap_css_rev"),
+
+  "src/dart/runtime/bin/vmservice/client/web/bootstrap_css":
+    "/third_party/bootstrap_css" + Var("bootstrap_css_rev"),
+
+  "src/dart/runtime/bin/vmservice/client/out/web/bootstrap_css":
+    "/third_party/bootstrap_css" + Var("bootstrap_css_rev"),
 })
 
 hooks[0:0] = [{
