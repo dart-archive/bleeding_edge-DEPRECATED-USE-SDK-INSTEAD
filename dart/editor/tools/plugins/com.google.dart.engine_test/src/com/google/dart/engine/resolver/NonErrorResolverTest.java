@@ -2544,12 +2544,27 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_propagateTypeArgsIntoBounds() throws Exception {
+  public void test_propagateTypeArgs_intoBounds() throws Exception {
     Source source = addSource(createSource(//
         "abstract class A<E> {}",
         "abstract class B<F> implements A<F>{}",
         "abstract class C<G, H extends A<G>> {}",
         "class D<I> extends C<I, B<I>> {}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_propagateTypeArgs_intoSupertype() throws Exception {
+    Source source = addSource(createSource(//
+        "class A<T> {",
+        "  A(T p);",
+        "  A.named(T p);",
+        "}",
+        "class B<S> extends A<S> {",
+        "  B(S p) : super(p);",
+        "  B.named(S p) : super.named(p);",
+        "}"));
     resolve(source);
     assertNoErrors(source);
     verify(source);

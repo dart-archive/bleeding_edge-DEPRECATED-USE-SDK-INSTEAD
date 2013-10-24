@@ -1326,30 +1326,28 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       // TODO(brianwilkerson) Report this error.
       return null;
     }
-    ClassElement superclass = getSuperclass(enclosingClass);
-    if (superclass == null) {
+    InterfaceType superType = enclosingClass.getSupertype();
+    if (superType == null) {
       // TODO(brianwilkerson) Report this error.
       return null;
     }
     SimpleIdentifier name = node.getConstructorName();
-    ConstructorElement element;
-    if (name == null) {
-      element = superclass.getUnnamedConstructor();
-    } else {
-      element = superclass.getNamedConstructor(name.getName());
-    }
+    String superName = name != null ? name.getName() : null;
+    ConstructorElement element = superType.lookUpConstructor(
+        superName,
+        resolver.getDefiningLibrary());
     if (element == null) {
       if (name != null) {
         resolver.reportError(
             CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER,
             node,
-            superclass.getName(),
+            superType.getDisplayName(),
             name);
       } else {
         resolver.reportError(
             CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT,
             node,
-            superclass.getName());
+            superType.getDisplayName());
       }
       return null;
     } else {
@@ -1735,20 +1733,6 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       staticType = resolver.getTypeProvider().getFunctionType();
     }
     return staticType;
-  }
-
-  /**
-   * Return the element representing the superclass of the given class.
-   * 
-   * @param targetClass the class whose superclass is to be returned
-   * @return the element representing the superclass of the given class
-   */
-  private ClassElement getSuperclass(ClassElement targetClass) {
-    InterfaceType superType = targetClass.getSupertype();
-    if (superType == null) {
-      return null;
-    }
-    return superType.getElement();
   }
 
   /**
