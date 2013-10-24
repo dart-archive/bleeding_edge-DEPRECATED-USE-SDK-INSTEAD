@@ -566,22 +566,6 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_assignmentToFinal_excludedSetter() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {",
-        "  var v;",
-        "}",
-        "class B extends A {",
-        "  final v = 0;",
-        "}",
-        "main() {",
-        "  new B().v = 1;",
-        "}"));
-    resolve(source);
-    assertErrors(source, StaticWarningCode.ASSIGNMENT_TO_FINAL);
-    verify(source);
-  }
-
   public void test_assignmentToFinal_instanceVariable() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
@@ -1790,19 +1774,6 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "  int x(int a, [int b]);",
         "}",
         "class C implements A, B {",
-        "}"));
-    resolve(source);
-    assertErrors(source, StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE);
-    verify(source);
-  }
-
-  public void test_nonAbstractClassInheritsAbstractMemberOne_setter_excluded() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {",
-        "  final int x = 0;",
-        "}",
-        "class B implements A {",
-        "  int get x => 42;",
         "}"));
     resolve(source);
     assertErrors(source, StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE);

@@ -111,11 +111,6 @@ public class PropertyAccessorElementImpl extends ExecutableElementImpl implement
   }
 
   @Override
-  public boolean isExcludedSetter() {
-    return isSetter() && variable.isFinal();
-  }
-
-  @Override
   public boolean isGetter() {
     return hasModifier(Modifier.GETTER);
   }
