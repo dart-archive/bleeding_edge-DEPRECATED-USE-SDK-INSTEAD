@@ -318,6 +318,11 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
   private SubtypeManager subtypeManager;
 
   /**
+   * The object keeping track of which elements have had their types promoted.
+   */
+  private TypePromotionManager promoteManager;
+
+  /**
    * The name of the method that can be implemented by a class to allow its instances to be invoked
    * as if they were a function.
    */
@@ -342,6 +347,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     dynamicType = resolver.getTypeProvider().getDynamicType();
     typeType = resolver.getTypeProvider().getTypeType();
     subtypeManager = new SubtypeManager();
+    promoteManager = resolver.getPromoteManager();
   }
 
   @Override
@@ -1597,7 +1603,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       return resolveArgumentsToParameters(false, argumentList, (ExecutableElement) element);
     } else if (element instanceof VariableElement) {
       VariableElement variable = (VariableElement) element;
-      Type type = variable.getType();
+      Type type = promoteManager.getStaticType(variable);
       if (type instanceof FunctionType) {
         FunctionType functionType = (FunctionType) type;
         ParameterElement[] parameters = functionType.getParameters();

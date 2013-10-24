@@ -912,34 +912,22 @@ public class ResolverVisitor extends ScopedVisitor {
   protected void promote(Expression expression, Type potentialType) {
     VariableElement element = getPromotionStaticElement(expression);
     if (element != null) {
-      promote(element, potentialType);
+      Type type = expression.getStaticType();
+      // Declared type should not be "dynamic".
+      if (type == null || type.isDynamic()) {
+        return;
+      }
+      // Promoted type should not be "dynamic".
+      if (potentialType == null || potentialType.isDynamic()) {
+        return;
+      }
+      // Promoted type should be more specific than declared.
+      if (!potentialType.isMoreSpecificThan(type)) {
+        return;
+      }
+      // Do promote type of variable.
+      promoteManager.setType(element, potentialType);
     }
-  }
-
-  /**
-   * If it is appropriate to do so, promotes the current type of the given element with the given
-   * type. Generally speaking, it is appropriate if the given type is more specific than the current
-   * type.
-   * 
-   * @param element the element whose type might be promoted
-   * @param potentialType the potential type of the element
-   */
-  protected void promote(VariableElement element, Type potentialType) {
-    // Declared type should not be "dynamic".
-    Type type = element.getType();
-    if (type == null || type.isDynamic()) {
-      return;
-    }
-    // Promoted type should not be "dynamic".
-    if (potentialType == null || potentialType.isDynamic()) {
-      return;
-    }
-    // Promoted type should be more specific than declared.
-    if (!potentialType.isMoreSpecificThan(type)) {
-      return;
-    }
-    // Do promote type of variable.
-    promoteManager.setType(element, potentialType);
   }
 
   /**

@@ -1283,10 +1283,8 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
 //        type = typeProvider.getTypeType());
 //      }
     } else if (element instanceof VariableElement) {
-      staticType = promoteManager.getType(element);
-      if (staticType == null) {
-        staticType = ((VariableElement) element).getType();
-      }
+      VariableElement variable = (VariableElement) element;
+      staticType = promoteManager.getStaticType(variable);
     } else if (element instanceof PrefixElement) {
       return null;
     } else {
@@ -1495,7 +1493,8 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
         return type.getReturnType();
       }
     } else if (element instanceof VariableElement) {
-      Type variableType = ((VariableElement) element).getType();
+      VariableElement variable = (VariableElement) element;
+      Type variableType = promoteManager.getStaticType(variable);
       if (variableType instanceof FunctionType) {
         return ((FunctionType) variableType).getReturnType();
       }

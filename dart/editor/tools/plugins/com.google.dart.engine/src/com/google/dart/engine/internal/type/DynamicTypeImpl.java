@@ -57,6 +57,11 @@ public class DynamicTypeImpl extends TypeImpl {
 
   @Override
   public boolean isMoreSpecificThan(Type type) {
+    // T is S
+    if (this == type) {
+      return true;
+    }
+    // else
     return false;
   }
 

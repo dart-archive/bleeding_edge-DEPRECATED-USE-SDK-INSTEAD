@@ -2187,6 +2187,21 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_typePromotion_functionType_arg_InterToDyn() throws Exception {
+    Source source = addSource(createSource(//
+        "typedef FuncDyn(x);",
+        "typedef FuncA(A a);",
+        "class A {}",
+        "class B {}",
+        "main(FuncA f) {",
+        "  if (f is FuncDyn) {", // ignored: dynamic !<< A
+        "    f(new B());",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
+  }
+
   public void test_typeTestNonType() throws Exception {
     Source source = addSource(createSource(//
         "var A = 0;",

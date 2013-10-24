@@ -286,6 +286,112 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
   }
 
   @Override
+  public boolean isMoreSpecificThan(Type type) {
+    // trivial base cases
+    if (type == null) {
+      return false;
+    } else if (this == type || type.isDynamic() || type.isDartCoreFunction() || type.isObject()) {
+      return true;
+    } else if (!(type instanceof FunctionType)) {
+      return false;
+    } else if (this.equals(type)) {
+      return true;
+    }
+    FunctionType t = this;
+    FunctionType s = (FunctionType) type;
+
+    Type[] tTypes = t.getNormalParameterTypes();
+    Type[] tOpTypes = t.getOptionalParameterTypes();
+    Type[] sTypes = s.getNormalParameterTypes();
+    Type[] sOpTypes = s.getOptionalParameterTypes();
+
+    // If one function has positional and the other has named parameters, return false.
+    if ((sOpTypes.length > 0 && t.getNamedParameterTypes().size() > 0)
+        || (tOpTypes.length > 0 && s.getNamedParameterTypes().size() > 0)) {
+      return false;
+    }
+
+    // named parameters case
+    if (t.getNamedParameterTypes().size() > 0) {
+      // check that the number of required parameters are equal, and check that every t_i is
+      // more specific than every s_i
+      if (t.getNormalParameterTypes().length != s.getNormalParameterTypes().length) {
+        return false;
+      } else if (t.getNormalParameterTypes().length > 0) {
+        for (int i = 0; i < tTypes.length; i++) {
+          if (!tTypes[i].isMoreSpecificThan(sTypes[i])) {
+            return false;
+          }
+        }
+      }
+      Map<String, Type> namedTypesT = t.getNamedParameterTypes();
+      Map<String, Type> namedTypesS = s.getNamedParameterTypes();
+      // if k >= m is false, return false: the passed function type has more named parameter types than this
+      if (namedTypesT.size() < namedTypesS.size()) {
+        return false;
+      }
+      // Loop through each element in S verifying that T has a matching parameter name and that the
+      // corresponding type is more specific then the type in S.
+      Iterator<Entry<String, Type>> iteratorS = namedTypesS.entrySet().iterator();
+      while (iteratorS.hasNext()) {
+        Entry<String, Type> entryS = iteratorS.next();
+        Type typeT = namedTypesT.get(entryS.getKey());
+        if (typeT == null) {
+          return false;
+        }
+        if (!typeT.isMoreSpecificThan(entryS.getValue())) {
+          return false;
+        }
+      }
+    } else if (s.getNamedParameterTypes().size() > 0) {
+      return false;
+    } else {
+      // positional parameter case
+      int tArgLength = tTypes.length + tOpTypes.length;
+      int sArgLength = sTypes.length + sOpTypes.length;
+      // Check that the total number of parameters in t is greater than or equal to the number of
+      // parameters in s and that the number of required parameters in s is greater than or equal to
+      // the number of required parameters in t.
+      if (tArgLength < sArgLength || sTypes.length < tTypes.length) {
+        return false;
+      }
+      if (tOpTypes.length == 0 && sOpTypes.length == 0) {
+        // No positional arguments, don't copy contents to new array
+        for (int i = 0; i < sTypes.length; i++) {
+          if (!tTypes[i].isMoreSpecificThan(sTypes[i])) {
+            return false;
+          }
+        }
+      } else {
+        // Else, we do have positional parameters, copy required and positional parameter types into
+        // arrays to do the compare (for loop below).
+        Type[] tAllTypes = new Type[sArgLength];
+        for (int i = 0; i < tTypes.length; i++) {
+          tAllTypes[i] = tTypes[i];
+        }
+        for (int i = tTypes.length, j = 0; i < sArgLength; i++, j++) {
+          tAllTypes[i] = tOpTypes[j];
+        }
+        Type[] sAllTypes = new Type[sArgLength];
+        for (int i = 0; i < sTypes.length; i++) {
+          sAllTypes[i] = sTypes[i];
+        }
+        for (int i = sTypes.length, j = 0; i < sArgLength; i++, j++) {
+          sAllTypes[i] = sOpTypes[j];
+        }
+        for (int i = 0; i < sAllTypes.length; i++) {
+          if (!tAllTypes[i].isMoreSpecificThan(sAllTypes[i])) {
+            return false;
+          }
+        }
+      }
+    }
+    Type tRetType = t.getReturnType();
+    Type sRetType = s.getReturnType();
+    return sRetType.isVoid() || tRetType.isMoreSpecificThan(sRetType);
+  }
+
+  @Override
   public boolean isSubtypeOf(Type type) {
     // trivial base cases
     if (type == null) {
@@ -339,7 +445,7 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
         if (typeT == null) {
           return false;
         }
-        if (!entryS.getValue().isAssignableTo(typeT)) {
+        if (!typeT.isAssignableTo(entryS.getValue())) {
           return false;
         }
       }
@@ -358,7 +464,7 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
       if (tOpTypes.length == 0 && sOpTypes.length == 0) {
         // No positional arguments, don't copy contents to new array
         for (int i = 0; i < sTypes.length; i++) {
-          if (!sTypes[i].isAssignableTo(tTypes[i])) {
+          if (!tTypes[i].isAssignableTo(sTypes[i])) {
             return false;
           }
         }
@@ -380,14 +486,15 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
           sAllTypes[i] = sOpTypes[j];
         }
         for (int i = 0; i < sAllTypes.length; i++) {
-          if (!sAllTypes[i].isAssignableTo(tAllTypes[i])) {
+          if (!tAllTypes[i].isAssignableTo(sAllTypes[i])) {
             return false;
           }
         }
       }
     }
-    return s.getReturnType().equals(VoidTypeImpl.getInstance())
-        || t.getReturnType().isAssignableTo(s.getReturnType());
+    Type tRetType = t.getReturnType();
+    Type sRetType = s.getReturnType();
+    return sRetType.isVoid() || tRetType.isAssignableTo(sRetType);
   }
 
   /**

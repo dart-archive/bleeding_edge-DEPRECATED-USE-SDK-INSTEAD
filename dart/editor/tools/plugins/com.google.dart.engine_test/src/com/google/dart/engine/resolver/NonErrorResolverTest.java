@@ -3031,6 +3031,52 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_typePromotion_functionType_arg_ignoreIfNotMoreSpecific() throws Exception {
+    Source source = addSource(createSource(//
+        "typedef FuncB(B b);",
+        "typedef FuncA(A a);",
+        "class A {}",
+        "class B {}",
+        "main(FuncA f) {",
+        "  if (f is FuncB) {",
+        "    f(new A());",
+        "  }",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_typePromotion_functionType_return_ignoreIfNotMoreSpecific() throws Exception {
+    Source source = addSource(createSource(//
+        "typedef FuncDynToDyn(x);",
+        "typedef void FuncDynToVoid(x);",
+        "class A {}",
+        "main(FuncDynToDyn f) {",
+        "  if (f is FuncDynToVoid) {",
+        "    A a = f(null);",
+        "  }",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_typePromotion_functionType_return_voidToDynamic() throws Exception {
+    Source source = addSource(createSource(//
+        "typedef FuncDynToDyn(x);",
+        "typedef void FuncDynToVoid(x);",
+        "class A {}",
+        "main(FuncDynToVoid f) {",
+        "  if (f is FuncDynToDyn) {",
+        "    A a = f(null);",
+        "  }",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
   public void test_typePromotion_if_accessedInClosure_noAssignment() throws Exception {
     Source source = addSource(createSource(//
         "callMe(f()) { f(); }",
@@ -3091,6 +3137,25 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "main(Object p) {",
         "  if (tt() && p is String) {",
         "    p.length;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_typePromotion_if_is_and_subThenSuper() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  var a;",
+        "}",
+        "class B extends A {",
+        "  var b;",
+        "}",
+        "main(Object p) {",
+        "  if (p is B && p is A) {",
+        "    p.a;",
+        "    p.b;",
         "  }",
         "}"));
     resolve(source);

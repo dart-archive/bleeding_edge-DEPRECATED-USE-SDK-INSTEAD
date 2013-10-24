@@ -15,6 +15,7 @@ package com.google.dart.engine.internal.resolver;
 
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.PropertyAccessorElement;
+import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.type.Type;
 
 import java.util.Collection;
@@ -121,6 +122,19 @@ public class TypePromotionManager {
    */
   public Collection<Element> getPromotedElements() {
     return currentScope.getPromotedElements();
+  }
+
+  /**
+   * Returns static type of the given variable - declared or promoted.
+   * 
+   * @return the static type of the given variable - declared or promoted
+   */
+  public Type getStaticType(VariableElement variable) {
+    Type staticType = getType(variable);
+    if (staticType == null) {
+      staticType = variable.getType();
+    }
+    return staticType;
   }
 
   /**
