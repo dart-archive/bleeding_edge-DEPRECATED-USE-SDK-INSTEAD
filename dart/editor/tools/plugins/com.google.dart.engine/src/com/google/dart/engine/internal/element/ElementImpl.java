@@ -308,8 +308,8 @@ public abstract class ElementImpl implements Element {
    * 
    * @param element the enclosing element of this element
    */
-  protected void setEnclosingElement(ElementImpl element) {
-    enclosingElement = element;
+  protected void setEnclosingElement(Element element) {
+    enclosingElement = (ElementImpl) element;
   }
 
   /**
