@@ -8,43 +8,43 @@ vars = {
   "sourceforge_url": "http://svn.code.sf.net/p/%(repo)s/code",
   "webkit_trunk": "http://src.chromium.org/blink/trunk",
   "nacl_trunk": "http://src.chromium.org/native_client/trunk",
-  "webkit_revision": "156717",
+  "webkit_revision": "158192",
   "chromium_git": "https://chromium.googlesource.com",
   "chromiumos_git": "https://chromium.googlesource.com/chromiumos",
   "skia_git": "https://skia.googlesource.com",
   "swig_revision": "69281",
-  "nacl_revision": "12050",
+  "nacl_revision": "12181",
   # After changing nacl_revision, run 'glient sync' and check native_client/DEPS
   # to update other nacl_*_revision's.
   "nacl_tools_revision": "11437",  # native_client/DEPS: tools_rev
   "gtm_revision": "616",
 
   "libphonenumber_revision": "584",
-  "libvpx_revision": "212364",
-  "lss_revision": "20",
+  "libvpx_revision": "224550",
+  "lss_revision": "24",
 
   # These two FFmpeg variables must be updated together.  One is used for SVN
   # checkouts and the other for Git checkouts.
-  "ffmpeg_revision": "214392",
-  "ffmpeg_hash": "894e6f715645528e815aee2dad45b59704238dcd",
+  "ffmpeg_revision": "224426",
+  "ffmpeg_hash": "5879ccd47e649bf2dfaec45f02ec5517bd3621d2",
 
   "sfntly_revision": "134",
-  "skia_revision": "10909",
-  "skia_hash": "f51d3fbc84950f0541764f8add2cfa24675455f1",
+  "skia_revision": "11429",
+  "skia_hash": "6ae638c32047ce3ad550b06b0bc9b1e84a413c2a",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and V8 without interference from each other.
-  "v8_revision": "16338",
+  "v8_revision": "16822",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling WebRTC
   # and V8 without interference from each other.
-  "webrtc_revision": "4612",
+  "webrtc_revision": "4819",
   "jsoncpp_revision": "248",
-  "nss_revision": "209026",
+  "nss_revision": "223139",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling swarm_client
   # and whatever else without interference from each other.
-  "swarm_revision": "217028",
+  "swarm_revision": "224429",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling openssl
   # and whatever else without interference from each other.
@@ -59,7 +59,7 @@ vars = {
 
 deps = {
   "src/breakpad/src":
-    (Var("googlecode_url") % "google-breakpad") + "/trunk/src@1199",
+    (Var("googlecode_url") % "google-breakpad") + "/trunk/src@1213",
 
   "src/googleurl":
     (Var("googlecode_url") % "google-url") + "/trunk",
@@ -78,10 +78,10 @@ deps = {
 
   "src/third_party/angle_dx11":
     Var("chromium_git") +
-    "/external/angle.git@827fb6ad615eca2755ae80789a02e1a5587832b6",
+    "/external/angle.git@300b1eb5018651d2e68289a9dd234bbf906b3cc0",
 
   "src/third_party/trace-viewer":
-    (Var("googlecode_url") % "trace-viewer") + "/trunk@893",
+    (Var("googlecode_url") % "trace-viewer") + "/trunk@1006",
 
   # Note that this is *not* where we check out WebKit -- this just
   # puts some extra files into place for the real WebKit checkout to
@@ -91,7 +91,7 @@ deps = {
     Var("webkit_trunk") + "@" + Var("webkit_revision"),
 
   "src/third_party/icu":
-    "/trunk/deps/third_party/icu46@219032",
+    "/trunk/deps/third_party/icu46@223384",
 
   "src/third_party/libexif/sources":
     "/trunk/deps/third_party/libexif/sources@146817",
@@ -107,19 +107,19 @@ deps = {
 
   "src/third_party/cacheinvalidation/src":
     (Var("googlecode_url") % "google-cache-invalidation-api") +
-    "/trunk/src@298",
+    "/trunk/src@313",
 
   "src/third_party/leveldatabase/src":
-    (Var("googlecode_url") % "leveldb") + "/trunk@72",
+    (Var("googlecode_url") % "leveldb") + "/trunk@77",
 
   "src/third_party/snappy/src":
-    (Var("googlecode_url") % "snappy") + "/trunk@63",
+    (Var("googlecode_url") % "snappy") + "/trunk@80",
 
   "src/tools/grit":
-    (Var("googlecode_url") % "grit-i18n") + "/trunk@129",
+    (Var("googlecode_url") % "grit-i18n") + "/trunk@136",
 
   "src/tools/gyp":
-    (Var("googlecode_url") % "gyp") + "/trunk@1700",
+    (Var("googlecode_url") % "gyp") + "/trunk@1735",
 
   "src/tools/swarm_client":
     "/trunk/tools/swarm_client@" + Var("swarm_revision"),
@@ -254,7 +254,7 @@ deps = {
 
   # Make sure you update the two functional.DEPS and webdriver.DEPS too.
   "src/third_party/webdriver/pylib":
-    (Var("googlecode_url") % "selenium") + "/trunk/py@16922",
+    (Var("googlecode_url") % "selenium") + "/trunk/py@18337",
 
   "src/third_party/libvpx":
     "/trunk/deps/third_party/libvpx@" +
@@ -269,10 +269,10 @@ deps = {
     Var("webrtc_revision"),
 
   "src/third_party/libsrtp":
-    "/trunk/deps/third_party/libsrtp@189528",
+    "/trunk/deps/third_party/libsrtp@214783",
 
   "src/third_party/speex":
-    "/trunk/deps/third_party/speex@177782",
+    "/trunk/deps/third_party/speex@198168",
 
   "src/third_party/yasm/source/patched-yasm":
     "/trunk/deps/third_party/yasm/patched-yasm@167605",
@@ -281,7 +281,7 @@ deps = {
     "/trunk/deps/third_party/libjpeg_turbo@177737",
 
   "src/third_party/flac":
-    "/trunk/deps/third_party/flac@198139",
+    "/trunk/deps/third_party/flac@222897",
 
   "src/third_party/pyftpdlib/src":
     (Var("googlecode_url") % "pyftpdlib") + "/trunk@977",
@@ -327,7 +327,7 @@ deps = {
     "/trunk/tools/deps2git@214390",
 
   "src/third_party/webpagereplay":
-    (Var("googlecode_url") % "web-page-replay") + "/trunk@519",
+    (Var("googlecode_url") % "web-page-replay") + "/trunk@521",
 
   "src/third_party/pywebsocket/src":
     (Var("googlecode_url") % "pywebsocket") + "/trunk/src@662",
@@ -336,7 +336,7 @@ deps = {
     "/trunk/deps/third_party/opus@185324",
 
   "src/third_party/accessibility-developer-tools":
-    Var("chromium_git") + "/external/accessibility-developer-tools.git@ad5df9a5341d38778658c90e4aa241c4ebe4e8aa",
+    Var("chromium_git") + "/external/accessibility-developer-tools.git@2e3c9c8e49277a0ca1eeba510271eb03f9486d8f",
 
   "src/webkit/media/crypto/ppapi/cdm":
     "/trunk/deps/cdm@181763",
@@ -590,7 +590,7 @@ deps_os = {
 
     "src/third_party/freetype":
       Var("chromium_git") + "/chromium/src/third_party/freetype.git" +
-      "@96551feab72aac26836e9aaf4fae0962d39d5ab0",
+      "@e3b631da8034f7c6ecc6d809cd9e46d306215c32",
 
     "src/third_party/guava/src":
       Var("chromium_git") + "/external/guava-libraries.git" +
