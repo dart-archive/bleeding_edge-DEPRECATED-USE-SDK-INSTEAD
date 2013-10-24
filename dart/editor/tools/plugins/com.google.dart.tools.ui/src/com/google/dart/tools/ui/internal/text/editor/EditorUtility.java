@@ -53,9 +53,16 @@ import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.TextSelection;
+import org.eclipse.jface.text.source.ISourceViewer;
+import org.eclipse.jface.util.Util;
 import org.eclipse.jface.viewers.ISelectionProvider;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.VerifyEvent;
+import org.eclipse.swt.events.VerifyListener;
+import org.eclipse.swt.widgets.Combo;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IEditorDescriptor;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
@@ -96,6 +103,33 @@ import java.util.Set;
 public class EditorUtility {
 
   private static final String ID_ORG_ECLIPSE_UI_DEFAULT_TEXT_EDITOR = "org.eclipse.ui.DefaultTextEditor"; //$NON-NLS-1$
+
+  /**
+   * Workaround a bug in 64 bit GTK linux that causes the active editor to steal paste insertions
+   * from the omnibox and Glance find UI (dartbug.com/13693).
+   */
+  public static void addGTKPasteHack(final ISourceViewer viewer) {
+    if (Util.isLinux()) {
+      viewer.getTextWidget().addVerifyListener(new VerifyListener() {
+        @Override
+        public void verifyText(VerifyEvent e) {
+          Control focusControl = Display.getDefault().getFocusControl();
+          // If the focus control is not our text we have no business handling insertions.
+          // Redirect to the rightful target
+          if (focusControl != viewer.getTextWidget()) {
+            if (focusControl instanceof Text) {
+              ((Text) focusControl).setText(e.text);
+              e.doit = false;
+            }
+            if (focusControl instanceof Combo) {
+              ((Combo) focusControl).setText(e.text);
+              e.doit = false;
+            }
+          }
+        }
+      });
+    }
+  }
 
   /**
    * Closes all editors whose underlying file contents do not exist.

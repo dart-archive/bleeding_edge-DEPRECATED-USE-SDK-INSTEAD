@@ -162,7 +162,6 @@ import org.eclipse.jface.text.source.projection.ProjectionSupport;
 import org.eclipse.jface.text.source.projection.ProjectionViewer;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
-import org.eclipse.jface.util.Util;
 import org.eclipse.jface.viewers.IPostSelectionProvider;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
@@ -175,17 +174,13 @@ import org.eclipse.swt.custom.CaretEvent;
 import org.eclipse.swt.custom.CaretListener;
 import org.eclipse.swt.custom.ST;
 import org.eclipse.swt.custom.StyledText;
-import org.eclipse.swt.events.VerifyEvent;
-import org.eclipse.swt.events.VerifyListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.IPageLayout;
@@ -3183,25 +3178,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       }
     });
 
-    // Workaround a bug in 64 bit GTK linux that causes the active editor to steal 
-    // paste insertions from the omnibox and Glance find UI (dartbug.com/13693).
-    if (Util.isLinux()) {
-      viewer.getTextWidget().addVerifyListener(new VerifyListener() {
-        @Override
-        public void verifyText(VerifyEvent e) {
-          Control focusControl = Display.getDefault().getFocusControl();
-          // If the focus control is not our text we have no business handling insertions.
-          // Redirect to the rightful target
-          if (focusControl != viewer.getTextWidget()) {
-            if (focusControl instanceof Text) {
-              Text text = (Text) focusControl;
-              text.setText(e.text);
-              e.doit = false;
-            }
-          }
-        }
-      });
-    }
+    EditorUtility.addGTKPasteHack(viewer);
 
     IDocument document = getDocumentProvider().getDocument(null);
     if (document != null) {

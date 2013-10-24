@@ -22,14 +22,8 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.action.IMenuManager;
-import org.eclipse.jface.text.source.ISourceViewer;
-import org.eclipse.jface.util.Util;
-import org.eclipse.swt.events.VerifyEvent;
-import org.eclipse.swt.events.VerifyListener;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IEditorDescriptor;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.PartInitException;
@@ -56,27 +50,7 @@ public class SimpleTextEditor extends TextEditor {
   @Override
   public void createPartControl(Composite parent) {
     super.createPartControl(parent);
-
-    // Workaround a bug in 64 bit GTK linux that causes the active editor to steal 
-    // paste insertions from the omnibox and Glance find UI (dartbug.com/13693).
-    if (Util.isLinux()) {
-      final ISourceViewer viewer = getSourceViewer();
-      viewer.getTextWidget().addVerifyListener(new VerifyListener() {
-        @Override
-        public void verifyText(VerifyEvent e) {
-          Control focusControl = Display.getDefault().getFocusControl();
-          // If the focus control is not our text we have no business handling insertions.
-          // Redirect to the rightful target
-          if (focusControl != viewer.getTextWidget()) {
-            if (focusControl instanceof Text) {
-              Text text = (Text) focusControl;
-              text.setText(e.text);
-              e.doit = false;
-            }
-          }
-        }
-      });
-    }
+    EditorUtility.addGTKPasteHack(getSourceViewer());
   }
 
   @Override
