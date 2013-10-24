@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, the Dart project authors.
+ * Copyright (c) 2013, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -11,16 +11,17 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.engine.formatter;
+package com.google.dart.engine.formatter.edit;
 
-/**
- * Scanner interface for use by the formatter.
- * <p>
- * NOTE: this is a temporary interface; to be replaced by direct access to an
- * {@code AbstractScanner}.
- * 
- * @coverage dart.engine.formatter
- */
-public interface Scanner {
+import com.google.dart.engine.ExtendedTestSuite;
 
+import junit.framework.Test;
+import junit.framework.TestSuite;
+
+public class TestAll {
+  public static Test suite() {
+    TestSuite suite = new ExtendedTestSuite("Tests in " + TestAll.class.getPackage().getName());
+    suite.addTestSuite(StringEditOperationTest.class);
+    return suite;
+  }
 }
