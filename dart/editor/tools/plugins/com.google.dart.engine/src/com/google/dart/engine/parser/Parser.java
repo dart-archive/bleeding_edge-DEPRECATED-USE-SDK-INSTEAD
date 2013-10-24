@@ -5191,14 +5191,12 @@ public class Parser {
         next = skipTypeParameterList(next);
         if (next != null && matches(next, TokenType.EQ)) {
           TypeAlias typeAlias = parseClassTypeAlias(commentAndMetadata, keyword);
-          // TODO(scheglov) report error when VM and dart2js start to accept new syntax
-//          reportError(ParserErrorCode.DEPRECATED_CLASS_TYPE_ALIAS, keyword);
+          reportError(ParserErrorCode.DEPRECATED_CLASS_TYPE_ALIAS, keyword);
           return typeAlias;
         }
       } else if (matches(next, TokenType.EQ)) {
         TypeAlias typeAlias = parseClassTypeAlias(commentAndMetadata, keyword);
-        // TODO(scheglov) report error when VM and dart2js start to accept new syntax
-//        reportError(ParserErrorCode.DEPRECATED_CLASS_TYPE_ALIAS, keyword);
+        reportError(ParserErrorCode.DEPRECATED_CLASS_TYPE_ALIAS, keyword);
         return typeAlias;
       }
     }
