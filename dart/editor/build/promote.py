@@ -119,6 +119,22 @@ def main():
       print 'You must specify a --revision to specify which revision to promote'
       parser.print_help()
       sys.exit(3)
+
+    # Make sure revision is a valid integer
+    try:
+      _ = int(options.revision)
+    except:
+      print 'You must supply a valid integer argument to --revision to promote'
+      parser.print_help()
+      sys.exit(3)
+
+    # Make sure options.channel is a valid channel if given
+    if options.channel:
+      if options.channel not in bot_utils.Channel.ALL_CHANNELS:
+        print 'You must supply a valid channel to --channel to promote'
+        parser.print_help()
+        sys.exit(3)
+
     if not (options.continuous or options.integration or
             options.testing or options.trunk or options.internal or
             options.channel):
@@ -289,6 +305,18 @@ def _PromoteDartArchiveBuild(channel, revision):
   release_namer = bot_utils.GCSNamer(channel, bot_utils.ReleaseType.RELEASE)
 
   def promote(to_revision):
+    def safety_check_on_gs_path(gs_path, revision, channel):
+      if not ((revision == 'latest' or int(revision) > 0)
+              and len(channel) > 0
+              and ('%s' % revision) in gs_path
+              and channel in gs_path):
+        raise Exception(
+            "InternalError: Sanity check failed on GS URI: %s" % gs_path)
+
+    def remove_gs_directory(gs_path):
+      safety_check_on_gs_path(gs_path, to_revision, channel)
+      _Gsutil(['-m', 'rm', '-R', '-f', gs_path])
+
     # Copy VERSION file.
     from_loc = raw_namer.version_filepath(revision)
     to_loc = release_namer.version_filepath(to_revision)
@@ -297,24 +325,29 @@ def _PromoteDartArchiveBuild(channel, revision):
     # Copy sdk directory.
     from_loc = raw_namer.sdk_directory(revision)
     to_loc = release_namer.sdk_directory(to_revision)
+    remove_gs_directory(to_loc)
     _Gsutil(['-m', 'cp', '-a', 'public-read', '-R', from_loc, to_loc])
 
     # Copy eclipse update directory.
     from_loc = raw_namer.editor_eclipse_update_directory(revision)
     to_loc = release_namer.editor_eclipse_update_directory(to_revision)
+    remove_gs_directory(to_loc)
     _Gsutil(['-m', 'cp', '-a', 'public-read', '-R', from_loc, to_loc])
 
-    # Copy api-docs directory.
-    from_loc = raw_namer.apidocs_directory(revision)
-    to_loc = release_namer.apidocs_directory(to_revision)
-    _Gsutil(['-m', 'cp', '-a', 'public-read', '-R', from_loc, to_loc])
+    # Copy api-docs zipfile.
+    from_loc = raw_namer.apidocs_zipfilepath(revision)
+    to_loc = release_namer.apidocs_zipfilepath(to_revision)
+    _Gsutil(['-m', 'cp', '-a', 'public-read', from_loc, to_loc])
 
     # Copy dartium directory.
     from_loc = raw_namer.dartium_directory(revision)
     to_loc = release_namer.dartium_directory(to_revision)
+    remove_gs_directory(to_loc)
     _Gsutil(['-m', 'cp', '-a', 'public-read', '-R', from_loc, to_loc])
 
     # Copy editor zip files.
+    target_editor_dir = release_namer.editor_directory(to_revision)
+    remove_gs_directory(target_editor_dir)
     for system in ['windows', 'macos', 'linux']:
       for arch in ['ia32', 'x64']:
         from_namer = raw_namer
