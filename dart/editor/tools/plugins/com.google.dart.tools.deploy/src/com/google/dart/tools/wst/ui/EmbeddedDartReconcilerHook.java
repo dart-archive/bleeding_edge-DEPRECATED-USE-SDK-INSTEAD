@@ -117,7 +117,9 @@ public class EmbeddedDartReconcilerHook implements ISourceValidator, IValidator 
   @Override
   public void disconnect(IDocument document) {
     // ISourceValidator
-    AnalysisMarkerManager.getInstance().clearMarkers(resource);
+    if (resource != null) {
+      AnalysisMarkerManager.getInstance().clearMarkers(resource);
+    }
     document.removePrenotifiedDocumentListener(documentListener);
     DartReconcilerManager.getInstance().reconcileWith(document, null);
     this.document = null;
