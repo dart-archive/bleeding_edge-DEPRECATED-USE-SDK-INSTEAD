@@ -35,11 +35,9 @@ public class RunPubCacheListJobTest extends TestCase {
         assertEquals(3, args.size());
         assertEquals(RunPubCacheListJob.CACHE_COMMAND, args.get(1));
         assertEquals(RunPubCacheListJob.CACHELIST_COMMAND, args.get(2));
-        return new Status(
-            IStatus.OK,
-            DartCore.PLUGIN_ID,
-            "{\"packages\":{\"analyzer_experimental\":" + "{\"0.5.0+1\":\"location\":"
-                + "\"/.pub-cache/hosted/pub.dartlang.org/analyzer_experimental-0.5.0+1\"}}}");
+        return new Status(IStatus.OK, DartCore.PLUGIN_ID, "{\"packages\":{\"analyzer\":"
+            + "{\"0.5.0+1\":\"location\":"
+            + "\"/.pub-cache/hosted/pub.dartlang.org/analyzer-0.5.0+1\"}}}");
       }
     };
 

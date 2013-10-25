@@ -29,10 +29,10 @@ import java.util.Map;
 
 public class PubCacheManagerTest extends TestCase {
 
-  private static String CACHE_STRING = "{\"packages\":{\"analyzer_experimental\":"
-      + "{\"0.5.16\":{\"location\":\"/Users/keertip/.pub-cache/hosted/pub.dartlang.org/analyzer_experimental-0.5.16\"},"
-      + "\"0.5.17\":{\"location\":\"/Users/keertip/.pub-cache/hosted/pub.dartlang.org/analyzer_experimental-0.5.17\"},"
-      + "\"0.5.20\":{\"location\":\"/Users/keertip/.pub-cache/hosted/pub.dartlang.org/analyzer_experimental-0.5.20\"}},"
+  private static String CACHE_STRING = "{\"packages\":{\"analyzer\":"
+      + "{\"0.5.16\":{\"location\":\"/Users/keertip/.pub-cache/hosted/pub.dartlang.org/analyzer-0.5.16\"},"
+      + "\"0.5.17\":{\"location\":\"/Users/keertip/.pub-cache/hosted/pub.dartlang.org/analyzer-0.5.17\"},"
+      + "\"0.5.20\":{\"location\":\"/Users/keertip/.pub-cache/hosted/pub.dartlang.org/analyzer-0.5.20\"}},"
       + "\"args\":{\"0.5.11+1\":{\"location\":\"/Users/keertip/.pub-cache/hosted/pub.dartlang.org/args-0.5.11+1\"},"
       + "\"0.5.9\":{\"location\":\"/Users/keertip/.pub-cache/hosted/pub.dartlang.org/args-0.5.9\"}},"
       + "\"benchmark_harness\":{\"1.0.2\":{\"location\":\"/Users/keertip/.pub-cache/hosted/pub.dartlang.org/benchmark_harness-1.0.2\"}},"
