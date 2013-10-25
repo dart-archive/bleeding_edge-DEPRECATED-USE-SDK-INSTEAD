@@ -17,6 +17,7 @@ import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisErrorInfo;
 import com.google.dart.engine.context.AnalysisException;
+import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.source.FileBasedSource;
@@ -50,6 +51,28 @@ import java.io.File;
 
 /**
  * Attempt to bridge the impedance mismatch between Dart's reconciler and that of WST.
+ * <p>
+ * Currently, only two operations are supported.
+ * <ul>
+ * <li>Semantic highlighting requires a parsed AST but works better with a resolved AST. Since
+ * highlighting runs synchronously in the UI thread the parsed AST is computed when the resolved AST
+ * is unavailable.
+ * <li>Code completion requires a resolved AST. That is obtained by valiate(), which runs in a
+ * background thread.
+ * </ul>
+ * Other operations that work with the resolved AST could be supported, as long as no changes are
+ * required to compute the AST. Parsing and resolving can interfere with each other, leaving fake
+ * sources in the analysis context (which breaks refactoring). It isn't practical to synchronize the
+ * operations since parsing runs on the UI thread, so separate sources are used for each. Obviously,
+ * this is too fragile to be used for much more that it currently is.
+ * <p>
+ * This whole scheme should be replaced ASAP, after the analysis engine properly records analysis
+ * artifacts for HTML files.
+ * <p>
+ * NB: Although Dartium is currently restricted to a single script in HTML, polymer and angular both
+ * support Dart references within {{...}} data binding expressions, and those will have to be
+ * handled, too. In particular, Rename will have to work. Eventually, Dartium is expected to support
+ * multiple script tags.
  */
 @SuppressWarnings("restriction")
 public class EmbeddedDartReconcilerHook implements ISourceValidator, IValidator {
@@ -57,14 +80,11 @@ public class EmbeddedDartReconcilerHook implements ISourceValidator, IValidator 
   private File file;
   private IResource resource;
   private Project dartProject;
-  private Source source;
   private CompilationUnit parsedUnit;
   private CompilationUnit resolvedUnit;
   private IDocument document;
   private int partOffset;
   private int partLength;
-  boolean isParsed;
-  boolean isResolved;
 
   private IDocumentListener documentListener = new IDocumentListener() {
     @Override
@@ -117,9 +137,6 @@ public class EmbeddedDartReconcilerHook implements ISourceValidator, IValidator 
   @Override
   public void disconnect(IDocument document) {
     // ISourceValidator
-    if (resource != null) {
-      AnalysisMarkerManager.getInstance().clearMarkers(resource);
-    }
     document.removePrenotifiedDocumentListener(documentListener);
     DartReconcilerManager.getInstance().reconcileWith(document, null);
     this.document = null;
@@ -148,7 +165,7 @@ public class EmbeddedDartReconcilerHook implements ISourceValidator, IValidator 
 
   public Source getInputSource() {
     // DartReconcilingEditor
-    return source;
+    return null;
   }
 
   public CompilationUnit getParsedUnit(int offset, int length, IDocument document) {
@@ -165,13 +182,10 @@ public class EmbeddedDartReconcilerHook implements ISourceValidator, IValidator 
     if (isResolved(offset, length)) {
       return resolvedUnit;
     }
-    if (isParsed(offset, length)) {
-      if (resolveParsedUnit() != null) {
-        return resolvedUnit;
-      }
+    if (this.document == null) {
+      connect(document);
     }
-    getParsedUnit(offset, length, document);
-    return resolveParsedUnit();
+    return resolveParsedUnit(offset, length);
   }
 
   @Override
@@ -183,13 +197,6 @@ public class EmbeddedDartReconcilerHook implements ISourceValidator, IValidator 
     int start = dirtyRegion.getOffset();
     int length = dirtyRegion.getLength();
     getResolvedUnit(start, length, document);
-    AnalysisMarkerManager.getInstance().clearMarkers(resource);
-    AnalysisErrorInfo errorInfo = getInputAnalysisContext().getErrors(source);
-    adjustPosition(errorInfo.getErrors(), start);
-    AnalysisMarkerManager.getInstance().queueErrors(
-        resource,
-        new LineInfo(getLineStarts()),
-        errorInfo.getErrors());
   }
 
   @Override
@@ -228,23 +235,33 @@ public class EmbeddedDartReconcilerHook implements ISourceValidator, IValidator 
     return resolvedUnit != null && partOffset == offset && partLength == length;
   }
 
+  /**
+   * Add a fake source containing only the embedded Dart code to the analysis context, parse it,
+   * then delete the fake source. Leaving the fake source in place causes various problems elsewhere
+   * as most of the analysis routines assume all sources are always valid, and represent an entire
+   * file.
+   * 
+   * @param offset index of the beginning of the Dart script partition
+   * @param length length of the Dart script partition
+   * @return a parsed compilation unit
+   */
   private CompilationUnit parseSource(int offset, int length) {
-    if (document == null || resource == null) {
-      return null;
-    }
     AnalysisContext analysisContext = getInputAnalysisContext();
     if (analysisContext == null) {
       return null;
     }
-    if (source != null && (partOffset != offset || partLength != length)) {
-      analysisContext.setContents(source, null); // delete previous source
-    }
     try {
       String code = document.get(offset, length);
-      File tempFile = new File(file.getParentFile(), file.getName() + offset + ".dart");
-      source = new FileBasedSource(analysisContext.getSourceFactory().getContentCache(), tempFile);
+      File tempFile = new File(file.getParentFile(), file.getName() + offset + "p.dart");
+      Source source = new FileBasedSource(
+          analysisContext.getSourceFactory().getContentCache(),
+          tempFile);
       analysisContext.setContents(source, code);
       parsedUnit = analysisContext.parseCompilationUnit(source);
+      analysisContext.setContents(source, null);
+      ChangeSet changeSet = new ChangeSet();
+      changeSet.removed(source);
+      analysisContext.applyChanges(changeSet);
     } catch (BadLocationException ex) {
       Activator.logError(ex);
       return null;
@@ -254,29 +271,58 @@ public class EmbeddedDartReconcilerHook implements ISourceValidator, IValidator 
     }
     partOffset = offset;
     partLength = length;
-    isParsed = true;
     return parsedUnit;
   }
 
   private void reset() {
-    isParsed = isResolved = false;
     partOffset = partLength = -1;
     parsedUnit = resolvedUnit = null;
   }
 
-  private CompilationUnit resolveParsedUnit() {
+  /**
+   * Add a fake source containing only the embedded Dart code to the analysis context, parse and
+   * resolve it, record the error messages, then delete the fake source. Leaving the fake source in
+   * place causes various problems elsewhere as most of the analysis routines assume all sources are
+   * always valid, and represent an entire file.
+   * 
+   * @param offset index of the beginning of the Dart script partition
+   * @param length length of the Dart script partition
+   * @return a resolved compilation unit
+   */
+  private CompilationUnit resolveParsedUnit(int offset, int length) {
     AnalysisContext analysisContext = getInputAnalysisContext();
     if (analysisContext == null) {
       return null;
     }
     try {
+      String code = document.get(offset, length);
+      File tempFile = new File(file.getParentFile(), file.getName() + offset + "r.dart");
+      Source source = new FileBasedSource(
+          analysisContext.getSourceFactory().getContentCache(),
+          tempFile);
+      analysisContext.setContents(source, code);
       LibraryElement library = analysisContext.computeLibraryElement(source);
       resolvedUnit = analysisContext.resolveCompilationUnit(source, library);
+      parsedUnit = resolvedUnit;
+      AnalysisErrorInfo errorInfo = analysisContext.getErrors(source);
+      adjustPosition(errorInfo.getErrors(), offset);
+      AnalysisMarkerManager.getInstance().queueErrors(
+          resource,
+          new LineInfo(getLineStarts()),
+          errorInfo.getErrors());
+      analysisContext.setContents(source, null);
+      ChangeSet changeSet = new ChangeSet();
+      changeSet.removed(source);
+      analysisContext.applyChanges(changeSet);
     } catch (AnalysisException ex) {
       Activator.logError(ex);
       return null;
+    } catch (BadLocationException ex) {
+      Activator.logError(ex);
+      return null;
     }
-    isResolved = true;
+    partOffset = offset;
+    partLength = length;
     return resolvedUnit;
   }
 }
