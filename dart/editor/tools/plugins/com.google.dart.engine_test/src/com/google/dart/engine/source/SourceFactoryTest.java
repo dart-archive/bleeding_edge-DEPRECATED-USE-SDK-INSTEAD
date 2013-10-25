@@ -195,17 +195,17 @@ public class SourceFactoryTest extends TestCase {
     assertNull(factory.getModificationStamp(source));
 
     String contents = "library lib;";
-    assertTrue(factory.setContents(source, contents));
+    assertNull(factory.setContents(source, contents));
     assertEquals(contents, factory.getContents(source));
     assertNotNull(factory.getModificationStamp(source));
 
-    assertFalse(factory.setContents(source, contents));
+    assertEquals(contents, factory.setContents(source, contents));
 
-    assertTrue(factory.setContents(source, null));
+    assertEquals(contents, factory.setContents(source, null));
     assertNull(factory.getContents(source));
     assertNull(factory.getModificationStamp(source));
 
-    assertFalse(factory.setContents(source, null));
+    assertNull(factory.setContents(source, null));
   }
 
   public void test_sharedContents() {

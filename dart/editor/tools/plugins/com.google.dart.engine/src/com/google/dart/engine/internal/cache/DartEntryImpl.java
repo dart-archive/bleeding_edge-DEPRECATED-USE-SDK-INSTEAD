@@ -423,6 +423,21 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
   }
 
   /**
+   * Answer an array of library sources containing the receiver's source.
+   */
+  public Source[] getLibrariesContaining() {
+    ResolutionState state = resolutionState;
+    ArrayList<Source> result = new ArrayList<Source>();
+    while (state != null) {
+      if (state.librarySource != null) {
+        result.add(state.librarySource);
+      }
+      state = state.nextState;
+    }
+    return result.toArray(new Source[result.size()]);
+  }
+
+  /**
    * Return a compilation unit that has not been accessed by any other client and can therefore
    * safely be modified by the reconciler.
    * 

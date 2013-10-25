@@ -23,6 +23,7 @@ public class TestAll {
     TestSuite suite = new ExtendedTestSuite("Tests in " + TestAll.class.getPackage().getName());
     suite.addTestSuite(AnalysisContextImplTest.class);
     suite.addTestSuite(AnalysisOptionsImplTest.class);
+    suite.addTestSuite(IncrementalAnalysisCacheTest.class);
     return suite;
   }
 }

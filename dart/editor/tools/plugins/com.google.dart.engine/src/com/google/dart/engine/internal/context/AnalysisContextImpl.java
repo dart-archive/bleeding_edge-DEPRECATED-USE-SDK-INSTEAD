@@ -207,6 +207,12 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   private AnalysisTaskResultRecorder resultRecorder;
 
   /**
+   * Cached information used in incremental analysis or {@code null} if none. Synchronize against
+   * {@link #cacheLock} before accessing this field.
+   */
+  private IncrementalAnalysisCache incrementalAnalysisCache;
+
+  /**
    * Initialize a newly created analysis context.
    */
   public AnalysisContextImpl() {
@@ -1081,10 +1087,33 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   public void setChangedContents(Source source, String contents, int offset, int oldLength,
       int newLength) {
     synchronized (cacheLock) {
-      if (sourceFactory.setContents(source, contents)) {
-        //TODO (danrubel): based upon the text that has changed, 
-        // mark only the given library as needing to be reanalyzed or all downstream dependencies.
+      String originalContents = sourceFactory.setContents(source, contents);
+      if (originalContents == null) {
+        if (contents != null) {
+          incrementalAnalysisCache = IncrementalAnalysisCache.update(
+              incrementalAnalysisCache,
+              source,
+              originalContents,
+              contents,
+              offset,
+              oldLength,
+              newLength,
+              getReadableSourceEntry(source));
+          sourceChanged(source);
+        }
+      } else if (!originalContents.equals(contents)) {
+        incrementalAnalysisCache = IncrementalAnalysisCache.update(
+            incrementalAnalysisCache,
+            source,
+            originalContents,
+            contents,
+            offset,
+            oldLength,
+            newLength,
+            getReadableSourceEntry(source));
         sourceChanged(source);
+      } else if (contents == null) {
+        incrementalAnalysisCache = IncrementalAnalysisCache.clear(incrementalAnalysisCache, source);
       }
     }
   }
@@ -1092,9 +1121,15 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   @Override
   public void setContents(Source source, String contents) {
     synchronized (cacheLock) {
-      if (sourceFactory.setContents(source, contents)) {
+      String originalContents = sourceFactory.setContents(source, contents);
+      if (originalContents == null) {
+        if (contents != null) {
+          sourceChanged(source);
+        }
+      } else if (!originalContents.equals(contents)) {
         sourceChanged(source);
       }
+      incrementalAnalysisCache = IncrementalAnalysisCache.clear(incrementalAnalysisCache, source);
     }
   }
 
