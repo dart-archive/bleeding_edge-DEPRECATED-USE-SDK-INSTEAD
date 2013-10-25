@@ -36,6 +36,7 @@ import com.google.dart.engine.ast.ListLiteral;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.NormalFormalParameter;
+import com.google.dart.engine.ast.PrefixExpression;
 import com.google.dart.engine.ast.PropertyAccess;
 import com.google.dart.engine.ast.SimpleFormalParameter;
 import com.google.dart.engine.ast.SimpleIdentifier;
@@ -69,6 +70,7 @@ import static com.google.dart.java2dart.util.ASTFactory.integer;
 import static com.google.dart.java2dart.util.ASTFactory.methodDeclaration;
 import static com.google.dart.java2dart.util.ASTFactory.methodInvocation;
 import static com.google.dart.java2dart.util.ASTFactory.namedFormalParameter;
+import static com.google.dart.java2dart.util.ASTFactory.parenthesizedExpression;
 import static com.google.dart.java2dart.util.ASTFactory.prefixExpression;
 import static com.google.dart.java2dart.util.ASTFactory.propertyAccess;
 import static com.google.dart.java2dart.util.ASTFactory.redirectingConstructorInvocation;
@@ -641,6 +643,7 @@ public class EngineSemanticProcessor extends SemanticProcessor {
 
       @Override
       public Void visitMethodInvocation(MethodInvocation node) {
+        ASTNode parent = node.getParent();
         List<Expression> args = node.getArgumentList().getArguments();
         if (isMethodInClass(node, "toArray", "com.google.dart.engine.utilities.collection.IntList")) {
           replaceNode(node, node.getTarget());
@@ -650,7 +653,18 @@ public class EngineSemanticProcessor extends SemanticProcessor {
             node,
             "equals",
             "com.google.dart.engine.utilities.general.ObjectUtilities")) {
-          replaceNode(node, binaryExpression(args.get(0), TokenType.EQ_EQ, args.get(1)));
+          Expression arg0 = args.get(0);
+          Expression arg1 = args.get(1);
+          if (parent instanceof PrefixExpression
+              && ((PrefixExpression) parent).getOperator().getType() == TokenType.BANG) {
+            replaceNode(
+                parent,
+                parenthesizedExpression(binaryExpression(arg0, TokenType.BANG_EQ, arg1)));
+          } else {
+            replaceNode(
+                node,
+                parenthesizedExpression(binaryExpression(arg0, TokenType.EQ_EQ, arg1)));
+          }
           return null;
         }
         if (isMethodInClass(

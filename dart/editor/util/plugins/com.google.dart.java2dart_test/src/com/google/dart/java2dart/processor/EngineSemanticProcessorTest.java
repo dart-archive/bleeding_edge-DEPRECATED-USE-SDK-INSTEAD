@@ -52,6 +52,35 @@ public class EngineSemanticProcessorTest extends SemanticProcessorTest {
         "}");
   }
 
+  public void test_ObjectUtilities() throws Exception {
+    setFileLines(
+        "com/google/dart/engine/utilities/general/ObjectUtilities.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "package com.google.dart.engine.utilities.general;",
+            "public class ObjectUtilities {",
+            "  public boolean equals(Object o1, Object o2) { return false; }",
+            "}"));
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "import com.google.dart.engine.utilities.general.ObjectUtilities;",
+        "public class Test {",
+        "  public void test_equals(Object o1, Object o2) {",
+        "    boolean b1 = ObjectUtilities.equals(o1, o2);",
+        "    boolean b2 = !ObjectUtilities.equals(o1, o2);",
+        "  }",
+        "}");
+    runProcessor();
+    assertFormattedSource(
+        "class Test {",
+        "  void test_equals(Object o1, Object o2) {",
+        "    bool b1 = (o1 == o2);",
+        "    bool b2 = (o1 != o2);",
+        "  }",
+        "}");
+  }
+
   private void runProcessor() {
     new EngineSemanticProcessor(context).process(unit);
   }

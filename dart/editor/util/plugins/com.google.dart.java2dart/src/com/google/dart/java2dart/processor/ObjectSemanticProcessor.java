@@ -223,6 +223,7 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
       public Void visitInstanceCreationExpression(InstanceCreationExpression node) {
         super.visitInstanceCreationExpression(node);
         ITypeBinding typeBinding = context.getNodeTypeBinding(node);
+        IMethodBinding binding = (IMethodBinding) context.getNodeBinding(node);
         List<Expression> args = node.getArgumentList().getArguments();
         String typeSimpleName = node.getConstructorName().getType().getName().getName();
         if (JavaUtils.isTypeNamed(typeBinding, "java.lang.StringBuilder")) {
@@ -242,6 +243,7 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
                     namedExpression("radix", args.get(1))));
           }
         }
+        replaceStringWithCharSequence(binding, args);
         return null;
       }
 
@@ -309,6 +311,9 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
           }
           return null;
         }
+        // prepare binding
+        IMethodBinding binding = (IMethodBinding) context.getNodeBinding(node);
+        // analyze invocations
         if (isMethodInClass(node, "getMessage", "java.lang.Throwable")) {
           nameNode.setToken(token("toString"));
           return null;
@@ -342,8 +347,23 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
           nameNode.setToken(token("replaceAll"));
           return null;
         }
+        if (isMethodInClass2(node, "contains(java.lang.CharSequence)", "java.lang.String")) {
+          return null;
+        }
         if (isMethodInClass(node, "equalsIgnoreCase", "java.lang.String")) {
           replaceNode(node, methodInvocation("javaStringEqualsIgnoreCase", target, args.get(0)));
+          return null;
+        }
+        if (isMethodInClass(node, "regionMatches", "java.lang.String")) {
+          replaceNode(
+              node,
+              methodInvocation(
+                  "javaStringRegionMatches",
+                  target,
+                  args.get(0),
+                  args.get(1),
+                  args.get(2),
+                  args.get(3)));
           return null;
         }
         if (isMethodInClass(node, "indexOf", "java.lang.String")
@@ -361,7 +381,6 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
           return null;
         }
         if (isMethodInClass(node, "print", "java.io.PrintWriter")) {
-          IMethodBinding binding = (IMethodBinding) context.getNodeBinding(node);
           if (binding != null && binding.getParameterTypes().length >= 1
               && binding.getParameterTypes()[0].getName().equals("char")) {
             char c = (char) ((IntegerLiteral) args.get(0)).getValue().intValue();
@@ -526,6 +545,7 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
               assignmentExpression(propertyAccess(target, nameNode), TokenType.EQ, args.get(0)));
           return null;
         }
+        replaceStringWithCharSequence(binding, args);
         return null;
       }
 
@@ -650,5 +670,23 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
         replaceNode(placeholder, x);
       }
     });
+  }
+
+  private void replaceStringWithCharSequence(IMethodBinding methodBinding, List<Expression> args) {
+    if (methodBinding == null) {
+      return;
+    }
+    ITypeBinding[] parameterTypes = methodBinding.getParameterTypes();
+    for (int i = 0; i < parameterTypes.length; i++) {
+      ITypeBinding parameterType = parameterTypes[i];
+      Expression arg = args.get(i);
+      ITypeBinding leftBinding = parameterType;
+      ITypeBinding rightBinding = context.getNodeTypeBinding(arg);
+      if (JavaUtils.isTypeNamed(leftBinding, "java.lang.CharSequence")
+          && JavaUtils.isTypeNamed(rightBinding, "java.lang.String")) {
+        arg = instanceCreationExpression(Keyword.NEW, typeName("CharSequence"), arg);
+        args.set(i, arg);
+      }
+    }
   }
 }

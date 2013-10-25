@@ -834,6 +834,22 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "}");
   }
 
+  public void test_String_contains() throws Exception {
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "public class Test {",
+        "  public String test(String a, String b) {",
+        "    return a.contains(b);",
+        "  }",
+        "}");
+    runProcessor();
+    assertFormattedSource(//
+        "class Test {",
+        "  String test(String a, String b) => a.contains(b);",
+        "}");
+  }
+
   public void test_String_equalsIgnoreCase() throws Exception {
     translateSingleFile(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -959,6 +975,22 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "}");
   }
 
+  public void test_String_regionMatches() throws Exception {
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "public class Test {",
+        "  boolean main(String a, String b) {",
+        "    return a.regionMatches(0, b, 2, 3);",
+        "  }",
+        "}");
+    runProcessor();
+    assertFormattedSource(//
+        "class Test {",
+        "  bool main(String a, String b) => javaStringRegionMatches(a, 0, b, 2, 3);",
+        "}");
+  }
+
   public void test_String_replace() throws Exception {
     translateSingleFile(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -1004,12 +1036,22 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "// filler filler filler filler filler filler filler filler filler filler",
         "package test;",
         "public class Test {",
+        "  class UseCS {",
+        "    UseCS(CharSequence cs) { ",
+        "    }",
+        "  }",
         "  void testA(String s) {",
         "    CharSequence cs;",
         "    cs = s;",
         "  }",
         "  void testB(String s) {",
         "    CharSequence cs = s;",
+        "  }",
+        "  void testC(String s) {",
+        "    useCS(s);",
+        "    new UseCS(s);",
+        "  }",
+        "  void useCS(CharSequence cs) {",
         "  }",
         "}");
     runProcessor();
@@ -1022,6 +1064,15 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "  void testB(String s) {",
         "    CharSequence cs = new CharSequence(s);",
         "  }",
+        "  void testC(String s) {",
+        "    useCS(new CharSequence(s));",
+        "    new Test_UseCS(new CharSequence(s));",
+        "  }",
+        "  void useCS(CharSequence cs) {",
+        "  }",
+        "}",
+        "class Test_UseCS {",
+        "  Test_UseCS(CharSequence cs);",
         "}");
   }
 

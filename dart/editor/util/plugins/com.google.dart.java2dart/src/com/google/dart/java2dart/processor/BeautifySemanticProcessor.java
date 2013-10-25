@@ -19,6 +19,7 @@ import com.google.dart.engine.ast.AsExpression;
 import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.ExpressionFunctionBody;
+import com.google.dart.engine.ast.IfStatement;
 import com.google.dart.engine.ast.IntegerLiteral;
 import com.google.dart.engine.ast.IsExpression;
 import com.google.dart.engine.ast.ListLiteral;
@@ -75,6 +76,10 @@ public class BeautifySemanticProcessor extends SemanticProcessor {
       if (body.getExpression() == node) {
         return true;
       }
+    }
+    // 'if' condition
+    if (node.getParent() instanceof IfStatement) {
+      return true;
     }
     // no
     return false;

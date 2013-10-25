@@ -103,6 +103,7 @@ public class JUnitSemanticProcessorTest extends SemanticProcessorTest {
         "    assertEquals(1, v);",
         "    assertEquals(\"msg\", 1, v);",
         "    assertSame(2, v);",
+        "    assertSame(\"msg\", 2, v);",
         "    assertNotSame(3, v);",
         "  }",
         "}");
@@ -119,6 +120,7 @@ public class JUnitSemanticProcessorTest extends SemanticProcessorTest {
             "    JUnitTestCase.assertEquals(1, v);",
             "    JUnitTestCase.assertEqualsMsg(\"msg\", 1, v);",
             "    JUnitTestCase.assertSame(2, v);",
+            "    JUnitTestCase.assertSameMsg(\"msg\", 2, v);",
             "    JUnitTestCase.assertNotSame(3, v);",
             "  }",
             "  "),

@@ -162,6 +162,9 @@ public class MainEngine {
     context.addSourceFile(new File(
         engineFolder,
         "com/google/dart/engine/utilities/collection/ListUtilities.java"));
+    context.addSourceFile(new File(
+        engineFolder,
+        "com/google/dart/engine/utilities/collection/TokenMap.java"));
     // Tests
     context.addSourceFile(new File(
         engineTestFolder,
@@ -214,8 +217,8 @@ public class MainEngine {
           new PropertySemanticProcessor(context),
           new GuavaSemanticProcessor(context),
           new JUnitSemanticProcessor(context),
-          new BeautifySemanticProcessor(context),
-          new EngineSemanticProcessor(context));
+          new EngineSemanticProcessor(context),
+          new BeautifySemanticProcessor(context));
       for (SemanticProcessor processor : PROCESSORS) {
         processor.process(dartUnit);
       }
@@ -445,6 +448,8 @@ public class MainEngine {
     unit.getDirectives().add(
         importDirective("engine.dart", null, importShowCombinator("AnalysisEngine")));
     unit.getDirectives().add(importDirective("utilities_dart.dart", null));
+    unit.getDirectives().add(
+        importDirective("utilities_collection.dart", null, importShowCombinator("TokenMap")));
     unit.getDirectives().add(importDirective("element.dart", null));
     for (CompilationUnitMember member : dartUnit.getDeclarations()) {
       File file = context.getMemberToFile().get(member);
@@ -611,7 +616,7 @@ public class MainEngine {
         importDirective(
             "scanner.dart",
             null,
-            importShowCombinator("Token", "CharBufferScanner", "StringScanner")));
+            importShowCombinator("Token", "Scanner", "CharSequenceReader")));
     unit.getDirectives().add(importDirective("ast.dart", null));
     unit.getDirectives().add(importDirective("parser.dart", null, importShowCombinator("Parser")));
     unit.getDirectives().add(importDirective("sdk.dart", null, importShowCombinator("DartSdk")));
@@ -846,6 +851,8 @@ public class MainEngine {
     unit.getDirectives().add(importDirective("source.dart", null));
     unit.getDirectives().add(importDirective("error.dart", null));
     unit.getDirectives().add(importDirective("instrumentation.dart", null));
+    unit.getDirectives().add(
+        importDirective("utilities_collection.dart", null, importShowCombinator("TokenMap")));
     for (Entry<File, List<CompilationUnitMember>> entry : context.getFileToMembers().entrySet()) {
       File file = entry.getKey();
       if (isEnginePath(file, "scanner/")) {
@@ -1030,6 +1037,7 @@ public class MainEngine {
     CompilationUnit unit = new CompilationUnit(null, null, null, null, null);
     unit.getDirectives().add(libraryDirective("engine", "utilities", "collection"));
     unit.getDirectives().add(importDirective("java_core.dart", null));
+    unit.getDirectives().add(importDirective("scanner.dart", null, importShowCombinator("Token")));
     for (Entry<File, List<CompilationUnitMember>> entry : context.getFileToMembers().entrySet()) {
       File file = entry.getKey();
       if (isEnginePath(file, "utilities/collection/")) {

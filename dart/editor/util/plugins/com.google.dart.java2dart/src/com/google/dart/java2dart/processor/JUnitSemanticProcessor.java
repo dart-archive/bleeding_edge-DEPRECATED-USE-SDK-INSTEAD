@@ -130,6 +130,11 @@ public class JUnitSemanticProcessor extends SemanticProcessor {
               node.setMethodName(identifier("assertEqualsMsg"));
             }
           }
+          if (name.equals("assertSame")) {
+            if (args.size() == 3) {
+              node.setMethodName(identifier("assertSameMsg"));
+            }
+          }
         }
         return null;
       }
