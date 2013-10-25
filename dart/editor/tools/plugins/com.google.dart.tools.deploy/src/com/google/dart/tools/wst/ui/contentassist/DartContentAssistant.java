@@ -18,7 +18,6 @@ import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.search.SearchEngineFactory;
 import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.ui.internal.text.dart.DartCompletionProposalComputer;
 import com.google.dart.tools.ui.text.dart.ContentAssistInvocationContext;
 import com.google.dart.tools.ui.text.dart.DartContentAssistInvocationContext;
@@ -120,9 +119,6 @@ public class DartContentAssistant implements ICompletionProposalComputer {
     IStructuredDocumentRegion region = document.getRegionAtCharacterOffset(offset);
     int delta = offset - region.getStartOffset();
     int length = region.getLength();
-    if (!DartCoreDebug.EXPERIMENTAL) {
-      return new ContentAssistInvocationContext(viewer, delta);
-    }
     EmbeddedDartReconcilerHook reconciler = DartReconcilerManager.getInstance().reconcilerFor(
         document);
     if (reconciler != null) {
