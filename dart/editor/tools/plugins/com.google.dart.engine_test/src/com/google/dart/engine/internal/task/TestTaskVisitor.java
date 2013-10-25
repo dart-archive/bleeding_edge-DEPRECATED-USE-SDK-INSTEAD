@@ -36,6 +36,13 @@ public class TestTaskVisitor<E> implements AnalysisTaskVisitor<E> {
   }
 
   @Override
+  public E visitIncrementalAnalysisTask(IncrementalAnalysisTask incrementalAnalysisTask)
+      throws AnalysisException {
+    Assert.fail("Unexpectedly invoked visitIncrementalAnalysisTask");
+    return null;
+  }
+
+  @Override
   public E visitParseDartTask(ParseDartTask task) throws AnalysisException {
     Assert.fail("Unexpectedly invoked visitParseDartTask");
     return null;

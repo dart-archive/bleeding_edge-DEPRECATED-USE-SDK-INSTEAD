@@ -56,6 +56,7 @@ import com.google.dart.engine.internal.task.AnalysisTask;
 import com.google.dart.engine.internal.task.AnalysisTaskVisitor;
 import com.google.dart.engine.internal.task.GenerateDartErrorsTask;
 import com.google.dart.engine.internal.task.GenerateDartHintsTask;
+import com.google.dart.engine.internal.task.IncrementalAnalysisTask;
 import com.google.dart.engine.internal.task.ParseDartTask;
 import com.google.dart.engine.internal.task.ParseHtmlTask;
 import com.google.dart.engine.internal.task.ResolveDartLibraryTask;
@@ -102,6 +103,12 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     public SourceEntry visitGenerateDartHintsTask(GenerateDartHintsTask task)
         throws AnalysisException {
       return recordGenerateDartHintsTask(task);
+    }
+
+    @Override
+    public SourceEntry visitIncrementalAnalysisTask(IncrementalAnalysisTask task)
+        throws AnalysisException {
+      return recordIncrementalAnalysisTaskResults(task);
     }
 
     @Override
@@ -1688,6 +1695,15 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     synchronized (cacheLock) {
       boolean hintsEnabled = options.getHint();
       //
+      // Look for incremental analysis
+      //
+      if (incrementalAnalysisCache != null) {
+        AnalysisTask task = new IncrementalAnalysisTask(this, incrementalAnalysisCache);
+        incrementalAnalysisCache = null;
+        //TODO (danrubel): implement task and uncomment to return it
+        //return task;
+      }
+      //
       // Look for a priority source that needs to be analyzed.
       //
       for (Source source : priorityOrder) {
@@ -2293,6 +2309,25 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       throw thrownException;
     }
     return libraryEntry;
+  }
+
+  /**
+   * Record the results produced by performing a {@link IncrementalAnalysisTask}.
+   * 
+   * @param task the task that was performed
+   * @return an entry containing the computed results
+   * @throws AnalysisException if the results could not be recorded
+   */
+  private DartEntry recordIncrementalAnalysisTaskResults(IncrementalAnalysisTask task)
+      throws AnalysisException {
+    synchronized (cacheLock) {
+      CompilationUnit unit = task.getCompilationUnit();
+      if (unit != null) {
+        ChangeNoticeImpl notice = getNotice(task.getSource());
+        notice.setCompilationUnit(unit);
+      }
+    }
+    return null;
   }
 
   /**
