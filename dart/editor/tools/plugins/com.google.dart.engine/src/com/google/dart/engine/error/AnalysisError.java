@@ -14,6 +14,7 @@
 package com.google.dart.engine.error;
 
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.utilities.general.ObjectUtilities;
 
 import java.util.Comparator;
 
@@ -157,10 +158,10 @@ public class AnalysisError {
       return false;
     }
     // Deep checks.
-    if (message == null && other.message != null || !message.equals(other.message)) {
+    if (!ObjectUtilities.equals(message, other.message)) {
       return false;
     }
-    if (source == null && other.source != null || !source.equals(other.source)) {
+    if (!ObjectUtilities.equals(source, other.source)) {
       return false;
     }
     // OK
