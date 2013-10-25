@@ -52,6 +52,16 @@ public class Token {
   }
 
   /**
+   * Return a newly created token that is a copy of this token but that is not a part of any token
+   * stream.
+   * 
+   * @return a newly created token that is a copy of this token
+   */
+  public Token copy() {
+    return new Token(type, offset);
+  }
+
+  /**
    * Return the offset from the beginning of the file to the character after last character of the
    * token.
    * 
@@ -204,6 +214,34 @@ public class Token {
    */
   public Object value() {
     return type.getLexeme();
+  }
+
+  /**
+   * Apply (add) the given delta to this token's offset.
+   * 
+   * @param delta the amount by which the offset is to be adjusted
+   */
+  protected void applyDelta(int delta) {
+    offset += delta;
+  }
+
+  /**
+   * Copy a linked list of comment tokens identical to the given comment tokens.
+   * 
+   * @param token the first token in the list, or {@code null} if there are no tokens to be copied
+   * @return the tokens that were created
+   */
+  protected Token copyComments(Token token) {
+    if (token == null) {
+      return null;
+    }
+    Token head = token.copy();
+    Token tail = head;
+    token = token.getNext();
+    while (token != null) {
+      tail = tail.setNext(token.copy());
+    }
+    return head;
   }
 
   /**

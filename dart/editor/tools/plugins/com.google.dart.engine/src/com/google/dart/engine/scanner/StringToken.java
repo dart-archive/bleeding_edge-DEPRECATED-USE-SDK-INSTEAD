@@ -40,6 +40,11 @@ public class StringToken extends Token {
   }
 
   @Override
+  public Token copy() {
+    return new StringToken(getType(), value, getOffset());
+  }
+
+  @Override
   public String getLexeme() {
     return value;
   }

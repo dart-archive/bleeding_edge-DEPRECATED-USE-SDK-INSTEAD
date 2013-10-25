@@ -39,7 +39,22 @@ public class KeywordTokenWithComment extends KeywordToken {
   }
 
   @Override
+  public Token copy() {
+    return new KeywordTokenWithComment(getKeyword(), getOffset(), copyComments(precedingComment));
+  }
+
+  @Override
   public Token getPrecedingComments() {
     return precedingComment;
+  }
+
+  @Override
+  protected void applyDelta(int delta) {
+    super.applyDelta(delta);
+    Token token = precedingComment;
+    while (token != null) {
+      token.applyDelta(delta);
+      token = token.getNext();
+    }
   }
 }

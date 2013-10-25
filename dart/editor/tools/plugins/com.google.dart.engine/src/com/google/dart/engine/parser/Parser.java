@@ -48,6 +48,31 @@ import java.util.regex.Matcher;
  */
 public class Parser {
   /**
+   * Instances of the class {@code SyntheticKeywordToken} implement a synthetic keyword token.
+   */
+  private static class SyntheticKeywordToken extends KeywordToken {
+    /**
+     * Initialize a newly created token to represent the given keyword.
+     * 
+     * @param keyword the keyword being represented by this token
+     * @param offset the offset from the beginning of the file to the first character in the token
+     */
+    public SyntheticKeywordToken(Keyword keyword, int offset) {
+      super(keyword, offset);
+    }
+
+    @Override
+    public Token copy() {
+      return new SyntheticKeywordToken(getKeyword(), getOffset());
+    }
+
+    @Override
+    public int getLength() {
+      return 0;
+    }
+  }
+
+  /**
    * The source being parsed.
    */
   private final Source source;
@@ -71,11 +96,11 @@ public class Parser {
    * A flag indicating whether the parser is currently in a switch statement.
    */
   private boolean inSwitch = false;
-
   private static final String HIDE = "hide"; //$NON-NLS-1$
   private static final String OF = "of"; //$NON-NLS-1$
   private static final String ON = "on"; //$NON-NLS-1$
   private static final String SHOW = "show"; //$NON-NLS-1$
+
   private static final String NATIVE = "native"; //$NON-NLS-1$
 
   /**
@@ -328,12 +353,7 @@ public class Parser {
    * @return the synthetic token that was created
    */
   private Token createSyntheticToken(Keyword keyword) {
-    return new KeywordToken(keyword, currentToken.getOffset()) {
-      @Override
-      public int getLength() {
-        return 0;
-      }
-    };
+    return new SyntheticKeywordToken(keyword, currentToken.getOffset());
   }
 
   /**

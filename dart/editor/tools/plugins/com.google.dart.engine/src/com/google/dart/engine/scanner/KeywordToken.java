@@ -1,11 +1,11 @@
 /*
  * Copyright (c) 2012, the Dart project authors.
- *
+ * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- *
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -15,7 +15,7 @@ package com.google.dart.engine.scanner;
 
 /**
  * Instances of the class {@code KeywordToken} represent a keyword in the language.
- *
+ * 
  * @coverage dart.engine.parser
  */
 public class KeywordToken extends Token {
@@ -26,7 +26,7 @@ public class KeywordToken extends Token {
 
   /**
    * Initialize a newly created token to represent the given keyword.
-   *
+   * 
    * @param keyword the keyword being represented by this token
    * @param offset the offset from the beginning of the file to the first character in the token
    */
@@ -35,9 +35,14 @@ public class KeywordToken extends Token {
     this.keyword = keyword;
   }
 
+  @Override
+  public Token copy() {
+    return new KeywordToken(keyword, getOffset());
+  }
+
   /**
    * Return the keyword being represented by this token.
-   *
+   * 
    * @return the keyword being represented by this token
    */
   public Keyword getKeyword() {

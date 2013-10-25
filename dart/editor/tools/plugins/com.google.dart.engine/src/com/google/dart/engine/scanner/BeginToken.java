@@ -37,6 +37,11 @@ public class BeginToken extends Token {
         || type == TokenType.OPEN_SQUARE_BRACKET || type == TokenType.STRING_INTERPOLATION_EXPRESSION);
   }
 
+  @Override
+  public Token copy() {
+    return new BeginToken(getType(), getOffset());
+  }
+
   /**
    * Return the token that corresponds to this token.
    * 

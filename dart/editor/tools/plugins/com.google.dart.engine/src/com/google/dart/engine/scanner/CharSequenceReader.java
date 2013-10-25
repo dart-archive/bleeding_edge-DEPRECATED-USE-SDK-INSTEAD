@@ -69,4 +69,9 @@ public class CharSequenceReader implements CharacterReader {
     }
     return sequence.charAt(charOffset + 1);
   }
+
+  @Override
+  public void setOffset(int offset) {
+    charOffset = offset;
+  }
 }

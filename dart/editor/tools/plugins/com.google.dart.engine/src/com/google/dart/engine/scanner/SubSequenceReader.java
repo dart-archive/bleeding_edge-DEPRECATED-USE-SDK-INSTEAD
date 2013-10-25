@@ -45,4 +45,9 @@ public class SubSequenceReader extends CharSequenceReader {
   public String getString(int start, int endDelta) {
     return super.getString(start - offsetDelta, endDelta);
   }
+
+  @Override
+  public void setOffset(int offset) {
+    super.setOffset(offset - offsetDelta);
+  }
 }

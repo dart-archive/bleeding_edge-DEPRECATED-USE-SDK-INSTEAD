@@ -160,10 +160,8 @@ public class Scanner {
    * @return the first token in the list of tokens that were produced
    */
   public Token tokenize() {
-
     InstrumentationBuilder instrumentation = Instrumentation.builder("dart.engine.AbstractScanner.tokenize");
     int tokenCounter = 0;
-
     try {
       int next = reader.advance();
       while (next != -1) {
@@ -172,138 +170,24 @@ public class Scanner {
       }
       appendEofToken();
       instrumentation.metric("tokensCount", tokenCounter);
-
       return firstToken();
-
     } finally {
       instrumentation.log(2); //Log if over 1ms
-
     }
-
   }
 
   /**
-   * Record the fact that we are at the beginning of a new line in the source.
+   * Append the given token to the end of the token stream being scanned. This method is intended to
+   * be used by subclasses that copy existing tokens and should not normally be used because it will
+   * fail to correctly associate any comments with the token being passed in.
+   * 
+   * @param token the token to be appended
    */
-  protected void recordStartOfLine() {
-    lineStarts.add(reader.getOffset());
-  }
-
-  private void appendBeginToken(TokenType type) {
-    BeginToken token;
-    if (firstComment == null) {
-      token = new BeginToken(type, tokenStart);
-    } else {
-      token = new BeginTokenWithComment(type, tokenStart, firstComment);
-      firstComment = null;
-      lastComment = null;
-    }
+  protected void appendToken(Token token) {
     tail = tail.setNext(token);
-    groupingStack.add(token);
-    stackEnd++;
   }
 
-  private void appendCommentToken(TokenType type, String value) {
-    if (firstComment == null) {
-      firstComment = new StringToken(type, value, tokenStart);
-      lastComment = firstComment;
-    } else {
-      lastComment = lastComment.setNext(new StringToken(type, value, tokenStart));
-    }
-  }
-
-  private void appendEndToken(TokenType type, TokenType beginType) {
-    Token token;
-    if (firstComment == null) {
-      token = new Token(type, tokenStart);
-    } else {
-      token = new TokenWithComment(type, tokenStart, firstComment);
-      firstComment = null;
-      lastComment = null;
-    }
-    tail = tail.setNext(token);
-    if (stackEnd >= 0) {
-      BeginToken begin = groupingStack.get(stackEnd);
-      if (begin.getType() == beginType) {
-        begin.setEndToken(token);
-        groupingStack.remove(stackEnd--);
-      }
-    }
-  }
-
-  private void appendEofToken() {
-    Token eofToken;
-    if (firstComment == null) {
-      eofToken = new Token(TokenType.EOF, reader.getOffset() + 1);
-    } else {
-      eofToken = new TokenWithComment(TokenType.EOF, reader.getOffset() + 1, firstComment);
-      firstComment = null;
-      lastComment = null;
-    }
-    // The EOF token points to itself so that there is always infinite look-ahead.
-    eofToken.setNext(eofToken);
-    tail = tail.setNext(eofToken);
-    if (stackEnd >= 0) {
-      hasUnmatchedGroups = true;
-      // TODO(brianwilkerson) Fix the ungrouped tokens?
-    }
-  }
-
-  private void appendKeywordToken(Keyword keyword) {
-    if (firstComment == null) {
-      tail = tail.setNext(new KeywordToken(keyword, tokenStart));
-    } else {
-      tail = tail.setNext(new KeywordTokenWithComment(keyword, tokenStart, firstComment));
-      firstComment = null;
-      lastComment = null;
-    }
-  }
-
-  private void appendStringToken(TokenType type, String value) {
-    if (firstComment == null) {
-      tail = tail.setNext(new StringToken(type, value, tokenStart));
-    } else {
-      tail = tail.setNext(new StringTokenWithComment(type, value, tokenStart, firstComment));
-      firstComment = null;
-      lastComment = null;
-    }
-  }
-
-  private void appendStringToken(TokenType type, String value, int offset) {
-    if (firstComment == null) {
-      tail = tail.setNext(new StringToken(type, value, tokenStart + offset));
-    } else {
-      tail = tail.setNext(new StringTokenWithComment(type, value, tokenStart + offset, firstComment));
-      firstComment = null;
-      lastComment = null;
-    }
-  }
-
-  private void appendToken(TokenType type) {
-    if (firstComment == null) {
-      tail = tail.setNext(new Token(type, tokenStart));
-    } else {
-      tail = tail.setNext(new TokenWithComment(type, tokenStart, firstComment));
-      firstComment = null;
-      lastComment = null;
-    }
-  }
-
-  private void appendToken(TokenType type, int offset) {
-    if (firstComment == null) {
-      tail = tail.setNext(new Token(type, offset));
-    } else {
-      tail = tail.setNext(new TokenWithComment(type, offset, firstComment));
-      firstComment = null;
-      lastComment = null;
-    }
-  }
-
-  private void beginToken() {
-    tokenStart = reader.getOffset();
-  }
-
-  private int bigSwitch(int next) {
+  protected int bigSwitch(int next) {
     beginToken();
 
     if (next == '\r') {
@@ -482,6 +366,136 @@ public class Scanner {
   }
 
   /**
+   * Return the first token in the token stream that was scanned.
+   * 
+   * @return the first token in the token stream that was scanned
+   */
+  protected Token firstToken() {
+    return tokens.getNext();
+  }
+
+  /**
+   * Record the fact that we are at the beginning of a new line in the source.
+   */
+  protected void recordStartOfLine() {
+    lineStarts.add(reader.getOffset());
+  }
+
+  private void appendBeginToken(TokenType type) {
+    BeginToken token;
+    if (firstComment == null) {
+      token = new BeginToken(type, tokenStart);
+    } else {
+      token = new BeginTokenWithComment(type, tokenStart, firstComment);
+      firstComment = null;
+      lastComment = null;
+    }
+    tail = tail.setNext(token);
+    groupingStack.add(token);
+    stackEnd++;
+  }
+
+  private void appendCommentToken(TokenType type, String value) {
+    if (firstComment == null) {
+      firstComment = new StringToken(type, value, tokenStart);
+      lastComment = firstComment;
+    } else {
+      lastComment = lastComment.setNext(new StringToken(type, value, tokenStart));
+    }
+  }
+
+  private void appendEndToken(TokenType type, TokenType beginType) {
+    Token token;
+    if (firstComment == null) {
+      token = new Token(type, tokenStart);
+    } else {
+      token = new TokenWithComment(type, tokenStart, firstComment);
+      firstComment = null;
+      lastComment = null;
+    }
+    tail = tail.setNext(token);
+    if (stackEnd >= 0) {
+      BeginToken begin = groupingStack.get(stackEnd);
+      if (begin.getType() == beginType) {
+        begin.setEndToken(token);
+        groupingStack.remove(stackEnd--);
+      }
+    }
+  }
+
+  private void appendEofToken() {
+    Token eofToken;
+    if (firstComment == null) {
+      eofToken = new Token(TokenType.EOF, reader.getOffset() + 1);
+    } else {
+      eofToken = new TokenWithComment(TokenType.EOF, reader.getOffset() + 1, firstComment);
+      firstComment = null;
+      lastComment = null;
+    }
+    // The EOF token points to itself so that there is always infinite look-ahead.
+    eofToken.setNext(eofToken);
+    tail = tail.setNext(eofToken);
+    if (stackEnd >= 0) {
+      hasUnmatchedGroups = true;
+      // TODO(brianwilkerson) Fix the ungrouped tokens?
+    }
+  }
+
+  private void appendKeywordToken(Keyword keyword) {
+    if (firstComment == null) {
+      tail = tail.setNext(new KeywordToken(keyword, tokenStart));
+    } else {
+      tail = tail.setNext(new KeywordTokenWithComment(keyword, tokenStart, firstComment));
+      firstComment = null;
+      lastComment = null;
+    }
+  }
+
+  private void appendStringToken(TokenType type, String value) {
+    if (firstComment == null) {
+      tail = tail.setNext(new StringToken(type, value, tokenStart));
+    } else {
+      tail = tail.setNext(new StringTokenWithComment(type, value, tokenStart, firstComment));
+      firstComment = null;
+      lastComment = null;
+    }
+  }
+
+  private void appendStringToken(TokenType type, String value, int offset) {
+    if (firstComment == null) {
+      tail = tail.setNext(new StringToken(type, value, tokenStart + offset));
+    } else {
+      tail = tail.setNext(new StringTokenWithComment(type, value, tokenStart + offset, firstComment));
+      firstComment = null;
+      lastComment = null;
+    }
+  }
+
+  private void appendToken(TokenType type) {
+    if (firstComment == null) {
+      tail = tail.setNext(new Token(type, tokenStart));
+    } else {
+      tail = tail.setNext(new TokenWithComment(type, tokenStart, firstComment));
+      firstComment = null;
+      lastComment = null;
+    }
+  }
+
+  private void appendToken(TokenType type, int offset) {
+    if (firstComment == null) {
+      tail = tail.setNext(new Token(type, offset));
+    } else {
+      tail = tail.setNext(new TokenWithComment(type, offset, firstComment));
+      firstComment = null;
+      lastComment = null;
+    }
+  }
+
+  private void beginToken() {
+    tokenStart = reader.getOffset();
+  }
+
+  /**
    * Return the beginning token corresponding to a closing brace that was found while scanning
    * inside a string interpolation expression. Tokens that cannot be matched with the closing brace
    * will be dropped from the stack.
@@ -503,10 +517,6 @@ public class Scanner {
     // expression unless we had previously found the start of the expression.
     //
     return null;
-  }
-
-  private Token firstToken() {
-    return tokens.getNext();
   }
 
   /**

@@ -51,4 +51,12 @@ public interface CharacterReader {
    * @return the character at the current position
    */
   public int peek();
+
+  /**
+   * Set the current offset relative to the beginning of the source. The new offset must be between
+   * the initial offset and one (1) past the end of the source code.
+   * 
+   * @param offset the new offset in the source
+   */
+  public void setOffset(int offset);
 }

@@ -39,7 +39,26 @@ public class StringTokenWithComment extends StringToken {
   }
 
   @Override
+  public Token copy() {
+    return new StringTokenWithComment(
+        getType(),
+        getLexeme(),
+        getOffset(),
+        copyComments(precedingComment));
+  }
+
+  @Override
   public Token getPrecedingComments() {
     return precedingComment;
+  }
+
+  @Override
+  protected void applyDelta(int delta) {
+    super.applyDelta(delta);
+    Token token = precedingComment;
+    while (token != null) {
+      token.applyDelta(delta);
+      token = token.getNext();
+    }
   }
 }

@@ -39,6 +39,11 @@ public class TokenWithComment extends Token {
   }
 
   @Override
+  public Token copy() {
+    return new TokenWithComment(getType(), getOffset(), precedingComment);
+  }
+
+  @Override
   public Token getPrecedingComments() {
     return precedingComment;
   }
