@@ -20,6 +20,7 @@ import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.ErrorCode;
+import com.google.dart.engine.error.TodoCode;
 import com.google.dart.engine.internal.context.PerformanceStatistics;
 import com.google.dart.engine.internal.resolver.ResolutionVerifier;
 import com.google.dart.engine.internal.resolver.StaticTypeVerifier;
@@ -151,6 +152,8 @@ public abstract class LibraryAnalysisTest extends TestCase {
       writer.print("Expected 0 errors, found ");
       writer.print(errorList.size());
       writer.print(":");
+      int todoCount = countErrorsOfType(TodoCode.TODO);
+      size -= todoCount;
       if (size > 128) {
         HashMap<String, Integer> counts = new HashMap<String, Integer>();
         int maxCount = 0;
@@ -174,22 +177,49 @@ public abstract class LibraryAnalysisTest extends TestCase {
         for (AnalysisError error : errorList) {
           Source source = error.getSource();
           ErrorCode code = error.getErrorCode();
-          int offset = error.getOffset();
+          if (code != TodoCode.TODO) {
+            int offset = error.getOffset();
+            writer.println();
+            writer.printf(
+                "%s %s (%d..%d) \"%s\"%s",
+                source == null ? "null" : source.getShortName(),
+                code.getClass().getSimpleName() + "." + code,
+                offset,
+                offset + error.getLength(),
+                error.getMessage(),
+                source == null ? "" : " (" + source.getFullName() + ")");
+          }
+        }
+        if (todoCount > 0) {
           writer.println();
-          writer.printf(
-              "%s %s (%d..%d) \"%s\"%s",
-              source == null ? "null" : source.getShortName(),
-              code.getClass().getSimpleName() + "." + code,
-              offset,
-              offset + error.getLength(),
-              error.getMessage(),
-              source == null ? "" : " (" + source.getFullName() + ")");
+          writer.printf("%d %s", todoCount, TodoCode.TODO);
         }
       }
       Assert.fail(writer.toString());
     }
   }
 
+  /**
+   * Return the number of errors with the given error code that were recorded.
+   * 
+   * @param errorCode the error code being searched for
+   * @return the number of errors with the given error code
+   */
+  private int countErrorsOfType(ErrorCode errorCode) {
+    int count = 0;
+    for (AnalysisError error : errorList) {
+      if (error.getErrorCode() == errorCode) {
+        count++;
+      }
+    }
+    return count;
+  }
+
+  /**
+   * Print the given value as a number of milliseconds.
+   * 
+   * @param time the number of milliseconds to be printed
+   */
   private void printTime(long time) {
     if (time == 0) {
       System.out.print("0 ms");
