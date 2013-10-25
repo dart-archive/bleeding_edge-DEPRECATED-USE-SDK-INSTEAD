@@ -251,6 +251,15 @@
                 </or>
             </enablement>
         </statusContextViewer>
+        <statusContextViewer
+            class="com.google.dart.tools.ui.internal.refactoring.StringStatusContextViewer"
+            id="com.google.dart.tools.ui.stringStatusContextViewer">
+            <enablement>
+                <or>
+                    <instanceof value="com.google.dart.tools.internal.corext.refactoring.base.StringStatusContext"/>
+                </or>
+            </enablement>
+        </statusContextViewer>
     </extension>
    
    <extension point="org.eclipse.ui.perspectiveExtensions">

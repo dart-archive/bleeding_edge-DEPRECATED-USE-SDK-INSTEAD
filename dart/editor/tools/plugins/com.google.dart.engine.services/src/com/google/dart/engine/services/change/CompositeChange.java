@@ -16,6 +16,7 @@ package com.google.dart.engine.services.change;
 
 import com.google.common.collect.Lists;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -32,6 +33,11 @@ public class CompositeChange extends Change {
   public CompositeChange(String name, Change... changes) {
     super(name);
     add(changes);
+  }
+
+  public CompositeChange(String name, Collection<Change> changes) {
+    super(name);
+    children.addAll(changes);
   }
 
   /**
