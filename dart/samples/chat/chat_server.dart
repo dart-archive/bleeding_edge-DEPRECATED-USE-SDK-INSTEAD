@@ -16,12 +16,13 @@ void main() {
   // stopAfter for that.
   int stopAfter;
 
-  var serverPort = spawnFunction(startChatServer);
-  ServerMain serverMain =
-      new ServerMain.start(serverPort, DEFAULT_HOST, DEFAULT_PORT);
+  spawnChatServer().then((serverPort) {
+    ServerMain serverMain =
+        new ServerMain.start(serverPort, DEFAULT_HOST, DEFAULT_PORT);
 
-  // Start a shutdown timer if requested.
-  if (stopAfter != null) {
-    new Timer(new Duration(seconds: stopAfter), serverMain.shutdown);
-  }
+    // Start a shutdown timer if requested.
+    if (stopAfter != null) {
+      new Timer(new Duration(seconds: stopAfter), serverMain.shutdown);
+    }
+  });
 }

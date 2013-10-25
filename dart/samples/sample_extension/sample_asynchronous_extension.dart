@@ -12,11 +12,14 @@ import 'dart-ext:sample_extension';
 class RandomArray {
   static SendPort _port;
 
-  Future<List<int> > randomArray(int seed, int length) {
+  Future<List<int>> randomArray(int seed, int length) {
     var args = new List(2);
     args[0] = seed;
     args[1] = length;
-    return _servicePort.call(args).then((result) {
+    ReceivePort receivePort = new ReceivePort();
+    _servicePort.send(args, receivePort.sendPort);
+    return receivePort.first.then((result) {
+      receivePort.close();
       if (result != null) {
         return result;
       } else {

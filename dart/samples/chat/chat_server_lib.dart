@@ -6,13 +6,20 @@ library chat_server;
 import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
-import "dart:convert";
+import 'dart:convert';
 import 'dart:math';
 
-void startChatServer() {
+Future<SendPort> spawnChatServer() {
+  var response = new ReceivePort();
+  return Isolate.spawn(startChatServer, response.sendPort)
+      .then((remoteIsolate) => response.first)
+      .whenComplete(() { response.close(); });  // Make sure the port is closed.
+}
+
+void startChatServer(SendPort replyTo) {
   var server = new ChatServer();
   server.init();
-  port.receive(server.dispatch);
+  replyTo.send(server.dispatchSendPort);
 }
 
 class ChatServer extends IsolatedServer {
@@ -32,19 +39,19 @@ class ServerMain {
 
     void _start(String hostAddress, int tcpPort) {
     // Handle status messages from the server.
-    _statusPort.receive((var message, SendPort replyTo) {
+    _statusPort.listen((var message) {
       String status = message.message;
       print("Received status: $status");
     });
 
     // Send server start message to the server.
     var command = new ChatServerCommand.start(hostAddress, tcpPort);
-    _serverPort.send(command, _statusPort.toSendPort());
+    _serverPort.send([command, _statusPort.sendPort]);
   }
 
   void shutdown() {
     // Send server stop message to the server.
-    _serverPort.send(new ChatServerCommand.stop(), _statusPort.toSendPort());
+    _serverPort.send([new ChatServerCommand.stop(), _statusPort.sendPort]);
     _statusPort.close();
   }
 
@@ -301,6 +308,10 @@ class IsolatedServer {
 <p>The requested URL was not found on this server.</p>
 </body></html>""";
 
+  IsolatedServer() : _dispatchReceivePort = new ReceivePort() {
+    _dispatchReceivePort.listen(dispatch);
+  }
+
   void _sendJSONResponse(HttpResponse response, Map responseData) {
     response.headers.set("Content-Type", "application/json; charset=UTF-8");
     response.write(JSON.encode(responseData));
@@ -540,12 +551,16 @@ class IsolatedServer {
     }
   }
 
-  void dispatch(message, replyTo) {
-    if (message.isStart) {
-      _host = message.host;
-      _port = message.port;
-      _logging = message.logging;
-      replyTo.send(new ChatServerStatus.starting(), null);
+  SendPort get dispatchSendPort => _dispatchReceivePort.sendPort;
+
+  void dispatch(message) {
+    var command = message[0];
+    var replyTo = message[1];
+    if (command.isStart) {
+      _host = command.host;
+      _port = command.port;
+      _logging = command.logging;
+      replyTo.send(new ChatServerStatus.starting());
       var handlers = {};
       void addRequestHandler(String path, Function handler) {
         handlers[path] = handler;
@@ -574,27 +589,28 @@ class IsolatedServer {
                 _notFoundHandler(request, request.response);
               }
             });
-            replyTo.send(new ChatServerStatus.started(_server.port), null);
+            replyTo.send(new ChatServerStatus.started(_server.port));
             _loggingTimer =
                 new Timer.periodic(const Duration(seconds: 1), _handleLogging);
           })
           .catchError((e) {
-            replyTo.send(new ChatServerStatus.error2(e.toString()), null);
+            replyTo.send(new ChatServerStatus.error2(e.toString()));
           });
-    } else if (message.isStop) {
-      replyTo.send(new ChatServerStatus.stopping(), null);
+    } else if (command.isStop) {
+      replyTo.send(new ChatServerStatus.stopping());
       stop();
-      replyTo.send(new ChatServerStatus.stopped(), null);
+      replyTo.send(new ChatServerStatus.stopped());
     }
   }
 
   stop() {
     _server.close();
     _cleanupTimer.cancel();
-    port.close();
+    _dispatchReceivePort.close();
   }
 
   String _host;
+  ReceivePort _dispatchReceivePort;
   int _port;
   HttpServer _server;  // HTTP server instance.
   bool _logRequests;

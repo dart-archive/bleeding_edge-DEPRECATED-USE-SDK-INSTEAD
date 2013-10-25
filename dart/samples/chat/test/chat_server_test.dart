@@ -26,10 +26,16 @@ class ChatTestClientStart {
   int port;
 }
 
+Future<SendPort> spawnChatTestClient() {
+  var response = new ReceivePort();
+  return Isolate.spawn(startChatTestClient, response.sendPort)
+      .then((remoteIsolate) => response.first)
+      .whenComplete(() { response.close(); });  // Make sure the port is closed.
+}
 
-void startChatTestClient() {
+void startChatTestClient(SendPort replyTo) {
   var client = new ChatTestClient();
-  port.receive(client.dispatch);
+  replyTo.send(client.dispatchSendPort);
 }
 
 
@@ -38,6 +44,7 @@ void startChatTestClient() {
 // number of messages, receive the expected number of messages and
 // leave the topic.
 class ChatTestClient {
+  ReceivePort _dispatchReceivePort;  // Port that is linked to dispatch.
   SendPort statusPort;  // Port to reply to when test has finished.
   HttpClient httpClient;  // HTTP client connection factory.
 
@@ -52,6 +59,16 @@ class ChatTestClient {
   int messageCount;
   int receiveMessageNumber;  // Number of messages received.
 
+  ChatTestClient() : _dispatchReceivePort = new ReceivePort() {
+    _dispatchReceivePort.listen(dispatch);
+  }
+
+  SendPort get dispatchSendPort => _dispatchReceivePort.sendPort;
+
+  void close() {
+    _dispatchReceivePort.close();
+  }
+
   void leave() {
     void leaveResponseHandler(response, String data) {
       Expect.equals(HttpStatus.OK, response.statusCode);
@@ -59,7 +76,8 @@ class ChatTestClient {
       Expect.equals("leave", responseData["response"]);
 
       // Test done.
-      statusPort.send("Test succeeded", null);
+      statusPort.send("Test succeeded");
+      close();
     }
 
     Map leaveRequest = new Map();
@@ -195,11 +213,13 @@ class ChatTestClient {
       });
   }
 
-  void dispatch(message, replyTo) {
-    totalClients = message.totalClients;
-    messagesToSend = message.messagesToSend;
-    messagesToReceive = message.messagesToReceive;
-    port = message.port;
+  void dispatch(message) {
+    var chatMessage = message[0];
+    var replyTo = message[1];
+    totalClients = chatMessage.totalClients;
+    messagesToSend = chatMessage.messagesToSend;
+    messagesToReceive = chatMessage.messagesToReceive;
+    port = chatMessage.port;
     statusPort = replyTo;
 
     // Create a HTTP client factory.
@@ -216,14 +236,15 @@ class TestMain {
       : serverStatusPort = new ReceivePort(),
         serverPort = null,
         finishedClients = 0 {
-    serverPort = spawnFunction(startChatServer);
-    start();
+    spawnChatServer().then((serverPort) {
+      this.serverPort = serverPort;
+      start();
+    });
   }
 
   void start() {
     // Handle status messages from the server.
-    serverStatusPort.receive(
-        (var message, SendPort replyTo) {
+    serverStatusPort.listen((var message) {
           if (message.isStarted) {
             // When the server is started start all test clients.
             for (int i = 0; i < clientCount; i++) {
@@ -232,7 +253,7 @@ class TestMain {
                                           messageCount,
                                           messageCount * this.clientCount,
                                           message.port);
-              clientPorts[i].send(command, clientStatusPorts[i].toSendPort());
+              clientPorts[i].send([command, clientStatusPorts[i].sendPort]);
             }
           } else if (message.isError) {
             print("Could not start server - probably error \"Address already in use\" from bind.");
@@ -246,7 +267,7 @@ class TestMain {
     clientStatusPorts = new List<ReceivePort>(clientCount);
     for (int i = 0; i < clientCount; i++) {
       ReceivePort statusPort = new ReceivePort();
-      statusPort.receive((var message, SendPort replyTo) {
+      statusPort.listen((var message) {
         // First and only message from the client indicates that
         // the test is done.
         Expect.equals("Test succeeded", message);
@@ -256,8 +277,8 @@ class TestMain {
         // If all clients are finished shutdown the server.
         if (finishedClients == clientCount) {
           // Send server stop message to the server.
-          serverPort.send(new ChatServerCommand.stop(),
-                          serverStatusPort.toSendPort());
+          serverPort.send([new ChatServerCommand.stop(),
+                           serverStatusPort.sendPort]);
 
           // Close the last port to terminate the test.
           serverStatusPort.close();
@@ -265,17 +286,19 @@ class TestMain {
       });
 
       clientStatusPorts[i] = statusPort;
-      clientPorts[i] = spawnFunction(startChatTestClient);
-      liveClientsCount++;
-      if (liveClientsCount == clientCount) {
-        // Once all clients are running send server start message to
-        // the server. Use port 0 for an ephemeral port. The actual
-        // port will be returned with the server started
-        // message. Use a backlog equal to the client count to avoid
-        // connection issues.
-        serverPort.send(new ChatServerCommand.start("127.0.0.1", 0),
-                        serverStatusPort.toSendPort());
-      }
+      spawnChatTestClient().then((clientPort) {
+        clientPorts[i] = clientPort;
+        liveClientsCount++;
+        if (liveClientsCount == clientCount) {
+          // Once all clients are running send server start message to
+          // the server. Use port 0 for an ephemeral port. The actual
+          // port will be returned with the server started
+          // message. Use a backlog equal to the client count to avoid
+          // connection issues.
+          serverPort.send([new ChatServerCommand.start("127.0.0.1", 0),
+                           serverStatusPort.sendPort]);
+        }
+      });
     }
   }
 

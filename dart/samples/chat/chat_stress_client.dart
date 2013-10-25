@@ -52,7 +52,7 @@ class ChatStressClient {
       leaveRequest["sessionId"] = sessionId;
       httpClient.post("127.0.0.1", port, "/leave")
         .then((HttpClientRequest request) {
-          request.addString(JSON.encode(leaveRequest));
+          request.write(JSON.encode(leaveRequest));
           return request.close();
         })
         .then((HttpClientResponse response) {
@@ -80,7 +80,7 @@ class ChatStressClient {
       messageRequest["maxMessages"] = 100;
       httpClient.post("127.0.0.1", port, "/receive")
         .then((HttpClientRequest request) {
-          request.addString(JSON.encode(messageRequest));
+          request.write(JSON.encode(messageRequest));
           return request.close();
         })
         .then((HttpClientResponse response) {
@@ -115,7 +115,7 @@ class ChatStressClient {
       messageRequest["message"] = "message $sendMessageCount";
       httpClient.post("127.0.0.1", port, "/message")
         .then((HttpClientRequest request) {
-          request.addString(JSON.encode(messageRequest));
+          request.write(JSON.encode(messageRequest));
           return request.close();
         })
         .then((HttpClientResponse response) {
@@ -143,7 +143,7 @@ class ChatStressClient {
       joinRequest["handle"] = "test1";
       httpClient.post("127.0.0.1", port, "/join")
         .then((HttpClientRequest request) {
-          request.addString(JSON.encode(joinRequest));
+          request.write(JSON.encode(joinRequest));
           return request.close();
         })
         .then((HttpClientResponse response) {
