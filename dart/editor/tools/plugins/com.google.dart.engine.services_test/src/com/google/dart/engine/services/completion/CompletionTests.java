@@ -1,11 +1,11 @@
 /*
  * Copyright (c) 2013, the Dart project authors.
- * 
+ *
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -862,23 +862,25 @@ public class CompletionTests extends CompletionTestCase {
   }
 
   public void testCommentSnippets048() throws Exception {
-    test("import 'dart:json' as json;f() {var x=new js!1}", "1+json");
+    // TODO: Use another library, dart:json is gone.
+    // test("import 'dart:json' as json;f() {var x=new js!1}", "1+json");
   }
 
   public void testCommentSnippets049() throws Exception {
-    test(//
-        src(//
-            "import 'dart:json' as json;",
-            "import 'dart:json' as jxx;",
-            "class JsonParserX{}",
-            "f1() {var x=new !2j!1s!3}"),
-        "1+json",
-        "1+jxx",
-        "2+json",
-        "2+jxx",
-        "2-JsonParser",
-        "3+json",
-        "3-jxx");
+    // TODO: Use another library, dart:json is gone.
+    // test(//
+    //     src(//
+    //         "import 'dart:json' as json;",
+    //         "import 'dart:json' as jxx;",
+    //         "class JsonParserX{}",
+    //         "f1() {var x=new !2j!1s!3}"),
+    //     "1+json",
+    //     "1+jxx",
+    //     "2+json",
+    //     "2+jxx",
+    //     "2-JsonParser",
+    //     "3+json",
+    //     "3-jxx");
   }
 
   public void testCommentSnippets050() throws Exception {
