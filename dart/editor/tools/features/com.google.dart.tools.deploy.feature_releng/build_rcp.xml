@@ -209,6 +209,7 @@ build system.  The PDE build system has to run under Eclipse.
             </fileset>
             <fileset dir="${build.source.root}/samples/third_party">
                 <include name="todomvc/**"/>
+                <exclude name="**/test/"/>
             </fileset>
         </copy>
 

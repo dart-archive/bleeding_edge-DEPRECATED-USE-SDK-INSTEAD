@@ -13,11 +13,11 @@ import 'dart:html';
 import 'dart:math';
 
 void main() {
-  CanvasElement canvas = query("#area");
+  CanvasElement canvas = querySelector("#area");
   scheduleMicrotask(new SolarSystem(canvas).start);
 }
 
-Element notes = query("#fps");
+Element notes = querySelector("#fps");
 num fpsAverage;
 
 /// Display the animation's FPS in a div.

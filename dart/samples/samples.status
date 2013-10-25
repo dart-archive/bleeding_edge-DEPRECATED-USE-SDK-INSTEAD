@@ -8,7 +8,6 @@ chat/test/chat_server_test: Skip
 build_dart: Skip
 build_dart_simple: Skip
 sample_extension: Skip
-time: Skip
 
 [ $compiler == dart2js && $runtime == drt ]
 swarm/test/swarm_test: Pass, Crash, Fail # Issue 10950

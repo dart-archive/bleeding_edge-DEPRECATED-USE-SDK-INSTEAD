@@ -15,12 +15,12 @@ const int MAX_D = 300;
 const num centerX = MAX_D / 2;
 const num centerY = centerX;
 
-final InputElement slider = query("#slider");
-final Element notes = query("#notes");
+final InputElement slider = querySelector("#slider");
+final Element notes = querySelector("#notes");
 final num PHI = (sqrt(5) + 1) / 2;
 int seeds = 0;
 final CanvasRenderingContext2D context =
-  (query("#canvas") as CanvasElement).context2D;
+  (querySelector("#canvas") as CanvasElement).context2D;
 
 void main() {
   slider.onChange.listen((e) => draw());
