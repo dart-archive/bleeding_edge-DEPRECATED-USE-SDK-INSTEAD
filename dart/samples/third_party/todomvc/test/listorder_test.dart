@@ -4,9 +4,9 @@
 
 library todomvc.test.listorder_test;
 
+import 'dart:async';
 import 'dart:html';
 import 'package:polymer/polymer.dart';
-import 'package:polymer/platform.dart' show endOfMicrotask;
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
 import '../web/model.dart';
@@ -32,7 +32,8 @@ main() {
       new Todo('two (checked)')..done = true,
       new Todo('three (unchecked)')
     ]);
-    endOfMicrotask(expectAsync0(() {
+    Observable.dirtyCheck();
+    return window.animationFrame.then((_) {
       expect(root.queryAll('#todo-list li[is=todo-row]').length, 3);
 
       // TODO(jmesserly): HTML Imports breaks relative hash links when the
@@ -41,27 +42,27 @@ main() {
       for (var a in root.queryAll('#filters > li > a')) {
         a.href = '#${Uri.parse(a.href).fragment}';
       }
-    }));
+    });
   });
 
   test('navigate to #/active', () {
     windowLocation.hash = '#/active';
-    endOfMicrotask(expectAsync0(() {
+    return window.animationFrame.then((_) {
       expect(root.queryAll('#todo-list li[is=todo-row]').length, 2);
-    }));
+    });
   });
 
   test('navigate to #/completed', () {
     windowLocation.hash = '#/completed';
-    endOfMicrotask(expectAsync0(() {
+    return window.animationFrame.then((_) {
       expect(root.queryAll('#todo-list li[is=todo-row]').length, 1);
-    }));
+    });
   });
 
   test('navigate back to #/', () {
     windowLocation.hash = '#/';
-    endOfMicrotask(expectAsync0(() {
+    return window.animationFrame.then((_) {
       expect(root.queryAll('#todo-list li[is=todo-row]').length, 3);
-    }));
+    });
   });
 }

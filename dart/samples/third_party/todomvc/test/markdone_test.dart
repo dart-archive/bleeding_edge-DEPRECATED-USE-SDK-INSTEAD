@@ -6,7 +6,6 @@ library todomvc.test.markdone_test;
 
 import 'dart:async';
 import 'dart:html';
-import 'package:polymer/platform.dart' show endOfMicrotask;
 import 'package:polymer/polymer.dart';
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
@@ -60,7 +59,7 @@ main() {
     appModel.todos.add(new Todo('three (checked)')..done = true);
     appModel.todos.add(new Todo('four (checked)'));
 
-    endOfMicrotask(expectAsync0(() {
+    return new Future(() {
       var body = query('body');
 
       var label = findWithText(body, 'four (checked)');
@@ -74,6 +73,6 @@ main() {
 
       node.dispatchEvent(new MouseEvent('click', detail: 1));
       expect(node.checked, true, reason: 'element is checked');
-    }));
+    });
   });
 }
