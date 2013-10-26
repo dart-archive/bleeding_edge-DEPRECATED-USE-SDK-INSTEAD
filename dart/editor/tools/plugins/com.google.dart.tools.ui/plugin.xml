@@ -2476,18 +2476,18 @@
             schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
             sequence="CTRL+SHIFT+TAB">
       </key>
-      <key
+      <!-- key
             commandId="org.eclipse.ui.edit.text.set.mark"
             contextId="org.eclipse.ui.textEditorScope"
             schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
             sequence="M1+M3+["
-            />
-      <key
+            / -->
+      <!-- key
             commandId="org.eclipse.ui.edit.text.clear.mark"
             contextId="org.eclipse.ui.textEditorScope"
             schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
             sequence="M1+M3+]"
-            />
+            / -->
       <key
             commandId="org.eclipse.ui.edit.text.recenter"
             contextId="org.eclipse.ui.textEditorScope"
