@@ -709,10 +709,10 @@
       type="linestyleprovider"
       class="com.google.dart.tools.wst.ui.style.LineStyleProviderForDart"
       target="org.eclipse.wst.html.SCRIPT.type.APPLICATION/DART,org.eclipse.wst.html.SCRIPT.EVENTHANDLER.type.APPLICATION/DART,org.eclipse.wst.html.SCRIPT,org.eclipse.wst.html.SCRIPT.EVENTHANDLER" />
-    <!--
     <documentationTextHover
-      class="org.eclipse.wst.jsdt.web.ui.internal.taginfo.JSDTHoverProcessor"
-      target="org.eclipse.wst.html.SCRIPT,org.eclipse.wst.html.SCRIPT.EVENTHANDLER" />
+      class="com.google.dart.tools.wst.ui.taginfo.DartHoverProcessor"
+      target="org.eclipse.wst.html.SCRIPT.type.APPLICATION/DART,org.eclipse.wst.html.SCRIPT.EVENTHANDLER.type.APPLICATION/DART,org.eclipse.wst.html.SCRIPT,org.eclipse.wst.html.SCRIPT.EVENTHANDLER" />
+    <!--
     <provisionalConfiguration
       type="characterpairmatcher"
       class="com.google.dart.tools.wst.ui.text.DartDocumentRegionEdgeMatcher"
@@ -770,5 +770,24 @@
       </contentTypeIdentifier>
     </validator>
   </extension>
+  
+  <extension point="org.eclipse.ui.workbench.texteditor.hyperlinkDetectorTargets">
+    <target
+      id="org.eclipse.wst.html.SCRIPT.type.APPLICATION/DART"
+      name="%hyperlink.target.script.name"/>
+    <target
+      id="org.eclipse.wst.html.SCRIPT.EVENTHANDLER.type.APPLICATION/DART"
+      name="%hyperlink.target.eventhandler.name"/>
+  </extension>
+  
+  <extension point="org.eclipse.ui.workbench.texteditor.hyperlinkDetectors">
+    <hyperlinkDetector
+      class="com.google.dart.tools.wst.ui.hyperlink.DartHyperlinkDetector"
+      id="com.google.dart.tools.wst.ui.hyperlink.DartHyperlinkDetector"
+      name="%hyperlinkDetector.identifier.name"
+      targetId="org.eclipse.wst.html.SCRIPT.type.APPLICATION/DART">
+    </hyperlinkDetector>
+    
+   </extension>
 
 </plugin>

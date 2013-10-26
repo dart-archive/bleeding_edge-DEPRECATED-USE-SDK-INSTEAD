@@ -28,6 +28,8 @@ import org.eclipse.wst.sse.core.text.IStructuredPartitions;
 import org.eclipse.wst.sse.ui.internal.provisional.style.LineStyleProvider;
 import org.eclipse.wst.xml.core.internal.text.rules.StructuredTextPartitionerForXML;
 
+import java.util.Map;
+
 @SuppressWarnings("restriction")
 public class StructuredTextViewerConfigurationDart extends StructuredTextViewerConfigurationHTML {
 
@@ -121,5 +123,13 @@ public class StructuredTextViewerConfigurationDart extends StructuredTextViewerC
     } else {
       return super.getContentAssistProcessors(sourceViewer, partitionType);
     }
+  }
+
+  @Override
+  @SuppressWarnings("unchecked")
+  protected Map<String, Object> getHyperlinkDetectorTargets(ISourceViewer sourceViewer) {
+    Map<String, Object> targets = super.getHyperlinkDetectorTargets(sourceViewer);
+    targets.put("org.eclipse.wst.html.SCRIPT.type.APPLICATION/DART", null);
+    return targets;
   }
 }

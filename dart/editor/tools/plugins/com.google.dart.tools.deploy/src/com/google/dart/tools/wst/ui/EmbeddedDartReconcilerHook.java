@@ -188,6 +188,14 @@ public class EmbeddedDartReconcilerHook implements ISourceValidator, IValidator 
     return resolveParsedUnit(offset, length);
   }
 
+  public boolean isParsed(int offset, int length) {
+    return parsedUnit != null && partOffset == offset && partLength == length;
+  }
+
+  public boolean isResolved(int offset, int length) {
+    return resolvedUnit != null && partOffset == offset && partLength == length;
+  }
+
   @Override
   public void validate(IRegion dirtyRegion, IValidationContext helper, IReporter reporter) {
     // ISourceValidator
@@ -225,14 +233,6 @@ public class EmbeddedDartReconcilerHook implements ISourceValidator, IValidator 
       return new int[1];
     }
     return starts;
-  }
-
-  private boolean isParsed(int offset, int length) {
-    return parsedUnit != null && partOffset == offset && partLength == length;
-  }
-
-  private boolean isResolved(int offset, int length) {
-    return resolvedUnit != null && partOffset == offset && partLength == length;
   }
 
   /**
