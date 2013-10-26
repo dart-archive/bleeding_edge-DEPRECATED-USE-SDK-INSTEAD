@@ -203,6 +203,11 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   private Type dynamicType;
 
   /**
+   * The type representing the type 'bool'.
+   */
+  private InterfaceType boolType;
+
+  /**
    * The object providing access to the types defined by the language.
    */
   private TypeProvider typeProvider;
@@ -375,10 +380,11 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     isInInstanceVariableInitializer = false;
     isInConstructorInitializer = false;
     isInStaticMethod = false;
+    boolType = typeProvider.getBoolType();
     dynamicType = typeProvider.getDynamicType();
     DISALLOWED_TYPES_TO_EXTEND_OR_IMPLEMENT = new InterfaceType[] {
         typeProvider.getNullType(), typeProvider.getNumType(), typeProvider.getIntType(),
-        typeProvider.getDoubleType(), typeProvider.getBoolType(), typeProvider.getStringType()};
+        typeProvider.getDoubleType(), boolType, typeProvider.getStringType()};
   }
 
   @Override
@@ -4061,7 +4067,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    */
   private boolean checkForNonBoolCondition(Expression condition) {
     Type conditionType = getStaticType(condition);
-    if (conditionType != null && !conditionType.isAssignableTo(typeProvider.getBoolType())) {
+    if (conditionType != null && !conditionType.isAssignableTo(boolType)) {
       errorReporter.reportError(StaticTypeWarningCode.NON_BOOL_CONDITION, condition);
       return true;
     }
@@ -4079,14 +4085,14 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     Expression expression = node.getCondition();
     Type type = getStaticType(expression);
     if (type instanceof InterfaceType) {
-      if (!type.isAssignableTo(typeProvider.getBoolType())) {
+      if (!type.isAssignableTo(boolType)) {
         errorReporter.reportError(StaticTypeWarningCode.NON_BOOL_EXPRESSION, expression);
         return true;
       }
     } else if (type instanceof FunctionType) {
       FunctionType functionType = (FunctionType) type;
       if (functionType.getTypeArguments().length == 0
-          && !functionType.getReturnType().isAssignableTo(typeProvider.getBoolType())) {
+          && !functionType.getReturnType().isAssignableTo(boolType)) {
         errorReporter.reportError(StaticTypeWarningCode.NON_BOOL_EXPRESSION, expression);
         return true;
       }
@@ -4103,7 +4109,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    */
   private boolean checkForNonBoolNegationExpression(Expression expression) {
     Type conditionType = getStaticType(expression);
-    if (conditionType != null && !conditionType.isAssignableTo(typeProvider.getBoolType())) {
+    if (conditionType != null && !conditionType.isAssignableTo(boolType)) {
       errorReporter.reportError(StaticTypeWarningCode.NON_BOOL_NEGATION_EXPRESSION, expression);
       return true;
     }
