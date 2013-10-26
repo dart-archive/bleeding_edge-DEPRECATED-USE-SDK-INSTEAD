@@ -120,7 +120,7 @@ ShadowRoot because it crosses the shadow boundary.
     <div class="todo-item">
       <input class="toggle" type="checkbox" checked="{{todo.done}}">
       <editable-label id="label" value="{{todo.task}}"></editable-label>
-      <button class="destroy" on-click="removeTodo"></button>
+      <button class="destroy" on-click="{{removeTodo}}"></button>
     </div>
   </template>
   <script type="application/dart" src="todo_row.dart"></script>

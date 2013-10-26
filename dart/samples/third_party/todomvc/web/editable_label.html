@@ -6,12 +6,12 @@ BSD-style license that can be found in the LICENSE file.
 <polymer-element name="editable-label">
   <template>
     <template if="{{!editing}}">
-      <label class='edit-label' on-doubleclick="edit">{{value}}</label>
+      <label class='edit-label' on-doubleclick="{{edit}}">{{value}}</label>
     </template>
     <template if="{{editing}}">
-      <form on-submit="update">
+      <form on-submit="{{update}}">
         <input id="edit" class="edit editing"
-               on-blur="update" on-keyup="maybeCancel">
+               on-blur="{{update}}" on-keyup="{{maybeCancel}}">
       </form>
     </template>
   </template>
