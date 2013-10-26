@@ -2121,6 +2121,19 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_nonBoolNegationExpression() throws Exception {
+    Source source = addSource(createSource(//
+        "f(bool pb, pd) {",
+        "  !true;",
+        "  !false;",
+        "  !pb;",
+        "  !pd;",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
   public void test_nonConstantDefaultValue_function_named() throws Exception {
     Source source = addSource(createSource(//
     "f({x : 2 + 3}) {}"));

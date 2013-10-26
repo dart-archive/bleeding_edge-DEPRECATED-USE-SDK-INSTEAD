@@ -389,6 +389,16 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_nonBoolNegationExpression() throws Exception {
+    Source source = addSource(createSource(//
+        "f() {",
+        "  !42;",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticTypeWarningCode.NON_BOOL_NEGATION_EXPRESSION);
+    verify(source);
+  }
+
   public void test_nonTypeAsTypeArgument_notAType() throws Exception {
     Source source = addSource(createSource(//
         "int A;",

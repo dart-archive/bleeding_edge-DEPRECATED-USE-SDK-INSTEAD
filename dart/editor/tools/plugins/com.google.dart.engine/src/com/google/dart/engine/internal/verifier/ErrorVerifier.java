@@ -864,10 +864,14 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
 
   @Override
   public Void visitPrefixExpression(PrefixExpression node) {
+    Expression operand = node.getOperand();
     if (node.getOperator().getType().isIncrementOperator()) {
-      checkForAssignmentToFinal(node.getOperand());
+      checkForAssignmentToFinal(operand);
     }
-    checkForIntNotAssignable(node.getOperand());
+    checkForIntNotAssignable(operand);
+    if (node.getOperator().getType() == TokenType.BANG) {
+      checkForNonBoolNegationExpression(operand);
+    }
     return super.visitPrefixExpression(node);
   }
 
@@ -4086,6 +4090,22 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
         errorReporter.reportError(StaticTypeWarningCode.NON_BOOL_EXPRESSION, expression);
         return true;
       }
+    }
+    return false;
+  }
+
+  /**
+   * Checks to ensure that the given expression is assignable to bool.
+   * 
+   * @param expression the expression expression to test
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see StaticTypeWarningCode#NON_BOOL_NEGATION_EXPRESSION
+   */
+  private boolean checkForNonBoolNegationExpression(Expression expression) {
+    Type conditionType = getStaticType(expression);
+    if (conditionType != null && !conditionType.isAssignableTo(typeProvider.getBoolType())) {
+      errorReporter.reportError(StaticTypeWarningCode.NON_BOOL_NEGATION_EXPRESSION, expression);
+      return true;
     }
     return false;
   }

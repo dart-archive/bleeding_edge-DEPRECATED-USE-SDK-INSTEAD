@@ -133,7 +133,7 @@ public enum StaticTypeWarningCode implements ErrorCode {
   INVOCATION_OF_NON_FUNCTION_EXPRESSION("Cannot invoke a non-function"),
 
   /**
-   * 12.19 Conditional: It is a static type warning if the type of <i>e<sub>1</sub></i> may not be
+   * 12.20 Conditional: It is a static type warning if the type of <i>e<sub>1</sub></i> may not be
    * assigned to bool.
    * <p>
    * 13.5 If: It is a static type warning if the type of the expression <i>b</i> may not be assigned
@@ -150,6 +150,15 @@ public enum StaticTypeWarningCode implements ErrorCode {
    * bool or () &rarr; bool
    */
   NON_BOOL_EXPRESSION("Assertions must be on either a 'bool' or '() -> bool'"),
+
+  /**
+   * 12.28 Unary Expressions: The expression !<i>e</i> is equivalent to the expression
+   * <i>e</i>?<b>false<b> : <b>true</b>.
+   * <p>
+   * 12.20 Conditional: It is a static type warning if the type of <i>e<sub>1</sub></i> may not be
+   * assigned to bool.
+   */
+  NON_BOOL_NEGATION_EXPRESSION("Negation argument must have a static type of 'bool'"),
 
   /**
    * 15.8 Parameterized Types: It is a static type warning if <i>A<sub>i</sub>, 1 &lt;= i &lt;=
