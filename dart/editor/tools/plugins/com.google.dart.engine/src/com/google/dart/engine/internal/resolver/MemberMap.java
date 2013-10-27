@@ -171,6 +171,16 @@ public class MemberMap {
   }
 
   /**
+   * Sets the ExecutableElement at the specified location.
+   * 
+   * @param i some non-zero value less than size
+   * @param value the ExecutableElement value to store in the map
+   */
+  public void setValue(int i, ExecutableElement value) {
+    values[i] = value;
+  }
+
+  /**
    * Initializes {@link #keys} and {@link #values}.
    */
   private void initArrays(int initialCapacity) {

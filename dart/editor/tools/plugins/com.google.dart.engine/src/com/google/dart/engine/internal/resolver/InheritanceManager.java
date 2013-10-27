@@ -646,16 +646,15 @@ public class InheritanceManager {
    */
   private void substituteTypeParametersDownHierarchy(InterfaceType superType, MemberMap map) {
     for (int i = 0; i < map.getSize(); i++) {
-      String key = map.getKey(i);
       ExecutableElement executableElement = map.getValue(i);
       if (executableElement instanceof MethodMember) {
         executableElement = MethodMember.from((MethodMember) executableElement, superType);
-        map.put(key, executableElement);
+        map.setValue(i, executableElement);
       } else if (executableElement instanceof PropertyAccessorMember) {
         executableElement = PropertyAccessorMember.from(
             (PropertyAccessorMember) executableElement,
             superType);
-        map.put(key, executableElement);
+        map.setValue(i, executableElement);
       }
     }
   }
