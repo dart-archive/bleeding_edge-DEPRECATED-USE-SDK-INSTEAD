@@ -870,14 +870,14 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
 
   @Override
   public Void visitPrefixExpression(PrefixExpression node) {
+    TokenType operatorType = node.getOperator().getType();
     Expression operand = node.getOperand();
-    if (node.getOperator().getType().isIncrementOperator()) {
+    if (operatorType == TokenType.BANG) {
+      checkForNonBoolNegationExpression(operand);
+    } else if (operatorType.isIncrementOperator()) {
       checkForAssignmentToFinal(operand);
     }
     checkForIntNotAssignable(operand);
-    if (node.getOperator().getType() == TokenType.BANG) {
-      checkForNonBoolNegationExpression(operand);
-    }
     return super.visitPrefixExpression(node);
   }
 

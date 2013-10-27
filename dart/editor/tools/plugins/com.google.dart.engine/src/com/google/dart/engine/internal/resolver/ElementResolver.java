@@ -292,6 +292,11 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
   private ResolverVisitor resolver;
 
   /**
+   * The element for the library containing the compilation unit being visited.
+   */
+  private LibraryElement definingLibrary;
+
+  /**
    * A flag indicating whether we are running in strict mode. In strict mode, error reporting is
    * based exclusively on the static type information.
    */
@@ -341,7 +346,8 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
    */
   public ElementResolver(ResolverVisitor resolver) {
     this.resolver = resolver;
-    AnalysisOptions options = resolver.getDefiningLibrary().getContext().getAnalysisOptions();
+    this.definingLibrary = resolver.getDefiningLibrary();
+    AnalysisOptions options = definingLibrary.getContext().getAnalysisOptions();
     strictMode = options.getStrictMode();
     enableHints = options.getHint();
     dynamicType = resolver.getTypeProvider().getDynamicType();
@@ -502,8 +508,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
 //            simpleIdentifier,
 //            simpleIdentifier.getName());
       } else {
-        if (element.getLibrary() == null
-            || !element.getLibrary().equals(resolver.getDefiningLibrary())) {
+        if (element.getLibrary() == null || !element.getLibrary().equals(definingLibrary)) {
           // TODO(brianwilkerson) Report this error?
         }
         simpleIdentifier.setStaticElement(element);
@@ -534,7 +539,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
           // defines the prefix, not the prefix's element.
 
           // TODO(brianwilkerson) Report this error?
-          element = resolver.getNameScope().lookup(identifier, resolver.getDefiningLibrary());
+          element = resolver.getNameScope().lookup(identifier, definingLibrary);
           name.setStaticElement(element);
           return null;
         }
@@ -543,7 +548,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
           // TODO(brianwilkerson) We need to understand how the library could ever be null.
           AnalysisEngine.getInstance().getLogger().logError(
               "Found element with null library: " + element.getName());
-        } else if (!library.equals(resolver.getDefiningLibrary())) {
+        } else if (!library.equals(definingLibrary)) {
           // TODO(brianwilkerson) Report this error.
         }
         name.setStaticElement(element);
@@ -647,7 +652,6 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     ConstructorElement constructor;
     SimpleIdentifier name = node.getName();
     InterfaceType interfaceType = (InterfaceType) type;
-    LibraryElement definingLibrary = resolver.getDefiningLibrary();
     if (name == null) {
       constructor = interfaceType.lookUpConstructor(null, definingLibrary);
     } else {
@@ -774,7 +778,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     SimpleIdentifier prefixNode = node.getPrefix();
     if (prefixNode != null) {
       String prefixName = prefixNode.getName();
-      for (PrefixElement prefixElement : resolver.getDefiningLibrary().getPrefixes()) {
+      for (PrefixElement prefixElement : definingLibrary.getPrefixes()) {
         if (prefixElement.getDisplayName().equals(prefixName)) {
           prefixNode.setStaticElement(prefixElement);
           break;
@@ -965,7 +969,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
           }
         }
         if (classElementContext != null) {
-          subtypeManager.ensureLibraryVisited(resolver.getDefiningLibrary());
+          subtypeManager.ensureLibraryVisited(definingLibrary);
           HashSet<ClassElement> subtypeElements = subtypeManager.computeAllSubtypes(classElementContext);
           for (ClassElement subtypeElement : subtypeElements) {
             if (subtypeElement.getMethod(methodName.getName()) != null) {
@@ -1111,11 +1115,11 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     //
     Element prefixElement = prefix.getStaticElement();
     if (prefixElement instanceof PrefixElement) {
-      Element element = resolver.getNameScope().lookup(node, resolver.getDefiningLibrary());
+      Element element = resolver.getNameScope().lookup(node, definingLibrary);
       if (element == null && identifier.inSetterContext()) {
         element = resolver.getNameScope().lookup(
             new SyntheticIdentifier(node.getName() + "="),
-            resolver.getDefiningLibrary());
+            definingLibrary);
       }
       if (element == null) {
         if (identifier.inSetterContext()) {
@@ -1333,9 +1337,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     }
     SimpleIdentifier name = node.getConstructorName();
     String superName = name != null ? name.getName() : null;
-    ConstructorElement element = superType.lookUpConstructor(
-        superName,
-        resolver.getDefiningLibrary());
+    ConstructorElement element = superType.lookUpConstructor(superName, definingLibrary);
     if (element == null) {
       if (name != null) {
         resolver.reportError(
@@ -1583,7 +1585,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
         if (getterReturnType instanceof InterfaceType) {
           MethodElement callMethod = ((InterfaceType) getterReturnType).lookUpMethod(
               CALL_METHOD_NAME,
-              resolver.getDefiningLibrary());
+              definingLibrary);
           if (callMethod != null) {
             return resolveArgumentsToParameters(false, argumentList, callMethod);
           }
@@ -1610,7 +1612,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
         // "call" invocation
         MethodElement callMethod = ((InterfaceType) type).lookUpMethod(
             CALL_METHOD_NAME,
-            resolver.getDefiningLibrary());
+            definingLibrary);
         if (callMethod != null) {
           ParameterElement[] parameters = callMethod.getParameters();
           return resolveArgumentsToParameters(false, argumentList, parameters);
@@ -1645,7 +1647,6 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
   private Element findImportWithoutPrefix(SimpleIdentifier identifier) {
     Element element = null;
     Scope nameScope = resolver.getNameScope();
-    LibraryElement definingLibrary = resolver.getDefiningLibrary();
     for (ImportElement importElement : definingLibrary.getImports()) {
       PrefixElement prefixElement = importElement.getPrefix();
       if (prefixElement != null) {
@@ -1748,9 +1749,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       return true;
     } else if (type instanceof InterfaceType) {
       ClassElement classElement = ((InterfaceType) type).getElement();
-      MethodElement methodElement = classElement.lookUpMethod(
-          CALL_METHOD_NAME,
-          resolver.getDefiningLibrary());
+      MethodElement methodElement = classElement.lookUpMethod(CALL_METHOD_NAME, definingLibrary);
       return methodElement != null;
     }
     return false;
@@ -1819,9 +1818,9 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       InterfaceType interfaceType = (InterfaceType) type;
       PropertyAccessorElement accessor;
       if (target instanceof SuperExpression) {
-        accessor = interfaceType.lookUpGetterInSuperclass(getterName, resolver.getDefiningLibrary());
+        accessor = interfaceType.lookUpGetterInSuperclass(getterName, definingLibrary);
       } else {
-        accessor = interfaceType.lookUpGetter(getterName, resolver.getDefiningLibrary());
+        accessor = interfaceType.lookUpGetter(getterName, definingLibrary);
       }
       if (accessor != null) {
         return accessor;
@@ -1856,7 +1855,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     visitedInterfaces.add(targetClass);
     if (includeTargetType) {
       PropertyAccessorElement getter = targetType.getGetter(getterName);
-      if (getter != null && getter.isAccessibleIn(resolver.getDefiningLibrary())) {
+      if (getter != null && getter.isAccessibleIn(definingLibrary)) {
         return getter;
       }
     }
@@ -1900,13 +1899,11 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     type = resolveTypeParameter(type);
     if (type instanceof InterfaceType) {
       InterfaceType interfaceType = (InterfaceType) type;
-      ExecutableElement member = interfaceType.lookUpMethod(
-          memberName,
-          resolver.getDefiningLibrary());
+      ExecutableElement member = interfaceType.lookUpMethod(memberName, definingLibrary);
       if (member != null) {
         return member;
       }
-      member = interfaceType.lookUpGetter(memberName, resolver.getDefiningLibrary());
+      member = interfaceType.lookUpGetter(memberName, definingLibrary);
       if (member != null) {
         return member;
       }
@@ -2045,9 +2042,9 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       InterfaceType interfaceType = (InterfaceType) type;
       MethodElement method;
       if (target instanceof SuperExpression) {
-        method = interfaceType.lookUpMethodInSuperclass(methodName, resolver.getDefiningLibrary());
+        method = interfaceType.lookUpMethodInSuperclass(methodName, definingLibrary);
       } else {
-        method = interfaceType.lookUpMethod(methodName, resolver.getDefiningLibrary());
+        method = interfaceType.lookUpMethod(methodName, definingLibrary);
       }
       if (method != null) {
         return method;
@@ -2082,7 +2079,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     visitedInterfaces.add(targetClass);
     if (includeTargetType) {
       MethodElement method = targetType.getMethod(methodName);
-      if (method != null && method.isAccessibleIn(resolver.getDefiningLibrary())) {
+      if (method != null && method.isAccessibleIn(definingLibrary)) {
         return method;
       }
     }
@@ -2128,9 +2125,9 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       InterfaceType interfaceType = (InterfaceType) type;
       PropertyAccessorElement accessor;
       if (target instanceof SuperExpression) {
-        accessor = interfaceType.lookUpSetterInSuperclass(setterName, resolver.getDefiningLibrary());
+        accessor = interfaceType.lookUpSetterInSuperclass(setterName, definingLibrary);
       } else {
-        accessor = interfaceType.lookUpSetter(setterName, resolver.getDefiningLibrary());
+        accessor = interfaceType.lookUpSetter(setterName, definingLibrary);
       }
       if (accessor != null) {
         return accessor;
@@ -2165,7 +2162,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     visitedInterfaces.add(targetClass);
     if (includeTargetType) {
       PropertyAccessorElement setter = targetType.getSetter(setterName);
-      if (setter != null && setter.isAccessibleIn(resolver.getDefiningLibrary())) {
+      if (setter != null && setter.isAccessibleIn(definingLibrary)) {
         return setter;
       }
     }
@@ -2212,7 +2209,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
   private boolean memberFoundInSubclass(Element element, String memberName, boolean asMethod,
       boolean asAccessor) {
     if (element instanceof ClassElement) {
-      subtypeManager.ensureLibraryVisited(resolver.getDefiningLibrary());
+      subtypeManager.ensureLibraryVisited(definingLibrary);
       HashSet<ClassElement> subtypeElements = subtypeManager.computeAllSubtypes((ClassElement) element);
       for (ClassElement subtypeElement : subtypeElements) {
         if (asMethod && subtypeElement.getMethod(memberName) != null) {
@@ -2315,7 +2312,6 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       ConstructorElement constructor;
       {
         InterfaceType interfaceType = new InterfaceTypeImpl((ClassElement) element);
-        LibraryElement definingLibrary = resolver.getDefiningLibrary();
         constructor = interfaceType.lookUpConstructor(name, definingLibrary);
       }
       // not a constructor
@@ -2499,9 +2495,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
         //
         final String name = ((SimpleIdentifier) target).getName() + "." + methodName;
         Identifier functionName = new SyntheticIdentifier(name);
-        Element element = resolver.getNameScope().lookup(
-            functionName,
-            resolver.getDefiningLibrary());
+        Element element = resolver.getNameScope().lookup(functionName, definingLibrary);
         if (element != null) {
           // TODO(brianwilkerson) This isn't a method invocation, it's a function invocation where
           // the function name is a prefixed identifier. Consider re-writing the AST.
@@ -2526,7 +2520,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     //
     // Look first in the lexical scope.
     //
-    Element element = resolver.getNameScope().lookup(methodName, resolver.getDefiningLibrary());
+    Element element = resolver.getNameScope().lookup(methodName, definingLibrary);
     if (element == null) {
       //
       // If it isn't defined in the lexical scope, and the invocation is within a class, then look
@@ -2670,7 +2664,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
    * @return the element to which the identifier could be resolved
    */
   private Element resolveSimpleIdentifier(SimpleIdentifier node) {
-    Element element = resolver.getNameScope().lookup(node, resolver.getDefiningLibrary());
+    Element element = resolver.getNameScope().lookup(node, definingLibrary);
     if (element instanceof PropertyAccessorElement && node.inSetterContext()) {
       PropertyInducingElement variable = ((PropertyAccessorElement) element).getVariable();
       if (variable != null) {
@@ -2691,7 +2685,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     } else if (element == null && node.inSetterContext()) {
       element = resolver.getNameScope().lookup(
           new SyntheticIdentifier(node.getName() + "="),
-          resolver.getDefiningLibrary());
+          definingLibrary);
     }
     ClassElement enclosingClass = resolver.getEnclosingClass();
     if (element == null && enclosingClass != null) {
