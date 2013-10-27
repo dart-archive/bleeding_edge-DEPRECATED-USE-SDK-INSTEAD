@@ -17,7 +17,6 @@ package com.google.dart.engine.services.change;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.dart.engine.formatter.edit.Edit;
 import com.google.dart.engine.source.Source;
 
 import java.util.List;

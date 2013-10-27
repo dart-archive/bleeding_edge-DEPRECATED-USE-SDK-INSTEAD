@@ -15,9 +15,9 @@ package com.google.dart.tools.ui.refactoring;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.dart.engine.formatter.edit.Edit;
 import com.google.dart.engine.services.change.Change;
 import com.google.dart.engine.services.change.CompositeChange;
+import com.google.dart.engine.services.change.Edit;
 import com.google.dart.engine.services.change.MergeCompositeChange;
 import com.google.dart.engine.services.change.SourceChange;
 import com.google.dart.engine.services.correction.CorrectionImage;

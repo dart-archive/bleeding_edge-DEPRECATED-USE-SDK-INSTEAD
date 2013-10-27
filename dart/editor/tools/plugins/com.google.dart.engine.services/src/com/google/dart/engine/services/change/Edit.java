@@ -11,30 +11,15 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.engine.formatter.edit;
+package com.google.dart.engine.services.change;
 
+import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.source.SourceRange;
 
 /**
- * Describes a text edit. Edits are executed by applying them to a document via an
- * {@link EditOperation}.
- * <p>
- * The richness of edit semantics is up to the implementation to define. For example, depending on
- * the concrete implementation:
- * <ul>
- * <li>documents might be sophisticated abstractions (such as {@code jface.text.IDocument}) or
- * simple Strings.</li>
- * <li>results of edits might be a formatted document or an abstraction supporting the edit (such as
- * an undo operation)</li>
- * </ul>
- * <p>
- * results of edits might be a formatted document or an abstraction supporting the edit (such as an
- * undo operation).
- * 
- * @coverage dart.engine.formatter
+ * Describes a text edit. Edits are executed by applying them to a {@link Source}.
  */
 public class Edit {
-
   /**
    * The offset at which to apply the edit.
    */

@@ -16,11 +16,11 @@ package com.google.dart.engine.services.internal.refactoring;
 
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.PrefixElement;
-import com.google.dart.engine.formatter.edit.Edit;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchMatch;
 import com.google.dart.engine.services.change.Change;
 import com.google.dart.engine.services.change.CompositeChange;
+import com.google.dart.engine.services.change.Edit;
 import com.google.dart.engine.services.change.SourceChange;
 import com.google.dart.engine.services.change.SourceChangeManager;
 import com.google.dart.engine.services.refactoring.NamingConventions;

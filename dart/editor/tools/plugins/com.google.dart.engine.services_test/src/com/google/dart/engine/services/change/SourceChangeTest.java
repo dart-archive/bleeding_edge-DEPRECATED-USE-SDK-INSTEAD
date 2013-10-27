@@ -14,7 +14,6 @@
 
 package com.google.dart.engine.services.change;
 
-import com.google.dart.engine.formatter.edit.Edit;
 import com.google.dart.engine.source.Source;
 
 import junit.framework.TestCase;
