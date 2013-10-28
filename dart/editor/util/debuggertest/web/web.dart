@@ -13,18 +13,26 @@ import '../lib/pets.dart';
 
 num rotatePos = 0;
 
-void main() {
-  query("#text").text = "Welcome to Dart!";
+void main([var args, var message]) {
+  querySelector("#text").text = "Welcome to Dart!";
 
-  query("#text").onClick.listen(rotateText);
+  querySelector("#text").onClick.listen(rotateText);
 
   testAnimals();
+
+//  if (args == null || args.isEmpty) {
+//    Uri uri = Uri.parse(window.location.href);
+//    //Uri uri = Uri.base;
+//    Isolate.spawnUri(uri.resolve('web.dart'), ['foooooooooo'], null);
+//  } else {
+//    print(args);
+//  }
 }
 
 void rotateText(Event event) {
   rotatePos += 360;
 
-  var textElement = query("#text");
+  var textElement = querySelector("#text");
 
   textElement.style.transition = "1s";
   textElement.style.transform = "rotate(${rotatePos}deg)";
@@ -41,9 +49,10 @@ void testAnimals() {
 
   unittestConfiguration;
 
-  spawnAnimalsIsolate();
-  spawnAnimalsIsolate();
-  spawnAnimalsIsolate();
+  // Dartium does not support isolates
+//  spawnAnimalsIsolate(1);
+//  spawnAnimalsIsolate(2);
+//  spawnAnimalsIsolate(3);
 
   tempCat.color;
   tempCat.color = "dsdf";
@@ -54,9 +63,11 @@ void testAnimals() {
 
   tempCat.performAction();
 
+  Dog.getStaticDog();
+
   checkTypes();
 
-  createARealBigArray();
+  List bigArray = createARealBigArray();
 
   Ferret ferret = new Ferret("Fanny");
 

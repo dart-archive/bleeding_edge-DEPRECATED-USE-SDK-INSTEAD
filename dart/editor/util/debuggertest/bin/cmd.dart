@@ -15,9 +15,9 @@ void main() {
   print("starting debuggertest");
 
   // Spawn some isolates...
-//  pets.spawnAnimalsIsolate();
-//  pets.spawnAnimalsIsolate();
-//  pets.spawnAnimalsIsolate();
+  pets.spawnAnimalsIsolate(1);
+  pets.spawnAnimalsIsolate(2);
+  pets.spawnAnimalsIsolate(3);
 
   var cat = pets.SPARKY;
 
@@ -30,15 +30,15 @@ void main() {
 
   cat.performAction();
 
-  var fooBarBaz = 1 + 2 + 3 
+  var fooBarBaz = 1 + 2 + 3
       + 4 + 5;
-  
+
   pets.checkTypes();
 
-  pets.createARealBigArray();
+  List bigArray = pets.createARealBigArray();
 
   pets.Ferret ferret = new pets.Ferret("Fanny");
-  
+
   var dog = new pets.Dog("Scooter");
 
   dog.performAction();
@@ -51,7 +51,7 @@ void main() {
   new Timer(new Duration(seconds: 5), () {
     print('delayed closure');
   });
-  
+
   var m = pets.getMapOfAnimals();
 
   print(m);

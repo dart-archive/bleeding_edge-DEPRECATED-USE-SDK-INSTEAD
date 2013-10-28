@@ -9,29 +9,23 @@ int intVar = 123;
 void main() {
   print('main isolate started');
 
-  SendPort sendPort = spawnFunction(isolateEntry);
-
   ReceivePort receivePort = new ReceivePort();
 
-  sendPort.send('hey', receivePort.toSendPort());
+  Isolate.spawn(isolateEntry, receivePort.sendPort).then((Isolate isolate) {
+    SendPort port = receivePort.sendPort;
 
-  //String foo = 1.0;
+    port.send('hey');
 
-  receivePort.receive((message, _) {
-    print('main isolate received: $message');
-    receivePort.close();
-    print('main isolate exiting');
+    receivePort.listen((message) {
+      print('main isolate received: $message');
+      receivePort.close();
+      print('main isolate exiting');
+    });
   });
 }
 
-void isolateEntry() {
+void isolateEntry(SendPort port) {
   print('child isolate started');
-
-  port.receive((message, SendPort port) {
-    strVar = message;
-    print('child isolate received: $message');
-    //String foo = 1.0;
-    port.send('there');
-    print('child isolate exiting');
-  });
+  port.send('hey there');
+  print('child isolate exiting');
 }

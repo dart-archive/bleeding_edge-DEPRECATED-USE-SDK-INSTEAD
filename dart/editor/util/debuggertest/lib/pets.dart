@@ -104,6 +104,8 @@ class FloppyEars {
 class Dog extends FloppyEars implements Animal {
   static final String BEST_DOG_NAME = "Chips";
 
+  static int staticDogCount = 1;
+
   String name;
 
   bool collar;
@@ -125,6 +127,8 @@ class Dog extends FloppyEars implements Animal {
   bool livesWith(Animal other) => true;
 
   static getStaticDog() {
+    staticDogCount++;
+
     return new Dog("BowWow");
   }
 
@@ -218,17 +222,17 @@ void testInfinity() {
 /**
  * Create some isolates.
  */
-void spawnAnimalsIsolate() {
-  spawnFunction(_spawnAnimals);
+void spawnAnimalsIsolate(int count) {
+  Isolate.spawn(_spawnAnimals, 'isolate ${count}');
 }
 
-void _spawnAnimals() {
+void _spawnAnimals(var message) {
   int count = new Random().nextInt(10);
 
-  print("isolate started");
+  print("${message} started");
 
   new Timer(new Duration(seconds: count), () {
-    print("isolate finished after ${count} seconds");
+    print("${message} finished after ${count} seconds");
   });
 }
 
@@ -274,7 +278,7 @@ void checkTypes() {
   print("types");
 }
 
-void createARealBigArray() {
+List createARealBigArray() {
   var arr = new List<int>(120);
 
   for (int i = 0; i < arr.length; i++) {
@@ -284,4 +288,6 @@ void createARealBigArray() {
   print("big array created");
 
   arr[0]++;
+
+  return arr;
 }
