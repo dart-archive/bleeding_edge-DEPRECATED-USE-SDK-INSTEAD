@@ -6,6 +6,7 @@ import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
 import com.google.dart.tools.core.internal.builder.AnalysisWorker;
 import com.google.dart.tools.core.internal.builder.DeltaProcessor;
+import com.google.dart.tools.core.internal.builder.IndexUpdater;
 import com.google.dart.tools.core.internal.builder.ProjectUpdater;
 
 import org.eclipse.core.resources.IProject;
@@ -64,13 +65,14 @@ public class WorkspaceDeltaProcessor implements IResourceChangeListener {
                 // thus we traverse those changes here using the same mechanism as the builder
                 Project project = manager.getProject(res.getProject());
                 ProjectUpdater updater = new ProjectUpdater();
+                IndexUpdater indexUpdater = new IndexUpdater(manager.getIndex());
                 DeltaProcessor processor = new DeltaProcessor(project);
                 processor.addDeltaListener(updater);
+                processor.addDeltaListener(indexUpdater);
                 processor.traverse(delta);
                 updater.applyChanges();
                 AnalysisContext context = manager.getContext(res);
                 startBackgroundAnalysis(project, context);
-
                 return false;
               }
               return true;

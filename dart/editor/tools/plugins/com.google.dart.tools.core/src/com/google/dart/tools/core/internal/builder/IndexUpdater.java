@@ -37,6 +37,24 @@ public class IndexUpdater extends DeltaAdapter {
   }
 
   @Override
+  public void packageSourceContainerRemoved(SourceContainerDeltaEvent event) {
+    SourceContainer sourceContainer = event.getSourceContainer();
+    if (sourceContainer == null) {
+      return;
+    }
+    index.removeSources(event.getContext(), sourceContainer);
+  }
+
+  @Override
+  public void packageSourceRemoved(SourceDeltaEvent event) {
+    Source source = event.getSource();
+    if (source == null) {
+      return;
+    }
+    index.removeSource(event.getContext(), source);
+  }
+
+  @Override
   public void sourceContainerRemoved(SourceContainerDeltaEvent event) {
     SourceContainer sourceContainer = event.getSourceContainer();
     if (sourceContainer == null) {
@@ -53,4 +71,5 @@ public class IndexUpdater extends DeltaAdapter {
     }
     index.removeSource(event.getContext(), source);
   }
+
 }
