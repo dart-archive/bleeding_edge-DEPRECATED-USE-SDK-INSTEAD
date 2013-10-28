@@ -6,7 +6,6 @@ BSD-style license that can be found in the LICENSE file.
 -->
 <link rel="import" href="task_element.html">
 <link rel="import" href="task_form_element.html">
-<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css">
 <polymer-element name="tracker-app">
   <template>
     <style>
@@ -35,14 +34,14 @@ BSD-style license that can be found in the LICENSE file.
 
         <template if="{{!usingForm}}">
           <div class="col-md-2">
-            <button id="new-task-button" on-click="showEmptyForm"
+            <button id="new-task-button" on-click="{{showEmptyForm}}"
                 type="button" class="btn btn-primary">
               Add task
             </button>
           </div>
           <div class="col-md-2">
              <input type="text" id="search-input" class="form-control"
-                on-keyup="search" value="{{searchParam}}" placeholder="Search">
+                on-keyup="{{search}}" value="{{searchParam}}" placeholder="Search">
           </div>
         </template>
       </div>
@@ -53,8 +52,8 @@ BSD-style license that can be found in the LICENSE file.
             <div>
               <div class="element-container">
                 <task-form-element task="{{newTask}}"
-                    on-notneeded="showEmptyForm"
-                    on-cancelform="toggleFormDisplay">
+                    on-notneeded="{{showEmptyForm}}"
+                    on-cancelform="{{toggleFormDisplay}}">
                 </task-form-element>
               </div>
             </div>

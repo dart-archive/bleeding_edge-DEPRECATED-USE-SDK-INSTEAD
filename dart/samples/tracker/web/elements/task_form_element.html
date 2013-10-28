@@ -28,16 +28,16 @@ BSD-style license that can be found in the LICENSE file.
       }
     </style>
 
-    <form on-submit="createOrUpdateTask">
+    <form on-submit="{{createOrUpdateTask}}">
       <!-- Can't delete a form for creating a new task. -->
       <template if="{{task.saved}}">
-        <div on-click="deleteTask"
+        <div on-click="{{deleteTask}}"
             class="delete-task glyphicon glyphicon-remove"></div>
       </template>
 
       <div class="field">
         <textarea class="form-control" placeholder="Add title here"
-            value="{{task.title}}" on-keyup="validateTitle"></textarea>
+            value="{{task.title}}" on-keyup="{{validateTitle}}"></textarea>
         <span class="chars-left">{{maxTitleLength - task.title.length}}</span>
 
         <div class="error" hidden?="{{titleErrorMessage.isEmpty}}">
@@ -48,7 +48,7 @@ BSD-style license that can be found in the LICENSE file.
       <div class="field">
         <textarea rows="5" class="form-control"
             placeholder="Add description here" value="{{task.description}}"
-            on-keyup="validateDescription"></textarea>
+            on-keyup="{{validateDescription}}"></textarea>
         <span class="chars-left">
           {{maxDescriptionLength - task.description.length}}
         </span>
@@ -68,7 +68,7 @@ BSD-style license that can be found in the LICENSE file.
         <button type="submit" class="btn btn-default">
           {{submitLabel}}
         </button>&nbsp;
-        <button type="button" on-click="dispatchCancelForm"
+        <button type="button" on-click="{{dispatchCancelForm}}"
             class="btn btn-link">Cancel
         </button>
       </div>

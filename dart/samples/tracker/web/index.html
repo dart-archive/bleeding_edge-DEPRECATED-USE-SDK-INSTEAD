@@ -11,12 +11,17 @@ BSD-style license that can be found in the LICENSE file.
     <title>Tracker</title>
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="index.css">
+    <link rel="stylesheet" href="css/index.css">
+    <link rel="stylesheet" href="css/third_party/bootstrap.min.css">
 
-    <link rel="import" href="tracker_app.html">
-    <script src="packages/polymer/boot.js"></script>
+    <link rel="import" href="elements/tracker_app.html">
+    <script type="application/dart">
+      import "package:polymer/init.dart";
+      export "package:polymer/init.dart";
+    </script>
+    <script src="packages/browser/dart.js"></script>
   </head>
-  <body>
+  <body>    
     <tracker-app></tracker-app>
   </body>
 </html>

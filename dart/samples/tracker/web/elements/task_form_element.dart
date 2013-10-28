@@ -10,7 +10,7 @@ import 'dart:html';
 import 'dart:math';
 
 @CustomTag('task-form-element')
-class TaskFormElement extends PolymerElement with Observable {
+class TaskFormElement extends PolymerElement {
   bool get applyAuthorStyles => true;
   @observable Task task;
   @observable String titleErrorMessage = '';
@@ -23,8 +23,10 @@ class TaskFormElement extends PolymerElement with Observable {
   @observable String previousStatus = '';
   @observable String submitLabel = '';
 
-  inserted() {
-    super.inserted();
+  TaskFormElement.created() : super.created();
+
+  enteredView() {
+    super.enteredView();
     submitLabel = task.saved ? 'Update' : 'Create';
     statusSelectedIndex = taskStatusOptions.indexOf(task.status);
     if (!task.saved) {

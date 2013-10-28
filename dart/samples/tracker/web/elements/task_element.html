@@ -26,7 +26,7 @@ BSD-style license that can be found in the LICENSE file.
 
     <template if="{{!usingForm}}">
       <div>
-        <div on-click="toggleFormDisplay"
+        <div on-click="{{toggleFormDisplay}}"
             class="nav-glyph glyphicon glyphicon-plus">
         </div>
         <div class="element-container">{{task.title}}</div>
@@ -35,13 +35,13 @@ BSD-style license that can be found in the LICENSE file.
 
     <template if="{{usingForm}}">
       <div>
-        <div on-click="toggleFormDisplay"
+        <div on-click="{{toggleFormDisplay}}"
             class="nav-glyph glyphicon glyphicon-minus">
         </div>
         <div class="element-container">
           <task-form-element task="{{task}}"
-              on-notneeded="toggleFormDisplay"
-              on-cancelform="toggleFormDisplay">
+              on-notneeded="{{toggleFormDisplay}}"
+              on-cancelform="{{toggleFormDisplay}}">
           </task-form-element>
         </div>
       </div>

@@ -9,7 +9,7 @@ import 'package:tracker/models.dart';
 import 'package:tracker/seed.dart' as seed;
 
 @CustomTag('tracker-app')
-class TrackerApp extends PolymerElement with Observable {
+class TrackerApp extends PolymerElement {
   bool get applyAuthorStyles => true;
   @observable final ObservableList<Task> tasks = toObservable([]);
   @observable Tracker app;
@@ -26,8 +26,7 @@ class TrackerApp extends PolymerElement with Observable {
   // search param.
   List<Task> filteredOutTasks = [];
 
-  TrackerApp() {
-    app = appModel;
+  TrackerApp.created() : super.created() {
     appModel.tasks = tasks;
 
     tasks.changes.listen((List<ChangeRecord> changes) {

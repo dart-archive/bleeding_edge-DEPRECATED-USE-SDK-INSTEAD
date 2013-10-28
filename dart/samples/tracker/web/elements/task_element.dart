@@ -4,11 +4,17 @@
 
 library tracker.web.task_element;
 
+import 'dart:html';
+
 import 'package:polymer/polymer.dart';
 import 'package:tracker/models.dart';
 
 @CustomTag('task-element')
-class TaskElement extends PolymerElement with Observable {
+class TaskElement extends LIElement with Polymer, Observable {
+  TaskElement.created() : super.created() {
+    polymerCreated();
+  }
+
   bool get applyAuthorStyles => true;
   @observable Task task;
   @observable bool usingForm = false;
