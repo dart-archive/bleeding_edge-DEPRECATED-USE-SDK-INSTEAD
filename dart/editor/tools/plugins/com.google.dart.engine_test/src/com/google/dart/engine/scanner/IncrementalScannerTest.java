@@ -13,23 +13,83 @@
  */
 package com.google.dart.engine.scanner;
 
+import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.error.GatheringErrorListener;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.TestSource;
 
-import junit.framework.TestCase;
+public class IncrementalScannerTest extends EngineTestCase {
 
-public class IncrementalScannerTest extends TestCase {
-  public void test_rescan_addedToIdentifier() {
+  public void test_rescan_addedBeforeIdentifier1() {
+    assertTokens(//
+        "a + b;",
+        "xa + b;");
+  }
+
+  public void test_rescan_addedBeforeIdentifier2() {
+    assertTokens(//
+        "a + b;",
+        "a + xb;");
+  }
+
+  public void test_rescan_addedNewIdentifier1() {
+    assertTokens(//
+        "a;  c;",
+        "a; b c;");
+  }
+
+  public void test_rescan_addedNewIdentifier2() {
+    assertTokens(//
+        "a;  c;",
+        "a;b  c;");
+  }
+
+  public void test_rescan_addedToIdentifier1() {
     assertTokens(//
         "a + b;",
         "abs + b;");
+  }
+
+  public void test_rescan_addedToIdentifier2() {
+    assertTokens(//
+        "a + b;",
+        "a + by;");
+  }
+
+  public void test_rescan_appendWhitespace1() {
+    assertTokens(//
+        "a + b;",
+        "a + b; ");
+  }
+
+  public void test_rescan_appendWhitespace2() {
+    assertTokens(//
+        "a + b; ",
+        "a + b;  ");
   }
 
   public void test_rescan_insertedPeriod() {
     assertTokens(//
         "a + b;",
         "a + b.;");
+  }
+
+  public void test_rescan_insertWhitespace() {
+    assertTokens(//
+        "a + b;",
+        "a  + b;");
+  }
+
+  public void test_rescan_insertWhitespaceWithMultipleComments() {
+    assertTokens(//
+        createSource(//
+            "//comment",
+            "//comment2",
+            "a + b;"),
+        createSource(//
+            "//comment",
+            "//comment2",
+            "a  + b;"));
   }
 
   public void test_rescan_oneFunctionToTwo() {

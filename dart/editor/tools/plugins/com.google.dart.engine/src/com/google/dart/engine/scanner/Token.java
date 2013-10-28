@@ -240,6 +240,7 @@ public class Token {
     token = token.getNext();
     while (token != null) {
       tail = tail.setNext(token.copy());
+      token = token.getNext();
     }
     return head;
   }
