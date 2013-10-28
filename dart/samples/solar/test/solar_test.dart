@@ -6,8 +6,6 @@ library solar_test;
 
 import '../web/solar.dart' as solar;
 
-// @static-clean
-
 /**
  * This test exists to ensure that the solar sample compiles without errors.
  */

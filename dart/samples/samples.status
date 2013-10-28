@@ -80,3 +80,17 @@ build_dart: Skip
 
 [ $arch == simmips ]
 *: Skip
+
+[ $compiler == dartanalyzer || $compiler == dart2analyzer ]
+chat/test/chat_server_test: StaticWarning
+swarm/test/swarm_test: StaticWarning
+swarm/test/swarm_ui_lib/layout/layout_test: StaticWarning
+swarm/test/swarm_ui_lib/observable/observable_test: StaticWarning
+swarm/test/swarm_ui_lib/touch/touch_test: StaticWarning
+swarm/test/swarm_ui_lib/util/util_test: StaticWarning
+swarm/test/swarm_ui_lib/view/view_test: StaticWarning
+third_party/todomvc/test/listorder_test: StaticWarning
+third_party/todomvc/test/mainpage_test: StaticWarning
+third_party/todomvc/test/markdone_shadow_test: StaticWarning
+third_party/todomvc/test/markdone_test: StaticWarning
+

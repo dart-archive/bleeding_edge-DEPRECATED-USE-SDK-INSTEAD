@@ -6,8 +6,6 @@ library sunflower_test;
 
 import '../web/sunflower.dart' as sunflower;
 
-// @static-clean
-
 /**
  * This test exists to ensure that the sunflower sample compiles without errors.
  */

@@ -7,8 +7,6 @@ library build_dart_simple_test;
 import '../build.dart' as build_dart_simple;
 import '../test.dart' as test1;
 
-// @static-clean
-
 /**
  * This test exists to ensure that the build_dart_simple sample compiles
  * without errors.

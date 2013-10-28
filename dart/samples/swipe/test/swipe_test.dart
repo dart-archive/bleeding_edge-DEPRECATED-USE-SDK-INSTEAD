@@ -6,8 +6,6 @@ library swipe_test;
 
 import '../web/swipe.dart' as swipe;
 
-// @static-clean
-
 /**
  * This test exists to ensure that the swipe sample compiles without errors.
  */

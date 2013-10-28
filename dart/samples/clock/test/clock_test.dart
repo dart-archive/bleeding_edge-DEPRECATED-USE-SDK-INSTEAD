@@ -6,8 +6,6 @@ library clock_test;
 
 import '../web/clock.dart' as clock;
 
-// @static-clean
-
 /**
  * This test exists to ensure that the clock sample compiles without errors.
  */
