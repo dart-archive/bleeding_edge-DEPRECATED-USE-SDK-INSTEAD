@@ -128,6 +128,9 @@ public class WebkitScript {
     return url.startsWith("chrome-extension://");
   }
 
+  /**
+   * Determines whether this script is a user extension script.
+   */
   public boolean isContentScript() {
     return isContentScript;
   }
@@ -165,7 +168,11 @@ public class WebkitScript {
 
   @Override
   public String toString() {
-    return "[" + url + "," + scriptId + "]";
+    if (isContentScript()) {
+      return "[" + url + "," + scriptId + ",isContentScript=" + isContentScript() + "]";
+    } else {
+      return "[" + url + "," + scriptId + "]";
+    }
   }
 
   private void patchupScriptUrl() {

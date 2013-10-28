@@ -33,6 +33,7 @@ import com.google.dart.tools.debug.core.webkit.WebkitDom.InspectorListener;
 import com.google.dart.tools.debug.core.webkit.WebkitPage;
 import com.google.dart.tools.debug.core.webkit.WebkitRemoteObject;
 import com.google.dart.tools.debug.core.webkit.WebkitResult;
+import com.google.dart.tools.debug.core.webkit.WebkitScript;
 
 import org.eclipse.core.resources.IMarkerDelta;
 import org.eclipse.core.resources.IProject;
@@ -372,6 +373,11 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
       public void debuggerResumed() {
         debugThread.handleDebuggerResumed();
       }
+
+      @Override
+      public void debuggerScriptParsed(WebkitScript script) {
+        checkForDebuggerExtension(script);
+      }
     });
     connection.getDebugger().enable();
 
@@ -552,6 +558,29 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
 
   protected boolean shouldUseSourceMapping() {
     return DartDebugCorePlugin.getPlugin().getUseSourceMaps();
+  }
+
+  /**
+   * Check for the presence of Chrome extensions content scripts. It seems like many (all?) of these
+   * prevent debugging from working.
+   * 
+   * @param script the Debugger.scriptParsed event
+   * @see dartbug.com/10298
+   */
+  private void checkForDebuggerExtension(WebkitScript script) {
+    // {"method":"Debugger.scriptParsed","params":{"startLine":0,"libraryId":0,"endLine":154,
+    //   "startColumn":0,"scriptId":"26","url":"chrome-extension://ognampngfcbddbfemdapefohjiobgbdl/data_loader.js",
+    //   "isContentScript":true,"endColumn":1}}
+
+    if (script.isContentScript() && script.isChromeExtensionUrl()) {
+      DartDebugCorePlugin.logWarning("Chrome extension content script detected: " + script);
+
+      writeToStdout("WARNING: Chrome content script extension detected. Many of these extensions "
+          + "interfere with the debug\nexperience, including preventing breakpoints from working. "
+          + "These extensions include but are not limited\nto SpeedTracer and the WebGL inspector. "
+          + "You can disable them in Dartium via Tools > Extensions.");
+      writeToStdout("(content script extension: " + script.getUrl() + ")");
+    }
   }
 
   private PauseOnExceptionsType getPauseType() {

@@ -31,6 +31,7 @@ import java.util.List;
 class DartiumStreamMonitor implements IStreamMonitor, WebkitConsole.ConsoleListener {
   private final static String FAILED_TO_LOAD = "Failed to load resource";
   private final static String CHROME_THUMB = "chrome://thumb/";
+  //private final static String CHROME_NEW_TAB = "chrome://newtab/";
 
   private List<IStreamListener> listeners = new ArrayList<IStreamListener>();
 
@@ -136,6 +137,15 @@ class DartiumStreamMonitor implements IStreamMonitor, WebkitConsole.ConsoleListe
 
     // Ignore all "failed to load" messages from chrome://thumb/... urls.
     if (message.startsWith(FAILED_TO_LOAD) && url.startsWith(CHROME_THUMB)) {
+      return true;
+    }
+
+    // Ignore invalid -webkit property messages.
+    // {"method":"Console.messageAdded","params":{"message":{"timestamp":1.382876131132117E9,
+    //   "text":"Invalid CSS property name: -webkit-touch-callout","level":"warning","source":"css",
+    //   "column":1,"line":1886,"repeatCount":1,"type":"log","url":"chrome://newtab/"}}}
+    // && url.startsWith(CHROME_NEW_TAB)) {
+    if (message.indexOf("Invalid CSS property name: -webkit") != -1) {
       return true;
     }
 
