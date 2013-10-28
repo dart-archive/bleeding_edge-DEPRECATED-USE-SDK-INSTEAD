@@ -21,6 +21,10 @@ third_party/todomvc: Pass, Fail, Timeout # Flaky? Issue 12865
 
 [ $runtime == safari ]
 promise_based_test: Skip
+swarm/test/swarm_test: Pass, Fail # Issue 14523
+
+[ $runtime == chrome ]
+swarm/test/swarm_test: Pass, Fail # Issue 14523
 
 [ $runtime == opera ]
 swarm/test/swarm_ui_lib/touch/touch_test: Fail
