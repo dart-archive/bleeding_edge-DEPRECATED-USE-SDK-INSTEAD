@@ -40,7 +40,9 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.Reader;
 import java.lang.reflect.Field;
+import java.net.Authenticator;
 import java.net.MalformedURLException;
+import java.net.PasswordAuthentication;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
@@ -86,6 +88,32 @@ public class UpdateUtils {
   private static final OS OS = getOS();
 
   private static int EXEC_MASK = 0111;
+
+  // Set up proxy authentication support (dartbug.com/5455).
+  static {
+    try {
+      Authenticator.setDefault(new Authenticator() {
+        @Override
+        protected PasswordAuthentication getPasswordAuthentication() {
+          if (getRequestorType() == RequestorType.PROXY) {
+            String prot = getRequestingProtocol().toLowerCase();
+            String host = System.getProperty(prot + ".proxyHost", "");
+            String port = System.getProperty(prot + ".proxyPort", "80");
+            String user = System.getProperty(prot + ".proxyUser", "");
+            String password = System.getProperty(prot + ".proxyPassword", "");
+            if (getRequestingHost().equalsIgnoreCase(host)) {
+              if (Integer.parseInt(port) == getRequestingPort()) {
+                return new PasswordAuthentication(user, password.toCharArray());
+              }
+            }
+          }
+          return null;
+        }
+      });
+    } catch (SecurityException e) {
+      UpdateCore.logError(e);
+    }
+  }
 
   /**
    * Copy the contents of one directory to another directory recursively.
