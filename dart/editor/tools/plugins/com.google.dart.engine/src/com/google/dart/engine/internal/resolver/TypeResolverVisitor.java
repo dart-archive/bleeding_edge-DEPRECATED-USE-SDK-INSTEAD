@@ -94,6 +94,14 @@ import java.util.ArrayList;
  */
 public class TypeResolverVisitor extends ScopedVisitor {
   /**
+   * Kind of the redirecting constructor.
+   */
+  private static enum RedirectingConstructorKind {
+    CONST,
+    NORMAL
+  }
+
+  /**
    * @return {@code true} if the name of the given {@link TypeName} is an built-in identifier.
    */
   private static boolean isBuiltInIdentifier(TypeName node) {
@@ -492,6 +500,7 @@ public class TypeResolverVisitor extends ScopedVisitor {
       // from the ErrorVerifier, so that we don't have two errors on a built in identifier being
       // used as a class name. See CompileTimeErrorCodeTest.test_builtInIdentifierAsType().
       SimpleIdentifier typeNameSimple = getTypeSimpleIdentifier(typeName);
+      RedirectingConstructorKind redirectingConstructorKind;
       if (isBuiltInIdentifier(node) && isTypeAnnotation(node)) {
         reportError(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, typeName, typeName.getName());
       } else if (typeNameSimple.getName().equals("boolean")) {
@@ -502,8 +511,10 @@ public class TypeResolverVisitor extends ScopedVisitor {
         reportError(StaticWarningCode.CAST_TO_NON_TYPE, typeName, typeName.getName());
       } else if (isTypeNameInIsExpression(node)) {
         reportError(StaticWarningCode.TYPE_TEST_NON_TYPE, typeName, typeName.getName());
-      } else if (isTypeNameTargetInRedirectedConstructor(node)) {
-        reportError(StaticWarningCode.REDIRECT_TO_NON_CLASS, typeName, typeName.getName());
+      } else if ((redirectingConstructorKind = getRedirectingConstructorKind(node)) != null) {
+        ErrorCode errorCode = redirectingConstructorKind == RedirectingConstructorKind.CONST
+            ? CompileTimeErrorCode.REDIRECT_TO_NON_CLASS : StaticWarningCode.REDIRECT_TO_NON_CLASS;
+        reportError(errorCode, typeName, typeName.getName());
       } else if (isTypeNameInTypeArgumentList(node)) {
         reportError(StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT, typeName, typeName.getName());
       } else {
@@ -544,14 +555,17 @@ public class TypeResolverVisitor extends ScopedVisitor {
       }
     } else {
       // The name does not represent a type.
+      RedirectingConstructorKind redirectingConstructorKind;
       if (isTypeNameInCatchClause(node)) {
         reportError(StaticWarningCode.NON_TYPE_IN_CATCH_CLAUSE, typeName, typeName.getName());
       } else if (isTypeNameInAsExpression(node)) {
         reportError(StaticWarningCode.CAST_TO_NON_TYPE, typeName, typeName.getName());
       } else if (isTypeNameInIsExpression(node)) {
         reportError(StaticWarningCode.TYPE_TEST_NON_TYPE, typeName, typeName.getName());
-      } else if (isTypeNameTargetInRedirectedConstructor(node)) {
-        reportError(StaticWarningCode.REDIRECT_TO_NON_CLASS, typeName, typeName.getName());
+      } else if ((redirectingConstructorKind = getRedirectingConstructorKind(node)) != null) {
+        ErrorCode errorCode = redirectingConstructorKind == RedirectingConstructorKind.CONST
+            ? CompileTimeErrorCode.REDIRECT_TO_NON_CLASS : StaticWarningCode.REDIRECT_TO_NON_CLASS;
+        reportError(errorCode, typeName, typeName.getName());
       } else if (isTypeNameInTypeArgumentList(node)) {
         reportError(StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT, typeName, typeName.getName());
       } else {
@@ -757,6 +771,31 @@ public class TypeResolverVisitor extends ScopedVisitor {
   }
 
   /**
+   * Checks if the given type name is the target in a redirected constructor.
+   * 
+   * @param typeName the type name to analyze
+   * @return some {@link RedirectingConstructorKind} if the given type name is used as the type in a
+   *         redirected constructor, or {@code null} otherwise
+   */
+  private RedirectingConstructorKind getRedirectingConstructorKind(TypeName typeName) {
+    ASTNode parent = typeName.getParent();
+    if (parent instanceof ConstructorName) {
+      ConstructorName constructorName = (ConstructorName) parent;
+      parent = constructorName.getParent();
+      if (parent instanceof ConstructorDeclaration) {
+        ConstructorDeclaration constructorDeclaration = (ConstructorDeclaration) parent;
+        if (constructorDeclaration.getRedirectedConstructor() == constructorName) {
+          if (constructorDeclaration.getConstKeyword() != null) {
+            return RedirectingConstructorKind.CONST;
+          }
+          return RedirectingConstructorKind.NORMAL;
+        }
+      }
+    }
+    return null;
+  }
+
+  /**
    * Given the multiple elements to which a single name could potentially be resolved, return the
    * single interface type that should be used, or {@code null} if there is no clear choice.
    * 
@@ -889,25 +928,6 @@ public class TypeResolverVisitor extends ScopedVisitor {
    */
   private boolean isTypeNameInTypeArgumentList(TypeName typeName) {
     return typeName.getParent() instanceof TypeArgumentList;
-  }
-
-  /**
-   * Checks if the given type name is the target in a redirected constructor.
-   * 
-   * @param typeName the type name to analyzer
-   * @return {@code true} if the given type name is used as the type in a redirected constructor
-   */
-  private boolean isTypeNameTargetInRedirectedConstructor(TypeName typeName) {
-    ASTNode parent = typeName.getParent();
-    if (parent instanceof ConstructorName) {
-      ConstructorName constructorName = (ConstructorName) parent;
-      parent = constructorName.getParent();
-      if (parent instanceof ConstructorDeclaration) {
-        ConstructorDeclaration constructorDeclaration = (ConstructorDeclaration) parent;
-        return constructorName.equals(constructorDeclaration.getRedirectedConstructor());
-      }
-    }
-    return false;
   }
 
   /**

@@ -3036,6 +3036,51 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_redirectToMissingConstructor_named() throws Exception {
+    Source source = addSource(createSource(//
+        "class A implements B{",
+        "  A() {}",
+        "}",
+        "class B {",
+        "  const factory B() = A.name;",
+        "}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.REDIRECT_TO_MISSING_CONSTRUCTOR);
+  }
+
+  public void test_redirectToMissingConstructor_unnamed() throws Exception {
+    Source source = addSource(createSource(//
+        "class A implements B{",
+        "  A.name() {}",
+        "}",
+        "class B {",
+        "  const factory B() = A;",
+        "}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.REDIRECT_TO_MISSING_CONSTRUCTOR);
+  }
+
+  public void test_redirectToNonClass_notAType() throws Exception {
+    Source source = addSource(createSource(//
+        "int A;",
+        "class B {",
+        "  const factory B() = A;",
+        "}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.REDIRECT_TO_NON_CLASS);
+    verify(source);
+  }
+
+  public void test_redirectToNonClass_undefinedIdentifier() throws Exception {
+    Source source = addSource(createSource(//
+        "class B {",
+        "  const factory B() = A;",
+        "}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.REDIRECT_TO_NON_CLASS);
+    verify(source);
+  }
+
   public void test_redirectToNonConstConstructor() throws Exception {
     Source source = addSource(createSource(//
         "class A {",

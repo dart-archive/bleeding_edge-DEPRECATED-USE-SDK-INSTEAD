@@ -1054,6 +1054,19 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * 7.6.2 Factories: It is a compile-time error if <i>k</i> is prefixed with the const modifier but
    * <i>k'</i> is not a constant constructor.
    */
+  REDIRECT_TO_MISSING_CONSTRUCTOR("The constructor '%s' could not be found in '%s'"),
+
+  /**
+   * 7.6.2 Factories: It is a compile-time error if <i>k</i> is prefixed with the const modifier but
+   * <i>k'</i> is not a constant constructor.
+   */
+  REDIRECT_TO_NON_CLASS(
+      "The name '%s' is not a type and cannot be used in a redirected constructor"),
+
+  /**
+   * 7.6.2 Factories: It is a compile-time error if <i>k</i> is prefixed with the const modifier but
+   * <i>k'</i> is not a constant constructor.
+   */
   REDIRECT_TO_NON_CONST_CONSTRUCTOR(
       "Constant factory constructor cannot delegate to a non-constant constructor"),
 

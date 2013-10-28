@@ -1634,8 +1634,11 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
         if (redirectedConstructor.getName() != null) {
           constructorStrName += '.' + redirectedConstructor.getName().getName();
         }
+        ErrorCode errorCode = node.getConstKeyword() != null
+            ? CompileTimeErrorCode.REDIRECT_TO_MISSING_CONSTRUCTOR
+            : StaticWarningCode.REDIRECT_TO_MISSING_CONSTRUCTOR;
         errorReporter.reportError(
-            StaticWarningCode.REDIRECT_TO_MISSING_CONSTRUCTOR,
+            errorCode,
             redirectedConstructor,
             constructorStrName,
             redirectedType.getDisplayName());
