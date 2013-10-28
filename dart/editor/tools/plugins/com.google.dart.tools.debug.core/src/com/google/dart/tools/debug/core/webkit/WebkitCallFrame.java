@@ -92,11 +92,11 @@ public class WebkitCallFrame {
   }
 
   /**
-   * Returns the global scope object. This contains the special '@libraries' scope variable.
+   * Return the 'libraries' scope - the list of libraries for the current isolate.
    */
-  public WebkitRemoteObject getGlobalScope() {
+  public WebkitRemoteObject getLibrariesScope() {
     for (WebkitScope scope : getScopeChain()) {
-      if (scope.isGlobal()) {
+      if (scope.isLibraries()) {
         return scope.getObject();
       }
     }

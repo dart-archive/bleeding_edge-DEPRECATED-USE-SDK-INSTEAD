@@ -42,7 +42,6 @@ public class WebkitScope {
   static WebkitScope createFrom(JSONObject params) throws JSONException {
     WebkitScope scope = new WebkitScope();
 
-    // type ( enumerated string [ "catch" , "closure" , "global" , "local" , "with" ] )
     scope.type = JsonUtils.getString(params, "type");
     scope.object = WebkitRemoteObject.createFrom(params.getJSONObject("object"));
 
@@ -58,7 +57,7 @@ public class WebkitScope {
   }
 
   /**
-   * Valid values include "local".
+   * Valid values include "catch", "closure", "global", "local", "library", "with", and "class".
    * 
    * @return the scope type
    */
@@ -66,13 +65,25 @@ public class WebkitScope {
     return type;
   }
 
+  public boolean isClass() {
+    return "class".equals(type);
+  }
+
   public boolean isGlobal() {
     return "global".equals(type);
+  }
+
+  public boolean isGlobalLike() {
+    return isGlobal() || isLibraries() || isClass();
+  }
+
+  public boolean isLibraries() {
+    // TODO: this scope should be named 'libraries'
+    return "library".equals(type);
   }
 
   @Override
   public String toString() {
     return "[" + type + "," + object + "]";
   }
-
 }

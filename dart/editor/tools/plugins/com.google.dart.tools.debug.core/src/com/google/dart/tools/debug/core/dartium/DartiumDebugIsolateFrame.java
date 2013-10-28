@@ -15,7 +15,6 @@
 package com.google.dart.tools.debug.core.dartium;
 
 import com.google.dart.tools.debug.core.webkit.WebkitCallFrame;
-import com.google.dart.tools.debug.core.webkit.WebkitPropertyDescriptor;
 import com.google.dart.tools.debug.core.webkit.WebkitRemoteObject;
 
 import org.eclipse.debug.core.DebugException;
@@ -25,7 +24,6 @@ import org.eclipse.debug.core.model.IThread;
 import org.eclipse.debug.core.model.IVariable;
 
 import java.util.Collections;
-import java.util.List;
 
 /**
  * A pseudo stack frame for the current isolate. This frame will be able to enumerate all the
@@ -114,28 +112,16 @@ public class DartiumDebugIsolateFrame extends DartiumDebugElement implements ISt
     WebkitCallFrame frame = getWebkitFrame();
 
     if (frame != null) {
-      WebkitRemoteObject globalScope = frame.getGlobalScope();
+      WebkitRemoteObject librariesScope = frame.getLibrariesScope();
 
-      if (globalScope != null) {
+      if (librariesScope != null) {
         VariableCollector variableCollector = VariableCollector.createCollector(
             getTarget(),
             null,
-            Collections.singletonList(globalScope));
+            Collections.singletonList(librariesScope));
 
         try {
-          // Look for the special @libraries property in the global scope.
-          List<WebkitPropertyDescriptor> properties = variableCollector.getWebkitProperties();
-
-          for (WebkitPropertyDescriptor property : properties) {
-            if (WebkitPropertyDescriptor.LIBRARIES_OBJECT.equals(property.getName())) {
-              variableCollector = VariableCollector.createCollector(
-                  getTarget(),
-                  null,
-                  Collections.singletonList(property.getValue()));
-
-              variables = variableCollector.getVariables();
-            }
-          }
+          variables = variableCollector.getVariables();
         } catch (InterruptedException e) {
 
         }

@@ -26,7 +26,8 @@ import org.json.JSONObject;
 public class WebkitPropertyDescriptor implements Comparable<WebkitPropertyDescriptor> {
   public static final String STATIC_FIELDS_OBJECT = "@staticFields";
   public static final String LIBRARY_OBJECT = "@library";
-  public static final String LIBRARIES_OBJECT = "@libraries";
+
+  //public static final String LIBRARIES_OBJECT = "@libraries";
 
   public static WebkitPropertyDescriptor createIndexProperty(int index, WebkitRemoteObject value) {
     WebkitPropertyDescriptor descriptor = new WebkitPropertyDescriptor();
@@ -60,15 +61,16 @@ public class WebkitPropertyDescriptor implements Comparable<WebkitPropertyDescri
   static WebkitPropertyDescriptor createFrom(JSONObject params) throws JSONException {
     WebkitPropertyDescriptor descriptor = new WebkitPropertyDescriptor();
 
+    descriptor.name = JsonUtils.getString(params, "name");
     descriptor.configurable = JsonUtils.getBoolean(params, "configurable");
     descriptor.enumerable = JsonUtils.getBoolean(params, "enumerable");
+    descriptor.wasThrown = JsonUtils.getBoolean(params, "wasThrown");
+    descriptor.writable = JsonUtils.getBoolean(params, "writable");
 
     // get ( optional RemoteObject )
     if (params.has("get")) {
       descriptor.getterFunction = WebkitRemoteObject.createFrom(params.getJSONObject("get"));
     }
-
-    descriptor.name = JsonUtils.getString(params, "name");
 
     // set ( optional RemoteObject )
     if (params.has("set")) {
@@ -78,27 +80,33 @@ public class WebkitPropertyDescriptor implements Comparable<WebkitPropertyDescri
     // value ( optional RemoteObject )
     if (params.has("value")) {
       descriptor.value = WebkitRemoteObject.createFrom(params.getJSONObject("value"));
-
-      if (descriptor.value != null) {
-        if (descriptor.value.isDartFunction()) {
-          descriptor.enumerable = false;
-        }
-
-        // [runtimeType, _Type]
-        if (descriptor.name.equals("runtimeType")
-            && "_Type".equals(descriptor.value.getClassName())) {
-          descriptor.enumerable = false;
-        }
-
-        // Patch up the className for the @staticFields property.
-        if (STATIC_FIELDS_OBJECT.equals(descriptor.name)) {
-          descriptor.value.className = "Type";
-        }
-      }
     }
 
-    descriptor.wasThrown = JsonUtils.getBoolean(params, "wasThrown");
-    descriptor.writable = JsonUtils.getBoolean(params, "writable");
+    // __proto__
+    if (descriptor.name.equals("__proto__")) {
+      descriptor.enumerable = false;
+    }
+
+    if (descriptor.value != null) {
+      if (descriptor.value.isDartFunction()) {
+        descriptor.enumerable = false;
+      }
+
+      // [runtimeType, _Type]
+      if (descriptor.name.equals("runtimeType") && "_Type".equals(descriptor.value.getClassName())) {
+        descriptor.enumerable = false;
+      }
+
+      // Patch up the className for the @staticFields property.
+      if (STATIC_FIELDS_OBJECT.equals(descriptor.name)) {
+        descriptor.value.className = "Type";
+      }
+
+      // Patch up the className for the @library property.
+      if (LIBRARY_OBJECT.equals(descriptor.name)) {
+        descriptor.value.className = "Library";
+      }
+    }
 
     return descriptor;
   }
