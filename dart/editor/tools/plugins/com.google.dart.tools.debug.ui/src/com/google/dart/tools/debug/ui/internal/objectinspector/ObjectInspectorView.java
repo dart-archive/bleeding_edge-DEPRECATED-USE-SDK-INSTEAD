@@ -58,6 +58,7 @@ import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.layout.GridDataFactory;
+import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.Document;
@@ -89,6 +90,7 @@ import org.eclipse.swt.events.VerifyEvent;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.IMemento;
@@ -113,8 +115,6 @@ import java.util.Map;
 // TODO: refresh the view after an assignment (or any evaluation)
 
 // TODO: make the context menus on the objects consistent (add the ‘Watch’ menu to the variables view)
-
-// TODO: make the expr. eval text area more discoverable
 
 // TODO: open multiple inspectors
 
@@ -292,7 +292,7 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
 
     final SashForm sash = new SashForm(parent, SWT.VERTICAL);
 
-    treeViewer = new TreeViewer(sash, SWT.SINGLE | SWT.V_SCROLL | SWT.FULL_SELECTION);
+    treeViewer = new TreeViewer(sash, SWT.SINGLE | SWT.V_SCROLL | SWT.FULL_SELECTION | SWT.BORDER);
     treeViewer.setAutoExpandLevel(2);
     treeViewer.setLabelProvider(new NameLabelProvider());
     treeViewer.setContentProvider(new ObjectInspectorContentProvider());
@@ -342,7 +342,13 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
     valueColumn.getColumn().setWidth(140);
     valueColumn.getColumn().setResizable(true);
 
-    sourceViewer = new SourceViewer(sash, null, SWT.V_SCROLL | SWT.WRAP);
+    Composite sourceContainer = new Composite(sash, SWT.NONE);
+    GridLayoutFactory.fillDefaults().applyTo(sourceContainer);
+    Label label = new Label(sourceContainer, SWT.NONE);
+    label.setText("Enter expression to evaluate:");
+    GridDataFactory.fillDefaults().grab(true, false).align(SWT.FILL, SWT.CENTER).applyTo(label);
+
+    sourceViewer = new SourceViewer(sourceContainer, null, SWT.V_SCROLL | SWT.WRAP | SWT.BORDER);
     sourceViewer.configure(getSourceViewerConfiguration());
     sourceViewer.setDocument(createDocument(), new AnnotationModel());
     sourceViewer.setUndoManager(new TextViewerUndoManager(100));
@@ -627,9 +633,6 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
   }
 
   void updateSashOrientation(SashForm sash) {
-    //Rectangle r = sash.getBounds();
-
-    //int orientation = (r.height * 1.25) >= r.width ? SWT.VERTICAL : SWT.HORIZONTAL;
     int orientation = SWT.VERTICAL;
 
     if (sash.getOrientation() != orientation) {
