@@ -862,7 +862,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
           statistics.putCacheItem(dartEntry, DartEntry.PARSE_ERRORS);
           statistics.putCacheItem(dartEntry, DartEntry.PARSED_UNIT);
           statistics.putCacheItem(dartEntry, DartEntry.SOURCE_KIND);
-          statistics.putCacheItem(dartEntry, DartEntry.LINE_INFO);
+          statistics.putCacheItem(dartEntry, SourceEntry.LINE_INFO);
           if (kind == SourceKind.LIBRARY) {
             statistics.putCacheItem(dartEntry, DartEntry.ELEMENT);
             statistics.putCacheItem(dartEntry, DartEntry.EXPORTED_LIBRARIES);
