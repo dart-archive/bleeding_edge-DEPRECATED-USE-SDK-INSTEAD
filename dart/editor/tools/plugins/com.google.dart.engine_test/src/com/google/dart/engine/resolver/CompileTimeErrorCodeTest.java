@@ -3130,47 +3130,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     assertErrors(source, CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION);
   }
 
-  public void test_referenceToDeclaredVariableInInitializer_closure() throws Exception {
-    Source source = addSource(createSource(//
-        "f() {",
-        "  var x = (x) {};",
-        "}"));
-    resolve(source);
-    assertErrors(source, CompileTimeErrorCode.REFERENCE_TO_DECLARED_VARIABLE_IN_INITIALIZER);
-    verify(source);
-  }
-
-  public void test_referenceToDeclaredVariableInInitializer_getter() throws Exception {
-    Source source = addSource(createSource(//
-        "f() {",
-        "  int x = x + 1;",
-        "}"));
-    resolve(source);
-    assertErrors(source, CompileTimeErrorCode.REFERENCE_TO_DECLARED_VARIABLE_IN_INITIALIZER);
-    verify(source);
-  }
-
-  public void test_referenceToDeclaredVariableInInitializer_setter() throws Exception {
-    Source source = addSource(createSource(//
-        "f() {",
-        "  int x = x++;",
-        "}"));
-    resolve(source);
-    assertErrors(source, CompileTimeErrorCode.REFERENCE_TO_DECLARED_VARIABLE_IN_INITIALIZER);
-    verify(source);
-  }
-
-  public void test_referenceToDeclaredVariableInInitializer_unqualifiedInvocation()
-      throws Exception {
-    Source source = addSource(createSource(//
-        "f() {",
-        "  var x = x();",
-        "}"));
-    resolve(source);
-    assertErrors(source, CompileTimeErrorCode.REFERENCE_TO_DECLARED_VARIABLE_IN_INITIALIZER);
-    verify(source);
-  }
-
   public void test_rethrowOutsideCatch() throws Exception {
     Source source = addSource(createSource(//
         "f() {",

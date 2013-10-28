@@ -1071,13 +1071,6 @@ public enum CompileTimeErrorCode implements ErrorCode {
       "Constant factory constructor cannot delegate to a non-constant constructor"),
 
   /**
-   * 13.3 Local Variable Declaration: It is a compile-time error if <i>e</i> refers to the name
-   * <i>v</i> or the name <i>v=</i>.
-   */
-  REFERENCE_TO_DECLARED_VARIABLE_IN_INITIALIZER(
-      "The name '%s' cannot be referenced in the initializer of a variable with the same name"),
-
-  /**
    * 5 Variables: A local variable may only be referenced at a source code location that is after
    * its initializer, if any, is complete, or a compile-time error occurs.
    */

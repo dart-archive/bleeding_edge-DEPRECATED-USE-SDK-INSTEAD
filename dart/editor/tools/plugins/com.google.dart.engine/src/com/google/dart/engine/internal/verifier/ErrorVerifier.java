@@ -59,7 +59,6 @@ import com.google.dart.engine.ast.ImplementsClause;
 import com.google.dart.engine.ast.ImportDirective;
 import com.google.dart.engine.ast.IndexExpression;
 import com.google.dart.engine.ast.InstanceCreationExpression;
-import com.google.dart.engine.ast.Label;
 import com.google.dart.engine.ast.ListLiteral;
 import com.google.dart.engine.ast.MapLiteral;
 import com.google.dart.engine.ast.MapLiteralEntry;
@@ -926,7 +925,6 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
 
   @Override
   public Void visitSimpleIdentifier(SimpleIdentifier node) {
-    checkForReferenceToDeclaredVariableInInitializer(node);
     checkForImplicitThisReferenceInInitializer(node);
     if (!isUnqualifiedReferenceToNonLocalStaticMemberAllowed(node)) {
       checkForUnqualifiedReferenceToNonLocalStaticMember(node);
@@ -4484,63 +4482,6 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     errorReporter.reportError(
         CompileTimeErrorCode.REDIRECT_TO_NON_CONST_CONSTRUCTOR,
         redirectedConstructorNode);
-    return true;
-  }
-
-  /**
-   * This checks if the passed identifier is banned because it is part of the variable declaration
-   * with the same name.
-   * 
-   * @param node the identifier to evaluate
-   * @return {@code true} if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#REFERENCE_TO_DECLARED_VARIABLE_IN_INITIALIZER
-   */
-  private boolean checkForReferenceToDeclaredVariableInInitializer(SimpleIdentifier node) {
-    ASTNode parent = node.getParent();
-    // ignore if property
-    if (parent instanceof PrefixedIdentifier) {
-      PrefixedIdentifier prefixedIdentifier = (PrefixedIdentifier) parent;
-      if (prefixedIdentifier.getIdentifier() == node) {
-        return false;
-      }
-    }
-    if (parent instanceof PropertyAccess) {
-      PropertyAccess propertyAccess = (PropertyAccess) parent;
-      if (propertyAccess.getPropertyName() == node) {
-        return false;
-      }
-    }
-    // ignore if name of the method with target
-    if (parent instanceof MethodInvocation) {
-      MethodInvocation methodInvocation = (MethodInvocation) parent;
-      if (methodInvocation.getTarget() != null && methodInvocation.getMethodName() == node) {
-        return false;
-      }
-    }
-    // ignore if name of the constructor
-    if (parent instanceof ConstructorName) {
-      ConstructorName constructorName = (ConstructorName) parent;
-      if (constructorName.getName() == node) {
-        return false;
-      }
-    }
-    // ignore if name is a label
-    if (parent instanceof Label) {
-      Label label = (Label) parent;
-      if (label.getLabel() == node) {
-        return false;
-      }
-    }
-    // check if name is banned
-    String name = node.getName();
-    if (!namesForReferenceToDeclaredVariableInInitializer.contains(name)) {
-      return false;
-    }
-    // report problem
-    errorReporter.reportError(
-        CompileTimeErrorCode.REFERENCE_TO_DECLARED_VARIABLE_IN_INITIALIZER,
-        node,
-        name);
     return true;
   }
 
