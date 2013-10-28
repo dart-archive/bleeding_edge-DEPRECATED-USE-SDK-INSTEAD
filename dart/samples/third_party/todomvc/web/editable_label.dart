@@ -33,7 +33,7 @@ class EditableLabel extends PolymerElement {
     editing = true;
 
     // Wait for _editBox to be inserted.
-    onMutation(_shadowRoot, (_) {
+    onMutation(_shadowRoot).then((_) {
       // For IE and Firefox: use .focus(), then reset the value to move the
       // cursor to the end.
       _editBox.focus();
