@@ -951,27 +951,17 @@ public class Scanner {
         if (next == -1) {
           break;
         }
-        boolean missingCharacter = false;
         if (next == '\r') {
-          missingCharacter = true;
           next = reader.advance();
           if (next == '\n') {
             next = reader.advance();
           }
           recordStartOfLine();
         } else if (next == '\n') {
-          missingCharacter = true;
           recordStartOfLine();
           next = reader.advance();
         } else {
           next = reader.advance();
-        }
-        if (missingCharacter) {
-          errorListener.onError(new AnalysisError(
-              getSource(),
-              reader.getOffset() - 1,
-              1,
-              ScannerErrorCode.CHARACTER_EXPECTED_AFTER_SLASH));
         }
       } else if (next == '\r') {
         next = reader.advance();

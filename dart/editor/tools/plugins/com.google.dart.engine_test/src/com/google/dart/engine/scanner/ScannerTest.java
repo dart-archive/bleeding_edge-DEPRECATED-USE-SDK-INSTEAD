@@ -643,7 +643,7 @@ public class ScannerTest extends TestCase {
   }
 
   public void test_string_multi_slashEnter() throws Exception {
-    assertError(ScannerErrorCode.CHARACTER_EXPECTED_AFTER_SLASH, 0, "'''\\\n'''");
+    assertToken(TokenType.STRING, "'''\\\n'''");
   }
 
   public void test_string_multi_unterminated() throws Exception {

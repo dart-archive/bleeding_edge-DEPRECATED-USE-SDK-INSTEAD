@@ -24,7 +24,6 @@ import com.google.dart.engine.error.ErrorType;
  * @coverage dart.engine.parser
  */
 public enum ScannerErrorCode implements ErrorCode {
-  CHARACTER_EXPECTED_AFTER_SLASH("Character expected after slash"),
   ILLEGAL_CHARACTER("Illegal character %x"),
   MISSING_DIGIT("Decimal digit expected"),
   MISSING_HEX_DIGIT("Hexidecimal digit expected"),
