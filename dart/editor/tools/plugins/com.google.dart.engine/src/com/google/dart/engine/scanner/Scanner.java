@@ -375,6 +375,15 @@ public class Scanner {
   }
 
   /**
+   * Return the last token that was scanned.
+   * 
+   * @return the last token that was scanned
+   */
+  protected Token getTail() {
+    return tail;
+  }
+
+  /**
    * Record the fact that we are at the beginning of a new line in the source.
    */
   protected void recordStartOfLine() {

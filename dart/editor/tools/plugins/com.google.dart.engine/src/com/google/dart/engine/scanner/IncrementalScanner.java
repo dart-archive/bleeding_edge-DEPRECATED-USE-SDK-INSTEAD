@@ -35,6 +35,18 @@ public class IncrementalScanner extends Scanner {
   private TokenMap tokenMap = new TokenMap();
 
   /**
+   * The first token in the range of tokens that are different from the tokens in the original token
+   * stream.
+   */
+  private Token firstToken;
+
+  /**
+   * The last token in the range of tokens that are different from the tokens in the original token
+   * stream.
+   */
+  private Token lastToken;
+
+  /**
    * Initialize a newly created scanner.
    * 
    * @param source the source being scanned
@@ -45,6 +57,35 @@ public class IncrementalScanner extends Scanner {
       AnalysisErrorListener errorListener) {
     super(source, reader, errorListener);
     this.reader = reader;
+  }
+
+  /**
+   * Return the first token in the range of tokens that are different from the tokens in the
+   * original token stream.
+   * 
+   * @return the first token in the range of new tokens
+   */
+  public Token getFirstToken() {
+    return firstToken;
+  }
+
+  /**
+   * Return the last token in the range of tokens that are different from the tokens in the original
+   * token stream.
+   * 
+   * @return the last token in the range of new tokens
+   */
+  public Token getLastToken() {
+    return lastToken;
+  }
+
+  /**
+   * Return a map from tokens that were copied to the copies of the tokens.
+   * 
+   * @return a map from tokens that were copied to the copies of the tokens
+   */
+  public TokenMap getTokenMap() {
+    return tokenMap;
   }
 
   /**
@@ -65,9 +106,10 @@ public class IncrementalScanner extends Scanner {
     // (If the replacement start is less than or equal to the end of an existing token, then it
     // means that the existing token might have been modified, so we need to rescan it.)
     //
-    while (originalStream.getEnd() < index) {
+    while (originalStream.getType() != TokenType.EOF && originalStream.getEnd() < index) {
       originalStream = copyAndAdvance(originalStream, 0);
     }
+    Token lastCopied = getTail();
     //
     // Starting at the smaller of the start of the next token or the given index, scan tokens from
     // the modifiedSource until the end of the just scanned token is greater than or equal to end of
@@ -79,11 +121,20 @@ public class IncrementalScanner extends Scanner {
     while (next != -1 && reader.getOffset() <= modifiedEnd) {
       next = bigSwitch(next);
     }
+    firstToken = lastCopied.getNext();
+    lastToken = getTail();
+    if (firstToken == null) {
+      // This only happens if there were no tokens added, either because the inserted text was empty
+      // or consisted of only whitespace. In such cases we re-parse from the token before the added
+      // whitespace so that removed tokens will be accounted for.
+      firstToken = lastCopied;
+    }
     //
     // Skip tokens in the original stream until we find a token whose offset is greater than the end
-    // of the removed region.
+    // of the removed region, adjusted by the length of the last inserted token.
     //
-    int removedEnd = index + removedLength - 1;
+    int removedEnd = index + removedLength - 1
+        + Math.max(0, lastToken.getEnd() - index - insertedLength);
     while (originalStream.getOffset() <= removedEnd) {
       originalStream = originalStream.getNext();
     }
@@ -98,8 +149,11 @@ public class IncrementalScanner extends Scanner {
     while (originalStream.getType() != TokenType.EOF) {
       originalStream = copyAndAdvance(originalStream, delta);
     }
-    copyAndAdvance(originalStream, delta);
+    Token eof = copyAndAdvance(originalStream, delta);
+    eof.setNextWithoutSettingPrevious(eof);
     //
+    // TODO(brianwilkerson) Begin tokens are not getting associated with the corresponding end
+    //     tokens (because the end tokens have not been copied when we're copying the begin tokens).
     // TODO(brianwilkerson) Update the lineInfo.
     //
     return firstToken();

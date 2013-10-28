@@ -96,12 +96,12 @@ public class Parser {
    * A flag indicating whether the parser is currently in a switch statement.
    */
   private boolean inSwitch = false;
+
   private static final String HIDE = "hide"; //$NON-NLS-1$
   private static final String OF = "of"; //$NON-NLS-1$
   private static final String ON = "on"; //$NON-NLS-1$
-  private static final String SHOW = "show"; //$NON-NLS-1$
-
   private static final String NATIVE = "native"; //$NON-NLS-1$
+  private static final String SHOW = "show"; //$NON-NLS-1$
 
   /**
    * Initialize a newly created parser.
@@ -183,6 +183,1233 @@ public class Parser {
     } finally {
       instrumentation.log();
     }
+  }
+
+  /**
+   * Parse an annotation.
+   * 
+   * <pre>
+   * annotation ::=
+   *     '@' qualified ('.' identifier)? arguments?
+   * </pre>
+   * 
+   * @return the annotation that was parsed
+   */
+  protected Annotation parseAnnotation() {
+    Token atSign = expect(TokenType.AT);
+    Identifier name = parsePrefixedIdentifier();
+    Token period = null;
+    SimpleIdentifier constructorName = null;
+    if (matches(TokenType.PERIOD)) {
+      period = getAndAdvance();
+      constructorName = parseSimpleIdentifier();
+    }
+    ArgumentList arguments = null;
+    if (matches(TokenType.OPEN_PAREN)) {
+      arguments = parseArgumentList();
+    }
+    return new Annotation(atSign, name, period, constructorName, arguments);
+  }
+
+  /**
+   * Parse an argument.
+   * 
+   * <pre>
+   * argument ::=
+   *     namedArgument
+   *   | expression
+   *
+   * namedArgument ::=
+   *     label expression
+   * </pre>
+   * 
+   * @return the argument that was parsed
+   */
+  protected Expression parseArgument() {
+    //
+    // Both namedArgument and expression can start with an identifier, but only namedArgument can
+    // have an identifier followed by a colon.
+    //
+    if (matchesIdentifier() && matches(peek(), TokenType.COLON)) {
+      return new NamedExpression(parseLabel(), parseExpression());
+    } else {
+      return parseExpression();
+    }
+  }
+
+  /**
+   * Parse a list of arguments.
+   * 
+   * <pre>
+   * arguments ::=
+   *     '(' argumentList? ')'
+   * 
+   * argumentList ::=
+   *     namedArgument (',' namedArgument)*
+   *   | expressionList (',' namedArgument)*
+   * </pre>
+   * 
+   * @return the argument list that was parsed
+   */
+  protected ArgumentList parseArgumentList() {
+    Token leftParenthesis = expect(TokenType.OPEN_PAREN);
+    List<Expression> arguments = new ArrayList<Expression>();
+    if (matches(TokenType.CLOSE_PAREN)) {
+      return new ArgumentList(leftParenthesis, arguments, getAndAdvance());
+    }
+    //
+    // Even though unnamed arguments must all appear before any named arguments, we allow them to
+    // appear in any order so that we can recover faster.
+    //
+    Expression argument = parseArgument();
+    arguments.add(argument);
+    boolean foundNamedArgument = argument instanceof NamedExpression;
+    boolean generatedError = false;
+    while (optional(TokenType.COMMA)) {
+      argument = parseArgument();
+      arguments.add(argument);
+      if (foundNamedArgument) {
+        if (!generatedError && !(argument instanceof NamedExpression)) {
+          // Report the error, once, but allow the arguments to be in any order in the AST.
+          reportError(ParserErrorCode.POSITIONAL_AFTER_NAMED_ARGUMENT);
+          generatedError = true;
+        }
+      } else if (argument instanceof NamedExpression) {
+        foundNamedArgument = true;
+      }
+    }
+    // TODO(brianwilkerson) Recovery: Look at the left parenthesis to see whether there is a
+    // matching right parenthesis. If there is, then we're more likely missing a comma and should
+    // go back to parsing arguments.
+    Token rightParenthesis = expect(TokenType.CLOSE_PAREN);
+    return new ArgumentList(leftParenthesis, arguments, rightParenthesis);
+  }
+
+  /**
+   * Parse a bitwise or expression.
+   * 
+   * <pre>
+   * bitwiseOrExpression ::=
+   *     bitwiseXorExpression ('|' bitwiseXorExpression)*
+   *   | 'super' ('|' bitwiseXorExpression)+
+   * </pre>
+   * 
+   * @return the bitwise or expression that was parsed
+   */
+  protected Expression parseBitwiseOrExpression() {
+    Expression expression;
+    if (matches(Keyword.SUPER) && matches(peek(), TokenType.BAR)) {
+      expression = new SuperExpression(getAndAdvance());
+    } else {
+      expression = parseBitwiseXorExpression();
+    }
+    while (matches(TokenType.BAR)) {
+      Token operator = getAndAdvance();
+      expression = new BinaryExpression(expression, operator, parseBitwiseXorExpression());
+    }
+    return expression;
+  }
+
+  /**
+   * Parse a block.
+   * 
+   * <pre>
+   * block ::=
+   *     '{' statements '}'
+   * </pre>
+   * 
+   * @return the block that was parsed
+   */
+  protected Block parseBlock() {
+    Token leftBracket = expect(TokenType.OPEN_CURLY_BRACKET);
+    List<Statement> statements = new ArrayList<Statement>();
+    Token statementStart = currentToken;
+    while (!matches(TokenType.EOF) && !matches(TokenType.CLOSE_CURLY_BRACKET)) {
+      Statement statement = parseStatement();
+      if (statement != null) {
+        statements.add(statement);
+      }
+      if (currentToken == statementStart) {
+        // Ensure that we are making progress and report an error if we're not.
+        reportError(ParserErrorCode.UNEXPECTED_TOKEN, currentToken, currentToken.getLexeme());
+        advance();
+      }
+      statementStart = currentToken;
+    }
+    Token rightBracket = expect(TokenType.CLOSE_CURLY_BRACKET);
+    return new Block(leftBracket, statements, rightBracket);
+  }
+
+  /**
+   * Parse a class member.
+   * 
+   * <pre>
+   * classMemberDefinition ::=
+   *     declaration ';'
+   *   | methodSignature functionBody
+   * </pre>
+   * 
+   * @param className the name of the class containing the member being parsed
+   * @return the class member that was parsed, or {@code null} if what was found was not a valid
+   *         class member
+   */
+  protected ClassMember parseClassMember(String className) {
+    CommentAndMetadata commentAndMetadata = parseCommentAndMetadata();
+    Modifiers modifiers = parseModifiers();
+    if (matches(Keyword.VOID)) {
+      TypeName returnType = parseReturnType();
+      if (matches(Keyword.GET) && matchesIdentifier(peek())) {
+        validateModifiersForGetterOrSetterOrMethod(modifiers);
+        return parseGetter(
+            commentAndMetadata,
+            modifiers.getExternalKeyword(),
+            modifiers.getStaticKeyword(),
+            returnType);
+      } else if (matches(Keyword.SET) && matchesIdentifier(peek())) {
+        validateModifiersForGetterOrSetterOrMethod(modifiers);
+        return parseSetter(
+            commentAndMetadata,
+            modifiers.getExternalKeyword(),
+            modifiers.getStaticKeyword(),
+            returnType);
+      } else if (matches(Keyword.OPERATOR) && isOperator(peek())) {
+        validateModifiersForOperator(modifiers);
+        return parseOperator(commentAndMetadata, modifiers.getExternalKeyword(), returnType);
+      } else if (matchesIdentifier()
+          && matchesAny(
+              peek(),
+              TokenType.OPEN_PAREN,
+              TokenType.OPEN_CURLY_BRACKET,
+              TokenType.FUNCTION)) {
+        validateModifiersForGetterOrSetterOrMethod(modifiers);
+        return parseMethodDeclaration(
+            commentAndMetadata,
+            modifiers.getExternalKeyword(),
+            modifiers.getStaticKeyword(),
+            returnType);
+      } else {
+        //
+        // We have found an error of some kind. Try to recover.
+        //
+        if (matchesIdentifier()) {
+          if (matchesAny(peek(), TokenType.EQ, TokenType.COMMA, TokenType.SEMICOLON)) {
+            //
+            // We appear to have a variable declaration with a type of "void".
+            //
+            reportError(ParserErrorCode.VOID_VARIABLE, returnType);
+            return parseInitializedIdentifierList(
+                commentAndMetadata,
+                modifiers.getStaticKeyword(),
+                validateModifiersForField(modifiers),
+                returnType);
+          }
+        }
+        if (isOperator(currentToken)) {
+          //
+          // We appear to have found an operator declaration without the 'operator' keyword.
+          //
+          validateModifiersForOperator(modifiers);
+          return parseOperator(commentAndMetadata, modifiers.getExternalKeyword(), returnType);
+        }
+        reportError(ParserErrorCode.EXPECTED_EXECUTABLE, currentToken);
+        return null;
+      }
+    } else if (matches(Keyword.GET) && matchesIdentifier(peek())) {
+      validateModifiersForGetterOrSetterOrMethod(modifiers);
+      return parseGetter(
+          commentAndMetadata,
+          modifiers.getExternalKeyword(),
+          modifiers.getStaticKeyword(),
+          null);
+    } else if (matches(Keyword.SET) && matchesIdentifier(peek())) {
+      validateModifiersForGetterOrSetterOrMethod(modifiers);
+      return parseSetter(
+          commentAndMetadata,
+          modifiers.getExternalKeyword(),
+          modifiers.getStaticKeyword(),
+          null);
+    } else if (matches(Keyword.OPERATOR) && isOperator(peek())) {
+      validateModifiersForOperator(modifiers);
+      return parseOperator(commentAndMetadata, modifiers.getExternalKeyword(), null);
+    } else if (!matchesIdentifier()) {
+      if (isOperator(currentToken)) {
+        //
+        // We appear to have found an operator declaration without the 'operator' keyword.
+        //
+        validateModifiersForOperator(modifiers);
+        return parseOperator(commentAndMetadata, modifiers.getExternalKeyword(), null);
+      }
+      reportError(ParserErrorCode.EXPECTED_CLASS_MEMBER, currentToken);
+      return null;
+    } else if (matches(peek(), TokenType.PERIOD) && matchesIdentifier(peek(2))
+        && matches(peek(3), TokenType.OPEN_PAREN)) {
+      return parseConstructor(
+          commentAndMetadata,
+          modifiers.getExternalKeyword(),
+          validateModifiersForConstructor(modifiers),
+          modifiers.getFactoryKeyword(),
+          parseSimpleIdentifier(),
+          getAndAdvance(),
+          parseSimpleIdentifier(),
+          parseFormalParameterList());
+    } else if (matches(peek(), TokenType.OPEN_PAREN)) {
+      SimpleIdentifier methodName = parseSimpleIdentifier();
+      FormalParameterList parameters = parseFormalParameterList();
+      if (matches(TokenType.COLON) || modifiers.getFactoryKeyword() != null
+          || methodName.getName().equals(className)) {
+        return parseConstructor(
+            commentAndMetadata,
+            modifiers.getExternalKeyword(),
+            validateModifiersForConstructor(modifiers),
+            modifiers.getFactoryKeyword(),
+            methodName,
+            null,
+            null,
+            parameters);
+      }
+      validateModifiersForGetterOrSetterOrMethod(modifiers);
+      validateFormalParameterList(parameters);
+      return parseMethodDeclaration(
+          commentAndMetadata,
+          modifiers.getExternalKeyword(),
+          modifiers.getStaticKeyword(),
+          null,
+          methodName,
+          parameters);
+    } else if (matchesAny(peek(), TokenType.EQ, TokenType.COMMA, TokenType.SEMICOLON)) {
+      if (modifiers.getConstKeyword() == null && modifiers.getFinalKeyword() == null
+          && modifiers.getVarKeyword() == null) {
+        reportError(ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE);
+      }
+      return parseInitializedIdentifierList(
+          commentAndMetadata,
+          modifiers.getStaticKeyword(),
+          validateModifiersForField(modifiers),
+          null);
+    }
+    TypeName type = parseTypeName();
+    if (matches(Keyword.GET) && matchesIdentifier(peek())) {
+      validateModifiersForGetterOrSetterOrMethod(modifiers);
+      return parseGetter(
+          commentAndMetadata,
+          modifiers.getExternalKeyword(),
+          modifiers.getStaticKeyword(),
+          type);
+    } else if (matches(Keyword.SET) && matchesIdentifier(peek())) {
+      validateModifiersForGetterOrSetterOrMethod(modifiers);
+      return parseSetter(
+          commentAndMetadata,
+          modifiers.getExternalKeyword(),
+          modifiers.getStaticKeyword(),
+          type);
+    } else if (matches(Keyword.OPERATOR) && isOperator(peek())) {
+      validateModifiersForOperator(modifiers);
+      return parseOperator(commentAndMetadata, modifiers.getExternalKeyword(), type);
+    } else if (!matchesIdentifier()) {
+      if (matches(TokenType.CLOSE_CURLY_BRACKET)) {
+        //
+        // We appear to have found an incomplete declaration at the end of the class. At this point
+        // it consists of a type name, so we'll treat it as a field declaration with a missing
+        // field name and semicolon.
+        //
+        return parseInitializedIdentifierList(
+            commentAndMetadata,
+            modifiers.getStaticKeyword(),
+            validateModifiersForField(modifiers),
+            type);
+      }
+      if (isOperator(currentToken)) {
+        //
+        // We appear to have found an operator declaration without the 'operator' keyword.
+        //
+        validateModifiersForOperator(modifiers);
+        return parseOperator(commentAndMetadata, modifiers.getExternalKeyword(), type);
+      }
+      reportError(ParserErrorCode.EXPECTED_CLASS_MEMBER, currentToken);
+      return null;
+    } else if (matches(peek(), TokenType.OPEN_PAREN)) {
+      SimpleIdentifier methodName = parseSimpleIdentifier();
+      FormalParameterList parameters = parseFormalParameterList();
+      if (methodName.getName().equals(className)) {
+        reportError(ParserErrorCode.CONSTRUCTOR_WITH_RETURN_TYPE, type);
+        return parseConstructor(
+            commentAndMetadata,
+            modifiers.getExternalKeyword(),
+            validateModifiersForConstructor(modifiers),
+            modifiers.getFactoryKeyword(),
+            methodName,
+            null,
+            null,
+            parameters);
+      }
+      validateModifiersForGetterOrSetterOrMethod(modifiers);
+      validateFormalParameterList(parameters);
+      return parseMethodDeclaration(
+          commentAndMetadata,
+          modifiers.getExternalKeyword(),
+          modifiers.getStaticKeyword(),
+          type,
+          methodName,
+          parameters);
+    }
+    return parseInitializedIdentifierList(
+        commentAndMetadata,
+        modifiers.getStaticKeyword(),
+        validateModifiersForField(modifiers),
+        type);
+  }
+
+  /**
+   * Parse a compilation unit.
+   * <p>
+   * Specified:
+   * 
+   * <pre>
+   * compilationUnit ::=
+   *     scriptTag? directive* topLevelDeclaration*
+   * </pre>
+   * Actual:
+   * 
+   * <pre>
+   * compilationUnit ::=
+   *     scriptTag? topLevelElement*
+   * 
+   * topLevelElement ::=
+   *     directive
+   *   | topLevelDeclaration
+   * </pre>
+   * 
+   * @return the compilation unit that was parsed
+   */
+  protected CompilationUnit parseCompilationUnit() {
+    Token firstToken = currentToken;
+    ScriptTag scriptTag = null;
+    if (matches(TokenType.SCRIPT_TAG)) {
+      scriptTag = new ScriptTag(getAndAdvance());
+    }
+    //
+    // Even though all directives must appear before declarations and must occur in a given order,
+    // we allow directives and declarations to occur in any order so that we can recover better.
+    //
+    boolean libraryDirectiveFound = false;
+    boolean partOfDirectiveFound = false;
+    boolean partDirectiveFound = false;
+    boolean directiveFoundAfterDeclaration = false;
+    List<Directive> directives = new ArrayList<Directive>();
+    List<CompilationUnitMember> declarations = new ArrayList<CompilationUnitMember>();
+    Token memberStart = currentToken;
+    while (!matches(TokenType.EOF)) {
+      CommentAndMetadata commentAndMetadata = parseCommentAndMetadata();
+      if ((matches(Keyword.IMPORT) || matches(Keyword.EXPORT) || matches(Keyword.LIBRARY) || matches(Keyword.PART))
+          && !matches(peek(), TokenType.PERIOD) && !matches(peek(), TokenType.LT)) {
+        Directive directive = parseDirective(commentAndMetadata);
+        if (declarations.size() > 0 && !directiveFoundAfterDeclaration) {
+          reportError(ParserErrorCode.DIRECTIVE_AFTER_DECLARATION);
+          directiveFoundAfterDeclaration = true;
+        }
+        if (directive instanceof LibraryDirective) {
+          if (libraryDirectiveFound) {
+            reportError(ParserErrorCode.MULTIPLE_LIBRARY_DIRECTIVES);
+          } else {
+            if (directives.size() > 0) {
+              reportError(ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST);
+            }
+            libraryDirectiveFound = true;
+          }
+        } else if (directive instanceof PartDirective) {
+          partDirectiveFound = true;
+        } else if (partDirectiveFound) {
+          if (directive instanceof ExportDirective) {
+            reportError(
+                ParserErrorCode.EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE,
+                ((NamespaceDirective) directive).getKeyword());
+          } else if (directive instanceof ImportDirective) {
+            reportError(
+                ParserErrorCode.IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE,
+                ((NamespaceDirective) directive).getKeyword());
+          }
+        }
+        if (directive instanceof PartOfDirective) {
+          if (partOfDirectiveFound) {
+            reportError(ParserErrorCode.MULTIPLE_PART_OF_DIRECTIVES);
+          } else {
+            for (Directive precedingDirective : directives) {
+              reportError(
+                  ParserErrorCode.NON_PART_OF_DIRECTIVE_IN_PART,
+                  precedingDirective.getKeyword());
+            }
+            partOfDirectiveFound = true;
+          }
+        } else {
+          if (partOfDirectiveFound) {
+            reportError(ParserErrorCode.NON_PART_OF_DIRECTIVE_IN_PART, directive.getKeyword());
+          }
+        }
+        directives.add(directive);
+      } else if (matches(TokenType.SEMICOLON)) {
+        reportError(ParserErrorCode.UNEXPECTED_TOKEN, currentToken, currentToken.getLexeme());
+        advance();
+      } else {
+        CompilationUnitMember member = parseCompilationUnitMember(commentAndMetadata);
+        if (member != null) {
+          declarations.add(member);
+        }
+      }
+      if (currentToken == memberStart) {
+        reportError(ParserErrorCode.UNEXPECTED_TOKEN, currentToken, currentToken.getLexeme());
+        advance();
+        while (!matches(TokenType.EOF) && !couldBeStartOfCompilationUnitMember()) {
+          advance();
+        }
+      }
+      memberStart = currentToken;
+    }
+    return new CompilationUnit(firstToken, scriptTag, directives, declarations, currentToken);
+  }
+
+  /**
+   * Parse a conditional expression.
+   * 
+   * <pre>
+   * conditionalExpression ::=
+   *     logicalOrExpression ('?' expressionWithoutCascade ':' expressionWithoutCascade)?
+   * </pre>
+   * 
+   * @return the conditional expression that was parsed
+   */
+  protected Expression parseConditionalExpression() {
+    Expression condition = parseLogicalOrExpression();
+    if (!matches(TokenType.QUESTION)) {
+      return condition;
+    }
+    Token question = getAndAdvance();
+    Expression thenExpression = parseExpressionWithoutCascade();
+    Token colon = expect(TokenType.COLON);
+    Expression elseExpression = parseExpressionWithoutCascade();
+    return new ConditionalExpression(condition, question, thenExpression, colon, elseExpression);
+  }
+
+  /**
+   * Parse the name of a constructor.
+   * 
+   * <pre>
+   * constructorName:
+   *     type ('.' identifier)?
+   * </pre>
+   * 
+   * @return the constructor name that was parsed
+   */
+  protected ConstructorName parseConstructorName() {
+    TypeName type = parseTypeName();
+    Token period = null;
+    SimpleIdentifier name = null;
+    if (matches(TokenType.PERIOD)) {
+      period = getAndAdvance();
+      name = parseSimpleIdentifier();
+    }
+    return new ConstructorName(type, period, name);
+  }
+
+  /**
+   * Parse an expression that does not contain any cascades.
+   * 
+   * <pre>
+   * expression ::=
+   *     assignableExpression assignmentOperator expression
+   *   | conditionalExpression cascadeSection*
+   *   | throwExpression
+   * </pre>
+   * 
+   * @return the expression that was parsed
+   */
+  protected Expression parseExpression() {
+    if (matches(Keyword.THROW)) {
+      return parseThrowExpression();
+    } else if (matches(Keyword.RETHROW)) {
+      return parseRethrowExpression();
+    }
+    //
+    // assignableExpression is a subset of conditionalExpression, so we can parse a conditional
+    // expression and then determine whether it is followed by an assignmentOperator, checking for
+    // conformance to the restricted grammar after making that determination.
+    //
+    Expression expression = parseConditionalExpression();
+    TokenType tokenType = currentToken.getType();
+    if (tokenType == TokenType.PERIOD_PERIOD) {
+      List<Expression> cascadeSections = new ArrayList<Expression>();
+      while (tokenType == TokenType.PERIOD_PERIOD) {
+        Expression section = parseCascadeSection();
+        if (section != null) {
+          cascadeSections.add(section);
+        }
+        tokenType = currentToken.getType();
+      }
+      return new CascadeExpression(expression, cascadeSections);
+    } else if (tokenType.isAssignmentOperator()) {
+      Token operator = getAndAdvance();
+      ensureAssignable(expression);
+      return new AssignmentExpression(expression, operator, parseExpression());
+    }
+    return expression;
+  }
+
+  /**
+   * Parse an expression that does not contain any cascades.
+   * 
+   * <pre>
+   * expressionWithoutCascade ::=
+   *     assignableExpression assignmentOperator expressionWithoutCascade
+   *   | conditionalExpression
+   *   | throwExpressionWithoutCascade
+   * </pre>
+   * 
+   * @return the expression that was parsed
+   */
+  protected Expression parseExpressionWithoutCascade() {
+    if (matches(Keyword.THROW)) {
+      return parseThrowExpressionWithoutCascade();
+    } else if (matches(Keyword.RETHROW)) {
+      return parseRethrowExpression();
+    }
+    //
+    // assignableExpression is a subset of conditionalExpression, so we can parse a conditional
+    // expression and then determine whether it is followed by an assignmentOperator, checking for
+    // conformance to the restricted grammar after making that determination.
+    //
+    Expression expression = parseConditionalExpression();
+    if (currentToken.getType().isAssignmentOperator()) {
+      Token operator = getAndAdvance();
+      ensureAssignable(expression);
+      expression = new AssignmentExpression(expression, operator, parseExpressionWithoutCascade());
+    }
+    return expression;
+  }
+
+//  /**
+//   * If the current token is an identifier matching the given identifier, return it after advancing
+//   * to the next token. Otherwise report an error and return the current token without advancing.
+//   * 
+//   * @param identifier the identifier that is expected
+//   * @return the token that matched the given type
+//   */
+//  private Token expect(String identifier) {
+//    if (matches(identifier)) {
+//      return getAndAdvance();
+//    }
+//    // Remove uses of this method in favor of matches?
+//    // Pass in the error code to use to report the error?
+//    reportError(ParserErrorCode.EXPECTED_TOKEN, identifier);
+//    return currentToken;
+//  }
+
+  /**
+   * Parse a class extends clause.
+   * 
+   * <pre>
+   * classExtendsClause ::=
+   *     'extends' type
+   * </pre>
+   * 
+   * @return the class extends clause that was parsed
+   */
+  protected ExtendsClause parseExtendsClause() {
+    Token keyword = expect(Keyword.EXTENDS);
+    TypeName superclass = parseTypeName();
+    return new ExtendsClause(keyword, superclass);
+  }
+
+  /**
+   * Parse a list of formal parameters.
+   * 
+   * <pre>
+   * formalParameterList ::=
+   *     '(' ')'
+   *   | '(' normalFormalParameters (',' optionalFormalParameters)? ')'
+   *   | '(' optionalFormalParameters ')'
+   *
+   * normalFormalParameters ::=
+   *     normalFormalParameter (',' normalFormalParameter)*
+   *
+   * optionalFormalParameters ::=
+   *     optionalPositionalFormalParameters
+   *   | namedFormalParameters
+   *
+   * optionalPositionalFormalParameters ::=
+   *     '[' defaultFormalParameter (',' defaultFormalParameter)* ']'
+   *
+   * namedFormalParameters ::=
+   *     '{' defaultNamedParameter (',' defaultNamedParameter)* '}'
+   * </pre>
+   * 
+   * @return the formal parameters that were parsed
+   */
+  protected FormalParameterList parseFormalParameterList() {
+    Token leftParenthesis = expect(TokenType.OPEN_PAREN);
+    if (matches(TokenType.CLOSE_PAREN)) {
+      return new FormalParameterList(leftParenthesis, null, null, null, getAndAdvance());
+    }
+    //
+    // Even though it is invalid to have default parameters outside of brackets, required parameters
+    // inside of brackets, or multiple groups of default and named parameters, we allow all of these
+    // cases so that we can recover better.
+    //
+    List<FormalParameter> parameters = new ArrayList<FormalParameter>();
+    List<FormalParameter> normalParameters = new ArrayList<FormalParameter>();
+    List<FormalParameter> positionalParameters = new ArrayList<FormalParameter>();
+    List<FormalParameter> namedParameters = new ArrayList<FormalParameter>();
+    List<FormalParameter> currentParameters = normalParameters;
+
+    Token leftSquareBracket = null;
+    Token rightSquareBracket = null;
+    Token leftCurlyBracket = null;
+    Token rightCurlyBracket = null;
+
+    ParameterKind kind = ParameterKind.REQUIRED;
+    boolean firstParameter = true;
+    boolean reportedMuliplePositionalGroups = false;
+    boolean reportedMulipleNamedGroups = false;
+    boolean reportedMixedGroups = false;
+    boolean wasOptionalParameter = false;
+    Token initialToken = null;
+    do {
+      if (firstParameter) {
+        firstParameter = false;
+      } else if (!optional(TokenType.COMMA)) {
+        // TODO(brianwilkerson) The token is wrong, we need to recover from this case.
+        if (getEndToken(leftParenthesis) != null) {
+          reportError(ParserErrorCode.EXPECTED_TOKEN, TokenType.COMMA.getLexeme());
+        } else {
+          reportError(ParserErrorCode.MISSING_CLOSING_PARENTHESIS, currentToken.getPrevious());
+          break;
+        }
+      }
+      initialToken = currentToken;
+      //
+      // Handle the beginning of parameter groups.
+      //
+      if (matches(TokenType.OPEN_SQUARE_BRACKET)) {
+        wasOptionalParameter = true;
+        if (leftSquareBracket != null && !reportedMuliplePositionalGroups) {
+          reportError(ParserErrorCode.MULTIPLE_POSITIONAL_PARAMETER_GROUPS);
+          reportedMuliplePositionalGroups = true;
+        }
+        if (leftCurlyBracket != null && !reportedMixedGroups) {
+          reportError(ParserErrorCode.MIXED_PARAMETER_GROUPS);
+          reportedMixedGroups = true;
+        }
+        leftSquareBracket = getAndAdvance();
+        currentParameters = positionalParameters;
+        kind = ParameterKind.POSITIONAL;
+      } else if (matches(TokenType.OPEN_CURLY_BRACKET)) {
+        wasOptionalParameter = true;
+        if (leftCurlyBracket != null && !reportedMulipleNamedGroups) {
+          reportError(ParserErrorCode.MULTIPLE_NAMED_PARAMETER_GROUPS);
+          reportedMulipleNamedGroups = true;
+        }
+        if (leftSquareBracket != null && !reportedMixedGroups) {
+          reportError(ParserErrorCode.MIXED_PARAMETER_GROUPS);
+          reportedMixedGroups = true;
+        }
+        leftCurlyBracket = getAndAdvance();
+        currentParameters = namedParameters;
+        kind = ParameterKind.NAMED;
+      }
+      //
+      // Parse and record the parameter.
+      //
+      FormalParameter parameter = parseFormalParameter(kind);
+      parameters.add(parameter);
+      currentParameters.add(parameter);
+      if (kind == ParameterKind.REQUIRED && wasOptionalParameter) {
+        reportError(ParserErrorCode.NORMAL_BEFORE_OPTIONAL_PARAMETERS, parameter);
+      }
+      //
+      // Handle the end of parameter groups.
+      //
+      // TODO(brianwilkerson) Improve the detection and reporting of missing and mismatched delimiters.
+      if (matches(TokenType.CLOSE_SQUARE_BRACKET)) {
+        rightSquareBracket = getAndAdvance();
+        currentParameters = normalParameters;
+        if (leftSquareBracket == null) {
+          if (leftCurlyBracket != null) {
+            reportError(ParserErrorCode.WRONG_TERMINATOR_FOR_PARAMETER_GROUP, "}");
+            rightCurlyBracket = rightSquareBracket;
+            rightSquareBracket = null;
+          } else {
+            reportError(ParserErrorCode.UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP, "[");
+          }
+        }
+        kind = ParameterKind.REQUIRED;
+      } else if (matches(TokenType.CLOSE_CURLY_BRACKET)) {
+        rightCurlyBracket = getAndAdvance();
+        currentParameters = normalParameters;
+        if (leftCurlyBracket == null) {
+          if (leftSquareBracket != null) {
+            reportError(ParserErrorCode.WRONG_TERMINATOR_FOR_PARAMETER_GROUP, "]");
+            rightSquareBracket = rightCurlyBracket;
+            rightCurlyBracket = null;
+          } else {
+            reportError(ParserErrorCode.UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP, "{");
+          }
+        }
+        kind = ParameterKind.REQUIRED;
+      }
+    } while (!matches(TokenType.CLOSE_PAREN) && initialToken != currentToken);
+    Token rightParenthesis = expect(TokenType.CLOSE_PAREN);
+    //
+    // Check that the groups were closed correctly.
+    //
+    if (leftSquareBracket != null && rightSquareBracket == null) {
+      reportError(ParserErrorCode.MISSING_TERMINATOR_FOR_PARAMETER_GROUP, "]");
+    }
+    if (leftCurlyBracket != null && rightCurlyBracket == null) {
+      reportError(ParserErrorCode.MISSING_TERMINATOR_FOR_PARAMETER_GROUP, "}");
+    }
+    //
+    // Build the parameter list.
+    //
+    if (leftSquareBracket == null) {
+      leftSquareBracket = leftCurlyBracket;
+    }
+    if (rightSquareBracket == null) {
+      rightSquareBracket = rightCurlyBracket;
+    }
+    return new FormalParameterList(
+        leftParenthesis,
+        parameters,
+        leftSquareBracket,
+        rightSquareBracket,
+        rightParenthesis);
+  }
+
+  /**
+   * Parse a function expression.
+   * 
+   * <pre>
+   * functionExpression ::=
+   *     formalParameterList functionExpressionBody
+   * </pre>
+   * 
+   * @return the function expression that was parsed
+   */
+  protected FunctionExpression parseFunctionExpression() {
+    FormalParameterList parameters = parseFormalParameterList();
+    validateFormalParameterList(parameters);
+    FunctionBody body = parseFunctionBody(false, ParserErrorCode.MISSING_FUNCTION_BODY, true);
+    return new FunctionExpression(parameters, body);
+  }
+
+  /**
+   * Parse an implements clause.
+   * 
+   * <pre>
+   * implementsClause ::=
+   *     'implements' type (',' type)*
+   * </pre>
+   * 
+   * @return the implements clause that was parsed
+   */
+  protected ImplementsClause parseImplementsClause() {
+    Token keyword = expect(Keyword.IMPLEMENTS);
+    List<TypeName> interfaces = new ArrayList<TypeName>();
+    interfaces.add(parseTypeName());
+    while (optional(TokenType.COMMA)) {
+      interfaces.add(parseTypeName());
+    }
+    return new ImplementsClause(keyword, interfaces);
+  }
+
+  /**
+   * Parse a label.
+   * 
+   * <pre>
+   * label ::=
+   *     identifier ':'
+   * </pre>
+   * 
+   * @return the label that was parsed
+   */
+  protected Label parseLabel() {
+    SimpleIdentifier label = parseSimpleIdentifier();
+    Token colon = expect(TokenType.COLON);
+    return new Label(label, colon);
+  }
+
+  /**
+   * Parse a library identifier.
+   * 
+   * <pre>
+   * libraryIdentifier ::=
+   *     identifier ('.' identifier)*
+   * </pre>
+   * 
+   * @return the library identifier that was parsed
+   */
+  protected LibraryIdentifier parseLibraryIdentifier() {
+    ArrayList<SimpleIdentifier> components = new ArrayList<SimpleIdentifier>();
+    components.add(parseSimpleIdentifier());
+    while (matches(TokenType.PERIOD)) {
+      advance();
+      components.add(parseSimpleIdentifier());
+    }
+    return new LibraryIdentifier(components);
+  }
+
+  /**
+   * Parse a logical or expression.
+   * 
+   * <pre>
+   * logicalOrExpression ::=
+   *     logicalAndExpression ('||' logicalAndExpression)*
+   * </pre>
+   * 
+   * @return the logical or expression that was parsed
+   */
+  protected Expression parseLogicalOrExpression() {
+    Expression expression = parseLogicalAndExpression();
+    while (matches(TokenType.BAR_BAR)) {
+      Token operator = getAndAdvance();
+      expression = new BinaryExpression(expression, operator, parseLogicalAndExpression());
+    }
+    return expression;
+  }
+
+  /**
+   * Parse a map literal entry.
+   * 
+   * <pre>
+   * mapLiteralEntry ::=
+   *     expression ':' expression
+   * </pre>
+   * 
+   * @return the map literal entry that was parsed
+   */
+  protected MapLiteralEntry parseMapLiteralEntry() {
+    Expression key = parseExpression();
+    Token separator = expect(TokenType.COLON);
+    Expression value = parseExpression();
+    return new MapLiteralEntry(key, separator, value);
+  }
+
+  /**
+   * Parse a normal formal parameter.
+   * 
+   * <pre>
+   * normalFormalParameter ::=
+   *     functionSignature
+   *   | fieldFormalParameter
+   *   | simpleFormalParameter
+   * 
+   * functionSignature:
+   *     metadata returnType? identifier formalParameterList
+   * 
+   * fieldFormalParameter ::=
+   *     metadata finalConstVarOrType? 'this' '.' identifier
+   * 
+   * simpleFormalParameter ::=
+   *     declaredIdentifier
+   *   | metadata identifier
+   * </pre>
+   * 
+   * @return the normal formal parameter that was parsed
+   */
+  protected NormalFormalParameter parseNormalFormalParameter() {
+    CommentAndMetadata commentAndMetadata = parseCommentAndMetadata();
+    FinalConstVarOrType holder = parseFinalConstVarOrType(true);
+    Token thisKeyword = null;
+    Token period = null;
+    if (matches(Keyword.THIS)) {
+      thisKeyword = getAndAdvance();
+      period = expect(TokenType.PERIOD);
+    }
+    SimpleIdentifier identifier = parseSimpleIdentifier();
+    if (matches(TokenType.OPEN_PAREN)) {
+      FormalParameterList parameters = parseFormalParameterList();
+      if (thisKeyword == null) {
+        if (holder.getKeyword() != null) {
+          reportError(ParserErrorCode.FUNCTION_TYPED_PARAMETER_VAR, holder.getKeyword());
+        }
+        return new FunctionTypedFormalParameter(
+            commentAndMetadata.getComment(),
+            commentAndMetadata.getMetadata(),
+            holder.getType(),
+            identifier,
+            parameters);
+      } else {
+        return new FieldFormalParameter(
+            commentAndMetadata.getComment(),
+            commentAndMetadata.getMetadata(),
+            holder.getKeyword(),
+            holder.getType(),
+            thisKeyword,
+            period,
+            identifier,
+            parameters);
+      }
+    }
+    TypeName type = holder.getType();
+    if (type != null) {
+      if (matches(type.getName().getBeginToken(), Keyword.VOID)) {
+        reportError(ParserErrorCode.VOID_PARAMETER, type.getName().getBeginToken());
+      } else if (holder.getKeyword() != null && matches(holder.getKeyword(), Keyword.VAR)) {
+        reportError(ParserErrorCode.VAR_AND_TYPE, holder.getKeyword());
+      }
+    }
+    if (thisKeyword != null) {
+      return new FieldFormalParameter(
+          commentAndMetadata.getComment(),
+          commentAndMetadata.getMetadata(),
+          holder.getKeyword(),
+          holder.getType(),
+          thisKeyword,
+          period,
+          identifier,
+          null);
+    }
+    return new SimpleFormalParameter(
+        commentAndMetadata.getComment(),
+        commentAndMetadata.getMetadata(),
+        holder.getKeyword(),
+        holder.getType(),
+        identifier);
+  }
+
+  /**
+   * Parse a prefixed identifier.
+   * 
+   * <pre>
+   * prefixedIdentifier ::=
+   *     identifier ('.' identifier)?
+   * </pre>
+   * 
+   * @return the prefixed identifier that was parsed
+   */
+  protected Identifier parsePrefixedIdentifier() {
+    SimpleIdentifier qualifier = parseSimpleIdentifier();
+    if (!matches(TokenType.PERIOD)) {
+      return qualifier;
+    }
+    Token period = getAndAdvance();
+    SimpleIdentifier qualified = parseSimpleIdentifier();
+    return new PrefixedIdentifier(qualifier, period, qualified);
+  }
+
+  /**
+   * Parse a return type.
+   * 
+   * <pre>
+   * returnType ::=
+   *     'void'
+   *   | type
+   * </pre>
+   * 
+   * @return the return type that was parsed
+   */
+  protected TypeName parseReturnType() {
+    if (matches(Keyword.VOID)) {
+      return new TypeName(new SimpleIdentifier(getAndAdvance()), null);
+    } else {
+      return parseTypeName();
+    }
+  }
+
+  /**
+   * Parse a simple identifier.
+   * 
+   * <pre>
+   * identifier ::=
+   *     IDENTIFIER
+   * </pre>
+   * 
+   * @return the simple identifier that was parsed
+   */
+  protected SimpleIdentifier parseSimpleIdentifier() {
+    if (matchesIdentifier()) {
+      return new SimpleIdentifier(getAndAdvance());
+    }
+    reportError(ParserErrorCode.MISSING_IDENTIFIER);
+    return createSyntheticIdentifier();
+  }
+
+  /**
+   * Parse a statement.
+   * 
+   * <pre>
+   * statement ::=
+   *     label* nonLabeledStatement
+   * </pre>
+   * 
+   * @return the statement that was parsed
+   */
+  protected Statement parseStatement() {
+    List<Label> labels = new ArrayList<Label>();
+    while (matchesIdentifier() && matches(peek(), TokenType.COLON)) {
+      labels.add(parseLabel());
+    }
+    Statement statement = parseNonLabeledStatement();
+    if (labels.isEmpty()) {
+      return statement;
+    }
+    return new LabeledStatement(labels, statement);
+  }
+
+  /**
+   * Parse a string literal.
+   * 
+   * <pre>
+   * stringLiteral ::=
+   *     MULTI_LINE_STRING+
+   *   | SINGLE_LINE_STRING+
+   * </pre>
+   * 
+   * @return the string literal that was parsed
+   */
+  protected StringLiteral parseStringLiteral() {
+    List<StringLiteral> strings = new ArrayList<StringLiteral>();
+    while (matches(TokenType.STRING)) {
+      Token string = getAndAdvance();
+      if (matches(TokenType.STRING_INTERPOLATION_EXPRESSION)
+          || matches(TokenType.STRING_INTERPOLATION_IDENTIFIER)) {
+        strings.add(parseStringInterpolation(string));
+      } else {
+        strings.add(new SimpleStringLiteral(string, computeStringValue(
+            string.getLexeme(),
+            true,
+            true)));
+      }
+    }
+    if (strings.size() < 1) {
+      reportError(ParserErrorCode.EXPECTED_STRING_LITERAL);
+      return createSyntheticStringLiteral();
+    } else if (strings.size() == 1) {
+      return strings.get(0);
+    } else {
+      return new AdjacentStrings(strings);
+    }
+  }
+
+/**
+   * Parse a list of type arguments.
+   * 
+   * <pre>
+   * typeArguments ::=
+   *     '<' typeList '>'
+   * 
+   * typeList ::=
+   *     type (',' type)*
+   * </pre>
+   * 
+   * @return the type argument list that was parsed
+   */
+  protected TypeArgumentList parseTypeArgumentList() {
+    Token leftBracket = expect(TokenType.LT);
+    List<TypeName> arguments = new ArrayList<TypeName>();
+    arguments.add(parseTypeName());
+    while (optional(TokenType.COMMA)) {
+      arguments.add(parseTypeName());
+    }
+    Token rightBracket = expect(TokenType.GT);
+    return new TypeArgumentList(leftBracket, arguments, rightBracket);
+  }
+
+  /**
+   * Parse a type name.
+   * 
+   * <pre>
+   * type ::=
+   *     qualified typeArguments?
+   * </pre>
+   * 
+   * @return the type name that was parsed
+   */
+  protected TypeName parseTypeName() {
+    Identifier typeName;
+    if (matches(Keyword.VAR)) {
+      reportError(ParserErrorCode.VAR_AS_TYPE_NAME);
+      typeName = new SimpleIdentifier(getAndAdvance());
+    } else if (matchesIdentifier()) {
+      typeName = parsePrefixedIdentifier();
+    } else {
+      typeName = createSyntheticIdentifier();
+      reportError(ParserErrorCode.EXPECTED_TYPE_NAME);
+    }
+    TypeArgumentList typeArguments = null;
+    if (matches(TokenType.LT)) {
+      typeArguments = parseTypeArgumentList();
+    }
+    return new TypeName(typeName, typeArguments);
+  }
+
+  /**
+   * Parse a type parameter.
+   * 
+   * <pre>
+   * typeParameter ::=
+   *     metadata name ('extends' bound)?
+   * </pre>
+   * 
+   * @return the type parameter that was parsed
+   */
+  protected TypeParameter parseTypeParameter() {
+    CommentAndMetadata commentAndMetadata = parseCommentAndMetadata();
+    SimpleIdentifier name = parseSimpleIdentifier();
+    if (matches(Keyword.EXTENDS)) {
+      Token keyword = getAndAdvance();
+      TypeName bound = parseTypeName();
+      return new TypeParameter(
+          commentAndMetadata.getComment(),
+          commentAndMetadata.getMetadata(),
+          name,
+          keyword,
+          bound);
+    }
+    return new TypeParameter(
+        commentAndMetadata.getComment(),
+        commentAndMetadata.getMetadata(),
+        name,
+        null,
+        null);
+  }
+
+/**
+   * Parse a list of type parameters.
+   * 
+   * <pre>
+   * typeParameterList ::=
+   *     '<' typeParameter (',' typeParameter)* '>'
+   * </pre>
+   * 
+   * @return the list of type parameters that were parsed
+   */
+  protected TypeParameterList parseTypeParameterList() {
+    Token leftBracket = expect(TokenType.LT);
+    List<TypeParameter> typeParameters = new ArrayList<TypeParameter>();
+    typeParameters.add(parseTypeParameter());
+    while (optional(TokenType.COMMA)) {
+      typeParameters.add(parseTypeParameter());
+    }
+    Token rightBracket = expect(TokenType.GT);
+    return new TypeParameterList(leftBracket, typeParameters, rightBracket);
+  }
+
+  /**
+   * Parse a with clause.
+   * 
+   * <pre>
+   * withClause ::=
+   *     'with' typeName (',' typeName)*
+   * </pre>
+   * 
+   * @return the with clause that was parsed
+   */
+  protected WithClause parseWithClause() {
+    Token with = expect(Keyword.WITH);
+    ArrayList<TypeName> types = new ArrayList<TypeName>();
+    types.add(parseTypeName());
+    while (optional(TokenType.COMMA)) {
+      types.add(parseTypeName());
+    }
+    return new WithClause(with, types);
   }
 
   @VisibleForTesting
@@ -364,23 +1591,6 @@ public class Parser {
   private Token createSyntheticToken(TokenType type) {
     return new StringToken(type, "", currentToken.getOffset());
   }
-
-//  /**
-//   * If the current token is an identifier matching the given identifier, return it after advancing
-//   * to the next token. Otherwise report an error and return the current token without advancing.
-//   * 
-//   * @param identifier the identifier that is expected
-//   * @return the token that matched the given type
-//   */
-//  private Token expect(String identifier) {
-//    if (matches(identifier)) {
-//      return getAndAdvance();
-//    }
-//    // Remove uses of this method in favor of matches?
-//    // Pass in the error code to use to report the error?
-//    reportError(ParserErrorCode.EXPECTED_TOKEN, identifier);
-//    return currentToken;
-//  }
 
   /**
    * Check that the given expression is assignable and report an error if it isn't.
@@ -966,60 +2176,6 @@ public class Parser {
   }
 
   /**
-   * Parse an annotation.
-   * 
-   * <pre>
-   * annotation ::=
-   *     '@' qualified ('.' identifier)? arguments?
-   * </pre>
-   * 
-   * @return the annotation that was parsed
-   */
-  private Annotation parseAnnotation() {
-    Token atSign = expect(TokenType.AT);
-    Identifier name = parsePrefixedIdentifier();
-    Token period = null;
-    SimpleIdentifier constructorName = null;
-    if (matches(TokenType.PERIOD)) {
-      period = getAndAdvance();
-      constructorName = parseSimpleIdentifier();
-    }
-    ArgumentList arguments = null;
-    if (matches(TokenType.OPEN_PAREN)) {
-      arguments = parseArgumentList();
-    }
-    return new Annotation(atSign, name, period, constructorName, arguments);
-  }
-
-  /**
-   * Parse an argument.
-   * 
-   * <pre>
-   * argument ::=
-   *     namedArgument
-   *   | expression
-   *
-   * namedArgument ::=
-   *     label expression
-   * </pre>
-   * 
-   * @return the argument that was parsed
-   */
-  private Expression parseArgument() {
-    //
-    // Both namedArgument and expression can start with an identifier, but only namedArgument can
-    // have an identifier followed by a colon.
-    //
-    if (matchesIdentifier() && matches(peek(), TokenType.COLON)) {
-      SimpleIdentifier label = new SimpleIdentifier(getAndAdvance());
-      Label name = new Label(label, getAndAdvance());
-      return new NamedExpression(name, parseExpression());
-    } else {
-      return parseExpression();
-    }
-  }
-
-  /**
    * Parse an argument definition test.
    * 
    * <pre>
@@ -1034,54 +2190,6 @@ public class Parser {
     SimpleIdentifier identifier = parseSimpleIdentifier();
     reportError(ParserErrorCode.DEPRECATED_ARGUMENT_DEFINITION_TEST, question);
     return new ArgumentDefinitionTest(question, identifier);
-  }
-
-  /**
-   * Parse a list of arguments.
-   * 
-   * <pre>
-   * arguments ::=
-   *     '(' argumentList? ')'
-   * 
-   * argumentList ::=
-   *     namedArgument (',' namedArgument)*
-   *   | expressionList (',' namedArgument)*
-   * </pre>
-   * 
-   * @return the argument list that was parsed
-   */
-  private ArgumentList parseArgumentList() {
-    Token leftParenthesis = expect(TokenType.OPEN_PAREN);
-    List<Expression> arguments = new ArrayList<Expression>();
-    if (matches(TokenType.CLOSE_PAREN)) {
-      return new ArgumentList(leftParenthesis, arguments, getAndAdvance());
-    }
-    //
-    // Even though unnamed arguments must all appear before any named arguments, we allow them to
-    // appear in any order so that we can recover faster.
-    //
-    Expression argument = parseArgument();
-    arguments.add(argument);
-    boolean foundNamedArgument = argument instanceof NamedExpression;
-    boolean generatedError = false;
-    while (optional(TokenType.COMMA)) {
-      argument = parseArgument();
-      arguments.add(argument);
-      if (foundNamedArgument) {
-        if (!generatedError && !(argument instanceof NamedExpression)) {
-          // Report the error, once, but allow the arguments to be in any order in the AST.
-          reportError(ParserErrorCode.POSITIONAL_AFTER_NAMED_ARGUMENT);
-          generatedError = true;
-        }
-      } else if (argument instanceof NamedExpression) {
-        foundNamedArgument = true;
-      }
-    }
-    // TODO(brianwilkerson) Recovery: Look at the left parenthesis to see whether there is a
-    // matching right parenthesis. If there is, then we're more likely missing a comma and should
-    // go back to parsing arguments.
-    Token rightParenthesis = expect(TokenType.CLOSE_PAREN);
-    return new ArgumentList(leftParenthesis, arguments, rightParenthesis);
   }
 
   /**
@@ -1237,31 +2345,6 @@ public class Parser {
   }
 
   /**
-   * Parse a bitwise or expression.
-   * 
-   * <pre>
-   * bitwiseOrExpression ::=
-   *     bitwiseXorExpression ('|' bitwiseXorExpression)*
-   *   | 'super' ('|' bitwiseXorExpression)+
-   * </pre>
-   * 
-   * @return the bitwise or expression that was parsed
-   */
-  private Expression parseBitwiseOrExpression() {
-    Expression expression;
-    if (matches(Keyword.SUPER) && matches(peek(), TokenType.BAR)) {
-      expression = new SuperExpression(getAndAdvance());
-    } else {
-      expression = parseBitwiseXorExpression();
-    }
-    while (matches(TokenType.BAR)) {
-      Token operator = getAndAdvance();
-      expression = new BinaryExpression(expression, operator, parseBitwiseXorExpression());
-    }
-    return expression;
-  }
-
-  /**
    * Parse a bitwise exclusive-or expression.
    * 
    * <pre>
@@ -1284,36 +2367,6 @@ public class Parser {
       expression = new BinaryExpression(expression, operator, parseBitwiseAndExpression());
     }
     return expression;
-  }
-
-  /**
-   * Parse a block.
-   * 
-   * <pre>
-   * block ::=
-   *     '{' statements '}'
-   * </pre>
-   * 
-   * @return the block that was parsed
-   */
-  private Block parseBlock() {
-    Token leftBracket = expect(TokenType.OPEN_CURLY_BRACKET);
-    List<Statement> statements = new ArrayList<Statement>();
-    Token statementStart = currentToken;
-    while (!matches(TokenType.EOF) && !matches(TokenType.CLOSE_CURLY_BRACKET)) {
-      Statement statement = parseStatement();
-      if (statement != null) {
-        statements.add(statement);
-      }
-      if (currentToken == statementStart) {
-        // Ensure that we are making progress and report an error if we're not.
-        reportError(ParserErrorCode.UNEXPECTED_TOKEN, currentToken, currentToken.getLexeme());
-        advance();
-      }
-      statementStart = currentToken;
-    }
-    Token rightBracket = expect(TokenType.CLOSE_CURLY_BRACKET);
-    return new Block(leftBracket, statements, rightBracket);
   }
 
   /**
@@ -1534,225 +2587,6 @@ public class Parser {
         rightBracket);
     classDeclaration.setNativeClause(nativeClause);
     return classDeclaration;
-  }
-
-  /**
-   * Parse a class member.
-   * 
-   * <pre>
-   * classMemberDefinition ::=
-   *     declaration ';'
-   *   | methodSignature functionBody
-   * </pre>
-   * 
-   * @param className the name of the class containing the member being parsed
-   * @return the class member that was parsed, or {@code null} if what was found was not a valid
-   *         class member
-   */
-  private ClassMember parseClassMember(String className) {
-    CommentAndMetadata commentAndMetadata = parseCommentAndMetadata();
-    Modifiers modifiers = parseModifiers();
-    if (matches(Keyword.VOID)) {
-      TypeName returnType = parseReturnType();
-      if (matches(Keyword.GET) && matchesIdentifier(peek())) {
-        validateModifiersForGetterOrSetterOrMethod(modifiers);
-        return parseGetter(
-            commentAndMetadata,
-            modifiers.getExternalKeyword(),
-            modifiers.getStaticKeyword(),
-            returnType);
-      } else if (matches(Keyword.SET) && matchesIdentifier(peek())) {
-        validateModifiersForGetterOrSetterOrMethod(modifiers);
-        return parseSetter(
-            commentAndMetadata,
-            modifiers.getExternalKeyword(),
-            modifiers.getStaticKeyword(),
-            returnType);
-      } else if (matches(Keyword.OPERATOR) && isOperator(peek())) {
-        validateModifiersForOperator(modifiers);
-        return parseOperator(commentAndMetadata, modifiers.getExternalKeyword(), returnType);
-      } else if (matchesIdentifier()
-          && matchesAny(
-              peek(),
-              TokenType.OPEN_PAREN,
-              TokenType.OPEN_CURLY_BRACKET,
-              TokenType.FUNCTION)) {
-        validateModifiersForGetterOrSetterOrMethod(modifiers);
-        return parseMethodDeclaration(
-            commentAndMetadata,
-            modifiers.getExternalKeyword(),
-            modifiers.getStaticKeyword(),
-            returnType);
-      } else {
-        //
-        // We have found an error of some kind. Try to recover.
-        //
-        if (matchesIdentifier()) {
-          if (matchesAny(peek(), TokenType.EQ, TokenType.COMMA, TokenType.SEMICOLON)) {
-            //
-            // We appear to have a variable declaration with a type of "void".
-            //
-            reportError(ParserErrorCode.VOID_VARIABLE, returnType);
-            return parseInitializedIdentifierList(
-                commentAndMetadata,
-                modifiers.getStaticKeyword(),
-                validateModifiersForField(modifiers),
-                returnType);
-          }
-        }
-        if (isOperator(currentToken)) {
-          //
-          // We appear to have found an operator declaration without the 'operator' keyword.
-          //
-          validateModifiersForOperator(modifiers);
-          return parseOperator(commentAndMetadata, modifiers.getExternalKeyword(), returnType);
-        }
-        reportError(ParserErrorCode.EXPECTED_EXECUTABLE, currentToken);
-        return null;
-      }
-    } else if (matches(Keyword.GET) && matchesIdentifier(peek())) {
-      validateModifiersForGetterOrSetterOrMethod(modifiers);
-      return parseGetter(
-          commentAndMetadata,
-          modifiers.getExternalKeyword(),
-          modifiers.getStaticKeyword(),
-          null);
-    } else if (matches(Keyword.SET) && matchesIdentifier(peek())) {
-      validateModifiersForGetterOrSetterOrMethod(modifiers);
-      return parseSetter(
-          commentAndMetadata,
-          modifiers.getExternalKeyword(),
-          modifiers.getStaticKeyword(),
-          null);
-    } else if (matches(Keyword.OPERATOR) && isOperator(peek())) {
-      validateModifiersForOperator(modifiers);
-      return parseOperator(commentAndMetadata, modifiers.getExternalKeyword(), null);
-    } else if (!matchesIdentifier()) {
-      if (isOperator(currentToken)) {
-        //
-        // We appear to have found an operator declaration without the 'operator' keyword.
-        //
-        validateModifiersForOperator(modifiers);
-        return parseOperator(commentAndMetadata, modifiers.getExternalKeyword(), null);
-      }
-      reportError(ParserErrorCode.EXPECTED_CLASS_MEMBER, currentToken);
-      return null;
-    } else if (matches(peek(), TokenType.PERIOD) && matchesIdentifier(peek(2))
-        && matches(peek(3), TokenType.OPEN_PAREN)) {
-      return parseConstructor(
-          commentAndMetadata,
-          modifiers.getExternalKeyword(),
-          validateModifiersForConstructor(modifiers),
-          modifiers.getFactoryKeyword(),
-          parseSimpleIdentifier(),
-          getAndAdvance(),
-          parseSimpleIdentifier(),
-          parseFormalParameterList());
-    } else if (matches(peek(), TokenType.OPEN_PAREN)) {
-      SimpleIdentifier methodName = parseSimpleIdentifier();
-      FormalParameterList parameters = parseFormalParameterList();
-      if (matches(TokenType.COLON) || modifiers.getFactoryKeyword() != null
-          || methodName.getName().equals(className)) {
-        return parseConstructor(
-            commentAndMetadata,
-            modifiers.getExternalKeyword(),
-            validateModifiersForConstructor(modifiers),
-            modifiers.getFactoryKeyword(),
-            methodName,
-            null,
-            null,
-            parameters);
-      }
-      validateModifiersForGetterOrSetterOrMethod(modifiers);
-      validateFormalParameterList(parameters);
-      return parseMethodDeclaration(
-          commentAndMetadata,
-          modifiers.getExternalKeyword(),
-          modifiers.getStaticKeyword(),
-          null,
-          methodName,
-          parameters);
-    } else if (matchesAny(peek(), TokenType.EQ, TokenType.COMMA, TokenType.SEMICOLON)) {
-      if (modifiers.getConstKeyword() == null && modifiers.getFinalKeyword() == null
-          && modifiers.getVarKeyword() == null) {
-        reportError(ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE);
-      }
-      return parseInitializedIdentifierList(
-          commentAndMetadata,
-          modifiers.getStaticKeyword(),
-          validateModifiersForField(modifiers),
-          null);
-    }
-    TypeName type = parseTypeName();
-    if (matches(Keyword.GET) && matchesIdentifier(peek())) {
-      validateModifiersForGetterOrSetterOrMethod(modifiers);
-      return parseGetter(
-          commentAndMetadata,
-          modifiers.getExternalKeyword(),
-          modifiers.getStaticKeyword(),
-          type);
-    } else if (matches(Keyword.SET) && matchesIdentifier(peek())) {
-      validateModifiersForGetterOrSetterOrMethod(modifiers);
-      return parseSetter(
-          commentAndMetadata,
-          modifiers.getExternalKeyword(),
-          modifiers.getStaticKeyword(),
-          type);
-    } else if (matches(Keyword.OPERATOR) && isOperator(peek())) {
-      validateModifiersForOperator(modifiers);
-      return parseOperator(commentAndMetadata, modifiers.getExternalKeyword(), type);
-    } else if (!matchesIdentifier()) {
-      if (matches(TokenType.CLOSE_CURLY_BRACKET)) {
-        //
-        // We appear to have found an incomplete declaration at the end of the class. At this point
-        // it consists of a type name, so we'll treat it as a field declaration with a missing
-        // field name and semicolon.
-        //
-        return parseInitializedIdentifierList(
-            commentAndMetadata,
-            modifiers.getStaticKeyword(),
-            validateModifiersForField(modifiers),
-            type);
-      }
-      if (isOperator(currentToken)) {
-        //
-        // We appear to have found an operator declaration without the 'operator' keyword.
-        //
-        validateModifiersForOperator(modifiers);
-        return parseOperator(commentAndMetadata, modifiers.getExternalKeyword(), type);
-      }
-      reportError(ParserErrorCode.EXPECTED_CLASS_MEMBER, currentToken);
-      return null;
-    } else if (matches(peek(), TokenType.OPEN_PAREN)) {
-      SimpleIdentifier methodName = parseSimpleIdentifier();
-      FormalParameterList parameters = parseFormalParameterList();
-      if (methodName.getName().equals(className)) {
-        reportError(ParserErrorCode.CONSTRUCTOR_WITH_RETURN_TYPE, type);
-        return parseConstructor(
-            commentAndMetadata,
-            modifiers.getExternalKeyword(),
-            validateModifiersForConstructor(modifiers),
-            modifiers.getFactoryKeyword(),
-            methodName,
-            null,
-            null,
-            parameters);
-      }
-      validateModifiersForGetterOrSetterOrMethod(modifiers);
-      validateFormalParameterList(parameters);
-      return parseMethodDeclaration(
-          commentAndMetadata,
-          modifiers.getExternalKeyword(),
-          modifiers.getStaticKeyword(),
-          type,
-          methodName,
-          parameters);
-    }
-    return parseInitializedIdentifierList(
-        commentAndMetadata,
-        modifiers.getStaticKeyword(),
-        validateModifiersForField(modifiers),
-        type);
   }
 
   /**
@@ -2033,114 +2867,6 @@ public class Parser {
   }
 
   /**
-   * Parse a compilation unit.
-   * <p>
-   * Specified:
-   * 
-   * <pre>
-   * compilationUnit ::=
-   *     scriptTag? directive* topLevelDeclaration*
-   * </pre>
-   * Actual:
-   * 
-   * <pre>
-   * compilationUnit ::=
-   *     scriptTag? topLevelElement*
-   * 
-   * topLevelElement ::=
-   *     directive
-   *   | topLevelDeclaration
-   * </pre>
-   * 
-   * @return the compilation unit that was parsed
-   */
-  private CompilationUnit parseCompilationUnit() {
-    Token firstToken = currentToken;
-    ScriptTag scriptTag = null;
-    if (matches(TokenType.SCRIPT_TAG)) {
-      scriptTag = new ScriptTag(getAndAdvance());
-    }
-    //
-    // Even though all directives must appear before declarations and must occur in a given order,
-    // we allow directives and declarations to occur in any order so that we can recover better.
-    //
-    boolean libraryDirectiveFound = false;
-    boolean partOfDirectiveFound = false;
-    boolean partDirectiveFound = false;
-    boolean directiveFoundAfterDeclaration = false;
-    List<Directive> directives = new ArrayList<Directive>();
-    List<CompilationUnitMember> declarations = new ArrayList<CompilationUnitMember>();
-    Token memberStart = currentToken;
-    while (!matches(TokenType.EOF)) {
-      CommentAndMetadata commentAndMetadata = parseCommentAndMetadata();
-      if ((matches(Keyword.IMPORT) || matches(Keyword.EXPORT) || matches(Keyword.LIBRARY) || matches(Keyword.PART))
-          && !matches(peek(), TokenType.PERIOD) && !matches(peek(), TokenType.LT)) {
-        Directive directive = parseDirective(commentAndMetadata);
-        if (declarations.size() > 0 && !directiveFoundAfterDeclaration) {
-          reportError(ParserErrorCode.DIRECTIVE_AFTER_DECLARATION);
-          directiveFoundAfterDeclaration = true;
-        }
-        if (directive instanceof LibraryDirective) {
-          if (libraryDirectiveFound) {
-            reportError(ParserErrorCode.MULTIPLE_LIBRARY_DIRECTIVES);
-          } else {
-            if (directives.size() > 0) {
-              reportError(ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST);
-            }
-            libraryDirectiveFound = true;
-          }
-        } else if (directive instanceof PartDirective) {
-          partDirectiveFound = true;
-        } else if (partDirectiveFound) {
-          if (directive instanceof ExportDirective) {
-            reportError(
-                ParserErrorCode.EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE,
-                ((NamespaceDirective) directive).getKeyword());
-          } else if (directive instanceof ImportDirective) {
-            reportError(
-                ParserErrorCode.IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE,
-                ((NamespaceDirective) directive).getKeyword());
-          }
-        }
-        if (directive instanceof PartOfDirective) {
-          if (partOfDirectiveFound) {
-            reportError(ParserErrorCode.MULTIPLE_PART_OF_DIRECTIVES);
-          } else {
-            for (Directive precedingDirective : directives) {
-              reportError(
-                  ParserErrorCode.NON_PART_OF_DIRECTIVE_IN_PART,
-                  precedingDirective.getKeyword());
-            }
-            partOfDirectiveFound = true;
-          }
-        } else {
-          if (partOfDirectiveFound) {
-            reportError(ParserErrorCode.NON_PART_OF_DIRECTIVE_IN_PART, directive.getKeyword());
-          }
-        }
-        directives.add(directive);
-      } else if (matches(TokenType.SEMICOLON)) {
-        reportError(ParserErrorCode.UNEXPECTED_TOKEN, currentToken, currentToken.getLexeme());
-        advance();
-      } else {
-        CompilationUnitMember member = parseCompilationUnitMember(commentAndMetadata);
-        if (member != null) {
-          declarations.add(member);
-        }
-      }
-      if (currentToken == memberStart) {
-        reportError(ParserErrorCode.UNEXPECTED_TOKEN, currentToken, currentToken.getLexeme());
-        advance();
-        while (!matches(TokenType.EOF) && !couldBeStartOfCompilationUnitMember()) {
-          advance();
-        }
-      }
-      memberStart = currentToken;
-    }
-    return new CompilationUnit(firstToken, scriptTag, directives, declarations, currentToken);
-  }
-
-  /**
    * Parse a compilation unit member.
    * 
    * <pre>
@@ -2294,28 +3020,6 @@ public class Parser {
   }
 
   /**
-   * Parse a conditional expression.
-   * 
-   * <pre>
-   * conditionalExpression ::=
-   *     logicalOrExpression ('?' expressionWithoutCascade ':' expressionWithoutCascade)?
-   * </pre>
-   * 
-   * @return the conditional expression that was parsed
-   */
-  private Expression parseConditionalExpression() {
-    Expression condition = parseLogicalOrExpression();
-    if (!matches(TokenType.QUESTION)) {
-      return condition;
-    }
-    Token question = getAndAdvance();
-    Expression thenExpression = parseExpressionWithoutCascade();
-    Token colon = expect(TokenType.COLON);
-    Expression elseExpression = parseExpressionWithoutCascade();
-    return new ConditionalExpression(condition, question, thenExpression, colon, elseExpression);
-  }
-
-  /**
    * Parse a const expression.
    * 
    * <pre>
@@ -2440,27 +3144,6 @@ public class Parser {
       expression = new CascadeExpression(expression, cascadeSections);
     }
     return new ConstructorFieldInitializer(keyword, period, fieldName, equals, expression);
-  }
-
-  /**
-   * Parse the name of a constructor.
-   * 
-   * <pre>
-   * constructorName:
-   *     type ('.' identifier)?
-   * </pre>
-   * 
-   * @return the constructor name that was parsed
-   */
-  private ConstructorName parseConstructorName() {
-    TypeName type = parseTypeName();
-    Token period = null;
-    SimpleIdentifier name = null;
-    if (matches(TokenType.PERIOD)) {
-      period = getAndAdvance();
-      name = parseSimpleIdentifier();
-    }
-    return new ConstructorName(type, period, name);
   }
 
   /**
@@ -2662,49 +3345,6 @@ public class Parser {
   }
 
   /**
-   * Parse an expression that does not contain any cascades.
-   * 
-   * <pre>
-   * expression ::=
-   *     assignableExpression assignmentOperator expression
-   *   | conditionalExpression cascadeSection*
-   *   | throwExpression
-   * </pre>
-   * 
-   * @return the expression that was parsed
-   */
-  private Expression parseExpression() {
-    if (matches(Keyword.THROW)) {
-      return parseThrowExpression();
-    } else if (matches(Keyword.RETHROW)) {
-      return parseRethrowExpression();
-    }
-    //
-    // assignableExpression is a subset of conditionalExpression, so we can parse a conditional
-    // expression and then determine whether it is followed by an assignmentOperator, checking for
-    // conformance to the restricted grammar after making that determination.
-    //
-    Expression expression = parseConditionalExpression();
-    TokenType tokenType = currentToken.getType();
-    if (tokenType == TokenType.PERIOD_PERIOD) {
-      List<Expression> cascadeSections = new ArrayList<Expression>();
-      while (tokenType == TokenType.PERIOD_PERIOD) {
-        Expression section = parseCascadeSection();
-        if (section != null) {
-          cascadeSections.add(section);
-        }
-        tokenType = currentToken.getType();
-      }
-      return new CascadeExpression(expression, cascadeSections);
-    } else if (tokenType.isAssignmentOperator()) {
-      Token operator = getAndAdvance();
-      ensureAssignable(expression);
-      return new AssignmentExpression(expression, operator, parseExpression());
-    }
-    return expression;
-  }
-
-  /**
    * Parse a list of expressions.
    * 
    * <pre>
@@ -2721,54 +3361,6 @@ public class Parser {
       expressions.add(parseExpression());
     }
     return expressions;
-  }
-
-  /**
-   * Parse an expression that does not contain any cascades.
-   * 
-   * <pre>
-   * expressionWithoutCascade ::=
-   *     assignableExpression assignmentOperator expressionWithoutCascade
-   *   | conditionalExpression
-   *   | throwExpressionWithoutCascade
-   * </pre>
-   * 
-   * @return the expression that was parsed
-   */
-  private Expression parseExpressionWithoutCascade() {
-    if (matches(Keyword.THROW)) {
-      return parseThrowExpressionWithoutCascade();
-    } else if (matches(Keyword.RETHROW)) {
-      return parseRethrowExpression();
-    }
-    //
-    // assignableExpression is a subset of conditionalExpression, so we can parse a conditional
-    // expression and then determine whether it is followed by an assignmentOperator, checking for
-    // conformance to the restricted grammar after making that determination.
-    //
-    Expression expression = parseConditionalExpression();
-    if (currentToken.getType().isAssignmentOperator()) {
-      Token operator = getAndAdvance();
-      ensureAssignable(expression);
-      expression = new AssignmentExpression(expression, operator, parseExpressionWithoutCascade());
-    }
-    return expression;
-  }
-
-  /**
-   * Parse a class extends clause.
-   * 
-   * <pre>
-   * classExtendsClause ::=
-   *     'extends' type
-   * </pre>
-   * 
-   * @return the class extends clause that was parsed
-   */
-  private ExtendsClause parseExtendsClause() {
-    Token keyword = expect(Keyword.EXTENDS);
-    TypeName superclass = parseTypeName();
-    return new ExtendsClause(keyword, superclass);
   }
 
   /**
@@ -2845,170 +3437,6 @@ public class Parser {
       return new DefaultFormalParameter(parameter, kind, null, null);
     }
     return parameter;
-  }
-
-  /**
-   * Parse a list of formal parameters.
-   * 
-   * <pre>
-   * formalParameterList ::=
-   *     '(' ')'
-   *   | '(' normalFormalParameters (',' optionalFormalParameters)? ')'
-   *   | '(' optionalFormalParameters ')'
-   *
-   * normalFormalParameters ::=
-   *     normalFormalParameter (',' normalFormalParameter)*
-   *
-   * optionalFormalParameters ::=
-   *     optionalPositionalFormalParameters
-   *   | namedFormalParameters
-   *
-   * optionalPositionalFormalParameters ::=
-   *     '[' defaultFormalParameter (',' defaultFormalParameter)* ']'
-   *
-   * namedFormalParameters ::=
-   *     '{' defaultNamedParameter (',' defaultNamedParameter)* '}'
-   * </pre>
-   * 
-   * @return the formal parameters that were parsed
-   */
-  private FormalParameterList parseFormalParameterList() {
-    Token leftParenthesis = expect(TokenType.OPEN_PAREN);
-    if (matches(TokenType.CLOSE_PAREN)) {
-      return new FormalParameterList(leftParenthesis, null, null, null, getAndAdvance());
-    }
-    //
-    // Even though it is invalid to have default parameters outside of brackets, required parameters
-    // inside of brackets, or multiple groups of default and named parameters, we allow all of these
-    // cases so that we can recover better.
-    //
-    List<FormalParameter> parameters = new ArrayList<FormalParameter>();
-    List<FormalParameter> normalParameters = new ArrayList<FormalParameter>();
-    List<FormalParameter> positionalParameters = new ArrayList<FormalParameter>();
-    List<FormalParameter> namedParameters = new ArrayList<FormalParameter>();
-    List<FormalParameter> currentParameters = normalParameters;
-
-    Token leftSquareBracket = null;
-    Token rightSquareBracket = null;
-    Token leftCurlyBracket = null;
-    Token rightCurlyBracket = null;
-
-    ParameterKind kind = ParameterKind.REQUIRED;
-    boolean firstParameter = true;
-    boolean reportedMuliplePositionalGroups = false;
-    boolean reportedMulipleNamedGroups = false;
-    boolean reportedMixedGroups = false;
-    boolean wasOptionalParameter = false;
-    Token initialToken = null;
-    do {
-      if (firstParameter) {
-        firstParameter = false;
-      } else if (!optional(TokenType.COMMA)) {
-        // TODO(brianwilkerson) The token is wrong, we need to recover from this case.
-        if (getEndToken(leftParenthesis) != null) {
-          reportError(ParserErrorCode.EXPECTED_TOKEN, TokenType.COMMA.getLexeme());
-        } else {
-          reportError(ParserErrorCode.MISSING_CLOSING_PARENTHESIS, currentToken.getPrevious());
-          break;
-        }
-      }
-      initialToken = currentToken;
-      //
-      // Handle the beginning of parameter groups.
-      //
-      if (matches(TokenType.OPEN_SQUARE_BRACKET)) {
-        wasOptionalParameter = true;
-        if (leftSquareBracket != null && !reportedMuliplePositionalGroups) {
-          reportError(ParserErrorCode.MULTIPLE_POSITIONAL_PARAMETER_GROUPS);
-          reportedMuliplePositionalGroups = true;
-        }
-        if (leftCurlyBracket != null && !reportedMixedGroups) {
-          reportError(ParserErrorCode.MIXED_PARAMETER_GROUPS);
-          reportedMixedGroups = true;
-        }
-        leftSquareBracket = getAndAdvance();
-        currentParameters = positionalParameters;
-        kind = ParameterKind.POSITIONAL;
-      } else if (matches(TokenType.OPEN_CURLY_BRACKET)) {
-        wasOptionalParameter = true;
-        if (leftCurlyBracket != null && !reportedMulipleNamedGroups) {
-          reportError(ParserErrorCode.MULTIPLE_NAMED_PARAMETER_GROUPS);
-          reportedMulipleNamedGroups = true;
-        }
-        if (leftSquareBracket != null && !reportedMixedGroups) {
-          reportError(ParserErrorCode.MIXED_PARAMETER_GROUPS);
-          reportedMixedGroups = true;
-        }
-        leftCurlyBracket = getAndAdvance();
-        currentParameters = namedParameters;
-        kind = ParameterKind.NAMED;
-      }
-      //
-      // Parse and record the parameter.
-      //
-      FormalParameter parameter = parseFormalParameter(kind);
-      parameters.add(parameter);
-      currentParameters.add(parameter);
-      if (kind == ParameterKind.REQUIRED && wasOptionalParameter) {
-        reportError(ParserErrorCode.NORMAL_BEFORE_OPTIONAL_PARAMETERS, parameter);
-      }
-      //
-      // Handle the end of parameter groups.
-      //
-      // TODO(brianwilkerson) Improve the detection and reporting of missing and mismatched delimiters.
-      if (matches(TokenType.CLOSE_SQUARE_BRACKET)) {
-        rightSquareBracket = getAndAdvance();
-        currentParameters = normalParameters;
-        if (leftSquareBracket == null) {
-          if (leftCurlyBracket != null) {
-            reportError(ParserErrorCode.WRONG_TERMINATOR_FOR_PARAMETER_GROUP, "}");
-            rightCurlyBracket = rightSquareBracket;
-            rightSquareBracket = null;
-          } else {
-            reportError(ParserErrorCode.UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP, "[");
-          }
-        }
-        kind = ParameterKind.REQUIRED;
-      } else if (matches(TokenType.CLOSE_CURLY_BRACKET)) {
-        rightCurlyBracket = getAndAdvance();
-        currentParameters = normalParameters;
-        if (leftCurlyBracket == null) {
-          if (leftSquareBracket != null) {
-            reportError(ParserErrorCode.WRONG_TERMINATOR_FOR_PARAMETER_GROUP, "]");
-            rightSquareBracket = rightCurlyBracket;
-            rightCurlyBracket = null;
-          } else {
-            reportError(ParserErrorCode.UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP, "{");
-          }
-        }
-        kind = ParameterKind.REQUIRED;
-      }
-    } while (!matches(TokenType.CLOSE_PAREN) && initialToken != currentToken);
-    Token rightParenthesis = expect(TokenType.CLOSE_PAREN);
-    //
-    // Check that the groups were closed correctly.
-    //
-    if (leftSquareBracket != null && rightSquareBracket == null) {
-      reportError(ParserErrorCode.MISSING_TERMINATOR_FOR_PARAMETER_GROUP, "]");
-    }
-    if (leftCurlyBracket != null && rightCurlyBracket == null) {
-      reportError(ParserErrorCode.MISSING_TERMINATOR_FOR_PARAMETER_GROUP, "}");
-    }
-    //
-    // Build the parameter list.
-    //
-    if (leftSquareBracket == null) {
-      leftSquareBracket = leftCurlyBracket;
-    }
-    if (rightSquareBracket == null) {
-      rightSquareBracket = rightCurlyBracket;
-    }
-    return new FormalParameterList(
-        leftParenthesis,
-        parameters,
-        leftSquareBracket,
-        rightSquareBracket,
-        rightParenthesis);
   }
 
   /**
@@ -3304,23 +3732,6 @@ public class Parser {
   }
 
   /**
-   * Parse a function expression.
-   * 
-   * <pre>
-   * functionExpression ::=
-   *     formalParameterList functionExpressionBody
-   * </pre>
-   * 
-   * @return the function expression that was parsed
-   */
-  private FunctionExpression parseFunctionExpression() {
-    FormalParameterList parameters = parseFormalParameterList();
-    validateFormalParameterList(parameters);
-    FunctionBody body = parseFunctionBody(false, ParserErrorCode.MISSING_FUNCTION_BODY, true);
-    return new FunctionExpression(parameters, body);
-  }
-
-  /**
    * Parse a function type alias.
    * 
    * <pre>
@@ -3499,26 +3910,6 @@ public class Parser {
   }
 
   /**
-   * Parse an implements clause.
-   * 
-   * <pre>
-   * implementsClause ::=
-   *     'implements' type (',' type)*
-   * </pre>
-   * 
-   * @return the implements clause that was parsed
-   */
-  private ImplementsClause parseImplementsClause() {
-    Token keyword = expect(Keyword.IMPLEMENTS);
-    List<TypeName> interfaces = new ArrayList<TypeName>();
-    interfaces.add(parseTypeName());
-    while (optional(TokenType.COMMA)) {
-      interfaces.add(parseTypeName());
-    }
-    return new ImplementsClause(keyword, interfaces);
-  }
-
-  /**
    * Parse an import directive.
    * 
    * <pre>
@@ -3625,26 +4016,6 @@ public class Parser {
         keyword,
         libraryName,
         semicolon);
-  }
-
-  /**
-   * Parse a library identifier.
-   * 
-   * <pre>
-   * libraryIdentifier ::=
-   *     identifier ('.' identifier)*
-   * </pre>
-   * 
-   * @return the library identifier that was parsed
-   */
-  private LibraryIdentifier parseLibraryIdentifier() {
-    ArrayList<SimpleIdentifier> components = new ArrayList<SimpleIdentifier>();
-    components.add(parseSimpleIdentifier());
-    while (matches(TokenType.PERIOD)) {
-      advance();
-      components.add(parseSimpleIdentifier());
-    }
-    return new LibraryIdentifier(components);
   }
 
   /**
@@ -3774,25 +4145,6 @@ public class Parser {
   }
 
   /**
-   * Parse a logical or expression.
-   * 
-   * <pre>
-   * logicalOrExpression ::=
-   *     logicalAndExpression ('||' logicalAndExpression)*
-   * </pre>
-   * 
-   * @return the logical or expression that was parsed
-   */
-  private Expression parseLogicalOrExpression() {
-    Expression expression = parseLogicalAndExpression();
-    while (matches(TokenType.BAR_BAR)) {
-      Token operator = getAndAdvance();
-      expression = new BinaryExpression(expression, operator, parseLogicalAndExpression());
-    }
-    return expression;
-  }
-
-  /**
    * Parse a map literal.
    * 
    * <pre>
@@ -3821,23 +4173,6 @@ public class Parser {
     }
     Token rightBracket = expect(TokenType.CLOSE_CURLY_BRACKET);
     return new MapLiteral(modifier, typeArguments, leftBracket, entries, rightBracket);
-  }
-
-  /**
-   * Parse a map literal entry.
-   * 
-   * <pre>
-   * mapLiteralEntry ::=
-   *     expression ':' expression
-   * </pre>
-   * 
-   * @return the map literal entry that was parsed
-   */
-  private MapLiteralEntry parseMapLiteralEntry() {
-    Expression key = parseExpression();
-    Token separator = expect(TokenType.COLON);
-    Expression value = parseExpression();
-    return new MapLiteralEntry(key, separator, value);
   }
 
   /**
@@ -4191,89 +4526,6 @@ public class Parser {
   }
 
   /**
-   * Parse a normal formal parameter.
-   * 
-   * <pre>
-   * normalFormalParameter ::=
-   *     functionSignature
-   *   | fieldFormalParameter
-   *   | simpleFormalParameter
-   * 
-   * functionSignature:
-   *     metadata returnType? identifier formalParameterList
-   * 
-   * fieldFormalParameter ::=
-   *     metadata finalConstVarOrType? 'this' '.' identifier
-   * 
-   * simpleFormalParameter ::=
-   *     declaredIdentifier
-   *   | metadata identifier
-   * </pre>
-   * 
-   * @return the normal formal parameter that was parsed
-   */
-  private NormalFormalParameter parseNormalFormalParameter() {
-    CommentAndMetadata commentAndMetadata = parseCommentAndMetadata();
-    FinalConstVarOrType holder = parseFinalConstVarOrType(true);
-    Token thisKeyword = null;
-    Token period = null;
-    if (matches(Keyword.THIS)) {
-      thisKeyword = getAndAdvance();
-      period = expect(TokenType.PERIOD);
-    }
-    SimpleIdentifier identifier = parseSimpleIdentifier();
-    if (matches(TokenType.OPEN_PAREN)) {
-      FormalParameterList parameters = parseFormalParameterList();
-      if (thisKeyword == null) {
-        if (holder.getKeyword() != null) {
-          reportError(ParserErrorCode.FUNCTION_TYPED_PARAMETER_VAR, holder.getKeyword());
-        }
-        return new FunctionTypedFormalParameter(
-            commentAndMetadata.getComment(),
-            commentAndMetadata.getMetadata(),
-            holder.getType(),
-            identifier,
-            parameters);
-      } else {
-        return new FieldFormalParameter(
-            commentAndMetadata.getComment(),
-            commentAndMetadata.getMetadata(),
-            holder.getKeyword(),
-            holder.getType(),
-            thisKeyword,
-            period,
-            identifier,
-            parameters);
-      }
-    }
-    TypeName type = holder.getType();
-    if (type != null) {
-      if (matches(type.getName().getBeginToken(), Keyword.VOID)) {
-        reportError(ParserErrorCode.VOID_PARAMETER, type.getName().getBeginToken());
-      } else if (holder.getKeyword() != null && matches(holder.getKeyword(), Keyword.VAR)) {
-        reportError(ParserErrorCode.VAR_AND_TYPE, holder.getKeyword());
-      }
-    }
-    if (thisKeyword != null) {
-      return new FieldFormalParameter(
-          commentAndMetadata.getComment(),
-          commentAndMetadata.getMetadata(),
-          holder.getKeyword(),
-          holder.getType(),
-          thisKeyword,
-          period,
-          identifier,
-          null);
-    }
-    return new SimpleFormalParameter(
-        commentAndMetadata.getComment(),
-        commentAndMetadata.getMetadata(),
-        holder.getKeyword(),
-        holder.getType(),
-        identifier);
-  }
-
-  /**
    * Parse an operator declaration.
    * 
    * <pre>
@@ -4443,26 +4695,6 @@ public class Parser {
   }
 
   /**
-   * Parse a prefixed identifier.
-   * 
-   * <pre>
-   * prefixedIdentifier ::=
-   *     identifier ('.' identifier)?
-   * </pre>
-   * 
-   * @return the prefixed identifier that was parsed
-   */
-  private Identifier parsePrefixedIdentifier() {
-    SimpleIdentifier qualifier = parseSimpleIdentifier();
-    if (!matches(TokenType.PERIOD)) {
-      return qualifier;
-    }
-    Token period = getAndAdvance();
-    SimpleIdentifier qualified = parseSimpleIdentifier();
-    return new PrefixedIdentifier(qualifier, period, qualified);
-  }
-
-  /**
    * Parse a primary expression.
    * 
    * <pre>
@@ -4577,6 +4809,30 @@ public class Parser {
     }
   }
 
+//  /**
+//   * Parse a simple identifier.
+//   * 
+//   * <pre>
+//   * identifier ::=
+//   *     IDENTIFIER
+//   * </pre>
+//   * 
+//   * @param consumeToken a predicate that returns {@code true} if the current token is not a simple
+//   *          identifier but is a keyword that should be consumed as if it were an identifier
+//   * @return the simple identifier that was parsed
+//   */
+//  import com.google.common.base.Predicate;
+//  private SimpleIdentifier parseSimpleIdentifier(Predicate<Token> consumeToken) {
+//    if (matchesIdentifier()) {
+//      return new SimpleIdentifier(getAndAdvance());
+//    }
+//    reportError(ParserErrorCode.MISSING_IDENTIFIER);
+//    if (matches(TokenType.KEYWORD) && consumeToken.apply(currentToken)) {
+//      return new SimpleIdentifier(getAndAdvance());
+//    }
+//    return createSyntheticIdentifier();
+//  }
+
   /**
    * Parse a redirecting constructor invocation.
    * 
@@ -4670,25 +4926,6 @@ public class Parser {
   }
 
   /**
-   * Parse a return type.
-   * 
-   * <pre>
-   * returnType ::=
-   *     'void'
-   *   | type
-   * </pre>
-   * 
-   * @return the return type that was parsed
-   */
-  private TypeName parseReturnType() {
-    if (matches(Keyword.VOID)) {
-      return new TypeName(new SimpleIdentifier(getAndAdvance()), null);
-    } else {
-      return parseTypeName();
-    }
-  }
-
-  /**
    * Parse a setter.
    * 
    * <pre>
@@ -4759,72 +4996,6 @@ public class Parser {
   }
 
   /**
-   * Parse a simple identifier.
-   * 
-   * <pre>
-   * identifier ::=
-   *     IDENTIFIER
-   * </pre>
-   * 
-   * @return the simple identifier that was parsed
-   */
-  private SimpleIdentifier parseSimpleIdentifier() {
-    if (matchesIdentifier()) {
-      return new SimpleIdentifier(getAndAdvance());
-    }
-    reportError(ParserErrorCode.MISSING_IDENTIFIER);
-    return createSyntheticIdentifier();
-  }
-
-  /**
-   * Parse a statement.
-   * 
-   * <pre>
-   * statement ::=
-   *     label* nonLabeledStatement
-   * </pre>
-   * 
-   * @return the statement that was parsed
-   */
-  private Statement parseStatement() {
-    List<Label> labels = new ArrayList<Label>();
-    while (matchesIdentifier() && matches(peek(), TokenType.COLON)) {
-      SimpleIdentifier label = parseSimpleIdentifier();
-      Token colon = expect(TokenType.COLON);
-      labels.add(new Label(label, colon));
-    }
-    Statement statement = parseNonLabeledStatement();
-    if (labels.isEmpty()) {
-      return statement;
-    }
-    return new LabeledStatement(labels, statement);
-  }
-
-//  /**
-//   * Parse a simple identifier.
-//   * 
-//   * <pre>
-//   * identifier ::=
-//   *     IDENTIFIER
-//   * </pre>
-//   * 
-//   * @param consumeToken a predicate that returns {@code true} if the current token is not a simple
-//   *          identifier but is a keyword that should be consumed as if it were an identifier
-//   * @return the simple identifier that was parsed
-//   */
-//  import com.google.common.base.Predicate;
-//  private SimpleIdentifier parseSimpleIdentifier(Predicate<Token> consumeToken) {
-//    if (matchesIdentifier()) {
-//      return new SimpleIdentifier(getAndAdvance());
-//    }
-//    reportError(ParserErrorCode.MISSING_IDENTIFIER);
-//    if (matches(TokenType.KEYWORD) && consumeToken.apply(currentToken)) {
-//      return new SimpleIdentifier(getAndAdvance());
-//    }
-//    return createSyntheticIdentifier();
-//  }
-
-  /**
    * Parse a list of statements within a switch statement.
    * 
    * <pre>
@@ -4888,41 +5059,6 @@ public class Parser {
       }
     }
     return new StringInterpolation(elements);
-  }
-
-  /**
-   * Parse a string literal.
-   * 
-   * <pre>
-   * stringLiteral ::=
-   *     MULTI_LINE_STRING+
-   *   | SINGLE_LINE_STRING+
-   * </pre>
-   * 
-   * @return the string literal that was parsed
-   */
-  private StringLiteral parseStringLiteral() {
-    List<StringLiteral> strings = new ArrayList<StringLiteral>();
-    while (matches(TokenType.STRING)) {
-      Token string = getAndAdvance();
-      if (matches(TokenType.STRING_INTERPOLATION_EXPRESSION)
-          || matches(TokenType.STRING_INTERPOLATION_IDENTIFIER)) {
-        strings.add(parseStringInterpolation(string));
-      } else {
-        strings.add(new SimpleStringLiteral(string, computeStringValue(
-            string.getLexeme(),
-            true,
-            true)));
-      }
-    }
-    if (strings.size() < 1) {
-      reportError(ParserErrorCode.EXPECTED_STRING_LITERAL);
-      return createSyntheticStringLiteral();
-    } else if (strings.size() == 1) {
-      return strings.get(0);
-    } else {
-      return new AdjacentStrings(strings);
-    }
   }
 
   /**
@@ -5223,110 +5359,6 @@ public class Parser {
     return parseFunctionTypeAlias(commentAndMetadata, keyword);
   }
 
-/**
-     * Parse a list of type arguments.
-     * 
-     * <pre>
-     * typeArguments ::=
-     *     '<' typeList '>'
-     * 
-     * typeList ::=
-     *     type (',' type)*
-     * </pre>
-     * 
-     * @return the type argument list that was parsed
-     */
-  private TypeArgumentList parseTypeArgumentList() {
-    Token leftBracket = expect(TokenType.LT);
-    List<TypeName> arguments = new ArrayList<TypeName>();
-    arguments.add(parseTypeName());
-    while (optional(TokenType.COMMA)) {
-      arguments.add(parseTypeName());
-    }
-    Token rightBracket = expect(TokenType.GT);
-    return new TypeArgumentList(leftBracket, arguments, rightBracket);
-  }
-
-  /**
-   * Parse a type name.
-   * 
-   * <pre>
-   * type ::=
-   *     qualified typeArguments?
-   * </pre>
-   * 
-   * @return the type name that was parsed
-   */
-  private TypeName parseTypeName() {
-    Identifier typeName;
-    if (matches(Keyword.VAR)) {
-      reportError(ParserErrorCode.VAR_AS_TYPE_NAME);
-      typeName = new SimpleIdentifier(getAndAdvance());
-    } else if (matchesIdentifier()) {
-      typeName = parsePrefixedIdentifier();
-    } else {
-      typeName = createSyntheticIdentifier();
-      reportError(ParserErrorCode.EXPECTED_TYPE_NAME);
-    }
-    TypeArgumentList typeArguments = null;
-    if (matches(TokenType.LT)) {
-      typeArguments = parseTypeArgumentList();
-    }
-    return new TypeName(typeName, typeArguments);
-  }
-
-  /**
-   * Parse a type parameter.
-   * 
-   * <pre>
- * typeParameter ::=
- *     metadata name ('extends' bound)?
- * </pre>
-   * 
-   * @return the type parameter that was parsed
-   */
-  private TypeParameter parseTypeParameter() {
-    CommentAndMetadata commentAndMetadata = parseCommentAndMetadata();
-    SimpleIdentifier name = parseSimpleIdentifier();
-    if (matches(Keyword.EXTENDS)) {
-      Token keyword = getAndAdvance();
-      TypeName bound = parseTypeName();
-      return new TypeParameter(
-          commentAndMetadata.getComment(),
-          commentAndMetadata.getMetadata(),
-          name,
-          keyword,
-          bound);
-    }
-    return new TypeParameter(
-        commentAndMetadata.getComment(),
-        commentAndMetadata.getMetadata(),
-        name,
-        null,
-        null);
-  }
-
-/**
-     * Parse a list of type parameters.
-     * 
-     * <pre>
-     * typeParameterList ::=
-     *     '<' typeParameter (',' typeParameter)* '>'
-     * </pre>
-     * 
-     * @return the list of type parameters that were parsed
-     */
-  private TypeParameterList parseTypeParameterList() {
-    Token leftBracket = expect(TokenType.LT);
-    List<TypeParameter> typeParameters = new ArrayList<TypeParameter>();
-    typeParameters.add(parseTypeParameter());
-    while (optional(TokenType.COMMA)) {
-      typeParameters.add(parseTypeParameter());
-    }
-    Token rightBracket = expect(TokenType.GT);
-    return new TypeParameterList(leftBracket, typeParameters, rightBracket);
-  }
-
   /**
    * Parse a unary expression.
    * 
@@ -5395,9 +5427,9 @@ public class Parser {
    * Parse a variable declaration.
    * 
    * <pre>
- * variableDeclaration ::=
- *     identifier ('=' expression)?
- * </pre>
+   * variableDeclaration ::=
+   *     identifier ('=' expression)?
+   * </pre>
    * 
    * @return the variable declaration that was parsed
    */
@@ -5542,26 +5574,6 @@ public class Parser {
     } finally {
       inLoop = wasInLoop;
     }
-  }
-
-  /**
-   * Parse a with clause.
-   * 
-   * <pre>
-   * withClause ::=
-   *     'with' typeName (',' typeName)*
-   * </pre>
-   * 
-   * @return the with clause that was parsed
-   */
-  private WithClause parseWithClause() {
-    Token with = expect(Keyword.WITH);
-    ArrayList<TypeName> types = new ArrayList<TypeName>();
-    types.add(parseTypeName());
-    while (optional(TokenType.COMMA)) {
-      types.add(parseTypeName());
-    }
-    return new WithClause(with, types);
   }
 
   /**
