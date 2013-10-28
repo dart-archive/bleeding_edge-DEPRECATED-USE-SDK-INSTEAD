@@ -207,7 +207,7 @@ public class SWTUtil {
     keyBuilder.append(style);
     String key = keyBuilder.toString();
     Font font = fontCache.get(key);
-    if (font == null) {
+    if (font == null || font.isDisposed()) {
       FontData newData = new FontData(name, height, style);
       font = new Font(device, newData);
       fontCache.put(key, font);
