@@ -246,6 +246,8 @@ public class EmbeddedDartReconcilerHook implements ISourceValidator, IValidator 
    * @return a parsed compilation unit
    */
   private CompilationUnit parseSource(int offset, int length) {
+    IDocument document = this.document; // Cache in case of async disconnect().
+    File file = this.file;
     AnalysisContext analysisContext = getInputAnalysisContext();
     if (analysisContext == null) {
       return null;
@@ -290,6 +292,8 @@ public class EmbeddedDartReconcilerHook implements ISourceValidator, IValidator 
    * @return a resolved compilation unit
    */
   private CompilationUnit resolveParsedUnit(int offset, int length) {
+    IDocument document = this.document; // Cache in case of async disconnect().
+    File file = this.file;
     AnalysisContext analysisContext = getInputAnalysisContext();
     if (analysisContext == null) {
       return null;
