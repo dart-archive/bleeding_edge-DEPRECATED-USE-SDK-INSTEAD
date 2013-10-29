@@ -40,31 +40,6 @@ import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
 
 public class TypePropagationTest extends ResolverTestCase {
-  public void fail_functionExpression_asInvocationArgument_functionExpressionInvocation()
-      throws Exception {
-    // TODO(scheglov) disabled because we don't resolve function expression
-    String code = createSource(//
-        "main() {",
-        "  (f(String value)) {} ((v) {",
-        "    v;",
-        "  });",
-        "}");
-    Source source = addSource(code);
-    LibraryElement library = resolve(source);
-    assertNoErrors(source);
-    verify(source);
-    CompilationUnit unit = resolveCompilationUnit(source, library);
-    // v
-    Type dynamicType = getTypeProvider().getDynamicType();
-    Type stringType = getTypeProvider().getStringType();
-    FormalParameter vParameter = findNode(unit, code, "v)", FormalParameter.class);
-    assertSame(stringType, vParameter.getIdentifier().getPropagatedType());
-    assertSame(dynamicType, vParameter.getIdentifier().getStaticType());
-    SimpleIdentifier vIdentifier = findNode(unit, code, "v;", SimpleIdentifier.class);
-    assertSame(stringType, vIdentifier.getPropagatedType());
-    assertSame(dynamicType, vIdentifier.getStaticType());
-  }
-
   public void fail_propagatedReturnType_functionExpression() throws Exception {
     // TODO(scheglov) disabled because we don't resolve function expression
     String code = createSource(//
@@ -240,6 +215,30 @@ public class TypePropagationTest extends ResolverTestCase {
     Type stringType = getTypeProvider().getStringType();
     FormalParameter vParameter = findNode(unit, code, "v)", SimpleFormalParameter.class);
     assertSame(stringType, vParameter.getIdentifier().getPropagatedType());
+  }
+
+  public void test_functionExpression_asInvocationArgument_functionExpressionInvocation()
+      throws Exception {
+    String code = createSource(//
+        "main() {",
+        "  (f(String value)) {} ((v) {",
+        "    v;",
+        "  });",
+        "}");
+    Source source = addSource(code);
+    LibraryElement library = resolve(source);
+    assertNoErrors(source);
+    verify(source);
+    CompilationUnit unit = resolveCompilationUnit(source, library);
+    // v
+    Type dynamicType = getTypeProvider().getDynamicType();
+    Type stringType = getTypeProvider().getStringType();
+    FormalParameter vParameter = findNode(unit, code, "v)", FormalParameter.class);
+    assertSame(stringType, vParameter.getIdentifier().getPropagatedType());
+    assertSame(dynamicType, vParameter.getIdentifier().getStaticType());
+    SimpleIdentifier vIdentifier = findNode(unit, code, "v;", SimpleIdentifier.class);
+    assertSame(stringType, vIdentifier.getPropagatedType());
+    assertSame(dynamicType, vIdentifier.getStaticType());
   }
 
   public void test_functionExpression_asInvocationArgument_keepIfLessSpecific() throws Exception {

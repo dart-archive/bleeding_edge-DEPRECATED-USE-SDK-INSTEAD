@@ -38,6 +38,7 @@ import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.FieldDeclaration;
 import com.google.dart.engine.ast.FieldFormalParameter;
 import com.google.dart.engine.ast.FunctionDeclaration;
+import com.google.dart.engine.ast.FunctionExpression;
 import com.google.dart.engine.ast.FunctionExpressionInvocation;
 import com.google.dart.engine.ast.FunctionTypeAlias;
 import com.google.dart.engine.ast.HideCombinator;
@@ -763,7 +764,19 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
   @Override
   public Void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     // TODO(brianwilkerson) Can we ever resolve the function being invoked?
-    //resolveArgumentsToParameters(node.getArgumentList(), invokedFunction);
+    Expression expression = node.getFunction();
+    if (expression instanceof FunctionExpression) {
+      FunctionExpression functionExpression = (FunctionExpression) expression;
+      ExecutableElement functionElement = functionExpression.getElement();
+      ArgumentList argumentList = node.getArgumentList();
+      ParameterElement[] parameters = resolveArgumentsToParameters(
+          false,
+          argumentList,
+          functionElement);
+      if (parameters != null) {
+        argumentList.setCorrespondingStaticParameters(parameters);
+      }
+    }
     return null;
   }
 

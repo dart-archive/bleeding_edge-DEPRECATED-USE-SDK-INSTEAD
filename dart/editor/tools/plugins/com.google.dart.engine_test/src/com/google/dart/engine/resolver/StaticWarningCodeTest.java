@@ -347,6 +347,17 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_argumentTypeNotAssignable_functionExpressionInvocation_required()
+      throws Exception {
+    Source source = addSource(createSource(//
+        "main() {",
+        "  (int x) {} ('');",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
+    verify(source);
+  }
+
   public void test_argumentTypeNotAssignable_index() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
@@ -909,6 +920,16 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "f() {}",
         "main() {",
         "  f(0, 1, '2');",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS);
+    verify(source);
+  }
+
+  public void test_extraPositionalArguments_functionExpression() throws Exception {
+    Source source = addSource(createSource(//
+        "main() {",
+        "  (int x) {} (0, 1);",
         "}"));
     resolve(source);
     assertErrors(source, StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS);
@@ -1923,6 +1944,16 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "f(int a, String b) {}",
         "main() {",
         "  f();",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.NOT_ENOUGH_REQUIRED_ARGUMENTS);
+    verify(source);
+  }
+
+  public void test_notEnoughRequiredArguments_functionExpression() throws Exception {
+    Source source = addSource(createSource(//
+        "main() {",
+        "  (int x) {} ();",
         "}"));
     resolve(source);
     assertErrors(source, StaticWarningCode.NOT_ENOUGH_REQUIRED_ARGUMENTS);
