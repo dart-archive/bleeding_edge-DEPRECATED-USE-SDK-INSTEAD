@@ -70,6 +70,7 @@ import com.google.dart.engine.services.internal.util.RunnableObjectEx;
 import com.google.dart.engine.services.internal.util.TokenUtils;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.type.FunctionType;
+import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
 import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.engine.utilities.source.SourceRangeFactory;
@@ -1460,19 +1461,53 @@ public class CorrectionUtils {
    * @return the source to reference the given {@link Type} in this {@link CompilationUnit}.
    */
   public String getTypeSource(Type type) {
-    String typeSource = type.toString();
-    typeSource = StringUtils.remove(typeSource, "<dynamic>");
-    typeSource = StringUtils.remove(typeSource, "<dynamic, dynamic>");
-    // find prefix
+    StringBuilder sb = new StringBuilder();
+    // prepare element
+    Element element = type.getElement();
+    if (element == null) {
+      String source = type.toString();
+      source = StringUtils.remove(source, "<dynamic>");
+      source = StringUtils.remove(source, "<dynamic, dynamic>");
+      return source;
+    }
+    // append prefix
     {
-      Element element = type.getElement();
       ImportElement imp = getImportElement(element);
       if (imp != null && imp.getPrefix() != null) {
-        return imp.getPrefix().getDisplayName() + "." + typeSource;
+        sb.append(imp.getPrefix().getDisplayName());
+        sb.append(".");
       }
     }
-    // no prefix
-    return typeSource;
+    // append simple name
+    String name = element.getDisplayName();
+    sb.append(name);
+    // may be type arguments
+    if (type instanceof InterfaceType) {
+      InterfaceType interfaceType = (InterfaceType) type;
+      Type[] arguments = interfaceType.getTypeArguments();
+      // check if has arguments
+      boolean hasArguments = false;
+      for (Type argument : arguments) {
+        if (!argument.isDynamic()) {
+          hasArguments = true;
+          break;
+        }
+      }
+      // append type arguments
+      if (hasArguments) {
+        sb.append("<");
+        for (int i = 0; i < arguments.length; i++) {
+          Type argument = arguments[i];
+          if (i != 0) {
+            sb.append(", ");
+          }
+          sb.append(getTypeSource(argument));
+        }
+        sb.append(">");
+      }
+    }
+    // done
+    return sb.toString();
   }
 
   /**

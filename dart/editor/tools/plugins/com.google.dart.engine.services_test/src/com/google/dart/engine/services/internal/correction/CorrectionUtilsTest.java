@@ -1291,6 +1291,19 @@ public class CorrectionUtilsTest extends AbstractDartTest {
     assertEquals("pref.Future", utils.getTypeSource(identifier));
   }
 
+  public void test_getTypeSource_Expression_importedWithPrefix_typeArgument() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "import 'dart:async' as pref;",
+        "main() {",
+        "  Map<pref.Future, List<pref.Future>> f = null;",
+        "}",
+        "");
+    CorrectionUtils utils = getTestCorrectionUtils();
+    SimpleIdentifier identifier = findIdentifier("f = ");
+    assertEquals("Map<pref.Future, List<pref.Future>>", utils.getTypeSource(identifier));
+  }
+
   public void test_getTypeSource_Type() throws Exception {
     parseTestUnit("// 0123456789");
     CorrectionUtils utils = getTestCorrectionUtils();

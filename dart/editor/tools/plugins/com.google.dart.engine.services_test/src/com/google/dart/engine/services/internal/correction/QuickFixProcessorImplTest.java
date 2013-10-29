@@ -448,6 +448,32 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
             "}"));
   }
 
+  public void test_createMissingOverrides_importPrefix() throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "import 'dart:async' as aaa;",
+        "abstract class A {",
+        "  Map<aaa.Future, List<aaa.Future>> g(aaa.Future p);",
+        "}",
+        "",
+        "class B extends A {",
+        "}");
+    assert_runProcessor(
+        CorrectionKind.QF_CREATE_MISSING_OVERRIDES,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "import 'dart:async' as aaa;",
+            "abstract class A {",
+            "  Map<aaa.Future, List<aaa.Future>> g(aaa.Future p);",
+            "}",
+            "",
+            "class B extends A {",
+            "  Map<aaa.Future, List<aaa.Future>> g(aaa.Future p) {",
+            "    // TODO implement this method",
+            "  }",
+            "}"));
+  }
+
   public void test_createMissingOverrides_method() throws Exception {
     prepareProblemWithFix(
         "// filler filler filler filler filler filler filler filler filler filler",
