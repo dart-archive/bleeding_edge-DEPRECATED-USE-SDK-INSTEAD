@@ -20,12 +20,9 @@ import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.error.ErrorSeverity;
 import com.google.dart.engine.error.GatheringErrorListener;
-import com.google.dart.engine.internal.context.AnalysisContextImpl;
-import com.google.dart.engine.internal.element.LibraryElementImpl;
 import com.google.dart.engine.resolver.ResolverTestCase;
 
 import static com.google.dart.engine.ast.ASTFactory.identifier;
-import static com.google.dart.engine.ast.ASTFactory.libraryIdentifier;
 import static com.google.dart.engine.element.ElementFactory.localVariableElement;
 
 public class ScopeTest extends ResolverTestCase {
@@ -34,23 +31,12 @@ public class ScopeTest extends ResolverTestCase {
    */
   private static class TestScope extends Scope {
     /**
-     * The element representing the library in which this scope is enclosed.
-     */
-    private LibraryElement definingLibrary;
-
-    /**
      * The listener that is to be informed when an error is encountered.
      */
     private AnalysisErrorListener errorListener;
 
-    private TestScope(LibraryElement definingLibrary, AnalysisErrorListener errorListener) {
-      this.definingLibrary = definingLibrary;
+    private TestScope(AnalysisErrorListener errorListener) {
       this.errorListener = errorListener;
-    }
-
-    @Override
-    public LibraryElement getDefiningLibrary() {
-      return definingLibrary;
     }
 
     @Override
@@ -65,9 +51,8 @@ public class ScopeTest extends ResolverTestCase {
   }
 
   public void test_define_duplicate() {
-    LibraryElement definingLibrary = createTestLibrary();
     GatheringErrorListener errorListener = new GatheringErrorListener();
-    TestScope scope = new TestScope(definingLibrary, errorListener);
+    TestScope scope = new TestScope(errorListener);
     VariableElement element1 = localVariableElement(identifier("v1"));
     VariableElement element2 = localVariableElement(identifier("v1"));
     scope.define(element1);
@@ -76,9 +61,8 @@ public class ScopeTest extends ResolverTestCase {
   }
 
   public void test_define_normal() {
-    LibraryElement definingLibrary = createTestLibrary();
     GatheringErrorListener errorListener = new GatheringErrorListener();
-    TestScope scope = new TestScope(definingLibrary, errorListener);
+    TestScope scope = new TestScope(errorListener);
     VariableElement element1 = localVariableElement(identifier("v1"));
     VariableElement element2 = localVariableElement(identifier("v2"));
     scope.define(element1);
@@ -86,18 +70,9 @@ public class ScopeTest extends ResolverTestCase {
     errorListener.assertNoErrors();
   }
 
-  public void test_getDefiningLibrary() throws Exception {
-    LibraryElement definingLibrary = createTestLibrary();
-    TestScope scope = new TestScope(definingLibrary, null);
-    assertEquals(definingLibrary, scope.getDefiningLibrary());
-  }
-
   public void test_getErrorListener() throws Exception {
-    LibraryElement definingLibrary = new LibraryElementImpl(
-        new AnalysisContextImpl(),
-        libraryIdentifier("test"));
     GatheringErrorListener errorListener = new GatheringErrorListener();
-    TestScope scope = new TestScope(definingLibrary, errorListener);
+    TestScope scope = new TestScope(errorListener);
     assertEquals(errorListener, scope.getErrorListener());
   }
 

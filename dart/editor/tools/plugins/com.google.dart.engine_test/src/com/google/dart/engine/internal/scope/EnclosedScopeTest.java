@@ -27,14 +27,8 @@ import static com.google.dart.engine.element.ElementFactory.localVariableElement
 
 public class EnclosedScopeTest extends ResolverTestCase {
   public void test_define_duplicate() {
-    final LibraryElement definingLibrary = createTestLibrary();
     final GatheringErrorListener errorListener = new GatheringErrorListener();
     Scope rootScope = new Scope() {
-      @Override
-      public LibraryElement getDefiningLibrary() {
-        return definingLibrary;
-      }
-
       @Override
       public AnalysisErrorListener getErrorListener() {
         return errorListener;
@@ -54,14 +48,8 @@ public class EnclosedScopeTest extends ResolverTestCase {
   }
 
   public void test_define_normal() {
-    final LibraryElement definingLibrary = createTestLibrary();
     final GatheringErrorListener errorListener = new GatheringErrorListener();
     Scope rootScope = new Scope() {
-      @Override
-      public LibraryElement getDefiningLibrary() {
-        return definingLibrary;
-      }
-
       @Override
       public AnalysisErrorListener getErrorListener() {
         return errorListener;

@@ -13,7 +13,10 @@
  */
 package com.google.dart.engine.internal.scope;
 
+import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.Identifier;
+import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
@@ -123,13 +126,6 @@ public abstract class Scope {
   }
 
   /**
-   * Return the element representing the library in which this scope is enclosed.
-   * 
-   * @return the element representing the library in which this scope is enclosed
-   */
-  protected abstract LibraryElement getDefiningLibrary();
-
-  /**
    * Return the error code to be used when reporting that a name being defined locally conflicts
    * with another element of the same name in the local scope.
    * 
@@ -142,9 +138,6 @@ public abstract class Scope {
     // the same name.
     // TODO(jwren) There are 4 error codes for duplicate, but only 1 is being generated.
     Source source = duplicate.getSource();
-    if (source == null) {
-      source = getSource();
-    }
     return new AnalysisError(
         source,
         duplicate.getNameOffset(),
@@ -161,13 +154,21 @@ public abstract class Scope {
   protected abstract AnalysisErrorListener getErrorListener();
 
   /**
-   * Return the source object representing the compilation unit with which errors related to this
-   * scope should be associated.
+   * Return the source that contains the given identifier, or the source associated with this scope
+   * if the source containing the identifier could not be determined.
    * 
-   * @return the source object with which errors should be associated
+   * @param identifier the identifier whose source is to be returned
+   * @return the source that contains the given identifier
    */
-  protected Source getSource() {
-    return getDefiningLibrary().getDefiningCompilationUnit().getSource();
+  protected final Source getSource(ASTNode node) {
+    CompilationUnit unit = node.getAncestor(CompilationUnit.class);
+    if (unit != null) {
+      CompilationUnitElement unitElement = unit.getElement();
+      if (unitElement != null) {
+        return unitElement.getSource();
+      }
+    }
+    return null;
   }
 
   /**

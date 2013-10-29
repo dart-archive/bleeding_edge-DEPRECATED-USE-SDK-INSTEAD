@@ -52,11 +52,6 @@ public class EnclosedScope extends Scope {
   }
 
   @Override
-  public LibraryElement getDefiningLibrary() {
-    return enclosingScope.getDefiningLibrary();
-  }
-
-  @Override
   public AnalysisErrorListener getErrorListener() {
     return enclosingScope.getErrorListener();
   }
@@ -94,7 +89,7 @@ public class EnclosedScope extends Scope {
     if (hiddenNames.contains(name)) {
       getErrorListener().onError(
           new AnalysisError(
-              getSource(),
+              getSource(identifier),
               identifier.getOffset(),
               identifier.getLength(),
               CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION));

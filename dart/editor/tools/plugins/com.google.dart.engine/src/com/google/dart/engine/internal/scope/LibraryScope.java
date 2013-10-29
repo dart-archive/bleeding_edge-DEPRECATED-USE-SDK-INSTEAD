@@ -55,7 +55,7 @@ public class LibraryScope extends EnclosedScope {
         }
       }
       return new AnalysisError(
-          getSource(),
+          duplicate.getSource(),
           offset,
           duplicate.getDisplayName().length(),
           CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER,
