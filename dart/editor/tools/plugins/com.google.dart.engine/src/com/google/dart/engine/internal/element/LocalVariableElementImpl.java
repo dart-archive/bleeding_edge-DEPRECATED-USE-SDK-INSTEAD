@@ -28,7 +28,12 @@ public class LocalVariableElementImpl extends VariableElementImpl implements Loc
   /**
    * Is {@code true} if this variable is potentially mutated somewhere in its scope.
    */
-  private boolean isPotentiallyMutated;
+  private boolean isPotentiallyMutatedInScope;
+
+  /**
+   * Is {@code true} if this variable is potentially mutated somewhere in closure.
+   */
+  private boolean isPotentiallyMutatedInClosure;
 
   /**
    * The offset to the beginning of the visible range for this element.
@@ -74,15 +79,27 @@ public class LocalVariableElementImpl extends VariableElementImpl implements Loc
   }
 
   @Override
-  public boolean isPotentiallyMutated() {
-    return isPotentiallyMutated;
+  public boolean isPotentiallyMutatedInClosure() {
+    return isPotentiallyMutatedInClosure;
+  }
+
+  @Override
+  public boolean isPotentiallyMutatedInScope() {
+    return isPotentiallyMutatedInScope;
+  }
+
+  /**
+   * Specifies that this variable is potentially mutated somewhere in closure.
+   */
+  public void markPotentiallyMutatedInClosure() {
+    isPotentiallyMutatedInClosure = true;
   }
 
   /**
    * Specifies that this variable is potentially mutated somewhere in its scope.
    */
-  public void markPotentiallyMutated() {
-    isPotentiallyMutated = true;
+  public void markPotentiallyMutatedInScope() {
+    isPotentiallyMutatedInScope = true;
   }
 
   /**

@@ -830,6 +830,54 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
     assertErrors(source, StaticTypeWarningCode.UNDEFINED_GETTER);
   }
 
+  public void test_typePromotion_if_hasAssignment_inClosure_anonymous_after() throws Exception {
+    Source source = addSource(createSource(//
+        "main(Object p) {",
+        "  if (p is String) {",
+        "    p.length;",
+        "  }",
+        "  () {p = 0;};",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticTypeWarningCode.UNDEFINED_GETTER);
+  }
+
+  public void test_typePromotion_if_hasAssignment_inClosure_anonymous_before() throws Exception {
+    Source source = addSource(createSource(//
+        "main(Object p) {",
+        "  () {p = 0;};",
+        "  if (p is String) {",
+        "    p.length;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticTypeWarningCode.UNDEFINED_GETTER);
+  }
+
+  public void test_typePromotion_if_hasAssignment_inClosure_function_after() throws Exception {
+    Source source = addSource(createSource(//
+        "main(Object p) {",
+        "  if (p is String) {",
+        "    p.length;",
+        "  }",
+        "  f() {p = 0;};",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticTypeWarningCode.UNDEFINED_GETTER);
+  }
+
+  public void test_typePromotion_if_hasAssignment_inClosure_function_before() throws Exception {
+    Source source = addSource(createSource(//
+        "main(Object p) {",
+        "  f() {p = 0;};",
+        "  if (p is String) {",
+        "    p.length;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticTypeWarningCode.UNDEFINED_GETTER);
+  }
+
   public void test_undefinedGetter() throws Exception {
     Source source = addSource(createSource(//
         "class T {}",

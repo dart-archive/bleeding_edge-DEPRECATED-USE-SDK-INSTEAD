@@ -912,6 +912,11 @@ public class ResolverVisitor extends ScopedVisitor {
   protected void promote(Expression expression, Type potentialType) {
     VariableElement element = getPromotionStaticElement(expression);
     if (element != null) {
+      // may be mutated somewhere in closure
+      if (((VariableElementImpl) element).isPotentiallyMutatedInClosure()) {
+        return;
+      }
+      // prepare current variable type
       Type type = expression.getStaticType();
       // Declared type should not be "dynamic".
       if (type == null || type.isDynamic()) {
@@ -1042,7 +1047,7 @@ public class ResolverVisitor extends ScopedVisitor {
    */
   private void clearTypePromotionsIfAccessedInScopeAndProtentiallyMutated(ASTNode target) {
     for (Element element : promoteManager.getPromotedElements()) {
-      if (((VariableElementImpl) element).isPotentiallyMutated()) {
+      if (((VariableElementImpl) element).isPotentiallyMutatedInScope()) {
         if (isVariableAccessedInClosure(element, target)) {
           promoteManager.setType(element, null);
         }

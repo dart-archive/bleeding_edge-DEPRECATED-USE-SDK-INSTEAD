@@ -3146,6 +3146,21 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_typePromotion_if_inClosure_assignedAfter_inSameFunction() throws Exception {
+    Source source = addSource(createSource(//
+        "main() {",
+        "  f(Object p) {",
+        "    if (p is String) {",
+        "      p.length;",
+        "    }",
+        "    p = 0;",
+        "  };",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
   public void test_typePromotion_if_is_and_left() throws Exception {
     Source source = addSource(createSource(//
         "bool tt() => true;",

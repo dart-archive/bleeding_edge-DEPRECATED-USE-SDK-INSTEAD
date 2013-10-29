@@ -29,7 +29,12 @@ public class ParameterElementImpl extends VariableElementImpl implements Paramet
   /**
    * Is {@code true} if this variable is potentially mutated somewhere in its scope.
    */
-  private boolean isPotentiallyMutated;
+  private boolean isPotentiallyMutatedInScope;
+
+  /**
+   * Is {@code true} if this variable is potentially mutated somewhere in closure.
+   */
+  private boolean isPotentiallyMutatedInClosure;
 
   /**
    * An array containing all of the parameters defined by this parameter element. There will only be
@@ -131,15 +136,27 @@ public class ParameterElementImpl extends VariableElementImpl implements Paramet
   }
 
   @Override
-  public boolean isPotentiallyMutated() {
-    return isPotentiallyMutated;
+  public boolean isPotentiallyMutatedInClosure() {
+    return isPotentiallyMutatedInClosure;
+  }
+
+  @Override
+  public boolean isPotentiallyMutatedInScope() {
+    return isPotentiallyMutatedInScope;
+  }
+
+  /**
+   * Specifies that this variable is potentially mutated somewhere in closure.
+   */
+  public void markPotentiallyMutatedInClosure() {
+    isPotentiallyMutatedInClosure = true;
   }
 
   /**
    * Specifies that this variable is potentially mutated somewhere in its scope.
    */
-  public void markPotentiallyMutated() {
-    isPotentiallyMutated = true;
+  public void markPotentiallyMutatedInScope() {
+    isPotentiallyMutatedInScope = true;
   }
 
   /**

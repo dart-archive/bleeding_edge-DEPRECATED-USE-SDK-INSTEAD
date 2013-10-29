@@ -94,12 +94,22 @@ public abstract class VariableElementImpl extends ElementImpl implements Variabl
   }
 
   /**
+   * Return {@code true} if this variable is potentially mutated somewhere in closure. This
+   * information is only available for local variables (including parameters).
+   * 
+   * @return {@code true} if this variable is potentially mutated somewhere in closure
+   */
+  public boolean isPotentiallyMutatedInClosure() {
+    return false;
+  }
+
+  /**
    * Return {@code true} if this variable is potentially mutated somewhere in its scope. This
    * information is only available for local variables (including parameters).
    * 
    * @return {@code true} if this variable is potentially mutated somewhere in its scope
    */
-  public boolean isPotentiallyMutated() {
+  public boolean isPotentiallyMutatedInScope() {
     return false;
   }
 
