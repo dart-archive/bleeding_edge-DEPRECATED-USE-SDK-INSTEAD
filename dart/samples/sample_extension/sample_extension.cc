@@ -60,18 +60,20 @@ uint8_t* randomArray(int seed, int length) {
 }
 
 void wrappedRandomArray(Dart_Port dest_port_id,
-                        Dart_Port reply_port_id,
                         Dart_CObject* message) {
+  Dart_Port reply_port_id = ILLEGAL_PORT;
   if (message->type == Dart_CObject_kArray &&
-      2 == message->value.as_array.length) {
+      3 == message->value.as_array.length) {
     // Use .as_array and .as_int32 to access the data in the Dart_CObject.
     Dart_CObject* param0 = message->value.as_array.values[0];
     Dart_CObject* param1 = message->value.as_array.values[1];
+    Dart_CObject* param2 = message->value.as_array.values[2];
     if (param0->type == Dart_CObject_kInt32 &&
-        param1->type == Dart_CObject_kInt32) {
+        param1->type == Dart_CObject_kInt32 &&
+        param2->type == Dart_CObject_kSendPort) {
       int seed = param0->value.as_int32;
       int length = param1->value.as_int32;
-
+      reply_port_id = param2->value.as_send_port;
       uint8_t* values = randomArray(seed, length);
 
       if (values != NULL) {

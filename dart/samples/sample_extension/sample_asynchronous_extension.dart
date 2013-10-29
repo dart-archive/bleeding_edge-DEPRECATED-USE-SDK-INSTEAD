@@ -12,20 +12,23 @@ import 'dart-ext:sample_extension';
 class RandomArray {
   static SendPort _port;
 
-  Future<List<int>> randomArray(int seed, int length) {
-    var args = new List(2);
+  Future<List<int> > randomArray(int seed, int length) {
+    var completer = new Completer();
+    var replyPort = new RawReceivePort();
+    var args = new List(3);
     args[0] = seed;
     args[1] = length;
-    ReceivePort receivePort = new ReceivePort();
-    _servicePort.send(args, receivePort.sendPort);
-    return receivePort.first.then((result) {
-      receivePort.close();
+    args[2] = replyPort.sendPort;
+    _servicePort.send(args);
+    replyPort.handler = (result) {
+      replyPort.close();
       if (result != null) {
-        return result;
+        completer.complete(result);
       } else {
-        throw new Exception("Random array creation failed");
+        completer.completeError(new Exception("Random array creation failed"));
       }
-    });
+    };
+    return completer.future;
   }
 
   SendPort get _servicePort {
