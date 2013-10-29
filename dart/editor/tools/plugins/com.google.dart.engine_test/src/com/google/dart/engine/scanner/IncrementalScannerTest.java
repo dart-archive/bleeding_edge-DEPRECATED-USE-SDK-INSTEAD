@@ -21,67 +21,135 @@ import com.google.dart.engine.source.TestSource;
 public class IncrementalScannerTest extends EngineTestCase {
 
   public void test_rescan_addedBeforeIdentifier1() {
-    assertTokens(//
+    IncrementalScanner scanner = assertTokens(//
         "a + b;",
         "xa + b;");
+    assertEquals("xa", scanner.getFirstToken().getLexeme());
+    assertEquals("xa", scanner.getLastToken().getLexeme());
   }
 
   public void test_rescan_addedBeforeIdentifier2() {
-    assertTokens(//
+    IncrementalScanner scanner = assertTokens(//
         "a + b;",
         "a + xb;");
+    assertEquals("xb", scanner.getFirstToken().getLexeme());
+    assertEquals("xb", scanner.getLastToken().getLexeme());
   }
 
   public void test_rescan_addedNewIdentifier1() {
-    assertTokens(//
+    IncrementalScanner scanner = assertTokens(//
         "a;  c;",
         "a; b c;");
+    assertEquals("b", scanner.getFirstToken().getLexeme());
+    assertEquals("b", scanner.getLastToken().getLexeme());
   }
 
   public void test_rescan_addedNewIdentifier2() {
-    assertTokens(//
+    IncrementalScanner scanner = assertTokens(//
         "a;  c;",
         "a;b  c;");
+    assertEquals("b", scanner.getFirstToken().getLexeme());
+    assertEquals("b", scanner.getLastToken().getLexeme());
   }
 
   public void test_rescan_addedToIdentifier1() {
-    assertTokens(//
+    IncrementalScanner scanner = assertTokens(//
         "a + b;",
         "abs + b;");
+    assertEquals("abs", scanner.getFirstToken().getLexeme());
+    assertEquals("abs", scanner.getLastToken().getLexeme());
   }
 
   public void test_rescan_addedToIdentifier2() {
-    assertTokens(//
+    IncrementalScanner scanner = assertTokens(//
         "a + b;",
         "a + by;");
+    assertEquals("by", scanner.getFirstToken().getLexeme());
+    assertEquals("by", scanner.getLastToken().getLexeme());
   }
 
   public void test_rescan_appendWhitespace1() {
-    assertTokens(//
+    IncrementalScanner scanner = assertTokens(//
         "a + b;",
         "a + b; ");
+    assertNull(scanner.getFirstToken());
+    assertNull(scanner.getLastToken());
   }
 
   public void test_rescan_appendWhitespace2() {
-    assertTokens(//
+    IncrementalScanner scanner = assertTokens(//
         "a + b; ",
         "a + b;  ");
+    assertNull(scanner.getFirstToken());
+    assertNull(scanner.getLastToken());
   }
 
   public void test_rescan_insertedPeriod() {
-    assertTokens(//
+    IncrementalScanner scanner = assertTokens(//
         "a + b;",
         "a + b.;");
+    assertEquals(".", scanner.getFirstToken().getLexeme());
+    assertEquals(".", scanner.getLastToken().getLexeme());
+  }
+
+  public void test_rescan_insertedPeriodBetweenIdentifiers1() {
+    IncrementalScanner scanner = assertTokens(//
+        "a b;",
+        "a. b;");
+    assertEquals(".", scanner.getFirstToken().getLexeme());
+    assertEquals(".", scanner.getLastToken().getLexeme());
+  }
+
+  public void test_rescan_insertedPeriodBetweenIdentifiers2() {
+    IncrementalScanner scanner = assertTokens(//
+        "a b;",
+        "a .b;");
+    assertEquals(".", scanner.getFirstToken().getLexeme());
+    assertEquals(".", scanner.getLastToken().getLexeme());
+  }
+
+  public void test_rescan_insertedPeriodBetweenIdentifiers3() {
+    IncrementalScanner scanner = assertTokens(//
+        "a  b;",
+        "a . b;");
+    assertEquals(".", scanner.getFirstToken().getLexeme());
+    assertEquals(".", scanner.getLastToken().getLexeme());
+  }
+
+  public void test_rescan_insertedPeriodIdentifier() {
+    IncrementalScanner scanner = assertTokens(//
+        "a + b;",
+        "a + b.x;");
+    assertEquals(".", scanner.getFirstToken().getLexeme());
+    assertEquals("x", scanner.getLastToken().getLexeme());
+  }
+
+  public void test_rescan_insertedPeriodInsideExistingIdentifier() {
+    IncrementalScanner scanner = assertTokens(//
+        "ab;",
+        "a.b;");
+    assertEquals("a", scanner.getFirstToken().getLexeme());
+    assertEquals("b", scanner.getLastToken().getLexeme());
+  }
+
+  public void test_rescan_insertLeadingWhitespace() {
+    IncrementalScanner scanner = assertTokens(//
+        "a + b;",
+        " a + b;");
+    assertNull(scanner.getFirstToken());
+    assertNull(scanner.getLastToken());
   }
 
   public void test_rescan_insertWhitespace() {
-    assertTokens(//
+    IncrementalScanner scanner = assertTokens(//
         "a + b;",
         "a  + b;");
+    assertNull(scanner.getFirstToken());
+    assertNull(scanner.getLastToken());
   }
 
   public void test_rescan_insertWhitespaceWithMultipleComments() {
-    assertTokens(//
+    IncrementalScanner scanner = assertTokens(//
         createSource(//
             "//comment",
             "//comment2",
@@ -90,15 +158,19 @@ public class IncrementalScannerTest extends EngineTestCase {
             "//comment",
             "//comment2",
             "a  + b;"));
+    assertNull(scanner.getFirstToken());
+    assertNull(scanner.getLastToken());
   }
 
   public void test_rescan_oneFunctionToTwo() {
-    assertTokens(//
+    IncrementalScanner scanner = assertTokens(//
         "f() {}",
         "f() => 0; g() {}");
+    assertEquals("=>", scanner.getFirstToken().getLexeme());
+    assertEquals(")", scanner.getLastToken().getLexeme());
   }
 
-  private void assertTokens(String originalContents, String modifiedContents) {
+  private IncrementalScanner assertTokens(String originalContents, String modifiedContents) {
     //
     // Compute the location of the deleted and inserted text.
     //
@@ -170,5 +242,7 @@ public class IncrementalScannerTest extends EngineTestCase {
     assertSame("Too many tokens", TokenType.EOF, incrementalToken.getType());
     assertSame("Not enough tokens", TokenType.EOF, modifiedToken.getType());
     // TODO(brianwilkerson) Verify that the errors are correct?
+
+    return incrementalScanner;
   }
 }

@@ -61,7 +61,8 @@ public class IncrementalScanner extends Scanner {
 
   /**
    * Return the first token in the range of tokens that are different from the tokens in the
-   * original token stream.
+   * original token stream or {@code null} if the new tokens are the same as the original tokens
+   * except for offset.
    * 
    * @return the first token in the range of new tokens
    */
@@ -71,7 +72,8 @@ public class IncrementalScanner extends Scanner {
 
   /**
    * Return the last token in the range of tokens that are different from the tokens in the original
-   * token stream.
+   * token stream or {@code null} if the new tokens are the same as the original tokens except for
+   * offset.
    * 
    * @return the last token in the range of new tokens
    */
@@ -113,9 +115,13 @@ public class IncrementalScanner extends Scanner {
     //
     // Starting at the smaller of the start of the next token or the given index, scan tokens from
     // the modifiedSource until the end of the just scanned token is greater than or equal to end of
-    // the modified region in the modified source.
+    // the modified region in the modified source. Include trailing characters of any token that
+    // was split as a result of inserted text (e.g. "ab" --> "a.b")
     //
     int modifiedEnd = index + insertedLength - 1;
+    if (originalStream.getOffset() < index) {
+      modifiedEnd += originalStream.getEnd() - index - removedLength;
+    }
     reader.setOffset(Math.min(originalStream.getOffset(), index) - 1);
     int next = reader.advance();
     while (next != -1 && reader.getOffset() <= modifiedEnd) {
@@ -123,18 +129,27 @@ public class IncrementalScanner extends Scanner {
     }
     firstToken = lastCopied.getNext();
     lastToken = getTail();
-    if (firstToken == null) {
+    if (firstToken == null || firstToken.getType() == TokenType.EOF) {
       // This only happens if there were no tokens added, either because the inserted text was empty
-      // or consisted of only whitespace. In such cases we re-parse from the token before the added
-      // whitespace so that removed tokens will be accounted for.
-      firstToken = lastCopied;
+      // or consisted of only whitespace.
+      firstToken = null;
+      lastToken = null;
+    } else if (originalStream.getEnd() == index && firstToken.getEnd() == index) {
+      // This only happens when the index immediately after an existing token
+      // and the inserted characters does not change that original token
+      // For example given "a; c;" and user types "b" such that "a;b c;
+      // firstToken was ";" and this code advances it to "b" since "b" is the first new token
+      if (lastToken == firstToken) {
+        lastToken = lastToken.getNext();
+      }
+      firstToken = firstToken.getNext();
     }
     //
     // Skip tokens in the original stream until we find a token whose offset is greater than the end
     // of the removed region, adjusted by the length of the last inserted token.
     //
     int removedEnd = index + removedLength - 1
-        + Math.max(0, lastToken.getEnd() - index - insertedLength);
+        + Math.max(0, getTail().getEnd() - index - insertedLength);
     while (originalStream.getOffset() <= removedEnd) {
       originalStream = originalStream.getNext();
     }
