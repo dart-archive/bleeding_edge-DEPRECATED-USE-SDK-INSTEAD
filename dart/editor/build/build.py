@@ -131,7 +131,7 @@ def DartArchiveUploadVersionFile(version_file):
 def DartArchiveUploadInstaller(
       arch, installer_file, extension, release_type=bot_utils.ReleaseType.RAW):
   namer = bot_utils.GCSNamer(CHANNEL, release_type)
-  gsu_path = namer.editor_installer_zipfilepath(
+  gsu_path = namer.editor_installer_filepath(
       REVISION, SYSTEM, arch, extension)
   DartArchiveFile(installer_file, gsu_path, create_md5sum=False)
 
@@ -443,53 +443,75 @@ def main():
       def new_location_pair(arch, extension):
         namer = bot_utils.GCSNamer(CHANNEL, release_type)
         editor_path = namer.editor_zipfilepath(REVISION, SYSTEM, arch)
-        installer_path = namer.editor_installer_zipfilepath(
+        installer_path = namer.editor_installer_filepath(
             REVISION, SYSTEM, arch, extension)
         return (editor_path, installer_path)
 
-      def create_mac_installer(arch):
-        with utils.TempDir('build_editor_installer') as temp_dir:
-          with utils.ChangedWorkingDirectory(temp_dir):
-            if CHANNEL == 'dev':
-              # On the dev channel we currently use the bits from trunk.
-              (gsu_editor_zip, gsu_editor_dmg) = old_location_pair(arch, 'dmg')
-            else:
-              (gsu_editor_zip, gsu_editor_dmg) = new_location_pair(arch, 'dmg')
-            # Fetch the editor zip file from the old location.
-            if gsu.Copy(gsu_editor_zip, 'editor.zip', False):
-              raise Exception("gsutil command failed, aborting.")
+      def create_windows_installer(installer_file, input_dir):
+        msi_builder = os.path.join(DART_PATH, 'tools',
+                                   'create_windows_installer.py')
+        wix_bin = os.path.join(DART_PATH, 'third_party',
+                               'wix')
+        version = utils.GetShortVersion()
+        bot_utils.run(['python', msi_builder,
+                       '--msi_location=%s' % installer_file,
+                       '--input_directory=%s' % input_dir,
+                       '--version=%s' % version,
+                       '--wix_bin=%s' % wix_bin])
 
-            # Unzip the editor (which contains a directory named 'dart').
-            bot_utils.run(['unzip', 'editor.zip'])
-            assert os.path.exists('dart') and os.path.isdir('dart')
+      def create_mac_installer(installer_file):
+        dart_folder_icon = os.path.join(DART_PATH,
+            'editor/tools/plugins/com.google.dart.tools.ui/' +
+            'icons/dart_about_140_160.png')
+        dmg_builder = os.path.join(DART_PATH, 'tools',
+                                   'mac_build_editor_dmg.sh')
+        bot_utils.run([dmg_builder, installer_file, 'dart',
+                       dart_folder_icon, "Dart Installer"])
 
-            # Build the dmg installer
-            dmg_installer = os.path.join(temp_dir,'darteditor-installer.dmg')
-            dart_folder_icon = os.path.join(DART_PATH,
-                'editor/tools/plugins/com.google.dart.tools.ui/' +
-                'icons/dart_about_140_160.png')
-            dmg_builder = os.path.join(DART_PATH, 'tools',
-                'mac_build_editor_dmg.sh')
-            bot_utils.run([dmg_builder, dmg_installer, 'dart',
-                dart_folder_icon, "Dart Distribution"])
-            assert os.path.isfile(dmg_installer)
 
-            if CHANNEL == 'dev':
-              # Archive to old bucket
-              # TODO(kustermann/ricow): Remove all the old archiving code,
-              # once everything points to the new location.
-              if gsu.Copy(dmg_installer, gsu_editor_dmg):
-                raise Exception("gsutil command failed, aborting.")
-
-            # Archive to new bucket
-            # NOTE: This is a little bit hackisch, we fetch the editor from
-            # the old bucket and archive the dmg to the new bucket here.
-            DartArchiveUploadInstaller(arch, dmg_installer, 'dmg',
-                release_type=release_type)
-
-      if SYSTEM == 'mac':
+      if SYSTEM == 'mac' or SYSTEM == 'win':
         for arch in ['32', '64']:
-          create_mac_installer(arch)
+          extension = 'dmg' if SYSTEM == 'mac' else 'msi'
+          with utils.TempDir('build_editor_installer') as temp_dir:
+            with utils.ChangedWorkingDirectory(temp_dir):
+              if CHANNEL == 'dev':
+                # On the dev channel we currently use the bits from trunk.
+                (gsu_editor_zip,
+                 gsu_editor_installer) = old_location_pair(arch, extension)
+              else:
+                (gsu_editor_zip,
+                 gsu_editor_installer) = new_location_pair(arch, extension)
+              # Fetch the editor zip file from the old location.
+              zip_location = os.path.join(temp_dir, 'editor.zip')
+              if gsu.Copy(gsu_editor_zip, zip_location, False):
+                raise Exception("gsutil command failed, aborting.")
+              # Unzip the editor (which contains a directory named 'dart').
+              editor_zip = ziputils.ZipUtil(zip_location, buildos)
+              editor_zip.UnZip(temp_dir)
+              unzip_dir = os.path.join(temp_dir, 'dart')
+              
+              assert os.path.exists('dart') and os.path.isdir('dart')
+              installer_name = 'darteditor-installer.%s' % extension
+              installer_file = os.path.join(temp_dir, installer_name)
+              if SYSTEM == 'mac':
+                create_mac_installer(installer_file)
+              else:
+                create_windows_installer(installer_file, unzip_dir)
+              assert os.path.isfile(installer_file)
+
+              if CHANNEL == 'dev':
+                # Archive to old bucket
+                # TODO(kustermann/ricow): Remove all the old archiving code,
+                # once everything points to the new location.
+                if gsu.Copy(installer_file, gsu_editor_installer):
+                  raise Exception("gsutil command failed, aborting.")
+
+              # Archive to new bucket
+              # NOTE: This is a little bit hackisch, we fetch the editor from
+              # the old bucket and archive the dmg to the new bucket here.
+              DartArchiveUploadInstaller(arch, installer_file, extension,
+                                         release_type=release_type)
+
       else:
         raise Exception(
             "We currently cannot build installers for %s" % SYSTEM)
