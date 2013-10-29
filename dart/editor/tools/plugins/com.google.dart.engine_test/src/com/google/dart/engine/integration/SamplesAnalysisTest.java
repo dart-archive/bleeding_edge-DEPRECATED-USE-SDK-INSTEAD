@@ -64,7 +64,7 @@ public class SamplesAnalysisTest extends DirectoryBasedSuiteBuilder {
    */
   private static final String[] SAMPLES = {
       "clock/web/clock.dart", "solar/web/solar.dart", "sunflower/web/sunflower.dart",
-      "swipe/web/swipe.dart", "time/time_server.dart"};
+      "swipe/web/swipe.dart"};
 
   /**
    * Build a JUnit test suite that will analyze all of the tests in the language test suite.
