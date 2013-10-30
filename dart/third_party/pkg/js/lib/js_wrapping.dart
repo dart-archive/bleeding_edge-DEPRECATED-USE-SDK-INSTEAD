@@ -6,7 +6,6 @@ library js.wrapping;
 
 import 'dart:collection';
 import 'dart:math' show Random;
-import 'package:meta/meta.dart';
 import 'js.dart';
 
 part 'src/wrapping/translator.dart';

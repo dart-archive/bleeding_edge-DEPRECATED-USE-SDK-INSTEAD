@@ -409,16 +409,8 @@ public class SemanticHighlightingTest extends
   }
 
   public void test_deprecated() throws Exception {
-    setFileContent(
-        "meta.dart",
-        makeSource(
-            "// filler filler filler filler filler filler filler filler filler filler",
-            "library meta;",
-            "// const deprecated = 42;",
-            ""));
     preparePositions(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "import 'meta.dart';",
         "@deprecated",
         "class A {",
         "  @deprecated",
@@ -450,13 +442,6 @@ public class SemanticHighlightingTest extends
 
   public void test_deprecated_libraryImport() throws Exception {
     setFileContent(
-        "meta.dart",
-        makeSource(
-            "// filler filler filler filler filler filler filler filler filler filler",
-            "library meta;",
-            "// const deprecated = 42;",
-            ""));
-    setFileContent(
         "ModernLib.dart",
         makeSource(
             "// filler filler filler filler filler filler filler filler filler filler",
@@ -466,7 +451,6 @@ public class SemanticHighlightingTest extends
         "DeprecatedLib.dart",
         makeSource(
             "// filler filler filler filler filler filler filler filler filler filler",
-            "import '/meta.dart';",
             "@deprecated",
             "library deprecatedLib;",
             "// const deprecated = 0;",
