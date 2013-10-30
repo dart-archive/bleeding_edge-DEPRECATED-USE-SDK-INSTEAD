@@ -86,7 +86,7 @@ void handleFullBuild() {
 
   Directory.current.list(recursive: true).listen((entity) {
         if (entity is File) {
-          files.add((entity as File).fullPathSync());
+          files.add((entity as File).resolveSymbolicLinksSync());
         }
       },
       onDone: () => handleChangedFiles(files));

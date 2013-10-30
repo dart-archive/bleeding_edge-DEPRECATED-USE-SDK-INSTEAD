@@ -45,7 +45,7 @@ class QuestionElement extends PolymerElement with Observable {
 
   QuestionElement() {
     new PathObserver(this, 'widgetSelectedIndex').changes.listen((_) {
-      notifyProperty(this, #widgetSelection);
+      this.notifyPropertyChange(#widgetSelection, null, null);
     });
   }
 
