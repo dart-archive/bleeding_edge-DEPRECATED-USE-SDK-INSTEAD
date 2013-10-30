@@ -17,8 +17,11 @@ import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.error.GatheringErrorListener;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.TestSource;
+import com.google.dart.engine.utilities.collection.TokenMap;
 
 public class IncrementalScannerTest extends EngineTestCase {
+
+  private Token originalTokens;
 
   public void test_rescan_addedBeforeIdentifier1() {
     IncrementalScanner scanner = assertTokens(//
@@ -50,6 +53,12 @@ public class IncrementalScannerTest extends EngineTestCase {
         "a;b  c;");
     assertEquals("b", scanner.getFirstToken().getLexeme());
     assertEquals("b", scanner.getLastToken().getLexeme());
+    Token oldToken = originalTokens.getNext();
+    assertSame(TokenType.SEMICOLON, oldToken.getType());
+    Token newToken = scanner.getTokenMap().get(oldToken);
+    assertNotNull(newToken);
+    assertEquals(TokenType.SEMICOLON, newToken.getType());
+    assertNotSame(oldToken, newToken);
   }
 
   public void test_rescan_addedToIdentifier1() {
@@ -58,6 +67,12 @@ public class IncrementalScannerTest extends EngineTestCase {
         "abs + b;");
     assertEquals("abs", scanner.getFirstToken().getLexeme());
     assertEquals("abs", scanner.getLastToken().getLexeme());
+    Token oldToken = originalTokens.getNext();
+    assertEquals(TokenType.PLUS, oldToken.getType());
+    Token newToken = scanner.getTokenMap().get(oldToken);
+    assertNotNull(newToken);
+    assertEquals(TokenType.PLUS, newToken.getType());
+    assertNotSame(oldToken, newToken);
   }
 
   public void test_rescan_addedToIdentifier2() {
@@ -170,6 +185,21 @@ public class IncrementalScannerTest extends EngineTestCase {
     assertEquals(")", scanner.getLastToken().getLexeme());
   }
 
+  public void test_tokenMap() throws Exception {
+    IncrementalScanner scanner = assertTokens(//
+        "main() {a + b;}",
+        "main() { a + b;}");
+    TokenMap tokenMap = scanner.getTokenMap();
+    Token oldToken = originalTokens;
+    while (oldToken.getType() != TokenType.EOF) {
+      Token newToken = tokenMap.get(oldToken);
+      assertNotSame(oldToken, newToken);
+      assertSame(oldToken.getType(), newToken.getType());
+      assertEquals(oldToken.getLexeme(), newToken.getLexeme());
+      oldToken = oldToken.getNext();
+    }
+  }
+
   private IncrementalScanner assertTokens(String originalContents, String modifiedContents) {
     //
     // Compute the location of the deleted and inserted text.
@@ -197,8 +227,8 @@ public class IncrementalScannerTest extends EngineTestCase {
         source,
         new CharSequenceReader(originalContents),
         originalListener);
-    Token originalToken = originalScanner.tokenize();
-    assertNotNull(originalToken);
+    originalTokens = originalScanner.tokenize();
+    assertNotNull(originalTokens);
     //
     // Scan the modified contents.
     //
@@ -207,40 +237,41 @@ public class IncrementalScannerTest extends EngineTestCase {
         source,
         new CharSequenceReader(modifiedContents),
         modifiedListener);
-    Token modifiedToken = modifiedScanner.tokenize();
-    assertNotNull(modifiedToken);
+    Token modifiedTokens = modifiedScanner.tokenize();
+    assertNotNull(modifiedTokens);
     //
     // Incrementally scan the modified contents.
     //
     GatheringErrorListener incrementalListener = new GatheringErrorListener();
     IncrementalScanner incrementalScanner = new IncrementalScanner(source, new CharSequenceReader(
         modifiedContents), incrementalListener);
-    Token incrementalToken = incrementalScanner.rescan(originalToken, replaceStart, originalEnd
+    Token incrementalTokens = incrementalScanner.rescan(originalTokens, replaceStart, originalEnd
         - replaceStart + 1, modifiedEnd - replaceStart + 1);
     //
     // Validate that the results of the incremental scan are the same as the full scan of the
     // modified source.
     //
+    Token incrementalToken = incrementalTokens;
     assertNotNull(incrementalToken);
-    while (incrementalToken.getType() != TokenType.EOF && modifiedToken.getType() != TokenType.EOF) {
-      assertSame("Wrong type for token", modifiedToken.getType(), incrementalToken.getType());
+    while (incrementalToken.getType() != TokenType.EOF && modifiedTokens.getType() != TokenType.EOF) {
+      assertSame("Wrong type for token", modifiedTokens.getType(), incrementalToken.getType());
       assertEquals(
           "Wrong offset for token",
-          modifiedToken.getOffset(),
+          modifiedTokens.getOffset(),
           incrementalToken.getOffset());
       assertEquals(
           "Wrong length for token",
-          modifiedToken.getLength(),
+          modifiedTokens.getLength(),
           incrementalToken.getLength());
       assertEquals(
           "Wrong lexeme for token",
-          modifiedToken.getLexeme(),
+          modifiedTokens.getLexeme(),
           incrementalToken.getLexeme());
       incrementalToken = incrementalToken.getNext();
-      modifiedToken = modifiedToken.getNext();
+      modifiedTokens = modifiedTokens.getNext();
     }
     assertSame("Too many tokens", TokenType.EOF, incrementalToken.getType());
-    assertSame("Not enough tokens", TokenType.EOF, modifiedToken.getType());
+    assertSame("Not enough tokens", TokenType.EOF, modifiedTokens.getType());
     // TODO(brianwilkerson) Verify that the errors are correct?
 
     return incrementalScanner;

@@ -139,6 +139,7 @@ public class IncrementalScanner extends Scanner {
       // and the inserted characters does not change that original token
       // For example given "a; c;" and user types "b" such that "a;b c;
       // firstToken was ";" and this code advances it to "b" since "b" is the first new token
+      tokenMap.put(originalStream, firstToken);
       if (lastToken == firstToken) {
         lastToken = lastToken.getNext();
       }
