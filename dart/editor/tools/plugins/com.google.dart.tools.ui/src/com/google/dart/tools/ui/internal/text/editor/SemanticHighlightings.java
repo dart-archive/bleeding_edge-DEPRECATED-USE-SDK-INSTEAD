@@ -48,6 +48,7 @@ import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementAnnotation;
 import com.google.dart.engine.element.ElementKind;
+import com.google.dart.engine.element.FieldFormalParameterElement;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
@@ -612,6 +613,9 @@ public class SemanticHighlightings {
     public boolean consumesIdentifier(SemanticToken token) {
       SimpleIdentifier node = token.getNodeIdentifier();
       Element element = node.getBestElement();
+      if (element instanceof FieldFormalParameterElement) {
+        element = ((FieldFormalParameterElement) element).getField();
+      }
       return element instanceof PropertyInducingElement
           || element instanceof PropertyAccessorElement;
     }
