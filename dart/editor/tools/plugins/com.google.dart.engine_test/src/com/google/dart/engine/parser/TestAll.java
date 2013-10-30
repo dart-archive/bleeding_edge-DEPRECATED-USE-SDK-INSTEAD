@@ -23,6 +23,7 @@ public class TestAll {
     TestSuite suite = new ExtendedTestSuite("Tests in " + TestAll.class.getPackage().getName());
     suite.addTestSuite(ComplexParserTest.class);
     suite.addTestSuite(ErrorParserTest.class);
+    suite.addTestSuite(IncrementalParserTest.class);
     suite.addTestSuite(RecoveryParserTest.class);
     suite.addTestSuite(SimpleParserTest.class);
     return suite;
