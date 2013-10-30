@@ -49,8 +49,7 @@ create(Path libPath) {
 }
 
 main() {
-  final options = new Options();
-  final scriptPath = new Path(options.script).directoryPath;
+  final scriptPath = new Path(Platform.script).directoryPath;
   final libPath = scriptPath.join(new Path('../lib'));
   create(libPath);
 }

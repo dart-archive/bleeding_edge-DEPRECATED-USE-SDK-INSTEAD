@@ -5,9 +5,7 @@ import "dart:io";
  * packages directory to the app/packages directory. This works around an issue
  * with Chrome apps and symlinks and allows you to use pub with Chrome apps.
  */
-void main() {
-  List<String> args = new Options().arguments;
-
+void main(List<String> args) {
   bool fullBuild = args.contains("--full");
   bool dartFilesChanged = args.any((arg) {
     return !arg.startsWith("--changed=app/packages") && arg.endsWith(".dart");

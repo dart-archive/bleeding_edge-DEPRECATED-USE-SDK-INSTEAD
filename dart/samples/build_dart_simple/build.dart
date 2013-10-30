@@ -11,8 +11,8 @@ import "dart:io";
  * In order to be invoked automatically by the Editor, this script must be named
  * 'build.dart' and placed in the root of a project.
  */
-void main() {
-  for (String arg in new Options().arguments) {
+void main(List<String> arguments) {
+  for (String arg in arguments) {
     if (arg.startsWith("--changed=")) {
       String file = arg.substring("--changed=".length);
 

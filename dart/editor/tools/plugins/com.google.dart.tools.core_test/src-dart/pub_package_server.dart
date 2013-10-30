@@ -18,9 +18,8 @@ const LOG_REQUESTS = true;
 
 String baseDir;
 
-main() {
+main(List<String> options) {
   int port;
-  var options = new Options().arguments;
   if (options.length != 1) {
     print('Insufficient arguments \npub_package_server serverDataLocation');
     exit(64);
