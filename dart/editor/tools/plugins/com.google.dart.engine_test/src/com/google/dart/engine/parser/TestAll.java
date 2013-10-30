@@ -25,6 +25,7 @@ public class TestAll {
     suite.addTestSuite(ErrorParserTest.class);
     suite.addTestSuite(IncrementalParserTest.class);
     suite.addTestSuite(RecoveryParserTest.class);
+    suite.addTestSuite(ResolutionCopierTest.class);
     suite.addTestSuite(SimpleParserTest.class);
     return suite;
   }

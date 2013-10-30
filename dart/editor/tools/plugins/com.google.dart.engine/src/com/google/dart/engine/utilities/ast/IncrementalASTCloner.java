@@ -120,7 +120,9 @@ public class IncrementalASTCloner implements ASTVisitor<ASTNode> {
         map(node.getOperator()),
         clone(node.getRightHandSide()));
     copy.setPropagatedElement(node.getPropagatedElement());
+    copy.setPropagatedType(node.getPropagatedType());
     copy.setStaticElement(node.getStaticElement());
+    copy.setStaticType(node.getStaticType());
     return copy;
   }
 
@@ -796,7 +798,9 @@ public class IncrementalASTCloner implements ASTVisitor<ASTNode> {
     PostfixExpression copy = new PostfixExpression(
         clone(node.getOperand()),
         map(node.getOperator()));
+    copy.setPropagatedElement(node.getPropagatedElement());
     copy.setPropagatedType(node.getPropagatedType());
+    copy.setStaticElement(node.getStaticElement());
     copy.setStaticType(node.getStaticType());
     return copy;
   }

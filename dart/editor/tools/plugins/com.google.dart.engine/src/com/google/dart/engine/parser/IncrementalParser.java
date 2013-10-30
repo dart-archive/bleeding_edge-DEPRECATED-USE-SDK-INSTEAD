@@ -129,6 +129,7 @@ public class IncrementalParser {
       return (E) newNode;
     }
     IncrementalASTCloner cloner = new IncrementalASTCloner(oldNode, newNode, tokenMap);
+    ResolutionCopier.copyResolutionData(oldNode, newNode);
     return (E) originalStructure.accept(cloner);
   }
 

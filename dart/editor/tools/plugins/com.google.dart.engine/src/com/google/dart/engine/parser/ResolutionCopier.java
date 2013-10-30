@@ -108,7 +108,9 @@ public class ResolutionCopier implements ASTVisitor<Boolean> {
         & isEqual(node.getOperator(), toNode.getOperator())
         & isEqual(node.getRightHandSide(), toNode.getRightHandSide())) {
       toNode.setPropagatedElement(node.getPropagatedElement());
+      toNode.setPropagatedType(node.getPropagatedType());
       toNode.setStaticElement(node.getStaticElement());
+      toNode.setStaticType(node.getStaticType());
       return true;
     }
     return false;
@@ -825,7 +827,9 @@ public class ResolutionCopier implements ASTVisitor<Boolean> {
     PostfixExpression toNode = (PostfixExpression) this.toNode;
     if (isEqual(node.getOperand(), toNode.getOperand())
         & isEqual(node.getOperator(), toNode.getOperator())) {
+      toNode.setPropagatedElement(node.getPropagatedElement());
       toNode.setPropagatedType(node.getPropagatedType());
+      toNode.setStaticElement(node.getStaticElement());
       toNode.setStaticType(node.getStaticType());
       return true;
     }
@@ -1248,7 +1252,7 @@ public class ResolutionCopier implements ASTVisitor<Boolean> {
       return false;
     }
     for (int i = 0; i < length; i++) {
-      if (isEqual(first[i], second[i])) {
+      if (!isEqual(first[i], second[i])) {
         return false;
       }
     }
