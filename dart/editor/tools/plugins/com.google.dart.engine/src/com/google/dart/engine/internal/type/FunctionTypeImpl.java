@@ -286,7 +286,7 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
   }
 
   @Override
-  public boolean isMoreSpecificThan(Type type) {
+  public boolean isMoreSpecificThan(Type type, boolean withDynamic) {
     // trivial base cases
     if (type == null) {
       return false;
@@ -319,7 +319,7 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
         return false;
       } else if (t.getNormalParameterTypes().length > 0) {
         for (int i = 0; i < tTypes.length; i++) {
-          if (!tTypes[i].isMoreSpecificThan(sTypes[i])) {
+          if (!tTypes[i].isMoreSpecificThan(sTypes[i], withDynamic)) {
             return false;
           }
         }
@@ -339,7 +339,7 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
         if (typeT == null) {
           return false;
         }
-        if (!typeT.isMoreSpecificThan(entryS.getValue())) {
+        if (!typeT.isMoreSpecificThan(entryS.getValue(), withDynamic)) {
           return false;
         }
       }
@@ -358,7 +358,7 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
       if (tOpTypes.length == 0 && sOpTypes.length == 0) {
         // No positional arguments, don't copy contents to new array
         for (int i = 0; i < sTypes.length; i++) {
-          if (!tTypes[i].isMoreSpecificThan(sTypes[i])) {
+          if (!tTypes[i].isMoreSpecificThan(sTypes[i], withDynamic)) {
             return false;
           }
         }
@@ -380,7 +380,7 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
           sAllTypes[i] = sOpTypes[j];
         }
         for (int i = 0; i < sAllTypes.length; i++) {
-          if (!tAllTypes[i].isMoreSpecificThan(sAllTypes[i])) {
+          if (!tAllTypes[i].isMoreSpecificThan(sAllTypes[i], withDynamic)) {
             return false;
           }
         }
@@ -388,7 +388,7 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
     }
     Type tRetType = t.getReturnType();
     Type sRetType = s.getReturnType();
-    return sRetType.isVoid() || tRetType.isMoreSpecificThan(sRetType);
+    return sRetType.isVoid() || tRetType.isMoreSpecificThan(sRetType, withDynamic);
   }
 
   @Override

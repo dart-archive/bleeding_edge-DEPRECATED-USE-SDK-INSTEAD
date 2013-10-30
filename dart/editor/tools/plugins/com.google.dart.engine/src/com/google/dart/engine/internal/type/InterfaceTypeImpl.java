@@ -463,9 +463,10 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   @Override
   public boolean isDirectSupertypeOf(InterfaceType type) {
-    ClassElement i = getElement();
-    ClassElement j = type.getElement();
-    InterfaceType supertype = j.getSupertype();
+    InterfaceType i = this;
+    InterfaceType j = type;
+    ClassElement jElement = j.getElement();
+    InterfaceType supertype = jElement.getSupertype();
     //
     // If J has no direct supertype then it is Object, and Object has no direct supertypes.
     //
@@ -475,23 +476,27 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     //
     // I is listed in the extends clause of J.
     //
-    ClassElement supertypeElement = supertype.getElement();
-    if (supertypeElement.equals(i)) {
+    Type[] jArgs = j.getTypeArguments();
+    Type[] jVars = jElement.getType().getTypeArguments();
+    supertype = supertype.substitute(jArgs, jVars);
+    if (supertype.equals(i)) {
       return true;
     }
     //
     // I is listed in the implements clause of J.
     //
-    for (InterfaceType interfaceType : j.getInterfaces()) {
-      if (interfaceType.getElement().equals(i)) {
+    for (InterfaceType interfaceType : jElement.getInterfaces()) {
+      interfaceType = interfaceType.substitute(jArgs, jVars);
+      if (interfaceType.equals(i)) {
         return true;
       }
     }
     //
     // I is listed in the with clause of J.
     //
-    for (InterfaceType mixinType : j.getMixins()) {
-      if (mixinType.getElement().equals(i)) {
+    for (InterfaceType mixinType : jElement.getMixins()) {
+      mixinType = mixinType.substitute(jArgs, jVars);
+      if (mixinType.equals(i)) {
         return true;
       }
     }
@@ -504,7 +509,7 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @Override
-  public boolean isMoreSpecificThan(Type type) {
+  public boolean isMoreSpecificThan(Type type, boolean withDynamic) {
     //
     // S is dynamic.
     // The test to determine whether S is dynamic is done here because dynamic is not an instance of
@@ -515,7 +520,7 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     } else if (!(type instanceof InterfaceType)) {
       return false;
     }
-    return isMoreSpecificThan((InterfaceType) type, new HashSet<ClassElement>());
+    return isMoreSpecificThan((InterfaceType) type, new HashSet<ClassElement>(), withDynamic);
   }
 
   @Override
@@ -726,7 +731,8 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }
   }
 
-  private boolean isMoreSpecificThan(InterfaceType s, HashSet<ClassElement> visitedClasses) {
+  private boolean isMoreSpecificThan(InterfaceType s, HashSet<ClassElement> visitedClasses,
+      boolean withDynamic) {
     //
     // A type T is more specific than a type S, written T << S,  if one of the following conditions
     // is met:
@@ -758,7 +764,7 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
         return false;
       }
       for (int i = 0; i < tArguments.length; i++) {
-        if (!tArguments[i].isMoreSpecificThan(sArguments[i])) {
+        if (!tArguments[i].isMoreSpecificThan(sArguments[i], withDynamic)) {
           return false;
         }
       }
@@ -777,16 +783,17 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     // Iterate over all of the types U that are more specific than T because they are direct
     // supertypes of T and return true if any of them are more specific than S.
     InterfaceType supertype = getSuperclass();
-    if (supertype != null && ((InterfaceTypeImpl) supertype).isMoreSpecificThan(s, visitedClasses)) {
+    if (supertype != null
+        && ((InterfaceTypeImpl) supertype).isMoreSpecificThan(s, visitedClasses, withDynamic)) {
       return true;
     }
     for (InterfaceType interfaceType : getInterfaces()) {
-      if (((InterfaceTypeImpl) interfaceType).isMoreSpecificThan(s, visitedClasses)) {
+      if (((InterfaceTypeImpl) interfaceType).isMoreSpecificThan(s, visitedClasses, withDynamic)) {
         return true;
       }
     }
     for (InterfaceType mixinType : getMixins()) {
-      if (((InterfaceTypeImpl) mixinType).isMoreSpecificThan(s, visitedClasses)) {
+      if (((InterfaceTypeImpl) mixinType).isMoreSpecificThan(s, visitedClasses, withDynamic)) {
         return true;
       }
     }

@@ -112,7 +112,11 @@ public abstract class TypeImpl implements Type {
   }
 
   @Override
-  public boolean isMoreSpecificThan(Type type) {
+  public final boolean isMoreSpecificThan(Type type) {
+    return isMoreSpecificThan(type, false);
+  }
+
+  public boolean isMoreSpecificThan(Type type, boolean withDynamic) {
     return false;
   }
 

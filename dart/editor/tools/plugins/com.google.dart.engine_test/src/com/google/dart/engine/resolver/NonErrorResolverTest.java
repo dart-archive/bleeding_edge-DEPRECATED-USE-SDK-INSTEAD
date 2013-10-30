@@ -3120,6 +3120,25 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_typePromotion_if_extends_moreSpecific() throws Exception {
+    Source source = addSource(createSource(//
+        "class V {}",
+        "class VP extends V {}",
+        "class A<T> {}",
+        "class B<S> extends A<S> {",
+        "  var b;",
+        "}",
+        "",
+        "main(A<V> p) {",
+        "  if (p is B<VP>) {",
+        "    p.b;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
   public void test_typePromotion_if_hasAssignment_outsideAfter() throws Exception {
     Source source = addSource(createSource(//
         "main(Object p) {",
@@ -3139,6 +3158,25 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  p = p2;",
         "  if (p is String) {",
         "    p.length;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_typePromotion_if_implements_moreSpecific() throws Exception {
+    Source source = addSource(createSource(//
+        "class V {}",
+        "class VP extends V {}",
+        "class A<T> {}",
+        "class B<S> implements A<S> {",
+        "  var b;",
+        "}",
+        "",
+        "main(A<V> p) {",
+        "  if (p is B<VP>) {",
+        "    p.b;",
         "  }",
         "}"));
     resolve(source);

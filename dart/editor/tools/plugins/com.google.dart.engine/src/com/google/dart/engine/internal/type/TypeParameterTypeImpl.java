@@ -80,7 +80,7 @@ public class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType
   }
 
   @Override
-  public boolean isMoreSpecificThan(Type s) {
+  public boolean isMoreSpecificThan(Type s, boolean withDynamic) {
     //
     // A type T is more specific than a type S, written T << S,  if one of the following conditions
     // is met:
@@ -103,12 +103,12 @@ public class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType
       return true;
     }
 
-    return isMoreSpecificThan(s, new HashSet<Type>());
+    return isMoreSpecificThan(s, new HashSet<Type>(), withDynamic);
   }
 
   @Override
   public boolean isSubtypeOf(Type s) {
-    return isMoreSpecificThan(s);
+    return isMoreSpecificThan(s, true);
   }
 
   @Override
@@ -122,7 +122,7 @@ public class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType
     return this;
   }
 
-  private boolean isMoreSpecificThan(Type s, Set<Type> visitedTypes) {
+  private boolean isMoreSpecificThan(Type s, Set<Type> visitedTypes, boolean withDynamic) {
     // T is a type parameter and S is the upper bound of T.
     //
     Type bound = getElement().getBound();
@@ -152,10 +152,10 @@ public class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType
       }
       visitedTypes.add(bound);
       // Then check upper bound.
-      return boundTypeParameter.isMoreSpecificThan(s, visitedTypes);
+      return boundTypeParameter.isMoreSpecificThan(s, visitedTypes, withDynamic);
     }
 
     // Check interface type.
-    return bound.isMoreSpecificThan(s);
+    return bound.isMoreSpecificThan(s, withDynamic);
   }
 }

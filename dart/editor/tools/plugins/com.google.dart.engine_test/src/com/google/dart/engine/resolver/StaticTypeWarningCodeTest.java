@@ -806,6 +806,41 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
     assertErrors(source, StaticTypeWarningCode.UNDEFINED_GETTER);
   }
 
+  public void test_typePromotion_if_extends_notMoreSpecific_dynamic() throws Exception {
+    Source source = addSource(createSource(//
+        "class V {}",
+        "class A<T> {}",
+        "class B<S> extends A<S> {",
+        "  var b;",
+        "}",
+        "",
+        "main(A<V> p) {",
+        "  if (p is B) {",
+        "    p.b;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticTypeWarningCode.UNDEFINED_GETTER);
+  }
+
+  public void test_typePromotion_if_extends_notMoreSpecific_notMoreSpecificTypeArg()
+      throws Exception {
+    Source source = addSource(createSource(//
+        "class V {}",
+        "class A<T> {}",
+        "class B<S> extends A<S> {",
+        "  var b;",
+        "}",
+        "",
+        "main(A<V> p) {",
+        "  if (p is B<int>) {",
+        "    p.b;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticTypeWarningCode.UNDEFINED_GETTER);
+  }
+
   public void test_typePromotion_if_hasAssignment_after() throws Exception {
     Source source = addSource(createSource(//
         "main(Object p) {",
@@ -872,6 +907,40 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "  f() {p = 0;};",
         "  if (p is String) {",
         "    p.length;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticTypeWarningCode.UNDEFINED_GETTER);
+  }
+
+  public void test_typePromotion_if_implements_notMoreSpecific_dynamic() throws Exception {
+    Source source = addSource(createSource(//
+        "class V {}",
+        "class A<T> {}",
+        "class B<S> implements A<S> {",
+        "  var b;",
+        "}",
+        "",
+        "main(A<V> p) {",
+        "  if (p is B) {",
+        "    p.b;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticTypeWarningCode.UNDEFINED_GETTER);
+  }
+
+  public void test_typePromotion_if_with_notMoreSpecific_dynamic() throws Exception {
+    Source source = addSource(createSource(//
+        "class V {}",
+        "class A<T> {}",
+        "class B<S> extends Object with A<S> {",
+        "  var b;",
+        "}",
+        "",
+        "main(A<V> p) {",
+        "  if (p is B) {",
+        "    p.b;",
         "  }",
         "}"));
     resolve(source);

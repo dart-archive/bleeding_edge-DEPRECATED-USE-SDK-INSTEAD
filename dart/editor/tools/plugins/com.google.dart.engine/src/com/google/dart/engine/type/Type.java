@@ -98,6 +98,15 @@ public interface Type {
   public boolean isMoreSpecificThan(Type type);
 
   /**
+   * Return {@code true} if this type is more specific than the given type.
+   * 
+   * @param type the type being compared with this type
+   * @param withDynamic {@code true} if "dynamic" should be considered as a subtype of any type
+   * @return {@code true} if this type is more specific than the given type
+   */
+  public boolean isMoreSpecificThan(Type type, boolean withDynamic);
+
+  /**
    * Return {@code true} if this type represents the type 'Object'.
    * 
    * @return {@code true} if this type represents the type 'Object'

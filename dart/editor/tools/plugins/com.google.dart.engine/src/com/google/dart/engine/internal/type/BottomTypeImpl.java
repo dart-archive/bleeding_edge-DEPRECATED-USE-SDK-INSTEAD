@@ -53,7 +53,7 @@ public class BottomTypeImpl extends TypeImpl {
   }
 
   @Override
-  public boolean isMoreSpecificThan(Type type) {
+  public boolean isMoreSpecificThan(Type type, boolean withDynamic) {
     return true;
   }
 
