@@ -38,9 +38,10 @@ public class StructuredTextViewerConfigurationDart extends StructuredTextViewerC
    */
   private String[] configuredContentTypes;
 
-  public static final String DART_SCRIPT = IHTMLPartitions.SCRIPT + ".type.APPLICATION/DART";
+  public static final String DART_SCRIPT_PARTITION_NAME = IHTMLPartitions.SCRIPT
+      + ".type.APPLICATION/DART";
 
-  public static final String DART_SCRIPT_EVENTHANDLER = IHTMLPartitions.SCRIPT_EVENTHANDLER
+  public static final String DART_HANDLER_PARTITION_NAME = IHTMLPartitions.SCRIPT_EVENTHANDLER
       + ".type.APPLICATION/DART";
 
   /**
@@ -52,9 +53,10 @@ public class StructuredTextViewerConfigurationDart extends StructuredTextViewerC
 
   @Override
   public IAutoEditStrategy[] getAutoEditStrategies(ISourceViewer sourceViewer, String contentType) {
-    if (contentType.equals(IHTMLPartitions.SCRIPT) || contentType.equals(DART_SCRIPT)
+    if (contentType.equals(IHTMLPartitions.SCRIPT)
+        || contentType.equals(DART_SCRIPT_PARTITION_NAME)
         || contentType.equals(IHTMLPartitions.SCRIPT_EVENTHANDLER)
-        || contentType.equals(DART_SCRIPT_EVENTHANDLER)) {
+        || contentType.equals(DART_HANDLER_PARTITION_NAME)) {
       IAutoEditStrategy[] strategies = new IAutoEditStrategy[1];
       strategies[0] = new AutoEditStrategyForDart();
       return strategies;
@@ -71,9 +73,7 @@ public class StructuredTextViewerConfigurationDart extends StructuredTextViewerC
     if (configuredContentTypes == null) {
       String[] xmlTypes = StructuredTextPartitionerForXML.getConfiguredContentTypes();
       String[] htmlTypes = StructuredTextPartitionerForHTML.getConfiguredContentTypes();
-      String[] dartTypes = new String[] {
-          "org.eclipse.wst.html.SCRIPT.type.APPLICATION/DART",
-          "org.eclipse.wst.html.SCRIPT.EVENTHANDLER.type.APPLICATION/DART"};
+      String[] dartTypes = new String[] {DART_SCRIPT_PARTITION_NAME, DART_HANDLER_PARTITION_NAME};
       configuredContentTypes = new String[2 + xmlTypes.length + htmlTypes.length + dartTypes.length];
 
       configuredContentTypes[0] = IStructuredPartitions.DEFAULT_PARTITION;
@@ -100,8 +100,8 @@ public class StructuredTextViewerConfigurationDart extends StructuredTextViewerC
 
   @Override
   public LineStyleProvider[] getLineStyleProviders(ISourceViewer sourceViewer, String partitionType) {
-    if (partitionType.equals("org.eclipse.wst.html.SCRIPT.type.APPLICATION/DART")
-        || partitionType.equals("org.eclipse.wst.html.SCRIPT.EVENTHANDLER.type.APPLICATION/DART")) {
+    if (partitionType.equals(DART_SCRIPT_PARTITION_NAME)
+        || partitionType.equals(DART_HANDLER_PARTITION_NAME)) {
       // This duplicates the XML in plugin.xml. It is a place-holder for future use.
       return new LineStyleProvider[] {new LineStyleProviderForDart()};
     } else {
@@ -112,8 +112,8 @@ public class StructuredTextViewerConfigurationDart extends StructuredTextViewerC
   @Override
   protected IContentAssistProcessor[] getContentAssistProcessors(ISourceViewer sourceViewer,
       String partitionType) {
-    if (partitionType.equals("org.eclipse.wst.html.SCRIPT.type.APPLICATION/DART")
-        || partitionType.equals("org.eclipse.wst.html.SCRIPT.EVENTHANDLER.type.APPLICATION/DART")) {
+    if (partitionType.equals(DART_SCRIPT_PARTITION_NAME)
+        || partitionType.equals(DART_HANDLER_PARTITION_NAME)) {
       IContentAssistProcessor processor = new DartStructuredContentAssistProcessor(
           this.getContentAssistant(),
           partitionType,
@@ -129,7 +129,7 @@ public class StructuredTextViewerConfigurationDart extends StructuredTextViewerC
   @SuppressWarnings("unchecked")
   protected Map<String, Object> getHyperlinkDetectorTargets(ISourceViewer sourceViewer) {
     Map<String, Object> targets = super.getHyperlinkDetectorTargets(sourceViewer);
-    targets.put("org.eclipse.wst.html.SCRIPT.type.APPLICATION/DART", null);
+    targets.put(DART_SCRIPT_PARTITION_NAME, null);
     return targets;
   }
 }

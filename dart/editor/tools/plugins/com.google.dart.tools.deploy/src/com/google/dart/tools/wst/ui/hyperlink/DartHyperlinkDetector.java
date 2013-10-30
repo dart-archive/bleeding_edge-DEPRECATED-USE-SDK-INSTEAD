@@ -33,10 +33,13 @@ import com.google.dart.tools.ui.internal.text.editor.DartElementHyperlink;
 import com.google.dart.tools.ui.internal.util.ExceptionHandler;
 import com.google.dart.tools.wst.ui.DartReconcilerManager;
 import com.google.dart.tools.wst.ui.EmbeddedDartReconcilerHook;
+import com.google.dart.tools.wst.ui.StructuredTextViewerConfigurationDart;
 
+import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextViewer;
+import org.eclipse.jface.text.ITypedRegion;
 import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.hyperlink.AbstractHyperlinkDetector;
 import org.eclipse.jface.text.hyperlink.IHyperlink;
@@ -124,6 +127,14 @@ public class DartHyperlinkDetector extends AbstractHyperlinkDetector {
   private CompilationUnit getCompilationUnit(ITextViewer textViewer, IRegion region) {
     int offset = region.getOffset();
     IDocument document = textViewer.getDocument();
+    try {
+      ITypedRegion part = document.getPartition(offset);
+      if (!StructuredTextViewerConfigurationDart.DART_SCRIPT_PARTITION_NAME.equals(part.getType())) {
+        return null;
+      }
+    } catch (BadLocationException ex) {
+      return null;
+    }
     partition = ((IStructuredDocument) document).getRegionAtCharacterOffset(offset);
     EmbeddedDartReconcilerHook reconciler = DartReconcilerManager.getInstance().reconcilerFor(
         document);
