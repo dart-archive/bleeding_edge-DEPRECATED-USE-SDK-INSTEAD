@@ -3,5 +3,8 @@ description: TodoMVC built with the polymer.dart package
 version: 0.14.0
 dependencies:
   polymer: any
+transformers:
+- polymer:
+    entry_points: web/index.html
 dev_dependencies:
   unittest: any
