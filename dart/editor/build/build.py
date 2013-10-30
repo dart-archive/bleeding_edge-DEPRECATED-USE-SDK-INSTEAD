@@ -607,7 +607,7 @@ def main():
           # dart-editor-linux.gtk.x86.zip --> darteditor-linux-32.zip
           RenameRcpZipFiles(buildout)
 
-          PostProcessEditorBuilds(buildout)
+          PostProcessEditorBuilds(buildout, buildos)
 
           if running_on_buildbot:
             version_file = _FindVersionFile(buildout)
@@ -976,51 +976,64 @@ def RenameRcpZipFiles(out_dir):
       os.rename(zipFile, join(os.path.dirname(zipFile), renameMap[basename]))
 
 
-def PostProcessEditorBuilds(out_dir):
+def PostProcessEditorBuilds(out_dir, buildos):
   """Post-process the created RCP builds"""
+  with utils.TempDir('editor_scratch') as scratch_dir:
+    # Create a editor.properties
+    editor_properties = os.path.join(scratch_dir, 'editor.properties')
+    with open(editor_properties, 'w') as fd:
+      fd.write("com.dart.tools.update.core.url=http://dartlang.org"
+               "/editor/update/channels/%s/\n" % CHANNEL)
 
-  for zipFile in _FindRcpZipFiles(out_dir):
-    basename = os.path.basename(zipFile)
+    for zipFile in _FindRcpZipFiles(out_dir):
+      basename = os.path.basename(zipFile)
 
-    print('  processing %s' % basename)
+      print('  processing %s' % basename)
 
-    # adjust memory params for 64 bit versions
-    if (basename.endswith('-64.zip')):
+      # If we're on -dev/-stable build: add an editor.properties file
+      # pointing to the correct update location of the editor for the channel
+      # we're building for.
+      if not TRUNK_BUILD and CHANNEL != 'be':
+        f = ziputils.ZipUtil(zipFile, buildos)
+        f.AddFile(editor_properties, 'dart/editor.properties')
+
+      # adjust memory params for 64 bit versions
+      if (basename.endswith('-64.zip')):
+        if (basename.startswith('darteditor-macos-')):
+          inifile = join('dart', 'DartEditor.app', 'Contents', 'MacOS',
+                         'DartEditor.ini')
+        else:
+          inifile = join('dart', 'DartEditor.ini')
+
+        if (basename.startswith('darteditor-win32-')):
+          f = zipfile.ZipFile(zipFile)
+          f.extract(inifile.replace('\\','/'))
+          f.close()
+        else:
+          bot_utils.run(['unzip', zipFile, inifile], env=os.environ)
+
+        Modify64BitDartEditorIni(inifile)
+
+        if (basename.startswith('darteditor-win32-')):
+          seven_zip = os.path.join(DART_DIR, 'third_party', '7zip', '7za.exe')
+          bot_utils.run([seven_zip, 'd', zipFile, inifile], env=os.environ)
+          bot_utils.run([seven_zip, 'a', zipFile, inifile], env=os.environ)
+        else:
+          bot_utils.run(['zip', '-d', zipFile, inifile], env=os.environ)
+          bot_utils.run(['zip', '-q', zipFile, inifile], env=os.environ)
+
+        os.remove(inifile)
+
+      # post-process the info.plist file
       if (basename.startswith('darteditor-macos-')):
-        inifile = join('dart', 'DartEditor.app', 'Contents', 'MacOS',
-                       'DartEditor.ini')
-      else:
-        inifile = join('dart', 'DartEditor.ini')
-
-      if (basename.startswith('darteditor-win32-')):
-        f = zipfile.ZipFile(zipFile)
-        f.extract(inifile.replace('\\','/'))
-        f.close()
-      else:
-        bot_utils.run(['unzip', zipFile, inifile], env=os.environ)
-
-      Modify64BitDartEditorIni(inifile)
-
-      if (basename.startswith('darteditor-win32-')):
-        seven_zip = os.path.join(DART_DIR, 'third_party', '7zip', '7za.exe')
-        bot_utils.run([seven_zip, 'd', zipFile, inifile], env=os.environ)
-        bot_utils.run([seven_zip, 'a', zipFile, inifile], env=os.environ)
-      else:
-        bot_utils.run(['zip', '-d', zipFile, inifile], env=os.environ)
-        bot_utils.run(['zip', '-q', zipFile, inifile], env=os.environ)
-
-      os.remove(inifile)
-
-    # post-process the info.plist file
-    if (basename.startswith('darteditor-macos-')):
-      infofile = join('dart', 'DartEditor.app', 'Contents', 'Info.plist')
-      bot_utils.run(['unzip', zipFile, infofile], env=os.environ)
-      ReplaceInFiles(
-          [infofile],
-          [('<dict>',
-            '<dict>\n\t<key>NSHighResolutionCapable</key>\n\t\t<true/>')])
-      bot_utils.run(['zip', '-q', zipFile, infofile], env=os.environ)
-      os.remove(infofile)
+        infofile = join('dart', 'DartEditor.app', 'Contents', 'Info.plist')
+        bot_utils.run(['unzip', zipFile, infofile], env=os.environ)
+        ReplaceInFiles(
+            [infofile],
+            [('<dict>',
+              '<dict>\n\t<key>NSHighResolutionCapable</key>\n\t\t<true/>')])
+        bot_utils.run(['zip', '-q', zipFile, infofile], env=os.environ)
+        os.remove(infofile)
 
 
 def Modify64BitDartEditorIni(iniFilePath):
