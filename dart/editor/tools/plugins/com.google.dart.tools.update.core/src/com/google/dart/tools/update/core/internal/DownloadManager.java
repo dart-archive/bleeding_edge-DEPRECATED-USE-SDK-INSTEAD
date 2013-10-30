@@ -29,6 +29,8 @@ import org.eclipse.core.runtime.jobs.JobChangeAdapter;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * Manages the downloading of updates.
@@ -37,12 +39,24 @@ public class DownloadManager {
 
   private class StateChangeListener extends UpdateAdapter {
     @Override
-    public void updateAvailable(Revision revision) {
-      if (UpdateCore.isAutoDownloadEnabled() && !model.isDownloadingUpdate()) {
-        scheduleDownload(revision);
+    public void updateAvailable(final Revision revision) {
+      if (UpdateCore.isAutoDownloadEnabled()) {
+        try {
+          new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+              scheduleDownload(revision);
+            }
+          }, DOWNLOAD_DELAY);
+        } catch (Exception e) {
+          UpdateCore.logError(e);
+        }
       }
     }
   }
+
+  // Wait before initiating an auto DL (in ms)
+  private static final int DOWNLOAD_DELAY = 3000;
 
   //cached to ensure proper cancellation at workbench disposal (set to null after each use)
   private Job updateJob;
@@ -182,9 +196,15 @@ public class DownloadManager {
     updateJob.addJobChangeListener(new JobChangeAdapter() {
       @Override
       public void done(IJobChangeEvent event) {
-        Revision latest = ((CheckForUpdatesJob) updateJob).getLatest();
+
+        CheckForUpdatesJob updateCheckJob = (CheckForUpdatesJob) updateJob;
+
+        //Signal that the job is finished
+        updateJob = null;
+
+        Revision latest = updateCheckJob.getLatest();
         if (latest == null) {
-          model.setErrorMessage(((CheckForUpdatesJob) updateJob).getErrorMessage());
+          model.setErrorMessage(updateCheckJob.getErrorMessage());
           model.enterState(State.FAILED);
         } else {
 
@@ -192,15 +212,13 @@ public class DownloadManager {
           model.enterState(State.CHECKED);
 
           Revision staged = getLatestStaged();
-          if (latest.isMoreCurrentThan(UpdateCore.getCurrentRevision())) {
-            model.enterState(State.AVAILABLE);
-          }
           if (latest.isEqualTo(staged)) {
             model.enterState(State.DOWNLOADED);
+          } else if (latest.isMoreCurrentThan(UpdateCore.getCurrentRevision())) {
+            model.enterState(State.AVAILABLE);
           }
-        }
 
-        updateJob = null;
+        }
 
       }
 

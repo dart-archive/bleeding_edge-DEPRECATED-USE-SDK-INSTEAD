@@ -149,6 +149,7 @@ public class UpdateStatusControl extends UpdateAdapter implements DisposeListene
     asyncExec(new Runnable() {
       @Override
       public void run() {
+        // Default status to be overwritten by future state changes
         setStatus("Dart Editor is up to date.", regularFont);
         setActionDisabled(checkFordUpdatesAction);
       }
@@ -191,9 +192,13 @@ public class UpdateStatusControl extends UpdateAdapter implements DisposeListene
 
   @Override
   public void downloadComplete() {
+    UpdateCore.logInfo("UpdateStatusControl.downloadComplete()");
     asyncExec(new Runnable() {
       @Override
       public void run() {
+        if (latestAvailableRevision == null) {
+          latestAvailableRevision = UpdateManager.getInstance().getLatestStagedUpdate();
+        }
         if (latestAvailableRevision != null) {
           setStatus(bindRevision(NEW_VERSION_AVAILABLE_MSG, latestAvailableRevision), regularFont);
           setActionEnabled(applyUpdateAction);
@@ -204,6 +209,7 @@ public class UpdateStatusControl extends UpdateAdapter implements DisposeListene
 
   @Override
   public void downloadStarted() {
+    UpdateCore.logInfo("UpdateStatusControl.downloadStarted()");
     asyncExec(new Runnable() {
       @Override
       public void run() {
