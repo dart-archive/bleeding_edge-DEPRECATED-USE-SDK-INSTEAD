@@ -34,7 +34,8 @@ public class PubspecModelTest extends TestCase {
 
   private static final String YAML_NO_ERRORS = "name: tss \nauthor: GS <s@gmail.com>\n"
       + "description: A sample web application \ndependencies: \n  browser: any"
-      + "  webui: \n    git: git://github.com/webui";
+      + "  webui: \n    git: git://github.com/webui\n"
+      + "transformers:\n- polymer:\n    entry_points: web/index.html";
 
   private static final String YAML_NO_ERRORS2 = "name: Yes\n"
       + "description: A sample command-line application\n#dependencies: \n#  browser: any";
@@ -108,6 +109,7 @@ public class PubspecModelTest extends TestCase {
     List<Object> list2 = Arrays.asList(pubspecModel2.getDependecies());
     assertEquals(list1.size(), list2.size());
     assertTrue(list1.containsAll(list2));
+    assertEquals(pubspecModel1.getContents(), pubspecModel2.getContents());
   }
 
   // Assert model can be initialized from pubspec yaml string

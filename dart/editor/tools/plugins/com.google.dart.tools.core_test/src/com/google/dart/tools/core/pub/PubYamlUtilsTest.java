@@ -34,7 +34,8 @@ public class PubYamlUtilsTest extends AbstractDartCoreTest {
       + "    git: https://github.com/johnmccutchan/markerprof.git\n" + "  vector_math:\n"
       + "    git: https://github.com/johnmccutchan/DartVectorMath.git\n" + "  unittest:\n"
       + "     path:../../unittest-0.1.1/lib\n" + "documentation: http://www.dartlang.org\n"
-      + "homepage: http://pub.dartlang.org\n" + "dev_dependencies:\n  browser: any";
+      + "homepage: http://pub.dartlang.org\n" + "dev_dependencies:\n  browser: any\n"
+      + "transformers:\n- polymer:\n    entry_points: web/index.html";
 
   public static String pubspecYamlString2 = "name: web_components\n"
       + "description: an easy way to build web apps in Dart\n" + "authors: \n"

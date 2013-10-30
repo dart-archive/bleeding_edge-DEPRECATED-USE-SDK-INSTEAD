@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.core.utilities.yaml;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -33,6 +34,7 @@ public class PubYamlObject {
   public Map<String, Object> environment;
   public Map<String, Object> dependencies;
   public Map<String, Object> dev_dependencies;
+  public ArrayList<Object> transformers;
 
   public PubYamlObject() {
   }

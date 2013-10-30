@@ -60,6 +60,8 @@ public class PubspecModel {
 
   private ArrayList<DependencyObject> dependencies;
 
+  private ArrayList<Object> transformers;
+
   private String comments;
 
   private boolean isDirty = false;
@@ -309,6 +311,7 @@ public class PubspecModel {
 
     pubYamlObject.dependencies = new TreeMap<String, Object>(dependenciesMap);
     pubYamlObject.dev_dependencies = new TreeMap<String, Object>(devDependenciesMap);
+    pubYamlObject.transformers = new ArrayList<Object>(transformers);
     return pubYamlObject;
   }
 
@@ -428,6 +431,8 @@ public class PubspecModel {
           ? pubspecMap.get(PubspecConstants.HOMEPAGE) : EMPTY_STRING);
       documentation = (String) ((pubspecMap.get(PubspecConstants.DOCUMENTATION) != null)
           ? pubspecMap.get(PubspecConstants.DOCUMENTATION) : EMPTY_STRING);
+      transformers = (ArrayList<Object>) ((pubspecMap.get(PubspecConstants.TRANSFORMERS) != null)
+          ? pubspecMap.get(PubspecConstants.TRANSFORMERS) : new ArrayList<Object>());
       add(
           processDependencies(
               (Map<String, Object>) pubspecMap.get(PubspecConstants.DEPENDENCIES),
