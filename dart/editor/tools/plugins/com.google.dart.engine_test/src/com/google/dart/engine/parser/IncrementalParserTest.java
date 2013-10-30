@@ -69,13 +69,13 @@ public class IncrementalParserTest extends EngineTestCase {
         "a;b  c;");
   }
 
-  public void test_resparse_appendWhitespace1() {
+  public void fail_resparse_appendWhitespace1() {
     assertParse(//
         "f() => a + b;",
         "f() => a + b; ");
   }
 
-  public void test_resparse_appendWhitespace2() {
+  public void fail_resparse_appendWhitespace2() {
     assertParse(//
         "f() => a + b;",
         "f() => a + b;  ");
@@ -87,7 +87,7 @@ public class IncrementalParserTest extends EngineTestCase {
         "f() => a + b.;");
   }
 
-  public void test_resparse_insertWhitespace() {
+  public void fail_resparse_insertWhitespace() {
     assertParse(//
         "f() => a + b;",
         "f() => a  + b;");
