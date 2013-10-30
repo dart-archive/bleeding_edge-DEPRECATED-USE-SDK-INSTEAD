@@ -7,11 +7,20 @@
  *******************************************************************************/
 package org.eclipse.wst.html.ui.internal;
 
+import com.google.dart.tools.ui.PreferenceConstants;
+
+import org.eclipse.core.runtime.Preferences;
+import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.text.templates.ContextTypeRegistry;
 import org.eclipse.jface.text.templates.persistence.TemplateStore;
+import org.eclipse.jface.util.IPropertyChangeListener;
+import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.ui.editors.text.templates.ContributionContextTypeRegistry;
 import org.eclipse.ui.editors.text.templates.ContributionTemplateStore;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
+import org.eclipse.ui.texteditor.AbstractDecoratedTextEditorPreferenceConstants;
+import org.eclipse.wst.html.core.internal.HTMLCorePlugin;
+import org.eclipse.wst.html.core.internal.preferences.HTMLCorePreferenceNames;
 import org.eclipse.wst.html.ui.internal.preferences.HTMLUIPreferenceNames;
 import org.eclipse.wst.html.ui.internal.templates.TemplateContextTypeIdsHTML;
 import org.eclipse.wst.sse.ui.internal.provisional.registry.AdapterFactoryRegistry;
@@ -27,6 +36,14 @@ public class HTMLUIPlugin extends AbstractUIPlugin {
 
   protected static HTMLUIPlugin instance = null;
 
+  public static HTMLUIPlugin getDefault() {
+    return instance;
+  }
+
+  public synchronized static HTMLUIPlugin getInstance() {
+    return instance;
+  }
+
   /**
    * The template store for the html editor.
    */
@@ -37,22 +54,42 @@ public class HTMLUIPlugin extends AbstractUIPlugin {
    */
   private ContextTypeRegistry fContextTypeRegistry;
 
+  private IPropertyChangeListener propertyChangeListener = new IPropertyChangeListener() {
+    @Override
+    public void propertyChange(PropertyChangeEvent event) {
+      updatePreferences();
+    }
+  };
+
   public HTMLUIPlugin() {
     super();
     instance = this;
-  }
-
-  public static HTMLUIPlugin getDefault() {
-    return instance;
-  }
-
-  public synchronized static HTMLUIPlugin getInstance() {
-    return instance;
+    initializePreferenceUpdater();
   }
 
   public AdapterFactoryRegistry getAdapterFactoryRegistry() {
     return AdapterFactoryRegistryImpl.getInstance();
 
+  }
+
+  /**
+   * Returns the template context type registry for the html plugin.
+   * 
+   * @return the template context type registry for the html plugin
+   */
+  public ContextTypeRegistry getTemplateContextRegistry() {
+    if (fContextTypeRegistry == null) {
+      ContributionContextTypeRegistry registry = new ContributionContextTypeRegistry();
+      registry.addContextType(TemplateContextTypeIdsHTML.ALL);
+      registry.addContextType(TemplateContextTypeIdsHTML.NEW);
+      registry.addContextType(TemplateContextTypeIdsHTML.TAG);
+      registry.addContextType(TemplateContextTypeIdsHTML.ATTRIBUTE);
+      registry.addContextType(TemplateContextTypeIdsHTML.ATTRIBUTE_VALUE);
+
+      fContextTypeRegistry = registry;
+    }
+
+    return fContextTypeRegistry;
   }
 
   /**
@@ -74,23 +111,19 @@ public class HTMLUIPlugin extends AbstractUIPlugin {
     return fTemplateStore;
   }
 
-  /**
-   * Returns the template context type registry for the html plugin.
-   * 
-   * @return the template context type registry for the html plugin
-   */
-  public ContextTypeRegistry getTemplateContextRegistry() {
-    if (fContextTypeRegistry == null) {
-      ContributionContextTypeRegistry registry = new ContributionContextTypeRegistry();
-      registry.addContextType(TemplateContextTypeIdsHTML.ALL);
-      registry.addContextType(TemplateContextTypeIdsHTML.NEW);
-      registry.addContextType(TemplateContextTypeIdsHTML.TAG);
-      registry.addContextType(TemplateContextTypeIdsHTML.ATTRIBUTE);
-      registry.addContextType(TemplateContextTypeIdsHTML.ATTRIBUTE_VALUE);
+  private void initializePreferenceUpdater() {
+    updatePreferences();
+    IPreferenceStore toolsPreferences = PreferenceConstants.getPreferenceStore();
+    toolsPreferences.addPropertyChangeListener(propertyChangeListener);
+  }
 
-      fContextTypeRegistry = registry;
-    }
-
-    return fContextTypeRegistry;
+  private void updatePreferences() {
+    IPreferenceStore toolsPreferences = PreferenceConstants.getPreferenceStore();
+    boolean useSpaces = toolsPreferences.getBoolean(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SPACES_FOR_TABS);
+    int size = toolsPreferences.getInt(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_TAB_WIDTH);
+    String ch = useSpaces ? HTMLCorePreferenceNames.SPACE : HTMLCorePreferenceNames.TAB;
+    Preferences preferences = HTMLCorePlugin.getDefault().getPluginPreferences();
+    preferences.setValue(HTMLCorePreferenceNames.INDENTATION_SIZE, size);
+    preferences.setValue(HTMLCorePreferenceNames.INDENTATION_CHAR, ch);
   }
 }

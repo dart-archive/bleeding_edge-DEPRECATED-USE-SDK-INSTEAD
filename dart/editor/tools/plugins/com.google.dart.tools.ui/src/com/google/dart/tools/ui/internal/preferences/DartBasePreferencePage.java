@@ -93,8 +93,6 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
           printMarginText.getText());
     }
 
-    handleSave(editorPreferences);
-
     IPreferenceStore toolsPreferenceStore = PreferenceConstants.getPreferenceStore();
 
     toolsPreferenceStore.setValue(
@@ -118,6 +116,14 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
         AbstractDecoratedTextEditorPreferenceConstants.EDITOR_TAB_WIDTH,
         tabWidth);
 
+    editorPreferences.setValue(
+        AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SPACES_FOR_TABS,
+        insertSpacesForTabs.getSelection());
+    editorPreferences.setValue(
+        AbstractDecoratedTextEditorPreferenceConstants.EDITOR_TAB_WIDTH,
+        tabWidth);
+
+    handleSave(editorPreferences);
     handleSave(toolsPreferenceStore);
 
     IEclipsePreferences prefs = DartCore.getPlugin().getPrefs();

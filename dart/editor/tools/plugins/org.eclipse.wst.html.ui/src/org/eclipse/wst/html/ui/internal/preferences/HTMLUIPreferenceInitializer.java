@@ -144,9 +144,6 @@ public class HTMLUIPreferenceInitializer extends AbstractPreferenceInitializer {
             + "org.eclipse.wst.css.ui.proposalCategory.cssTemplates\0"
             + "org.eclipse.wst.html.ui.proposalCategory.htmlTags\0"
             + "org.eclipse.wst.css.ui.proposalCategory.css");
-    getModelPreferences().setValue(HTMLCorePreferenceNames.INDENTATION_CHAR,
-        HTMLCorePreferenceNames.SPACE);
-    getModelPreferences().setValue(HTMLCorePreferenceNames.INDENTATION_SIZE, 2);
     getModelPreferences().setValue(HTMLCorePreferenceNames.ELEM_UNKNOWN_NAME, -1);
     getModelPreferences().setValue(HTMLCorePreferenceNames.ATTRIBUTE_UNDEFINED_NAME, -1);
   }
