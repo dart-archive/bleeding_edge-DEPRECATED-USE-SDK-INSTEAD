@@ -62,18 +62,16 @@ class Solar3DApplication {
     skyBox = new Skybox(glContext);
     orbitPath = new OrbitPath(glContext);
     // Measure the canvas element.
-    window.setImmediate(() {
-      canvas.width = (canvas.parent as Element).client.width;
-      canvas.height = 400;
+    canvas.width = (canvas.parent as Element).client.width;
+    canvas.height = 400;
 
-      Future f = setupAssets();
-      f.then((_) {
-        bind();
-        camera.aspectRatio = canvas.width / canvas.height;
-        // Initialize the planets and start the simulation.
-        solarSystem.start();
-        requestRedraw();
-      });
+    Future f = setupAssets();
+    f.then((_) {
+      bind();
+      camera.aspectRatio = canvas.width / canvas.height;
+      // Initialize the planets and start the simulation.
+      solarSystem.start();
+      requestRedraw();
     });
   }
 
