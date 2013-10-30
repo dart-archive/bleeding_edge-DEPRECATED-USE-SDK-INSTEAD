@@ -4,7 +4,6 @@
 
 [ $browser ]
 # Skip tests that uses dart:io
-chat/test/chat_server_test: Skip
 build_dart: Skip
 build_dart_simple: Skip
 sample_extension: Skip
