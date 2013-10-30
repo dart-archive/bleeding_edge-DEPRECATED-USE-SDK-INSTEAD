@@ -2882,6 +2882,19 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_reversedTypeArguments() throws Exception {
+    Source source = addSource(createSource(//
+        "class Codec<S1, T1> {",
+        "  Codec<T1, S1> get inverted => new _InvertedCodec<T1, S1>(this);",
+        "}",
+        "class _InvertedCodec<T2, S2> extends Codec<T2, S2> {",
+        "  _InvertedCodec(Codec<S2, T2> codec);",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
   public void test_staticAccessToInstanceMember_annotation() throws Exception {
     Source source = addSource(createSource(//
         "class A {",

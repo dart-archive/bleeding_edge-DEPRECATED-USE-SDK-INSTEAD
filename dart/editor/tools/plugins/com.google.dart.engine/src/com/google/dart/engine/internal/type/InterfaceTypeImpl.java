@@ -809,7 +809,6 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }
     visitedClasses.add(elementT);
 
-    typeT = substitute(typeArguments, elementT.getType().getTypeArguments());
     if (typeT.equals(typeS)) {
       return true;
     } else if (ObjectUtilities.equals(elementT, typeS.getElement())) {
