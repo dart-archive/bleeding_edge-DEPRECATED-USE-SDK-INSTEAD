@@ -23,6 +23,7 @@ import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
+import com.google.dart.engine.element.FieldFormalParameterElement;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
@@ -110,6 +111,9 @@ public class RefactoringFactory {
     Preconditions.checkNotNull(element);
     if (element instanceof PropertyAccessorElement) {
       element = ((PropertyAccessorElement) element).getVariable();
+    }
+    if (element instanceof FieldFormalParameterElement) {
+      element = ((FieldFormalParameterElement) element).getField();
     }
     if (element instanceof LibraryElement) {
       return new RenameLibraryRefactoringImpl(searchEngine, (LibraryElement) element);

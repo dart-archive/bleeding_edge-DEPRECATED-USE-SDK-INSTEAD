@@ -20,6 +20,7 @@ import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.FieldElement;
+import com.google.dart.engine.element.FieldFormalParameterElement;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.LocalVariableElement;
@@ -106,6 +107,17 @@ public class RefactoringFactoryTest extends AbstractDartTest {
   public void test_createRenameRefactoring_classMember_FieldElement() throws Exception {
     FieldElement element = mock(FieldElement.class);
     when(element.getEnclosingElement()).thenReturn(enclosingClass);
+    // create refactoring
+    Refactoring refactoring = createRenameRefactoring(searchEngine, element);
+    assertThat(refactoring).isInstanceOf(RenameClassMemberRefactoringImpl.class);
+  }
+
+  public void test_createRenameRefactoring_classMember_FieldFormalParameterElement()
+      throws Exception {
+    FieldElement fieldElement = mock(FieldElement.class);
+    FieldFormalParameterElement element = mock(FieldFormalParameterElement.class);
+    when(fieldElement.getEnclosingElement()).thenReturn(enclosingClass);
+    when(element.getField()).thenReturn(fieldElement);
     // create refactoring
     Refactoring refactoring = createRenameRefactoring(searchEngine, element);
     assertThat(refactoring).isInstanceOf(RenameClassMemberRefactoringImpl.class);
