@@ -629,6 +629,15 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(section.getArgumentList());
   }
 
+  public void test_parseCascadeSection_ii() throws Exception {
+    MethodInvocation section = parse("parseCascadeSection", "..a(b).c(d)");
+    assertInstanceOf(MethodInvocation.class, section.getTarget());
+    assertNotNull(section.getPeriod());
+    assertNotNull(section.getMethodName());
+    assertNotNull(section.getArgumentList());
+    assertSize(1, section.getArgumentList().getArguments());
+  }
+
   public void test_parseCascadeSection_p() throws Exception {
     PropertyAccess section = parse("parseCascadeSection", "..a");
     assertNull(section.getTarget());
@@ -677,7 +686,7 @@ public class SimpleParserTest extends ParserTestCase {
 
   public void test_parseCascadeSection_paapaa() throws Exception {
     FunctionExpressionInvocation section = parse("parseCascadeSection", "..a(b)(c).d(e)(f)");
-    assertInstanceOf(FunctionExpressionInvocation.class, section.getFunction());
+    assertInstanceOf(MethodInvocation.class, section.getFunction());
     assertNotNull(section.getArgumentList());
     assertSize(1, section.getArgumentList().getArguments());
   }

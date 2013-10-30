@@ -617,6 +617,41 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
     assertNoFix(CorrectionKind.QF_CREATE_PART);
   }
 
+  public void test_creationFunction_forFunctionType_cascadeSecond() throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  B ma() {}",
+        "}",
+        "class B {",
+        "  useFunction(int g(double a, String b)) {}",
+        "}",
+        "",
+        "main() {",
+        "  A a = new A();",
+        "  a..ma().useFunction(test);",
+        "}");
+    assert_runProcessor(
+        CorrectionKind.QF_CREATE_FUNCTION,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  B ma() {}",
+            "}",
+            "class B {",
+            "  useFunction(int g(double a, String b)) {}",
+            "}",
+            "",
+            "main() {",
+            "  A a = new A();",
+            "  a..ma().useFunction(test);",
+            "}",
+            "",
+            "int test(double a, String b) {",
+            "}",
+            ""));
+  }
+
   public void test_creationFunction_forFunctionType_function() throws Exception {
     prepareProblemWithFix(
         "// filler filler filler filler filler filler filler filler filler filler",

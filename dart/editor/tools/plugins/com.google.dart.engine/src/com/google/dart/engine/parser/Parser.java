@@ -2454,7 +2454,16 @@ public class Parser {
         expression = selector;
         progress = true;
         while (currentToken.getType() == TokenType.OPEN_PAREN) {
-          expression = new FunctionExpressionInvocation(expression, parseArgumentList());
+          if (expression instanceof PropertyAccess) {
+            PropertyAccess propertyAccess = (PropertyAccess) expression;
+            expression = new MethodInvocation(
+                propertyAccess.getTarget(),
+                propertyAccess.getOperator(),
+                propertyAccess.getPropertyName(),
+                parseArgumentList());
+          } else {
+            expression = new FunctionExpressionInvocation(expression, parseArgumentList());
+          }
         }
       }
     }

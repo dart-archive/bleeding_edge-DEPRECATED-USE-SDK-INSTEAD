@@ -321,6 +321,25 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_argumentTypeNotAssignable_cascadeSEcond() throws Exception {
+    Source source = addSource(createSource(//
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  B ma() {}",
+        "}",
+        "class B {",
+        "  mb(String p) {}",
+        "}",
+        "",
+        "main() {",
+        "  A a = new A();",
+        "  a..  ma().mb(0);",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
+    verify(source);
+  }
+
   public void test_argumentTypeNotAssignable_const() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
