@@ -3281,6 +3281,60 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_typeType_class() throws Exception {
+    Source source = addSource(createSource(//
+        "class C {}",
+        "f(Type t) {}",
+        "main() {",
+        "  f(C);",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_typeType_class_prefixed() throws Exception {
+    addSource("/lib.dart", createSource(//
+        "library lib;",
+        "class C {}"));
+    Source source = addSource(createSource(//
+        "import 'lib.dart' as p;",
+        "f(Type t) {}",
+        "main() {",
+        "  f(p.C);",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_typeType_functionTypeAlias() throws Exception {
+    Source source = addSource(createSource(//
+        "typedef F();",
+        "f(Type t) {}",
+        "main() {",
+        "  f(F);",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_typeType_functionTypeAlias_prefixed() throws Exception {
+    addSource("/lib.dart", createSource(//
+        "library lib;",
+        "typedef F();"));
+    Source source = addSource(createSource(//
+        "import 'lib.dart' as p;",
+        "f(Type t) {}",
+        "main() {",
+        "  f(p.F);",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
   public void test_undefinedConstructorInInitializer_explicit_named() throws Exception {
     Source source = addSource(createSource(//
         "class A {",

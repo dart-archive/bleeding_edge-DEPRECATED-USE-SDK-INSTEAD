@@ -1054,7 +1054,11 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
         staticType = typeProvider.getTypeType();
       }
     } else if (staticElement instanceof FunctionTypeAliasElement) {
-      staticType = ((FunctionTypeAliasElement) staticElement).getType();
+      if (isNotTypeLiteral(node)) {
+        staticType = ((FunctionTypeAliasElement) staticElement).getType();
+      } else {
+        staticType = typeProvider.getTypeType();
+      }
     } else if (staticElement instanceof MethodElement) {
       staticType = ((MethodElement) staticElement).getType();
     } else if (staticElement instanceof PropertyAccessorElement) {
@@ -1269,7 +1273,11 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
         staticType = typeProvider.getTypeType();
       }
     } else if (element instanceof FunctionTypeAliasElement) {
-      staticType = ((FunctionTypeAliasElement) element).getType();
+      if (isNotTypeLiteral(node)) {
+        staticType = ((FunctionTypeAliasElement) element).getType();
+      } else {
+        staticType = typeProvider.getTypeType();
+      }
     } else if (element instanceof MethodElement) {
       staticType = ((MethodElement) element).getType();
     } else if (element instanceof PropertyAccessorElement) {
