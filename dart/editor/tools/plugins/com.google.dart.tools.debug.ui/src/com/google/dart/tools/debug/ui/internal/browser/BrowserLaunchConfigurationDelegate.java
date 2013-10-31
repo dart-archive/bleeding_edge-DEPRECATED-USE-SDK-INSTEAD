@@ -217,13 +217,6 @@ public class BrowserLaunchConfigurationDelegate extends DartLaunchConfigurationD
         throw new CoreException(new Status(IStatus.ERROR, DartDebugUIPlugin.PLUGIN_ID, errMsg));
       }
 
-    } else {
-      String errMsg = NLS.bind(
-          "Failure to launch - Could not find dart file to generate JavaScript for ",
-          resource.getName());
-      DartDebugCorePlugin.log(errMsg);
-
-      throw new CoreException(new Status(IStatus.ERROR, DartDebugUIPlugin.PLUGIN_ID, errMsg));
     }
 
   }
