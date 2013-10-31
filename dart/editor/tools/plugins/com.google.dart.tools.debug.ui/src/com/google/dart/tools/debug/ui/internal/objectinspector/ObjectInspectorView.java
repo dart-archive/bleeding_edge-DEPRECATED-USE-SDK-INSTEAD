@@ -109,14 +109,7 @@ import org.eclipse.ui.texteditor.IUpdate;
 
 import java.util.HashMap;
 import java.util.Map;
-
-// TODO: add the ability to navigate to the source code definition
-
-// TODO: refresh the view after an assignment (or any evaluation)
-
-// TODO: make the context menus on the objects consistent (add the ‘Watch’ menu to the variables view)
-
-// TODO: open multiple inspectors
+import java.util.Random;
 
 // TODO: navigate to the code for an object
 
@@ -164,8 +157,7 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
       String selection = getTextToEval();
 
       final UIInstrumentationBuilder instrumentation = UIInstrumentation.builder(getClass());
-      Document document = new Document(selection);
-      instrumentation.record(new TextSelection(document, 0, document.getLength()));
+      instrumentation.record(new TextSelection(new Document(selection), 0, selection.length()));
 
       Job job = new ExpressionEvaluateJob(getValue(), selection, new ExpressionListener() {
         @Override
@@ -207,8 +199,7 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
       String selection = getTextToEval();
 
       final UIInstrumentationBuilder instrumentation = UIInstrumentation.builder(getClass());
-      Document document = new Document(selection);
-      instrumentation.record(new TextSelection(document, 0, document.getLength()));
+      instrumentation.record(new TextSelection(new Document(selection), 0, selection.length()));
 
       Job job = new ExpressionEvaluateJob(getValue(), selection, new ExpressionListener() {
         @Override
@@ -218,6 +209,7 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
               displayError(result);
             } else {
               displayResult(stringValue);
+              resetCurrentValue();
               instrumentation.data(
                   "EvaluateResult",
                   Base64.encodeBytes(String.valueOf(result.getValue()).getBytes()));
@@ -242,10 +234,28 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
   private static DartDebugModelPresentation presentation = new DartDebugModelPresentation();
 
   public static void inspect(IValue value) {
-    IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+    inspect(value, false);
+  }
 
+  public static void inspect(IValue value, boolean newInspector) {
     try {
-      ObjectInspectorView view = (ObjectInspectorView) page.showView(DartUI.ID_INSPECTOR_VIEW);
+      IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+
+      ObjectInspectorView view;
+
+      if (newInspector) {
+        view = (ObjectInspectorView) page.showView(
+            DartUI.ID_INSPECTOR_VIEW,
+            Integer.toString(new Random().nextInt()),
+            IWorkbenchPage.VIEW_ACTIVATE);
+      } else {
+        // find the best match to the current inspector
+        if (page.getActivePart() instanceof ObjectInspectorView) {
+          view = (ObjectInspectorView) page.getActivePart();
+        } else {
+          view = (ObjectInspectorView) page.showView(DartUI.ID_INSPECTOR_VIEW);
+        }
+      }
 
       view.inspectValue(value);
     } catch (PartInitException e) {
@@ -257,10 +267,12 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
     Display.getDefault().asyncExec(new Runnable() {
       @Override
       public void run() {
-        inspect(value);
+        inspect(value, false);
       }
     });
   }
+
+  private SashForm sashForm;
 
   private TreeViewer treeViewer;
 
@@ -277,9 +289,15 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
   private PrintItAction printItAction;
   private InspectItAction inspectItAction;
 
+  private IMemento memento;
+
   private HistoryList<ObjectInspectorHistoryItem> historyList = new HistoryList<ObjectInspectorHistoryItem>();
 
   static Object EXPRESSION_EVAL_JOB_FAMILY = new Object();
+
+  private static final String SASH_WEIGHTS = "sashWeights";
+
+  private static final String COLUMN_WIDTHS = "columnWidths";
 
   public ObjectInspectorView() {
 
@@ -290,9 +308,10 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
     DebugPlugin.getDefault().addDebugEventListener(this);
     getDebugContextService().addDebugContextListener(this);
 
-    final SashForm sash = new SashForm(parent, SWT.VERTICAL);
+    sashForm = new SashForm(parent, SWT.VERTICAL);
 
-    treeViewer = new TreeViewer(sash, SWT.SINGLE | SWT.V_SCROLL | SWT.FULL_SELECTION | SWT.BORDER);
+    treeViewer = new TreeViewer(sashForm, SWT.SINGLE | SWT.V_SCROLL | SWT.FULL_SELECTION
+        | SWT.BORDER);
     treeViewer.setAutoExpandLevel(2);
     treeViewer.setLabelProvider(new NameLabelProvider());
     treeViewer.setContentProvider(new ObjectInspectorContentProvider());
@@ -342,7 +361,7 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
     valueColumn.getColumn().setWidth(140);
     valueColumn.getColumn().setResizable(true);
 
-    Composite sourceContainer = new Composite(sash, SWT.NONE);
+    Composite sourceContainer = new Composite(sashForm, SWT.NONE);
     GridLayoutFactory.fillDefaults().applyTo(sourceContainer);
     Label label = new Label(sourceContainer, SWT.NONE);
     label.setText("Enter expression to evaluate:");
@@ -399,15 +418,17 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
 
     configureToolBar(getViewSite().getActionBars().getToolBarManager());
 
-    sash.setWeights(new int[] {60, 40});
-    sash.addControlListener(new ControlAdapter() {
+    sashForm.setWeights(new int[] {60, 40});
+    sashForm.addControlListener(new ControlAdapter() {
       @Override
       public void controlResized(ControlEvent e) {
-        updateSashOrientation(sash);
+        updateSashOrientation(sashForm);
       }
     });
 
-    updateSashOrientation(sash);
+    restoreState(memento);
+
+    updateSashOrientation(sashForm);
 
     historyList.addListener(new HistoryListListener<ObjectInspectorHistoryItem>() {
       @Override
@@ -464,12 +485,61 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
   public void init(IViewSite site, IMemento memento) throws PartInitException {
     super.init(site, memento);
 
+    this.memento = memento;
+
     IWorkbenchSiteProgressService progressService = (IWorkbenchSiteProgressService) getViewSite().getAdapter(
         IWorkbenchSiteProgressService.class);
 
     if (progressService != null) {
       initProgressService(progressService);
     }
+  }
+
+  public void restoreState(IMemento memento) {
+    if (memento != null) {
+      if (memento.getString(SASH_WEIGHTS) != null) {
+        String[] strs = memento.getString(SASH_WEIGHTS).split(",");
+
+        if (strs.length == 2) {
+          try {
+            sashForm.setWeights(new int[] {Integer.parseInt(strs[0]), Integer.parseInt(strs[1])});
+          } catch (NumberFormatException ex) {
+
+          }
+        }
+      }
+
+      if (memento.getString(COLUMN_WIDTHS) != null) {
+        String[] strs = memento.getString(COLUMN_WIDTHS).split(",");
+
+        for (int i = 0; i < strs.length; i++) {
+          try {
+            treeViewer.getTree().getColumn(i).setWidth(Integer.parseInt(strs[i]));
+          } catch (NumberFormatException ex) {
+
+          }
+        }
+      }
+    }
+  }
+
+  @Override
+  public void saveState(IMemento memento) {
+    super.saveState(memento);
+
+    // Save the sash weights.
+    int[] weights = sashForm.getWeights();
+    memento.putString(SASH_WEIGHTS, weights[0] + "," + weights[1]);
+
+    // Save the table columns.
+    StringBuilder builder = new StringBuilder();
+    for (int i = 0; i < treeViewer.getTree().getColumnCount(); i++) {
+      if (i > 0) {
+        builder.append(',');
+      }
+      builder.append(treeViewer.getTree().getColumn(i).getWidth());
+    }
+    memento.putString(COLUMN_WIDTHS, builder.toString());
   }
 
   @Override
@@ -531,6 +601,7 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
           displayError(result);
         } else {
           displayResult(stringValue);
+          resetCurrentValue();
         }
       }
     });
@@ -779,8 +850,11 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
   private void hookContextMenu() {
     // treeViewer context menu
     MenuManager treeMenuManager = new MenuManager("#PopupMenu");
+    treeMenuManager.add(new Separator("additions1"));
+    treeMenuManager.add(new Separator("additions2"));
+    treeMenuManager.add(new Separator("additions3"));
 
-    treeMenuManager.setRemoveAllWhenShown(true);
+    //treeMenuManager.setRemoveAllWhenShown(true);
 
     Menu menu = treeMenuManager.createContextMenu(treeViewer.getControl());
     treeViewer.getControl().setMenu(menu);
@@ -800,6 +874,16 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
     menu = textMenuManager.createContextMenu(sourceViewer.getControl());
     sourceViewer.getControl().setMenu(menu);
     getSite().registerContextMenu(textMenuManager.getId(), textMenuManager, sourceViewer);
+  }
+
+  private void resetCurrentValue() {
+    IDartDebugValue value = getValue();
+
+    if (value != null) {
+      value.reset();
+
+      inspectValueImpl(value);
+    }
   }
 
   private void restoreSourceViewerInfo(ObjectInspectorHistoryItem item) {

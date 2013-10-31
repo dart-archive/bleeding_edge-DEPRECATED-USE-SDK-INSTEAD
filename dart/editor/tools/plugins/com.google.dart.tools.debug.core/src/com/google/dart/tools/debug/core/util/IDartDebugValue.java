@@ -43,4 +43,9 @@ public interface IDartDebugValue extends IValue, IExpressionEvaluator {
    */
   public boolean isPrimitive();
 
+  /**
+   * Clears out any cached information about this value's fields.
+   */
+  public void reset();
+
 }

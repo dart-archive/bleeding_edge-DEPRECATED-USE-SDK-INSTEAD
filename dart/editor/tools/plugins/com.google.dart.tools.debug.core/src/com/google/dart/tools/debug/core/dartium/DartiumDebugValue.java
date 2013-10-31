@@ -25,6 +25,7 @@ import com.google.dart.tools.debug.core.webkit.WebkitResult;
 
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.debug.core.DebugEvent;
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.model.IValue;
 import org.eclipse.debug.core.model.IVariable;
@@ -289,6 +290,13 @@ public class DartiumDebugValue extends DartiumDebugElement implements IValue, ID
   @Override
   public boolean isPrimitive() {
     return value.isPrimitive();
+  }
+
+  @Override
+  public void reset() {
+    variableCollector = null;
+
+    fireEvent(new DebugEvent(this, DebugEvent.CHANGE, DebugEvent.CONTENT));
   }
 
   private void evalOnGlobalContext(final String expression,

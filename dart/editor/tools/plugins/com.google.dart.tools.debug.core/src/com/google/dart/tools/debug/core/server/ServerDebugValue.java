@@ -20,6 +20,7 @@ import com.google.dart.tools.debug.core.expr.WatchExpressionResult;
 import com.google.dart.tools.debug.core.util.DebuggerUtils;
 import com.google.dart.tools.debug.core.util.IDartDebugValue;
 
+import org.eclipse.debug.core.DebugEvent;
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.model.IDebugTarget;
 import org.eclipse.debug.core.model.IValue;
@@ -266,6 +267,13 @@ public class ServerDebugValue extends ServerDebugElement implements IValue, IDar
     } else {
       return value.isPrimitive();
     }
+  }
+
+  @Override
+  public void reset() {
+    fields = null;
+
+    fireEvent(new DebugEvent(this, DebugEvent.CHANGE, DebugEvent.CONTENT));
   }
 
   protected synchronized void fillInFields() {
