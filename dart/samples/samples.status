@@ -72,18 +72,6 @@ build_dart: Skip
 # Skip until we stabilize language tests.
 *: Skip
 
-[ $arch == arm ]
-*: Skip
-
-[ $arch == simarm ]
-*: Skip
-
-[ $arch == mips ]
-*: Skip
-
-[ $arch == simmips ]
-*: Skip
-
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 chat/test/chat_server_test: StaticWarning
 swarm/test/swarm_test: StaticWarning
