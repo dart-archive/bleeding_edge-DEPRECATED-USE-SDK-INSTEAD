@@ -72,6 +72,9 @@ build_dart: Skip
 # Skip until we stabilize language tests.
 *: Skip
 
+[ $arch == arm ]
+sample_extension/test/sample_extension_test: Slow
+
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 chat/test/chat_server_test: StaticWarning
 swarm/test/swarm_test: StaticWarning
