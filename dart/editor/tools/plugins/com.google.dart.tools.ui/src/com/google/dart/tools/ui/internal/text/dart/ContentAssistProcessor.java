@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.ui.internal.text.dart;
 
+import com.google.dart.engine.utilities.instrumentation.Instrumentation;
+import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUIMessages;
@@ -406,27 +408,34 @@ public class ContentAssistProcessor implements IContentAssistProcessor {
   private List collectProposals(ITextViewer viewer, int offset, IProgressMonitor monitor,
       ContentAssistInvocationContext context) {
     List proposals = new ArrayList();
-    // wait for AssistContext
-    if (context instanceof DartContentAssistInvocationContext) {
-      DartContentAssistInvocationContext dartContext = (DartContentAssistInvocationContext) context;
-      if (dartContext.waitAssistContext(500) == null) {
-        DartToolsPlugin.log("Timeout during AssistContext wait.");
-        return Collections.emptyList();
+    InstrumentationBuilder instrumentation = Instrumentation.builder("CollectProposals");
+    try {
+      // wait for AssistContext
+      if (context instanceof DartContentAssistInvocationContext) {
+        DartContentAssistInvocationContext dartContext = (DartContentAssistInvocationContext) context;
+        if (dartContext.waitAssistContext(500) == null) {
+          DartToolsPlugin.log("Timeout during AssistContext wait.");
+          instrumentation.metric("Timeout", true);
+          return Collections.emptyList();
+        }
       }
-    }
-    //
-    List providers = getCategories();
-    for (Iterator it = providers.iterator(); it.hasNext();) {
-      CompletionProposalCategory cat = (CompletionProposalCategory) it.next();
-      List computed = cat.computeCompletionProposals(context, fPartition, new SubProgressMonitor(
-          monitor,
-          1));
-      proposals.addAll(computed);
-      if (fErrorMessage == null) {
-        fErrorMessage = cat.getErrorMessage();
+      instrumentation.metric("AnalysisComplete", true);
+      //
+      List providers = getCategories();
+      for (Iterator it = providers.iterator(); it.hasNext();) {
+        CompletionProposalCategory cat = (CompletionProposalCategory) it.next();
+        List computed = cat.computeCompletionProposals(context, fPartition, new SubProgressMonitor(
+            monitor,
+            1));
+        proposals.addAll(computed);
+        if (fErrorMessage == null) {
+          fErrorMessage = cat.getErrorMessage();
+        }
       }
+      instrumentation.metric("ProposalsComplete", true);
+    } finally {
+      instrumentation.log();
     }
-
     return proposals;
   }
 
