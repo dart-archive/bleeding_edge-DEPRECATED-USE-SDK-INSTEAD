@@ -1141,6 +1141,10 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
               identifier,
               identifier.getName(),
               prefixElement.getName());
+        } else if (node.getParent() instanceof Annotation) {
+          Annotation annotation = (Annotation) node.getParent();
+          resolver.reportError(CompileTimeErrorCode.INVALID_ANNOTATION, annotation);
+          return null;
         } else {
           resolver.reportError(
               StaticWarningCode.UNDEFINED_GETTER,
@@ -1307,6 +1311,9 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       // TODO(brianwilkerson) Recover from this error.
       if (isConstructorReturnType(node)) {
         resolver.reportError(CompileTimeErrorCode.INVALID_CONSTRUCTOR_NAME, node);
+      } else if (node.getParent() instanceof Annotation) {
+        Annotation annotation = (Annotation) node.getParent();
+        resolver.reportError(CompileTimeErrorCode.INVALID_ANNOTATION, annotation);
       } else {
         resolver.reportErrorProxyConditionalAnalysisError(
             resolver.getEnclosingClass(),

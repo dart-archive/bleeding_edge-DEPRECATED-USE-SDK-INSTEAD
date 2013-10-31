@@ -2320,13 +2320,6 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     assertErrors(source, StaticWarningCode.UNDEFINED_IDENTIFIER);
   }
 
-  public void test_undefinedIdentifier_metadata() throws Exception {
-    Source source = addSource(createSource(//
-    "@undefined class A {}"));
-    resolve(source);
-    assertErrors(source, StaticWarningCode.UNDEFINED_IDENTIFIER);
-  }
-
   public void test_undefinedIdentifier_methodInvocation() throws Exception {
     Source source = addSource(createSource(//
     "f() { C.m(); }"));

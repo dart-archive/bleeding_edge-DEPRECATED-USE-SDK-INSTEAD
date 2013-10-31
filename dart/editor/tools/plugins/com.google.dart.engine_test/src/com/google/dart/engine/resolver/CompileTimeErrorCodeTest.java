@@ -1858,6 +1858,34 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_invalidAnnotation_unresolved_identifier() throws Exception {
+    Source source = addSource(createSource(//
+        "@unresolved",
+        "main() {",
+        "}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.INVALID_ANNOTATION);
+  }
+
+  public void test_invalidAnnotation_unresolved_invocation() throws Exception {
+    Source source = addSource(createSource(//
+        "@Unresolved()",
+        "main() {",
+        "}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.INVALID_ANNOTATION);
+  }
+
+  public void test_invalidAnnotation_unresolved_prefixedIdentifier() throws Exception {
+    Source source = addSource(createSource(//
+        "import 'dart:math' as p;",
+        "@p.unresolved",
+        "main() {",
+        "}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.INVALID_ANNOTATION);
+  }
+
   public void test_invalidConstructorName_notEnclosingClassName_defined() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
