@@ -39,11 +39,12 @@ String getNativeLibraryPath(String buildDirectory) {
 }
 
 void main() {
+  String scriptDirectory = dirname(Platform.script);
   String buildDirectory = dirname(Platform.executable);
   Directory tempDirectory =
       Directory.systemTemp.createTempSync('sample_extension_');
   String testDirectory = tempDirectory.path;
-  String sourceDirectory = Platform.script.resolve('..').toFilePath();
+  String sourceDirectory = join(scriptDirectory, '..');
 
   // Copy sample_extension shared library, sample_extension dart files and
   // sample_extension tests to the temporary test directory.
