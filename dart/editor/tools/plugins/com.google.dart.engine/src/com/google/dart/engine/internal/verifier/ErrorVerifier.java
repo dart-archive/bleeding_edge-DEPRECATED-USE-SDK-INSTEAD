@@ -5315,6 +5315,12 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     if (parent instanceof Annotation && ((Annotation) parent).getConstructorName() == node) {
       return true;
     }
+    if (parent instanceof CommentReference) {
+      CommentReference commentReference = (CommentReference) parent;
+      if (commentReference.getNewKeyword() != null) {
+        return true;
+      }
+    }
     return false;
   }
 

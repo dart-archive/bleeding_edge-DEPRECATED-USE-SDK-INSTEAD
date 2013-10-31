@@ -3538,6 +3538,20 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_unqualifiedReferenceToNonLocalStaticMember_fromComment_new() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  A() {}",
+        "  A.named() {}",
+        "}",
+        "/// [new A] or [new A.named]",
+        "main() {",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
   public void test_wrongNumberOfParametersForOperator_index() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
