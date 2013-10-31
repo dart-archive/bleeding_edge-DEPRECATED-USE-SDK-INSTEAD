@@ -10,6 +10,8 @@ package org.eclipse.wst.html.ui.internal;
 import com.google.dart.tools.ui.PreferenceConstants;
 
 import org.eclipse.core.runtime.Preferences;
+import org.eclipse.core.runtime.preferences.IEclipsePreferences;
+import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.text.templates.ContextTypeRegistry;
 import org.eclipse.jface.text.templates.persistence.TemplateStore;
@@ -23,6 +25,7 @@ import org.eclipse.wst.html.core.internal.HTMLCorePlugin;
 import org.eclipse.wst.html.core.internal.preferences.HTMLCorePreferenceNames;
 import org.eclipse.wst.html.ui.internal.preferences.HTMLUIPreferenceNames;
 import org.eclipse.wst.html.ui.internal.templates.TemplateContextTypeIdsHTML;
+import org.eclipse.wst.sse.core.internal.validate.ValidationMessage;
 import org.eclipse.wst.sse.ui.internal.provisional.registry.AdapterFactoryRegistry;
 import org.eclipse.wst.sse.ui.internal.provisional.registry.AdapterFactoryRegistryImpl;
 
@@ -111,8 +114,19 @@ public class HTMLUIPlugin extends AbstractUIPlugin {
     return fTemplateStore;
   }
 
+  private void disableValidationWarnings() {
+    IEclipsePreferences node = new InstanceScope().getNode(HTMLCorePlugin.getDefault().getBundle().getSymbolicName());
+    node.putInt(HTMLCorePreferenceNames.ATTRIBUTE_UNDEFINED_NAME, ValidationMessage.IGNORE);
+    node.putInt(HTMLCorePreferenceNames.ATTRIBUTE_UNDEFINED_VALUE, ValidationMessage.IGNORE);
+    node.putInt(HTMLCorePreferenceNames.ATTRIBUTE_INVALID_NAME, ValidationMessage.IGNORE);
+    node.putInt(HTMLCorePreferenceNames.ATTRIBUTE_NAME_MISMATCH, ValidationMessage.IGNORE);
+    node.putInt(HTMLCorePreferenceNames.ELEM_UNKNOWN_NAME, ValidationMessage.IGNORE);
+    node.putInt(HTMLCorePreferenceNames.ELEM_INVALID_NAME, ValidationMessage.IGNORE);
+  }
+
   private void initializePreferenceUpdater() {
     updatePreferences();
+    disableValidationWarnings();
     IPreferenceStore toolsPreferences = PreferenceConstants.getPreferenceStore();
     toolsPreferences.addPropertyChangeListener(propertyChangeListener);
   }
