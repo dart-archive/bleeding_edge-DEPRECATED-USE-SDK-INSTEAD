@@ -448,6 +448,14 @@ def main():
         return (editor_path, installer_path)
 
       def create_windows_installer(installer_file, input_dir):
+        # We add a README file to the installation.
+        # The editor uses this to determine that we are a windows
+        # installation.
+        readme_file = os.path.join(input_dir, 'README-WIN')
+        with open(readme_file, 'w') as fd:
+          fd.write("This is the installation directory of the "
+               "Dart Editor and the corresponding dart sdk.\n")
+
         msi_builder = os.path.join(DART_PATH, 'tools',
                                    'create_windows_installer.py')
         wix_bin = os.path.join(DART_PATH, 'third_party',
@@ -990,6 +998,13 @@ def PostProcessEditorBuilds(out_dir, buildos):
 
       print('  processing %s' % basename)
 
+      readme_file = join('dart', 'README')
+      if (basename.startswith('darteditor-win32-')):
+        seven_zip = os.path.join(DART_DIR, 'third_party', '7zip', '7za.exe')
+        bot_utils.run([seven_zip, 'd', zipFile, readme_file], env=os.environ)
+      else:
+        bot_utils.run(['zip', '-d', zipFile, readme_file], env=os.environ)
+
       # If we're on -dev/-stable build: add an editor.properties file
       # pointing to the correct update location of the editor for the channel
       # we're building for.
@@ -1021,7 +1036,6 @@ def PostProcessEditorBuilds(out_dir, buildos):
         else:
           bot_utils.run(['zip', '-d', zipFile, inifile], env=os.environ)
           bot_utils.run(['zip', '-q', zipFile, inifile], env=os.environ)
-
         os.remove(inifile)
 
       # post-process the info.plist file
