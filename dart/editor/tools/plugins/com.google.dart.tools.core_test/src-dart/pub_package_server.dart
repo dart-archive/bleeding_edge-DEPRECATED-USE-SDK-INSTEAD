@@ -57,8 +57,8 @@ void requestReceivedHandler(request) {
       response.contentLength = data.length;
       response.add(data);
       response.close();
-    }).catchError((e) {
-      print(getAttachedStackTrace(e));
+    }).catchError((e, trace) {
+      print(trace);
       response.statusCode = 404;
       response.contentLength = 0;
       response.close();
