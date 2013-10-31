@@ -51,6 +51,15 @@ public class IncrementalAnalysisTask extends AnalysisTask {
   }
 
   /**
+   * Return the incremental cache used for analysis
+   * 
+   * @return the cache
+   */
+  public IncrementalAnalysisCache getCache() {
+    return cache;
+  }
+
+  /**
    * Return the compilation unit that was produced by incrementally updating the existing
    * compilation unit, or {@code null} if the task has not yet been performed, could not be
    * performed, or if an exception occurred.

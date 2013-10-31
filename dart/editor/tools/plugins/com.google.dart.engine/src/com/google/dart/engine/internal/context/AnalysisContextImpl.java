@@ -1697,7 +1697,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       //
       // Look for incremental analysis
       //
-      if (incrementalAnalysisCache != null) {
+      if (incrementalAnalysisCache != null && incrementalAnalysisCache.hasWork()) {
         AnalysisTask task = new IncrementalAnalysisTask(this, incrementalAnalysisCache);
         incrementalAnalysisCache = null;
         //TODO (danrubel): implement task and uncomment to return it
@@ -2325,6 +2325,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       if (unit != null) {
         ChangeNoticeImpl notice = getNotice(task.getSource());
         notice.setCompilationUnit(unit);
+        incrementalAnalysisCache = IncrementalAnalysisCache.cacheResult(task.getCache(), unit);
       }
     }
     return null;
@@ -2382,6 +2383,13 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
 
           ChangeNoticeImpl notice = getNotice(source);
           notice.setErrors(dartEntry.getAllErrors(), lineInfo);
+
+          // Verify that the incrementally parsed and resolved unit in the incremental cache
+          // is structurally equivalent to the fully parsed unit
+          incrementalAnalysisCache = IncrementalAnalysisCache.verifyStructure(
+              incrementalAnalysisCache,
+              source,
+              task.getCompilationUnit());
         } else {
           dartCopy.recordParseError();
         }

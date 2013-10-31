@@ -11,12 +11,14 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.engine.ast;
+package com.google.dart.engine.utilities.ast;
 
+import com.google.dart.engine.ast.*;
 import com.google.dart.engine.scanner.Token;
 
 /**
- * Instances of the class {@code ASTComparator} compare two ASTNodes to see whether they are equal.
+ * Instances of the class {@code ASTComparator} compare the structure of two ASTNodes to see whether
+ * they are equal.
  */
 public class ASTComparator implements ASTVisitor<Boolean> {
   /**

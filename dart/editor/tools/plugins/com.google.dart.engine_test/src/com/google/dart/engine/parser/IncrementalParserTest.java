@@ -14,7 +14,6 @@
 package com.google.dart.engine.parser;
 
 import com.google.dart.engine.EngineTestCase;
-import com.google.dart.engine.ast.ASTComparator;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.error.GatheringErrorListener;
 import com.google.dart.engine.scanner.CharSequenceReader;
@@ -23,6 +22,7 @@ import com.google.dart.engine.scanner.Scanner;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.TestSource;
+import com.google.dart.engine.utilities.ast.ASTComparator;
 
 public class IncrementalParserTest extends EngineTestCase {
   public void fail_reparse_oneFunctionToTwo() {

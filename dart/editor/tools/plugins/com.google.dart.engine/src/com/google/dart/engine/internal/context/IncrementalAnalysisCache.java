@@ -18,6 +18,7 @@ import com.google.dart.engine.internal.cache.DartEntry;
 import com.google.dart.engine.internal.cache.DartEntryImpl;
 import com.google.dart.engine.internal.cache.SourceEntry;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.utilities.ast.ASTComparator;
 
 /**
  * Instances of the class {@code IncrementalAnalysisCache} hold information used to perform
@@ -26,6 +27,30 @@ import com.google.dart.engine.source.Source;
  * @see AnalysisContextImpl#setChangedContents(Source, String, int, int, int)
  */
 public class IncrementalAnalysisCache {
+
+  /**
+   * Determine if the incremental analysis result can be cached for the next incremental analysis.
+   * 
+   * @param cache the prior incremental analysis cache
+   * @param unit the incrementally updated compilation unit
+   * @return the cache used for incremental analysis or {@code null} if incremental analysis results
+   *         cannot be cached for the next incremental analysis
+   */
+  public static IncrementalAnalysisCache cacheResult(IncrementalAnalysisCache cache,
+      CompilationUnit unit) {
+    if (cache != null && unit != null) {
+      return new IncrementalAnalysisCache(
+          cache.librarySource,
+          cache.source,
+          unit,
+          cache.newContents,
+          cache.newContents,
+          0,
+          0,
+          0);
+    }
+    return null;
+  }
 
   /**
    * Determine if the cache should be cleared.
@@ -60,21 +85,23 @@ public class IncrementalAnalysisCache {
       String oldContents, String newContents, int offset, int oldLength, int newLength,
       SourceEntry sourceEntry) {
 
-    // Create a new cache if there is not an existing cache or the source is different
-    if (cache == null || !cache.getSource().equals(source)) {
-      if (!(sourceEntry instanceof DartEntryImpl)) {
-        return null;
-      }
+    // Determine the cache resolved unit
+    Source librarySource = null;
+    CompilationUnit unit = null;
+    if (sourceEntry instanceof DartEntryImpl) {
       DartEntryImpl dartEntry = (DartEntryImpl) sourceEntry;
       Source[] librarySources = dartEntry.getLibrariesContaining();
-      if (librarySources.length != 1) {
-        return null;
+      if (librarySources.length == 1) {
+        librarySource = librarySources[0];
+        if (librarySource != null) {
+          unit = dartEntry.getValue(DartEntry.RESOLVED_UNIT, librarySource);
+        }
       }
-      Source librarySource = librarySources[0];
-      if (librarySource == null) {
-        return null;
-      }
-      CompilationUnit unit = dartEntry.getValue(DartEntry.RESOLVED_UNIT, librarySource);
+    }
+
+    // Create a new cache if there is not an existing cache or the source is different
+    // or a new resolved compilation unit is available
+    if (cache == null || !cache.getSource().equals(source) || unit != null) {
       if (unit == null) {
         return null;
       }
@@ -96,11 +123,37 @@ public class IncrementalAnalysisCache {
     }
 
     // Update the existing cache if the change is contiguous
-    if (cache.offset > offset || offset > cache.offset + cache.newLength) {
-      return null;
+    if (cache.oldLength == 0 && cache.newLength == 0) {
+      cache.offset = offset;
+      cache.oldLength = oldLength;
+      cache.newLength = newLength;
+    } else {
+      if (cache.offset > offset || offset > cache.offset + cache.newLength) {
+        return null;
+      }
+      cache.newLength += newLength - oldLength;
     }
     cache.newContents = newContents;
-    cache.newLength += newLength - oldLength;
+    return cache;
+  }
+
+  /**
+   * Verify that the incrementally parsed and resolved unit in the incremental cache is structurally
+   * equivalent to the fully parsed unit.
+   * 
+   * @param cache the prior cache or {@code null} if none
+   * @param source the source of the compilation unit that was parsed (not {@code null})
+   * @param unit the compilation unit that was just parsed
+   * @return the cache used for incremental analysis or {@code null} if incremental analysis results
+   *         cannot be cached for the next incremental analysis
+   */
+  public static IncrementalAnalysisCache verifyStructure(IncrementalAnalysisCache cache,
+      Source source, CompilationUnit unit) {
+    if (cache != null && unit != null && cache.source.equals(source)) {
+      if (!ASTComparator.equals(cache.resolvedUnit, unit)) {
+        return null;
+      }
+    }
     return cache;
   }
 
@@ -197,5 +250,14 @@ public class IncrementalAnalysisCache {
    */
   public Source getSource() {
     return source;
+  }
+
+  /**
+   * Determine if the cache contains source changes that need to be analyzed
+   * 
+   * @return {@code true} if the cache contains changes to be analyzed, else {@code false}
+   */
+  public boolean hasWork() {
+    return oldLength > 0 && newLength > 0;
   }
 }
