@@ -62,74 +62,78 @@ public class IncrementalParser {
    * produce a consistent AST structure. The range is represented by the first and last tokens in
    * the range. The tokens are assumed to be contained in the same token stream.
    * 
-   * @param firstToken the first token in the range of tokens that were re-scanned
-   * @param lastToken the last token in the range of tokens that were re-scanned
+   * @param firstToken the first token in the range of tokens that were re-scanned or {@code null}
+   *          if no new tokens were inserted
+   * @param lastToken the last token in the range of tokens that were re-scanned or {@code null} if
+   *          no new tokens were inserted
    * @param originalStart the offset in the original source of the first character that was modified
    * @param originalEnd the offset in the original source of the last character that was modified
    */
   @SuppressWarnings("unchecked")
   public <E extends ASTNode> E reparse(E originalStructure, Token firstToken, Token lastToken,
       int originalStart, int originalEnd) {
-    //
-    // Find the smallest AST node that encompasses the range of re-scanned tokens.
-    //
-    ASTNode oldNode;
-    if (originalEnd < originalStart) {
-      oldNode = new NodeLocator(originalStart).searchWithin(originalStructure);
-    } else {
-      oldNode = new NodeLocator(originalStart, originalEnd).searchWithin(originalStructure);
-    }
-    //
-    // Find the token at which parsing is to begin.
-    //
-    int originalOffset = oldNode.getOffset();
-    Token parseToken = findTokenAt(firstToken, originalOffset);
-    if (parseToken == null) {
-      return null;
-    }
-    //
-    // Parse the appropriate AST structure starting at the appropriate place.
-    //
-    Parser parser = new Parser(source, errorListener);
-    parser.setCurrentToken(parseToken);
+    ASTNode oldNode = null;
     ASTNode newNode = null;
-    while (newNode == null) {
-      ASTNode parent = oldNode.getParent();
-      if (parent == null) {
-        parseToken = findFirstToken(parseToken);
-        parser.setCurrentToken(parseToken);
-        return (E) parser.parseCompilationUnit();
+    if (firstToken != null) {
+      //
+      // Find the smallest AST node that encompasses the range of re-scanned tokens.
+      //
+      if (originalEnd < originalStart) {
+        oldNode = new NodeLocator(originalStart).searchWithin(originalStructure);
+      } else {
+        oldNode = new NodeLocator(originalStart, originalEnd).searchWithin(originalStructure);
       }
-      try {
-        IncrementalParseDispatcher dispatcher = new IncrementalParseDispatcher(parser, oldNode);
-        newNode = parent.accept(dispatcher);
-      } catch (InsufficientContextException exception) {
-        oldNode = parent;
-        originalOffset = oldNode.getOffset();
-        parseToken = findTokenAt(parseToken, originalOffset);
-        parser.setCurrentToken(parseToken);
-      } catch (Exception exception) {
+      //
+      // Find the token at which parsing is to begin.
+      //
+      int originalOffset = oldNode.getOffset();
+      Token parseToken = findTokenAt(firstToken, originalOffset);
+      if (parseToken == null) {
         return null;
       }
-    }
-    //
-    // Validate that the new node can replace the old node.
-    //
-    if (newNode.getOffset() != originalOffset) {
-      // TODO(brianwilkerson) Figure out how to test whether the new node covers all of and only the
-      // appropriate tokens. Note that this is made more difficult by the possibility of synthetic
-      // tokens, which are not added to the token stream.
-      return null;
-    }
-    //
-    // Replace the old node with the new node in a copy of the original AST structure.
-    //
-    if (oldNode == originalStructure) {
-      // We ended up re-parsing the whole structure, so there's no need for a copy.
-      return (E) newNode;
+      //
+      // Parse the appropriate AST structure starting at the appropriate place.
+      //
+      Parser parser = new Parser(source, errorListener);
+      parser.setCurrentToken(parseToken);
+      while (newNode == null) {
+        ASTNode parent = oldNode.getParent();
+        if (parent == null) {
+          parseToken = findFirstToken(parseToken);
+          parser.setCurrentToken(parseToken);
+          return (E) parser.parseCompilationUnit();
+        }
+        try {
+          IncrementalParseDispatcher dispatcher = new IncrementalParseDispatcher(parser, oldNode);
+          newNode = parent.accept(dispatcher);
+        } catch (InsufficientContextException exception) {
+          oldNode = parent;
+          originalOffset = oldNode.getOffset();
+          parseToken = findTokenAt(parseToken, originalOffset);
+          parser.setCurrentToken(parseToken);
+        } catch (Exception exception) {
+          return null;
+        }
+      }
+      //
+      // Validate that the new node can replace the old node.
+      //
+      if (newNode.getOffset() != originalOffset) {
+        // TODO(brianwilkerson) Figure out how to test whether the new node covers all of and only the
+        // appropriate tokens. Note that this is made more difficult by the possibility of synthetic
+        // tokens, which are not added to the token stream.
+        return null;
+      }
+      //
+      // Replace the old node with the new node in a copy of the original AST structure.
+      //
+      if (oldNode == originalStructure) {
+        // We ended up re-parsing the whole structure, so there's no need for a copy.
+        return (E) newNode;
+      }
+      ResolutionCopier.copyResolutionData(oldNode, newNode);
     }
     IncrementalASTCloner cloner = new IncrementalASTCloner(oldNode, newNode, tokenMap);
-    ResolutionCopier.copyResolutionData(oldNode, newNode);
     return (E) originalStructure.accept(cloner);
   }
 

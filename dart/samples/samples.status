@@ -73,7 +73,7 @@ build_dart: Skip
 *: Skip
 
 [ $arch == arm ]
-sample_extension/test/sample_extension_test: Pass, Slow
+sample_extension/test/sample_extension_test: Skip # Issue 14705
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 chat/test/chat_server_test: StaticWarning
