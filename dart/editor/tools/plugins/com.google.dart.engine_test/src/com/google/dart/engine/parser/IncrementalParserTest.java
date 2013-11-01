@@ -33,24 +33,6 @@ public class IncrementalParserTest extends EngineTestCase {
         "f() => 0; g() {}");
   }
 
-  public void fail_resparse_appendWhitespace1() {
-    assertParse(//
-        "f() => a + b;",
-        "f() => a + b; ");
-  }
-
-  public void fail_resparse_appendWhitespace2() {
-    assertParse(//
-        "f() => a + b;",
-        "f() => a + b;  ");
-  }
-
-  public void fail_resparse_insertWhitespace() {
-    assertParse(//
-        "f() => a + b;",
-        "f() => a  + b;");
-  }
-
   public void test_reparse_addedAfterIdentifier1() {
     assertParse(//
         "f() => a + b;",
@@ -87,10 +69,28 @@ public class IncrementalParserTest extends EngineTestCase {
         "a;b  c;");
   }
 
+  public void test_resparse_appendWhitespace1() {
+    assertParse(//
+        "f() => a + b;",
+        "f() => a + b; ");
+  }
+
+  public void test_resparse_appendWhitespace2() {
+    assertParse(//
+        "f() => a + b;",
+        "f() => a + b;  ");
+  }
+
   public void test_resparse_insertedPeriod() {
     assertParse(//
         "f() => a + b;",
         "f() => a + b.;");
+  }
+
+  public void test_resparse_insertWhitespace() {
+    assertParse(//
+        "f() => a + b;",
+        "f() => a  + b;");
   }
 
   private void assertParse(String originalContents, String modifiedContents) {
