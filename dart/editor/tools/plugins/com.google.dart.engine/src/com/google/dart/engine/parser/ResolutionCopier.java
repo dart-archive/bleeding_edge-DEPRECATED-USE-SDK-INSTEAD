@@ -560,13 +560,17 @@ public class ResolutionCopier implements ASTVisitor<Boolean> {
   @Override
   public Boolean visitImportDirective(ImportDirective node) {
     ImportDirective toNode = (ImportDirective) this.toNode;
-    return isEqual(node.getDocumentationComment(), toNode.getDocumentationComment())
+    if (isEqual(node.getDocumentationComment(), toNode.getDocumentationComment())
         & isEqual(node.getMetadata(), toNode.getMetadata())
         & isEqual(node.getKeyword(), toNode.getKeyword()) & isEqual(node.getUri(), toNode.getUri())
         & isEqual(node.getAsToken(), toNode.getAsToken())
         & isEqual(node.getPrefix(), toNode.getPrefix())
         & isEqual(node.getCombinators(), toNode.getCombinators())
-        & isEqual(node.getSemicolon(), toNode.getSemicolon());
+        & isEqual(node.getSemicolon(), toNode.getSemicolon())) {
+      toNode.setElement(node.getElement());
+      return true;
+    }
+    return false;
   }
 
   @Override

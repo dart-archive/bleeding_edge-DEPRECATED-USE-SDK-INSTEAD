@@ -360,6 +360,15 @@ def _PromoteDartArchiveBuild(channel, revision):
         _Gsutil(['cp', '-a', 'public-read', from_loc + '.md5sum',
                  to_loc + '.md5sum'])
 
+    # Copy signed editor installers for macos/windows.
+    for system, extension in [('windows', 'msi'), ('macos', 'dmg')]:
+      for arch in ['ia32', 'x64']:
+        from_loc = signed_namer.editor_installer_filepath(
+            revision, system, arch, extension)
+        to_loc = release_namer.editor_installer_filepath(
+            to_revision, system, arch, extension)
+        _Gsutil(['cp', '-a', 'public-read', from_loc, to_loc])
+
   promote(revision)
   promote('latest')
 
