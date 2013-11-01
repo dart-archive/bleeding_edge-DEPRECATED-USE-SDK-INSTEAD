@@ -34,35 +34,49 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "}");
   }
 
-  public void test_Boolean_or() throws Exception {
+  public void test_Boolean_and() throws Exception {
     translateSingleFile(
         "// filler filler filler filler filler filler filler filler filler filler",
         "package test;",
         "public class Test {",
-        "  public boolean test(boolean a, boolean b) {",
-        "    return a | b;",
+        "  public boolean testAnd2(boolean a, boolean b) {",
+        "    return a & b;",
+        "  }",
+        "  public boolean testAnd3(boolean a, boolean b, boolean c) {",
+        "    return a & b & c;",
+        "  }",
+        "  public void testAndEq(boolean a, boolean b) {",
+        "    a &= b;",
         "  }",
         "}");
     runProcessor();
     assertFormattedSource(
         "class Test {",
-        "  bool test(bool a, bool b) => javaBooleanOr(a, b);",
+        "  bool testAnd2(bool a, bool b) => javaBooleanAnd(a, b);",
+        "  bool testAnd3(bool a, bool b, bool c) => javaBooleanAnd(javaBooleanAnd(a, b), c);",
+        "  void testAndEq(bool a, bool b) {",
+        "    a = javaBooleanAnd(a, b);",
+        "  }",
         "}");
   }
 
-  public void test_Boolean_orEq() throws Exception {
+  public void test_Boolean_or() throws Exception {
     translateSingleFile(
         "// filler filler filler filler filler filler filler filler filler filler",
         "package test;",
         "public class Test {",
-        "  public void test(boolean a, boolean b) {",
+        "  public boolean test1(boolean a, boolean b) {",
+        "    return a | b;",
+        "  }",
+        "  public void test2(boolean a, boolean b) {",
         "    a |= b;",
         "  }",
         "}");
     runProcessor();
     assertFormattedSource(
         "class Test {",
-        "  void test(bool a, bool b) {",
+        "  bool test1(bool a, bool b) => javaBooleanOr(a, b);",
+        "  void test2(bool a, bool b) {",
         "    a = javaBooleanOr(a, b);",
         "  }",
         "}");

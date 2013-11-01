@@ -709,6 +709,8 @@ public class MainEngine {
     unit.getDirectives().add(importDirective("utilities_dart.dart", null));
     unit.getDirectives().add(
         importDirective("engine.dart", null, importShowCombinator("AnalysisEngine")));
+    unit.getDirectives().add(
+        importDirective("utilities_collection.dart", null, importShowCombinator("TokenMap")));
     for (CompilationUnitMember member : dartUnit.getDeclarations()) {
       File file = context.getMemberToFile().get(member);
       if (isEnginePath(file, "parser/") || isEnginePath(file, "internal/parser/")
@@ -725,9 +727,12 @@ public class MainEngine {
     unit.getDirectives().add(importDirective(src_package + "java_core.dart", null));
     unit.getDirectives().add(importDirective(src_package + "java_junit.dart", null));
     unit.getDirectives().add(importDirective(src_package + "error.dart", null));
+    unit.getDirectives().add(
+        importDirective(src_package + "source.dart", null, importShowCombinator("Source")));
     unit.getDirectives().add(importDirective(src_package + "scanner.dart", null));
     unit.getDirectives().add(importDirective(src_package + "ast.dart", null));
     unit.getDirectives().add(importDirective(src_package + "parser.dart", null));
+    unit.getDirectives().add(importDirective(src_package + "element.dart", null));
     unit.getDirectives().add(importDirective(src_package + "utilities_dart.dart", null));
     unit.getDirectives().add(importDirective("package:unittest/unittest.dart", "_ut"));
     unit.getDirectives().add(importDirective("test_support.dart", null));
@@ -735,6 +740,8 @@ public class MainEngine {
         importDirective("scanner_test.dart", null, importShowCombinator("TokenFactory")));
     unit.getDirectives().add(
         importDirective("ast_test.dart", null, importShowCombinator("ASTFactory")));
+    unit.getDirectives().add(
+        importDirective("element_test.dart", null, importShowCombinator("ElementFactory")));
     List<Statement> mainStatements = Lists.newArrayList();
     for (Entry<File, List<CompilationUnitMember>> entry : context.getFileToMembers().entrySet()) {
       File file = entry.getKey();
@@ -870,6 +877,11 @@ public class MainEngine {
     unit.getDirectives().add(importDirective(src_package + "source.dart", null));
     unit.getDirectives().add(importDirective(src_package + "error.dart", null));
     unit.getDirectives().add(importDirective(src_package + "scanner.dart", null));
+    unit.getDirectives().add(
+        importDirective(
+            src_package + "utilities_collection.dart",
+            null,
+            importShowCombinator("TokenMap")));
     unit.getDirectives().add(importDirective("package:unittest/unittest.dart", "_ut"));
     unit.getDirectives().add(importDirective("test_support.dart", null));
     List<Statement> mainStatements = Lists.newArrayList();

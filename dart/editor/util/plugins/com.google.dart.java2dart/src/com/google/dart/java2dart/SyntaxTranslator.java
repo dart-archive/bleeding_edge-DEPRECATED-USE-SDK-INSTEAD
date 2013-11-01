@@ -895,6 +895,7 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
     // create BinaryExpression
     BinaryExpression binary = binaryExpression(left, tokenType, right);
     for (Object javaOperand : node.extendedOperands()) {
+      context.putNodeTypeBinding(binary, node.resolveTypeBinding());
       Expression operand = translate((org.eclipse.jdt.core.dom.ASTNode) javaOperand);
       binary = binaryExpression(binary, tokenType, operand);
     }

@@ -42,6 +42,7 @@ import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.java2dart.Context;
 import com.google.dart.java2dart.util.JavaUtils;
 
+import static com.google.dart.java2dart.util.ASTFactory.argumentList;
 import static com.google.dart.java2dart.util.ASTFactory.assignmentExpression;
 import static com.google.dart.java2dart.util.ASTFactory.binaryExpression;
 import static com.google.dart.java2dart.util.ASTFactory.booleanLiteral;
@@ -156,6 +157,21 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
             return null;
           }
         }
+        // Dart has no "bool &=" operator
+        if (node.getOperator().getType() == TokenType.AMPERSAND_EQ) {
+          Expression leftExpr = node.getLeftHandSide();
+          ITypeBinding argTypeBinding = context.getNodeTypeBinding(leftExpr);
+          if (JavaUtils.isTypeNamed(argTypeBinding, "boolean")) {
+            Expression rightExpr = node.getRightHandSide();
+            replaceNode(
+                node,
+                assignmentExpression(
+                    leftExpr,
+                    TokenType.EQ,
+                    methodInvocation("javaBooleanAnd", leftExpr, rightExpr)));
+            return null;
+          }
+        }
         // String += 'c'
         if (node.getOperator().getType() == TokenType.PLUS_EQ) {
           Expression leftExpr = node.getLeftHandSide();
@@ -202,19 +218,30 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
             return null;
           }
         }
-        // super
-        super.visitBinaryExpression(node);
         // in Java "true | false" will compute both operands
         if (node.getOperator().getType() == TokenType.BAR) {
-          Expression leftOperand = node.getLeftOperand();
-          ITypeBinding argTypeBinding = context.getNodeTypeBinding(leftOperand);
+          ITypeBinding argTypeBinding = context.getNodeTypeBinding(node.getLeftOperand());
+          super.visitBinaryExpression(node);
           if (JavaUtils.isTypeNamed(argTypeBinding, "boolean")) {
             replaceNode(
                 node,
-                methodInvocation("javaBooleanOr", leftOperand, node.getRightOperand()));
+                methodInvocation("javaBooleanOr", node.getLeftOperand(), node.getRightOperand()));
             return null;
           }
         }
+        // in Java "true & false" will compute both operands
+        if (node.getOperator().getType() == TokenType.AMPERSAND) {
+          ITypeBinding argTypeBinding = context.getNodeTypeBinding(node.getLeftOperand());
+          super.visitBinaryExpression(node);
+          if (JavaUtils.isTypeNamed(argTypeBinding, "boolean")) {
+            replaceNode(
+                node,
+                methodInvocation("javaBooleanAnd", node.getLeftOperand(), node.getRightOperand()));
+            return null;
+          }
+        }
+        // super
+        super.visitBinaryExpression(node);
         // done
         return null;
       }
@@ -583,9 +610,27 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
       @Override
       public Void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
         super.visitSuperConstructorInvocation(node);
+        NodeList<Expression> args = node.getArgumentList().getArguments();
         IMethodBinding binding = (IMethodBinding) context.getNodeBinding(node);
-        if (isMethodInClass2(binding, "<init>(java.lang.Throwable)", "java.lang.Exception")) {
+        if (isMethodInExactClass(binding, "<init>(java.lang.Throwable)", "java.lang.Exception")) {
           node.setConstructorName(identifier("withCause"));
+        }
+        if (isMethodInExactClass(
+            binding,
+            "<init>(java.lang.Throwable)",
+            "java.lang.RuntimeException")) {
+          node.setArgumentList(argumentList(namedExpression("cause", args.get(0))));
+        }
+        if (isMethodInExactClass(binding, "<init>(java.lang.String)", "java.lang.RuntimeException")) {
+          node.setArgumentList(argumentList(namedExpression("message", args.get(0))));
+        }
+        if (isMethodInExactClass(
+            binding,
+            "<init>(java.lang.String,java.lang.Throwable)",
+            "java.lang.RuntimeException")) {
+          node.setArgumentList(argumentList(
+              namedExpression("message", args.get(0)),
+              namedExpression("cause", args.get(0))));
         }
         return null;
       }

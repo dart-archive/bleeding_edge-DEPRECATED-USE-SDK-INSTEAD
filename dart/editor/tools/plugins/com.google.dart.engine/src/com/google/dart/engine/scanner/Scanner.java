@@ -170,7 +170,7 @@ public class Scanner {
       }
       appendEofToken();
       instrumentation.metric("tokensCount", tokenCounter);
-      return firstToken();
+      return getFirstToken();
     } finally {
       instrumentation.log(2); //Log if over 1ms
     }
@@ -370,7 +370,7 @@ public class Scanner {
    * 
    * @return the first token in the token stream that was scanned
    */
-  protected Token firstToken() {
+  protected Token getFirstToken() {
     return tokens.getNext();
   }
 
