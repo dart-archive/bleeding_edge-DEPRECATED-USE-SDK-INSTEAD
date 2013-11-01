@@ -23,23 +23,22 @@ Usage
 
 Parsing CSS is easy!
 ```dart
-import 'package:csslib/parser.dart' show parse;
+import 'package:csslib/parser.dart' show compile;
 import 'package:csslib/parser.dart';
 import 'package:csslib/visitor.dart';
 
 main() {
   var srcContents = new File('scss/myStyles.scss').readAsStringSync();
     
-	var ast = parse(srcContents);
-	new Analyzer([ast], null).run();
+  var ast = compile(srcContents);
 	
-	var printer = new CssPrinter();
-	printer.visitTree(ast, pretty: true);
+  var printer = new CssPrinter();
+  printer.visitTree(ast, pretty: true);
 	
-	var outputFile = new File('css/myStyles.css').openSync(mode: FileMode.WRITE);
-	outputFile
-		..writeStringSync(printer.toString())
-		..closeSync();
+  var outputFile = new File('css/myStyles.css').openSync(mode: FileMode.WRITE);
+  outputFile
+	..writeStringSync(printer.toString())
+	..closeSync();
 }
 ```
 
