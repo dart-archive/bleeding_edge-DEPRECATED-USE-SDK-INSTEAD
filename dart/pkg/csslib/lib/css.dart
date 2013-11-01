@@ -22,16 +22,27 @@ void main(List<String> arguments) {
   messages = new Messages(options: options);
 
   _time('Total time spent on ${options.inputFile}', () {
-    _compile(options.inputFile, options.verbose);
+    _compile(options.inputFile, options.outputFile, options.verbose);
   }, true);
 }
 
-void _compile(String inputPath, bool verbose) {
+void _compile(String inputPath, String outputPath, bool verbose) {
+	//only accept css & scss files
   var ext = path.extension(inputPath);
   if (ext != '.css' && ext != '.scss') {
     messages.error("Please provide a CSS/Sass file", null);
     return;
   }
+	
+	//only accept to write to css & scss files
+	if (outputPath.length > 0) {
+		ext = path.extension(outputPath);
+  	if (ext != '.css' && ext != '.scss') {
+   		messages.error("Can only write into CSS/Sass", null);
+    	return;
+  	}
+	}
+	
   try {
     // Read the file.
     var filename = path.basename(inputPath);
@@ -51,7 +62,7 @@ void _compile(String inputPath, bool verbose) {
         () => emitter.visitTree(tree, pretty: true), verbose);
 
     // Write the contents to a file.
-    var outPath = path.join(path.dirname(inputPath), '_$filename');
+    var outPath = outputPath.length > 0 ? outputPath : path.join(path.dirname(inputPath), '_$filename');
     new File(outPath).writeAsStringSync(emitter.toString());
   } catch (e) {
     messages.error('error processing $inputPath. Original message:\n $e', null);
