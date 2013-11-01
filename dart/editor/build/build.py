@@ -428,24 +428,18 @@ def main():
     def build_installer():
       release_type = bot_utils.ReleaseType.SIGNED
       if CHANNEL == 'be':
+        # We don't have signed bits on bleeding_edge, so we take the unsigned
+        # editor.
+        release_type = bot_utils.ReleaseType.RAW
+      if SYSTEM == 'win':
+        # The windows installer will use unsigned *.exe files to avoid going
+        # through two rounds of signing.
         release_type = bot_utils.ReleaseType.RAW
 
-      def old_location_pair(arch, extension):
-        """Returns a tuple (zip_file, installer_file) of google cloud storage
-           locations."""
-        os_rename = {'win': 'win32', 'mac': 'macos', 'linux': 'linux'}
-        system = os_rename[SYSTEM]
-        return (
-            ("%s/darteditor-%s-%s.zip" % (GSU_PATH_REV, system, arch)),
-            ("%s/darteditor-installer-%s-%s.%s"
-             % (GSU_PATH_REV, system, arch, extension)))
-
-      def new_location_pair(arch, extension):
+      def editor_location(arch):
         namer = bot_utils.GCSNamer(CHANNEL, release_type)
         editor_path = namer.editor_zipfilepath(REVISION, SYSTEM, arch)
-        installer_path = namer.editor_installer_filepath(
-            REVISION, SYSTEM, arch, extension)
-        return (editor_path, installer_path)
+        return editor_path
 
       def create_windows_installer(installer_file, input_dir):
         # We add a README file to the installation.
@@ -482,22 +476,15 @@ def main():
           extension = 'dmg' if SYSTEM == 'mac' else 'msi'
           with utils.TempDir('build_editor_installer') as temp_dir:
             with utils.ChangedWorkingDirectory(temp_dir):
-              if CHANNEL == 'dev':
-                # On the dev channel we currently use the bits from trunk.
-                (gsu_editor_zip,
-                 gsu_editor_installer) = old_location_pair(arch, extension)
-              else:
-                (gsu_editor_zip,
-                 gsu_editor_installer) = new_location_pair(arch, extension)
-              # Fetch the editor zip file from the old location.
+              # Fetch the editor zip file from the new location.
               zip_location = os.path.join(temp_dir, 'editor.zip')
-              if gsu.Copy(gsu_editor_zip, zip_location, False):
+              if gsu.Copy(editor_location(arch), zip_location, False):
                 raise Exception("gsutil command failed, aborting.")
               # Unzip the editor (which contains a directory named 'dart').
               editor_zip = ziputils.ZipUtil(zip_location, buildos)
               editor_zip.UnZip(temp_dir)
               unzip_dir = os.path.join(temp_dir, 'dart')
-              
+
               assert os.path.exists('dart') and os.path.isdir('dart')
               installer_name = 'darteditor-installer.%s' % extension
               installer_file = os.path.join(temp_dir, installer_name)
@@ -507,16 +494,7 @@ def main():
                 create_windows_installer(installer_file, unzip_dir)
               assert os.path.isfile(installer_file)
 
-              if CHANNEL == 'dev':
-                # Archive to old bucket
-                # TODO(kustermann/ricow): Remove all the old archiving code,
-                # once everything points to the new location.
-                if gsu.Copy(installer_file, gsu_editor_installer):
-                  raise Exception("gsutil command failed, aborting.")
-
               # Archive to new bucket
-              # NOTE: This is a little bit hackisch, we fetch the editor from
-              # the old bucket and archive the dmg to the new bucket here.
               DartArchiveUploadInstaller(arch, installer_file, extension,
                                          release_type=release_type)
 
