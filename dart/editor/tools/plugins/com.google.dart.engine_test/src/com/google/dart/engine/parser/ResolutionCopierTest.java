@@ -29,6 +29,7 @@ import com.google.dart.engine.ast.DoubleLiteral;
 import com.google.dart.engine.ast.ExportDirective;
 import com.google.dart.engine.ast.FunctionExpression;
 import com.google.dart.engine.ast.FunctionExpressionInvocation;
+import com.google.dart.engine.ast.ImportDirective;
 import com.google.dart.engine.ast.IndexExpression;
 import com.google.dart.engine.ast.InstanceCreationExpression;
 import com.google.dart.engine.ast.IntegerLiteral;
@@ -60,10 +61,14 @@ import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.ExportElement;
+import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.internal.element.AuxiliaryElements;
 import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
+import com.google.dart.engine.internal.element.ExportElementImpl;
+import com.google.dart.engine.internal.element.ImportElementImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
 import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.TokenType;
@@ -87,6 +92,7 @@ import static com.google.dart.engine.ast.ASTFactory.formalParameterList;
 import static com.google.dart.engine.ast.ASTFactory.functionExpression;
 import static com.google.dart.engine.ast.ASTFactory.functionExpressionInvocation;
 import static com.google.dart.engine.ast.ASTFactory.identifier;
+import static com.google.dart.engine.ast.ASTFactory.importDirective;
 import static com.google.dart.engine.ast.ASTFactory.indexExpression;
 import static com.google.dart.engine.ast.ASTFactory.instanceCreationExpression;
 import static com.google.dart.engine.ast.ASTFactory.integer;
@@ -301,7 +307,7 @@ public class ResolutionCopierTest extends EngineTestCase {
 
   public void test_visitExportDirective() {
     ExportDirective fromNode = exportDirective("dart:uri");
-    LibraryElement element = new LibraryElementImpl(null, libraryIdentifier("lib"));
+    ExportElement element = new ExportElementImpl();
     fromNode.setElement(element);
     ExportDirective toNode = exportDirective("dart:uri");
 
@@ -342,6 +348,16 @@ public class ResolutionCopierTest extends EngineTestCase {
     assertSame(propagatedType, toNode.getPropagatedType());
     assertSame(staticElement, toNode.getStaticElement());
     assertSame(staticType, toNode.getStaticType());
+  }
+
+  public void test_visitImportDirective() {
+    ImportDirective fromNode = importDirective("dart:uri", null);
+    ImportElement element = new ImportElementImpl();
+    fromNode.setElement(element);
+    ImportDirective toNode = importDirective("dart:uri", null);
+
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    assertSame(element, toNode.getElement());
   }
 
   public void test_visitIndexExpression() {
