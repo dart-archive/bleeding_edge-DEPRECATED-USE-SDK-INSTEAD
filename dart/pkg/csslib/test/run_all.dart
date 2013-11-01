@@ -8,7 +8,6 @@
  */
 library run_impl;
 
-import 'dart:io';
 import 'package:unittest/compact_vm_config.dart';
 import 'testing.dart';
 
