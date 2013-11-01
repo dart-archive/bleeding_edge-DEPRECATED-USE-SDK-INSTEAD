@@ -4,6 +4,7 @@ TypeText downArrow, downArrow, downArrow
 TypeText enter
 Wait 10
 TypeText rightArrow
+Wait 5
 TypeText rightArrow(* redundant *)
 WaitFor 30, "pubspec lock"
 Click "pubspec lock"
@@ -156,7 +157,9 @@ Wait 1
 TypeText "Dart writer writing"
 Click (Text:"Untitled")
 Wait 1
+put ImageLocation("delete file X") into pos
 Click "delete file X"
+click (pos - (30,40))
 Wait 1
 Click "red stripe"
 Click "delete file X"

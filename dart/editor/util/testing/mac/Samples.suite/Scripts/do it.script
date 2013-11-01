@@ -2,8 +2,8 @@ Run "clock"
 Wait 5
 Run "sunflower"
 Wait 5
-Run "time server"
-Wait 5
+(*Run "time server"*)
+(*Wait 5*)
 Run "solar"
 Wait 5
 Run "swipe"

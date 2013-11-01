@@ -16,7 +16,7 @@ Wait 0.5
 TypeText CommandKey,s
 Wait 5
 TypeText CommandKey,r
-WaitFor 2, (Text:"Breaking on exception",CaseSensitive:"yes")
-DoubleClick (Text:"Breaking on exception",CaseSensitive:"yes")
+WaitFor 2, "Breaking"
+DoubleClick "Breaking"
 Click "html close"
 Click "stop debug button"

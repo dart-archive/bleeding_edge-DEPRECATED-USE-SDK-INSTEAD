@@ -3,6 +3,8 @@ TypeText downArrow
 TypeText enter
 Wait 10
 TypeText rightArrow
+Wait 5
+TypeText rightArrow(* redundant *)
 WaitFor 30, "pubspec lock"
 TypeText downArrow,downArrow,downArrow,downArrow,downArrow
 TypeText rightArrow

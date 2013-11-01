@@ -12,6 +12,7 @@ Wait 0.5
 TypeText "something"
 Wait 0.5
 TypeText enter
+Click (Text:"something",CaseSensitive:"yes")(* dismiss chrome noise *)
 Wait 0.5
 Click "check mark"
 Click (Text:"Chromium",CaseSensitive:"yes")
