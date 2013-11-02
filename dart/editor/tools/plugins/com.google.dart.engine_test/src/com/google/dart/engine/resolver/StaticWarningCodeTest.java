@@ -829,6 +829,43 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_conflictingInstanceMethodSetter_sameClass() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  foo() {}",
+        "  set foo(a) {}",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.CONFLICTING_INSTANCE_METHOD_SETTER);
+    verify(source);
+  }
+
+  public void test_conflictingInstanceMethodSetter_setterInInterface() throws Exception {
+    Source source = addSource(createSource(//
+        "abstract class A {",
+        "  set foo(a);",
+        "}",
+        "abstract class B implements A {",
+        "  foo() {}",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.CONFLICTING_INSTANCE_METHOD_SETTER);
+    verify(source);
+  }
+
+  public void test_conflictingInstanceMethodSetter_setterInSuper() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  set foo(a) {}",
+        "}",
+        "class B extends A {",
+        "  foo() {}",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.CONFLICTING_INSTANCE_METHOD_SETTER);
+    verify(source);
+  }
+
   public void test_conflictingInstanceSetterAndSuperclassMember() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
