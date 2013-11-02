@@ -36,7 +36,7 @@ DoubleClick (Text:"app.dart",CaseSensitive:"yes")
 DoubleClick (ImageLocation(Text:"void createDocument",CaseSensitive:"yes")) + (-80,0)
 Click "run button"
 WaitFor 10,"debug line indicator"
-Click (Text:"top-level",CaseSensitive:"yes")
+Click (Text:"isolate-0",CaseSensitive:"yes",IgnoreSpaces:"no",dpi:94)
 TypeText rightArrow
 Wait 1
 Click "step into icon"
@@ -45,9 +45,12 @@ Click "step out icon"
 Wait 2
 Click "step over icon"
 Wait 2
-Click (Text:"top-level",CaseSensitive:"yes",IgnoreSpaces:"yes",IgnoreUnderscores:"yes",dpi:94)
+(*
+Click (Text:"isolate-0",CaseSensitive:"yes",IgnoreSpaces:"yes",IgnoreUnderscores:"yes",dpi:94)
+TypeText downArrow, tabKey
 TypeText rightArrow
-DoubleClick (Text:"ObservableList",CaseSensitive:"yes")
+DoubleClick (Text:"wordCount",CaseSensitive:"yes",IgnoreSpaces:"yes",IgnoreUnderscores:"yes",dpi:94)
+*)
 Click "stop debug button"
 DoubleClick (ImageLocation(Text:"void createDocument",CaseSensitive:"yes")) + (-80,0)
 RightClick (Text:"io-2013-codelab-finished",CaseSensitive:"yes")

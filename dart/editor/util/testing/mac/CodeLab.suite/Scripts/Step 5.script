@@ -45,14 +45,14 @@ TypeText downArrow,downArrow,downArrow
 TypeText commandKey,rightArrow
 TypeText enter
 TypeText {{
-window.localStorage[DOCUMENT_ID_KEY] = JSON.stringify(_storedIds);
+window.localStorage[DOCUMENT_ID_KEY] = JSON.encode(_storedIds);
 }}
 TypeText downArrow,downArrow,downArrow,downArrow,downArrow
 TypeText enter
 TypeText {{
 _storedIds.remove(doc.id);
 window.localStorage.remove(doc.id);
-window.localStorage[DOCUMENT_ID_KEY] = JSON.stringify(_storedIds);
+window.localStorage[DOCUMENT_ID_KEY] = JSON.encode(_storedIds);
 }}
 Wait 5
 TypeText optionKey,o
@@ -63,7 +63,7 @@ TypeText commandKey,rightArrow
 TypeText enter
 TypeText {{
 if (window.localStorage[DOCUMENT_ID_KEY] != null) {
-_storedIds = JSON.parse(window.localStorage[DOCUMENT_ID_KEY]
+_storedIds = JSON.decode(window.localStorage[DOCUMENT_ID_KEY]
 }}
 TypeText rightArrow
 TypeText ";"
@@ -182,7 +182,9 @@ WaitFor 10,"browser right arrow button"
 WaitFor 10, "filter box"
 WaitFor 10, (Text:"tabemono",CaseSensitive:"yes",IgnoreSpaces:"yes",IgnoreUnderscores:"yes",dpi:94)
 Click (Text:"tabemono",CaseSensitive:"yes",IgnoreSpaces:"yes",IgnoreUnderscores:"yes",dpi:94)
+put ImageLocation("delete file X") into pos
 Click "delete file X"
+click (pos - (30,40))
 Click "red stripe"
 Click "delete file X"
 Click (Text:"Chromium",CaseSensitive:"yes")

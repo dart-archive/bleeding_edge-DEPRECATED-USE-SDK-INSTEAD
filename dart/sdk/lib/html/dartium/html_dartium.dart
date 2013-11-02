@@ -55,6 +55,7 @@ export 'dart:math' show Rectangle, Point;
 
 
 
+// Issue 14721, order important for WrappedEvent.
 
 
 Window _window;
@@ -91,25 +92,6 @@ HtmlDocument get document {
   }
   _document = window.document;
   return _document;
-}
-
-int _getNewIsolateId() => _Utils._getNewIsolateId();
-
-bool _callPortInitialized = false;
-var _callPortLastResult = null;
-
-_callPortSync(num id, var message) {
-  if (!_callPortInitialized) {
-    window.on['js-result'].listen((event) {
-      _callPortLastResult = JSON.decode(_getPortSyncEventData(event));
-    });
-    _callPortInitialized = true;
-  }
-  assert(_callPortLastResult == null);
-  _dispatchEvent('js-sync-message', {'id': id, 'message': message});
-  var result = _callPortLastResult;
-  _callPortLastResult = null;
-  return result;
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -816,10 +798,17 @@ class BeforeLoadEvent extends Event {
 
 @DocsEditable()
 @DomName('BeforeUnloadEvent')
-@Experimental() // untriaged
 class BeforeUnloadEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory BeforeUnloadEvent._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('BeforeUnloadEvent.returnValue')
+  @DocsEditable()
+  String get returnValue native "BeforeUnloadEvent_returnValue_Getter";
+
+  @DomName('BeforeUnloadEvent.returnValue')
+  @DocsEditable()
+  void set returnValue(String value) native "BeforeUnloadEvent_returnValue_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2358,8 +2347,6 @@ class CloseEvent extends Event {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
-
 
 @DocsEditable()
 @DomName('Comment')
@@ -2375,7 +2362,6 @@ class Comment extends CharacterData {
 
   @DocsEditable()
   static Comment _create_1(data) native "Comment__create_1constructorCallback";
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10055,8 +10041,17 @@ abstract class Element extends Node implements ParentNode, ChildNode {
   @DocsEditable()
   String get localName => _localName;
 
+  /**
+   * A URI that identifies the XML namespace of this element.
+   *
+   * `null` if no namespace URI is specified.
+   *
+   * ## Other resources
+   *
+   * * [Node.namespaceURI]
+   * (http://www.w3.org/TR/DOM-Level-3-Core/core.html#ID-NodeNSname) from W3C.
+   */
   @DomName('Element.namespaceUri')
-  @DocsEditable()
   String get namespaceUri => _namespaceUri;
 
   String toString() => localName;
@@ -11031,11 +11026,37 @@ abstract class Element extends Node implements ParentNode, ChildNode {
   @DocsEditable()
   int get offsetWidth native "Element_offsetWidth_Getter";
 
+  /**
+   * The name of this element's custom pseudo-element.
+   *
+   * This value must begin with an x and a hyphen, `x-`, to be considered valid.
+   *
+   * ## Other resources
+   *
+   * * [Using custom pseudo elements]
+   * (http://www.html5rocks.com/en/tutorials/webcomponents/shadowdom-201/#toc-custom-pseduo)
+   * from HTML5Rocks.
+   * * [Custom pseudo-elements]
+   * (http://www.w3.org/TR/shadow-dom/#custom-pseudo-elements) from W3C.
+   */
   @DomName('Element.pseudo')
   @DocsEditable()
   @Experimental() // untriaged
   String get pseudo native "Element_pseudo_Getter";
 
+  /**
+   * The name of this element's custom pseudo-element.
+   *
+   * This value must begin with an x and a hyphen, `x-`, to be considered valid.
+   *
+   * ## Other resources
+   *
+   * * [Using custom pseudo elements]
+   * (http://www.html5rocks.com/en/tutorials/webcomponents/shadowdom-201/#toc-custom-pseduo)
+   * from HTML5Rocks.
+   * * [Custom pseudo-elements]
+   * (http://www.w3.org/TR/shadow-dom/#custom-pseudo-elements) from W3C.
+   */
   @DomName('Element.pseudo')
   @DocsEditable()
   @Experimental() // untriaged
@@ -11079,6 +11100,22 @@ abstract class Element extends Node implements ParentNode, ChildNode {
   @DocsEditable()
   String get tagName native "Element_tagName_Getter";
 
+  /**
+   * The current state of this region.
+   *
+   * If `"empty"`, then there is no content in this region.
+   * If `"fit"`, then content fits into this region, and more content can be
+   * added. If `"overset"`, then there is more content than can be fit into this
+   * region.
+   *
+   * ## Other resources
+   *
+   * * [CSS regions and exclusions tutorial]
+   * (http://www.html5rocks.com/en/tutorials/regions/adobe/) from HTML5Rocks.
+   * * [Regions](http://html.adobe.com/webplatform/layout/regions/) from Adobe.
+   * * [CSS regions specification]
+   * (http://www.w3.org/TR/css3-regions/) from W3C.
+   */
   @DomName('Element.webkitRegionOverset')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -11112,10 +11149,33 @@ abstract class Element extends Node implements ParentNode, ChildNode {
   @Experimental() // untriaged
   String getAttributeNS(String namespaceURI, String localName) native "Element_getAttributeNS_Callback";
 
+  /**
+   * The smallest bounding rectangle that encompasses this element's padding,
+   * scrollbar, and border.
+   *
+   * ## Other resources
+   *
+   * * [Element.getBoundingClientRect]
+   * (https://developer.mozilla.org/en-US/docs/Web/API/Element.getBoundingClientRect)
+   * from MDN.
+   * * [The getBoundingClientRect() method]
+   * (http://www.w3.org/TR/cssom-view/#the-getclientrects-and-getboundingclientrect-methods) from W3C.
+   */
   @DomName('Element.getBoundingClientRect')
   @DocsEditable()
   Rectangle getBoundingClientRect() native "Element_getBoundingClientRect_Callback";
 
+  /**
+   * A list of bounding rectangles for each box associated with this element.
+   *
+   * ## Other resources
+   *
+   * * [Element.getClientRects]
+   * (https://developer.mozilla.org/en-US/docs/Web/API/Element.getClientRects)
+   * from MDN.
+   * * [The getClientRects() method]
+   * (http://www.w3.org/TR/cssom-view/#the-getclientrects-and-getboundingclientrect-methods) from W3C.
+   */
   @DomName('Element.getClientRects')
   @DocsEditable()
   List<Rectangle> getClientRects() native "Element_getClientRects_Callback";
@@ -27402,13 +27462,13 @@ class Url extends NativeFieldWrapperClass2 {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_1(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_2(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is _WebKitMediaSource || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_3(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is _WebKitMediaSource || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_4(blob_OR_source_OR_stream);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -27982,39 +28042,6 @@ class WheelEvent extends MouseEvent {
  */
 @DomName('Window')
 class Window extends EventTarget implements WindowBase, _WindowTimers, WindowBase64 {
-
-  /**
-   * Lookup a port by its [name].  Return null if no port is
-   * registered under [name].
-   */
-  SendPortSync lookupPort(String name) {
-    var portStr = document.documentElement.attributes['dart-port:$name'];
-    if (portStr == null) {
-      return null;
-    }
-    var port = JSON.decode(portStr);
-    return _deserialize(port);
-  }
-
-  /**
-   * Register a [port] on this window under the given [name].  This
-   * port may be retrieved by any isolate (or JavaScript script)
-   * running in this window.
-   */
-  void registerPort(String name, var port) {
-    var serialized = _serialize(port);
-    document.documentElement.attributes['dart-port:$name'] =
-        JSON.encode(serialized);
-  }
-
-  /**
-   * Deregister a [port] on this window under the given [name].  This
-   * port may be retrieved by any isolate (or JavaScript script)
-   * running in this window.
-   */
-  void deregisterPort(String name) {
-    document.documentElement.attributes.remove('dart-port:$name');
-  }
 
   /**
    * Returns a Future that completes just before the window is about to
@@ -29009,17 +29036,6 @@ class Window extends EventTarget implements WindowBase, _WindowTimers, WindowBas
 
 }
 
-class _BeforeUnloadEvent extends _WrappedEvent implements BeforeUnloadEvent {
-  String _returnValue;
-
-  _BeforeUnloadEvent(Event base): super(base);
-
-  String get returnValue => _returnValue;
-
-  void set returnValue(String value) {
-    _returnValue = value;
-  }
-}
 
 class _BeforeUnloadEventStreamProvider implements
     EventStreamProvider<BeforeUnloadEvent> {
@@ -29028,15 +29044,8 @@ class _BeforeUnloadEventStreamProvider implements
   const _BeforeUnloadEventStreamProvider(this._eventType);
 
   Stream<BeforeUnloadEvent> forTarget(EventTarget e, {bool useCapture: false}) {
-    var controller = new StreamController(sync: true);
     var stream = new _EventStream(e, _eventType, useCapture);
-    stream.listen((event) {
-      var wrapped = new _BeforeUnloadEvent(event);
-      controller.add(wrapped);
-      return wrapped.returnValue;
-    });
-
-    return controller.stream;
+    return stream;
   }
 
   String getEventType(EventTarget target) {
@@ -31254,6 +31263,54 @@ abstract class _XMLHttpRequestProgressEvent extends ProgressEvent {
   factory _XMLHttpRequestProgressEvent._() { throw new UnsupportedError("Not supported"); }
 
 }
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/**
+ * Helper class to implement custom events which wrap DOM events.
+ */
+class _WrappedEvent implements Event {
+  final Event wrapped;
+  _WrappedEvent(this.wrapped);
+
+  bool get bubbles => wrapped.bubbles;
+
+  bool get cancelable => wrapped.cancelable;
+
+  DataTransfer get clipboardData => wrapped.clipboardData;
+
+  EventTarget get currentTarget => wrapped.currentTarget;
+
+  bool get defaultPrevented => wrapped.defaultPrevented;
+
+  int get eventPhase => wrapped.eventPhase;
+
+  EventTarget get target => wrapped.target;
+
+  int get timeStamp => wrapped.timeStamp;
+
+  String get type => wrapped.type;
+
+  void _initEvent(String eventTypeArg, bool canBubbleArg,
+      bool cancelableArg) {
+    throw new UnsupportedError(
+        'Cannot initialize this Event.');
+  }
+
+  void preventDefault() {
+    wrapped.preventDefault();
+  }
+
+  void stopImmediatePropagation() {
+    wrapped.stopImmediatePropagation();
+  }
+
+  void stopPropagation() {
+    wrapped.stopPropagation();
+  }
+}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -33150,227 +33207,6 @@ abstract class ImmutableListMixin<E> implements List<E> {
 // BSD-style license that can be found in the LICENSE file.
 
 
-_serialize(var message) {
-  return new _JsSerializer().traverse(message);
-}
-
-class _JsSerializer extends _Serializer {
-
-  visitSendPortSync(SendPortSync x) {
-    if (x is _JsSendPortSync) return visitJsSendPortSync(x);
-    if (x is _LocalSendPortSync) return visitLocalSendPortSync(x);
-    if (x is _RemoteSendPortSync) return visitRemoteSendPortSync(x);
-    throw "Unknown port type $x";
-  }
-
-  visitJsSendPortSync(_JsSendPortSync x) {
-    return [ 'sendport', 'nativejs', x._id ];
-  }
-
-  visitLocalSendPortSync(_LocalSendPortSync x) {
-    return [ 'sendport', 'dart',
-             ReceivePortSync._isolateId, x._receivePort._portId ];
-  }
-
-  visitSendPort(SendPort x) {
-    throw new UnimplementedError('Asynchronous send port not yet implemented.');
-  }
-
-  visitRemoteSendPortSync(_RemoteSendPortSync x) {
-    return [ 'sendport', 'dart', x._isolateId, x._portId ];
-  }
-}
-
-_deserialize(var message) {
-  return new _JsDeserializer().deserialize(message);
-}
-
-
-class _JsDeserializer extends _Deserializer {
-
-  static const _UNSPECIFIED = const Object();
-
-  deserializeSendPort(List x) {
-    String tag = x[1];
-    switch (tag) {
-      case 'nativejs':
-        num id = x[2];
-        return new _JsSendPortSync(id);
-      case 'dart':
-        num isolateId = x[2];
-        num portId = x[3];
-        return ReceivePortSync._lookup(isolateId, portId);
-      default:
-        throw 'Illegal SendPortSync type: $tag';
-    }
-  }
-}
-
-// The receiver is JS.
-class _JsSendPortSync implements SendPortSync {
-
-  final num _id;
-  _JsSendPortSync(this._id);
-
-  callSync(var message) {
-    var serialized = _serialize(message);
-    var result = _callPortSync(_id, serialized);
-    return _deserialize(result);
-  }
-
-  bool operator==(var other) {
-    return (other is _JsSendPortSync) && (_id == other._id);
-  }
-
-  int get hashCode => _id;
-}
-
-// TODO(vsm): Differentiate between Dart2Js and Dartium isolates.
-// The receiver is a different Dart isolate, compiled to JS.
-class _RemoteSendPortSync implements SendPortSync {
-
-  int _isolateId;
-  int _portId;
-  _RemoteSendPortSync(this._isolateId, this._portId);
-
-  callSync(var message) {
-    var serialized = _serialize(message);
-    var result = _call(_isolateId, _portId, serialized);
-    return _deserialize(result);
-  }
-
-  static _call(int isolateId, int portId, var message) {
-    var target = 'dart-port-$isolateId-$portId';
-    // TODO(vsm): Make this re-entrant.
-    // TODO(vsm): Set this up set once, on the first call.
-    var source = '$target-result';
-    var result = null;
-    window.on[source].first.then((Event e) {
-      result = JSON.decode(_getPortSyncEventData(e));
-    });
-    _dispatchEvent(target, [source, message]);
-    return result;
-  }
-
-  bool operator==(var other) {
-    return (other is _RemoteSendPortSync) && (_isolateId == other._isolateId)
-      && (_portId == other._portId);
-  }
-
-  int get hashCode => _isolateId >> 16 + _portId;
-}
-
-// The receiver is in the same Dart isolate, compiled to JS.
-class _LocalSendPortSync implements SendPortSync {
-
-  ReceivePortSync _receivePort;
-
-  _LocalSendPortSync._internal(this._receivePort);
-
-  callSync(var message) {
-    // TODO(vsm): Do a more efficient deep copy.
-    var copy = _deserialize(_serialize(message));
-    var result = _receivePort._callback(copy);
-    return _deserialize(_serialize(result));
-  }
-
-  bool operator==(var other) {
-    return (other is _LocalSendPortSync)
-      && (_receivePort == other._receivePort);
-  }
-
-  int get hashCode => _receivePort.hashCode;
-}
-
-// TODO(vsm): Move this to dart:isolate.  This will take some
-// refactoring as there are dependences here on the DOM.  Users
-// interact with this class (or interface if we change it) directly -
-// new ReceivePortSync.  I think most of the DOM logic could be
-// delayed until the corresponding SendPort is registered on the
-// window.
-
-// A Dart ReceivePortSync (tagged 'dart' when serialized) is
-// identifiable / resolvable by the combination of its isolateid and
-// portid.  When a corresponding SendPort is used within the same
-// isolate, the _portMap below can be used to obtain the
-// ReceivePortSync directly.  Across isolates (or from JS), an
-// EventListener can be used to communicate with the port indirectly.
-class ReceivePortSync {
-
-  static Map<int, ReceivePortSync> _portMap;
-  static int _portIdCount;
-  static int _cachedIsolateId;
-
-  num _portId;
-  Function _callback;
-  StreamSubscription _portSubscription;
-
-  ReceivePortSync() {
-    if (_portIdCount == null) {
-      _portIdCount = 0;
-      _portMap = new Map<int, ReceivePortSync>();
-    }
-    _portId = _portIdCount++;
-    _portMap[_portId] = this;
-  }
-
-  static int get _isolateId {
-    // TODO(vsm): Make this coherent with existing isolate code.
-    if (_cachedIsolateId == null) {
-      _cachedIsolateId = _getNewIsolateId();
-    }
-    return _cachedIsolateId;
-  }
-
-  static String _getListenerName(isolateId, portId) =>
-      'dart-port-$isolateId-$portId';
-  String get _listenerName => _getListenerName(_isolateId, _portId);
-
-  void receive(callback(var message)) {
-    _callback = callback;
-    if (_portSubscription == null) {
-      _portSubscription = window.on[_listenerName].listen((Event e) {
-        var data = JSON.decode(_getPortSyncEventData(e));
-        var replyTo = data[0];
-        var message = _deserialize(data[1]);
-        var result = _callback(message);
-        _dispatchEvent(replyTo, _serialize(result));
-      });
-    }
-  }
-
-  void close() {
-    _portMap.remove(_portId);
-    if (_portSubscription != null) _portSubscription.cancel();
-  }
-
-  SendPortSync toSendPort() {
-    return new _LocalSendPortSync._internal(this);
-  }
-
-  static SendPortSync _lookup(int isolateId, int portId) {
-    if (isolateId == _isolateId) {
-      return _portMap[portId].toSendPort();
-    } else {
-      return new _RemoteSendPortSync(isolateId, portId);
-    }
-  }
-}
-
-get _isolateId => ReceivePortSync._isolateId;
-
-void _dispatchEvent(String receiver, var message) {
-  var event = new CustomEvent(receiver, canBubble: false, cancelable:false,
-    detail: JSON.encode(message));
-  window.dispatchEvent(event);
-}
-
-String _getPortSyncEventData(CustomEvent event) => event.detail;
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
 /**
  * Defines the keycode values for keys that are returned by
  * KeyboardEvent.keyCode.
@@ -35060,185 +34896,6 @@ abstract class ReadyState {
    */
   static const String COMPLETE = "complete";
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// Patch file for the dart:isolate library.
-
-
-/********************************************************
-  Inserted from lib/isolate/serialization.dart
- ********************************************************/
-
-class _MessageTraverserVisitedMap {
-
-  operator[](var object) => null;
-  void operator[]=(var object, var info) { }
-
-  void reset() { }
-  void cleanup() { }
-
-}
-
-/** Abstract visitor for dart objects that can be sent as isolate messages. */
-abstract class _MessageTraverser {
-
-  _MessageTraverserVisitedMap _visited;
-  _MessageTraverser() : _visited = new _MessageTraverserVisitedMap();
-
-  /** Visitor's entry point. */
-  traverse(var x) {
-    if (isPrimitive(x)) return visitPrimitive(x);
-    _visited.reset();
-    var result;
-    try {
-      result = _dispatch(x);
-    } finally {
-      _visited.cleanup();
-    }
-    return result;
-  }
-
-  _dispatch(var x) {
-    if (isPrimitive(x)) return visitPrimitive(x);
-    if (x is List) return visitList(x);
-    if (x is Map) return visitMap(x);
-    if (x is SendPort) return visitSendPort(x);
-    if (x is SendPortSync) return visitSendPortSync(x);
-
-    // Overridable fallback.
-    return visitObject(x);
-  }
-
-  visitPrimitive(x);
-  visitList(List x);
-  visitMap(Map x);
-  visitSendPort(SendPort x);
-  visitSendPortSync(SendPortSync x);
-
-  visitObject(Object x) {
-    // TODO(floitsch): make this a real exception. (which one)?
-    throw "Message serialization: Illegal value $x passed";
-  }
-
-  static bool isPrimitive(x) {
-    return (x == null) || (x is String) || (x is num) || (x is bool);
-  }
-}
-
-
-/** Visitor that serializes a message as a JSON array. */
-abstract class _Serializer extends _MessageTraverser {
-  int _nextFreeRefId = 0;
-
-  visitPrimitive(x) => x;
-
-  visitList(List list) {
-    int copyId = _visited[list];
-    if (copyId != null) return ['ref', copyId];
-
-    int id = _nextFreeRefId++;
-    _visited[list] = id;
-    var jsArray = _serializeList(list);
-    // TODO(floitsch): we are losing the generic type.
-    return ['list', id, jsArray];
-  }
-
-  visitMap(Map map) {
-    int copyId = _visited[map];
-    if (copyId != null) return ['ref', copyId];
-
-    int id = _nextFreeRefId++;
-    _visited[map] = id;
-    var keys = _serializeList(map.keys.toList());
-    var values = _serializeList(map.values.toList());
-    // TODO(floitsch): we are losing the generic type.
-    return ['map', id, keys, values];
-  }
-
-  _serializeList(List list) {
-    int len = list.length;
-    var result = new List(len);
-    for (int i = 0; i < len; i++) {
-      result[i] = _dispatch(list[i]);
-    }
-    return result;
-  }
-}
-
-/** Deserializes arrays created with [_Serializer]. */
-abstract class _Deserializer {
-  Map<int, dynamic> _deserialized;
-
-  _Deserializer();
-
-  static bool isPrimitive(x) {
-    return (x == null) || (x is String) || (x is num) || (x is bool);
-  }
-
-  deserialize(x) {
-    if (isPrimitive(x)) return x;
-    // TODO(floitsch): this should be new HashMap<int, dynamic>()
-    _deserialized = new HashMap();
-    return _deserializeHelper(x);
-  }
-
-  _deserializeHelper(x) {
-    if (isPrimitive(x)) return x;
-    assert(x is List);
-    switch (x[0]) {
-      case 'ref': return _deserializeRef(x);
-      case 'list': return _deserializeList(x);
-      case 'map': return _deserializeMap(x);
-      case 'sendport': return deserializeSendPort(x);
-      default: return deserializeObject(x);
-    }
-  }
-
-  _deserializeRef(List x) {
-    int id = x[1];
-    var result = _deserialized[id];
-    assert(result != null);
-    return result;
-  }
-
-  List _deserializeList(List x) {
-    int id = x[1];
-    // We rely on the fact that Dart-lists are directly mapped to Js-arrays.
-    List dartList = x[2];
-    _deserialized[id] = dartList;
-    int len = dartList.length;
-    for (int i = 0; i < len; i++) {
-      dartList[i] = _deserializeHelper(dartList[i]);
-    }
-    return dartList;
-  }
-
-  Map _deserializeMap(List x) {
-    Map result = new Map();
-    int id = x[1];
-    _deserialized[id] = result;
-    List keys = x[2];
-    List values = x[3];
-    int len = keys.length;
-    assert(len == values.length);
-    for (int i = 0; i < len; i++) {
-      var key = _deserializeHelper(keys[i]);
-      var value = _deserializeHelper(values[i]);
-      result[key] = value;
-    }
-    return result;
-  }
-
-  deserializeSendPort(List x);
-
-  deserializeObject(List x) {
-    // TODO(floitsch): Use real exception (which one?).
-    throw "Unexpected serialized object";
-  }
-}
-
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -35447,54 +35104,6 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
       default:
         node.remove();
     }
-  }
-}
-// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/**
- * Helper class to implement custom events which wrap DOM events.
- */
-class _WrappedEvent implements Event {
-  final Event wrapped;
-  _WrappedEvent(this.wrapped);
-
-  bool get bubbles => wrapped.bubbles;
-
-  bool get cancelable => wrapped.cancelable;
-
-  DataTransfer get clipboardData => wrapped.clipboardData;
-
-  EventTarget get currentTarget => wrapped.currentTarget;
-
-  bool get defaultPrevented => wrapped.defaultPrevented;
-
-  int get eventPhase => wrapped.eventPhase;
-
-  EventTarget get target => wrapped.target;
-
-  int get timeStamp => wrapped.timeStamp;
-
-  String get type => wrapped.type;
-
-  void _initEvent(String eventTypeArg, bool canBubbleArg,
-      bool cancelableArg) {
-    throw new UnsupportedError(
-        'Cannot initialize this Event.');
-  }
-
-  void preventDefault() {
-    wrapped.preventDefault();
-  }
-
-  void stopImmediatePropagation() {
-    wrapped.stopImmediatePropagation();
-  }
-
-  void stopPropagation() {
-    wrapped.stopPropagation();
   }
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -35968,7 +35577,6 @@ class _Utils {
 
   static window() native "Utils_window";
   static forwardingPrint(String message) native "Utils_forwardingPrint";
-  static int _getNewIsolateId() native "Utils_getNewIsolateId";
 
   // The following methods were added for debugger integration to make working
   // with the Dart C mirrors API simpler.

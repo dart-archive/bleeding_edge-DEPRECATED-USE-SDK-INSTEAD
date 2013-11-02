@@ -14,6 +14,10 @@
 package com.google.dart.command.analyze;
 
 import com.google.dart.engine.AnalysisEngine;
+import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.ast.Directive;
+import com.google.dart.engine.ast.LibraryDirective;
+import com.google.dart.engine.ast.PartOfDirective;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.CompilationUnitElement;
@@ -134,10 +138,26 @@ class AnalyzerImpl {
     context.setSourceFactory(sourceFactory);
     context.setAnalysisOptions(contextOptions);
 
-    // analyze the given file
+    // prepare Source
     sourceFile = sourceFile.getAbsoluteFile();
     UriKind uriKind = getUriKind(sourceFile);
     Source librarySource = new FileBasedSource(sourceFactory.getContentCache(), sourceFile, uriKind);
+
+    // don't try to analyzer parts
+    CompilationUnit unit = context.parseCompilationUnit(librarySource);
+    boolean hasLibraryDirective = false;
+    boolean hasPartOfDirective = false;
+    for (Directive directive : unit.getDirectives()) {
+      hasLibraryDirective |= directive instanceof LibraryDirective;
+      hasPartOfDirective |= directive instanceof PartOfDirective;
+    }
+    if (hasPartOfDirective && !hasLibraryDirective) {
+      System.err.println("Only libraries can be analyzed.");
+      System.err.println(sourceFile + " is a part and can not be analyzed.");
+      return ErrorSeverity.NONE;
+    }
+
+    // analyze Source
     LibraryElement library = context.computeLibraryElement(librarySource);
     context.resolveCompilationUnit(librarySource, library);
 

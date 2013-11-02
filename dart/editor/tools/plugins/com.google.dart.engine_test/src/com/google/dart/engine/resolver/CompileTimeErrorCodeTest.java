@@ -258,7 +258,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   public void test_conflictingGetterAndMethod_field_method() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
-        "  int m;",
+        "  final int m = 0;",
         "}",
         "class B extends A {",
         "  m() {}",

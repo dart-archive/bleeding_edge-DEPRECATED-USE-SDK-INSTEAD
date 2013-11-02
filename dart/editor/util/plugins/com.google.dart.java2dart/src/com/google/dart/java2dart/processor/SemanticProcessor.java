@@ -113,4 +113,13 @@ public abstract class SemanticProcessor {
     }
     return false;
   }
+
+  /**
+   * Checks if given {@link IMethodBinding} is method of given class with given signature.
+   */
+  protected final boolean isMethodInExactClass(IMethodBinding binding, String reqSignature,
+      String reqClassName) {
+    return JavaUtils.getMethodDeclarationSignature(binding).equals(reqSignature)
+        && JavaUtils.isTypeNamed(binding.getDeclaringClass(), reqClassName);
+  }
 }

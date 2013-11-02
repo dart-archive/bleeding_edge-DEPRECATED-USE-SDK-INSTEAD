@@ -33,6 +33,9 @@ collection_helpers/test/equality_test/none: Pass, Fail # Issue 14348
 [ $compiler == dart2js && $checked && $runtime == ie9 ]
 crypto/test/base64_test: Timeout # Issue 12486
 
+[ $compiler == dart2js && $checked && $runtime == d8 ]
+serialization/test/serialization_test: Pass, RuntimeError # Issue 14735
+
 [ $runtime == d8 || $runtime == jsshell ]
 unittest/test/unittest_nested_groups_setup_teardown_test: Pass, RuntimeError # http://dartbug.com/10109
 stack_trace/test/vm_test: RuntimeError, OK # VM-specific traces
@@ -51,6 +54,7 @@ polymer/test/event_path_declarative_test: Skip #uses dart:html
 polymer/test/event_path_test: Skip #uses dart:html
 polymer/test/events_test: Skip #uses dart:html
 polymer/test/instance_attrs_test: Skip #uses dart:html
+polymer/test/nested_binding_test: Skip # uses dart:html
 polymer/test/noscript_test: Skip #uses dart:html
 polymer/test/prop_attr_bind_reflection_test: Skip #uses dart:html
 polymer/test/prop_attr_reflection_test: Skip #uses dart:html
@@ -98,6 +102,7 @@ polymer/test/event_handlers_test: Pass, Timeout # Issue 13260
 polymer/test/event_path_declarative_test: Pass, Timeout # Issue 13260
 polymer/test/event_path_test: Pass, Timeout # Issue 13260
 polymer/test/events_test: Pass, Timeout # Issue 13260
+polymer/test/nested_binding_test: Pass, Timeout # Issue 13260
 polymer/test/noscript_test: Pass, Timeout # Issue 13260
 polymer/test/prop_attr_reflection_test: Pass, Timeout # Issue 13260
 polymer/test/prop_attr_bind_reflection_test: Pass, Timeout # Issue 13260
@@ -150,9 +155,6 @@ mutation_observer: Skip
 # minified.
 unittest/test/*_unminified_test: Skip # DO NOT COPY THIS UNLESS YOU WORK ON DART2JS
 
- # Issue 9217: Uses unspecified Type.toString.
-analyzer/test/generated/ast_test: Fail
-
 [ $compiler == dart2js && $browser ]
 stack_trace/test/vm_test: Fail, OK # VM-specific traces
 crypto/test/sha256_test: Slow, Pass
@@ -168,6 +170,10 @@ intl/test/date_time_format_http_request_test: Fail # TODO(kasperl): Please triag
 http_server/test/http_body_test: Pass, Fail # Issue 14381
 
 [ $browser ]
+analyzer/test/generated/ast_test: Fail, OK # Uses dart:io.
+analyzer/test/generated/element_test: Fail, OK # Uses dart:io.
+analyzer/test/generated/parser_test: Fail, OK # Uses dart:io.
+analyzer/test/generated/resolver_test: Fail, OK # Uses dart:io.
 analyzer/test/error_test: Fail, Timeout, OK # Uses dart:io.
 analyzer/test/generated/element_test: Fail, OK # Uses dart:io.
 analyzer/test/generated/resolver_test: Fail, OK # Uses dart:io.
@@ -328,7 +334,3 @@ intl/test/date_time_format_local_even_test: StaticWarning
 intl/test/date_time_format_local_odd_test: StaticWarning
 unittest/test/matchers_test: StaticWarning, OK # testing error creating abstract class
 unittest/test/mock_test: StaticWarning, OK # testing unimplemented members
-
-[ $runtime == vm ]
-# Issue surfaced after removing deprecated async features.
-scheduled_test/test/scheduled_test/nested_task_test: RuntimeError # Issue 14639

@@ -129,6 +129,13 @@ public enum StaticWarningCode implements ErrorCode {
       "Superclass '%s' declares static member with the same name"),
 
   /**
+   * 7.1 Instance Methods: It is a static warning if a class <i>C</i> declares an instance method
+   * named <i>n</i> and has a setter named <i>n=</i>.
+   */
+  CONFLICTING_INSTANCE_METHOD_SETTER(
+      "Class '%s' declares instance method %s and has a setter with the same name from '%s'"),
+
+  /**
    * 7.3 Setters: It is a static warning if a class <i>C</i> declares an instance setter named
    * <i>v=</i> and an accessible static member named <i>v=</i> or <i>v</i> is declared in a
    * superclass of <i>C</i>.

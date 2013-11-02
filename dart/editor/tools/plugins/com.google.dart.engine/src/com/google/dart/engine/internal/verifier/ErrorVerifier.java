@@ -814,6 +814,8 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
         checkForOptionalParameterInOperator(node);
         checkForWrongNumberOfParametersForOperator(node);
         checkForNonVoidReturnTypeForOperator(node);
+      } else {
+        checkForConflictingInstanceMethodSetter(node);
       }
       checkForConcreteClassWithAbstractMember(node);
       checkForAllInvalidOverrideErrorCodes(node);
@@ -2258,6 +2260,43 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
           nameNode,
           superElementType.getDisplayName());
     }
+    return true;
+  }
+
+  /**
+   * This verifies that the enclosing class does not have a setter with the same name as the passed
+   * instance method declaration.
+   * 
+   * @param node the method declaration to evaluate
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see StaticWarningCode#CONFLICTING_INSTANCE_METHOD_SETTER
+   */
+  private boolean checkForConflictingInstanceMethodSetter(MethodDeclaration node) {
+    if (node.isStatic()) {
+      return false;
+    }
+    // prepare name
+    SimpleIdentifier nameNode = node.getName();
+    if (nameNode == null) {
+      return false;
+    }
+    String name = nameNode.getName();
+    // ensure that we have enclosing class
+    if (enclosingClass == null) {
+      return false;
+    }
+    // try to find setter
+    ExecutableElement setter = inheritanceManager.lookupMember(enclosingClass, name + "=");
+    if (setter == null) {
+      return false;
+    }
+    // report problem
+    errorReporter.reportError(
+        StaticWarningCode.CONFLICTING_INSTANCE_METHOD_SETTER,
+        nameNode,
+        enclosingClass.getDisplayName(),
+        name,
+        setter.getEnclosingElement().getDisplayName());
     return true;
   }
 

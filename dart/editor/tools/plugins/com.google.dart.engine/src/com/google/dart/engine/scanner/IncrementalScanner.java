@@ -66,6 +66,7 @@ public class IncrementalScanner extends Scanner {
    * 
    * @return the first token in the range of new tokens
    */
+  @Override
   public Token getFirstToken() {
     return firstToken;
   }
@@ -172,7 +173,7 @@ public class IncrementalScanner extends Scanner {
     //     tokens (because the end tokens have not been copied when we're copying the begin tokens).
     // TODO(brianwilkerson) Update the lineInfo.
     //
-    return firstToken();
+    return super.getFirstToken();
   }
 
   private Token copyAndAdvance(Token originalToken, int delta) {
