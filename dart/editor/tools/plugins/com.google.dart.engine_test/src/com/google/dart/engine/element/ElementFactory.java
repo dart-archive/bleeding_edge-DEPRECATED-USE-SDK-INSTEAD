@@ -394,9 +394,10 @@ public final class ElementFactory {
     return new TopLevelVariableElementImpl(name);
   }
 
-  public static TopLevelVariableElementImpl topLevelVariableElement(String name, boolean isFinal,
-      Type type) {
+  public static TopLevelVariableElementImpl topLevelVariableElement(String name, boolean isConst,
+      boolean isFinal, Type type) {
     TopLevelVariableElementImpl variable = new TopLevelVariableElementImpl(name);
+    variable.setConst(isConst);
     variable.setFinal(isFinal);
 
     PropertyAccessorElementImpl getter = new PropertyAccessorElementImpl(variable);

@@ -78,6 +78,14 @@ public final class AnalysisContextFactory {
         new ClassElement[] {
             provider.getObjectType().getElement(), provider.getObjectType().getElement()},
         null)});
+    TopLevelVariableElement proxyTopLevelVariableElt = topLevelVariableElement(
+        "proxy",
+        true,
+        false,
+        classElement("_Proxy").getType());
+    coreUnit.setAccessors(new PropertyAccessorElement[] {
+        proxyTopLevelVariableElt.getGetter(), proxyTopLevelVariableElt.getSetter()});
+    coreUnit.setTopLevelVariables(new TopLevelVariableElement[] {proxyTopLevelVariableElt});
     LibraryElementImpl coreLibrary = new LibraryElementImpl(sdkContext, libraryIdentifier(
         "dart",
         "core"));
@@ -109,6 +117,7 @@ public final class AnalysisContextFactory {
         ClassElementImpl.EMPTY_ARRAY)});
     TopLevelVariableElementImpl document = topLevelVariableElement(
         "document",
+        false,
         true,
         htmlDocumentElement.getType());
     htmlUnit.setTopLevelVariables(new TopLevelVariableElement[] {document});

@@ -2629,7 +2629,6 @@ public class NonErrorResolverTest extends ResolverTestCase {
   public void test_proxy_annotation_prefixed() throws Exception {
     Source source = addSource(createSource(//
         "library L;",
-        "import 'meta.dart';",
         "@proxy",
         "class A {}",
         "f(A a) {",
@@ -2640,10 +2639,6 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  a++;",
         "  ++a;",
         "}"));
-    addSource("/meta.dart", createSource(//
-        "library meta;",
-        "const proxy = const _Proxy();",
-        "class _Proxy { const _Proxy(); }"));
     resolve(source);
     assertNoErrors(source);
   }
@@ -2651,7 +2646,6 @@ public class NonErrorResolverTest extends ResolverTestCase {
   public void test_proxy_annotation_prefixed2() throws Exception {
     Source source = addSource(createSource(//
         "library L;",
-        "import 'meta.dart';",
         "@proxy",
         "class A {}",
         "class B {",
@@ -2664,10 +2658,6 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "    ++a;",
         "  }",
         "}"));
-    addSource("/meta.dart", createSource(//
-        "library meta;",
-        "const proxy = const _Proxy();",
-        "class _Proxy { const _Proxy(); }"));
     resolve(source);
     assertNoErrors(source);
   }
@@ -2675,7 +2665,6 @@ public class NonErrorResolverTest extends ResolverTestCase {
   public void test_proxy_annotation_prefixed3() throws Exception {
     Source source = addSource(createSource(//
         "library L;",
-        "import 'meta.dart';",
         "class B {",
         "  f(A a) {",
         "    a.m();",
@@ -2688,10 +2677,6 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "}",
         "@proxy",
         "class A {}"));
-    addSource("/meta.dart", createSource(//
-        "library meta;",
-        "const proxy = const _Proxy();",
-        "class _Proxy { const _Proxy(); }"));
     resolve(source);
     assertNoErrors(source);
   }
@@ -2699,7 +2684,6 @@ public class NonErrorResolverTest extends ResolverTestCase {
   public void test_proxy_annotation_simple() throws Exception {
     Source source = addSource(createSource(//
         "library L;",
-        "import 'meta.dart';",
         "@proxy",
         "class B {",
         "  m() {",
@@ -2709,10 +2693,6 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "    var y = this + this;",
         "  }",
         "}"));
-    addSource("/meta.dart", createSource(//
-        "library meta;",
-        "const proxy = const _Proxy();",
-        "class _Proxy { const _Proxy(); }"));
     resolve(source);
     assertNoErrors(source);
   }
