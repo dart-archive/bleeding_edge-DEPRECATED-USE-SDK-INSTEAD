@@ -1362,7 +1362,34 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_invalidAnnotation_constantVariable() throws Exception {
+  public void test_invalidAnnotation_constantVariable_field() throws Exception {
+    Source source = addSource(createSource(//
+        "@A.C",
+        "class A {",
+        "  static const C = 0;",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_invalidAnnotation_constantVariable_field_importWithPrefix() throws Exception {
+    addSource("/lib.dart", createSource(//
+        "library lib;",
+        "class A {",
+        "  static const C = 0;",
+        "}"));
+    Source source = addSource(createSource(//
+        "import 'lib.dart' as p;",
+        "@p.A.C",
+        "main() {",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_invalidAnnotation_constantVariable_topLevel() throws Exception {
     Source source = addSource(createSource(//
         "const C = 0;",
         "@C",
@@ -1373,7 +1400,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_invalidAnnotation_importWithPrefix_constantVariable() throws Exception {
+  public void test_invalidAnnotation_constantVariable_topLevel_importWithPrefix() throws Exception {
     addSource("/lib.dart", createSource(//
         "library lib;",
         "const C = 0;"));
@@ -1387,7 +1414,23 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_invalidAnnotation_importWithPrefix_constConstructor() throws Exception {
+  public void test_invalidAnnotation_constConstructor_importWithPrefix() throws Exception {
+    addSource("/lib.dart", createSource(//
+        "library lib;",
+        "class A {",
+        "  const A(int p);",
+        "}"));
+    Source source = addSource(createSource(//
+        "import 'lib.dart' as p;",
+        "@p.A(42)",
+        "main() {",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_invalidAnnotation_constConstructor_named_importWithPrefix() throws Exception {
     addSource("/lib.dart", createSource(//
         "library lib;",
         "class A {",

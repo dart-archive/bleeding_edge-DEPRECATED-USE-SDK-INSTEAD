@@ -1169,7 +1169,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       // Validate annotation element.
       if (node.getParent() instanceof Annotation) {
         Annotation annotation = (Annotation) node.getParent();
-        resolveAnnotationElement(annotation, element, null);
+        resolveAnnotationElement(annotation);
         return null;
       }
       return null;
@@ -1178,7 +1178,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     // May be annotation, resolve invocation of "const" constructor.
     if (node.getParent() instanceof Annotation) {
       Annotation annotation = (Annotation) node.getParent();
-      resolveAnnotationElement(annotation, prefixElement, identifier);
+      resolveAnnotationElement(annotation);
     }
 
     //
@@ -1338,7 +1338,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     //
     if (node.getParent() instanceof Annotation) {
       Annotation annotation = (Annotation) node.getParent();
-      resolveAnnotationElement(annotation, element, null);
+      resolveAnnotationElement(annotation);
     }
     return null;
   }
@@ -2295,64 +2295,121 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
   }
 
   /**
-   * Validates that the given {@link Element} is the constant variable; or resolves it as a
-   * constructor invocation.
+   * Continues resolution of the given {@link Annotation}.
    * 
    * @param annotation the {@link Annotation} to resolve
-   * @param element the current known {@link Element} of the annotation, or {@link ClassElement}
-   * @param nameNode the name of the invoked constructor, may be {@code null} if unnamed constructor
-   *          or not a constructor invocation
    */
-  private void resolveAnnotationElement(Annotation annotation, Element element,
-      SimpleIdentifier nameNode) {
-    // constant variable
-    if (element instanceof PropertyAccessorElement) {
-      PropertyAccessorElement accessorElement = (PropertyAccessorElement) element;
-      // accessor should be synthetic
-      if (!accessorElement.isSynthetic()) {
-        resolver.reportError(CompileTimeErrorCode.INVALID_ANNOTATION, annotation);
+  private void resolveAnnotationElement(Annotation annotation) {
+    SimpleIdentifier nameNode1;
+    SimpleIdentifier nameNode2;
+    {
+      Identifier annName = annotation.getName();
+      if (annName instanceof PrefixedIdentifier) {
+        PrefixedIdentifier prefixed = (PrefixedIdentifier) annName;
+        nameNode1 = prefixed.getPrefix();
+        nameNode2 = prefixed.getIdentifier();
+      } else {
+        nameNode1 = (SimpleIdentifier) annName;
+        nameNode2 = null;
+      }
+    }
+    SimpleIdentifier nameNode3 = annotation.getConstructorName();
+    ConstructorElement constructor = null;
+    //
+    // CONST or Class(args)
+    //
+    if (nameNode1 != null && nameNode2 == null && nameNode3 == null) {
+      Element element1 = nameNode1.getStaticElement();
+      // CONST
+      if (element1 instanceof PropertyAccessorElement) {
+        resolveAnnotationElementGetter(annotation, (PropertyAccessorElement) element1);
         return;
       }
-      // variable should be constant
-      VariableElement variableElement = accessorElement.getVariable();
-      if (!variableElement.isConst()) {
-        resolver.reportError(CompileTimeErrorCode.INVALID_ANNOTATION, annotation);
+      // Class(args)
+      if (element1 instanceof ClassElement) {
+        ClassElement classElement = (ClassElement) element1;
+        constructor = new InterfaceTypeImpl(classElement).lookUpConstructor(null, definingLibrary);
       }
-      // OK
-      return;
     }
-    // const constructor invocation
-    if (element instanceof ClassElement) {
-      // prepare constructor name
-      if (nameNode == null) {
-        nameNode = annotation.getConstructorName();
+    //
+    // prefix.CONST or prefix.Class() or Class.CONST or Class.constructor(args)
+    //
+    if (nameNode1 != null && nameNode2 != null && nameNode3 == null) {
+      Element element1 = nameNode1.getStaticElement();
+      Element element2 = nameNode2.getStaticElement();
+      // Class.CONST - not resolved yet
+      if (element1 instanceof ClassElement) {
+        ClassElement classElement = (ClassElement) element1;
+        element2 = classElement.lookUpGetter(nameNode2.getName(), definingLibrary);
       }
-      String name = nameNode != null ? nameNode.getName() : null;
-      // look up ConstructorElement
-      ConstructorElement constructor;
-      {
-        InterfaceType interfaceType = new InterfaceTypeImpl((ClassElement) element);
-        constructor = interfaceType.lookUpConstructor(name, definingLibrary);
-      }
-      // not a constructor
-      if (constructor == null) {
-        resolver.reportError(CompileTimeErrorCode.INVALID_ANNOTATION, annotation);
+      // prefix.CONST or Class.CONST
+      if (element2 instanceof PropertyAccessorElement) {
+        nameNode2.setStaticElement(element2);
+        annotation.setElement(element2);
+        resolveAnnotationElementGetter(annotation, (PropertyAccessorElement) element2);
         return;
       }
-      // record element
-      annotation.setElement(constructor);
-      if (nameNode != null) {
-        nameNode.setStaticElement(constructor);
+      // prefix.Class()
+      if (element2 instanceof ClassElement) {
+        ClassElement classElement = (ClassElement) element2;
+        constructor = classElement.getUnnamedConstructor();
       }
-      // resolve arguments
-      resolveAnnotationConstructorInvocationArguments(annotation, constructor);
-      // OK
+      // Class.constructor(args)
+      if (element1 instanceof ClassElement) {
+        ClassElement classElement = (ClassElement) element1;
+        constructor = new InterfaceTypeImpl(classElement).lookUpConstructor(
+            nameNode2.getName(),
+            definingLibrary);
+        nameNode2.setStaticElement(constructor);
+      }
+    }
+    //
+    // prefix.Class.CONST or prefix.Class.constructor(args)
+    //
+    if (nameNode1 != null && nameNode2 != null && nameNode3 != null) {
+      Element element2 = nameNode2.getStaticElement();
+      // element2 should be ClassElement
+      if (element2 instanceof ClassElement) {
+        ClassElement classElement = (ClassElement) element2;
+        String name3 = nameNode3.getName();
+        // prefix.Class.CONST
+        PropertyAccessorElement getter = classElement.lookUpGetter(name3, definingLibrary);
+        if (getter != null) {
+          nameNode3.setStaticElement(getter);
+          annotation.setElement(element2);
+          resolveAnnotationElementGetter(annotation, getter);
+          return;
+        }
+        // prefix.Class.constructor(args)
+        constructor = new InterfaceTypeImpl(classElement).lookUpConstructor(name3, definingLibrary);
+        nameNode3.setStaticElement(constructor);
+      }
+    }
+    // we need constructor
+    if (constructor == null) {
+      resolver.reportError(CompileTimeErrorCode.INVALID_ANNOTATION, annotation);
       return;
     }
-    // something unknown
-    if (element != null) {
+    // record element
+    annotation.setElement(constructor);
+    // resolve arguments
+    resolveAnnotationConstructorInvocationArguments(annotation, constructor);
+  }
+
+  private void resolveAnnotationElementGetter(Annotation annotation,
+      PropertyAccessorElement accessorElement) {
+    // accessor should be synthetic
+    if (!accessorElement.isSynthetic()) {
+      resolver.reportError(CompileTimeErrorCode.INVALID_ANNOTATION, annotation);
+      return;
+    }
+    // variable should be constant
+    VariableElement variableElement = accessorElement.getVariable();
+    if (!variableElement.isConst()) {
       resolver.reportError(CompileTimeErrorCode.INVALID_ANNOTATION, annotation);
     }
+    // OK
+    return;
   }
 
   /**
