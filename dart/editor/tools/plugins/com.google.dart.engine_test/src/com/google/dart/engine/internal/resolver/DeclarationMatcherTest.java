@@ -77,20 +77,6 @@ public class DeclarationMatcherTest extends ResolverTestCase {
         "}"));
   }
 
-  public void test_methodDeclarationMatches_false_parameter() throws Exception {
-    assertMethodMatches(false, createSource(//
-        "class C {",
-        "  int m(int p) {",
-        "    return p + p;",
-        "  }",
-        "}"), createSource(//
-        "class C {",
-        "  int m(int p, int q) {",
-        "    return (p * q) + (q * p);",
-        "  }",
-        "}"));
-  }
-
   public void test_methodDeclarationMatches_true_different() throws Exception {
     assertMethodMatches(true, createSource(//
         "class C {",
@@ -113,6 +99,20 @@ public class DeclarationMatcherTest extends ResolverTestCase {
         "  }",
         "}");
     assertMethodMatches(true, content, content);
+  }
+
+  public void xtest_methodDeclarationMatches_false_parameter() throws Exception {
+    assertMethodMatches(false, createSource(//
+        "class C {",
+        "  int m(int p) {",
+        "    return p + p;",
+        "  }",
+        "}"), createSource(//
+        "class C {",
+        "  int m(int p, int q) {",
+        "    return (p * q) + (q * p);",
+        "  }",
+        "}"));
   }
 
   private void assertCompilationUnitMatches(boolean expectMatch, String oldContent,
