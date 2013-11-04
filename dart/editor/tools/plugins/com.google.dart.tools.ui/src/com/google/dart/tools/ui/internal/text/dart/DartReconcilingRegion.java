@@ -13,9 +13,6 @@
  */
 package com.google.dart.tools.ui.internal.text.dart;
 
-import static java.lang.Math.max;
-import static java.lang.Math.min;
-
 /**
  * Instances of {@code DartReconcilingRegion} represent a source region that has changed.
  */
@@ -41,11 +38,13 @@ public class DartReconcilingRegion {
   }
 
   /**
-   * Return a new region representing the union of the receiver with the specified region.
+   * Return a new region representing the union of the receiver with the specified region or
+   * {@code null} if the resulting region is disjoint and cannot be represented by this class.
    * 
    * @param offset the offset of the first character that changed
    * @param oldLength the number of characters that were replaced
    * @param newLength the number of characters in the replacement text
+   * @return the region or {@code null} if disjoint
    */
   public DartReconcilingRegion add(int offset, int oldLength, int newLength) {
     if (oldLength == 0 && newLength == 0) {
@@ -54,9 +53,15 @@ public class DartReconcilingRegion {
     if (isEmpty()) {
       return new DartReconcilingRegion(offset, oldLength, newLength);
     }
-    int offset2 = min(this.offset, offset);
-    int oldLength2 = max(this.offset + this.oldLength, offset + oldLength) - offset2;
-    int newLength2 = max(this.offset + this.newLength, offset + newLength) - offset2;
+    if (offset + oldLength < this.offset) {
+      return null;
+    }
+    if (offset + oldLength > this.offset + this.newLength) {
+      return null;
+    }
+    int offset2 = Math.min(this.offset, offset);
+    int oldLength2 = this.oldLength + (this.offset - offset2);
+    int newLength2 = this.newLength + (newLength - oldLength) + (this.offset - offset2);
     return new DartReconcilingRegion(offset2, oldLength2, newLength2);
   }
 
