@@ -943,6 +943,20 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(variable.getName());
   }
 
+  public void test_parseClassMember_field_namedOperator_withAssignment() throws Exception {
+    FieldDeclaration field = parse("parseClassMember", new Object[] {"C"}, "var operator = (5);");
+    assertNull(field.getDocumentationComment());
+    assertSize(0, field.getMetadata());
+    assertNull(field.getStaticKeyword());
+    VariableDeclarationList list = field.getFields();
+    assertNotNull(list);
+    NodeList<VariableDeclaration> variables = list.getVariables();
+    assertSize(1, variables);
+    VariableDeclaration variable = variables.get(0);
+    assertNotNull(variable.getName());
+    assertNotNull(variable.getInitializer());
+  }
+
   public void test_parseClassMember_field_namedSet() throws Exception {
     FieldDeclaration field = parse("parseClassMember", new Object[] {"C"}, "var set;");
     assertNull(field.getDocumentationComment());

@@ -1934,14 +1934,21 @@ public class Parser {
    * @return {@code true} if the given token appears to be the beginning of an operator declaration
    */
   private boolean isOperator(Token startToken) {
-    if (startToken.isOperator()) {
-      Token token = startToken.getNext();
-      while (token.isOperator()) {
-        token = token.getNext();
-      }
-      return matches(token, TokenType.OPEN_PAREN);
+    // Accept any operator here, even if it is not user definable.
+    if (!startToken.isOperator()) {
+      return false;
     }
-    return false;
+    // Token "=" means that it is actually field initializer.
+    if (startToken.getType() == TokenType.EQ) {
+      return false;
+    }
+    // Consume all operator tokens.
+    Token token = startToken.getNext();
+    while (token.isOperator()) {
+      token = token.getNext();
+    }
+    // Formal parameter list is expect now.
+    return matches(token, TokenType.OPEN_PAREN);
   }
 
   /**
