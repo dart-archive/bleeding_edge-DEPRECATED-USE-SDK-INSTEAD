@@ -25,7 +25,6 @@ import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.error.AnalysisErrorListener;
-import com.google.dart.engine.internal.resolver.IncrementalResolver;
 
 /**
  * Instances of the class {@code ScopeBuilder} build the scope for a given node in an AST structure.
