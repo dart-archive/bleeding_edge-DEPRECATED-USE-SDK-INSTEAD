@@ -39,6 +39,9 @@ class PreprocessorOptions {
 
   /** File to process by the compiler. */
   String inputFile;
+	
+	/** File to write compilation result into. */
+  String outputFile;
 
   // We could make this faster, if it ever matters.
   factory PreprocessorOptions() => parse(['']);
@@ -52,11 +55,18 @@ class PreprocessorOptions {
       lessSupport = args['less'],
       useColors = args['colors'],
       polyfill = args['polyfill'],
-      inputFile = args.rest.length > 0 ? args.rest[0] : null;
+			outputFile = args['out'],
+      inputFile = args['in'].length > 0 ? args['in'] : (args.rest.length > 0 ? args.rest[0] : null);
 
   // tool.dart [options...] <css file>
   static PreprocessorOptions parse(List<String> arguments) {
     var parser = new ArgParser()
+			// default to empty string for length > 0 check
+			..addOption('in', abbr: 'i', defaultsTo: '',
+					help: 'Input file to compile')
+			..addOption('out', abbr: 'o', defaultsTo: '',
+					help: 'File to write the compilation result into')
+					
       ..addFlag('verbose', abbr: 'v', defaultsTo: false, negatable: false,
           help: 'Display detail info')
       ..addFlag('checked', defaultsTo: false, negatable: false,
@@ -80,12 +90,14 @@ class PreprocessorOptions {
 
     try {
       var results = parser.parse(arguments);
-      if (results['help'] || results.rest.length == 0) {
+			
+      if (results['help']) {
         showUsage(parser);
         return null;
       }
+			
       return new PreprocessorOptions.fromArgs(results);
-    } on FormatException catch (e) {
+    }on FormatException catch (e) {
       print(e.message);
       showUsage(parser);
       return null;
