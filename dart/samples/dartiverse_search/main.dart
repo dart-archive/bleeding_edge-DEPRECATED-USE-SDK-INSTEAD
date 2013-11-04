@@ -92,7 +92,7 @@ void main() {
     print('${rec.level.name}: ${rec.time}: ${rec.message}');
   });
 
-  var buildPath = Platform.script.resolve('build').path;
+  var buildPath = Platform.script.resolve('build').toFilePath();
   if (!new Directory(buildPath).existsSync()) {
     log.severe("The 'build/' directory was not found. Please run 'pub build'.");
     return;
@@ -116,7 +116,7 @@ void main() {
     virDir.directoryHandler = (dir, request) {
       // Redirect directory-requests to index.html files.
       var indexUri = new Uri.file(dir.path).resolve('index.html');
-      virDir.serveFile(new File(indexUri.path), request);
+      virDir.serveFile(new File(indexUri.toFilePath()), request);
     };
     virDir.serve(router.defaultStream);
   });
