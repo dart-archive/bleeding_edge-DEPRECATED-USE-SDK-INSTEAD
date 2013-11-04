@@ -13,8 +13,8 @@ vars.update({
   # The Dart repository URL is pulled out here so that it can be easily
   # updated to "https" for committers.
   "dart_branch": "/branches/bleeding_edge",
-  "dartium_webkit_trunk": "http://src.chromium.org/multivm/trunk/webkit",
-  "dartium_webkit_revision": "1519",
+  "dartium_webkit_trunk": "http://src.chromium.org/multivm/branches/1650/blink",
+  "dartium_webkit_revision": "1573",
   "bootstrap_css_rev" : "@28387",
 
   "co19_rev": "@651",
