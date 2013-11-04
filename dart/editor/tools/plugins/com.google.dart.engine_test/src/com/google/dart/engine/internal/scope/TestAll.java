@@ -24,7 +24,7 @@ public class TestAll {
     suite.addTestSuite(EnclosedScopeTest.class);
     suite.addTestSuite(LibraryImportScopeTest.class);
     suite.addTestSuite(LibraryScopeTest.class);
-    //suite.addTestSuite(ScopeBuilderTest.class);
+    suite.addTestSuite(ScopeBuilderTest.class);
     suite.addTestSuite(ScopeTest.class);
     return suite;
   }

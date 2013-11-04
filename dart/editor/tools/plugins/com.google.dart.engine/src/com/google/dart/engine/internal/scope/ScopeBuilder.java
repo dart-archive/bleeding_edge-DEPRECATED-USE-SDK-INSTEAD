@@ -25,6 +25,7 @@ import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.error.AnalysisErrorListener;
+import com.google.dart.engine.internal.resolver.IncrementalResolver;
 
 /**
  * Instances of the class {@code ScopeBuilder} build the scope for a given node in an AST structure.
@@ -44,6 +45,9 @@ public final class ScopeBuilder {
       throws AnalysisException {
     if (node == null) {
       throw new AnalysisException("Cannot create scope: node is null");
+    } else if (node instanceof CompilationUnit) {
+      ScopeBuilder builder = new ScopeBuilder(errorListener);
+      return builder.scopeForAstNode(node);
     }
     ASTNode parent = node.getParent();
     if (parent == null) {

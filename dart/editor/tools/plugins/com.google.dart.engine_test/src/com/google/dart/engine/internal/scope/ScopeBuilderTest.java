@@ -57,13 +57,13 @@ public class ScopeBuilderTest extends EngineTestCase {
   public void test_scopeFor_ClassDeclaration() throws AnalysisException {
     GatheringErrorListener listener = new GatheringErrorListener();
     Scope scope = ScopeBuilder.scopeFor(createResolvedClassDeclaration(), listener);
-    assertInstanceOf(ClassScope.class, scope);
+    assertInstanceOf(LibraryScope.class, scope);
   }
 
   public void test_scopeFor_ClassTypeAlias() throws AnalysisException {
     GatheringErrorListener listener = new GatheringErrorListener();
     Scope scope = ScopeBuilder.scopeFor(createResolvedClassTypeAlias(), listener);
-    assertInstanceOf(ClassScope.class, scope);
+    assertInstanceOf(LibraryScope.class, scope);
   }
 
   public void test_scopeFor_CompilationUnit() throws AnalysisException {
@@ -75,24 +75,52 @@ public class ScopeBuilderTest extends EngineTestCase {
   public void test_scopeFor_ConstructorDeclaration() throws AnalysisException {
     GatheringErrorListener listener = new GatheringErrorListener();
     Scope scope = ScopeBuilder.scopeFor(createResolvedConstructorDeclaration(), listener);
+    assertInstanceOf(ClassScope.class, scope);
+  }
+
+  public void test_scopeFor_ConstructorDeclaration_parameters() throws AnalysisException {
+    GatheringErrorListener listener = new GatheringErrorListener();
+    Scope scope = ScopeBuilder.scopeFor(
+        createResolvedConstructorDeclaration().getParameters(),
+        listener);
     assertInstanceOf(FunctionScope.class, scope);
   }
 
   public void test_scopeFor_FunctionDeclaration() throws AnalysisException {
     GatheringErrorListener listener = new GatheringErrorListener();
     Scope scope = ScopeBuilder.scopeFor(createResolvedFunctionDeclaration(), listener);
+    assertInstanceOf(LibraryScope.class, scope);
+  }
+
+  public void test_scopeFor_FunctionDeclaration_parameters() throws AnalysisException {
+    GatheringErrorListener listener = new GatheringErrorListener();
+    Scope scope = ScopeBuilder.scopeFor(
+        createResolvedFunctionDeclaration().getFunctionExpression().getParameters(),
+        listener);
     assertInstanceOf(FunctionScope.class, scope);
   }
 
   public void test_scopeFor_FunctionTypeAlias() throws AnalysisException {
     GatheringErrorListener listener = new GatheringErrorListener();
     Scope scope = ScopeBuilder.scopeFor(createResolvedFunctionTypeAlias(), listener);
+    assertInstanceOf(LibraryScope.class, scope);
+  }
+
+  public void test_scopeFor_FunctionTypeAlias_parameters() throws AnalysisException {
+    GatheringErrorListener listener = new GatheringErrorListener();
+    Scope scope = ScopeBuilder.scopeFor(createResolvedFunctionTypeAlias().getParameters(), listener);
     assertInstanceOf(FunctionTypeScope.class, scope);
   }
 
   public void test_scopeFor_MethodDeclaration() throws AnalysisException {
     GatheringErrorListener listener = new GatheringErrorListener();
     Scope scope = ScopeBuilder.scopeFor(createResolvedMethodDeclaration(), listener);
+    assertInstanceOf(ClassScope.class, scope);
+  }
+
+  public void test_scopeFor_MethodDeclaration_body() throws AnalysisException {
+    GatheringErrorListener listener = new GatheringErrorListener();
+    Scope scope = ScopeBuilder.scopeFor(createResolvedMethodDeclaration().getBody(), listener);
     assertInstanceOf(FunctionScope.class, scope);
   }
 
