@@ -192,6 +192,19 @@ public class SimpleParserTest extends ParserTestCase {
     assertTrue(isFunctionExpression("() => e"));
   }
 
+  public void test_isFunctionExpression_parameter_final() throws Exception {
+    assertTrue(isFunctionExpression("(final a) {}"));
+    assertTrue(isFunctionExpression("(final a, b) {}"));
+    assertTrue(isFunctionExpression("(final a, final b) {}"));
+  }
+
+  public void test_isFunctionExpression_parameter_final_typed() throws Exception {
+    assertTrue(isFunctionExpression("(final int a) {}"));
+    assertTrue(isFunctionExpression("(final prefix.List a) {}"));
+    assertTrue(isFunctionExpression("(final List<int> a) {}"));
+    assertTrue(isFunctionExpression("(final prefix.List<int> a) {}"));
+  }
+
   public void test_isFunctionExpression_parameter_multiple() throws Exception {
     assertTrue(isFunctionExpression("(a, b) {}"));
   }

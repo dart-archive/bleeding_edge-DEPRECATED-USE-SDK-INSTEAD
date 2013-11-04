@@ -5692,9 +5692,15 @@ public class Parser {
   private Token skipFinalConstVarOrType(Token startToken) {
     if (matches(startToken, Keyword.FINAL) || matches(startToken, Keyword.CONST)) {
       Token next = startToken.getNext();
-      if (matchesIdentifier(next.getNext()) || matches(next.getNext(), TokenType.LT)
-          || matches(next.getNext(), Keyword.THIS)) {
-        return skipTypeName(next);
+      if (matchesIdentifier(next)) {
+        Token next2 = next.getNext();
+        // "Type parameter" or "Type<" or "prefix.Type"
+        if (matchesIdentifier(next2) || matches(next2, TokenType.LT)
+            || matches(next2, TokenType.PERIOD)) {
+          return skipTypeName(next);
+        }
+        // "parameter"
+        return next;
       }
     } else if (matches(startToken, Keyword.VAR)) {
       return startToken.getNext();
