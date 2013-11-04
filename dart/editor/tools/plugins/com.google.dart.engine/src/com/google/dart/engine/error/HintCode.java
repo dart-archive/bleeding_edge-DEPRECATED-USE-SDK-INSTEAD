@@ -42,6 +42,13 @@ public enum HintCode implements ErrorCode {
       "Dead code, this on-catch block will never be executed since '%s' is a subtype of '%s'"),
 
   /**
+   * Deprecated members should not be invoked or used.
+   * 
+   * @param memberName the name of the member
+   */
+  DEPRECATED_MEMBER_USE("'%s' is deprecated"),
+
+  /**
    * Duplicate imports.
    */
   DUPLICATE_IMPORT("Duplicate import"),

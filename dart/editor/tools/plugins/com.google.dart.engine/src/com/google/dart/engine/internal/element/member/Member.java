@@ -129,6 +129,11 @@ public abstract class Member implements Element {
   }
 
   @Override
+  public boolean isDeprecated() {
+    return baseElement.isDeprecated();
+  }
+
+  @Override
   public boolean isSynthetic() {
     return baseElement.isSynthetic();
   }

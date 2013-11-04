@@ -65,13 +65,13 @@ public final class AnalysisContextFactory {
     sdkContext.setContents(coreSource, "");
     coreUnit.setSource(coreSource);
     coreUnit.setTypes(new ClassElement[] {
-        provider.getBoolType().getElement(), provider.getDoubleType().getElement(),
-        provider.getFunctionType().getElement(), provider.getIntType().getElement(),
-        provider.getListType().getElement(), provider.getMapType().getElement(),
-        provider.getNullType().getElement(), provider.getNumType().getElement(),
-        provider.getObjectType().getElement(), provider.getStackTraceType().getElement(),
-        provider.getStringType().getElement(), provider.getSymbolType().getElement(),
-        provider.getTypeType().getElement()});
+        provider.getBoolType().getElement(), provider.getDeprecatedType().getElement(),
+        provider.getDoubleType().getElement(), provider.getFunctionType().getElement(),
+        provider.getIntType().getElement(), provider.getListType().getElement(),
+        provider.getMapType().getElement(), provider.getNullType().getElement(),
+        provider.getNumType().getElement(), provider.getObjectType().getElement(),
+        provider.getStackTraceType().getElement(), provider.getStringType().getElement(),
+        provider.getSymbolType().getElement(), provider.getTypeType().getElement()});
     coreUnit.setFunctions(new FunctionElement[] {functionElement(
         "identical",
         provider.getBoolType().getElement(),
@@ -83,9 +83,16 @@ public final class AnalysisContextFactory {
         true,
         false,
         classElement("_Proxy").getType());
+    TopLevelVariableElement deprecatedTopLevelVariableElt = topLevelVariableElement(
+        "deprecated",
+        true,
+        false,
+        provider.getDeprecatedType());
     coreUnit.setAccessors(new PropertyAccessorElement[] {
-        proxyTopLevelVariableElt.getGetter(), proxyTopLevelVariableElt.getSetter()});
-    coreUnit.setTopLevelVariables(new TopLevelVariableElement[] {proxyTopLevelVariableElt});
+        proxyTopLevelVariableElt.getGetter(), proxyTopLevelVariableElt.getSetter(),
+        deprecatedTopLevelVariableElt.getGetter(), deprecatedTopLevelVariableElt.getSetter()});
+    coreUnit.setTopLevelVariables(new TopLevelVariableElement[] {
+        proxyTopLevelVariableElt, deprecatedTopLevelVariableElt});
     LibraryElementImpl coreLibrary = new LibraryElementImpl(sdkContext, libraryIdentifier(
         "dart",
         "core"));

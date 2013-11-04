@@ -16,11 +16,13 @@ package com.google.dart.engine.internal.element;
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisException;
+import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementAnnotation;
 import com.google.dart.engine.element.ElementLocation;
 import com.google.dart.engine.element.ElementVisitor;
 import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.collection.BooleanArray;
 import com.google.dart.engine.utilities.general.StringUtilities;
@@ -194,6 +196,28 @@ public abstract class ElementImpl implements Element {
       return library.equals(getLibrary());
     }
     return true;
+  }
+
+  @Override
+  public boolean isDeprecated() {
+    for (ElementAnnotation annotation : metadata) {
+      Element element = annotation.getElement();
+      if (element != null) {
+        LibraryElement lib = element.getLibrary();
+        if (lib != null && lib.isDartCore()) {
+          if (element instanceof ConstructorElement) {
+            ConstructorElement constructorElement = (ConstructorElement) element;
+            if (constructorElement.getEnclosingElement().getName().equals("Deprecated")) {
+              return true;
+            }
+          } else if (element instanceof PropertyAccessorElement
+              && element.getName().equals("deprecated")) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
   }
 
   @Override

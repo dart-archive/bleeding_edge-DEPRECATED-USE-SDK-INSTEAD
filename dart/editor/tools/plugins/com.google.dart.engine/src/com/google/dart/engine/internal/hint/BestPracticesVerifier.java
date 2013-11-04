@@ -13,19 +13,32 @@
  */
 package com.google.dart.engine.internal.hint;
 
+import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.AsExpression;
+import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.ClassDeclaration;
+import com.google.dart.engine.ast.ConstructorName;
+import com.google.dart.engine.ast.ExportDirective;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.Identifier;
+import com.google.dart.engine.ast.ImportDirective;
+import com.google.dart.engine.ast.IndexExpression;
+import com.google.dart.engine.ast.InstanceCreationExpression;
 import com.google.dart.engine.ast.IsExpression;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.NullLiteral;
 import com.google.dart.engine.ast.ParenthesizedExpression;
+import com.google.dart.engine.ast.PostfixExpression;
+import com.google.dart.engine.ast.PrefixExpression;
+import com.google.dart.engine.ast.RedirectingConstructorInvocation;
+import com.google.dart.engine.ast.SimpleIdentifier;
+import com.google.dart.engine.ast.SuperConstructorInvocation;
 import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
 import com.google.dart.engine.element.ClassElement;
+import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.LibraryElement;
@@ -105,8 +118,18 @@ public class BestPracticesVerifier extends RecursiveASTVisitor<Void> {
   }
 
   @Override
+  public Void visitAssignmentExpression(AssignmentExpression node) {
+    TokenType operatorType = node.getOperator().getType();
+    if (operatorType != TokenType.EQ) {
+      checkForDeprecatedMemberUse(node.getBestElement(), node);
+    }
+    return super.visitAssignmentExpression(node);
+  }
+
+  @Override
   public Void visitBinaryExpression(BinaryExpression node) {
     checkForDivisionOptimizationHint(node);
+    checkForDeprecatedMemberUse(node.getBestElement(), node);
     return super.visitBinaryExpression(node);
   }
 
@@ -124,6 +147,30 @@ public class BestPracticesVerifier extends RecursiveASTVisitor<Void> {
   }
 
   @Override
+  public Void visitExportDirective(ExportDirective node) {
+    checkForDeprecatedMemberUse(node.getUriElement(), node);
+    return super.visitExportDirective(node);
+  }
+
+  @Override
+  public Void visitImportDirective(ImportDirective node) {
+    checkForDeprecatedMemberUse(node.getUriElement(), node);
+    return super.visitImportDirective(node);
+  }
+
+  @Override
+  public Void visitIndexExpression(IndexExpression node) {
+    checkForDeprecatedMemberUse(node.getBestElement(), node);
+    return super.visitIndexExpression(node);
+  }
+
+  @Override
+  public Void visitInstanceCreationExpression(InstanceCreationExpression node) {
+    checkForDeprecatedMemberUse(node.getStaticElement(), node);
+    return super.visitInstanceCreationExpression(node);
+  }
+
+  @Override
   public Void visitIsExpression(IsExpression node) {
     checkAllTypeChecks(node);
     return super.visitIsExpression(node);
@@ -131,9 +178,38 @@ public class BestPracticesVerifier extends RecursiveASTVisitor<Void> {
 
   @Override
   public Void visitMethodDeclaration(MethodDeclaration node) {
-    // Commented out until we decide that we want this hint in the analyzer
     checkForOverridingPrivateMember(node);
     return super.visitMethodDeclaration(node);
+  }
+
+  @Override
+  public Void visitPostfixExpression(PostfixExpression node) {
+    checkForDeprecatedMemberUse(node.getBestElement(), node);
+    return super.visitPostfixExpression(node);
+  }
+
+  @Override
+  public Void visitPrefixExpression(PrefixExpression node) {
+    checkForDeprecatedMemberUse(node.getBestElement(), node);
+    return super.visitPrefixExpression(node);
+  }
+
+  @Override
+  public Void visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) {
+    checkForDeprecatedMemberUse(node.getStaticElement(), node);
+    return super.visitRedirectingConstructorInvocation(node);
+  }
+
+  @Override
+  public Void visitSimpleIdentifier(SimpleIdentifier node) {
+    checkForDeprecatedMemberUse(node);
+    return super.visitSimpleIdentifier(node);
+  }
+
+  @Override
+  public Void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
+    checkForDeprecatedMemberUse(node.getStaticElement(), node);
+    return super.visitSuperConstructorInvocation(node);
   }
 
   /**
@@ -193,6 +269,56 @@ public class BestPracticesVerifier extends RecursiveASTVisitor<Void> {
       }
     }
     return false;
+  }
+
+  /**
+   * Given some {@link Element}, look at the associated metadata and report the use of the member if
+   * it is declared as deprecated.
+   * 
+   * @param element some element to check for deprecated use of
+   * @param node the node use for the location of the error
+   * @return {@code true} if and only if a hint code is generated on the passed node
+   * @see HintCode#DEPRECATED_MEMBER_USE
+   */
+  private boolean checkForDeprecatedMemberUse(Element element, ASTNode node) {
+    if (element != null && element.isDeprecated()) {
+      String displayName = element.getDisplayName();
+      if (element instanceof ConstructorElement) {
+        // TODO(jwren) We should modify ConstructorElement.getDisplayName(), or have the logic
+        // centralized elsewhere, instead of doing this logic here.
+        ConstructorElement constructorElement = (ConstructorElement) element;
+        displayName = constructorElement.getEnclosingElement().getDisplayName();
+        if (!constructorElement.getDisplayName().isEmpty()) {
+          displayName = displayName + '.' + constructorElement.getDisplayName();
+        }
+      }
+      errorReporter.reportError(HintCode.DEPRECATED_MEMBER_USE, node, displayName);
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * For {@link SimpleIdentifier}s, only call {@link #checkForDeprecatedMemberUse(Element, ASTNode)}
+   * if the node is not in a declaration context.
+   * <p>
+   * Also, if the identifier is a constructor name in a constructor invocation, then calls to the
+   * deprecated constructor will be caught by
+   * {@link #visitInstanceCreationExpression(InstanceCreationExpression)} and
+   * {@link #visitSuperConstructorInvocation(SuperConstructorInvocation)}, and can be ignored by
+   * this visit method.
+   * 
+   * @param identifier some simple identifier to check for deprecated use of
+   * @return {@code true} if and only if a hint code is generated on the passed node
+   * @see HintCode#DEPRECATED_MEMBER_USE
+   */
+  private boolean checkForDeprecatedMemberUse(SimpleIdentifier identifier) {
+    if (identifier.inDeclarationContext()
+        || (identifier.getParent() instanceof ConstructorName && identifier == ((ConstructorName) identifier.getParent()).getName())
+        || (identifier.getParent() instanceof SuperConstructorInvocation && identifier == ((SuperConstructorInvocation) identifier.getParent()).getConstructorName())) {
+      return false;
+    }
+    return checkForDeprecatedMemberUse(identifier.getBestElement(), identifier);
   }
 
   /**

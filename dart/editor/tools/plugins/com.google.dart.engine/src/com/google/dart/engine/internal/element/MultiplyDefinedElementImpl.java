@@ -200,6 +200,11 @@ public class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   }
 
   @Override
+  public boolean isDeprecated() {
+    return false;
+  }
+
+  @Override
   public boolean isSynthetic() {
     return true;
   }
