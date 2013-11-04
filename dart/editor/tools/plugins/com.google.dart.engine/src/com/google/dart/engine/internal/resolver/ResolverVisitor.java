@@ -857,6 +857,9 @@ public class ResolverVisitor extends ScopedVisitor {
    * @return the element associated with the given expression
    */
   protected VariableElement getPromotionStaticElement(Expression expression) {
+    while (expression instanceof ParenthesizedExpression) {
+      expression = ((ParenthesizedExpression) expression).getExpression();
+    }
     if (!(expression instanceof SimpleIdentifier)) {
       return null;
     }

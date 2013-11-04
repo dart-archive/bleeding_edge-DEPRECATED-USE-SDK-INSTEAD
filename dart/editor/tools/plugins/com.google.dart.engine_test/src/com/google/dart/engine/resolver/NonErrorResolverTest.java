@@ -3324,6 +3324,19 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_typePromotion_parentheses() throws Exception {
+    Source source = addSource(createSource(//
+        "main(Object p) {",
+        "  (p is String) ? p.length : 0;",
+        "  (p) is String ? p.length : 0;",
+        "  ((p)) is String ? p.length : 0;",
+        "  ((p) is String) ? p.length : 0;",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
   public void test_typeType_class() throws Exception {
     Source source = addSource(createSource(//
         "class C {}",
