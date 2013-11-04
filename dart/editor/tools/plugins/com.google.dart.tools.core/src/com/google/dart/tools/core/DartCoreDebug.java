@@ -32,6 +32,7 @@ public class DartCoreDebug {
   public static final boolean WARMUP = isOptionTrue("debug/warmup");
   public static final boolean VERBOSE = isOptionTrue("debug/verbose");
   public static final boolean LOGGING_DEBUGGER = isOptionTrue("logging/debugger");
+  public static final boolean ENABLE_CHROME_APP_LAUNCH_CONFIG = isOptionTrue("launch/chromeApp");
 
   public static final boolean TRACE_ARTIFACT_PROVIDER = isOptionTrue("trace/artifactProvider");
   public static final boolean TRACE_INDEX_CONTRIBUTOR = isOptionTrue("trace/index/contributor");
@@ -59,6 +60,7 @@ public class DartCoreDebug {
   public static final boolean ENABLE_THEMES = true; //isOptionTrue("experimental/themes");
   public static final boolean ENABLE_TAB_COLORING = isOptionTrue("experimental/tabColors");
   public static final boolean ENABLE_HTML_VALIDATION = isOptionTrue("experimental/validateHtml");
+  public static final boolean ENABLE_PUB_SERVE_LAUNCH = isOptionTrue("experimental/pubserve");
 
   // Verify that dartc has not been specified and that the new analyzer is not explicitly disabled
   public static final boolean ENABLE_NEW_ANALYSIS = true;
