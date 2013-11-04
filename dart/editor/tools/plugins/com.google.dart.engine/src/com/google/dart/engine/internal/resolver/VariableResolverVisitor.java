@@ -25,9 +25,12 @@ import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.ExecutableElement;
+import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.VariableElement;
+import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.internal.element.LocalVariableElementImpl;
 import com.google.dart.engine.internal.element.ParameterElementImpl;
+import com.google.dart.engine.internal.scope.Scope;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.general.ObjectUtilities;
 
@@ -53,6 +56,21 @@ public class VariableResolverVisitor extends ScopedVisitor {
    */
   public VariableResolverVisitor(Library library, Source source, TypeProvider typeProvider) {
     super(library, source, typeProvider);
+  }
+
+  /**
+   * Initialize a newly created visitor to resolve the nodes in an AST node.
+   * 
+   * @param definingLibrary the element for the library containing the node being visited
+   * @param source the source representing the compilation unit containing the node being visited
+   * @param typeProvider the object used to access the types from the core library
+   * @param nameScope the scope used to resolve identifiers in the node that will first be visited
+   * @param errorListener the error listener that will be informed of any errors that are found
+   *          during resolution
+   */
+  public VariableResolverVisitor(LibraryElement definingLibrary, Source source,
+      TypeProvider typeProvider, Scope nameScope, AnalysisErrorListener errorListener) {
+    super(definingLibrary, source, typeProvider, nameScope, errorListener);
   }
 
   @Override

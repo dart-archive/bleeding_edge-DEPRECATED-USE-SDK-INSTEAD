@@ -94,6 +94,15 @@ public abstract class Scope {
   }
 
   /**
+   * Return the scope in which this scope is lexically enclosed.
+   * 
+   * @return the scope in which this scope is lexically enclosed
+   */
+  public Scope getEnclosingScope() {
+    return null;
+  }
+
+  /**
    * Return the element with which the given identifier is associated, or {@code null} if the name
    * is not defined within this scope.
    * 
