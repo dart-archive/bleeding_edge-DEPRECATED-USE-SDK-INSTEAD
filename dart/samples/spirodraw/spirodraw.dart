@@ -42,18 +42,18 @@ class Spirodraw {
 
   Spirodraw() {
     doc = window.document;
-    inOrOut = doc.query("#in_out");
-    fixedRadiusSlider = doc.query("#fixed_radius");
-    wheelRadiusSlider = doc.query("#wheel_radius");
-    penRadiusSlider = doc.query("#pen_radius");
-    penWidthSlider = doc.query("#pen_width");
-    speedSlider = doc.query("#speed");
-    mainDiv = doc.query("#main");
-    frontCanvas = doc.query("#canvas");
+    inOrOut = doc.querySelector("#in_out");
+    fixedRadiusSlider = doc.querySelector("#fixed_radius");
+    wheelRadiusSlider = doc.querySelector("#wheel_radius");
+    penRadiusSlider = doc.querySelector("#pen_radius");
+    penWidthSlider = doc.querySelector("#pen_width");
+    speedSlider = doc.querySelector("#speed");
+    mainDiv = doc.querySelector("#main");
+    frontCanvas = doc.querySelector("#canvas");
     front = frontCanvas.context2D;
     backCanvas = new Element.tag("canvas");
     back = backCanvas.context2D;
-    paletteElement = doc.query("#palette");
+    paletteElement = doc.querySelector("#palette");
     window.onResize.listen(onResize);
     initControlPanel();
   }
@@ -85,10 +85,10 @@ class Spirodraw {
     colorPicker = new ColorPicker(paletteElement);
     colorPicker.addListener((String color) => onColorChange(color));
 
-    doc.query("#start").onClick.listen((_) => start());
-    doc.query("#stop").onClick.listen((_) => stop());
-    doc.query("#clear").onClick.listen((_) => clear());
-    doc.query("#lucky").onClick.listen((_) => lucky());
+    doc.querySelector("#start").onClick.listen((_) => start());
+    doc.querySelector("#stop").onClick.listen((_) => stop());
+    doc.querySelector("#clear").onClick.listen((_) => clear());
+    doc.querySelector("#lucky").onClick.listen((_) => lucky());
   }
 
   void onColorChange(String color) {

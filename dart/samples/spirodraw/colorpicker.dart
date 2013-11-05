@@ -49,8 +49,8 @@ class ColorPicker {
   }
 
   void onMouseDown(MouseEvent event) {
+    event.stopPropagation();
     Element elt = event.target;
-    event.cancelBubble = true;
     int x = event.offset.x;
     int y = event.offset.y - 40;
     if ((y < 0) || (x >= width)) {
@@ -115,5 +115,4 @@ class ColorPicker {
 
     return '#${hexValues[r]}${hexValues[g]}${hexValues[b]}';
   }
-
 }
