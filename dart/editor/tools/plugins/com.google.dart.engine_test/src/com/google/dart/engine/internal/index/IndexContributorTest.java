@@ -1169,6 +1169,34 @@ public class IndexContributorTest extends AbstractDartTest {
         new ExpectedLocation(mainElement, findOffset("pref.B"), "pref."));
   }
 
+  public void test_isReferencedBy_ImportElement_withPrefix_invocation() throws Exception {
+    setFileContent(
+        "Lib.dart",
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "library lib;",
+            "myFunc() {}"));
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "import 'Lib.dart' as pref;",
+        "main() {",
+        "  pref.myFunc();",
+        "}",
+        "");
+    // prepare elements
+    Element mainElement = findElement("main(");
+    ImportElement importElement = findNode("import 'Lib.dart", ImportDirective.class).getElement();
+    // index
+    index.visitCompilationUnit(testUnit);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    assertRecordedRelation(
+        relations,
+        importElement,
+        IndexConstants.IS_REFERENCED_BY,
+        new ExpectedLocation(mainElement, findOffset("pref.myFunc()"), "pref."));
+  }
+
   public void test_isReferencedBy_ImportElement_withPrefix_oneCandidate() throws Exception {
     setFileContent(
         "Lib.dart",

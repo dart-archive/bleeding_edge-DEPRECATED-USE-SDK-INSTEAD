@@ -61,7 +61,7 @@ public class RenameImportRefactoringImplTest extends RenameRefactoringImplTest {
         "}");
   }
 
-  public void test_createChange_change() throws Exception {
+  public void test_createChange_change_className() throws Exception {
     indexTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
         "import 'dart:math' as test;",
@@ -81,6 +81,29 @@ public class RenameImportRefactoringImplTest extends RenameRefactoringImplTest {
         "import 'dart:async' as newName;",
         "main() {",
         "  newName.Future f;",
+        "}");
+  }
+
+  public void test_createChange_change_function() throws Exception {
+    indexTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "import 'dart:math' as test;",
+        "import 'dart:async' as test;",
+        "main() {",
+        "  test.max(1, 2);",
+        "}");
+    // configure refactoring
+    createRenameRefactoring("test.max");
+    assertEquals("Rename Import Prefix", refactoring.getRefactoringName());
+    assertEquals("test", refactoring.getCurrentName());
+    refactoring.setNewName("newName");
+    // validate change
+    assertSuccessfulRename(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "import 'dart:math' as newName;",
+        "import 'dart:async' as test;",
+        "main() {",
+        "  newName.max(1, 2);",
         "}");
   }
 

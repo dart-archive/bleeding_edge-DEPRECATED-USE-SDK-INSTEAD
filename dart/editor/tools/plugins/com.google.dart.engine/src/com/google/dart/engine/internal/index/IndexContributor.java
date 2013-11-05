@@ -101,6 +101,14 @@ import java.util.Set;
  * @coverage dart.engine.index
  */
 public class IndexContributor extends GeneralizingASTVisitor<Void> {
+  /**
+   * Information about {@link ImportElement} and place where it is referenced using
+   * {@link PrefixElement}.
+   */
+  private static class ImportElementInfo {
+    ImportElement element;
+    int periodEnd;
+  }
 
   /**
    * @return the {@link Location} representing location of the {@link Element}.
@@ -120,24 +128,49 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
    *         may be {@code null}.
    */
   public static ImportElement getImportElement(SimpleIdentifier prefixNode) {
+    ImportElementInfo info = getImportElementInfo(prefixNode);
+    return info != null ? info.element : null;
+  }
+
+  /**
+   * @return the {@link ImportElementInfo} with {@link ImportElement} that is referenced by this
+   *         node with {@link PrefixElement}, may be {@code null}.
+   */
+  public static ImportElementInfo getImportElementInfo(SimpleIdentifier prefixNode) {
+    ImportElementInfo info = new ImportElementInfo();
+    // prepare environment
+    ASTNode parent = prefixNode.getParent();
     CompilationUnit unit = prefixNode.getAncestor(CompilationUnit.class);
     LibraryElement libraryElement = unit.getElement().getLibrary();
-    // prefix should be used
-    ASTNode parent = prefixNode.getParent();
-    if (!(parent instanceof PrefixedIdentifier)) {
+    // prepare used element
+    Element usedElement = null;
+    if (parent instanceof PrefixedIdentifier) {
+      PrefixedIdentifier prefixed = (PrefixedIdentifier) parent;
+      usedElement = prefixed.getStaticElement();
+      info.periodEnd = prefixed.getPeriod().getEnd();
+    }
+    if (parent instanceof MethodInvocation) {
+      MethodInvocation invocation = (MethodInvocation) parent;
+      usedElement = invocation.getMethodName().getStaticElement();
+      info.periodEnd = invocation.getPeriod().getEnd();
+    }
+    // we need used Element
+    if (usedElement == null) {
       return null;
     }
-    // prepare used element
-    Element usedElement = ((PrefixedIdentifier) parent).getStaticElement();
     // find ImportElement
     String prefix = prefixNode.getName();
     Map<ImportElement, Set<Element>> importElementsMap = Maps.newHashMap();
-    return getImportElement(libraryElement, prefix, usedElement, importElementsMap);
+    info.element = getImportElement(libraryElement, prefix, usedElement, importElementsMap);
+    if (info.element == null) {
+      return null;
+    }
+    return info;
   }
 
   /**
    * @return the {@link ImportElement} that declares given {@link PrefixElement} and imports library
-   *         with element used by {@link PrefixedIdentifier} with given prefix node.
+   *         with given "usedElement".
    */
   private static ImportElement getImportElement(LibraryElement libraryElement, String prefix,
       Element usedElement, Map<ImportElement, Set<Element>> importElementsMap) {
@@ -841,29 +874,15 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
 
   /**
    * Records {@link ImportElement} that declares given prefix and imports library with element used
-   * by {@link PrefixedIdentifier} with given prefix node.
+   * with given prefix node.
    */
   private void recordImportElementReferenceWithPrefix(SimpleIdentifier prefixNode) {
-    // prefix should be used
-    ASTNode parent = prefixNode.getParent();
-    if (!(parent instanceof PrefixedIdentifier)) {
-      return;
-    }
-    PrefixedIdentifier prefixed = (PrefixedIdentifier) parent;
-    // prepare used element
-    Element usedElement = prefixed.getStaticElement();
-    // find ImportElement
-    String prefix = prefixNode.getName();
-    ImportElement importElement = getImportElement(
-        libraryElement,
-        prefix,
-        usedElement,
-        importElementsMap);
-    if (importElement != null) {
+    ImportElementInfo info = getImportElementInfo(prefixNode);
+    if (info != null) {
       int offset = prefixNode.getOffset();
-      int length = prefixed.getPeriod().getEnd() - offset;
+      int length = info.periodEnd - offset;
       Location location = createLocation(offset, length);
-      recordRelationship(importElement, IndexConstants.IS_REFERENCED_BY, location);
+      recordRelationship(info.element, IndexConstants.IS_REFERENCED_BY, location);
     }
   }
 
