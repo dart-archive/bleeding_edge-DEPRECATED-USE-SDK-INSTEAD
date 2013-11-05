@@ -853,7 +853,7 @@ class VarUsage extends Expression {
   VarUsage clone() {
     var clonedValues = [];
     for (var expr in defaultValues) {
-      clonedValues.addd(expr.clone());
+      clonedValues.add(expr.clone());
     }
     return new VarUsage(name, clonedValues, span);
   }
