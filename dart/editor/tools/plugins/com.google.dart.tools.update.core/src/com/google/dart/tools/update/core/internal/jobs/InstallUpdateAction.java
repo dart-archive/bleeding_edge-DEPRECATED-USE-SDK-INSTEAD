@@ -44,6 +44,8 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * An action that installs an available Dart Editor update.
@@ -66,6 +68,8 @@ public class InstallUpdateAction extends Action {
     }
 
   }
+
+  private static final String SLASH = System.getProperty("file.separator");
 
   private static final String INSTALL_SCRIPT = "install.py";
 
@@ -234,6 +238,11 @@ public class InstallUpdateAction extends Action {
 
   private boolean doApplyUpdate(IProgressMonitor monitor) throws IOException {
 
+    File installer = getInstaller();
+    if (installer != null && installer.exists()) {
+      return runInstaller(installer);
+    }
+
     File installTarget = UpdateUtils.getUpdateInstallDir();
     //TODO (pquitslund): only necessary for testing
     if (!installTarget.exists()) {
@@ -326,6 +335,16 @@ public class InstallUpdateAction extends Action {
     return new File(dir, "DartEditor.ini"); //$NON-NLS-1$
   }
 
+  /**
+   * @return
+   */
+  private File getInstaller() {
+    IPath zipPath = updateManager.getLatestStagedUpdate().getLocalPath();
+    IPath msiFile = zipPath.removeFileExtension().addFileExtension("msi");
+    File installer = msiFile.toFile();
+    return installer;
+  }
+
   private Shell getShell() {
     return PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell();
   }
@@ -375,6 +394,31 @@ public class InstallUpdateAction extends Action {
     PlatformUI.getWorkbench().restart();
   }
 
+  private boolean runInstaller(File msiFile) {
+
+    //msiexec.exe /i PATH_TO_NEW_INSTALLER /quiet
+    List<String> args = new ArrayList<String>();
+    args.add("msiexec.exe");
+    args.add("/i");
+    args.add(msiFile.getName());
+    //TODO (pquitslund): investigate how reliable the quiet flag is
+    //args.add("/quiet");
+
+    ProcessBuilder builder = new ProcessBuilder(args);
+    builder.directory(msiFile.getParentFile());
+    builder.redirectErrorStream(true);
+
+    ProcessRunner runner = new ProcessRunner(builder);
+    try {
+      runner.runAsync();
+    } catch (IOException e) {
+      DartCore.logError(msiFile.getName() + " IOException" + SLASH + runner.getStdOut(), e);
+    }
+
+    // Return false to indicate NO restart
+    return false;
+  }
+
   private void runInstallScript(File installScript, SubMonitor mon) {
 
     mon.beginTask("Running " + installScript.getName(), IProgressMonitor.UNKNOWN);
@@ -388,15 +432,12 @@ public class InstallUpdateAction extends Action {
     try {
       result = runner.runSync(mon);
     } catch (IOException e) {
-      DartCore.logError(
-          installScript.getName() + " IOException" + System.getProperty("file.separator")
-              + runner.getStdOut(),
-          e);
+      DartCore.logError(installScript.getName() + " IOException" + SLASH + runner.getStdOut(), e);
       return;
     }
     if (result != 0) {
-      DartCore.logError(installScript.getName() + " terminated abnormally: " + result
-          + System.getProperty("file.separator") + runner.getStdOut());
+      DartCore.logError(installScript.getName() + " terminated abnormally: " + result + SLASH
+          + runner.getStdOut());
     }
   }
 

@@ -22,9 +22,11 @@ import org.apache.commons.compress.utils.IOUtils;
 import org.eclipse.core.filesystem.EFS;
 import org.eclipse.core.filesystem.IFileInfo;
 import org.eclipse.core.filesystem.IFileStore;
+import org.eclipse.core.filesystem.URIUtil;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.util.Util;
 import org.eclipse.swt.internal.Library;
 import org.json.JSONException;
@@ -43,6 +45,7 @@ import java.lang.reflect.Field;
 import java.net.Authenticator;
 import java.net.MalformedURLException;
 import java.net.PasswordAuthentication;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
@@ -114,6 +117,9 @@ public class UpdateUtils {
       UpdateCore.logError(e);
     }
   }
+
+  // A sentinel file on windows to indicate that this binary is managed by an MSI installer
+  private static final String INSTALLER_FILE = "README-WIN";
 
   /**
    * Copy the contents of one directory to another directory recursively.
@@ -290,6 +296,40 @@ public class UpdateUtils {
   }
 
   /**
+   * Get the file associating this binary with an installer, or <code>null</code> if there is none.
+   */
+  public static File getInstallerMarkerFile() {
+    if (Util.isWindows()) {
+      try {
+        URL installLocation = Platform.getInstallLocation().getURL();
+        return URIUtil.toPath(org.eclipse.core.runtime.URIUtil.toURI(installLocation)).append(
+            INSTALLER_FILE).toFile();
+      } catch (URISyntaxException e) {
+        // Shouldn't happen and if it does, default to null
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Build a platform-aware installer download URL for the given revision.
+   * 
+   * @param revision the revision
+   * @param newBinaryNamingScheme <code>true</code> if the new binary naming scheme is to be used,
+   *          <code>false</code> otherwise
+   * @return a download url
+   * @throws MalformedURLException
+   */
+  public static URL getInstallerUrl(Revision revision, boolean newBinaryNamingScheme)
+      throws MalformedURLException {
+    // darteditor-windows-ia32.zip => darteditor-installer-windows-ia32.msi
+    String binaryName = getBinaryName(newBinaryNamingScheme);
+    binaryName = binaryName.replace("darteditor-windows", "darteditor-installer-windows");
+    binaryName = binaryName.subSequence(0, binaryName.length() - "zip".length()) + "msi";
+    return new URL(UpdateCore.getUpdateUrl() + revision.toString() + "/" + binaryName);
+  }
+
+  /**
    * Parse the latest revision from the revision listing at the given url.
    * 
    * @param url the url to check
@@ -380,6 +420,14 @@ public class UpdateUtils {
       throws MalformedURLException {
     return new URL(UpdateCore.getUpdateUrl() + revision.toString() + "/"
         + getBinaryName(newBinaryNamingScheme));
+  }
+
+  /**
+   * Test for the presence of an installer.
+   */
+  public static boolean isInstallerPresent() {
+    File installer = getInstallerMarkerFile();
+    return installer != null && installer.exists();
   }
 
   /**

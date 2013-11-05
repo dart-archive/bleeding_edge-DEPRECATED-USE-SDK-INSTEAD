@@ -95,7 +95,7 @@ public class DownloadManager {
     Revision latest = Revision.UNKNOWN;
     if (dir.exists() && dir.isDirectory()) {
       for (File file : dir.listFiles()) {
-        Revision revision = Revision.forValue(file.getName().split(".zip")[0]);
+        Revision revision = getRevisionNumber(file);
         if (revision.isMoreCurrentThan(latest)) {
           latest = revision;
         }
@@ -258,6 +258,14 @@ public class DownloadManager {
       }
     });
     updateJob.schedule();
+  }
+
+  private Revision getRevisionNumber(File file) {
+    String name = file.getName();
+    if (name.endsWith(".msi")) {
+      return Revision.forValue(name.substring(0, name.length() - 4));
+    }
+    return Revision.forValue(name.split(".zip")[0]);
   }
 
 }

@@ -28,6 +28,7 @@ import org.eclipse.osgi.util.NLS;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.MalformedURLException;
 
 /**
  * A job to download the latest available update.
@@ -62,15 +63,61 @@ public class DownloadUpdatesJob extends Job {
     return Status.OK_STATUS;
   }
 
+  private SubMonitor createSubMonitor(IProgressMonitor monitor) {
+    return SubMonitor.convert(monitor, UpdateJobMessages.DownloadUpdatesJob_progress_label, 100);
+  }
+
+  private void downloadInstaller(Revision revision, IProgressMonitor monitor) throws IOException {
+    File installerFile = null;
+    SubMonitor mon = createSubMonitor(monitor);
+    File updateDir = UpdateUtils.getUpdateDir();
+
+    try {
+
+      installerFile = new File(updateDir, revision.toString() + ".msi"); //$NON-NLS-1$
+      installerFile.createNewFile();
+
+      //TODO (pquitslund): remove retry when the new scheme has settled in
+      try {
+        UpdateUtils.downloadFile(
+            UpdateUtils.getInstallerUrl(revision, true),
+            installerFile,
+            NLS.bind(UpdateJobMessages.DownloadUpdatesJob_editor_rev_label, revision.toString()),
+            mon);
+      } catch (FileNotFoundException e) {
+        // fall back to old bucket
+        UpdateUtils.downloadFile(
+            UpdateUtils.getInstallerUrl(revision, false),
+            installerFile,
+            NLS.bind(UpdateJobMessages.DownloadUpdatesJob_editor_rev_label, revision.toString()),
+            mon);
+      }
+
+    } finally {
+      if (installerFile != null) {
+        // ensure installer file is valid
+        if (installerFile.length() == 0) {
+          installerFile.delete();
+        }
+      }
+
+      monitor.done();
+    }
+  }
+
   private void downloadRevision(Revision revision, IProgressMonitor monitor) throws IOException {
+    if (UpdateUtils.isInstallerPresent()) {
+      downloadInstaller(revision, monitor);
+    } else {
+      downloadZip(revision, monitor);
+    }
+  }
+
+  private void downloadZip(Revision revision, IProgressMonitor monitor) throws IOException,
+      MalformedURLException {
 
     File updateFile = null;
-
-    SubMonitor mon = SubMonitor.convert(
-        monitor,
-        UpdateJobMessages.DownloadUpdatesJob_progress_label,
-        100);
-
+    SubMonitor mon = createSubMonitor(monitor);
     File updateDir = UpdateUtils.getUpdateDir();
 
     try {
@@ -110,5 +157,4 @@ public class DownloadUpdatesJob extends Job {
       monitor.done();
     }
   }
-
 }
