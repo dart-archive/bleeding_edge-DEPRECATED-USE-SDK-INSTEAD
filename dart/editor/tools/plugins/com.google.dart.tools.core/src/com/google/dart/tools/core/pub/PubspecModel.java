@@ -135,6 +135,10 @@ public class PubspecModel {
     return sdkVersion;
   }
 
+  public ArrayList<Object> getTransformers() {
+    return transformers;
+  }
+
   public String getVersion() {
     return version;
   }
