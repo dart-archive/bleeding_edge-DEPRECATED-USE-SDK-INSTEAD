@@ -26,6 +26,9 @@ DEFINE_FLAG(bool, array_bounds_check_elimination, true,
 DEFINE_FLAG(bool, load_cse, true, "Use redundant load elimination.");
 DEFINE_FLAG(int, max_polymorphic_checks, 4,
     "Maximum number of polymorphic check, otherwise it is megamorphic.");
+DEFINE_FLAG(int, max_equality_polymorphic_checks, 32,
+    "Maximum number of polymorphic checks in equality operator,"
+    " otherwise use megamorphic dispatch.");
 DEFINE_FLAG(bool, remove_redundant_phis, true, "Remove redundant phis.");
 DEFINE_FLAG(bool, trace_constant_propagation, false,
     "Print constant propagation and useless code elimination.");
@@ -85,9 +88,6 @@ void FlowGraphOptimizer::ApplyClassIds() {
         ComparisonInstr* compare = instr->AsBranch()->comparison();
         if (compare->IsStrictCompare()) {
           VisitStrictCompare(compare->AsStrictCompare());
-        } else if (compare->IsEqualityCompare()) {
-          StrictifyEqualityCompare(compare->AsEqualityCompare(),
-                                   instr->AsBranch());
         }
       }
     }
@@ -393,13 +393,13 @@ void FlowGraphOptimizer::InsertConversion(Representation from,
     converted = new UnboxFloat32x4Instr(use->CopyWithType(), deopt_id);
   } else if ((from == kUnboxedFloat32x4) && (to == kTagged)) {
     converted = new BoxFloat32x4Instr(use->CopyWithType());
-  } else if ((from == kTagged) && (to == kUnboxedUint32x4)) {
-    ASSERT((deopt_target != NULL) || (use->Type()->ToCid() == kUint32x4Cid));
+  } else if ((from == kTagged) && (to == kUnboxedInt32x4)) {
+    ASSERT((deopt_target != NULL) || (use->Type()->ToCid() == kInt32x4Cid));
     const intptr_t deopt_id = (deopt_target != NULL) ?
         deopt_target->DeoptimizationTarget() : Isolate::kNoDeoptId;
-    converted = new UnboxUint32x4Instr(use->CopyWithType(), deopt_id);
-  } else if ((from == kUnboxedUint32x4) && (to == kTagged)) {
-    converted = new BoxUint32x4Instr(use->CopyWithType());
+    converted = new UnboxInt32x4Instr(use->CopyWithType(), deopt_id);
+  } else if ((from == kUnboxedInt32x4) && (to == kTagged)) {
+    converted = new BoxInt32x4Instr(use->CopyWithType());
   } else {
     // We have failed to find a suitable conversion instruction.
     // Insert two "dummy" conversion instructions with the correct
@@ -412,8 +412,8 @@ void FlowGraphOptimizer::InsertConversion(Representation from,
     Definition* boxed = NULL;
     if (from == kUnboxedDouble) {
       boxed = new BoxDoubleInstr(use->CopyWithType());
-    } else if (from == kUnboxedUint32x4) {
-      boxed = new BoxUint32x4Instr(use->CopyWithType());
+    } else if (from == kUnboxedInt32x4) {
+      boxed = new BoxInt32x4Instr(use->CopyWithType());
     } else if (from == kUnboxedFloat32x4) {
       boxed = new BoxFloat32x4Instr(use->CopyWithType());
     } else if (from == kUnboxedMint) {
@@ -426,8 +426,8 @@ void FlowGraphOptimizer::InsertConversion(Representation from,
     Value* to_value = new Value(boxed);
     if (to == kUnboxedDouble) {
       converted = new UnboxDoubleInstr(to_value, deopt_id);
-    } else if (to == kUnboxedUint32x4) {
-      converted = new UnboxUint32x4Instr(to_value, deopt_id);
+    } else if (to == kUnboxedInt32x4) {
+      converted = new UnboxInt32x4Instr(to_value, deopt_id);
     } else if (to == kUnboxedFloat32x4) {
       converted = new UnboxFloat32x4Instr(to_value, deopt_id);
     } else if (to == kUnboxedMint) {
@@ -492,9 +492,9 @@ static bool UnboxPhi(PhiInstr* phi) {
         unboxed = kUnboxedFloat32x4;
       }
       break;
-    case kUint32x4Cid:
+    case kInt32x4Cid:
       if (ShouldInlineSimd()) {
-        unboxed = kUnboxedUint32x4;
+        unboxed = kUnboxedInt32x4;
       }
       break;
   }
@@ -510,7 +510,7 @@ static bool UnboxPhi(PhiInstr* phi) {
 
 void FlowGraphOptimizer::SelectRepresentations() {
   // Convervatively unbox all phis that were proven to be of Double,
-  // Float32x4, or Uint32x4 type.
+  // Float32x4, or Int32x4 type.
   for (intptr_t i = 0; i < block_order_.length(); ++i) {
     JoinEntryInstr* join_entry = block_order_[i]->AsJoinEntry();
     if (join_entry != NULL) {
@@ -812,9 +812,9 @@ static intptr_t MethodKindToCid(MethodRecognizer::Kind kind) {
     case MethodRecognizer::kFloat32x4ArraySetIndexed:
       return kTypedDataFloat32x4ArrayCid;
 
-    case MethodRecognizer::kUint32x4ArrayGetIndexed:
-    case MethodRecognizer::kUint32x4ArraySetIndexed:
-      return kTypedDataUint32x4ArrayCid;
+    case MethodRecognizer::kInt32x4ArrayGetIndexed:
+    case MethodRecognizer::kInt32x4ArraySetIndexed:
+      return kTypedDataInt32x4ArrayCid;
 
     default:
       break;
@@ -976,7 +976,7 @@ bool FlowGraphOptimizer::InlineSetIndexed(
                                                          : kEmitStoreBarrier;
   if (!value_check.IsNull()) {
     // No store barrier needed because checked value is a smi, an unboxed mint,
-    // an unboxed double, an unboxed Float32x4, or unboxed Uint32x4.
+    // an unboxed double, an unboxed Float32x4, or unboxed Int32x4.
     needs_store_barrier = kNoStoreBarrier;
     Instruction* check =
         GetCheckClass(stored_value, value_check, call->deopt_id());
@@ -1122,10 +1122,10 @@ bool FlowGraphOptimizer::TryInlineRecognizedMethod(intptr_t receiver_cid,
       return InlineByteArrayViewLoad(call, receiver, receiver_cid,
                                      kTypedDataFloat32x4ArrayCid,
                                      ic_data, entry, last);
-    case MethodRecognizer::kByteArrayBaseGetUint32x4:
+    case MethodRecognizer::kByteArrayBaseGetInt32x4:
       if (!ShouldInlineSimd()) return false;
       return InlineByteArrayViewLoad(call, receiver, receiver_cid,
-                                     kTypedDataUint32x4ArrayCid,
+                                     kTypedDataInt32x4ArrayCid,
                                      ic_data, entry, last);
     default:
       return false;
@@ -1288,6 +1288,101 @@ bool FlowGraphOptimizer::TryReplaceWithLoadIndexed(InstanceCallInstr* call) {
 
 static bool SmiFitsInDouble() { return kSmiBits < 53; }
 
+bool FlowGraphOptimizer::TryReplaceWithEqualityOp(InstanceCallInstr* call,
+                                                  Token::Kind op_kind) {
+  const ICData& ic_data = *call->ic_data();
+  ASSERT(ic_data.num_args_tested() == 2);
+
+  ASSERT(call->ArgumentCount() == 2);
+  Definition* left = call->ArgumentAt(0);
+  Definition* right = call->ArgumentAt(1);
+
+  intptr_t cid = kIllegalCid;
+  if (HasOnlyTwoOf(ic_data, kSmiCid)) {
+    InsertBefore(call,
+                 new CheckSmiInstr(new Value(left), call->deopt_id()),
+                 call->env(),
+                 Definition::kEffect);
+    InsertBefore(call,
+                 new CheckSmiInstr(new Value(right), call->deopt_id()),
+                 call->env(),
+                 Definition::kEffect);
+    cid = kSmiCid;
+  } else if (HasTwoMintOrSmi(ic_data) &&
+             FlowGraphCompiler::SupportsUnboxedMints()) {
+    cid = kMintCid;
+  } else if (HasTwoDoubleOrSmi(ic_data)) {
+    // Use double comparison.
+    if (SmiFitsInDouble()) {
+      cid = kDoubleCid;
+    } else {
+      if (ICDataHasReceiverArgumentClassIds(ic_data, kSmiCid, kSmiCid)) {
+        // We cannot use double comparison on two smis. Need polymorphic
+        // call.
+        return false;
+      } else {
+        InsertBefore(call,
+                     new CheckEitherNonSmiInstr(new Value(left),
+                                                new Value(right),
+                                                call->deopt_id()),
+                     call->env(),
+                     Definition::kEffect);
+        cid = kDoubleCid;
+      }
+    }
+  } else {
+    // Check if ICDData contains checks with Smi/Null combinations. In that case
+    // we can still emit the optimized Smi equality operation but need to add
+    // checks for null or Smi.
+    GrowableArray<intptr_t> smi_or_null(2);
+    smi_or_null.Add(kSmiCid);
+    smi_or_null.Add(kNullCid);
+    if (ICDataHasOnlyReceiverArgumentClassIds(ic_data,
+                                              smi_or_null,
+                                              smi_or_null)) {
+      const ICData& unary_checks_0 =
+          ICData::ZoneHandle(call->ic_data()->AsUnaryClassChecks());
+      AddCheckClass(left,
+                    unary_checks_0,
+                    call->deopt_id(),
+                    call->env(),
+                    call);
+
+      const ICData& unary_checks_1 =
+          ICData::ZoneHandle(call->ic_data()->AsUnaryClassChecksForArgNr(1));
+      AddCheckClass(right,
+                    unary_checks_1,
+                    call->deopt_id(),
+                    call->env(),
+                    call);
+      cid = kSmiCid;
+    } else {
+      // Shortcut for equality with null.
+      ConstantInstr* right_const = right->AsConstant();
+      ConstantInstr* left_const = left->AsConstant();
+      if ((right_const != NULL && right_const->value().IsNull()) ||
+          (left_const != NULL && left_const->value().IsNull())) {
+        StrictCompareInstr* comp = new StrictCompareInstr(call->token_pos(),
+                                                          Token::kEQ_STRICT,
+                                                          new Value(left),
+                                                          new Value(right));
+        ReplaceCall(call, comp);
+        return true;
+      }
+      return false;
+    }
+  }
+  ASSERT(cid != kIllegalCid);
+  EqualityCompareInstr* comp = new EqualityCompareInstr(call->token_pos(),
+                                                        op_kind,
+                                                        new Value(left),
+                                                        new Value(right),
+                                                        cid,
+                                                        call->deopt_id());
+  ReplaceCall(call, comp);
+  return true;
+}
+
 
 bool FlowGraphOptimizer::TryReplaceWithRelationalOp(InstanceCallInstr* call,
                                                     Token::Kind op_kind) {
@@ -1370,8 +1465,8 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
         operands_type = kDoubleCid;
       } else if (HasOnlyTwoOf(ic_data, kFloat32x4Cid)) {
         operands_type = kFloat32x4Cid;
-      } else if (HasOnlyTwoOf(ic_data, kUint32x4Cid)) {
-        operands_type = kUint32x4Cid;
+      } else if (HasOnlyTwoOf(ic_data, kInt32x4Cid)) {
+        operands_type = kInt32x4Cid;
       } else {
         return false;
       }
@@ -1415,8 +1510,8 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
         operands_type = kSmiCid;
       } else if (HasTwoMintOrSmi(ic_data)) {
         operands_type = kMintCid;
-      } else if (HasOnlyTwoOf(ic_data, kUint32x4Cid)) {
-        operands_type = kUint32x4Cid;
+      } else if (HasOnlyTwoOf(ic_data, kInt32x4Cid)) {
+        operands_type = kInt32x4Cid;
       } else {
         return false;
       }
@@ -1490,8 +1585,8 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
     }
   } else if (operands_type == kFloat32x4Cid) {
     return InlineFloat32x4BinaryOp(call, op_kind);
-  } else if (operands_type == kUint32x4Cid) {
-    return InlineUint32x4BinaryOp(call, op_kind);
+  } else if (operands_type == kInt32x4Cid) {
+    return InlineInt32x4BinaryOp(call, op_kind);
   } else if (op_kind == Token::kMOD) {
     // TODO(vegorov): implement fast path code for modulo.
     ASSERT(operands_type == kSmiCid);
@@ -1755,7 +1850,7 @@ bool FlowGraphOptimizer::InlineFloat32x4Getter(InstanceCallInstr* call,
 }
 
 
-bool FlowGraphOptimizer::InlineUint32x4Getter(InstanceCallInstr* call,
+bool FlowGraphOptimizer::InlineInt32x4Getter(InstanceCallInstr* call,
                                               MethodRecognizer::Kind getter) {
   if (!ShouldInlineSimd()) {
     return false;
@@ -1767,15 +1862,15 @@ bool FlowGraphOptimizer::InlineUint32x4Getter(InstanceCallInstr* call,
                 call->env(),
                 call);
   intptr_t mask = 0;
-  if ((getter == MethodRecognizer::kUint32x4Shuffle) ||
-      (getter == MethodRecognizer::kUint32x4ShuffleMix)) {
+  if ((getter == MethodRecognizer::kInt32x4Shuffle) ||
+      (getter == MethodRecognizer::kInt32x4ShuffleMix)) {
     // Extract shuffle mask.
     Definition* mask_definition = NULL;
-    if (getter == MethodRecognizer::kUint32x4Shuffle) {
+    if (getter == MethodRecognizer::kInt32x4Shuffle) {
       ASSERT(call->ArgumentCount() == 2);
       mask_definition = call->ArgumentAt(1);
     } else {
-      ASSERT(getter == MethodRecognizer::kUint32x4ShuffleMix);
+      ASSERT(getter == MethodRecognizer::kInt32x4ShuffleMix);
       ASSERT(call->ArgumentCount() == 3);
       mask_definition = call->ArgumentAt(2);
     }
@@ -1795,14 +1890,14 @@ bool FlowGraphOptimizer::InlineUint32x4Getter(InstanceCallInstr* call,
       return false;
     }
   }
-  if (getter == MethodRecognizer::kUint32x4GetSignMask) {
+  if (getter == MethodRecognizer::kInt32x4GetSignMask) {
     Simd32x4GetSignMaskInstr* instr = new Simd32x4GetSignMaskInstr(
         getter,
         new Value(call->ArgumentAt(0)),
         call->deopt_id());
     ReplaceCall(call, instr);
     return true;
-  } else if (getter == MethodRecognizer::kUint32x4ShuffleMix) {
+  } else if (getter == MethodRecognizer::kInt32x4ShuffleMix) {
     Simd32x4ShuffleMixInstr* instr = new Simd32x4ShuffleMixInstr(
         getter,
         new Value(call->ArgumentAt(0)),
@@ -1811,7 +1906,7 @@ bool FlowGraphOptimizer::InlineUint32x4Getter(InstanceCallInstr* call,
         call->deopt_id());
     ReplaceCall(call, instr);
     return true;
-  } else if (getter == MethodRecognizer::kUint32x4Shuffle) {
+  } else if (getter == MethodRecognizer::kInt32x4Shuffle) {
     Simd32x4ShuffleInstr* instr = new Simd32x4ShuffleInstr(
         getter,
         new Value(call->ArgumentAt(0)),
@@ -1820,7 +1915,7 @@ bool FlowGraphOptimizer::InlineUint32x4Getter(InstanceCallInstr* call,
     ReplaceCall(call, instr);
     return true;
   } else {
-    Uint32x4GetFlagInstr* instr = new Uint32x4GetFlagInstr(
+    Int32x4GetFlagInstr* instr = new Int32x4GetFlagInstr(
         getter,
         new Value(call->ArgumentAt(0)),
         call->deopt_id());
@@ -1862,7 +1957,7 @@ bool FlowGraphOptimizer::InlineFloat32x4BinaryOp(InstanceCallInstr* call,
 }
 
 
-bool FlowGraphOptimizer::InlineUint32x4BinaryOp(InstanceCallInstr* call,
+bool FlowGraphOptimizer::InlineInt32x4BinaryOp(InstanceCallInstr* call,
                                                 Token::Kind op_kind) {
   if (!ShouldInlineSimd()) {
     return false;
@@ -1885,10 +1980,10 @@ bool FlowGraphOptimizer::InlineUint32x4BinaryOp(InstanceCallInstr* call,
                 call->env(),
                 call);
   // Replace call.
-  BinaryUint32x4OpInstr* uint32x4_bin_op =
-      new BinaryUint32x4OpInstr(op_kind, new Value(left), new Value(right),
+  BinaryInt32x4OpInstr* int32x4_bin_op =
+      new BinaryInt32x4OpInstr(op_kind, new Value(left), new Value(right),
                                 call->deopt_id());
-  ReplaceCall(call, uint32x4_bin_op);
+  ReplaceCall(call, int32x4_bin_op);
   return true;
 }
 
@@ -1987,7 +2082,7 @@ static bool IsSupportedByteArrayViewCid(intptr_t cid) {
     case kTypedDataFloat32ArrayCid:
     case kTypedDataFloat64ArrayCid:
     case kTypedDataFloat32x4ArrayCid:
-    case kTypedDataUint32x4ArrayCid:
+    case kTypedDataInt32x4ArrayCid:
       return true;
     default:
       return false;
@@ -2161,8 +2256,8 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
         return BuildByteArrayViewLoad(call, kTypedDataFloat64ArrayCid);
       case MethodRecognizer::kByteArrayBaseGetFloat32x4:
         return BuildByteArrayViewLoad(call, kTypedDataFloat32x4ArrayCid);
-      case MethodRecognizer::kByteArrayBaseGetUint32x4:
-        return BuildByteArrayViewLoad(call, kTypedDataUint32x4ArrayCid);
+      case MethodRecognizer::kByteArrayBaseGetInt32x4:
+        return BuildByteArrayViewLoad(call, kTypedDataInt32x4ArrayCid);
 
       // ByteArray setters.
       case MethodRecognizer::kByteArrayBaseSetInt8:
@@ -2183,8 +2278,8 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
         return BuildByteArrayViewStore(call, kTypedDataFloat64ArrayCid);
       case MethodRecognizer::kByteArrayBaseSetFloat32x4:
         return BuildByteArrayViewStore(call, kTypedDataFloat32x4ArrayCid);
-      case MethodRecognizer::kByteArrayBaseSetUint32x4:
-        return BuildByteArrayViewStore(call, kTypedDataUint32x4ArrayCid);
+      case MethodRecognizer::kByteArrayBaseSetInt32x4:
+        return BuildByteArrayViewStore(call, kTypedDataInt32x4ArrayCid);
       default:
         // Unsupported method.
         return false;
@@ -2195,8 +2290,8 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
     return TryInlineFloat32x4Method(call, recognized_kind);
   }
 
-  if ((class_ids[0] == kUint32x4Cid) && (ic_data.NumberOfChecks() == 1)) {
-    return TryInlineUint32x4Method(call, recognized_kind);
+  if ((class_ids[0] == kInt32x4Cid) && (ic_data.NumberOfChecks() == 1)) {
+    return TryInlineInt32x4Method(call, recognized_kind);
   }
 
   if (recognized_kind == MethodRecognizer::kIntegerLeftShiftWithMask32) {
@@ -2288,9 +2383,9 @@ bool FlowGraphOptimizer::TryInlineFloat32x4Constructor(
                                       call->deopt_id());
     ReplaceCall(call, con);
     return true;
-  } else if (recognized_kind == MethodRecognizer::kFloat32x4FromUint32x4Bits) {
-    Uint32x4ToFloat32x4Instr* cast =
-        new Uint32x4ToFloat32x4Instr(new Value(call->ArgumentAt(1)),
+  } else if (recognized_kind == MethodRecognizer::kFloat32x4FromInt32x4Bits) {
+    Int32x4ToFloat32x4Instr* cast =
+        new Int32x4ToFloat32x4Instr(new Value(call->ArgumentAt(1)),
                                     call->deopt_id());
     ReplaceCall(call, cast);
     return true;
@@ -2299,14 +2394,14 @@ bool FlowGraphOptimizer::TryInlineFloat32x4Constructor(
 }
 
 
-bool FlowGraphOptimizer::TryInlineUint32x4Constructor(
+bool FlowGraphOptimizer::TryInlineInt32x4Constructor(
     StaticCallInstr* call,
     MethodRecognizer::Kind recognized_kind) {
   if (!ShouldInlineSimd()) {
     return false;
   }
-  if (recognized_kind == MethodRecognizer::kUint32x4BoolConstructor) {
-    Uint32x4BoolConstructorInstr* con = new Uint32x4BoolConstructorInstr(
+  if (recognized_kind == MethodRecognizer::kInt32x4BoolConstructor) {
+    Int32x4BoolConstructorInstr* con = new Int32x4BoolConstructorInstr(
         new Value(call->ArgumentAt(1)),
         new Value(call->ArgumentAt(2)),
         new Value(call->ArgumentAt(3)),
@@ -2314,9 +2409,9 @@ bool FlowGraphOptimizer::TryInlineUint32x4Constructor(
         call->deopt_id());
     ReplaceCall(call, con);
     return true;
-  } else if (recognized_kind == MethodRecognizer::kUint32x4FromFloat32x4Bits) {
-    Float32x4ToUint32x4Instr* cast =
-        new Float32x4ToUint32x4Instr(new Value(call->ArgumentAt(1)),
+  } else if (recognized_kind == MethodRecognizer::kInt32x4FromFloat32x4Bits) {
+    Float32x4ToInt32x4Instr* cast =
+        new Float32x4ToInt32x4Instr(new Value(call->ArgumentAt(1)),
                                      call->deopt_id());
     ReplaceCall(call, cast);
     return true;
@@ -2480,7 +2575,7 @@ bool FlowGraphOptimizer::TryInlineFloat32x4Method(
 }
 
 
-bool FlowGraphOptimizer::TryInlineUint32x4Method(
+bool FlowGraphOptimizer::TryInlineInt32x4Method(
     InstanceCallInstr* call,
     MethodRecognizer::Kind recognized_kind) {
   if (!ShouldInlineSimd()) {
@@ -2488,18 +2583,18 @@ bool FlowGraphOptimizer::TryInlineUint32x4Method(
   }
   ASSERT(call->HasICData());
   switch (recognized_kind) {
-    case MethodRecognizer::kUint32x4ShuffleMix:
-    case MethodRecognizer::kUint32x4Shuffle:
-    case MethodRecognizer::kUint32x4GetFlagX:
-    case MethodRecognizer::kUint32x4GetFlagY:
-    case MethodRecognizer::kUint32x4GetFlagZ:
-    case MethodRecognizer::kUint32x4GetFlagW:
-    case MethodRecognizer::kUint32x4GetSignMask:
-      ASSERT(call->ic_data()->HasReceiverClassId(kUint32x4Cid));
+    case MethodRecognizer::kInt32x4ShuffleMix:
+    case MethodRecognizer::kInt32x4Shuffle:
+    case MethodRecognizer::kInt32x4GetFlagX:
+    case MethodRecognizer::kInt32x4GetFlagY:
+    case MethodRecognizer::kInt32x4GetFlagZ:
+    case MethodRecognizer::kInt32x4GetFlagW:
+    case MethodRecognizer::kInt32x4GetSignMask:
+      ASSERT(call->ic_data()->HasReceiverClassId(kInt32x4Cid));
       ASSERT(call->ic_data()->HasOneTarget());
-      return InlineUint32x4Getter(call, recognized_kind);
+      return InlineInt32x4Getter(call, recognized_kind);
 
-    case MethodRecognizer::kUint32x4Select: {
+    case MethodRecognizer::kInt32x4Select: {
       Definition* mask = call->ArgumentAt(0);
       Definition* trueValue = call->ArgumentAt(1);
       Definition* falseValue = call->ArgumentAt(2);
@@ -2510,7 +2605,7 @@ bool FlowGraphOptimizer::TryInlineUint32x4Method(
                     call->deopt_id(),
                     call->env(),
                     call);
-      Uint32x4SelectInstr* select = new Uint32x4SelectInstr(
+      Int32x4SelectInstr* select = new Int32x4SelectInstr(
           new Value(mask),
           new Value(trueValue),
           new Value(falseValue),
@@ -2518,10 +2613,10 @@ bool FlowGraphOptimizer::TryInlineUint32x4Method(
       ReplaceCall(call, select);
       return true;
     }
-    case MethodRecognizer::kUint32x4WithFlagX:
-    case MethodRecognizer::kUint32x4WithFlagY:
-    case MethodRecognizer::kUint32x4WithFlagZ:
-    case MethodRecognizer::kUint32x4WithFlagW: {
+    case MethodRecognizer::kInt32x4WithFlagX:
+    case MethodRecognizer::kInt32x4WithFlagY:
+    case MethodRecognizer::kInt32x4WithFlagZ:
+    case MethodRecognizer::kInt32x4WithFlagW: {
       Definition* left = call->ArgumentAt(0);
       Definition* flag = call->ArgumentAt(1);
       // Type check left.
@@ -2531,7 +2626,7 @@ bool FlowGraphOptimizer::TryInlineUint32x4Method(
                     call->deopt_id(),
                     call->env(),
                     call);
-      Uint32x4SetFlagInstr* setFlag = new Uint32x4SetFlagInstr(
+      Int32x4SetFlagInstr* setFlag = new Int32x4SetFlagInstr(
           recognized_kind,
           new Value(left),
           new Value(flag),
@@ -2675,7 +2770,7 @@ intptr_t FlowGraphOptimizer::PrepareInlineByteArrayViewOp(
 bool FlowGraphOptimizer::BuildByteArrayViewLoad(InstanceCallInstr* call,
                                                 intptr_t view_cid) {
   bool simd_view = (view_cid == kTypedDataFloat32x4ArrayCid) ||
-                   (view_cid == kTypedDataUint32x4ArrayCid);
+                   (view_cid == kTypedDataInt32x4ArrayCid);
   if (simd_view && !ShouldInlineSimd()) {
     return false;
   }
@@ -2725,7 +2820,7 @@ bool FlowGraphOptimizer::BuildByteArrayViewLoad(InstanceCallInstr* call,
 bool FlowGraphOptimizer::BuildByteArrayViewStore(InstanceCallInstr* call,
                                                  intptr_t view_cid) {
   bool simd_view = (view_cid == kTypedDataFloat32x4ArrayCid) ||
-                   (view_cid == kTypedDataUint32x4ArrayCid);
+                   (view_cid == kTypedDataInt32x4ArrayCid);
   if (simd_view && !ShouldInlineSimd()) {
     return false;
   }
@@ -2780,14 +2875,14 @@ bool FlowGraphOptimizer::BuildByteArrayViewStore(InstanceCallInstr* call,
       value_check.AddReceiverCheck(kDoubleCid, target);
       break;
     }
-    case kTypedDataUint32x4ArrayCid: {
-      // Check that value is always Uint32x4.
+    case kTypedDataInt32x4ArrayCid: {
+      // Check that value is always Int32x4.
       value_check = ICData::New(flow_graph_->parsed_function().function(),
                                 call->function_name(),
                                 Object::empty_array(),  // Dummy args. descr.
                                 Isolate::kNoDeoptId,
                                 1);
-      value_check.AddReceiverCheck(kUint32x4Cid, target);
+      value_check.AddReceiverCheck(kInt32x4Cid, target);
       break;
     }
     case kTypedDataFloat32x4ArrayCid: {
@@ -2933,6 +3028,18 @@ RawBool* FlowGraphOptimizer::InstanceOfAsBool(const ICData& ic_data,
 }
 
 
+static Definition* OriginalDefinition(Definition* defn) {
+  while (defn->IsRedefinition() || defn->IsAssertAssignable()) {
+    if (defn->IsRedefinition()) {
+      defn = defn->AsRedefinition()->value()->definition();
+    } else {
+      defn = defn->AsAssertAssignable()->value()->definition();
+    }
+  }
+  return defn;
+}
+
+
 // TODO(srdjan): Use ICData to check if always true or false.
 void FlowGraphOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
   ASSERT(Token::IsTypeTestOperator(call->token_kind()));
@@ -2941,8 +3048,8 @@ void FlowGraphOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
   Definition* type_args = call->ArgumentAt(2);
   const AbstractType& type =
       AbstractType::Cast(call->ArgumentAt(3)->AsConstant()->value());
-  const bool negate =
-      Bool::Cast(call->ArgumentAt(4)->AsConstant()->value()).value();
+  const bool negate = Bool::Cast(
+      OriginalDefinition(call->ArgumentAt(4))->AsConstant()->value()).value();
   const ICData& unary_checks =
       ICData::ZoneHandle(call->ic_data()->AsUnaryClassChecks());
   if (unary_checks.NumberOfChecks() <= FLAG_max_polymorphic_checks) {
@@ -3041,7 +3148,10 @@ void FlowGraphOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
   const ICData& unary_checks =
       ICData::ZoneHandle(instr->ic_data()->AsUnaryClassChecks());
 
-  if ((unary_checks.NumberOfChecks() > FLAG_max_polymorphic_checks) &&
+  intptr_t max_checks = (op_kind == Token::kEQ)
+      ? FLAG_max_equality_polymorphic_checks
+      : FLAG_max_polymorphic_checks;
+  if ((unary_checks.NumberOfChecks() > max_checks) &&
       InstanceCallNeedsClassCheck(instr)) {
     // Too many checks, it will be megamorphic which needs unary checks.
     instr->set_ic_data(&unary_checks);
@@ -3052,6 +3162,10 @@ void FlowGraphOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
     return;
   }
   if ((op_kind == Token::kINDEX) && TryReplaceWithLoadIndexed(instr)) {
+    return;
+  }
+
+  if (op_kind == Token::kEQ && TryReplaceWithEqualityOp(instr, op_kind)) {
     return;
   }
 
@@ -3136,8 +3250,8 @@ void FlowGraphOptimizer::VisitStaticCall(StaticCallInstr* call) {
              (recognized_kind == MethodRecognizer::kFloat32x4Splat) ||
              (recognized_kind == MethodRecognizer::kFloat32x4Constructor)) {
     TryInlineFloat32x4Constructor(call, recognized_kind);
-  } else if (recognized_kind == MethodRecognizer::kUint32x4BoolConstructor) {
-    TryInlineUint32x4Constructor(call, recognized_kind);
+  } else if (recognized_kind == MethodRecognizer::kInt32x4BoolConstructor) {
+    TryInlineInt32x4Constructor(call, recognized_kind);
   } else if (recognized_kind == MethodRecognizer::kObjectConstructor) {
     // Remove the original push arguments.
     for (intptr_t i = 0; i < call->ArgumentCount(); ++i) {
@@ -3277,222 +3391,6 @@ bool FlowGraphOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr,
   instr->RemoveEnvironment();
   ReplaceCall(instr, store);
   return true;
-}
-
-
-bool FlowGraphOptimizer::CanStrictifyEqualityCompare(
-    EqualityCompareInstr* compare) {
-  // If one of the inputs is null this is a strict comparison.
-  if (compare->left()->BindsToConstantNull() ||
-      compare->right()->BindsToConstantNull()) {
-    return true;
-  }
-
-  if (compare->left()->Type()->IsNone()) {
-    return false;  // We might be running prior to any type propagation passes.
-  }
-
-  // Try resolving target function using propagated cid for the receiver.
-  // If receiver is either null or has default equality operator then
-  // we can convert such comparison to a strict one.
-  const intptr_t receiver_cid =
-     compare->left()->Type()->ToNullableCid();
-
-  if (receiver_cid == kDynamicCid) {
-    return false;
-  }
-
-  const Class& receiver_class = Class::Handle(
-      Isolate::Current()->class_table()->At(receiver_cid));
-
-  // Resolve equality operator.
-  const intptr_t kNumArgs = 2;
-  ArgumentsDescriptor args_desc(
-      Array::Handle(ArgumentsDescriptor::New(kNumArgs)));
-  const Function& function = Function::Handle(
-      Resolver::ResolveDynamicForReceiverClass(
-          receiver_class,
-          Symbols::EqualOperator(),
-          args_desc));
-
-  if (function.IsNull()) {
-    return false;
-  }
-
-  // Default equality operator declared on the Object class just calls
-  // identical.
-  return (Class::Handle(function.Owner()).id() == kInstanceCid);
-}
-
-
-template <typename T>
-bool FlowGraphOptimizer::StrictifyEqualityCompare(
-    EqualityCompareInstr* compare,
-    T current_instruction) const {
-  if (CanStrictifyEqualityCompare(compare)) {
-    Token::Kind strict_kind = (compare->kind() == Token::kEQ) ?
-        Token::kEQ_STRICT : Token::kNE_STRICT;
-    StrictCompareInstr* strict_comp =
-        new StrictCompareInstr(compare->token_pos(),
-                               strict_kind,
-                               compare->left()->CopyWithType(),
-                               compare->right()->CopyWithType());
-    // Numbers override equality and are therefore not part of this conversion.
-    strict_comp->set_needs_number_check(false);
-    current_instruction->ReplaceWith(strict_comp, current_iterator());
-    return true;
-  }
-  return false;
-}
-
-
-// Returns true if we converted EqualityCompare to StrictCompare.
-template <typename T>
-bool FlowGraphOptimizer::StrictifyEqualityCompareWithICData(
-    EqualityCompareInstr* compare,
-    const ICData& unary_ic_data,
-    T current_instruction) {
-  ASSERT(unary_ic_data.num_args_tested() == 1);
-  if (unary_ic_data.NumberOfChecks() <= FLAG_max_polymorphic_checks) {
-    // If possible classes do not override Object's equality then replace
-    // with strict equality.
-    Function& target = Function::Handle();
-    Class& targets_class = Class::Handle();
-    for (intptr_t i = 0; i < unary_ic_data.NumberOfChecks(); i++) {
-      intptr_t cid = kIllegalCid;
-      unary_ic_data.GetOneClassCheckAt(i, &cid, &target);
-      targets_class = target.Owner();
-      if (targets_class.id() != kInstanceCid) {
-        // Overriden equality operator.
-        return false;
-      }
-    }
-    AddCheckClass(compare->left()->definition(),
-                  unary_ic_data,
-                  compare->deopt_id(),
-                  current_instruction->env(),
-                  current_instruction);
-    ASSERT((compare->kind() == Token::kEQ) || (compare->kind() == Token::kNE));
-    Token::Kind strict_kind = (compare->kind() == Token::kEQ) ?
-        Token::kEQ_STRICT : Token::kNE_STRICT;
-    StrictCompareInstr* strict_comp =
-        new StrictCompareInstr(compare->token_pos(),
-                               strict_kind,
-                               compare->left()->Copy(),
-                               compare->right()->Copy());
-    // Numbers override equality and are therefore not part of this conversion.
-    strict_comp->set_needs_number_check(false);
-    current_instruction->ReplaceWith(strict_comp, current_iterator());
-    return true;
-  }
-  return false;
-}
-
-
-template <typename T>
-void FlowGraphOptimizer::HandleEqualityCompare(EqualityCompareInstr* comp,
-                                               T current_instruction) {
-  if (StrictifyEqualityCompare(comp, current_instruction)) {
-    // Based on input types, equality converted to strict-equality.
-    return;
-  }
-
-  if (!comp->HasICData() || (comp->ic_data()->NumberOfChecks() == 0)) {
-    return;
-  }
-
-  const ICData& ic_data = *comp->ic_data();
-  ASSERT(ic_data.num_args_tested() == 2);
-  ASSERT(comp->operation_cid() == kIllegalCid);
-  if (HasOnlyTwoOf(ic_data, kSmiCid)) {
-    InsertBefore(current_instruction,
-                 new CheckSmiInstr(comp->left()->Copy(), comp->deopt_id()),
-                 current_instruction->env(),
-                 Definition::kEffect);
-    InsertBefore(current_instruction,
-                 new CheckSmiInstr(comp->right()->Copy(), comp->deopt_id()),
-                 current_instruction->env(),
-                 Definition::kEffect);
-    comp->set_operation_cid(kSmiCid);
-  } else if (HasTwoMintOrSmi(ic_data) &&
-             FlowGraphCompiler::SupportsUnboxedMints()) {
-    comp->set_operation_cid(kMintCid);
-  } else if (HasTwoDoubleOrSmi(ic_data)) {
-    // Use double comparison.
-    if (SmiFitsInDouble()) {
-      comp->set_operation_cid(kDoubleCid);
-    } else {
-      if (ICDataHasReceiverArgumentClassIds(ic_data, kSmiCid, kSmiCid)) {
-        // We cannot use double comparison on two smis.
-        ASSERT(comp->operation_cid() == kIllegalCid);
-      } else {
-        InsertBefore(current_instruction,
-                     new CheckEitherNonSmiInstr(comp->left()->Copy(),
-                                                comp->right()->Copy(),
-                                                comp->deopt_id()),
-                     current_instruction->env(),
-                     Definition::kEffect);
-        comp->set_operation_cid(kDoubleCid);
-      }
-    }
-  }
-
-  if (comp->operation_cid() != kIllegalCid) {
-    // Done.
-    return;
-  }
-
-  const ICData& unary_checks_0 =
-      ICData::ZoneHandle(comp->ic_data()->AsUnaryClassChecks());
-  if (StrictifyEqualityCompareWithICData(
-        comp, unary_checks_0, current_instruction)) {
-    // Based on ICData, equality converted to strict-equality.
-    return;
-  }
-
-  // Check if ICDData contains checks with Smi/Null combinations. In that case
-  // we can still emit the optimized Smi equality operation but need to add
-  // checks for null or Smi.
-  // TODO(srdjan): Add it for Double and Mint.
-  GrowableArray<intptr_t> smi_or_null(2);
-  smi_or_null.Add(kSmiCid);
-  smi_or_null.Add(kNullCid);
-  if (ICDataHasOnlyReceiverArgumentClassIds(ic_data,
-                                            smi_or_null,
-                                            smi_or_null)) {
-    AddCheckClass(comp->left()->definition(),
-                  unary_checks_0,
-                  comp->deopt_id(),
-                  current_instruction->env(),
-                  current_instruction);
-
-    const ICData& unary_checks_1 =
-        ICData::ZoneHandle(comp->ic_data()->AsUnaryClassChecksForArgNr(1));
-    AddCheckClass(comp->right()->definition(),
-                  unary_checks_1,
-                  comp->deopt_id(),
-                  current_instruction->env(),
-                  current_instruction);
-    comp->set_operation_cid(kSmiCid);
-  }
-}
-
-
-
-
-void FlowGraphOptimizer::VisitEqualityCompare(EqualityCompareInstr* instr) {
-  HandleEqualityCompare(instr, instr);
-}
-
-
-void FlowGraphOptimizer::VisitBranch(BranchInstr* instr) {
-  ComparisonInstr* comparison = instr->comparison();
-  if (comparison->IsEqualityCompare()) {
-    HandleEqualityCompare(comparison->AsEqualityCompare(), instr);
-  } else {
-    ASSERT(comparison->IsStrictCompare());
-    // Nothing to do.
-  }
 }
 
 
@@ -4601,17 +4499,6 @@ class Place : public ValueObject {
   static Place* Wrap(const Place& place);
 
  private:
-  static Definition* OriginalDefinition(Definition* defn) {
-    while (defn->IsRedefinition() || defn->IsAssertAssignable()) {
-      if (defn->IsRedefinition()) {
-        defn = defn->AsRedefinition()->value()->definition();
-      } else {
-        defn = defn->AsAssertAssignable()->value()->definition();
-      }
-    }
-    return defn;
-  }
-
   bool SameField(Place* other) const {
     return (kind_ == kField) ? (field().raw() == other->field().raw())
                              : (offset_in_bytes_ == other->offset_in_bytes_);
@@ -6454,10 +6341,8 @@ void ConstantPropagator::VisitEqualityCompare(EqualityCompareInstr* instr) {
   const Object& right = instr->right()->definition()->constant_value();
 
   if (instr->left()->definition() == instr->right()->definition()) {
-    // Fold x == x, and x != x to true/false for numbers and checked strict
-    // comparisons.
-    if (instr->IsCheckedStrictEqual() ||
-        RawObject::IsIntegerClassId(instr->operation_cid())) {
+    // Fold x == x, and x != x to true/false for numbers comparisons.
+    if (RawObject::IsIntegerClassId(instr->operation_cid())) {
       return SetValue(instr, Bool::Get(instr->kind() == Token::kEQ));
     }
   }
@@ -6992,40 +6877,40 @@ void ConstantPropagator::VisitFloat32x4With(Float32x4WithInstr* instr) {
 }
 
 
-void ConstantPropagator::VisitFloat32x4ToUint32x4(
-    Float32x4ToUint32x4Instr* instr) {
+void ConstantPropagator::VisitFloat32x4ToInt32x4(
+    Float32x4ToInt32x4Instr* instr) {
   SetValue(instr, non_constant_);
 }
 
 
-void ConstantPropagator::VisitUint32x4BoolConstructor(
-    Uint32x4BoolConstructorInstr* instr) {
+void ConstantPropagator::VisitInt32x4BoolConstructor(
+    Int32x4BoolConstructorInstr* instr) {
   SetValue(instr, non_constant_);
 }
 
 
-void ConstantPropagator::VisitUint32x4GetFlag(Uint32x4GetFlagInstr* instr) {
+void ConstantPropagator::VisitInt32x4GetFlag(Int32x4GetFlagInstr* instr) {
   SetValue(instr, non_constant_);
 }
 
 
-void ConstantPropagator::VisitUint32x4SetFlag(Uint32x4SetFlagInstr* instr) {
+void ConstantPropagator::VisitInt32x4SetFlag(Int32x4SetFlagInstr* instr) {
   SetValue(instr, non_constant_);
 }
 
 
-void ConstantPropagator::VisitUint32x4Select(Uint32x4SelectInstr* instr) {
+void ConstantPropagator::VisitInt32x4Select(Int32x4SelectInstr* instr) {
   SetValue(instr, non_constant_);
 }
 
 
-void ConstantPropagator::VisitUint32x4ToFloat32x4(
-    Uint32x4ToFloat32x4Instr* instr) {
+void ConstantPropagator::VisitInt32x4ToFloat32x4(
+    Int32x4ToFloat32x4Instr* instr) {
   SetValue(instr, non_constant_);
 }
 
 
-void ConstantPropagator::VisitBinaryUint32x4Op(BinaryUint32x4OpInstr* instr) {
+void ConstantPropagator::VisitBinaryInt32x4Op(BinaryInt32x4OpInstr* instr) {
   SetValue(instr, non_constant_);
 }
 
@@ -7097,7 +6982,7 @@ void ConstantPropagator::VisitBoxFloat32x4(BoxFloat32x4Instr* instr) {
 }
 
 
-void ConstantPropagator::VisitUnboxUint32x4(UnboxUint32x4Instr* instr) {
+void ConstantPropagator::VisitUnboxInt32x4(UnboxInt32x4Instr* instr) {
   const Object& value = instr->value()->definition()->constant_value();
   if (IsNonConstant(value)) {
     SetValue(instr, non_constant_);
@@ -7108,7 +6993,7 @@ void ConstantPropagator::VisitUnboxUint32x4(UnboxUint32x4Instr* instr) {
 }
 
 
-void ConstantPropagator::VisitBoxUint32x4(BoxUint32x4Instr* instr) {
+void ConstantPropagator::VisitBoxInt32x4(BoxInt32x4Instr* instr) {
   const Object& value = instr->value()->definition()->constant_value();
   if (IsNonConstant(value)) {
     SetValue(instr, non_constant_);
@@ -7428,9 +7313,8 @@ BranchInstr* BranchSimplifier::CloneBranch(BranchInstr* branch,
                                  comparison->kind(),
                                  left,
                                  right,
-                                 Object::null_array());
-    new_equality_compare->set_ic_data(equality_compare->ic_data());
-    new_equality_compare->set_operation_cid(equality_compare->operation_cid());
+                                 equality_compare->operation_cid(),
+                                 equality_compare->deopt_id());
     new_comparison = new_equality_compare;
   } else {
     ASSERT(comparison->IsRelationalOp());

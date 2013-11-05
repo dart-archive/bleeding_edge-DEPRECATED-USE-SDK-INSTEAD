@@ -15,6 +15,7 @@ package com.google.dart.engine.resolver;
 
 import com.google.dart.engine.error.CompileTimeErrorCode;
 import com.google.dart.engine.error.HintCode;
+import com.google.dart.engine.error.StaticTypeWarningCode;
 import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.source.Source;
 
@@ -48,28 +49,6 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(source, StaticWarningCode.UNDEFINED_SETTER);
-    verify(source);
-  }
-
-  public void fail_undefinedStaticMethodOrGetter_getter() throws Exception {
-    Source source = addSource(createSource(//
-        "class C {}",
-        "f(var p) {",
-        "  f(C.m);",
-        "}"));
-    resolve(source);
-    assertErrors(source, StaticWarningCode.UNDEFINED_STATIC_METHOD_OR_GETTER);
-    verify(source);
-  }
-
-  public void fail_undefinedStaticMethodOrGetter_method() throws Exception {
-    Source source = addSource(createSource(//
-        "class C {}",
-        "f(var p) {",
-        "  f(C.m());",
-        "}"));
-    resolve(source);
-    assertErrors(source, StaticWarningCode.UNDEFINED_STATIC_METHOD_OR_GETTER);
     verify(source);
   }
 
@@ -2419,5 +2398,69 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     resolve(source1);
     resolve(source2);
     assertErrors(source2, StaticWarningCode.UNDEFINED_SETTER);
+  }
+
+  // See comment on StaticWarningCode.UNDEFINED_STATIC_METHOD_OR_GETTER
+  public void test_undefinedStaticMethodOrGetter_getter() throws Exception {
+    Source source = addSource(createSource(//
+        "class C {}",
+        "f(var p) {",
+        "  f(C.m);",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticTypeWarningCode.UNDEFINED_GETTER);
+  }
+
+  // See comment on StaticWarningCode.UNDEFINED_STATIC_METHOD_OR_GETTER
+  public void test_undefinedStaticMethodOrGetter_getter_inSuperclass() throws Exception {
+    Source source = addSource(createSource(//
+        "class S {",
+        "  static int get g => 0;",
+        "}",
+        "class C extends S {}",
+        "f(var p) {",
+        "  f(C.g);",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticTypeWarningCode.UNDEFINED_GETTER);
+  }
+
+  // See comment on StaticWarningCode.UNDEFINED_STATIC_METHOD_OR_GETTER
+  public void test_undefinedStaticMethodOrGetter_method() throws Exception {
+    Source source = addSource(createSource(//
+        "class C {}",
+        "f(var p) {",
+        "  f(C.m());",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticTypeWarningCode.UNDEFINED_METHOD);
+  }
+
+  // See comment on StaticWarningCode.UNDEFINED_STATIC_METHOD_OR_GETTER
+  public void test_undefinedStaticMethodOrGetter_method_inSuperclass() throws Exception {
+    Source source = addSource(createSource(//
+        "class S {",
+        "  static m() {}",
+        "}",
+        "class C extends S {}",
+        "f(var p) {",
+        "  f(C.m());",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticTypeWarningCode.UNDEFINED_METHOD);
+  }
+
+  // See comment on StaticWarningCode.UNDEFINED_STATIC_METHOD_OR_GETTER
+  public void test_undefinedStaticMethodOrGetter_setter_inSuperclass() throws Exception {
+    Source source = addSource(createSource(//
+        "class S {",
+        "  static set s(int i) {}",
+        "}",
+        "class C extends S {}",
+        "f(var p) {",
+        "  f(C.s = 1);",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticTypeWarningCode.UNDEFINED_SETTER);
   }
 }

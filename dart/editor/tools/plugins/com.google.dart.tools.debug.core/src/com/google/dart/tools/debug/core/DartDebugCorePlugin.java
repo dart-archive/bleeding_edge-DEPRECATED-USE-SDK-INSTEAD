@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.debug.core;
 
-import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.utilities.general.StringUtilities;
 import com.google.dart.tools.debug.core.pubserve.PubServeLaunchConfigurationDelegate;
@@ -22,8 +21,6 @@ import com.google.dart.tools.debug.core.util.BrowserManager;
 import com.google.dart.tools.debug.core.util.ResourceChangeManager;
 import com.google.dart.tools.debug.core.util.ResourceServerManager;
 
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Plugin;
 import org.eclipse.core.runtime.Status;
@@ -32,7 +29,6 @@ import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.debug.core.DebugEvent;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.IDebugEventSetListener;
-import org.eclipse.debug.core.ILaunchConfiguration;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.prefs.BackingStoreException;
 
@@ -111,40 +107,6 @@ public class DartDebugCorePlugin extends Plugin {
   private static final String PREFS_CLEAR_LAUNCHES_DIALOG_SETTINGS = "launchesDialogSettings";
 
   private static long loggingStart = System.currentTimeMillis();
-
-  /**
-   * Returns true if the given launch config can be launched w/o waiting on the builder.
-   */
-  public static boolean canFastLaunch(ILaunchConfiguration config) {
-    DartLaunchConfigWrapper wrapper = new DartLaunchConfigWrapper(config);
-    IProject project = wrapper.getProject();
-
-    if (project == null) {
-      return false;
-    }
-
-    // if pubspec.yaml is not up-to-date, return false
-    IFile pubspecYamlFile = project.getFile(DartCore.PUBSPEC_FILE_NAME);
-
-    if (pubspecYamlFile.exists()) {
-      IFile pubspecLockFile = project.getFile(DartCore.PUBSPEC_LOCK_FILE_NAME);
-
-      if (!pubspecLockFile.exists()) {
-        return false;
-      }
-
-      if (pubspecLockFile.getModificationStamp() < pubspecYamlFile.getModificationStamp()) {
-        return false;
-      }
-    }
-
-    // no build.dart (though we can optimize this in the future)
-    if (project.getFile(DartCore.BUILD_DART_FILE_NAME).exists()) {
-      return false;
-    }
-
-    return true;
-  }
 
   /**
    * Create a Status object with the given message and this plugin's ID.

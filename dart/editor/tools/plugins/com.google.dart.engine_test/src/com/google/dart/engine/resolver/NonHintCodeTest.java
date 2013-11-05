@@ -259,7 +259,6 @@ public class NonHintCodeTest extends ResolverTestCase {
   public void test_proxy_annotation_prefixed() throws Exception {
     Source source = addSource(createSource(//
         "library L;",
-        "import 'meta.dart';",
         "@proxy",
         "class A {}",
         "f(var a) {",
@@ -271,10 +270,6 @@ public class NonHintCodeTest extends ResolverTestCase {
         "  a++;",
         "  ++a;",
         "}"));
-    addSource("/meta.dart", createSource(//
-        "library meta;",
-        "const proxy = const _Proxy();",
-        "class _Proxy { const _Proxy(); }"));
     resolve(source);
     assertNoErrors(source);
   }
@@ -282,7 +277,6 @@ public class NonHintCodeTest extends ResolverTestCase {
   public void test_proxy_annotation_prefixed2() throws Exception {
     Source source = addSource(createSource(//
         "library L;",
-        "import 'meta.dart';",
         "@proxy",
         "class A {}",
         "class B {",
@@ -296,10 +290,6 @@ public class NonHintCodeTest extends ResolverTestCase {
         "    ++a;",
         "  }",
         "}"));
-    addSource("/meta.dart", createSource(//
-        "library meta;",
-        "const proxy = const _Proxy();",
-        "class _Proxy { const _Proxy(); }"));
     resolve(source);
     assertNoErrors(source);
   }
@@ -307,7 +297,6 @@ public class NonHintCodeTest extends ResolverTestCase {
   public void test_proxy_annotation_prefixed3() throws Exception {
     Source source = addSource(createSource(//
         "library L;",
-        "import 'meta.dart';",
         "class B {",
         "  f(var a) {",
         "    a = new A();",
@@ -321,10 +310,6 @@ public class NonHintCodeTest extends ResolverTestCase {
         "}",
         "@proxy",
         "class A {}"));
-    addSource("/meta.dart", createSource(//
-        "library meta;",
-        "const proxy = const _Proxy();",
-        "class _Proxy { const _Proxy(); }"));
     resolve(source);
     assertNoErrors(source);
   }

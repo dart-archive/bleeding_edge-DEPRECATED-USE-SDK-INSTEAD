@@ -237,6 +237,24 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
   }
 
   /**
+   * Checks if the given expression is the reference to the type, if it is then the
+   * {@link ClassElement} is returned, otherwise {@code null} is returned.
+   * 
+   * @param expr the expression to evaluate
+   * @return the {@link ClassElement} if the given expression is the reference to the type, and
+   *         {@code null} otherwise
+   */
+  public static ClassElementImpl getTypeReference(Expression expr) {
+    if (expr instanceof Identifier) {
+      Identifier identifier = (Identifier) expr;
+      if (identifier.getStaticElement() instanceof ClassElementImpl) {
+        return (ClassElementImpl) identifier.getStaticElement();
+      }
+    }
+    return null;
+  }
+
+  /**
    * @return {@code true} if the given identifier is the return type of a constructor declaration.
    */
   private static boolean isConstructorReturnType(SimpleIdentifier node) {
@@ -937,8 +955,18 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       propagatedElement = null;
     } else {
       Type staticType = getStaticType(target);
-      staticElement = resolveInvokedElement(target, staticType, methodName);
-      propagatedElement = resolveInvokedElement(target, getPropagatedType(target), methodName);
+      //
+      // If this method invocation is of the form 'C.m' where 'C' is a class, then we don't call
+      // resolveInvokedElement(..) which walks up the class hierarchy, instead we just look for the
+      // member in the type only.
+      //
+      ClassElementImpl typeReference = getTypeReference(target);
+      if (typeReference != null) {
+        staticElement = propagatedElement = resolveElement(typeReference, methodName.getName());
+      } else {
+        staticElement = resolveInvokedElement(target, staticType, methodName);
+        propagatedElement = resolveInvokedElement(target, getPropagatedType(target), methodName);
+      }
     }
     staticElement = convertSetterToGetter(staticElement);
     propagatedElement = convertSetterToGetter(propagatedElement);
@@ -1169,7 +1197,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       // Validate annotation element.
       if (node.getParent() instanceof Annotation) {
         Annotation annotation = (Annotation) node.getParent();
-        resolveAnnotationElement(annotation, element, null);
+        resolveAnnotationElement(annotation);
         return null;
       }
       return null;
@@ -1178,7 +1206,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     // May be annotation, resolve invocation of "const" constructor.
     if (node.getParent() instanceof Annotation) {
       Annotation annotation = (Annotation) node.getParent();
-      resolveAnnotationElement(annotation, prefixElement, identifier);
+      resolveAnnotationElement(annotation);
     }
 
     //
@@ -1338,7 +1366,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     //
     if (node.getParent() instanceof Annotation) {
       Annotation annotation = (Annotation) node.getParent();
-      resolveAnnotationElement(annotation, element, null);
+      resolveAnnotationElement(annotation);
     }
     return null;
   }
@@ -2295,64 +2323,121 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
   }
 
   /**
-   * Validates that the given {@link Element} is the constant variable; or resolves it as a
-   * constructor invocation.
+   * Continues resolution of the given {@link Annotation}.
    * 
    * @param annotation the {@link Annotation} to resolve
-   * @param element the current known {@link Element} of the annotation, or {@link ClassElement}
-   * @param nameNode the name of the invoked constructor, may be {@code null} if unnamed constructor
-   *          or not a constructor invocation
    */
-  private void resolveAnnotationElement(Annotation annotation, Element element,
-      SimpleIdentifier nameNode) {
-    // constant variable
-    if (element instanceof PropertyAccessorElement) {
-      PropertyAccessorElement accessorElement = (PropertyAccessorElement) element;
-      // accessor should be synthetic
-      if (!accessorElement.isSynthetic()) {
-        resolver.reportError(CompileTimeErrorCode.INVALID_ANNOTATION, annotation);
+  private void resolveAnnotationElement(Annotation annotation) {
+    SimpleIdentifier nameNode1;
+    SimpleIdentifier nameNode2;
+    {
+      Identifier annName = annotation.getName();
+      if (annName instanceof PrefixedIdentifier) {
+        PrefixedIdentifier prefixed = (PrefixedIdentifier) annName;
+        nameNode1 = prefixed.getPrefix();
+        nameNode2 = prefixed.getIdentifier();
+      } else {
+        nameNode1 = (SimpleIdentifier) annName;
+        nameNode2 = null;
+      }
+    }
+    SimpleIdentifier nameNode3 = annotation.getConstructorName();
+    ConstructorElement constructor = null;
+    //
+    // CONST or Class(args)
+    //
+    if (nameNode1 != null && nameNode2 == null && nameNode3 == null) {
+      Element element1 = nameNode1.getStaticElement();
+      // CONST
+      if (element1 instanceof PropertyAccessorElement) {
+        resolveAnnotationElementGetter(annotation, (PropertyAccessorElement) element1);
         return;
       }
-      // variable should be constant
-      VariableElement variableElement = accessorElement.getVariable();
-      if (!variableElement.isConst()) {
-        resolver.reportError(CompileTimeErrorCode.INVALID_ANNOTATION, annotation);
+      // Class(args)
+      if (element1 instanceof ClassElement) {
+        ClassElement classElement = (ClassElement) element1;
+        constructor = new InterfaceTypeImpl(classElement).lookUpConstructor(null, definingLibrary);
       }
-      // OK
-      return;
     }
-    // const constructor invocation
-    if (element instanceof ClassElement) {
-      // prepare constructor name
-      if (nameNode == null) {
-        nameNode = annotation.getConstructorName();
+    //
+    // prefix.CONST or prefix.Class() or Class.CONST or Class.constructor(args)
+    //
+    if (nameNode1 != null && nameNode2 != null && nameNode3 == null) {
+      Element element1 = nameNode1.getStaticElement();
+      Element element2 = nameNode2.getStaticElement();
+      // Class.CONST - not resolved yet
+      if (element1 instanceof ClassElement) {
+        ClassElement classElement = (ClassElement) element1;
+        element2 = classElement.lookUpGetter(nameNode2.getName(), definingLibrary);
       }
-      String name = nameNode != null ? nameNode.getName() : null;
-      // look up ConstructorElement
-      ConstructorElement constructor;
-      {
-        InterfaceType interfaceType = new InterfaceTypeImpl((ClassElement) element);
-        constructor = interfaceType.lookUpConstructor(name, definingLibrary);
-      }
-      // not a constructor
-      if (constructor == null) {
-        resolver.reportError(CompileTimeErrorCode.INVALID_ANNOTATION, annotation);
+      // prefix.CONST or Class.CONST
+      if (element2 instanceof PropertyAccessorElement) {
+        nameNode2.setStaticElement(element2);
+        annotation.setElement(element2);
+        resolveAnnotationElementGetter(annotation, (PropertyAccessorElement) element2);
         return;
       }
-      // record element
-      annotation.setElement(constructor);
-      if (nameNode != null) {
-        nameNode.setStaticElement(constructor);
+      // prefix.Class()
+      if (element2 instanceof ClassElement) {
+        ClassElement classElement = (ClassElement) element2;
+        constructor = classElement.getUnnamedConstructor();
       }
-      // resolve arguments
-      resolveAnnotationConstructorInvocationArguments(annotation, constructor);
-      // OK
+      // Class.constructor(args)
+      if (element1 instanceof ClassElement) {
+        ClassElement classElement = (ClassElement) element1;
+        constructor = new InterfaceTypeImpl(classElement).lookUpConstructor(
+            nameNode2.getName(),
+            definingLibrary);
+        nameNode2.setStaticElement(constructor);
+      }
+    }
+    //
+    // prefix.Class.CONST or prefix.Class.constructor(args)
+    //
+    if (nameNode1 != null && nameNode2 != null && nameNode3 != null) {
+      Element element2 = nameNode2.getStaticElement();
+      // element2 should be ClassElement
+      if (element2 instanceof ClassElement) {
+        ClassElement classElement = (ClassElement) element2;
+        String name3 = nameNode3.getName();
+        // prefix.Class.CONST
+        PropertyAccessorElement getter = classElement.lookUpGetter(name3, definingLibrary);
+        if (getter != null) {
+          nameNode3.setStaticElement(getter);
+          annotation.setElement(element2);
+          resolveAnnotationElementGetter(annotation, getter);
+          return;
+        }
+        // prefix.Class.constructor(args)
+        constructor = new InterfaceTypeImpl(classElement).lookUpConstructor(name3, definingLibrary);
+        nameNode3.setStaticElement(constructor);
+      }
+    }
+    // we need constructor
+    if (constructor == null) {
+      resolver.reportError(CompileTimeErrorCode.INVALID_ANNOTATION, annotation);
       return;
     }
-    // something unknown
-    if (element != null) {
+    // record element
+    annotation.setElement(constructor);
+    // resolve arguments
+    resolveAnnotationConstructorInvocationArguments(annotation, constructor);
+  }
+
+  private void resolveAnnotationElementGetter(Annotation annotation,
+      PropertyAccessorElement accessorElement) {
+    // accessor should be synthetic
+    if (!accessorElement.isSynthetic()) {
+      resolver.reportError(CompileTimeErrorCode.INVALID_ANNOTATION, annotation);
+      return;
+    }
+    // variable should be constant
+    VariableElement variableElement = accessorElement.getVariable();
+    if (!variableElement.isConst()) {
       resolver.reportError(CompileTimeErrorCode.INVALID_ANNOTATION, annotation);
     }
+    // OK
+    return;
   }
 
   /**
@@ -2484,6 +2569,29 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
   }
 
   /**
+   * Given an invocation of the form 'C.x()' where 'C' is a class, find and return the element 'x'
+   * in 'C'.
+   * 
+   * @param classElement the class element
+   * @param memberName the member name
+   */
+  private Element resolveElement(ClassElementImpl classElement, String memberName) {
+    Element element = null;
+    String methodNameStr = memberName;
+    element = classElement.getMethod(methodNameStr);
+    if (element == null) {
+      element = classElement.getSetter(memberName);
+      if (element == null) {
+        element = classElement.getGetter(memberName);
+      }
+    }
+    if (element != null && element.isAccessibleIn(definingLibrary)) {
+      return element;
+    }
+    return null;
+  }
+
+  /**
    * Given an invocation of the form 'e.m(a1, ..., an)', resolve 'e.m' to the element being invoked.
    * If the returned element is a method, then the method will be invoked. If the returned element
    * is a getter, the getter will be invoked without arguments and the result of that invocation
@@ -2588,7 +2696,23 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
 
   private void resolvePropertyAccess(Expression target, SimpleIdentifier propertyName) {
     Type staticType = getStaticType(target);
-    ExecutableElement staticElement = resolveProperty(target, staticType, propertyName);
+    Type propagatedType = getPropagatedType(target);
+
+    Element staticElement = null;
+    Element propagatedElement = null;
+
+    //
+    // If this property access is of the form 'C.m' where 'C' is a class, then we don't call
+    // resolveProperty(..) which walks up the class hierarchy, instead we just look for the
+    // member in the type only.
+    //
+    ClassElementImpl typeReference = getTypeReference(target);
+    if (typeReference != null) {
+      staticElement = propagatedElement = resolveElement(typeReference, propertyName.getName());
+    } else {
+      staticElement = resolveProperty(target, staticType, propertyName);
+      propagatedElement = resolveProperty(target, propagatedType, propertyName);
+    }
 
     // May be part of annotation, record property element only if exists.
     // Error was already reported in validateAnnotationElement().
@@ -2598,10 +2722,8 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       }
       return;
     }
-    propertyName.setStaticElement(staticElement);
 
-    Type propagatedType = getPropagatedType(target);
-    ExecutableElement propagatedElement = resolveProperty(target, propagatedType, propertyName);
+    propertyName.setStaticElement(staticElement);
     propertyName.setPropagatedElement(propagatedElement);
 
     boolean shouldReportMissingMember_static = shouldReportMissingMember(staticType, staticElement)
@@ -2792,7 +2914,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
    * @param member the result of the look-up
    * @return {@code true} if we should report an error
    */
-  private boolean shouldReportMissingMember(Type type, ExecutableElement member) {
+  private boolean shouldReportMissingMember(Type type, Element member) {
     if (member != null || type == null || type.isDynamic() || type.isBottom()) {
       return false;
     }

@@ -31,14 +31,9 @@ import com.google.dart.engine.error.AnalysisError;
 public class ProxyConditionalAnalysisError {
 
   /**
-   * The name of the proxy annotation, from the meta pub package.
+   * The name of the proxy annotation, from dart:core.
    */
   private static final String PROXY_ANNOTATION_NAME = "proxy";
-
-  /**
-   * The name of the meta library name, from the meta pub package.
-   */
-  private static final String META_LIBRARY_NAME = "meta";
 
   /**
    * Return {@code true} if the given element represents a class that has the proxy annotation.
@@ -54,8 +49,8 @@ public class ProxyConditionalAnalysisError {
         Element elementAnnotation = annotation.getElement();
         if (elementAnnotation != null) {
           LibraryElement lib = elementAnnotation.getLibrary();
-          if (elementAnnotation.getName().equals(PROXY_ANNOTATION_NAME) && lib != null
-              && lib.getName().equals(META_LIBRARY_NAME)) {
+          if (lib != null && lib.isDartCore()
+              && elementAnnotation.getName().equals(PROXY_ANNOTATION_NAME)) {
             return true;
           }
         }

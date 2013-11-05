@@ -4,7 +4,6 @@
 
 [ $compiler == dart2js || $compiler == dart2dart ]
 bad_constructor_test/05: CompileTimeError # Issue 13669
-block_scope_test: CompileTimeError # Issue 13204.
 malformed_test/05: MissingCompileTimeError # Issue 12695
 malformed_test/06: MissingCompileTimeError # Issue 12695
 full_stacktrace1_test: Pass, RuntimeError # Issue 12698
@@ -30,6 +29,7 @@ ref_before_declaration_test/02: MissingCompileTimeError
 ref_before_declaration_test/03: MissingCompileTimeError
 ref_before_declaration_test/04: MissingCompileTimeError
 ref_before_declaration_test/05: MissingCompileTimeError
+ref_before_declaration_test/06: MissingCompileTimeError
 
 # VM specific tests that should not be run by dart2js.
 vm/*: Skip # Issue 12699
@@ -124,20 +124,19 @@ not_enough_positional_arguments_test/01: CompileTimeError # Issue 12838
 not_enough_positional_arguments_test/02: CompileTimeError # Issue 12838
 not_enough_positional_arguments_test/05: CompileTimeError # Issue 12838
 metadata_test: CompileTimeError # Issue 5841
-metadata_syntax_test/05: MissingCompileTimeError # Issue 14548
 infinity_test: RuntimeError # Issue 4984
 positive_bit_operations_test: RuntimeError # Issue 12795
 mixin_mixin2_test: RuntimeError # Issue 13109.
 mixin_mixin3_test: RuntimeError # Issue 13109.
 mixin_mixin7_test: RuntimeError # Issue 13109.
 mixin_regress_13688_test: RuntimeError # Issue 13109.
+super_field_2_test: RuntimeError # Issue 14805
 
 # Compilation errors.
 const_var_test: CompileTimeError # Issue 12793
 map_literal3_test: CompileTimeError # Issue 12793
 method_override5_test: RuntimeError # Issue 12809
 external_test/13: CompileTimeError # Issue 12887
-instanceof4_test/01: RuntimeError # Issue 12889
 list_literal4_test: RuntimeError # Issue 12890
 map_literal4_test: RuntimeError # Issue 12891
 built_in_identifier_test/01: CompileTimeError # Issue 13022
@@ -233,12 +232,10 @@ not_enough_positional_arguments_test/02: Fail # Issue 12839
 not_enough_positional_arguments_test/05: Fail # Issue 12839
 
 metadata_test: Fail # Issue 12762
-metadata_syntax_test/05: MissingCompileTimeError # Issue 14548
 const_var_test: Pass, Fail # Issue 12794
 map_literal3_test: Fail # Issue 12794
 external_test/13: Fail # Issue 12888
 built_in_identifier_test/01: Fail # Issue 13022
-lazy_static3_test: Fail # Issue 12593
 list_literal1_test/01: Fail # Issue 12993
 map_literal1_test/01: Fail # Issue 12993
 method_override4_test: Fail # Issue 12810
@@ -255,7 +252,6 @@ malbounded_type_literal_test: Fail # Issue 13960
 constructor5_test: Fail
 constructor6_test: Fail
 closure_in_initializer_test: Fail
-throwing_lazy_variable_test: Fail # Issue 5802
 f_bounded_equality_test: RuntimeError # Issue 14000
 
 # Minified mode failures.

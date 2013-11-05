@@ -52,6 +52,11 @@ public class EnclosedScope extends Scope {
   }
 
   @Override
+  public Scope getEnclosingScope() {
+    return enclosingScope;
+  }
+
+  @Override
   public AnalysisErrorListener getErrorListener() {
     return enclosingScope.getErrorListener();
   }
@@ -69,15 +74,6 @@ public class EnclosedScope extends Scope {
         hiddenNames.add(name);
       }
     }
-  }
-
-  /**
-   * Return the scope in which this scope is lexically enclosed.
-   * 
-   * @return the scope in which this scope is lexically enclosed
-   */
-  protected Scope getEnclosingScope() {
-    return enclosingScope;
   }
 
   @Override

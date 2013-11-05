@@ -8,14 +8,13 @@ execfile(os.path.join(path, 'dartium.deps', 'DEPS.chromium')) # Include proper C
 
 vars.update({
   "chromium_url": "http://src.chromium.org/svn",
-  "chromium_revision": "224845",
+  "dartium_chromium_url": "http://src.chromium.org/multivm/branches/1650/chrome",
+  "dartium_chromium_revision": "1579",
   # The Dart repository URL is pulled out here so that it can be easily
   # updated to "https" for committers.
   "dart_branch": "/branches/bleeding_edge",
-  "multivm_url": "http://src.chromium.org/multivm/trunk",
-  "dartium_webkit_trunk": "http://src.chromium.org/multivm/trunk/webkit",
-  "dartium_webkit_revision": "1519",
-  "dartium_tools_revision": "1508",
+  "dartium_webkit_trunk": "http://src.chromium.org/multivm/branches/1650/blink",
+  "dartium_webkit_revision": "1578",
   "bootstrap_css_rev" : "@28387",
 
   "co19_rev": "@651",
@@ -43,7 +42,7 @@ for os_deps in deps_os.values():
 
 deps.update({
   "src":
-    Var("chromium_url") + "/trunk/src@" + Var("chromium_revision"),
+    Var("dartium_chromium_url") + "@" + Var("dartium_chromium_revision"),
 
   "src/dart":
     Var("dart_branch") + "/dart",
@@ -51,9 +50,6 @@ deps.update({
   "src/dart/tests/co19/src": ((Var("googlecode_url") % "co19") +
       "/trunk/co19/tests/co19/src" + Var("co19_rev")),
 
-  "src/dartium_tools":
-    Var("multivm_url") + "/tools@" + Var("dartium_tools_revision"),
-  
   "src/dart/runtime/bin/vmservice/client/bootstrap_css":
     "/third_party/bootstrap_css" + Var("bootstrap_css_rev"),
 
@@ -65,10 +61,6 @@ deps.update({
 })
 
 hooks[0:0] = [{
-    "pattern": ".",
-    "action": ["python", "src/dartium_tools/export_overrides.py"],
-  },
-  {
     "pattern": "dart",
     "action": ["python", "src/dartium_tools/generate_dart_vm_version.py"],
   }]

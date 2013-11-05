@@ -987,6 +987,17 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_implicitThisReferenceInInitializer_importPrefix() throws Exception {
+    Source source = addSource(createSource(//
+        "import 'dart:async' as abstract;",
+        "class A {",
+        "  var v = new abstract.Completer();",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
   public void test_implicitThisReferenceInInitializer_prefixedIdentifier() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
@@ -1362,7 +1373,34 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_invalidAnnotation_constantVariable() throws Exception {
+  public void test_invalidAnnotation_constantVariable_field() throws Exception {
+    Source source = addSource(createSource(//
+        "@A.C",
+        "class A {",
+        "  static const C = 0;",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_invalidAnnotation_constantVariable_field_importWithPrefix() throws Exception {
+    addSource("/lib.dart", createSource(//
+        "library lib;",
+        "class A {",
+        "  static const C = 0;",
+        "}"));
+    Source source = addSource(createSource(//
+        "import 'lib.dart' as p;",
+        "@p.A.C",
+        "main() {",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_invalidAnnotation_constantVariable_topLevel() throws Exception {
     Source source = addSource(createSource(//
         "const C = 0;",
         "@C",
@@ -1373,7 +1411,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_invalidAnnotation_importWithPrefix_constantVariable() throws Exception {
+  public void test_invalidAnnotation_constantVariable_topLevel_importWithPrefix() throws Exception {
     addSource("/lib.dart", createSource(//
         "library lib;",
         "const C = 0;"));
@@ -1387,7 +1425,23 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_invalidAnnotation_importWithPrefix_constConstructor() throws Exception {
+  public void test_invalidAnnotation_constConstructor_importWithPrefix() throws Exception {
+    addSource("/lib.dart", createSource(//
+        "library lib;",
+        "class A {",
+        "  const A(int p);",
+        "}"));
+    Source source = addSource(createSource(//
+        "import 'lib.dart' as p;",
+        "@p.A(42)",
+        "main() {",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_invalidAnnotation_constConstructor_named_importWithPrefix() throws Exception {
     addSource("/lib.dart", createSource(//
         "library lib;",
         "class A {",
@@ -2586,7 +2640,6 @@ public class NonErrorResolverTest extends ResolverTestCase {
   public void test_proxy_annotation_prefixed() throws Exception {
     Source source = addSource(createSource(//
         "library L;",
-        "import 'meta.dart';",
         "@proxy",
         "class A {}",
         "f(A a) {",
@@ -2597,10 +2650,6 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  a++;",
         "  ++a;",
         "}"));
-    addSource("/meta.dart", createSource(//
-        "library meta;",
-        "const proxy = const _Proxy();",
-        "class _Proxy { const _Proxy(); }"));
     resolve(source);
     assertNoErrors(source);
   }
@@ -2608,7 +2657,6 @@ public class NonErrorResolverTest extends ResolverTestCase {
   public void test_proxy_annotation_prefixed2() throws Exception {
     Source source = addSource(createSource(//
         "library L;",
-        "import 'meta.dart';",
         "@proxy",
         "class A {}",
         "class B {",
@@ -2621,10 +2669,6 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "    ++a;",
         "  }",
         "}"));
-    addSource("/meta.dart", createSource(//
-        "library meta;",
-        "const proxy = const _Proxy();",
-        "class _Proxy { const _Proxy(); }"));
     resolve(source);
     assertNoErrors(source);
   }
@@ -2632,7 +2676,6 @@ public class NonErrorResolverTest extends ResolverTestCase {
   public void test_proxy_annotation_prefixed3() throws Exception {
     Source source = addSource(createSource(//
         "library L;",
-        "import 'meta.dart';",
         "class B {",
         "  f(A a) {",
         "    a.m();",
@@ -2645,10 +2688,6 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "}",
         "@proxy",
         "class A {}"));
-    addSource("/meta.dart", createSource(//
-        "library meta;",
-        "const proxy = const _Proxy();",
-        "class _Proxy { const _Proxy(); }"));
     resolve(source);
     assertNoErrors(source);
   }
@@ -2656,7 +2695,6 @@ public class NonErrorResolverTest extends ResolverTestCase {
   public void test_proxy_annotation_simple() throws Exception {
     Source source = addSource(createSource(//
         "library L;",
-        "import 'meta.dart';",
         "@proxy",
         "class B {",
         "  m() {",
@@ -2666,10 +2704,6 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "    var y = this + this;",
         "  }",
         "}"));
-    addSource("/meta.dart", createSource(//
-        "library meta;",
-        "const proxy = const _Proxy();",
-        "class _Proxy { const _Proxy(); }"));
     resolve(source);
     assertNoErrors(source);
   }
@@ -3275,6 +3309,19 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  if (p is String) {",
         "    p.length;",
         "  }",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_typePromotion_parentheses() throws Exception {
+    Source source = addSource(createSource(//
+        "main(Object p) {",
+        "  (p is String) ? p.length : 0;",
+        "  (p) is String ? p.length : 0;",
+        "  ((p)) is String ? p.length : 0;",
+        "  ((p) is String) ? p.length : 0;",
         "}"));
     resolve(source);
     assertNoErrors(source);

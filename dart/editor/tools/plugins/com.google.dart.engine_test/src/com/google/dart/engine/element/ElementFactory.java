@@ -84,16 +84,32 @@ public final class ElementFactory {
     return classElement(typeName, getObject().getType(), parameterNames);
   }
 
-  public static ConstructorElementImpl constructorElement(ClassElement definingClass, String name) {
+  public static ConstructorElementImpl constructorElement(ClassElement definingClass, String name,
+      boolean isConst, Type... argumentTypes) {
     Type type = definingClass.getType();
     ConstructorElementImpl constructor = new ConstructorElementImpl(name == null ? null
         : identifier(name));
+    constructor.setConst(isConst);
+    int count = argumentTypes.length;
+    ParameterElement[] parameters = new ParameterElement[count];
+    for (int i = 0; i < count; i++) {
+      ParameterElementImpl parameter = new ParameterElementImpl(identifier("a" + i));
+      parameter.setType(argumentTypes[i]);
+      parameter.setParameterKind(ParameterKind.REQUIRED);
+      parameters[i] = parameter;
+    }
+    constructor.setParameters(parameters);
     constructor.setReturnType(type);
 
     FunctionTypeImpl constructorType = new FunctionTypeImpl(constructor);
     constructor.setType(constructorType);
 
     return constructor;
+  }
+
+  public static ConstructorElementImpl constructorElement(ClassElement definingClass, String name,
+      Type... argumentTypes) {
+    return constructorElement(definingClass, name, false, argumentTypes);
   }
 
   public static ExportElementImpl exportFor(LibraryElement exportedLibrary,
@@ -394,9 +410,10 @@ public final class ElementFactory {
     return new TopLevelVariableElementImpl(name);
   }
 
-  public static TopLevelVariableElementImpl topLevelVariableElement(String name, boolean isFinal,
-      Type type) {
+  public static TopLevelVariableElementImpl topLevelVariableElement(String name, boolean isConst,
+      boolean isFinal, Type type) {
     TopLevelVariableElementImpl variable = new TopLevelVariableElementImpl(name);
+    variable.setConst(isConst);
     variable.setFinal(isFinal);
 
     PropertyAccessorElementImpl getter = new PropertyAccessorElementImpl(variable);

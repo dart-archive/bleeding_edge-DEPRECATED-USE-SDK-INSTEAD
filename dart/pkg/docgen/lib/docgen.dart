@@ -38,7 +38,8 @@ const String USAGE = 'Usage: dart docgen.dart [OPTIONS] fooDir/barFile';
 
 
 List<String> skippedAnnotations = const [
-    'metadata.DocsEditable', 'metadata.DomName'];
+    'metadata.DocsEditable', '_js_helper.JSName', '_js_helper.Creates',
+    '_js_helper.Returns', 'observe-src-metadata.Reflectable'];
 
 /// Current library being documented to be used for comment links.
 LibraryMirror _currentLibrary;
@@ -342,10 +343,12 @@ void _documentLibraries(List<LibraryMirror> libs, {bool includeSdk: false,
     };
   }
   _writeToFile(JSON.encode(libraryMap), 'library_list.json');
+
   // Output libraries and classes to file after all information is generated.
   filteredEntities.where((e) => e is Class || e is Library).forEach((output) {
     _writeIndexableToFile(output, outputToYaml);
   });
+
   // Outputs all the qualified names documented with their type.
   // This will help generate search results.
   _writeToFile(filteredEntities.map((e) =>
@@ -449,7 +452,7 @@ String _commentToHtml(DeclarationMirror mirror) {
         if (commentText == null) {
           commentText = comment.trimmedText;
         } else {
-          commentText = '$commentText ${comment.trimmedText}';
+          commentText = '$commentText\n${comment.trimmedText}';
         }
       }
     }

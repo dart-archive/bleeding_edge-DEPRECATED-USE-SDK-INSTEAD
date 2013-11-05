@@ -25,21 +25,21 @@ import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 import com.google.dart.tools.debug.ui.internal.DartUtil;
-import com.google.dart.tools.debug.ui.internal.DebugErrorHandler;
 import com.google.dart.tools.debug.ui.internal.browser.BrowserLaunchShortcut;
 import com.google.dart.tools.debug.ui.internal.dartium.DartiumLaunchShortcut;
 import com.google.dart.tools.debug.ui.internal.server.DartServerLaunchShortcut;
 
 import org.apache.commons.lang3.ObjectUtils;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IExtensionPoint;
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Platform;
-import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.IJobManager;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunchConfiguration;
@@ -52,7 +52,6 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionProvider;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.window.Window;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
@@ -82,6 +81,35 @@ public class LaunchUtils {
   public static final String DARTIUM_LAUNCH_NAME = "Dartium launch";
 
   private static List<ILaunchShortcut> shortcuts;
+
+  /**
+   * Returns true if the given launch config can be launched w/o waiting on the builder.
+   */
+  public static boolean canFastLaunch(ILaunchConfiguration config) {
+    DartLaunchConfigWrapper wrapper = new DartLaunchConfigWrapper(config);
+    IProject project = wrapper.getProject();
+
+    if (project == null) {
+      return false;
+    }
+
+    // if pubspec.yaml is not up-to-date, return false
+    IFile pubspecYamlFile = project.getFile(DartCore.PUBSPEC_FILE_NAME);
+
+    if (pubspecYamlFile.exists()) {
+      IFile pubspecLockFile = project.getFile(DartCore.PUBSPEC_LOCK_FILE_NAME);
+
+      if (!pubspecLockFile.exists()) {
+        return false;
+      }
+
+      if (pubspecLockFile.getLocalTimeStamp() < pubspecYamlFile.getLocalTimeStamp()) {
+        return false;
+      }
+    }
+
+    return true;
+  }
 
   /**
    * Allow the user to choose one from a set of launch configurations.
@@ -458,43 +486,30 @@ public class LaunchUtils {
    * @param mode the launch mode
    */
   public static void launch(final ILaunchConfiguration config, final String mode) {
-    if (DartDebugCorePlugin.canFastLaunch(config)) {
-      // If there are any dirty editors for the given project, save them now.
-      DartLaunchConfigWrapper wrapper = new DartLaunchConfigWrapper(config);
-      IProject project = wrapper.getProject();
+    // If there are any dirty editors for the given project, save them now.
+    DartLaunchConfigWrapper wrapper = new DartLaunchConfigWrapper(config);
+    IProject project = wrapper.getProject();
 
-      if (project != null) {
-        IDE.saveAllEditors(new IResource[] {project}, false);
-      }
-
-      Job launchJob = new Job("Launching " + config.getName()) {
-        @Override
-        protected IStatus run(IProgressMonitor monitor) {
-          try {
-            config.launch(mode, monitor, false);
-          } catch (final CoreException e) {
-            Display.getDefault().asyncExec(new Runnable() {
-              @Override
-              public void run() {
-                DebugErrorHandler.errorDialog(
-                    null,
-                    "Error Launching " + config.getName(),
-                    e.toString(),
-                    e.getStatus());
-              }
-            });
-          }
-
-          monitor.done();
-
-          return Status.OK_STATUS;
-        }
-      };
-
-      launchJob.schedule();
-    } else {
-      DebugUITools.launch(config, mode);
+    if (project != null) {
+      IDE.saveAllEditors(new IResource[] {project}, false);
     }
+
+    if (!canFastLaunch(config)) {
+      try {
+        // Wait on any existing builds (i.e., something like provisioning pub).
+        IJobManager jobManager = Job.getJobManager();
+
+        jobManager.join(ResourcesPlugin.FAMILY_MANUAL_BUILD, null);
+        jobManager.join(ResourcesPlugin.FAMILY_AUTO_BUILD, null);
+      } catch (OperationCanceledException e) {
+        // user cancelled
+
+      } catch (InterruptedException e) {
+        DartDebugCorePlugin.logError(e);
+      }
+    }
+
+    DebugUITools.launch(config, mode);
   }
 
   /**

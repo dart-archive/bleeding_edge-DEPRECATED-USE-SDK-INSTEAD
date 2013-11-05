@@ -19,6 +19,7 @@ import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.source.Source;
 
 public class HintCodeTest extends ResolverTestCase {
+
   public void fail_isInt() throws Exception {
     Source source = addSource(createSource(//
     "var v = 1 is int;"));
@@ -322,6 +323,183 @@ public class HintCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(source, HintCode.DEAD_CODE);
+    verify(source);
+  }
+
+  public void test_deprecatedAnnotationUse_assignment() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  @deprecated",
+        "  A operator+(A a) {}",
+        "}",
+        "f(A a) {",
+        "  A b;",
+        "  a += b;",
+        "}"));
+    resolve(source);
+    assertErrors(source, HintCode.DEPRECATED_MEMBER_USE);
+    verify(source);
+  }
+
+  public void test_deprecatedAnnotationUse_deprecated() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  @deprecated",
+        "  m() {}",
+        "  n() {m();}",
+        "}"));
+    resolve(source);
+    assertErrors(source, HintCode.DEPRECATED_MEMBER_USE);
+    verify(source);
+  }
+
+  public void test_deprecatedAnnotationUse_Deprecated() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  @Deprecated('0.9')",
+        "  m() {}",
+        "  n() {m();}",
+        "}"));
+    resolve(source);
+    assertErrors(source, HintCode.DEPRECATED_MEMBER_USE);
+    verify(source);
+  }
+
+  public void test_deprecatedAnnotationUse_export() throws Exception {
+    Source source = addSource(createSource(//
+    "export 'deprecated_library.dart';"));
+    addSource("/deprecated_library.dart", createSource(//
+        "@deprecated",
+        "library deprecated_library;",
+        "class A {}"));
+    resolve(source);
+    assertErrors(source, HintCode.DEPRECATED_MEMBER_USE);
+    verify(source);
+  }
+
+  public void test_deprecatedAnnotationUse_getter() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  @deprecated",
+        "  get m => 1;",
+        "}",
+        "f(A a) {",
+        "  return a.m;",
+        "}"));
+    resolve(source);
+    assertErrors(source, HintCode.DEPRECATED_MEMBER_USE);
+    verify(source);
+  }
+
+  public void test_deprecatedAnnotationUse_import() throws Exception {
+    Source source = addSource(createSource(//
+        "import 'deprecated_library.dart';",
+        "f(A a) {}"));
+    addSource("/deprecated_library.dart", createSource(//
+        "@deprecated",
+        "library deprecated_library;",
+        "class A {}"));
+    resolve(source);
+    assertErrors(source, HintCode.DEPRECATED_MEMBER_USE);
+    verify(source);
+  }
+
+  public void test_deprecatedAnnotationUse_indexExpression() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  @deprecated",
+        "  operator[](int i) {}",
+        "}",
+        "f(A a) {",
+        "  return a[1];",
+        "}"));
+    resolve(source);
+    assertErrors(source, HintCode.DEPRECATED_MEMBER_USE);
+    verify(source);
+  }
+
+  public void test_deprecatedAnnotationUse_instanceCreation() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  @deprecated",
+        "  A(int i) {}",
+        "}",
+        "f() {",
+        "  A a = new A(1);",
+        "}"));
+    resolve(source);
+    assertErrors(source, HintCode.DEPRECATED_MEMBER_USE);
+    verify(source);
+  }
+
+  public void test_deprecatedAnnotationUse_instanceCreation_namedConstructor() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  @deprecated",
+        "  A.named(int i) {}",
+        "}",
+        "f() {",
+        "  A a = new A.named(1);",
+        "}"));
+    resolve(source);
+    assertErrors(source, HintCode.DEPRECATED_MEMBER_USE);
+    verify(source);
+  }
+
+  public void test_deprecatedAnnotationUse_operator() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  @deprecated",
+        "  operator+(A a) {}",
+        "}",
+        "f(A a) {",
+        "  A b;",
+        "  return a + b;",
+        "}"));
+    resolve(source);
+    assertErrors(source, HintCode.DEPRECATED_MEMBER_USE);
+    verify(source);
+  }
+
+  public void test_deprecatedAnnotationUse_setter() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  @deprecated",
+        "  set s(v) {}",
+        "}",
+        "f(A a) {",
+        "  return a.s = 1;",
+        "}"));
+    resolve(source);
+    assertErrors(source, HintCode.DEPRECATED_MEMBER_USE);
+    verify(source);
+  }
+
+  public void test_deprecatedAnnotationUse_superConstructor() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  @deprecated",
+        "  A() {}",
+        "}",
+        "class B extends A {",
+        "  B() : super() {}",
+        "}"));
+    resolve(source);
+    assertErrors(source, HintCode.DEPRECATED_MEMBER_USE);
+    verify(source);
+  }
+
+  public void test_deprecatedAnnotationUse_superConstructor_namedConstructor() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  @deprecated",
+        "  A.named() {}",
+        "}",
+        "class B extends A {",
+        "  B() : super.named() {}",
+        "}"));
+    resolve(source);
+    assertErrors(source, HintCode.DEPRECATED_MEMBER_USE);
     verify(source);
   }
 

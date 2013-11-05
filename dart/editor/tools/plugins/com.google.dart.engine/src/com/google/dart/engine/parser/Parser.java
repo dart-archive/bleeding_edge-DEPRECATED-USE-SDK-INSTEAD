@@ -601,7 +601,9 @@ public class Parser {
     while (!matches(TokenType.EOF)) {
       CommentAndMetadata commentAndMetadata = parseCommentAndMetadata();
       if ((matches(Keyword.IMPORT) || matches(Keyword.EXPORT) || matches(Keyword.LIBRARY) || matches(Keyword.PART))
-          && !matches(peek(), TokenType.PERIOD) && !matches(peek(), TokenType.LT)) {
+          && !matches(peek(), TokenType.PERIOD)
+          && !matches(peek(), TokenType.LT)
+          && !matches(peek(), TokenType.OPEN_PAREN)) {
         Directive directive = parseDirective(commentAndMetadata);
         if (declarations.size() > 0 && !directiveFoundAfterDeclaration) {
           reportError(ParserErrorCode.DIRECTIVE_AFTER_DECLARATION);
@@ -1934,14 +1936,21 @@ public class Parser {
    * @return {@code true} if the given token appears to be the beginning of an operator declaration
    */
   private boolean isOperator(Token startToken) {
-    if (startToken.isOperator()) {
-      Token token = startToken.getNext();
-      while (token.isOperator()) {
-        token = token.getNext();
-      }
-      return matches(token, TokenType.OPEN_PAREN);
+    // Accept any operator here, even if it is not user definable.
+    if (!startToken.isOperator()) {
+      return false;
     }
-    return false;
+    // Token "=" means that it is actually field initializer.
+    if (startToken.getType() == TokenType.EQ) {
+      return false;
+    }
+    // Consume all operator tokens.
+    Token token = startToken.getNext();
+    while (token.isOperator()) {
+      token = token.getNext();
+    }
+    // Formal parameter list is expect now.
+    return matches(token, TokenType.OPEN_PAREN);
   }
 
   /**
@@ -2900,7 +2909,7 @@ public class Parser {
     if (matches(Keyword.CLASS)) {
       return parseClassDeclaration(commentAndMetadata, validateModifiersForClass(modifiers));
     } else if (matches(Keyword.TYPEDEF) && !matches(peek(), TokenType.PERIOD)
-        && !matches(peek(), TokenType.LT)) {
+        && !matches(peek(), TokenType.LT) && !matches(peek(), TokenType.OPEN_PAREN)) {
       validateModifiersForTypedef(modifiers);
       return parseTypeAlias(commentAndMetadata);
     }
@@ -4278,8 +4287,11 @@ public class Parser {
     Modifiers modifiers = new Modifiers();
     boolean progress = true;
     while (progress) {
-      if (matches(Keyword.ABSTRACT) && !matches(peek(), TokenType.PERIOD)
-          && !matches(peek(), TokenType.LT)) {
+      if (matches(peek(), TokenType.PERIOD) || matches(peek(), TokenType.LT)
+          || matches(peek(), TokenType.OPEN_PAREN)) {
+        return modifiers;
+      }
+      if (matches(Keyword.ABSTRACT)) {
         if (modifiers.getAbstractKeyword() != null) {
           reportError(ParserErrorCode.DUPLICATED_MODIFIER, currentToken.getLexeme());
           advance();
@@ -5692,9 +5704,15 @@ public class Parser {
   private Token skipFinalConstVarOrType(Token startToken) {
     if (matches(startToken, Keyword.FINAL) || matches(startToken, Keyword.CONST)) {
       Token next = startToken.getNext();
-      if (matchesIdentifier(next.getNext()) || matches(next.getNext(), TokenType.LT)
-          || matches(next.getNext(), Keyword.THIS)) {
-        return skipTypeName(next);
+      if (matchesIdentifier(next)) {
+        Token next2 = next.getNext();
+        // "Type parameter" or "Type<" or "prefix.Type"
+        if (matchesIdentifier(next2) || matches(next2, TokenType.LT)
+            || matches(next2, TokenType.PERIOD)) {
+          return skipTypeName(next);
+        }
+        // "parameter"
+        return next;
       }
     } else if (matches(startToken, Keyword.VAR)) {
       return startToken.getNext();

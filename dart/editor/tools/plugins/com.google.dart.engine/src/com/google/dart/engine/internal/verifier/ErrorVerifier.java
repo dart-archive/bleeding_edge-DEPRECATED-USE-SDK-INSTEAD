@@ -173,20 +173,6 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   }
 
   /**
-   * Checks if the given expression is the reference to the type.
-   * 
-   * @param expr the expression to evaluate
-   * @return {@code true} if the given expression is the reference to the type
-   */
-  private static boolean isTypeReference(Expression expr) {
-    if (expr instanceof Identifier) {
-      Identifier identifier = (Identifier) expr;
-      return identifier.getStaticElement() instanceof ClassElement;
-    }
-    return false;
-  }
-
-  /**
    * The error reporter by which errors will be reported.
    */
   private ErrorReporter errorReporter;
@@ -830,9 +816,11 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   public Void visitMethodInvocation(MethodInvocation node) {
     Expression target = node.getRealTarget();
     SimpleIdentifier methodName = node.getMethodName();
-    checkForStaticAccessToInstanceMember(target, methodName);
-    checkForInstanceAccessToStaticMember(target, methodName);
-    if (target == null) {
+    if (target != null) {
+      ClassElement typeReference = ElementResolver.getTypeReference(target);
+      checkForStaticAccessToInstanceMember(typeReference, methodName);
+      checkForInstanceAccessToStaticMember(typeReference, methodName);
+    } else {
       checkForUnqualifiedReferenceToNonLocalStaticMember(methodName);
     }
     return super.visitMethodInvocation(node);
@@ -863,8 +851,10 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   @Override
   public Void visitPrefixedIdentifier(PrefixedIdentifier node) {
     if (!(node.getParent() instanceof Annotation)) {
-      checkForStaticAccessToInstanceMember(node.getPrefix(), node.getIdentifier());
-      checkForInstanceAccessToStaticMember(node.getPrefix(), node.getIdentifier());
+      ClassElement typeReference = ElementResolver.getTypeReference(node.getPrefix());
+      SimpleIdentifier name = node.getIdentifier();
+      checkForStaticAccessToInstanceMember(typeReference, name);
+      checkForInstanceAccessToStaticMember(typeReference, name);
     }
     return super.visitPrefixedIdentifier(node);
   }
@@ -884,10 +874,10 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
 
   @Override
   public Void visitPropertyAccess(PropertyAccess node) {
-    Expression target = node.getRealTarget();
+    ClassElement typeReference = ElementResolver.getTypeReference(node.getRealTarget());
     SimpleIdentifier propertyName = node.getPropertyName();
-    checkForStaticAccessToInstanceMember(target, propertyName);
-    checkForInstanceAccessToStaticMember(target, propertyName);
+    checkForStaticAccessToInstanceMember(typeReference, propertyName);
+    checkForInstanceAccessToStaticMember(typeReference, propertyName);
     return super.visitPropertyAccess(node);
   }
 
@@ -3363,21 +3353,24 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   }
 
   /**
-   * This checks that if the given "target" is not a type reference then the "name" is reference to
-   * an instance member.
+   * This checks the given "typeReference" is not a type reference and that then the "name" is
+   * reference to an instance member.
    * 
-   * @param target the target of the name access to evaluate
+   * @param typeReference the resolved {@link ClassElement} of the left hand side of the expression,
+   *          or {@code null}, aka, the class element of 'C' in 'C.x', see
+   *          {@link #getTypeReference(Expression)}
    * @param name the accessed name to evaluate
    * @return {@code true} if and only if an error code is generated on the passed node
    * @see StaticTypeWarningCode#INSTANCE_ACCESS_TO_STATIC_MEMBER
    */
-  private boolean checkForInstanceAccessToStaticMember(Expression target, SimpleIdentifier name) {
-    // OK, no target
-    if (target == null) {
-      return false;
-    }
+  private boolean checkForInstanceAccessToStaticMember(ClassElement typeReference,
+      SimpleIdentifier name) {
     // OK, in comment
     if (isInComment) {
+      return false;
+    }
+    // OK, target is a type
+    if (typeReference != null) {
       return false;
     }
     // prepare member Element
@@ -3392,10 +3385,6 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     }
     // OK, instance member
     if (!executableElement.isStatic()) {
-      return false;
-    }
-    // OK, target is a type
-    if (isTypeReference(target)) {
       return false;
     }
     // report problem
@@ -4617,15 +4606,22 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   }
 
   /**
-   * This checks that if the given "target" is the type reference then the "name" is not the
-   * reference to a instance member.
+   * This checks the given "typeReference" and that the "name" is not the reference to an instance
+   * member.
    * 
-   * @param target the target of the name access to evaluate
+   * @param typeReference the resolved {@link ClassElement} of the left hand side of the expression,
+   *          or {@code null}, aka, the class element of 'C' in 'C.x', see
+   *          {@link #getTypeReference(Expression)}
    * @param name the accessed name to evaluate
    * @return {@code true} if and only if an error code is generated on the passed node
    * @see StaticWarningCode#STATIC_ACCESS_TO_INSTANCE_MEMBER
    */
-  private boolean checkForStaticAccessToInstanceMember(Expression target, SimpleIdentifier name) {
+  private boolean checkForStaticAccessToInstanceMember(ClassElement typeReference,
+      SimpleIdentifier name) {
+    // OK, target is not a type
+    if (typeReference == null) {
+      return false;
+    }
     // prepare member Element
     Element element = name.getStaticElement();
     if (!(element instanceof ExecutableElement)) {
@@ -4634,10 +4630,6 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     ExecutableElement memberElement = (ExecutableElement) element;
     // OK, static
     if (memberElement.isStatic()) {
-      return false;
-    }
-    // OK, target is not a type
-    if (!isTypeReference(target)) {
       return false;
     }
     // report problem

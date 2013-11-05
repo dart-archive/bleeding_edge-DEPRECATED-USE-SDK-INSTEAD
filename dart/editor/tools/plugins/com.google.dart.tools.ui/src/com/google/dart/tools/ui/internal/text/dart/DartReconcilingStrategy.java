@@ -82,8 +82,9 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
   private final Object lock = new Object();
 
   /**
-   * The region of source that has changed, which may be empty. Synchronize against {@link #lock}
-   * before accessing this field.
+   * The region of source that has changed and needs to be reconciled, or empty if analysis of this
+   * file is up to date, or {@code null} if the entire file needs to be reconciled. Synchronize
+   * against {@link #lock} before accessing this field.
    */
   private DartReconcilingRegion dirtyRegion = DartReconcilingRegion.EMPTY;
 
@@ -125,12 +126,14 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
       String newText = event.getText();
       int newLength = newText != null ? newText.length() : 0;
       synchronized (lock) {
-        dirtyRegion = dirtyRegion.add(event.getOffset(), event.getLength(), newLength);
+        if (dirtyRegion != null) {
+          dirtyRegion = dirtyRegion.add(event.getOffset(), event.getLength(), newLength);
+        }
       }
       editor.applyResolvedUnit(null);
 
       // Start analysis immediately if "." pressed to improve code completion response
-      if (".".equals(newText)) {
+      if (".".endsWith(newText)) {
         reconcile();
       }
     }
@@ -220,19 +223,27 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
     InstrumentationBuilder instrumentation = Instrumentation.builder("DartReconcilingStrategy-reconcile");
     try {
       instrumentation.data("Name", editor.getTitle());
-      DartReconcilingRegion r;
+      DartReconcilingRegion region;
       synchronized (lock) {
-        if (dirtyRegion.isEmpty()) {
-          return;
-        }
-        r = dirtyRegion;
+        region = dirtyRegion;
         dirtyRegion = DartReconcilingRegion.EMPTY;
       }
-      instrumentation.data("Offset", r.getOffset());
-      instrumentation.data("OldLength", r.getOldLength());
-      instrumentation.data("NewLength", r.getNewLength());
-      sourceChanged(document.get(), r.getOffset(), r.getOldLength(), r.getNewLength());
-      performAnalysisInBackground();
+      if (region == null) {
+        String code = document.get();
+        instrumentation.data("Length", code.length());
+        sourceChanged(code);
+        performAnalysisInBackground();
+      } else if (!region.isEmpty()) {
+        instrumentation.data("Offset", region.getOffset());
+        instrumentation.data("OldLength", region.getOldLength());
+        instrumentation.data("NewLength", region.getNewLength());
+        sourceChanged(
+            document.get(),
+            region.getOffset(),
+            region.getOldLength(),
+            region.getNewLength());
+        performAnalysisInBackground();
+      }
     } finally {
       instrumentation.log();
     }
@@ -345,7 +356,7 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
       return;
     }
     synchronized (lock) {
-      if (!dirtyRegion.isEmpty()) {
+      if (dirtyRegion == null || !dirtyRegion.isEmpty()) {
         return;
       }
     }

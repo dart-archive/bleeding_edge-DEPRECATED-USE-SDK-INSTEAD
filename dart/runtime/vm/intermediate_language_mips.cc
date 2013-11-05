@@ -304,95 +304,8 @@ LocationSummary* EqualityCompareInstr::MakeLocationSummary() const {
     locs->set_out(Location::RequiresRegister());
     return locs;
   }
-  if (IsCheckedStrictEqual()) {
-    const intptr_t kNumTemps = 1;
-    LocationSummary* locs =
-        new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
-    locs->set_in(0, Location::RequiresRegister());
-    locs->set_in(1, Location::RequiresRegister());
-    locs->set_temp(0, Location::RequiresRegister());
-    locs->set_out(Location::RequiresRegister());
-    return locs;
-  }
-  if (IsPolymorphic()) {
-    const intptr_t kNumTemps = 1;
-    LocationSummary* locs =
-        new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
-    locs->set_in(0, Location::RegisterLocation(A1));
-    locs->set_in(1, Location::RegisterLocation(A0));
-    locs->set_temp(0, Location::RegisterLocation(T0));
-    locs->set_out(Location::RegisterLocation(V0));
-    return locs;
-  }
-  const intptr_t kNumTemps = 1;
-  LocationSummary* locs =
-      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
-  locs->set_in(0, Location::RegisterLocation(A1));
-  locs->set_in(1, Location::RegisterLocation(A0));
-  locs->set_temp(0, Location::RegisterLocation(T0));
-  locs->set_out(Location::RegisterLocation(V0));
-  return locs;
-}
-
-
-// A1: left.
-// A0: right.
-// Uses T0 to load ic_call_data.
-// Result in V0.
-static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
-                                       intptr_t deopt_id,
-                                       intptr_t token_pos,
-                                       Token::Kind kind,
-                                       LocationSummary* locs,
-                                       const ICData& original_ic_data) {
-  if (!compiler->is_optimizing()) {
-    compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
-                                   deopt_id,
-                                   token_pos);
-  }
-  const int kNumberOfArguments = 2;
-  const Array& kNoArgumentNames = Object::null_array();
-  const int kNumArgumentsChecked = 2;
-
-  __ TraceSimMsg("EmitEqualityAsInstanceCall");
-  __ Comment("EmitEqualityAsInstanceCall");
-
-  ICData& equality_ic_data = ICData::ZoneHandle();
-  if (compiler->is_optimizing() && FLAG_propagate_ic_data) {
-    ASSERT(!original_ic_data.IsNull());
-    if (original_ic_data.NumberOfChecks() == 0) {
-      // IC call for reoptimization populates original ICData.
-      equality_ic_data = original_ic_data.raw();
-    } else {
-      // Megamorphic call.
-      equality_ic_data = original_ic_data.AsUnaryClassChecks();
-    }
-  } else {
-    const Array& arguments_descriptor =
-        Array::Handle(ArgumentsDescriptor::New(kNumberOfArguments,
-                                               kNoArgumentNames));
-    equality_ic_data = ICData::New(compiler->parsed_function().function(),
-                                   Symbols::EqualOperator(),
-                                   arguments_descriptor,
-                                   deopt_id,
-                                   kNumArgumentsChecked);
-  }
-  compiler->GenerateInstanceCall(deopt_id,
-                                 token_pos,
-                                 kNumberOfArguments,
-                                 kNoArgumentNames,
-                                 locs,
-                                 equality_ic_data);
-  if (kind == Token::kNE) {
-    Label true_label, done;
-    // Negate the condition: true label returns false and vice versa.
-    __ BranchEqual(V0, Bool::True(), &true_label);
-    __ LoadObject(V0, Bool::True());
-    __ b(&done);
-    __ Bind(&true_label);
-    __ LoadObject(V0, Bool::False());
-    __ Bind(&done);
-  }
+  UNREACHABLE();
+  return NULL;
 }
 
 
@@ -445,178 +358,6 @@ static void EmitBranchAfterCompare(
       UNREACHABLE();
       break;
   }
-}
-
-
-// A1: left, also on stack.
-// A0: right, also on stack.
-static void EmitEqualityAsPolymorphicCall(FlowGraphCompiler* compiler,
-                                          const ICData& orig_ic_data,
-                                          LocationSummary* locs,
-                                          BranchInstr* branch,
-                                          Token::Kind kind,
-                                          intptr_t deopt_id,
-                                          intptr_t token_pos) {
-  ASSERT((kind == Token::kEQ) || (kind == Token::kNE));
-  const ICData& ic_data = ICData::Handle(orig_ic_data.AsUnaryClassChecks());
-  ASSERT(ic_data.NumberOfChecks() > 0);
-  ASSERT(ic_data.num_args_tested() == 1);
-  Label* deopt = compiler->AddDeoptStub(deopt_id, kDeoptEquality);
-  Register left = locs->in(0).reg();
-  Register right = locs->in(1).reg();
-  ASSERT(left == A1);
-  ASSERT(right == A0);
-  Register temp = locs->temp(0).reg();
-
-  __ TraceSimMsg("EmitEqualityAsPolymorphicCall");
-  __ Comment("EmitEqualityAsPolymorphicCall");
-
-  LoadValueCid(compiler, temp, left,
-               (ic_data.GetReceiverClassIdAt(0) == kSmiCid) ? NULL : deopt);
-  // 'temp' contains class-id of the left argument.
-  ObjectStore* object_store = Isolate::Current()->object_store();
-  Condition cond = TokenKindToSmiCondition(kind);
-  Label done;
-  const intptr_t len = ic_data.NumberOfChecks();
-  for (intptr_t i = 0; i < len; i++) {
-    // Assert that the Smi is at position 0, if at all.
-    ASSERT((ic_data.GetReceiverClassIdAt(i) != kSmiCid) || (i == 0));
-    Label next_test;
-    if (i < len - 1) {
-      __ BranchNotEqual(temp, ic_data.GetReceiverClassIdAt(i), &next_test);
-    } else {
-      __ BranchNotEqual(temp, ic_data.GetReceiverClassIdAt(i), deopt);
-    }
-    const Function& target = Function::ZoneHandle(ic_data.GetTargetAt(i));
-    if (target.Owner() == object_store->object_class()) {
-      // Object.== is same as ===.
-      __ Drop(2);
-      __ slt(CMPRES1, left, right);
-      __ slt(CMPRES2, right, left);
-      if (branch != NULL) {
-        branch->EmitBranchOnCondition(compiler, cond);
-      } else {
-        Register result = locs->out().reg();
-        Label load_true;
-        EmitBranchAfterCompare(compiler, cond, &load_true);
-        __ LoadObject(result, Bool::False());
-        __ b(&done);
-        __ Bind(&load_true);
-        __ LoadObject(result, Bool::True());
-      }
-    } else {
-      const int kNumberOfArguments = 2;
-      const Array& kNoArgumentNames = Object::null_array();
-      compiler->GenerateStaticCall(deopt_id,
-                                   token_pos,
-                                   target,
-                                   kNumberOfArguments,
-                                   kNoArgumentNames,
-                                   locs);
-      if (branch == NULL) {
-        if (kind == Token::kNE) {
-          Label is_true;
-          __ CompareObject(CMPRES1, CMPRES2, V0, Bool::True());
-          __ beq(CMPRES, CMPRES2, &is_true);
-          __ LoadObject(V0, Bool::True());
-          __ b(&done);
-          __ Bind(&is_true);
-          __ LoadObject(V0, Bool::False());
-        }
-      } else {
-        if (branch->is_checked()) {
-          EmitAssertBoolean(V0, token_pos, deopt_id, locs, compiler);
-        }
-        __ CompareObject(CMPRES1, CMPRES2, V0, Bool::True());
-        branch->EmitBranchOnCondition(compiler, cond);
-      }
-    }
-    if (i < len - 1) {
-      __ b(&done);
-      __ Bind(&next_test);
-    }
-  }
-  __ Bind(&done);
-}
-
-
-// Emit code when ICData's targets are all Object == (which is ===).
-static void EmitCheckedStrictEqual(FlowGraphCompiler* compiler,
-                                   const ICData& orig_ic_data,
-                                   const LocationSummary& locs,
-                                   Token::Kind kind,
-                                   BranchInstr* branch,
-                                   intptr_t deopt_id) {
-  ASSERT((kind == Token::kEQ) || (kind == Token::kNE));
-  Register left = locs.in(0).reg();
-  Register right = locs.in(1).reg();
-  Register temp = locs.temp(0).reg();
-  Label* deopt = compiler->AddDeoptStub(deopt_id, kDeoptEquality);
-
-  __ Comment("CheckedStrictEqual");
-
-  __ andi(CMPRES, left, Immediate(kSmiTagMask));
-  __ beq(CMPRES, ZR, deopt);
-  // 'left' is not Smi.
-  Label identity_compare;
-  __ LoadImmediate(CMPRES1, reinterpret_cast<int32_t>(Object::null()));
-  __ beq(right, CMPRES1, &identity_compare);
-  __ beq(left, CMPRES1, &identity_compare);
-
-  __ LoadClassId(temp, left);
-  const ICData& ic_data = ICData::Handle(orig_ic_data.AsUnaryClassChecks());
-  const intptr_t len = ic_data.NumberOfChecks();
-  for (intptr_t i = 0; i < len; i++) {
-    if (i == (len - 1)) {
-      __ BranchNotEqual(temp, ic_data.GetReceiverClassIdAt(i), deopt);
-    } else {
-      __ BranchEqual(temp, ic_data.GetReceiverClassIdAt(i), &identity_compare);
-    }
-  }
-  __ Bind(&identity_compare);
-  __ subu(CMPRES1, left, right);
-  if (branch == NULL) {
-    Label done, is_equal;
-    Register result = locs.out().reg();
-    __ beq(CMPRES, ZR, &is_equal);
-    // Not equal.
-    __ LoadObject(result, Bool::Get(kind != Token::kEQ));
-    __ b(&done);
-    __ Bind(&is_equal);
-    __ LoadObject(result, Bool::Get(kind == Token::kEQ));
-    __ Bind(&done);
-
-  } else {
-    Condition cond = TokenKindToSmiCondition(kind);
-    __ mov(CMPRES2, ZR);
-    branch->EmitBranchOnCondition(compiler, cond);
-  }
-}
-
-
-// First test if receiver is NULL, in which case === is applied.
-// If type feedback was provided (lists of <class-id, target>), do a
-// type by type check (either === or static call to the operator.
-static void EmitGenericEqualityCompare(FlowGraphCompiler* compiler,
-                                       LocationSummary* locs,
-                                       Token::Kind kind,
-                                       BranchInstr* branch,
-                                       const ICData& ic_data,
-                                       intptr_t deopt_id,
-                                       intptr_t token_pos) {
-  ASSERT((kind == Token::kEQ) || (kind == Token::kNE));
-  ASSERT(!ic_data.IsNull() && (ic_data.NumberOfChecks() > 0));
-  Register left = locs->in(0).reg();
-  Register right = locs->in(1).reg();
-  __ TraceSimMsg("EmitGenericEqualityCompare");
-  __ Comment("EmitGenericEqualityCompare");
-  ASSERT(left == A1);
-  ASSERT(right == A0);
-  __ addiu(SP, SP, Immediate(-2 * kWordSize));
-  __ sw(A1, Address(SP, 1 * kWordSize));
-  __ sw(A0, Address(SP, 0 * kWordSize));
-  EmitEqualityAsPolymorphicCall(compiler, ic_data, locs, branch, kind,
-                                deopt_id, token_pos);
 }
 
 
@@ -739,30 +480,7 @@ void EqualityCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     EmitDoubleComparisonOp(compiler, *locs(), kind(), kNoBranch);
     return;
   }
-  if (IsCheckedStrictEqual()) {
-    EmitCheckedStrictEqual(compiler, *ic_data(), *locs(), kind(), kNoBranch,
-                           deopt_id());
-    return;
-  }
-  if (IsPolymorphic()) {
-    EmitGenericEqualityCompare(compiler, locs(), kind(), kNoBranch, *ic_data(),
-                               deopt_id(), token_pos());
-    return;
-  }
-  Register left = locs()->in(0).reg();
-  Register right = locs()->in(1).reg();
-  ASSERT(left == A1);
-  ASSERT(right == A0);
-  __ addiu(SP, SP, Immediate(-2 * kWordSize));
-  __ sw(A1, Address(SP, 1 * kWordSize));
-  __ sw(A0, Address(SP, 0 * kWordSize));
-  EmitEqualityAsInstanceCall(compiler,
-                             deopt_id(),
-                             token_pos(),
-                             kind(),
-                             locs(),
-                             *ic_data());
-  ASSERT(locs()->out().reg() == V0);
+  UNREACHABLE();
 }
 
 
@@ -784,35 +502,7 @@ void EqualityCompareInstr::EmitBranchCode(FlowGraphCompiler* compiler,
     EmitDoubleComparisonOp(compiler, *locs(), kind(), branch);
     return;
   }
-  if (IsCheckedStrictEqual()) {
-    EmitCheckedStrictEqual(compiler, *ic_data(), *locs(), kind(), branch,
-                           deopt_id());
-    return;
-  }
-  if (IsPolymorphic()) {
-    EmitGenericEqualityCompare(compiler, locs(), kind(), branch, *ic_data(),
-                               deopt_id(), token_pos());
-    return;
-  }
-  Register left = locs()->in(0).reg();
-  Register right = locs()->in(1).reg();
-  ASSERT(left == A1);
-  ASSERT(right == A0);
-  __ addiu(SP, SP, Immediate(-2 * kWordSize));
-  __ sw(A1, Address(SP, 1 * kWordSize));
-  __ sw(A0, Address(SP, 0 * kWordSize));
-  EmitEqualityAsInstanceCall(compiler,
-                             deopt_id(),
-                             token_pos(),
-                             Token::kEQ,  // kNE reverse occurs at branch.
-                             locs(),
-                             *ic_data());
-  if (branch->is_checked()) {
-    EmitAssertBoolean(V0, token_pos(), deopt_id(), locs(), compiler);
-  }
-  Condition branch_condition = (kind() == Token::kNE) ? NE : EQ;
-  __ CompareObject(CMPRES1, CMPRES2, V0, Bool::True());
-  branch->EmitBranchOnCondition(compiler, branch_condition);
+  UNREACHABLE();
 }
 
 
@@ -1039,8 +729,8 @@ CompileType LoadIndexedInstr::ComputeType() const {
       return CompileType::FromCid(kDoubleCid);
     case kTypedDataFloat32x4ArrayCid:
       return CompileType::FromCid(kFloat32x4Cid);
-    case kTypedDataUint32x4ArrayCid:
-      return CompileType::FromCid(kUint32x4Cid);
+    case kTypedDataInt32x4ArrayCid:
+      return CompileType::FromCid(kInt32x4Cid);
 
     case kTypedDataInt8ArrayCid:
     case kTypedDataUint8ArrayCid:
@@ -1090,8 +780,8 @@ Representation LoadIndexedInstr::representation() const {
     case kTypedDataFloat32ArrayCid:
     case kTypedDataFloat64ArrayCid:
       return kUnboxedDouble;
-    case kTypedDataUint32x4ArrayCid:
-      return kUnboxedUint32x4;
+    case kTypedDataInt32x4ArrayCid:
+      return kUnboxedInt32x4;
     case kTypedDataFloat32x4ArrayCid:
       return kUnboxedFloat32x4;
     default:
@@ -1113,7 +803,7 @@ LocationSummary* LoadIndexedInstr::MakeLocationSummary() const {
   locs->set_in(1, Location::WritableRegister());
   if ((representation() == kUnboxedDouble) ||
       (representation() == kUnboxedFloat32x4) ||
-      (representation() == kUnboxedUint32x4)) {
+      (representation() == kUnboxedInt32x4)) {
     locs->set_out(Location::RequiresFpuRegister());
   } else {
     locs->set_out(Location::RequiresRegister());
@@ -1173,7 +863,7 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if ((representation() == kUnboxedDouble) ||
       (representation() == kUnboxedMint) ||
       (representation() == kUnboxedFloat32x4) ||
-      (representation() == kUnboxedUint32x4)) {
+      (representation() == kUnboxedInt32x4)) {
     DRegister result = locs()->out().fpu_reg();
     switch (class_id()) {
       case kTypedDataInt32ArrayCid:
@@ -1191,7 +881,7 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ LoadDFromOffset(result, index.reg(),
             FlowGraphCompiler::DataOffsetFor(class_id()) - kHeapObjectTag);
         break;
-      case kTypedDataUint32x4ArrayCid:
+      case kTypedDataInt32x4ArrayCid:
       case kTypedDataFloat32x4ArrayCid:
         UNIMPLEMENTED();
         break;
@@ -1275,8 +965,8 @@ Representation StoreIndexedInstr::RequiredInputRepresentation(
       return kUnboxedDouble;
     case kTypedDataFloat32x4ArrayCid:
       return kUnboxedFloat32x4;
-    case kTypedDataUint32x4ArrayCid:
-      return kUnboxedUint32x4;
+    case kTypedDataInt32x4ArrayCid:
+      return kUnboxedInt32x4;
     default:
       UNIMPLEMENTED();
       return kTagged;
@@ -1318,7 +1008,7 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary() const {
       locs->AddTemp(Location::RequiresFpuRegister());
       // Fall through.
     case kTypedDataFloat64ArrayCid:  // TODO(srdjan): Support Float64 constants.
-    case kTypedDataUint32x4ArrayCid:
+    case kTypedDataInt32x4ArrayCid:
     case kTypedDataFloat32x4ArrayCid:
       locs->set_in(2, Location::RequiresFpuRegister());
       break;
@@ -1458,7 +1148,7 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ StoreDToOffset(locs()->in(2).fpu_reg(), index.reg(),
           FlowGraphCompiler::DataOffsetFor(class_id()) - kHeapObjectTag);
       break;
-    case kTypedDataUint32x4ArrayCid:
+    case kTypedDataInt32x4ArrayCid:
     case kTypedDataFloat32x4ArrayCid:
       UNIMPLEMENTED();
       break;
@@ -1586,7 +1276,7 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           __ BranchSignedLess(CMPRES1, 0, &skip_length_check);
           __ BranchEqual(value_cid_reg, kNullCid, &no_fixed_length);
           // Check for typed data array.
-          __ BranchSignedGreater(value_cid_reg, kTypedDataUint32x4ArrayCid,
+          __ BranchSignedGreater(value_cid_reg, kTypedDataInt32x4ArrayCid,
                                  &no_fixed_length);
           __ BranchSignedLess(value_cid_reg, kTypedDataInt8ArrayCid,
                               &check_array);
@@ -1662,7 +1352,7 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         Label check_array, length_set, no_fixed_length;
         __ BranchEqual(value_cid_reg, kNullCid, &no_fixed_length);
         // Check for typed data array.
-        __ BranchSignedGreater(value_cid_reg, kTypedDataUint32x4ArrayCid,
+        __ BranchSignedGreater(value_cid_reg, kTypedDataInt32x4ArrayCid,
                                &no_fixed_length);
         __ BranchSignedLess(value_cid_reg, kTypedDataInt8ArrayCid,
                             &check_array);
@@ -2910,24 +2600,24 @@ void UnboxFloat32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* BoxUint32x4Instr::MakeLocationSummary() const {
+LocationSummary* BoxInt32x4Instr::MakeLocationSummary() const {
   UNIMPLEMENTED();
   return NULL;
 }
 
 
-void BoxUint32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void BoxInt32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNIMPLEMENTED();
 }
 
 
-LocationSummary* UnboxUint32x4Instr::MakeLocationSummary() const {
+LocationSummary* UnboxInt32x4Instr::MakeLocationSummary() const {
   UNIMPLEMENTED();
   return NULL;
 }
 
 
-void UnboxUint32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void UnboxInt32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNIMPLEMENTED();
 }
 
@@ -3102,35 +2792,35 @@ void Float32x4WithInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* Float32x4ToUint32x4Instr::MakeLocationSummary() const {
+LocationSummary* Float32x4ToInt32x4Instr::MakeLocationSummary() const {
   UNIMPLEMENTED();
   return NULL;
 }
 
 
-void Float32x4ToUint32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void Float32x4ToInt32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNIMPLEMENTED();
 }
 
 
-LocationSummary* Uint32x4BoolConstructorInstr::MakeLocationSummary() const {
-  UNIMPLEMENTED();
-  return NULL;
-}
-
-
-void Uint32x4BoolConstructorInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
-}
-
-
-LocationSummary* Uint32x4GetFlagInstr::MakeLocationSummary() const {
+LocationSummary* Int32x4BoolConstructorInstr::MakeLocationSummary() const {
   UNIMPLEMENTED();
   return NULL;
 }
 
 
-void Uint32x4GetFlagInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void Int32x4BoolConstructorInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
+LocationSummary* Int32x4GetFlagInstr::MakeLocationSummary() const {
+  UNIMPLEMENTED();
+  return NULL;
+}
+
+
+void Int32x4GetFlagInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNIMPLEMENTED();
 }
 
@@ -3146,46 +2836,46 @@ void Simd32x4GetSignMaskInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* Uint32x4SelectInstr::MakeLocationSummary() const {
+LocationSummary* Int32x4SelectInstr::MakeLocationSummary() const {
   UNIMPLEMENTED();
   return NULL;
 }
 
 
-void Uint32x4SelectInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void Int32x4SelectInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNIMPLEMENTED();
 }
 
 
-LocationSummary* Uint32x4SetFlagInstr::MakeLocationSummary() const {
-  UNIMPLEMENTED();
-  return NULL;
-}
-
-
-void Uint32x4SetFlagInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
-}
-
-
-LocationSummary* Uint32x4ToFloat32x4Instr::MakeLocationSummary() const {
+LocationSummary* Int32x4SetFlagInstr::MakeLocationSummary() const {
   UNIMPLEMENTED();
   return NULL;
 }
 
 
-void Uint32x4ToFloat32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void Int32x4SetFlagInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNIMPLEMENTED();
 }
 
 
-LocationSummary* BinaryUint32x4OpInstr::MakeLocationSummary() const {
+LocationSummary* Int32x4ToFloat32x4Instr::MakeLocationSummary() const {
   UNIMPLEMENTED();
   return NULL;
 }
 
 
-void BinaryUint32x4OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void Int32x4ToFloat32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
+LocationSummary* BinaryInt32x4OpInstr::MakeLocationSummary() const {
+  UNIMPLEMENTED();
+  return NULL;
+}
+
+
+void BinaryInt32x4OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNIMPLEMENTED();
 }
 

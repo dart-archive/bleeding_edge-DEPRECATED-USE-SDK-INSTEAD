@@ -14,6 +14,7 @@
 
 package com.google.dart.tools.debug.ui.internal.dialogs;
 
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 import com.google.dart.tools.debug.ui.internal.DartUtil;
@@ -479,9 +480,19 @@ public class ManageLaunchesDialog extends TitleAreaDialog implements ILaunchConf
     ILaunchManager manager = DebugPlugin.getDefault().getLaunchManager();
 
     for (final ILaunchConfigurationType configType : manager.getLaunchConfigurationTypes()) {
-      CreateLaunchAction action = new CreateLaunchAction(this, configType);
+      // remove chrome app and pub serve launch icons from toolbar, unless user has opted in
+      if (!configType.getIdentifier().contains("pubServe")
+          && !configType.getIdentifier().contains("chromeApp")) {
+        CreateLaunchAction action = new CreateLaunchAction(this, configType);
+        toolBarManager.add(action);
+      } else {
+        if ((configType.getIdentifier().contains("pubServe") && DartCoreDebug.ENABLE_PUB_SERVE_LAUNCH)
+            || (configType.getIdentifier().contains("chromeApp") && DartCoreDebug.ENABLE_CHROME_APP_LAUNCH_CONFIG)) {
 
-      toolBarManager.add(action);
+          CreateLaunchAction action = new CreateLaunchAction(this, configType);
+          toolBarManager.add(action);
+        }
+      }
     }
 
     //toolBarManager.add(new Separator());

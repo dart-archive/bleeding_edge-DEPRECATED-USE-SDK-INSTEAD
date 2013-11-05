@@ -407,89 +407,8 @@ LocationSummary* EqualityCompareInstr::MakeLocationSummary() const {
     locs->set_out(Location::RequiresRegister());
     return locs;
   }
-  if (IsCheckedStrictEqual()) {
-    const intptr_t kNumTemps = 1;
-    LocationSummary* locs =
-        new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
-    locs->set_in(0, Location::RequiresRegister());
-    locs->set_in(1, Location::RequiresRegister());
-    locs->set_temp(0, Location::RequiresRegister());
-    locs->set_out(Location::RequiresRegister());
-    return locs;
-  }
-  if (IsPolymorphic()) {
-    const intptr_t kNumTemps = 1;
-    LocationSummary* locs =
-        new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
-    locs->set_in(0, Location::RegisterLocation(RCX));
-    locs->set_in(1, Location::RegisterLocation(RDX));
-    locs->set_temp(0, Location::RegisterLocation(RBX));
-    locs->set_out(Location::RegisterLocation(RAX));
-    return locs;
-  }
-  const intptr_t kNumTemps = 1;
-  LocationSummary* locs =
-      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
-  locs->set_in(0, Location::RegisterLocation(RCX));
-  locs->set_in(1, Location::RegisterLocation(RDX));
-  locs->set_temp(0, Location::RegisterLocation(RBX));
-  locs->set_out(Location::RegisterLocation(RAX));
-  return locs;
-}
-
-
-static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
-                                       intptr_t deopt_id,
-                                       intptr_t token_pos,
-                                       Token::Kind kind,
-                                       LocationSummary* locs,
-                                       const ICData& original_ic_data) {
-  if (!compiler->is_optimizing()) {
-    compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
-                                   deopt_id,
-                                   token_pos);
-  }
-  const int kNumberOfArguments = 2;
-  const Array& kNoArgumentNames = Object::null_array();
-  const int kNumArgumentsChecked = 2;
-
-  ICData& equality_ic_data = ICData::ZoneHandle(original_ic_data.raw());
-  if (compiler->is_optimizing() && FLAG_propagate_ic_data) {
-    ASSERT(!original_ic_data.IsNull());
-    if (original_ic_data.NumberOfChecks() == 0) {
-      // IC call for reoptimization populates original ICData.
-      equality_ic_data = original_ic_data.raw();
-    } else {
-      // Megamorphic call.
-      equality_ic_data = original_ic_data.AsUnaryClassChecks();
-    }
-  } else {
-    const Array& arguments_descriptor =
-        Array::Handle(ArgumentsDescriptor::New(kNumberOfArguments,
-                                               kNoArgumentNames));
-    equality_ic_data = ICData::New(compiler->parsed_function().function(),
-                                   Symbols::EqualOperator(),
-                                   arguments_descriptor,
-                                   deopt_id,
-                                   kNumArgumentsChecked);
-  }
-  compiler->GenerateInstanceCall(deopt_id,
-                                 token_pos,
-                                 kNumberOfArguments,
-                                 kNoArgumentNames,
-                                 locs,
-                                 equality_ic_data);
-  if (kind == Token::kNE) {
-    Label true_label, done;
-    // Negate the condition: true label returns false and vice versa.
-    __ CompareObject(RAX, Bool::True(), PP);
-    __ j(EQUAL, &true_label, Assembler::kNearJump);
-    __ LoadObject(RAX, Bool::True(), PP);
-    __ jmp(&done, Assembler::kNearJump);
-    __ Bind(&true_label);
-    __ LoadObject(RAX, Bool::False(), PP);
-    __ Bind(&done);
-  }
+  UNREACHABLE();
+  return NULL;
 }
 
 
@@ -509,164 +428,6 @@ static void LoadValueCid(FlowGraphCompiler* compiler,
   }
   __ LoadClassId(value_cid_reg, value_reg);
   __ Bind(&done);
-}
-
-
-static void EmitEqualityAsPolymorphicCall(FlowGraphCompiler* compiler,
-                                          const ICData& orig_ic_data,
-                                          LocationSummary* locs,
-                                          BranchInstr* branch,
-                                          Token::Kind kind,
-                                          intptr_t deopt_id,
-                                          intptr_t token_pos) {
-  ASSERT((kind == Token::kEQ) || (kind == Token::kNE));
-  const ICData& ic_data = ICData::Handle(orig_ic_data.AsUnaryClassChecks());
-  ASSERT(ic_data.NumberOfChecks() > 0);
-  ASSERT(ic_data.num_args_tested() == 1);
-  Label* deopt = compiler->AddDeoptStub(deopt_id, kDeoptEquality);
-  Register left = locs->in(0).reg();
-  Register right = locs->in(1).reg();
-  Register temp = locs->temp(0).reg();
-  LoadValueCid(compiler, temp, left,
-               (ic_data.GetReceiverClassIdAt(0) == kSmiCid) ? NULL : deopt);
-  // 'temp' contains class-id of the left argument.
-  ObjectStore* object_store = Isolate::Current()->object_store();
-  Condition cond = TokenKindToSmiCondition(kind);
-  Label done;
-  const intptr_t len = ic_data.NumberOfChecks();
-  for (intptr_t i = 0; i < len; i++) {
-    // Assert that the Smi is at position 0, if at all.
-    ASSERT((ic_data.GetReceiverClassIdAt(i) != kSmiCid) || (i == 0));
-    Label next_test;
-    __ CompareImmediate(temp, Immediate(ic_data.GetReceiverClassIdAt(i)), PP);
-    if (i < len - 1) {
-      __ j(NOT_EQUAL, &next_test);
-    } else {
-      __ j(NOT_EQUAL, deopt);
-    }
-    const Function& target = Function::ZoneHandle(ic_data.GetTargetAt(i));
-    if (target.Owner() == object_store->object_class()) {
-      // Object.== is same as ===.
-      __ Drop(2);
-      __ cmpq(left, right);
-      if (branch != NULL) {
-        branch->EmitBranchOnCondition(compiler, cond);
-      } else {
-        // This case should be rare.
-        Register result = locs->out().reg();
-        Label load_true;
-        __ j(cond, &load_true, Assembler::kNearJump);
-        __ LoadObject(result, Bool::False(), PP);
-        __ jmp(&done);
-        __ Bind(&load_true);
-        __ LoadObject(result, Bool::True(), PP);
-      }
-    } else {
-      const int kNumberOfArguments = 2;
-      const Array& kNoArgumentNames = Object::null_array();
-      compiler->GenerateStaticCall(deopt_id,
-                                   token_pos,
-                                   target,
-                                   kNumberOfArguments,
-                                   kNoArgumentNames,
-                                   locs);
-      if (branch == NULL) {
-        if (kind == Token::kNE) {
-          Label false_label;
-          __ CompareObject(RAX, Bool::True(), PP);
-          __ j(EQUAL, &false_label, Assembler::kNearJump);
-          __ LoadObject(RAX, Bool::True(), PP);
-          __ jmp(&done);
-          __ Bind(&false_label);
-          __ LoadObject(RAX, Bool::False(), PP);
-        }
-      } else {
-        if (branch->is_checked()) {
-          EmitAssertBoolean(RAX, token_pos, deopt_id, locs, compiler);
-        }
-        __ CompareObject(RAX, Bool::True(), PP);
-        branch->EmitBranchOnCondition(compiler, cond);
-      }
-    }
-    if (i < len - 1) {
-      __ jmp(&done);
-      __ Bind(&next_test);
-    }
-  }
-  __ Bind(&done);
-}
-
-
-// Emit code when ICData's targets are all Object == (which is ===).
-static void EmitCheckedStrictEqual(FlowGraphCompiler* compiler,
-                                   const ICData& orig_ic_data,
-                                   const LocationSummary& locs,
-                                   Token::Kind kind,
-                                   BranchInstr* branch,
-                                   intptr_t deopt_id) {
-  ASSERT((kind == Token::kEQ) || (kind == Token::kNE));
-  Register left = locs.in(0).reg();
-  Register right = locs.in(1).reg();
-  Register temp = locs.temp(0).reg();
-  Label* deopt = compiler->AddDeoptStub(deopt_id, kDeoptEquality);
-  __ testq(left, Immediate(kSmiTagMask));
-  __ j(ZERO, deopt);
-  // 'left' is not Smi.
-
-  Label identity_compare;
-  __ CompareObject(right, Object::null_object(), PP);
-  __ j(EQUAL, &identity_compare);
-  __ CompareObject(left, Object::null_object(), PP);
-  __ j(EQUAL, &identity_compare);
-
-  __ LoadClassId(temp, left);
-  const ICData& ic_data = ICData::Handle(orig_ic_data.AsUnaryClassChecks());
-  const intptr_t len = ic_data.NumberOfChecks();
-  for (intptr_t i = 0; i < len; i++) {
-    __ CompareImmediate(temp, Immediate(ic_data.GetReceiverClassIdAt(i)), PP);
-    if (i == (len - 1)) {
-      __ j(NOT_EQUAL, deopt);
-    } else {
-      __ j(EQUAL, &identity_compare);
-    }
-  }
-  __ Bind(&identity_compare);
-  __ cmpq(left, right);
-  if (branch == NULL) {
-    Label done, is_equal;
-    Register result = locs.out().reg();
-    __ j(EQUAL, &is_equal, Assembler::kNearJump);
-    // Not equal.
-    __ LoadObject(result, Bool::Get(kind != Token::kEQ), PP);
-    __ jmp(&done, Assembler::kNearJump);
-    __ Bind(&is_equal);
-    __ LoadObject(result, Bool::Get(kind == Token::kEQ), PP);
-    __ Bind(&done);
-  } else {
-    Condition cond = TokenKindToSmiCondition(kind);
-    branch->EmitBranchOnCondition(compiler, cond);
-  }
-}
-
-
-// First test if receiver is NULL, in which case === is applied.
-// If type feedback was provided (lists of <class-id, target>), do a
-// type by type check (either === or static call to the operator.
-static void EmitGenericEqualityCompare(FlowGraphCompiler* compiler,
-                                       LocationSummary* locs,
-                                       Token::Kind kind,
-                                       BranchInstr* branch,
-                                       const ICData& ic_data,
-                                       intptr_t deopt_id,
-                                       intptr_t token_pos) {
-  ASSERT((kind == Token::kEQ) || (kind == Token::kNE));
-  ASSERT(!ic_data.IsNull() && (ic_data.NumberOfChecks() > 0));
-  Register left = locs->in(0).reg();
-  Register right = locs->in(1).reg();
-  __ pushq(left);
-  __ pushq(right);
-  EmitEqualityAsPolymorphicCall(compiler, ic_data, locs, branch, kind,
-                                deopt_id, token_pos);
 }
 
 
@@ -771,27 +532,7 @@ void EqualityCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     EmitDoubleComparisonOp(compiler, *locs(), kind(), kNoBranch);
     return;
   }
-  if (IsCheckedStrictEqual()) {
-    EmitCheckedStrictEqual(compiler, *ic_data(), *locs(), kind(), kNoBranch,
-                           deopt_id());
-    return;
-  }
-  if (IsPolymorphic()) {
-    EmitGenericEqualityCompare(compiler, locs(), kind(), kNoBranch, *ic_data(),
-                               deopt_id(), token_pos());
-    return;
-  }
-  Register left = locs()->in(0).reg();
-  Register right = locs()->in(1).reg();
-  __ pushq(left);
-  __ pushq(right);
-  EmitEqualityAsInstanceCall(compiler,
-                             deopt_id(),
-                             token_pos(),
-                             kind(),
-                             locs(),
-                             *ic_data());
-  ASSERT(locs()->out().reg() == RAX);
+  UNREACHABLE();
 }
 
 
@@ -808,32 +549,7 @@ void EqualityCompareInstr::EmitBranchCode(FlowGraphCompiler* compiler,
     EmitDoubleComparisonOp(compiler, *locs(), kind(), branch);
     return;
   }
-  if (IsCheckedStrictEqual()) {
-    EmitCheckedStrictEqual(compiler, *ic_data(), *locs(), kind(), branch,
-                           deopt_id());
-    return;
-  }
-  if (IsPolymorphic()) {
-    EmitGenericEqualityCompare(compiler, locs(), kind(), branch, *ic_data(),
-                               deopt_id(), token_pos());
-    return;
-  }
-  Register left = locs()->in(0).reg();
-  Register right = locs()->in(1).reg();
-  __ pushq(left);
-  __ pushq(right);
-  EmitEqualityAsInstanceCall(compiler,
-                             deopt_id(),
-                             token_pos(),
-                             Token::kEQ,  // kNE reverse occurs at branch.
-                             locs(),
-                             *ic_data());
-  if (branch->is_checked()) {
-    EmitAssertBoolean(RAX, token_pos(), deopt_id(), locs(), compiler);
-  }
-  Condition branch_condition = (kind() == Token::kNE) ? NOT_EQUAL : EQUAL;
-  __ CompareObject(RAX, Bool::True(), PP);
-  branch->EmitBranchOnCondition(compiler, branch_condition);
+  UNREACHABLE();
 }
 
 
@@ -1035,8 +751,8 @@ CompileType LoadIndexedInstr::ComputeType() const {
       return CompileType::FromCid(kDoubleCid);
     case kTypedDataFloat32x4ArrayCid:
       return CompileType::FromCid(kFloat32x4Cid);
-    case kTypedDataUint32x4ArrayCid:
-      return CompileType::FromCid(kUint32x4Cid);
+    case kTypedDataInt32x4ArrayCid:
+      return CompileType::FromCid(kInt32x4Cid);
 
     case kTypedDataInt8ArrayCid:
     case kTypedDataUint8ArrayCid:
@@ -1077,8 +793,8 @@ Representation LoadIndexedInstr::representation() const {
     case kTypedDataFloat32ArrayCid:
     case kTypedDataFloat64ArrayCid:
       return kUnboxedDouble;
-    case kTypedDataUint32x4ArrayCid:
-      return kUnboxedUint32x4;
+    case kTypedDataInt32x4ArrayCid:
+      return kUnboxedInt32x4;
     case kTypedDataFloat32x4ArrayCid:
       return kUnboxedFloat32x4;
     default:
@@ -1109,7 +825,7 @@ LocationSummary* LoadIndexedInstr::MakeLocationSummary() const {
   }
   if ((representation() == kUnboxedDouble) ||
       (representation() == kUnboxedFloat32x4) ||
-      (representation() == kUnboxedUint32x4)) {
+      (representation() == kUnboxedInt32x4)) {
     locs->set_out(Location::RequiresFpuRegister());
   } else {
     locs->set_out(Location::RequiresRegister());
@@ -1144,7 +860,7 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   if ((representation() == kUnboxedDouble) ||
       (representation() == kUnboxedFloat32x4) ||
-      (representation() == kUnboxedUint32x4)) {
+      (representation() == kUnboxedInt32x4)) {
     if ((index_scale() == 1) && index.IsRegister()) {
       __ SmiUntag(index.reg());
     }
@@ -1158,7 +874,7 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     } else if (class_id() == kTypedDataFloat64ArrayCid) {
       __ movsd(result, element_address);
     } else {
-      ASSERT((class_id() == kTypedDataUint32x4ArrayCid) ||
+      ASSERT((class_id() == kTypedDataInt32x4ArrayCid) ||
              (class_id() == kTypedDataFloat32x4ArrayCid));
       __ movups(result, element_address);
     }
@@ -1230,8 +946,8 @@ Representation StoreIndexedInstr::RequiredInputRepresentation(
       return kUnboxedDouble;
     case kTypedDataFloat32x4ArrayCid:
       return kUnboxedFloat32x4;
-    case kTypedDataUint32x4ArrayCid:
-      return kUnboxedUint32x4;
+    case kTypedDataInt32x4ArrayCid:
+      return kUnboxedInt32x4;
     default:
       UNIMPLEMENTED();
       return kTagged;
@@ -1289,7 +1005,7 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary() const {
       // TODO(srdjan): Support Float64 constants.
       locs->set_in(2, Location::RequiresFpuRegister());
       break;
-    case kTypedDataUint32x4ArrayCid:
+    case kTypedDataInt32x4ArrayCid:
     case kTypedDataFloat32x4ArrayCid:
       locs->set_in(2, Location::RequiresFpuRegister());
       break;
@@ -1407,7 +1123,7 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case kTypedDataFloat64ArrayCid:
       __ movsd(element_address, locs()->in(2).fpu_reg());
       break;
-    case kTypedDataUint32x4ArrayCid:
+    case kTypedDataInt32x4ArrayCid:
     case kTypedDataFloat32x4ArrayCid:
       __ movups(element_address, locs()->in(2).fpu_reg());
       break;
@@ -1542,7 +1258,7 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           __ j(EQUAL, &no_fixed_length, Assembler::kNearJump);
           // Check for typed data array.
           __ CompareImmediate(
-              value_cid_reg, Immediate(kTypedDataUint32x4ArrayCid), PP);
+              value_cid_reg, Immediate(kTypedDataInt32x4ArrayCid), PP);
           // Not a typed array or a regular array.
           __ j(GREATER, &no_fixed_length, Assembler::kNearJump);
           __ CompareImmediate(
@@ -1622,7 +1338,7 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ j(EQUAL, &no_fixed_length, Assembler::kNearJump);
         // Check for typed data array.
         __ CompareImmediate(value_cid_reg,
-                            Immediate(kTypedDataUint32x4ArrayCid), PP);
+                            Immediate(kTypedDataInt32x4ArrayCid), PP);
         // Not a typed array or a regular array.
         __ j(GREATER, &no_fixed_length);
         __ CompareImmediate(
@@ -3006,7 +2722,7 @@ void UnboxFloat32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* BoxUint32x4Instr::MakeLocationSummary() const {
+LocationSummary* BoxInt32x4Instr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;
   LocationSummary* summary =
@@ -3019,18 +2735,18 @@ LocationSummary* BoxUint32x4Instr::MakeLocationSummary() const {
 }
 
 
-class BoxUint32x4SlowPath : public SlowPathCode {
+class BoxInt32x4SlowPath : public SlowPathCode {
  public:
-  explicit BoxUint32x4SlowPath(BoxUint32x4Instr* instruction)
+  explicit BoxInt32x4SlowPath(BoxInt32x4Instr* instruction)
       : instruction_(instruction) { }
 
   virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
-    __ Comment("BoxUint32x4SlowPath");
+    __ Comment("BoxInt32x4SlowPath");
     __ Bind(entry_label());
-    const Class& uint32x4_class = compiler->uint32x4_class();
+    const Class& int32x4_class = compiler->int32x4_class();
     const Code& stub =
-        Code::Handle(StubCode::GetAllocationStubForClass(uint32x4_class));
-    const ExternalLabel label(uint32x4_class.ToCString(), stub.EntryPoint());
+        Code::Handle(StubCode::GetAllocationStubForClass(int32x4_class));
+    const ExternalLabel label(int32x4_class.ToCString(), stub.EntryPoint());
 
     LocationSummary* locs = instruction_->locs();
     locs->live_registers()->Remove(locs->out());
@@ -3047,28 +2763,28 @@ class BoxUint32x4SlowPath : public SlowPathCode {
   }
 
  private:
-  BoxUint32x4Instr* instruction_;
+  BoxInt32x4Instr* instruction_;
 };
 
 
-void BoxUint32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  BoxUint32x4SlowPath* slow_path = new BoxUint32x4SlowPath(this);
+void BoxInt32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  BoxInt32x4SlowPath* slow_path = new BoxInt32x4SlowPath(this);
   compiler->AddSlowPathCode(slow_path);
 
   Register out_reg = locs()->out().reg();
   XmmRegister value = locs()->in(0).fpu_reg();
 
-  __ TryAllocate(compiler->uint32x4_class(),
+  __ TryAllocate(compiler->int32x4_class(),
                  slow_path->entry_label(),
                  Assembler::kFarJump,
                  out_reg,
                  PP);
   __ Bind(slow_path->exit_label());
-  __ movups(FieldAddress(out_reg, Uint32x4::value_offset()), value);
+  __ movups(FieldAddress(out_reg, Int32x4::value_offset()), value);
 }
 
 
-LocationSummary* UnboxUint32x4Instr::MakeLocationSummary() const {
+LocationSummary* UnboxInt32x4Instr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;
   LocationSummary* summary =
@@ -3079,19 +2795,19 @@ LocationSummary* UnboxUint32x4Instr::MakeLocationSummary() const {
 }
 
 
-void UnboxUint32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void UnboxInt32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const intptr_t value_cid = value()->Type()->ToCid();
   const Register value = locs()->in(0).reg();
   const XmmRegister result = locs()->out().fpu_reg();
 
-  if (value_cid != kUint32x4Cid) {
+  if (value_cid != kInt32x4Cid) {
     Label* deopt = compiler->AddDeoptStub(deopt_id_, kDeoptCheckClass);
     __ testq(value, Immediate(kSmiTagMask));
     __ j(ZERO, deopt);
-    __ CompareClassId(value, kUint32x4Cid);
+    __ CompareClassId(value, kInt32x4Cid);
     __ j(NOT_EQUAL, deopt);
   }
-  __ movups(result, FieldAddress(value, Uint32x4::value_offset()));
+  __ movups(result, FieldAddress(value, Int32x4::value_offset()));
 }
 
 
@@ -3185,7 +2901,7 @@ void Simd32x4ShuffleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ cvtss2sd(value, value);
       break;
     case MethodRecognizer::kFloat32x4Shuffle:
-    case MethodRecognizer::kUint32x4Shuffle:
+    case MethodRecognizer::kInt32x4Shuffle:
       __ shufps(value, value, Immediate(mask_));
       break;
     default: UNREACHABLE();
@@ -3212,7 +2928,7 @@ void Simd32x4ShuffleMixInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->out().fpu_reg() == left);
   switch (op_kind()) {
     case MethodRecognizer::kFloat32x4ShuffleMix:
-    case MethodRecognizer::kUint32x4ShuffleMix:
+    case MethodRecognizer::kInt32x4ShuffleMix:
       __ shufps(left, right, Immediate(mask_));
       break;
     default: UNREACHABLE();
@@ -3565,7 +3281,7 @@ void Float32x4WithInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* Float32x4ToUint32x4Instr::MakeLocationSummary() const {
+LocationSummary* Float32x4ToInt32x4Instr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;
   LocationSummary* summary =
@@ -3576,12 +3292,12 @@ LocationSummary* Float32x4ToUint32x4Instr::MakeLocationSummary() const {
 }
 
 
-void Float32x4ToUint32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void Float32x4ToInt32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // NOP.
 }
 
 
-LocationSummary* Uint32x4BoolConstructorInstr::MakeLocationSummary() const {
+LocationSummary* Int32x4BoolConstructorInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 4;
   const intptr_t kNumTemps = 1;
   LocationSummary* summary =
@@ -3596,7 +3312,7 @@ LocationSummary* Uint32x4BoolConstructorInstr::MakeLocationSummary() const {
 }
 
 
-void Uint32x4BoolConstructorInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void Int32x4BoolConstructorInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register v0 = locs()->in(0).reg();
   Register v1 = locs()->in(1).reg();
   Register v2 = locs()->in(2).reg();
@@ -3650,7 +3366,7 @@ void Uint32x4BoolConstructorInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* Uint32x4GetFlagInstr::MakeLocationSummary() const {
+LocationSummary* Int32x4GetFlagInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;
   LocationSummary* summary =
@@ -3661,7 +3377,7 @@ LocationSummary* Uint32x4GetFlagInstr::MakeLocationSummary() const {
 }
 
 
-void Uint32x4GetFlagInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void Int32x4GetFlagInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   XmmRegister value = locs()->in(0).fpu_reg();
   Register result = locs()->out().reg();
   Label done;
@@ -3670,16 +3386,16 @@ void Uint32x4GetFlagInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Move value to stack.
   __ movups(Address(RSP, 0), value);
   switch (op_kind()) {
-    case MethodRecognizer::kUint32x4GetFlagX:
+    case MethodRecognizer::kInt32x4GetFlagX:
       __ movl(result, Address(RSP, 0));
       break;
-    case MethodRecognizer::kUint32x4GetFlagY:
+    case MethodRecognizer::kInt32x4GetFlagY:
       __ movl(result, Address(RSP, 4));
       break;
-    case MethodRecognizer::kUint32x4GetFlagZ:
+    case MethodRecognizer::kInt32x4GetFlagZ:
       __ movl(result, Address(RSP, 8));
       break;
-    case MethodRecognizer::kUint32x4GetFlagW:
+    case MethodRecognizer::kInt32x4GetFlagW:
       __ movl(result, Address(RSP, 12));
       break;
     default: UNREACHABLE();
@@ -3695,7 +3411,7 @@ void Uint32x4GetFlagInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* Uint32x4SelectInstr::MakeLocationSummary() const {
+LocationSummary* Int32x4SelectInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 3;
   const intptr_t kNumTemps = 1;
   LocationSummary* summary =
@@ -3709,7 +3425,7 @@ LocationSummary* Uint32x4SelectInstr::MakeLocationSummary() const {
 }
 
 
-void Uint32x4SelectInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void Int32x4SelectInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   XmmRegister mask = locs()->in(0).fpu_reg();
   XmmRegister trueValue = locs()->in(1).fpu_reg();
   XmmRegister falseValue = locs()->in(2).fpu_reg();
@@ -3729,7 +3445,7 @@ void Uint32x4SelectInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* Uint32x4SetFlagInstr::MakeLocationSummary() const {
+LocationSummary* Int32x4SetFlagInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps = 1;
   LocationSummary* summary =
@@ -3742,7 +3458,7 @@ LocationSummary* Uint32x4SetFlagInstr::MakeLocationSummary() const {
 }
 
 
-void Uint32x4SetFlagInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void Int32x4SetFlagInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   XmmRegister mask = locs()->in(0).fpu_reg();
   Register flag = locs()->in(1).reg();
   Register temp = locs()->temp(0).reg();
@@ -3754,7 +3470,7 @@ void Uint32x4SetFlagInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ CompareObject(flag, Bool::True(), PP);
   __ j(NOT_EQUAL, &falsePath);
   switch (op_kind()) {
-    case MethodRecognizer::kUint32x4WithFlagX:
+    case MethodRecognizer::kInt32x4WithFlagX:
       __ LoadImmediate(temp, Immediate(0xFFFFFFFF), PP);
       __ movl(Address(RSP, 0), temp);
       __ jmp(&exitPath);
@@ -3762,7 +3478,7 @@ void Uint32x4SetFlagInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ LoadImmediate(temp, Immediate(0x0), PP);
       __ movl(Address(RSP, 0), temp);
     break;
-    case MethodRecognizer::kUint32x4WithFlagY:
+    case MethodRecognizer::kInt32x4WithFlagY:
       __ LoadImmediate(temp, Immediate(0xFFFFFFFF), PP);
       __ movl(Address(RSP, 4), temp);
       __ jmp(&exitPath);
@@ -3770,7 +3486,7 @@ void Uint32x4SetFlagInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ LoadImmediate(temp, Immediate(0x0), PP);
       __ movl(Address(RSP, 4), temp);
     break;
-    case MethodRecognizer::kUint32x4WithFlagZ:
+    case MethodRecognizer::kInt32x4WithFlagZ:
       __ LoadImmediate(temp, Immediate(0xFFFFFFFF), PP);
       __ movl(Address(RSP, 8), temp);
       __ jmp(&exitPath);
@@ -3778,7 +3494,7 @@ void Uint32x4SetFlagInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ LoadImmediate(temp, Immediate(0x0), PP);
       __ movl(Address(RSP, 8), temp);
     break;
-    case MethodRecognizer::kUint32x4WithFlagW:
+    case MethodRecognizer::kInt32x4WithFlagW:
       __ LoadImmediate(temp, Immediate(0xFFFFFFFF), PP);
       __ movl(Address(RSP, 12), temp);
       __ jmp(&exitPath);
@@ -3795,7 +3511,7 @@ void Uint32x4SetFlagInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* Uint32x4ToFloat32x4Instr::MakeLocationSummary() const {
+LocationSummary* Int32x4ToFloat32x4Instr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;
   LocationSummary* summary =
@@ -3806,12 +3522,12 @@ LocationSummary* Uint32x4ToFloat32x4Instr::MakeLocationSummary() const {
 }
 
 
-void Uint32x4ToFloat32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void Int32x4ToFloat32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // NOP.
 }
 
 
-LocationSummary* BinaryUint32x4OpInstr::MakeLocationSummary() const {
+LocationSummary* BinaryInt32x4OpInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps = 0;
   LocationSummary* summary =
@@ -3823,7 +3539,7 @@ LocationSummary* BinaryUint32x4OpInstr::MakeLocationSummary() const {
 }
 
 
-void BinaryUint32x4OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void BinaryInt32x4OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   XmmRegister left = locs()->in(0).fpu_reg();
   XmmRegister right = locs()->in(1).fpu_reg();
   ASSERT(left == locs()->out().fpu_reg());

@@ -223,6 +223,11 @@ public abstract class ElementHandle implements Element {
   }
 
   @Override
+  public boolean isDeprecated() {
+    return getActualElement().isDeprecated();
+  }
+
+  @Override
   public boolean isSynthetic() {
     return getActualElement().isSynthetic();
   }

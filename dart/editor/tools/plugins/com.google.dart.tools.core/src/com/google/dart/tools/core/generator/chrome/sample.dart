@@ -10,7 +10,7 @@ int boundsChange = 100;
  * * http://developer.chrome.com/apps/api_index.html
  */
 void main() {
-  query("#sample_text_id")
+  querySelector("#sample_text_id")
     ..text = "Click me!"
     ..onClick.listen(resizeWindow);
 }

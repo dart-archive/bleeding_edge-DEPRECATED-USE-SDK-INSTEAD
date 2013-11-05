@@ -69,6 +69,7 @@ import com.google.dart.engine.internal.element.ParameterElementImpl;
 import com.google.dart.engine.internal.element.PropertyAccessorElementImpl;
 import com.google.dart.engine.internal.element.PropertyInducingElementImpl;
 import com.google.dart.engine.internal.element.VariableElementImpl;
+import com.google.dart.engine.internal.scope.Scope;
 import com.google.dart.engine.internal.type.DynamicTypeImpl;
 import com.google.dart.engine.internal.type.FunctionTypeImpl;
 import com.google.dart.engine.internal.type.InterfaceTypeImpl;
@@ -161,6 +162,22 @@ public class TypeResolverVisitor extends ScopedVisitor {
   public TypeResolverVisitor(LibraryElement definingLibrary, Source source,
       TypeProvider typeProvider, AnalysisErrorListener errorListener) {
     super(definingLibrary, source, typeProvider, errorListener);
+    dynamicType = typeProvider.getDynamicType();
+  }
+
+  /**
+   * Initialize a newly created visitor to resolve the nodes in an AST node.
+   * 
+   * @param definingLibrary the element for the library containing the node being visited
+   * @param source the source representing the compilation unit containing the node being visited
+   * @param typeProvider the object used to access the types from the core library
+   * @param nameScope the scope used to resolve identifiers in the node that will first be visited
+   * @param errorListener the error listener that will be informed of any errors that are found
+   *          during resolution
+   */
+  public TypeResolverVisitor(LibraryElement definingLibrary, Source source,
+      TypeProvider typeProvider, Scope nameScope, AnalysisErrorListener errorListener) {
+    super(definingLibrary, source, typeProvider, nameScope, errorListener);
     dynamicType = typeProvider.getDynamicType();
   }
 

@@ -24,16 +24,12 @@
 
 namespace dart {
 
-DEFINE_FLAG(int, max_equality_polymorphic_checks, 32,
-    "Maximum number of polymorphic checks in equality operator,"
-    " otherwise use megamorphic dispatch.");
 DEFINE_FLAG(bool, new_identity_spec, true,
     "Use new identity check rules for numbers.");
 DEFINE_FLAG(bool, propagate_ic_data, true,
     "Propagate IC data from unoptimized to optimized IC calls.");
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, eliminate_type_checks);
-DECLARE_FLAG(int, max_polymorphic_checks);
 DECLARE_FLAG(bool, trace_optimization);
 DECLARE_FLAG(bool, trace_constant_propagation);
 DECLARE_FLAG(bool, throw_on_javascript_int_overflow);
@@ -169,6 +165,7 @@ bool MathMinMaxInstr::AttributesEqual(Instruction* other) const {
   return (op_kind() == other_op->op_kind()) &&
       (result_cid() == other_op->result_cid());
 }
+
 
 bool BinarySmiOpInstr::AttributesEqual(Instruction* other) const {
   BinarySmiOpInstr* other_op = other->AsBinarySmiOp();
@@ -1119,21 +1116,6 @@ void Instruction::Goto(JoinEntryInstr* entry) {
 }
 
 
-bool EqualityCompareInstr::IsPolymorphic() const {
-  return HasICData() &&
-      (ic_data()->NumberOfChecks() > 0) &&
-      (ic_data()->NumberOfChecks() <= FLAG_max_polymorphic_checks);
-}
-
-
-bool EqualityCompareInstr::IsCheckedStrictEqual() const {
-  if (!HasICData()) return false;
-  return ic_data()->AllTargetsHaveSameOwner(kInstanceCid) &&
-         (unary_ic_data_->NumberOfChecks() <=
-             FLAG_max_equality_polymorphic_checks);
-}
-
-
 bool BinarySmiOpInstr::CanDeoptimize() const {
   if (FLAG_throw_on_javascript_int_overflow && (Smi::kBits > 32)) {
     // If Smi's are bigger than 32-bits, then the instruction could deoptimize
@@ -1517,15 +1499,15 @@ Definition* UnboxFloat32x4Instr::Canonicalize(FlowGraph* flow_graph) {
 }
 
 
-Definition* BoxUint32x4Instr::Canonicalize(FlowGraph* flow_graph) {
+Definition* BoxInt32x4Instr::Canonicalize(FlowGraph* flow_graph) {
   if (input_use_list() == NULL) {
     // Environments can accomodate any representation. No need to box.
     return value()->definition();
   }
 
-  // Fold away BoxUint32x4(UnboxUint32x4(v)).
-  UnboxUint32x4Instr* defn = value()->definition()->AsUnboxUint32x4();
-  if ((defn != NULL) && (defn->value()->Type()->ToCid() == kUint32x4Cid)) {
+  // Fold away BoxInt32x4(UnboxInt32x4(v)).
+  UnboxInt32x4Instr* defn = value()->definition()->AsUnboxInt32x4();
+  if ((defn != NULL) && (defn->value()->Type()->ToCid() == kInt32x4Cid)) {
     return defn->value()->definition();
   }
 
@@ -1533,18 +1515,18 @@ Definition* BoxUint32x4Instr::Canonicalize(FlowGraph* flow_graph) {
 }
 
 
-Definition* UnboxUint32x4Instr::Canonicalize(FlowGraph* flow_graph) {
-  // Fold away UnboxUint32x4(BoxUint32x4(v)).
-  BoxUint32x4Instr* defn = value()->definition()->AsBoxUint32x4();
+Definition* UnboxInt32x4Instr::Canonicalize(FlowGraph* flow_graph) {
+  // Fold away UnboxInt32x4(BoxInt32x4(v)).
+  BoxInt32x4Instr* defn = value()->definition()->AsBoxInt32x4();
   return (defn != NULL) ? defn->value()->definition() : this;
 }
 
 
 Definition* BooleanNegateInstr::Canonicalize(FlowGraph* flow_graph) {
   Definition* defn = value()->definition();
-  if (defn->IsComparison() &&
-      (value()->Type()->ToCid() == kBoolCid) &&
-      defn->HasOnlyUse(value())) {
+  if (defn->IsComparison() && defn->HasOnlyUse(value())) {
+    // Comparisons always have a bool result.
+    ASSERT(value()->Type()->ToCid() == kBoolCid);
     defn->AsComparison()->NegateComparison();
     return defn;
   }
@@ -1613,7 +1595,7 @@ static Definition* CanonicalizeStrictCompare(StrictCompareInstr* compare,
       (other->Type()->ToCid() == kBoolCid)) {
     return other_defn;
   }
-  // Handle e !== true
+  // Handle e !== true.
   if ((kind == Token::kNE_STRICT) &&
       (constant.raw() == Bool::True().raw()) &&
       other_defn->IsComparison() &&
@@ -1622,6 +1604,7 @@ static Definition* CanonicalizeStrictCompare(StrictCompareInstr* compare,
     *negated = true;
     return other_defn;
   }
+  // Handle e === false.
   if ((kind == Token::kEQ_STRICT) &&
       (constant.raw() == Bool::False().raw()) &&
       other_defn->IsComparison() &&
@@ -1666,6 +1649,9 @@ Instruction* BranchInstr::Canonicalize(FlowGraph* flow_graph) {
       }
       RemoveEnvironment();
       flow_graph->CopyDeoptTarget(this, comp);
+      // Unlink environment from the comparison since it is copied to the
+      // branch instruction.
+      comp->RemoveEnvironment();
 
       comp->RemoveFromGraph();
       SetComparison(comp);

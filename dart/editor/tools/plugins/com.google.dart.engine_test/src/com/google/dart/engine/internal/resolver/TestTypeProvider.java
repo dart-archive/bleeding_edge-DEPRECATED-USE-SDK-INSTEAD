@@ -54,6 +54,11 @@ public class TestTypeProvider implements TypeProvider {
   private InterfaceType doubleType;
 
   /**
+   * The type representing the built-in type 'deprecated'.
+   */
+  private InterfaceType deprecatedType;
+
+  /**
    * The type representing the built-in type 'dynamic'.
    */
   private Type dynamicType;
@@ -145,6 +150,20 @@ public class TestTypeProvider implements TypeProvider {
       bottomType = BottomTypeImpl.getInstance();
     }
     return bottomType;
+  }
+
+  @Override
+  public InterfaceType getDeprecatedType() {
+    if (deprecatedType == null) {
+      ClassElementImpl deprecatedElement = classElement("Deprecated");
+      deprecatedElement.setConstructors(new ConstructorElement[] {constructorElement(
+          deprecatedElement,
+          null,
+          true,
+          getStringType())});
+      deprecatedType = deprecatedElement.getType();
+    }
+    return deprecatedType;
   }
 
   @Override

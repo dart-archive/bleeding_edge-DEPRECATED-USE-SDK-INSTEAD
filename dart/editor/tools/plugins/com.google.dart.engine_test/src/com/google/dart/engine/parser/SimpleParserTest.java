@@ -192,6 +192,19 @@ public class SimpleParserTest extends ParserTestCase {
     assertTrue(isFunctionExpression("() => e"));
   }
 
+  public void test_isFunctionExpression_parameter_final() throws Exception {
+    assertTrue(isFunctionExpression("(final a) {}"));
+    assertTrue(isFunctionExpression("(final a, b) {}"));
+    assertTrue(isFunctionExpression("(final a, final b) {}"));
+  }
+
+  public void test_isFunctionExpression_parameter_final_typed() throws Exception {
+    assertTrue(isFunctionExpression("(final int a) {}"));
+    assertTrue(isFunctionExpression("(final prefix.List a) {}"));
+    assertTrue(isFunctionExpression("(final List<int> a) {}"));
+    assertTrue(isFunctionExpression("(final prefix.List<int> a) {}"));
+  }
+
   public void test_isFunctionExpression_parameter_multiple() throws Exception {
     assertTrue(isFunctionExpression("(a, b) {}"));
   }
@@ -930,6 +943,20 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(variable.getName());
   }
 
+  public void test_parseClassMember_field_namedOperator_withAssignment() throws Exception {
+    FieldDeclaration field = parse("parseClassMember", new Object[] {"C"}, "var operator = (5);");
+    assertNull(field.getDocumentationComment());
+    assertSize(0, field.getMetadata());
+    assertNull(field.getStaticKeyword());
+    VariableDeclarationList list = field.getFields();
+    assertNotNull(list);
+    NodeList<VariableDeclaration> variables = list.getVariables();
+    assertSize(1, variables);
+    VariableDeclaration variable = variables.get(0);
+    assertNotNull(variable.getName());
+    assertNotNull(variable.getInitializer());
+  }
+
   public void test_parseClassMember_field_namedSet() throws Exception {
     FieldDeclaration field = parse("parseClassMember", new Object[] {"C"}, "var set;");
     assertNull(field.getDocumentationComment());
@@ -1521,6 +1548,24 @@ public class SimpleParserTest extends ParserTestCase {
     assertNull(unit.getScriptTag());
     assertSize(0, unit.getDirectives());
     assertSize(1, unit.getDeclarations());
+  }
+
+  public void test_parseCompilationUnit_builtIn_asFunctionName() throws Exception {
+    parse("parseCompilationUnit", "abstract(x) => 0;");
+    parse("parseCompilationUnit", "as(x) => 0;");
+    parse("parseCompilationUnit", "dynamic(x) => 0;");
+    parse("parseCompilationUnit", "export(x) => 0;");
+    parse("parseCompilationUnit", "external(x) => 0;");
+    parse("parseCompilationUnit", "factory(x) => 0;");
+    parse("parseCompilationUnit", "get(x) => 0;");
+    parse("parseCompilationUnit", "implements(x) => 0;");
+    parse("parseCompilationUnit", "import(x) => 0;");
+    parse("parseCompilationUnit", "library(x) => 0;");
+    parse("parseCompilationUnit", "operator(x) => 0;");
+    parse("parseCompilationUnit", "part(x) => 0;");
+    parse("parseCompilationUnit", "set(x) => 0;");
+    parse("parseCompilationUnit", "static(x) => 0;");
+    parse("parseCompilationUnit", "typedef(x) => 0;");
   }
 
   public void test_parseCompilationUnit_directives_multiple() throws Exception {

@@ -82,6 +82,7 @@ import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.internal.element.VariableElementImpl;
+import com.google.dart.engine.internal.scope.Scope;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.source.Source;
@@ -169,6 +170,24 @@ public class ResolverVisitor extends ScopedVisitor {
       InheritanceManager inheritanceManager, AnalysisErrorListener errorListener) {
     super(definingLibrary, source, typeProvider, errorListener);
     this.inheritanceManager = inheritanceManager;
+    this.elementResolver = new ElementResolver(this);
+    this.typeAnalyzer = new StaticTypeAnalyzer(this);
+  }
+
+  /**
+   * Initialize a newly created visitor to resolve the nodes in an AST node.
+   * 
+   * @param definingLibrary the element for the library containing the node being visited
+   * @param source the source representing the compilation unit containing the node being visited
+   * @param typeProvider the object used to access the types from the core library
+   * @param nameScope the scope used to resolve identifiers in the node that will first be visited
+   * @param errorListener the error listener that will be informed of any errors that are found
+   *          during resolution
+   */
+  public ResolverVisitor(LibraryElement definingLibrary, Source source, TypeProvider typeProvider,
+      Scope nameScope, AnalysisErrorListener errorListener) {
+    super(definingLibrary, source, typeProvider, nameScope, errorListener);
+    this.inheritanceManager = new InheritanceManager(definingLibrary);
     this.elementResolver = new ElementResolver(this);
     this.typeAnalyzer = new StaticTypeAnalyzer(this);
   }
@@ -838,6 +857,9 @@ public class ResolverVisitor extends ScopedVisitor {
    * @return the element associated with the given expression
    */
   protected VariableElement getPromotionStaticElement(Expression expression) {
+    while (expression instanceof ParenthesizedExpression) {
+      expression = ((ParenthesizedExpression) expression).getExpression();
+    }
     if (!(expression instanceof SimpleIdentifier)) {
       return null;
     }

@@ -13,6 +13,7 @@ com.google.dart.tools.core/debug/metrics = false
 com.google.dart.tools.core/debug/warmup = false
 com.google.dart.tools.core/debug/verbose = false
 com.google.dart.tools.core/logging/debugger = false
+com.google.dart.tools.core/launch/chromeApp = false
 
 com.google.dart.tools.core/trace/artifactProvider = false
 com.google.dart.tools.core/trace/index/contributor = false
@@ -34,6 +35,7 @@ com.google.dart.tools.core/experimental/themes = false
 com.google.dart.tools.core/experimental/tabColors = false
 com.google.dart.tools.core/experimental/validateHtml = false
 com.google.dart.tools.core/experimental/analysis/useDartc = false
+com.google.dart.tools.core/experimental/pubserve = false
 
 com.google.dart.tools.core/experimental/pubInWinXP = false
 

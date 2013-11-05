@@ -7,12 +7,6 @@
 Language/12_Expressions/01_Constants_A16_t04: fail # Issue 392, passes in checked mode b/c of type check
 
 [ $compiler == none && ($runtime == vm || $runtime == dartium) ]
-Language/13_Statements/03_Variable_Declaration_A04_t01: Fail, MissingCompileTimeError # Issue 7052
-Language/13_Statements/03_Variable_Declaration_A04_t02: Fail, MissingCompileTimeError # Issue 7052
-Language/13_Statements/03_Variable_Declaration_A04_t05: Fail, MissingCompileTimeError # Issue 7052
-Language/13_Statements/03_Variable_Declaration_A04_t06: Fail, MissingCompileTimeError # Issue 7052
-Language/13_Statements/03_Variable_Declaration_A04_t07: Fail # co19 issue 535
-Language/13_Statements/03_Variable_Declaration_A04_t08: Fail # co19 issue 535
 
 LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A03_t01: Fail # Issue 12508
 LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A02_t01: Fail # Issue 12508
@@ -33,7 +27,6 @@ LibTest/async/Timer/Timer.periodic_A02_t01: Pass, Fail # co19 issue 537
 
 Language/05_Variables/05_Variables_A05_t01: fail # Dart issue 12539
 Language/05_Variables/05_Variables_A05_t02: fail # Dart issue 12539
-Language/12_Expressions/30_Identifier_Reference_A08_t02: fail # Dart issue 12593
 Language/13_Statements/06_For_A01_t11: fail # Dart issue 5675
 Language/13_Statements/09_Switch_A01_t02: fail # Dart issue 12908
 Language/13_Statements/12_Labels_A01_t03: fail # Dart issue 2238
@@ -62,6 +55,15 @@ LibTest/typed_data/Float32x4/interleaveZW_A01_t01: Fail # co19 issue 650
 LibTest/typed_data/Float32x4/withZWInXY_A01_t01: Fail # co19 issue 650
 LibTest/typed_data/Float32x4/interleaveXY_A01_t01: Fail # co19 issue 650
 LibTest/typed_data/Float32x4/interleaveXYPairs_A01_t01: Fail # co19 issue 650
+LibTest/typed_data/Uint32x4/*: Skip # co19 issue 656
+LibTest/typed_data/Float32x4/Float32x4.fromUint32x4Bits_A01_t01: Skip # co19 issue 656
+LibTest/typed_data/Float32x4/Float32x4.fromUint32x4Bits_A01_t02: Skip # co19 issue 656
+LibTest/typed_data/Float32x4/equal_A01_t01: Skip # co19 issue 656
+LibTest/typed_data/Float32x4/notEqual_A01_t01: Skip # co19 issue 656
+LibTest/typed_data/Float32x4/greaterThan_A01_t01: Skip # co19 issue 656
+LibTest/typed_data/Float32x4/greaterThanOrEqual_A01_t01: Skip # co19 issue 656
+LibTest/typed_data/Float32x4/lessThan_A01_t01: Skip # co19 issue 656
+LibTest/typed_data/Float32x4/lessThanOrEqual_A01_t01: Skip # co19 issue 656
 
 [ $compiler == none && $runtime == vm ]
 LibTest/typed_data/Float32x4/reciprocalSqrt_A01_t01: Pass, Fail # Issue 13398
@@ -119,7 +121,6 @@ LibTest/typed_data/Float32x4List/singleWhere_A01_t01: Fail # Dart issue 12861
 LibTest/typed_data/Float32x4List/skip_A01_t01: Fail # Dart issue 12861
 LibTest/typed_data/Float32x4List/take_A01_t01: Fail # Dart issue 12861
 LibTest/typed_data/Float32x4List/take_A02_t01: Fail # Dart issue 12861
-Language/12_Expressions/12_Instance_Creation_A01_t08: CompileTimeError # co19-roll r607: Please triage this failure
 
 [ $compiler == none && $runtime == vm && $system == windows && $mode == debug ]
 Language/15_Types/4_Interface_Types_A11_t01: pass, timeout # Issue 13349

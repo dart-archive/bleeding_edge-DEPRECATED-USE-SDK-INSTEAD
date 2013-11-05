@@ -175,6 +175,14 @@ public interface Element {
   public boolean isAccessibleIn(LibraryElement library);
 
   /**
+   * Return {@code true} if this element has an annotation of the form '@deprecated' or
+   * '@Deprecated('..')'.
+   * 
+   * @return {@code true} if this element is deprecated
+   */
+  public boolean isDeprecated();
+
+  /**
    * Return {@code true} if this element is synthetic. A synthetic element is an element that is not
    * represented in the source code explicitly, but is implied by the source code, such as the
    * default constructor for a class that does not explicitly define any constructors.
