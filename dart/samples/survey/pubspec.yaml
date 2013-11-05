@@ -1,6 +1,0 @@
-name: survey
-description: Polymer app that allows users to build a survey by
-    adding questions and selecting widgets that the user interacts
-    with when answering the survey.
-dependencies:
-    polymer: any
