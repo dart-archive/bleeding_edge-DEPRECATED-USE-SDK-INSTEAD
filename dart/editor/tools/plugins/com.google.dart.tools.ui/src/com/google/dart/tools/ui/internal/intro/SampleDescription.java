@@ -23,23 +23,26 @@ public final class SampleDescription implements Comparable<SampleDescription> {
   public final String file;
   public final String name;
   public final String description;
+  public final String sortOrder;
 
   public final File logo;
   public final String logoPath;
 
   public SampleDescription(File directory, String file, String name, String description, File logo,
-      String logoPath) {
+      String logoPath, String sortOrder) {
     this.directory = directory;
     this.file = file;
     this.name = name;
     this.description = description;
     this.logo = logo;
     this.logoPath = logoPath;
+    this.sortOrder = sortOrder;
   }
 
   @Override
   public int compareTo(SampleDescription o) {
-    return name.compareToIgnoreCase(o.name);
+    // TODO(keertip): change to int and compare
+    return sortOrder.compareToIgnoreCase(o.sortOrder);
   }
 
 }

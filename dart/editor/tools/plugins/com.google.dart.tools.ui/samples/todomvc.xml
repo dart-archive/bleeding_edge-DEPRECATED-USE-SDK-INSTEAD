@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<sample name="TodoMVC" file="web/index.html">
-    <description>A simple note-taking application implemented by many MV* frameworks.</description>
+<sample name="TodoMVC" file="web/index.html" order="4">
+    <description>A simple note taking app, built with pre-alpha Polymer technology.</description>
 </sample>

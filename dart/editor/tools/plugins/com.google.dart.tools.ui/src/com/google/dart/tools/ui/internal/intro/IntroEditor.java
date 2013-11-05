@@ -15,14 +15,10 @@ package com.google.dart.tools.ui.internal.intro;
 
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.ui.DartToolsPlugin;
-import com.google.dart.tools.ui.internal.handlers.OpenFolderHandler;
 import com.google.dart.tools.ui.internal.projects.OpenNewApplicationWizardAction;
 import com.google.dart.tools.ui.internal.util.ExternalBrowserUtil;
 
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.jface.action.IAction;
-import org.eclipse.jface.layout.GridDataFactory;
-import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MouseAdapter;
@@ -30,8 +26,10 @@ import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorSite;
@@ -46,9 +44,6 @@ import org.eclipse.ui.forms.widgets.Section;
 import org.eclipse.ui.forms.widgets.TableWrapData;
 import org.eclipse.ui.forms.widgets.TableWrapLayout;
 import org.eclipse.ui.part.EditorPart;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * A "fake" editor for showing intro content to first time users.
@@ -88,11 +83,20 @@ public class IntroEditor extends EditorPart {
     }
   };
 
+  private static FontData[] getModifiedFontData(FontData[] originalData) {
+    FontData[] styleData = new FontData[originalData.length];
+    for (int i = 0; i < styleData.length; i++) {
+      FontData base = originalData[i];
+      styleData[i] = new FontData(base.getName(), base.getHeight() + 1, SWT.NORMAL);
+    }
+    return styleData;
+  }
+
   private ScrolledForm form;
 
   private FormToolkit toolkit;
 
-  private Map<Font, Font> fontMap = new HashMap<Font, Font>();
+  private Font bigFont;
 
   public IntroEditor() {
 
@@ -104,83 +108,48 @@ public class IntroEditor extends EditorPart {
 
     // Create the form and header.
     form = toolkit.createScrolledForm(parent);
+    bigFont = getBigFont(getModifiedFontData(form.getFont().getFontData()));
+    form.setFont(bigFont);
     form.setText("Welcome to Dart Editor!");
     form.setImage(DartToolsPlugin.getImage("icons/dart_16_16.gif"));
     toolkit.decorateFormHeading(form.getForm());
     form.getToolBarManager().update(true);
 
     TableWrapLayout layout = new TableWrapLayout();
-    layout.numColumns = 2;
-    layout.verticalSpacing = 10;
+    layout.verticalSpacing = 30;
     layout.topMargin = 12;
     form.getBody().setLayout(layout);
 
     // Create the actions area.
-    Section section = toolkit.createSection(form.getBody(), Section.TITLE_BAR | Section.DESCRIPTION);
+    Section section = toolkit.createSection(form.getBody(), Section.TITLE_BAR);
     section.setLayoutData(new TableWrapData(TableWrapData.FILL, TableWrapData.TOP, 1, 1));
     section.setText("Getting Started");
-    section.setDescription("Get started using the editor!");
+    section.setFont(bigFont);
     Composite client = toolkit.createComposite(section);
-    GridLayoutFactory.swtDefaults().spacing(0, 0).applyTo(client);
+    TableWrapLayout tl = new TableWrapLayout();
+    tl.numColumns = 3;
+    tl.verticalSpacing = 10;
+    tl.horizontalSpacing = 30;
+    client.setLayout(tl);
 
     Button createButton = new Button(client, SWT.PUSH | SWT.LEFT);
     createButton.setText("Create an application...");
+    createButton.setFont(bigFont);
     createButton.setImage(DartToolsPlugin.getImage("icons/full/dart16/package_obj_new.png"));
+    createButton.setLayoutData(new TableWrapData(TableWrapData.FILL, TableWrapData.MIDDLE));
     createButton.addSelectionListener(new SelectionAdapter() {
       @Override
       public void widgetSelected(SelectionEvent e) {
         OpenNewApplicationWizardAction action = new OpenNewApplicationWizardAction();
-
         action.run();
       }
     });
-    GridDataFactory.fillDefaults().align(SWT.FILL, SWT.CENTER).applyTo(createButton);
-
-    Button openButton = new Button(client, SWT.PUSH | SWT.LEFT);
-    openButton.setText("Open existing code...");
-    openButton.setImage(DartToolsPlugin.getImage("icons/full/obj16/fldr_obj.gif"));
-    openButton.addSelectionListener(new SelectionAdapter() {
-      @Override
-      public void widgetSelected(SelectionEvent e) {
-        IAction action = OpenFolderHandler.createCommandAction(getSite().getWorkbenchWindow());
-
-        action.run();
-      }
-    });
-    GridDataFactory.fillDefaults().align(SWT.FILL, SWT.CENTER).applyTo(openButton);
-
-    section.setClient(client);
-
-    // Create the info area.
-    section = toolkit.createSection(form.getBody(), Section.TITLE_BAR | Section.DESCRIPTION);
-    section.setLayoutData(new TableWrapData(TableWrapData.FILL, TableWrapData.TOP, 1, 1));
-    section.setText("About Dart");
-    section.setDescription("Build HTML5 apps for the modern web! Dart brings structure to web app engineering with a new language, libraries, and tools.");
-    client = toolkit.createComposite(section);
-    client.setLayout(new TableWrapLayout());
-
-    Composite links = new Composite(client, SWT.NONE);
-
-    GridLayoutFactory.fillDefaults().numColumns(2).spacing(15, 0).applyTo(links);
-
-    createExternalLink(links, "Visit dartlang.org", "http://www.dartlang.org/");
-
-    createExternalLink(links, "Explore the Pub repository", "http://pub.dartlang.org/");
-
-    createExternalLink(links, "View Editor documentation", "http://www.dartlang.org/editor/");
 
     createExternalLink(
-        links,
-        "Additional HTML5 samples",
-        "https://github.com/dart-lang/dart-html5-samples/");
-
-    createExternalLink(links, "Try the Dart tutorial", "http://www.dartlang.org/docs/tutorials/");
-
-    createExternalLink(
-        links,
-        "Read the O'Reilly book",
-        "http://www.dartlang.org/docs/dart-up-and-running/");
-
+        client,
+        "See more Dart samples...",
+        "http://www.dartlang.org/samples/?utm_source=editor&utm_medium=welcome&utm_campaign=newuser");
+    createExternalLink(client, "Browse Dart Libraries...", "http://pub.dartlang.org/");
     section.setClient(client);
 
     // Create the samples area.
@@ -190,41 +159,108 @@ public class IntroEditor extends EditorPart {
           + "change src=\"packages/browser/dart.js\" to point to the local copy of dart.js, "
           + "located in the Editor's samples directory.");
     } else {
-      section = toolkit.createSection(form.getBody(), /*Section.DESCRIPTION |*/Section.TITLE_BAR);
+      section = toolkit.createSection(form.getBody(), Section.TITLE_BAR);
     }
 
-    section.setLayoutData(new TableWrapData(TableWrapData.FILL_GRAB, TableWrapData.FILL_GRAB, 1, 2));
-    section.setText("Sample Applications");
-    //section.setDescription("Open and run several Dart sample applications.");
+    section.setLayoutData(new TableWrapData(TableWrapData.FILL_GRAB, TableWrapData.FILL_GRAB, 1, 1));
+    section.setText("Demos of Dart");
+    section.setFont(bigFont);
     client = toolkit.createComposite(section);
     TableWrapLayout l = new TableWrapLayout();
-    l.numColumns = 4;
+    l.numColumns = 3;
+    l.makeColumnsEqualWidth = true;
     l.verticalSpacing = 10;
     client.setLayout(l);
 
     for (final SampleDescription description : SampleDescriptionHelper.getDescriptions()) {
-      Label label = toolkit.createLabel(client, "", SWT.BORDER);
-      label.setImage(DartToolsPlugin.getImage(description.logoPath));
-      label.setCursor(getSite().getShell().getDisplay().getSystemCursor(SWT.CURSOR_HAND));
-      label.addMouseListener(new MouseAdapter() {
-        @Override
-        public void mouseUp(MouseEvent e) {
-          SampleHelper.openSample(description, getSite());
-        }
-      });
-
-      FormText formText = toolkit.createFormText(client, true);
-      formText.setText("<form><p><a href=\"open:woot\">" + description.name + "</a><br></br>"
-          + description.description + "</p></form>", true, false);
-      formText.setLayoutData(new TableWrapData(TableWrapData.FILL_GRAB, TableWrapData.TOP, 1, 1));
-      formText.addHyperlinkListener(new HyperlinkAdapter() {
-        @Override
-        public void linkActivated(HyperlinkEvent e) {
-          SampleHelper.openSample(description, getSite());
-        }
-      });
+      if (!description.name.equals("TodoMVC") && !description.name.equals("Angular Dart")) {
+        Composite composite = toolkit.createComposite(client);
+        TableWrapLayout lc = new TableWrapLayout();
+        lc.numColumns = 2;
+        composite.setLayout(lc);
+        addSampleInfo(composite, description);
+      }
     }
+    section.setClient(client);
 
+    // create the more info area
+    section = toolkit.createSection(form.getBody(), Section.TITLE_BAR);
+    section.setText("More about Dart");
+    section.setFont(bigFont);
+    client = toolkit.createComposite(section);
+    l = new TableWrapLayout();
+    l.numColumns = 3;
+    l.makeColumnsEqualWidth = true;
+    l.verticalSpacing = 10;
+    client.setLayout(l);
+
+    Composite composite = toolkit.createComposite(client);
+    TableWrapLayout lc = new TableWrapLayout();
+    lc.numColumns = 2;
+    composite.setLayout(lc);
+    final String href = "http://www.dartlang.org/codelabs/darrrt/?utm_source=editor&utm_medium=welcome&utm_campaign=newuser";
+
+    Label label = toolkit.createLabel(composite, "", SWT.BORDER);
+    label.setImage(DartToolsPlugin.getImage("samples/tutorial.png"));
+    label.setCursor(getSite().getShell().getDisplay().getSystemCursor(SWT.CURSOR_HAND));
+    label.addMouseListener(new MouseAdapter() {
+      @Override
+      public void mouseUp(MouseEvent e) {
+        ExternalBrowserUtil.openInExternalBrowser(href);
+      }
+    });
+
+    FormText formText = toolkit.createFormText(composite, true);
+    formText.setText("<form><p><a href=\"a\">Tutorial</a><br></br>"
+        + "Learn Dart with pirates</p></form>", true, false);
+    formText.setLayoutData(new TableWrapData(TableWrapData.FILL_GRAB, TableWrapData.TOP, 1, 1));
+    formText.addHyperlinkListener(openLink(href));
+    formText.setFont(bigFont);
+
+    composite = toolkit.createComposite(client);
+    lc = new TableWrapLayout();
+    lc.numColumns = 2;
+    composite.setLayout(lc);
+
+    final String href2 = "http://api.dartlang.org/docs/releases/latest/?utm_source=editor&utm_medium=welcome&utm_campaign=newuser";
+    label = toolkit.createLabel(composite, "", SWT.BORDER);
+    label.setImage(DartToolsPlugin.getImage("samples/sdk.png"));
+    label.setCursor(getSite().getShell().getDisplay().getSystemCursor(SWT.CURSOR_HAND));
+    label.addMouseListener(new MouseAdapter() {
+      @Override
+      public void mouseUp(MouseEvent e) {
+        ExternalBrowserUtil.openInExternalBrowser(href2);
+      }
+    });
+
+    formText = toolkit.createFormText(composite, true);
+    formText.setText("<form><p><a href=\"a\">Browse Dart SDK</a><br></br>"
+        + "Lookup a call in the API reference</p></form>", true, false);
+    formText.setFont(bigFont);
+    formText.setLayoutData(new TableWrapData(TableWrapData.FILL_GRAB, TableWrapData.TOP, 1, 1));
+    formText.addHyperlinkListener(openLink(href2));
+    section.setClient(client);
+
+    // create the Early Access Area
+    section = toolkit.createSection(form.getBody(), Section.TITLE_BAR);
+    section.setText("Early Access");
+    section.setFont(bigFont);
+    client = toolkit.createComposite(section);
+    l = new TableWrapLayout();
+    l.numColumns = 3;
+    l.verticalSpacing = 10;
+    l.makeColumnsEqualWidth = true;
+    client.setLayout(l);
+
+    for (final SampleDescription description : SampleDescriptionHelper.getDescriptions()) {
+      if (description.name.equals("TodoMVC") || description.name.equals("Angular Dart")) {
+        composite = toolkit.createComposite(client);
+        lc = new TableWrapLayout();
+        lc.numColumns = 2;
+        composite.setLayout(lc);
+        addSampleInfo(composite, description);
+      }
+    }
     section.setClient(client);
 
     form.reflow(true);
@@ -235,12 +271,10 @@ public class IntroEditor extends EditorPart {
     toolkit.dispose();
 
     super.dispose();
-
-    for (Font font : fontMap.values()) {
-      font.dispose();
+    if (bigFont != null) {
+      bigFont.dispose();
     }
 
-    fontMap.clear();
   }
 
   @Override
@@ -275,9 +309,36 @@ public class IntroEditor extends EditorPart {
 
   }
 
+  private void addSampleInfo(Composite client, final SampleDescription description) {
+
+    Label label = toolkit.createLabel(client, "", SWT.BORDER);
+    label.setImage(DartToolsPlugin.getImage(description.logoPath));
+    label.setCursor(getSite().getShell().getDisplay().getSystemCursor(SWT.CURSOR_HAND));
+    label.addMouseListener(new MouseAdapter() {
+      @Override
+      public void mouseUp(MouseEvent e) {
+        SampleHelper.openSample(description, getSite());
+      }
+    });
+
+    FormText formText = toolkit.createFormText(client, true);
+    formText.setText("<form><p><a href=\"open:woot\">" + description.name + "</a><br></br>"
+        + description.description + "</p></form>", true, false);
+    formText.setLayoutData(new TableWrapData(TableWrapData.FILL_GRAB, TableWrapData.TOP, 1, 1));
+    formText.setFont(bigFont);
+    formText.addHyperlinkListener(new HyperlinkAdapter() {
+      @Override
+      public void linkActivated(HyperlinkEvent e) {
+        SampleHelper.openSample(description, getSite());
+      }
+    });
+  }
+
   private void createExternalLink(Composite client, String text, final String href) {
 
     Hyperlink link = toolkit.createHyperlink(client, text, SWT.NONE);
+    link.setFont(bigFont);
+    link.setLayoutData(new TableWrapData(TableWrapData.FILL, TableWrapData.MIDDLE));
     link.addHyperlinkListener(new HyperlinkAdapter() {
       @Override
       public void linkActivated(HyperlinkEvent e) {
@@ -285,6 +346,21 @@ public class IntroEditor extends EditorPart {
       }
     });
 
+  }
+
+  private Font getBigFont(FontData[] fontData) {
+    FontData[] bigFontData = getModifiedFontData(fontData);
+    Font bigFont = new Font(Display.getCurrent(), bigFontData);
+    return bigFont;
+  }
+
+  private HyperlinkAdapter openLink(final String href) {
+    return new HyperlinkAdapter() {
+      @Override
+      public void linkActivated(HyperlinkEvent e) {
+        ExternalBrowserUtil.openInExternalBrowser(href);
+      }
+    };
   }
 
 }

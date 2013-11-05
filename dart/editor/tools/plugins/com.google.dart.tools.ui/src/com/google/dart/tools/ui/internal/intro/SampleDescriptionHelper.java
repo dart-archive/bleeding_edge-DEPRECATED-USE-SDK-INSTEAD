@@ -83,6 +83,7 @@ public final class SampleDescriptionHelper {
           private StringBuilder sb = new StringBuilder();
           private String name;
           private String filePath;
+          private String sortOrder;
           private String descriptionText;
 
           @Override
@@ -103,7 +104,8 @@ public final class SampleDescriptionHelper {
                   name,
                   descriptionText,
                   logoFile,
-                  "samples/" + sampleName + ".png"));
+                  "samples/" + sampleName + ".png",
+                  sortOrder));
             }
           }
 
@@ -114,6 +116,7 @@ public final class SampleDescriptionHelper {
             if (qName.equals("sample")) {
               name = attributes.getValue("name");
               filePath = attributes.getValue("file");
+              sortOrder = attributes.getValue("order");
             }
           }
         };
