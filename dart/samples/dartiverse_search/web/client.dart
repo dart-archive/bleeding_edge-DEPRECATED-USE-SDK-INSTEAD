@@ -34,7 +34,8 @@ class Client {
       });
     });
     webSocket.onError.first.then((_) {
-      print("Failed to connect to ${webSocket.url}");
+      print("Failed to connect to ${webSocket.url}. "
+            "Please run bin/server.dart and try again.");
       onDisconnected();
     });
   }

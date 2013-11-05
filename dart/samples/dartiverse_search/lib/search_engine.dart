@@ -2,7 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dartiverse_search;
+library search_engine;
+
+import 'dart:async';
+import 'dart:convert' show JSON;
+import 'dart:io' show HttpStatus;
+import 'package:http/http.dart' as http_client;
+
+part 'github_search_engine.dart';
+part 'stack_overflow_search_engine.dart';
 
 
 /**

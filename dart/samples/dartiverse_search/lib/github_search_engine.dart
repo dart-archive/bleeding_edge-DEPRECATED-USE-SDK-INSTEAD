@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dartiverse_search;
+part of search_engine;
 
 
 class GithubSearchEngine implements SearchEngine {
@@ -18,8 +18,11 @@ class GithubSearchEngine implements SearchEngine {
         query);
     var controller = new StreamController();
     http_client.get(searchUri)
-      .then((response) {
-        if (response.statusCode != HttpStatus.OK) throw "Bad status code.";
+      .then((http_client.Response response) {
+        if (response.statusCode != HttpStatus.OK) {
+          throw "Bad status code: ${response.statusCode}, "
+                "message: ${response.reasonPhrase}";
+        }
         var json = JSON.decode(response.body);
         json.putIfAbsent('items', () => []);
         json['items']

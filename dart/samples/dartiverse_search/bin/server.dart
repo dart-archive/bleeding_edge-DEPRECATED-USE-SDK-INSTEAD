@@ -9,13 +9,9 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:http_server/http_server.dart' as http_server;
-import 'package:http/http.dart' as http_client;
 import 'package:route/server.dart' show Router;
 import 'package:logging/logging.dart' show Logger, Level, LogRecord;
-
-part 'search_engine.dart';
-part 'stack_overflow_search_engine.dart';
-part 'github_search_engine.dart';
+import 'package:dartiverse_search/search_engine.dart';
 
 
 final Logger log = new Logger('DartiverseSearch');
@@ -84,7 +80,6 @@ void handleWebSocket(WebSocket webSocket) {
     });
 }
 
-
 void main() {
   // Set up logger.
   Logger.root.level = Level.ALL;
@@ -92,14 +87,17 @@ void main() {
     print('${rec.level.name}: ${rec.time}: ${rec.message}');
   });
 
-  var buildPath = Platform.script.resolve('build').toFilePath();
+  var buildPath = Platform.script.resolve('../build').toFilePath();
   if (!new Directory(buildPath).existsSync()) {
     log.severe("The 'build/' directory was not found. Please run 'pub build'.");
     return;
   }
-  HttpServer.bind(InternetAddress.ANY_IP_V6, 8080).then((server) {
+
+  int port = 9223;  // TODO use args from command line to set this
+
+  HttpServer.bind(InternetAddress.ANY_IP_V6, port).then((server) {
     log.info("Search server is running on "
-             "'http://${Platform.localHostname}:8080/'");
+             "'http://${Platform.localHostname}:$port/'");
     var router = new Router(server);
 
     // The client will connect using a WebSocket. Upgrade requests to '/ws' and
