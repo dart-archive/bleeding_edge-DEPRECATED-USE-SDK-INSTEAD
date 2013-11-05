@@ -731,7 +731,7 @@ public enum StaticWarningCode implements ErrorCode {
   RETURN_WITHOUT_VALUE("Missing return value after 'return'"),
 
   /**
-   * 12.15.3 Static Invocation: It is a static warning if <i>C</i> does not declare a static method
+   * 12.16.3 Static Invocation: It is a static warning if <i>C</i> does not declare a static method
    * or getter <i>m</i>.
    * 
    * @param memberName the name of the instance member
@@ -761,7 +761,7 @@ public enum StaticWarningCode implements ErrorCode {
   TYPE_PARAMETER_REFERENCED_BY_STATIC("Static members cannot reference type parameters"),
 
   /**
-   * 12.15.3 Static Invocation: A static method invocation <i>i</i> has the form
+   * 12.16.3 Static Invocation: A static method invocation <i>i</i> has the form
    * <i>C.m(a<sub>1</sub>, &hellip;, a<sub>n</sub>, x<sub>n+1</sub>: a<sub>n+1</sub>, &hellip;
    * x<sub>n+k</sub>: a<sub>n+k</sub>)</i>. It is a static warning if <i>C</i> does not denote a
    * class in the current scope.
@@ -822,14 +822,14 @@ public enum StaticWarningCode implements ErrorCode {
   UNDEFINED_SETTER("There is no such setter '%s' in '%s'"),
 
   /**
-   * 12.15.3 Static Invocation: It is a static warning if <i>C</i> does not declare a static method
+   * 12.16.3 Static Invocation: It is a static warning if <i>C</i> does not declare a static method
    * or getter <i>m</i>.
    * 
    * @param methodName the name of the method
    * @param enclosingType the name of the enclosing type where the method is being looked for
    */
-  // TODO(jwren) Even though we have a message here, this warning code is not being generated.
-  UNDEFINED_STATIC_METHOD_OR_GETTER("There is no such static method '%s' in '%s'");
+  // Note: all cases of this method are covered by the StaticWarningCode.UNDEFINED_METHOD/UNDEFINED_GETTER and UNDEFINED_SETTER codes
+  UNDEFINED_STATIC_METHOD_OR_GETTER("There is no such static method, getter or setter '%s' in '%s'");
 
   /**
    * The template used to create the message to be displayed for this error.
