@@ -5,7 +5,7 @@
 part of dartiverse_search;
 
 
-class StackOverflowSearchEngine {
+class StackOverflowSearchEngine implements SearchEngine {
   String get name => 'StackOverflow';
 
   Stream<SearchResult> search(String input) {

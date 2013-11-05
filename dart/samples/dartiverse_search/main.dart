@@ -10,8 +10,8 @@ import 'dart:io';
 
 import 'package:http_server/http_server.dart' as http_server;
 import 'package:http/http.dart' as http_client;
-import 'package:route/server.dart';
-import 'package:logging/logging.dart' show Logger, Level;
+import 'package:route/server.dart' show Router;
+import 'package:logging/logging.dart' show Logger, Level, LogRecord;
 
 part 'search_engine.dart';
 part 'stack_overflow_search_engine.dart';
@@ -22,7 +22,7 @@ final Logger log = new Logger('DartiverseSearch');
 
 
 // List of search-engines used.
-final searchEngines = [
+final List<SearchEngine> searchEngines = [
   new StackOverflowSearchEngine(),
   new GithubSearchEngine()
 ];
@@ -97,7 +97,7 @@ void main() {
     log.severe("The 'build/' directory was not found. Please run 'pub build'.");
     return;
   }
-  HttpServer.bind('0.0.0.0', 8080).then((server) {
+  HttpServer.bind(InternetAddress.ANY_IP_V6, 8080).then((server) {
     log.info("Search server is running on "
              "'http://${Platform.localHostname}:8080/'");
     var router = new Router(server);

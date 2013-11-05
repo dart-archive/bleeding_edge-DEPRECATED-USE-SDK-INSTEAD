@@ -5,7 +5,7 @@
 part of dartiverse_search;
 
 
-class GithubSearchEngine {
+class GithubSearchEngine implements SearchEngine {
   String get name => 'Github';
 
   Stream<SearchResult> search(String input) {

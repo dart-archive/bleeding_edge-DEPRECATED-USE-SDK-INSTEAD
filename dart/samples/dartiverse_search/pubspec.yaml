@@ -1,5 +1,7 @@
 name: dartiverse_search
-description: Simple serverside Dart search-engine aggregater, that makes it possible to search GitHub and StackOverflow for dart-related items. The Demo contains a web-interface for performing searches.
+description: Simple serverside Dart search-engine aggregater, that makes it
+  possible to search GitHub and StackOverflow for dart-related items. The Demo
+  contains a web-interface for performing searches.
 dependencies:
   http_server: any
   http: any
