@@ -141,6 +141,11 @@ public class PubspecEditor extends FormEditor {
   }
 
   @Override
+  public void setActivePage(int pageIndex) {
+    super.setActivePage(pageIndex);
+  }
+
+  @Override
   public void setFocus() {
     super.setFocus();
     IFormPage page = getActivePageInstance();

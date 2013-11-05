@@ -33,6 +33,7 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.forms.AbstractFormPart;
 import org.eclipse.ui.forms.IDetailsPage;
@@ -217,6 +218,26 @@ public class DependencyDetailsPage extends AbstractFormPart implements IDetailsP
           input.setGitRef(gitrefText.getText());
           setTextDirty();
         }
+      }
+    });
+
+    Composite filler = new Composite(client, SWT.NONE);
+    gd = new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1);
+    filler.setLayoutData(gd);
+
+    Label label = new Label(client, SWT.WRAP);
+    label.setText("Packages with advanced requirements e.g. transformers, require manual editing.");
+    gd = new GridData(SWT.FILL, SWT.BOTTOM, false, false, 3, 1);
+    label.setLayoutData(gd);
+
+    Link infoLink = new Link(client, SWT.NONE);
+    infoLink.setText("<a href=\"" + "source" + "\">Switch to yaml editing mode</a>");
+    gd = new GridData(SWT.LEFT, SWT.BOTTOM, false, false, 3, 1);
+    infoLink.setLayoutData(gd);
+    infoLink.addSelectionListener(new SelectionAdapter() {
+      @Override
+      public void widgetSelected(SelectionEvent e) {
+        ((PubspecEditor) page.getEditor()).setActivePage(1);
       }
     });
 
