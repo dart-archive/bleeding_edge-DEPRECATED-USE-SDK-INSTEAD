@@ -14,10 +14,10 @@ button {
   font-family: inherit;
   color: inherit;
   -webkit-appearance: none;
-  /*-moz-appearance: none;*/
+  -moz-appearance: none;
   -ms-appearance: none;
   -o-appearance: none;
-  appearance: none;
+  /*appearance: none; */
 }
 
 body {
@@ -31,7 +31,7 @@ body {
   -moz-font-smoothing: antialiased;
   -ms-font-smoothing: antialiased;
   -o-font-smoothing: antialiased;
-  font-smoothing: antialiased;
+  /* font-smoothing: antialiased; */
 }
 
 /*
@@ -82,7 +82,7 @@ input:-moz-placeholder {
   color: #b3b3b3;
   color: rgba(255, 255, 255, 0.3);
   text-shadow: -1px -1px rgba(0, 0, 0, 0.2);
-  -webkit-text-rendering: optimizeLegibility;
+  /*-webkit-text-rendering: optimizeLegibility;*/
   -moz-text-rendering: optimizeLegibility;
   -ms-text-rendering: optimizeLegibility;
   -o-text-rendering: optimizeLegibility;
@@ -138,7 +138,7 @@ input:-moz-placeholder {
   -moz-font-smoothing: antialiased;
   -ms-font-smoothing: antialiased;
   -o-font-smoothing: antialiased;
-  font-smoothing: antialiased;
+  /*font-smoothing: antialiased;*/
 }
 
 #new-todo {
@@ -321,6 +321,9 @@ are included in the code below.
     -webkit-transform: rotate(90deg);
     transform: rotate(90deg);
     -webkit-appearance: none;
-    appearance: none;
+    -moz-appearance: none;
+    -ms-appearance: none;
+    -o-appearance: none;
+    /*appearance: none; */
   }
 }
