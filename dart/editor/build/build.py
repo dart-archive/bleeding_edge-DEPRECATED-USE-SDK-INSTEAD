@@ -973,11 +973,11 @@ def PostProcessEditorBuilds(out_dir, buildos):
       write the final download script to [destination] after doing all
       replacements given in the [replacements] dictionary."""
       template_location = {
-       'windows' : join(
+       'win' : join(
           DART_DIR, 'tools', 'dartium', 'download_shellscript_template.bat'),
        'linux' : join(
           DART_DIR, 'tools', 'dartium', 'download_shellscript_template.sh'),
-       'macos' : join(
+       'mac' : join(
           DART_DIR, 'tools', 'dartium', 'download_shellscript_template.sh'),
       }[SYSTEM]
 
@@ -989,14 +989,14 @@ def PostProcessEditorBuilds(out_dir, buildos):
         fd.write(content)
 
       # Make it executable if we are not on windows
-      if SYSTEM != 'windows':
+      if SYSTEM != 'win':
         os.chmod(destination, os.stat(destination).st_mode | stat.S_IEXEC)
 
     def add_download_scripts(zipFile, arch):
       shell_ending = {
-        'windows' : '.bat',
+        'win' : '.bat',
         'linux' : '.sh',
-        'macos' : '.sh',
+        'mac' : '.sh',
       }[SYSTEM]
 
       namer = bot_utils.GCSNamer(CHANNEL, bot_utils.ReleaseType.RELEASE)
@@ -1019,7 +1019,7 @@ def PostProcessEditorBuilds(out_dir, buildos):
       contentshell_download_script = join(scratch_dir, 'download_contentshell')
       instantiate_download_script_template(contentshell_download_script, {
         'VAR_DESTINATION' : contentshell_name,
-        'VAR_DOWNLOAD_URL' : 
+        'VAR_DOWNLOAD_URL' :
             ("http://dartlang.org/editor/update/channels/%s/%s/dartium/%s"
              % (CHANNEL, REVISION, contentshell_name)),
       })
