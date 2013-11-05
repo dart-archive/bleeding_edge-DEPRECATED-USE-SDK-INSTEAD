@@ -13,7 +13,6 @@
  */
 package com.google.dart.engine.internal.resolver;
 
-import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.CatchClause;
 import com.google.dart.engine.ast.ClassDeclaration;
@@ -45,7 +44,6 @@ import com.google.dart.engine.ast.SwitchDefault;
 import com.google.dart.engine.ast.TypeParameter;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
-import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ConstructorElement;
@@ -69,7 +67,6 @@ import com.google.dart.engine.scanner.KeywordToken;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.source.Source;
-import com.google.dart.engine.utilities.io.PrintStringWriter;
 
 import java.util.HashSet;
 
@@ -703,23 +700,7 @@ public class DeclarationMatcher extends RecursiveASTVisitor<Void> {
     if (parameters == null && enclosingAlias != null) {
       parameters = enclosingAlias.getParameters();
     }
-    ParameterElement element = parameters == null ? null : find(parameters, parameterName);
-    if (element == null) {
-      @SuppressWarnings("resource")
-      PrintStringWriter writer = new PrintStringWriter();
-      writer.println("Invalid state found in the Analysis Engine:");
-      writer.println("DeclarationResolver.getElementForParameter() is visiting a parameter that "
-          + "does not appear to be in a method or function.");
-      writer.println("Ancestors:");
-      ASTNode parent = node.getParent();
-      while (parent != null) {
-        writer.println(parent.getClass().getName());
-        writer.println("---------");
-        parent = parent.getParent();
-      }
-      AnalysisEngine.getInstance().getLogger().logError(writer.toString(), new AnalysisException());
-    }
-    return element;
+    return parameters == null ? null : find(parameters, parameterName);
   }
 
   /**
