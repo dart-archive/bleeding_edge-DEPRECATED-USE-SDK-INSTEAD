@@ -1551,6 +1551,20 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_invalidOverrideDifferentDefaultValues_named_function() throws Exception {
+    Source source = addSource(createSource(//
+        "nothing() => 'nothing';",
+        "class A {",
+        "  thing(String a, {orElse : nothing}) {}",
+        "}",
+        "class B extends A {",
+        "  thing(String a, {orElse : nothing}) {}",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
   public void test_invalidOverrideDifferentDefaultValues_positional() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
@@ -1571,6 +1585,20 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "}",
         "class B extends A {",
         "  m([int b = 0, String a = '0']) {}",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_invalidOverrideDifferentDefaultValues_positional_function() throws Exception {
+    Source source = addSource(createSource(//
+        "nothing() => 'nothing';",
+        "class A {",
+        "  thing(String a, [orElse = nothing]) {}",
+        "}",
+        "class B extends A {",
+        "  thing(String a, [orElse = nothing]) {}",
         "}"));
     resolve(source);
     assertNoErrors(source);

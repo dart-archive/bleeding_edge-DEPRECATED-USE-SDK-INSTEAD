@@ -487,11 +487,6 @@ public class ValidResult extends EvaluationResultImpl {
     Object leftValue = leftOperand.getValue();
     if (leftValue == null) {
       return valueOf(value == null);
-    } else if (leftValue instanceof Boolean) {
-      if (value instanceof Boolean) {
-        return valueOf(((Boolean) leftValue).booleanValue() == ((Boolean) value).booleanValue());
-      }
-      return RESULT_FALSE;
     } else if (leftValue instanceof BigInteger) {
       if (value instanceof BigInteger) {
         return valueOf(((BigInteger) leftValue).equals(value));
@@ -506,13 +501,9 @@ public class ValidResult extends EvaluationResultImpl {
         return valueOf(((Double) leftValue).equals(value));
       }
       return RESULT_FALSE;
-    } else if (leftValue instanceof String) {
-      if (value instanceof String) {
-        return valueOf(((String) leftValue).equals(value));
-      }
-      return RESULT_FALSE;
+    } else {
+      return valueOf(leftValue.equals(value));
     }
-    return RESULT_FALSE;
   }
 
   @Override
