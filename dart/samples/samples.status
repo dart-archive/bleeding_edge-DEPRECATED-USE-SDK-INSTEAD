@@ -33,6 +33,7 @@ swarm/test/swarm_test: Fail
 # Skip tests that use dart:html on the standalone VM
 clock: Skip
 google_maps: Skip
+jsonp: Skip
 solar: Skip
 sunflower: Skip
 swarm: Skip
