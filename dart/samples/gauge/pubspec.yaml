@@ -1,0 +1,4 @@
+name: Gauge
+description: Code sample uses Guage from Google Charts
+dependencies:
+  browser: any
