@@ -1,0 +1,127 @@
+---
+build.dart --machine --full
+[{"method":"error","params":{"file":"web/index.html","message":"To run a polymer applications, make sure to include '<script type=\"application/dart\" src=\"packages/polymer/init.dart\"></script>' in your page, after all HTML imports.","line":17,"charStart":596,"charEnd":602}}]
+build.dart finished [984 ms]
+
+---
+build.dart --machine --full
+[{"method":"error","params":{"file":"web/index.html","message":"To run a polymer applications, make sure to include '<script type=\"application/dart\" src=\"packages/polymer/init.dart\"></script>' in your page, after all HTML imports.","line":17,"charStart":596,"charEnd":602}}]
+build.dart finished [1300 ms]
+
+---
+build.dart --machine --clean
+[{"method":"error","params":{"file":"web/index.html","message":"To run a polymer applications, make sure to include '<script type=\"application/dart\" src=\"packages/polymer/init.dart\"></script>' in your page, after all HTML imports.","line":17,"charStart":596,"charEnd":602}}]
+build.dart finished [958 ms]
+
+---
+build.dart --machine --full
+[{"method":"error","params":{"file":"web/index.html","message":"To run a polymer applications, make sure to include '<script type=\"application/dart\" src=\"packages/polymer/init.dart\"></script>' in your page, after all HTML imports.","line":17,"charStart":596,"charEnd":602}}]
+build.dart finished [1107 ms]
+
+---
+build.dart --machine --clean
+[{"method":"error","params":{"file":"web/index.html","message":"To run a polymer applications, make sure to include '<script type=\"application/dart\" src=\"packages/polymer/init.dart\"></script>' in your page, after all HTML imports.","line":17,"charStart":596,"charEnd":602}}]
+build.dart finished [943 ms]
+
+---
+build.dart --machine --full
+[{"method":"error","params":{"file":"web/index.html","message":"To run a polymer applications, make sure to include '<script type=\"application/dart\" src=\"packages/polymer/init.dart\"></script>' in your page, after all HTML imports.","line":17,"charStart":596,"charEnd":602}}]
+build.dart finished [1157 ms]
+
+---
+build.dart --machine --full
+
+build.dart finished [1378 ms]
+
+---
+build.dart --machine --changed=test/mainpage_test.dart
+
+build.dart finished [1039 ms]
+
+---
+build.dart --machine --changed=test/mainpage_test.dart
+
+build.dart finished [956 ms]
+
+---
+build.dart --machine --clean
+
+build.dart finished [939 ms]
+
+---
+build.dart --machine --full
+
+build.dart finished [1112 ms]
+
+---
+build.dart --machine --changed=test/listorder_test.dart
+
+build.dart finished [965 ms]
+
+---
+build.dart --machine --full
+
+build.dart finished [1200 ms]
+
+---
+build.dart --machine --changed=test/listorder_test.dart
+
+build.dart finished [1023 ms]
+
+---
+build.dart --machine --full
+
+build.dart finished [1093 ms]
+
+---
+build.dart --machine --clean
+
+build.dart finished [945 ms]
+
+---
+build.dart --machine --full
+
+build.dart finished [1078 ms]
+
+---
+build.dart --machine --full
+Unhandled exception:
+'package:polymer/src/build/runner.dart': Error: line 86 pos 22: type 'Options' is not loaded
+  var dartExec = new Options().executable;
+                     ^
+malformed type used.
+#0      _readPackageDirsFromPub (package:polymer/src/build/runner.dart:86:22)
+#1      BarbackOptions.BarbackOptions (package:polymer/src/build/runner.dart:50:50)
+#2      lint (package:polymer/builder.dart:150:25)
+#3      build (package:polymer/builder.dart:117:14)
+#4      main (file:///Users/shailentuli/workspace/dart-repo/dart/samples/third_party/todomvc/build.dart:9:8)
+build.dart finished [584 ms]
+
+---
+build.dart --machine --clean
+Unhandled exception:
+'package:polymer/src/build/runner.dart': Error: line 86 pos 22: type 'Options' is not loaded
+  var dartExec = new Options().executable;
+                     ^
+malformed type used.
+#0      _readPackageDirsFromPub (package:polymer/src/build/runner.dart:86:22)
+#1      BarbackOptions.BarbackOptions (package:polymer/src/build/runner.dart:50:50)
+#2      lint (package:polymer/builder.dart:150:25)
+#3      build (package:polymer/builder.dart:117:14)
+#4      main (file:///Users/shailentuli/workspace/dart-repo/dart/samples/third_party/todomvc/build.dart:9:8)
+build.dart finished [322 ms]
+
+---
+build.dart --machine --full
+Unhandled exception:
+'package:polymer/src/build/runner.dart': Error: line 86 pos 22: type 'Options' is not loaded
+  var dartExec = new Options().executable;
+                     ^
+malformed type used.
+#0      _readPackageDirsFromPub (package:polymer/src/build/runner.dart:86:22)
+#1      BarbackOptions.BarbackOptions (package:polymer/src/build/runner.dart:50:50)
+#2      lint (package:polymer/builder.dart:150:25)
+#3      build (package:polymer/builder.dart:117:14)
+#4      main (file:///Users/shailentuli/workspace/dart-repo/dart/samples/third_party/todomvc/build.dart:9:8)
+build.dart finished [339 ms]
+
