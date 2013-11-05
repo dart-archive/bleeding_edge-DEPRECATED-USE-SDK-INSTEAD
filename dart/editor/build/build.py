@@ -11,6 +11,7 @@ import optparse
 import os
 import re
 import shutil
+import stat
 import subprocess
 import sys
 import tempfile
@@ -965,6 +966,79 @@ def RenameRcpZipFiles(out_dir):
 def PostProcessEditorBuilds(out_dir, buildos):
   """Post-process the created RCP builds"""
   with utils.TempDir('editor_scratch') as scratch_dir:
+
+    def instantiate_download_script_template(destination, replacements):
+      """Helper function for replacing variables in the
+      tools/dartium/download_shellscript_templates.{sh,bat} scripts. It will
+      write the final download script to [destination] after doing all
+      replacements given in the [replacements] dictionary."""
+      template_location = {
+       'windows' : join(
+          DART_DIR, 'tools', 'dartium', 'download_shellscript_template.bat'),
+       'linux' : join(
+          DART_DIR, 'tools', 'dartium', 'download_shellscript_template.sh'),
+       'macos' : join(
+          DART_DIR, 'tools', 'dartium', 'download_shellscript_template.sh'),
+      }[SYSTEM]
+
+      with open(template_location) as fd:
+        content = fd.read()
+      for key in replacements:
+        content = content.replace(key, replacements[key])
+      with open(destination, 'w') as fd:
+        fd.write(content)
+
+      # Make it executable if we are not on windows
+      if SYSTEM != 'windows':
+        os.chmod(destination, os.stat(destination).st_mode | stat.S_IEXEC)
+
+    def add_download_scripts(zipFile, arch):
+      shell_ending = {
+        'windows' : '.bat',
+        'linux' : '.sh',
+        'macos' : '.sh',
+      }[SYSTEM]
+
+      namer = bot_utils.GCSNamer(CHANNEL, bot_utils.ReleaseType.RELEASE)
+
+      # We're adding download scripts to the chromium directory.
+      # The directory tree will look like this after that:
+      #   dart/dart-sdk/bin/dart{,.exe}
+      #       /chromium/download_contentshell.{sh,bat}
+      #       /chromium/download_dartium_debug.{sh,bat}
+      #       /chromium/download_file.dart
+
+      # Add download_file.dart helper utility to the zip file.
+      f = ziputils.ZipUtil(zipFile, buildos)
+      f.AddFile(join(DART_DIR, 'tools', 'dartium', 'download_file.dart'),
+                'dart/chromium/download_file.dart')
+
+      # Add content shell download script
+      contentshell_name = namer.dartium_variant_zipfilename(
+          'content_shell', SYSTEM, arch, 'release')
+      contentshell_download_script = join(scratch_dir, 'download_contentshell')
+      instantiate_download_script_template(contentshell_download_script, {
+        'VAR_DESTINATION' : contentshell_name,
+        'VAR_DOWNLOAD_URL' : 
+            ("http://dartlang.org/editor/update/channels/%s/%s/dartium/%s"
+             % (CHANNEL, REVISION, contentshell_name)),
+      })
+      f.AddFile(contentshell_download_script,
+          'dart/chromium/download_contentshell%s' % shell_ending)
+
+      # Add dartium debug download script
+      dartium_debug_name = namer.dartium_variant_zipfilename(
+          'dartium', SYSTEM, arch, 'debug')
+      dartium_download_script = join(scratch_dir, 'download_dartium_debug')
+      instantiate_download_script_template(dartium_download_script, {
+        'VAR_DESTINATION' : dartium_debug_name,
+        'VAR_DOWNLOAD_URL' :
+            ("http://dartlang.org/editor/update/channels/%s/%s/dartium/%s"
+             % (CHANNEL, REVISION, dartium_debug_name)),
+      })
+      f.AddFile(dartium_download_script,
+          'dart/chromium/download_dartium_debug%s' % shell_ending)
+
     # Create a editor.properties
     editor_properties = os.path.join(scratch_dir, 'editor.properties')
     with open(editor_properties, 'w') as fd:
@@ -973,6 +1047,7 @@ def PostProcessEditorBuilds(out_dir, buildos):
 
     for zipFile in _FindRcpZipFiles(out_dir):
       basename = os.path.basename(zipFile)
+      is_64bit = basename.endswith('-64.zip')
 
       print('  processing %s' % basename)
 
@@ -990,8 +1065,12 @@ def PostProcessEditorBuilds(out_dir, buildos):
         f = ziputils.ZipUtil(zipFile, buildos)
         f.AddFile(editor_properties, 'dart/editor.properties')
 
+      # Add a shell/bat script to download contentshell and dartium debug.
+      # (including the necessary tools/dartium/download_file.dart helper).
+      add_download_scripts(zipFile, '64' if is_64bit else '32')
+
       # adjust memory params for 64 bit versions
-      if (basename.endswith('-64.zip')):
+      if is_64bit:
         if (basename.startswith('darteditor-macos-')):
           inifile = join('dart', 'DartEditor.app', 'Contents', 'MacOS',
                          'DartEditor.ini')
