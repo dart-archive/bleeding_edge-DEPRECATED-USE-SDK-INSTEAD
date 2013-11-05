@@ -1550,6 +1550,24 @@ public class SimpleParserTest extends ParserTestCase {
     assertSize(1, unit.getDeclarations());
   }
 
+  public void test_parseCompilationUnit_builtIn_asFunctionName() throws Exception {
+    parse("parseCompilationUnit", "abstract(x) => 0;");
+    parse("parseCompilationUnit", "as(x) => 0;");
+    parse("parseCompilationUnit", "dynamic(x) => 0;");
+    parse("parseCompilationUnit", "export(x) => 0;");
+    parse("parseCompilationUnit", "external(x) => 0;");
+    parse("parseCompilationUnit", "factory(x) => 0;");
+    parse("parseCompilationUnit", "get(x) => 0;");
+    parse("parseCompilationUnit", "implements(x) => 0;");
+    parse("parseCompilationUnit", "import(x) => 0;");
+    parse("parseCompilationUnit", "library(x) => 0;");
+    parse("parseCompilationUnit", "operator(x) => 0;");
+    parse("parseCompilationUnit", "part(x) => 0;");
+    parse("parseCompilationUnit", "set(x) => 0;");
+    parse("parseCompilationUnit", "static(x) => 0;");
+    parse("parseCompilationUnit", "typedef(x) => 0;");
+  }
+
   public void test_parseCompilationUnit_directives_multiple() throws Exception {
     CompilationUnit unit = parse("parseCompilationUnit", "library l;\npart 'a.dart';");
     assertNull(unit.getScriptTag());

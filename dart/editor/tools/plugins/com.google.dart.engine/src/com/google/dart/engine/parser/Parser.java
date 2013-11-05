@@ -601,7 +601,9 @@ public class Parser {
     while (!matches(TokenType.EOF)) {
       CommentAndMetadata commentAndMetadata = parseCommentAndMetadata();
       if ((matches(Keyword.IMPORT) || matches(Keyword.EXPORT) || matches(Keyword.LIBRARY) || matches(Keyword.PART))
-          && !matches(peek(), TokenType.PERIOD) && !matches(peek(), TokenType.LT)) {
+          && !matches(peek(), TokenType.PERIOD)
+          && !matches(peek(), TokenType.LT)
+          && !matches(peek(), TokenType.OPEN_PAREN)) {
         Directive directive = parseDirective(commentAndMetadata);
         if (declarations.size() > 0 && !directiveFoundAfterDeclaration) {
           reportError(ParserErrorCode.DIRECTIVE_AFTER_DECLARATION);
@@ -2907,7 +2909,7 @@ public class Parser {
     if (matches(Keyword.CLASS)) {
       return parseClassDeclaration(commentAndMetadata, validateModifiersForClass(modifiers));
     } else if (matches(Keyword.TYPEDEF) && !matches(peek(), TokenType.PERIOD)
-        && !matches(peek(), TokenType.LT)) {
+        && !matches(peek(), TokenType.LT) && !matches(peek(), TokenType.OPEN_PAREN)) {
       validateModifiersForTypedef(modifiers);
       return parseTypeAlias(commentAndMetadata);
     }
@@ -4285,8 +4287,11 @@ public class Parser {
     Modifiers modifiers = new Modifiers();
     boolean progress = true;
     while (progress) {
-      if (matches(Keyword.ABSTRACT) && !matches(peek(), TokenType.PERIOD)
-          && !matches(peek(), TokenType.LT)) {
+      if (matches(peek(), TokenType.PERIOD) || matches(peek(), TokenType.LT)
+          || matches(peek(), TokenType.OPEN_PAREN)) {
+        return modifiers;
+      }
+      if (matches(Keyword.ABSTRACT)) {
         if (modifiers.getAbstractKeyword() != null) {
           reportError(ParserErrorCode.DUPLICATED_MODIFIER, currentToken.getLexeme());
           advance();

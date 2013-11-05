@@ -987,6 +987,17 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_implicitThisReferenceInInitializer_importPrefix() throws Exception {
+    Source source = addSource(createSource(//
+        "import 'dart:async' as abstract;",
+        "class A {",
+        "  var v = new abstract.Completer();",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
   public void test_implicitThisReferenceInInitializer_prefixedIdentifier() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
