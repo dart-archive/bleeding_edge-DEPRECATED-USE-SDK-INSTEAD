@@ -1001,7 +1001,7 @@ def PostProcessEditorBuilds(out_dir, buildos):
 
       # We don't have 64-bit versions of dartium/content_shell for
       # macos/windows.
-      if ['mac', 'win'].contains(SYSTEM):
+      if SYSTEM in ['mac', 'win']:
         arch = '32'
 
       namer = bot_utils.GCSNamer(CHANNEL, bot_utils.ReleaseType.RELEASE)
