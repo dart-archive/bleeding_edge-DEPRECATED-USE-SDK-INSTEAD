@@ -2,12 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:html';
+import 'dart:async';
 import 'dart:convert';
+import 'dart:html';
 
 
 class Client {
-  static const Duration CONNECT_DELAY = const Duration(milliseconds: 500);
+  static const Duration RECONNECT_DELAY = const Duration(milliseconds: 500);
 
   WebSocket webSocket;
   final DivElement log = new DivElement();
@@ -16,10 +17,25 @@ class Client {
   DivElement resultsElement = querySelector('#results');
 
   Client() {
-    onDisconnected();
     searchElement.onChange.listen((e) {
       search(searchElement.value);
       searchElement.value = '';
+    });
+    connect();
+  }
+
+  void connect() {
+    webSocket = new WebSocket('ws://${Uri.base.host}:${Uri.base.port}/ws');
+    webSocket.onOpen.first.then((_) {
+      onConnected();
+      webSocket.onClose.first.then((_) {
+        print("Connection disconnected to ${webSocket.url}");
+        onDisconnected();
+      });
+    });
+    webSocket.onError.first.then((_) {
+      print("Failed to connect to ${webSocket.url}");
+      onDisconnected();
     });
   }
 
@@ -34,19 +50,8 @@ class Client {
 
   void onDisconnected() {
     searchElement.disabled = true;
-    setStatus('Disconnected');
-    webSocket = new WebSocket('ws://${Uri.base.host}:${Uri.base.port}/ws');
-    webSocket.onOpen.first.then((_) {
-      onConnected();
-      webSocket.onClose.first.then((_) {
-        print("Connection disconnected to ${webSocket.url}");
-        onDisconnected();
-      });
-    });
-    webSocket.onError.first.then((_) {
-      print("Failed to connect to ${webSocket.url}");
-      onDisconnected();
-    });
+    setStatus('Disconnected - start \'bin/server.dart\' to continue');
+    new Timer(RECONNECT_DELAY, connect);
   }
 
   void setStatus(String status) {
