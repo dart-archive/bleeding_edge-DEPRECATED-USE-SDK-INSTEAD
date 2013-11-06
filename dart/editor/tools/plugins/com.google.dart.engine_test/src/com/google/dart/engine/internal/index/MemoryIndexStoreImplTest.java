@@ -25,6 +25,8 @@ import com.google.dart.engine.index.Location;
 import com.google.dart.engine.index.Relationship;
 import com.google.dart.engine.internal.context.InstrumentedAnalysisContextImpl;
 import com.google.dart.engine.internal.element.ElementLocationImpl;
+import com.google.dart.engine.internal.element.member.Member;
+import com.google.dart.engine.source.DirectoryBasedSourceContainer;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceContainer;
 
@@ -219,8 +221,39 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
     assertEquals(1, store.internalGetLocationCount());
   }
 
+  public void test_recordRelationship_member() throws Exception {
+    Member member = mock(Member.class);
+    when(member.getBaseElement()).thenReturn(elementA);
+    // no relationships initially
+    assertEquals(0, store.internalGetLocationCount());
+    // record relationship
+    store.recordRelationship(member, relationship, location);
+    // no location for "member"
+    {
+      Location[] locations = store.getRelationships(member, relationship);
+      assertLocations(locations);
+    }
+    // has location for "elementA"
+    {
+      Location[] locations = store.getRelationships(elementA, relationship);
+      assertLocations(locations, location);
+    }
+  }
+
   public void test_recordRelationship_noElement() throws Exception {
     store.recordRelationship(null, relationship, location);
+    assertEquals(0, store.internalGetLocationCount());
+  }
+
+  public void test_recordRelationship_noElementContext() throws Exception {
+    when(elementA.getContext()).thenReturn(null);
+    store.recordRelationship(elementA, relationship, location);
+    assertEquals(0, store.internalGetLocationCount());
+  }
+
+  public void test_recordRelationship_noElementSource() throws Exception {
+    when(elementA.getSource()).thenReturn(null);
+    store.recordRelationship(elementA, relationship, location);
     assertEquals(0, store.internalGetLocationCount());
   }
 
@@ -229,9 +262,14 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
     assertEquals(0, store.internalGetLocationCount());
   }
 
-  public void test_recordRelationship_noLocationElement() throws Exception {
-    Element elementWithoutEnclosing = mock(Element.class);
-    Location location = new Location(elementWithoutEnclosing, 0, 0);
+  public void test_recordRelationship_noLocationContext() throws Exception {
+    when(location.getElement().getContext()).thenReturn(null);
+    store.recordRelationship(elementA, relationship, location);
+    assertEquals(0, store.internalGetLocationCount());
+  }
+
+  public void test_recordRelationship_noLocationSource() throws Exception {
+    when(location.getElement().getSource()).thenReturn(null);
     store.recordRelationship(elementA, relationship, location);
     assertEquals(0, store.internalGetLocationCount());
   }
@@ -419,6 +457,18 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
       Location[] locations = store.getRelationships(elementA, relationship);
       assertThat(locations).isEmpty();
     }
+  }
+
+  public void test_removeSources_nullContext() throws Exception {
+    // record
+    {
+      store.recordRelationship(IndexConstants.UNIVERSE, relationship, location);
+      assertEquals(1, store.internalGetLocationCount());
+    }
+    // remove "null" context, should never happen - ignored
+    SourceContainer sourceContainer = new DirectoryBasedSourceContainer("/path/");
+    store.removeSources(null, sourceContainer);
+    assertEquals(1, store.internalGetLocationCount());
   }
 
   public void test_removeSources_withDeclaration() throws Exception {

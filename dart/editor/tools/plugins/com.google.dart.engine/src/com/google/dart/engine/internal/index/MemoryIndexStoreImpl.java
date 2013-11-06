@@ -213,6 +213,10 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
       return;
     }
     location = location.clone();
+    // at the index level we don't care about Member(s)
+    if (element instanceof Member) {
+      element = ((Member) element).getBaseElement();
+    }
     // prepare information
     AnalysisContext elementContext = element.getContext();
     AnalysisContext locationContext = location.getElement().getContext();
@@ -222,7 +226,14 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
     if (locationContext == null) {
       return;
     }
+    if (locationSource == null) {
+      return;
+    }
     if (elementContext == null && !(element instanceof NameElementImpl)
+        && !(element instanceof UniverseElementImpl)) {
+      return;
+    }
+    if (elementSource == null && !(element instanceof NameElementImpl)
         && !(element instanceof UniverseElementImpl)) {
       return;
     }
@@ -232,10 +243,6 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
     }
     if (removedContexts.containsKey(locationContext)) {
       return;
-    }
-    // at the index level we don't care about Member(s)
-    if (element instanceof Member) {
-      element = ((Member) element).getBaseElement();
     }
     // record: key -> location(s)
     ElementRelationKey key = getCanonicalKey(element, relationship);
@@ -288,6 +295,10 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
   @Override
   public void removeContext(AnalysisContext context) {
     context = unwrapContext(context);
+    if (context == null) {
+      return;
+    }
+    // mark as removed
     removedContexts.put(context, WEAK_SET_VALUE);
     removeSources(context, null);
     // remove context
@@ -298,6 +309,9 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
   @Override
   public void removeSource(AnalysisContext context, Source source) {
     context = unwrapContext(context);
+    if (context == null) {
+      return;
+    }
     // remove locations defined in source
     clearSource(context, source);
     // remove keys for elements defined in source
@@ -321,6 +335,9 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
   @Override
   public void removeSources(AnalysisContext context, SourceContainer container) {
     context = unwrapContext(context);
+    if (context == null) {
+      return;
+    }
     // remove sources #1
     Map<Source, Set<ElementRelationKey>> sourceToKeys = contextToSourceToKeys.get(context);
     if (sourceToKeys != null) {

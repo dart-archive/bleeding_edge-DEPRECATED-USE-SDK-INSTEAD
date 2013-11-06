@@ -57,6 +57,7 @@ import com.google.dart.engine.search.SearchPattern;
 import com.google.dart.engine.search.SearchPatternFactory;
 import com.google.dart.engine.search.SearchScope;
 import com.google.dart.engine.search.SearchScopeFactory;
+import com.google.dart.engine.source.Source;
 import com.google.dart.engine.type.Type;
 import com.google.dart.engine.utilities.source.SourceRange;
 
@@ -125,18 +126,13 @@ public class SearchEngineImplTest extends EngineTestCase {
     }
   }
 
-  private static <T extends Element> T mock2(Class<T> clazz, ElementKind kind) {
-    T element = mock(clazz);
-    when(element.getContext()).thenReturn(CONTEXT);
-    when(element.getKind()).thenReturn(kind);
-    return element;
-  }
-
   private final IndexStore indexStore = IndexFactory.newMemoryIndexStore();
+
   private static final AnalysisContext CONTEXT = mock(AnalysisContext.class);
   private SearchScope scope;
   private SearchPattern pattern = null;
   private SearchFilter filter = null;
+  private final Source source = mock(Source.class);
   private final Element elementA = mock(Element.class);
   private final Element elementB = mock(Element.class);
   private final Element elementC = mock(Element.class);
@@ -144,10 +140,10 @@ public class SearchEngineImplTest extends EngineTestCase {
   private final Element elementE = mock(Element.class);
 
   public void test_searchAssignedTypes_assignments() throws Exception {
-    final PropertyAccessorElement setterElement = mock2(
+    final PropertyAccessorElement setterElement = mockElement(
         PropertyAccessorElement.class,
         ElementKind.SETTER);
-    final FieldElement fieldElement = mock2(FieldElement.class, ElementKind.FIELD);
+    final FieldElement fieldElement = mockElement(FieldElement.class, ElementKind.FIELD);
     when(fieldElement.getSetter()).thenReturn(setterElement);
     final Type typeA = mock(Type.class);
     final Type typeB = mock(Type.class);
@@ -202,7 +198,7 @@ public class SearchEngineImplTest extends EngineTestCase {
   }
 
   public void test_searchAssignedTypes_initializers() throws Exception {
-    final FieldElement fieldElement = mock2(FieldElement.class, ElementKind.FIELD);
+    final FieldElement fieldElement = mockElement(FieldElement.class, ElementKind.FIELD);
     final Type typeA = mock(Type.class);
     final Type typeB = mock(Type.class);
     {
@@ -252,7 +248,7 @@ public class SearchEngineImplTest extends EngineTestCase {
   }
 
   public void test_searchFunctionDeclarations() throws Exception {
-    LibraryElement library = mock2(LibraryElement.class, ElementKind.LIBRARY);
+    LibraryElement library = mockElement(LibraryElement.class, ElementKind.LIBRARY);
     defineFunctionsAB(library);
     scope = new LibrarySearchScope(library);
     // search matches
@@ -265,7 +261,7 @@ public class SearchEngineImplTest extends EngineTestCase {
   }
 
   public void test_searchFunctionDeclarations_async() throws Exception {
-    LibraryElement library = mock2(LibraryElement.class, ElementKind.LIBRARY);
+    LibraryElement library = mockElement(LibraryElement.class, ElementKind.LIBRARY);
     defineFunctionsAB(library);
     scope = new LibrarySearchScope(library);
     // search matches
@@ -303,7 +299,7 @@ public class SearchEngineImplTest extends EngineTestCase {
   }
 
   public void test_searchFunctionDeclarations_useFilter() throws Exception {
-    LibraryElement library = mock2(LibraryElement.class, ElementKind.LIBRARY);
+    LibraryElement library = mockElement(LibraryElement.class, ElementKind.LIBRARY);
     defineFunctionsAB(library);
     scope = new LibrarySearchScope(library);
     // search "elementA"
@@ -331,7 +327,7 @@ public class SearchEngineImplTest extends EngineTestCase {
   }
 
   public void test_searchFunctionDeclarations_usePattern() throws Exception {
-    LibraryElement library = mock2(LibraryElement.class, ElementKind.LIBRARY);
+    LibraryElement library = mockElement(LibraryElement.class, ElementKind.LIBRARY);
     defineFunctionsAB(library);
     scope = new LibrarySearchScope(library);
     // search "A"
@@ -349,7 +345,7 @@ public class SearchEngineImplTest extends EngineTestCase {
   }
 
   public void test_searchReferences_ClassElement() throws Exception {
-    ClassElement referencedElement = mock2(ClassElement.class, ElementKind.CLASS);
+    ClassElement referencedElement = mockElement(ClassElement.class, ElementKind.CLASS);
     {
       Location locationA = new Location(elementA, 1, 2);
       indexStore.recordRelationship(referencedElement, IndexConstants.IS_REFERENCED_BY, locationA);
@@ -368,9 +364,9 @@ public class SearchEngineImplTest extends EngineTestCase {
   }
 
   public void test_searchReferences_ClassElement_useScope() throws Exception {
-    LibraryElement libraryA = mock2(LibraryElement.class, ElementKind.LIBRARY);
-    LibraryElement libraryB = mock2(LibraryElement.class, ElementKind.LIBRARY);
-    ClassElement referencedElement = mock2(ClassElement.class, ElementKind.CLASS);
+    LibraryElement libraryA = mockElement(LibraryElement.class, ElementKind.LIBRARY);
+    LibraryElement libraryB = mockElement(LibraryElement.class, ElementKind.LIBRARY);
+    ClassElement referencedElement = mockElement(ClassElement.class, ElementKind.CLASS);
     {
       when(elementA.getAncestor(LibraryElement.class)).thenReturn(libraryA);
       Location locationA = new Location(elementA, 1, 2);
@@ -389,7 +385,7 @@ public class SearchEngineImplTest extends EngineTestCase {
   }
 
   public void test_searchReferences_CompilationUnitElement() throws Exception {
-    CompilationUnitElement referencedElement = mock2(
+    CompilationUnitElement referencedElement = mockElement(
         CompilationUnitElement.class,
         ElementKind.COMPILATION_UNIT);
     {
@@ -403,7 +399,9 @@ public class SearchEngineImplTest extends EngineTestCase {
   }
 
   public void test_searchReferences_ConstructorElement() throws Exception {
-    ConstructorElement referencedElement = mock2(ConstructorElement.class, ElementKind.CONSTRUCTOR);
+    ConstructorElement referencedElement = mockElement(
+        ConstructorElement.class,
+        ElementKind.CONSTRUCTOR);
     {
       Location location = new Location(elementA, 10, 1);
       indexStore.recordRelationship(referencedElement, IndexConstants.IS_DEFINED_BY, location);
@@ -432,9 +430,13 @@ public class SearchEngineImplTest extends EngineTestCase {
   }
 
   public void test_searchReferences_FieldElement() throws Exception {
-    PropertyAccessorElement getterElement = mock2(PropertyAccessorElement.class, ElementKind.GETTER);
-    PropertyAccessorElement setterElement = mock2(PropertyAccessorElement.class, ElementKind.SETTER);
-    FieldElement fieldElement = mock2(FieldElement.class, ElementKind.FIELD);
+    PropertyAccessorElement getterElement = mockElement(
+        PropertyAccessorElement.class,
+        ElementKind.GETTER);
+    PropertyAccessorElement setterElement = mockElement(
+        PropertyAccessorElement.class,
+        ElementKind.SETTER);
+    FieldElement fieldElement = mockElement(FieldElement.class, ElementKind.FIELD);
     when(fieldElement.getGetter()).thenReturn(getterElement);
     when(fieldElement.getSetter()).thenReturn(setterElement);
     {
@@ -477,7 +479,7 @@ public class SearchEngineImplTest extends EngineTestCase {
   }
 
   public void test_searchReferences_FieldElement2() throws Exception {
-    FieldElement fieldElement = mock2(FieldElement.class, ElementKind.FIELD);
+    FieldElement fieldElement = mockElement(FieldElement.class, ElementKind.FIELD);
     {
       Location location = new Location(elementA, 1, 10);
       indexStore.recordRelationship(fieldElement, IndexConstants.IS_REFERENCED_BY, location);
@@ -499,7 +501,7 @@ public class SearchEngineImplTest extends EngineTestCase {
   }
 
   public void test_searchReferences_FunctionElement() throws Exception {
-    FunctionElement referencedElement = mock2(FunctionElement.class, ElementKind.FUNCTION);
+    FunctionElement referencedElement = mockElement(FunctionElement.class, ElementKind.FUNCTION);
     {
       Location location = new Location(elementA, 1, 10);
       indexStore.recordRelationship(referencedElement, IndexConstants.IS_INVOKED_BY, location);
@@ -518,7 +520,7 @@ public class SearchEngineImplTest extends EngineTestCase {
   }
 
   public void test_searchReferences_ImportElement() throws Exception {
-    ImportElement referencedElement = mock2(ImportElement.class, ElementKind.IMPORT);
+    ImportElement referencedElement = mockElement(ImportElement.class, ElementKind.IMPORT);
     {
       Location locationA = new Location(elementA, 1, 2);
       indexStore.recordRelationship(referencedElement, IndexConstants.IS_REFERENCED_BY, locationA);
@@ -537,7 +539,7 @@ public class SearchEngineImplTest extends EngineTestCase {
   }
 
   public void test_searchReferences_LibraryElement() throws Exception {
-    LibraryElement referencedElement = mock2(LibraryElement.class, ElementKind.LIBRARY);
+    LibraryElement referencedElement = mockElement(LibraryElement.class, ElementKind.LIBRARY);
     {
       Location location = new Location(elementA, 1, 2);
       indexStore.recordRelationship(referencedElement, IndexConstants.IS_REFERENCED_BY, location);
@@ -549,7 +551,7 @@ public class SearchEngineImplTest extends EngineTestCase {
   }
 
   public void test_searchReferences_MethodElement() throws Exception {
-    MethodElement referencedElement = mock2(MethodElement.class, ElementKind.METHOD);
+    MethodElement referencedElement = mockElement(MethodElement.class, ElementKind.METHOD);
     {
       Location location = new Location(elementA, 1, 10);
       indexStore.recordRelationship(
@@ -590,7 +592,7 @@ public class SearchEngineImplTest extends EngineTestCase {
   }
 
   public void test_searchReferences_MethodMember() throws Exception {
-    MethodElement referencedElement = mock2(MethodElement.class, ElementKind.METHOD);
+    MethodElement referencedElement = mockElement(MethodElement.class, ElementKind.METHOD);
     {
       Location location = new Location(elementA, 1, 10);
       indexStore.recordRelationship(
@@ -632,7 +634,7 @@ public class SearchEngineImplTest extends EngineTestCase {
   }
 
   public void test_searchReferences_ParameterElement() throws Exception {
-    ParameterElement referencedElement = mock2(ParameterElement.class, ElementKind.PARAMETER);
+    ParameterElement referencedElement = mockElement(ParameterElement.class, ElementKind.PARAMETER);
     {
       Location location = new Location(elementA, 1, 10);
       indexStore.recordRelationship(referencedElement, IndexConstants.IS_READ_BY, location);
@@ -662,7 +664,9 @@ public class SearchEngineImplTest extends EngineTestCase {
   }
 
   public void test_searchReferences_PropertyAccessorElement_getter() throws Exception {
-    PropertyAccessorElement accessor = mock2(PropertyAccessorElement.class, ElementKind.GETTER);
+    PropertyAccessorElement accessor = mockElement(
+        PropertyAccessorElement.class,
+        ElementKind.GETTER);
     {
       Location location = new Location(elementA, 1, 10);
       indexStore.recordRelationship(accessor, IndexConstants.IS_REFERENCED_BY_UNQUALIFIED, location);
@@ -683,7 +687,9 @@ public class SearchEngineImplTest extends EngineTestCase {
   }
 
   public void test_searchReferences_PropertyAccessorElement_setter() throws Exception {
-    PropertyAccessorElement accessor = mock2(PropertyAccessorElement.class, ElementKind.SETTER);
+    PropertyAccessorElement accessor = mockElement(
+        PropertyAccessorElement.class,
+        ElementKind.SETTER);
     {
       Location location = new Location(elementA, 1, 10);
       indexStore.recordRelationship(accessor, IndexConstants.IS_REFERENCED_BY_UNQUALIFIED, location);
@@ -704,9 +710,13 @@ public class SearchEngineImplTest extends EngineTestCase {
   }
 
   public void test_searchReferences_TopLevelVariableElement() throws Exception {
-    PropertyAccessorElement getterElement = mock2(PropertyAccessorElement.class, ElementKind.GETTER);
-    PropertyAccessorElement setterElement = mock2(PropertyAccessorElement.class, ElementKind.SETTER);
-    TopLevelVariableElement topVariableElement = mock2(
+    PropertyAccessorElement getterElement = mockElement(
+        PropertyAccessorElement.class,
+        ElementKind.GETTER);
+    PropertyAccessorElement setterElement = mockElement(
+        PropertyAccessorElement.class,
+        ElementKind.SETTER);
+    TopLevelVariableElement topVariableElement = mockElement(
         TopLevelVariableElement.class,
         ElementKind.TOP_LEVEL_VARIABLE);
     when(topVariableElement.getGetter()).thenReturn(getterElement);
@@ -735,7 +745,7 @@ public class SearchEngineImplTest extends EngineTestCase {
   }
 
   public void test_searchReferences_TypeAliasElement() throws Exception {
-    FunctionTypeAliasElement referencedElement = mock2(
+    FunctionTypeAliasElement referencedElement = mockElement(
         FunctionTypeAliasElement.class,
         ElementKind.FUNCTION_TYPE_ALIAS);
     {
@@ -756,7 +766,7 @@ public class SearchEngineImplTest extends EngineTestCase {
   }
 
   public void test_searchReferences_TypeParameterElement() throws Exception {
-    TypeParameterElement referencedElement = mock2(
+    TypeParameterElement referencedElement = mockElement(
         TypeParameterElement.class,
         ElementKind.TYPE_PARAMETER);
     {
@@ -777,7 +787,7 @@ public class SearchEngineImplTest extends EngineTestCase {
   }
 
   public void test_searchReferences_VariableElement() throws Exception {
-    LocalVariableElement referencedElement = mock2(
+    LocalVariableElement referencedElement = mockElement(
         LocalVariableElement.class,
         ElementKind.LOCAL_VARIABLE);
     {
@@ -803,7 +813,7 @@ public class SearchEngineImplTest extends EngineTestCase {
   }
 
   public void test_searchSubtypes() throws Exception {
-    final ClassElement referencedElement = mock2(ClassElement.class, ElementKind.CLASS);
+    final ClassElement referencedElement = mockElement(ClassElement.class, ElementKind.CLASS);
     {
       Location locationA = new Location(elementA, 10, 1);
       indexStore.recordRelationship(referencedElement, IndexConstants.IS_EXTENDED_BY, locationA);
@@ -833,7 +843,7 @@ public class SearchEngineImplTest extends EngineTestCase {
   }
 
   public void test_searchTypeDeclarations_async() throws Exception {
-    LibraryElement library = mock2(LibraryElement.class, ElementKind.LIBRARY);
+    LibraryElement library = mockElement(LibraryElement.class, ElementKind.LIBRARY);
     {
       when(elementA.getAncestor(LibraryElement.class)).thenReturn(library);
       Location locationA = new Location(elementA, 1, 2);
@@ -847,7 +857,7 @@ public class SearchEngineImplTest extends EngineTestCase {
   }
 
   public void test_searchTypeDeclarations_class() throws Exception {
-    LibraryElement library = mock2(LibraryElement.class, ElementKind.LIBRARY);
+    LibraryElement library = mockElement(LibraryElement.class, ElementKind.LIBRARY);
     {
       when(elementA.getAncestor(LibraryElement.class)).thenReturn(library);
       Location locationA = new Location(elementA, 1, 2);
@@ -861,7 +871,7 @@ public class SearchEngineImplTest extends EngineTestCase {
   }
 
   public void test_searchTypeDeclarations_classAlias() throws Exception {
-    LibraryElement library = mock2(LibraryElement.class, ElementKind.LIBRARY);
+    LibraryElement library = mockElement(LibraryElement.class, ElementKind.LIBRARY);
     {
       when(elementA.getAncestor(LibraryElement.class)).thenReturn(library);
       Location locationA = new Location(elementA, 1, 2);
@@ -875,7 +885,7 @@ public class SearchEngineImplTest extends EngineTestCase {
   }
 
   public void test_searchTypeDeclarations_functionType() throws Exception {
-    LibraryElement library = mock2(LibraryElement.class, ElementKind.LIBRARY);
+    LibraryElement library = mockElement(LibraryElement.class, ElementKind.LIBRARY);
     {
       when(elementA.getAncestor(LibraryElement.class)).thenReturn(library);
       Location locationA = new Location(elementA, 1, 2);
@@ -917,7 +927,7 @@ public class SearchEngineImplTest extends EngineTestCase {
   }
 
   public void test_searchVariableDeclarations() throws Exception {
-    LibraryElement library = mock2(LibraryElement.class, ElementKind.LIBRARY);
+    LibraryElement library = mockElement(LibraryElement.class, ElementKind.LIBRARY);
     defineVariablesAB(library);
     scope = new LibrarySearchScope(library);
     // search matches
@@ -930,7 +940,7 @@ public class SearchEngineImplTest extends EngineTestCase {
   }
 
   public void test_searchVariableDeclarations_async() throws Exception {
-    LibraryElement library = mock2(LibraryElement.class, ElementKind.LIBRARY);
+    LibraryElement library = mockElement(LibraryElement.class, ElementKind.LIBRARY);
     defineVariablesAB(library);
     scope = new LibrarySearchScope(library);
     // search matches
@@ -943,7 +953,7 @@ public class SearchEngineImplTest extends EngineTestCase {
   }
 
   public void test_searchVariableDeclarations_usePattern() throws Exception {
-    LibraryElement library = mock2(LibraryElement.class, ElementKind.LIBRARY);
+    LibraryElement library = mockElement(LibraryElement.class, ElementKind.LIBRARY);
     defineVariablesAB(library);
     scope = new LibrarySearchScope(library);
     // search "A"
@@ -968,6 +978,11 @@ public class SearchEngineImplTest extends EngineTestCase {
     when(elementC.getDisplayName()).thenReturn("C");
     when(elementD.getDisplayName()).thenReturn("D");
     when(elementE.getDisplayName()).thenReturn("E");
+    when(elementA.getSource()).thenReturn(source);
+    when(elementB.getSource()).thenReturn(source);
+    when(elementC.getSource()).thenReturn(source);
+    when(elementD.getSource()).thenReturn(source);
+    when(elementE.getSource()).thenReturn(source);
     when(elementA.getContext()).thenReturn(CONTEXT);
     when(elementB.getContext()).thenReturn(CONTEXT);
     when(elementC.getContext()).thenReturn(CONTEXT);
@@ -999,6 +1014,14 @@ public class SearchEngineImplTest extends EngineTestCase {
       Location locationB = new Location(elementB, 10, 20);
       indexStore.recordRelationship(library, IndexConstants.DEFINES_VARIABLE, locationB);
     }
+  }
+
+  private <T extends Element> T mockElement(Class<T> clazz, ElementKind kind) {
+    T element = mock(clazz);
+    when(element.getContext()).thenReturn(CONTEXT);
+    when(element.getSource()).thenReturn(source);
+    when(element.getKind()).thenReturn(kind);
+    return element;
   }
 
   private <T> T runSearch(SearchRunner<T> runner) throws Exception {
