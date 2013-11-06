@@ -20,6 +20,7 @@ import org.eclipse.osgi.util.NLS;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -36,6 +37,7 @@ public class RunPubJob extends Job {
   public static final String INSTALL_OFFLINE_COMMAND = "get --offline"; //$NON-NLS-1$
   public static final String PUBLISH_COMMAND = "publish"; //$NON-NLS-1$
   public static final String DEPLOY_COMMAND = "build"; //$NON-NLS-1$
+  public static final String BUILD_NOMINIFY_COMMAND = "build --no-minify"; //$NON-NLS-1$
 
   /**
    * The pub command to be run (e.g. "install", "update")
@@ -104,7 +106,12 @@ public class RunPubJob extends Job {
         args.add("\"" + pubFile.getAbsolutePath() + "\"" + " " + command);
       } else {
         args.add(pubFile.getAbsolutePath());
-        args.add(command);
+        if (command.contains(" ")) {
+          String[] strings = command.split(" ");
+          args.addAll(Arrays.asList(strings));
+        } else {
+          args.add(command);
+        }
       }
       builder.command(args);
 
