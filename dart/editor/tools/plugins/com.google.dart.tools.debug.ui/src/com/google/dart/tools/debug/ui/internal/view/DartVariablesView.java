@@ -19,9 +19,15 @@ import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.util.SWTUtil;
 
 import org.eclipse.debug.internal.ui.viewers.model.provisional.TreeModelViewer;
+import org.eclipse.debug.internal.ui.views.variables.AvailableLogicalStructuresAction;
 import org.eclipse.debug.internal.ui.views.variables.VariablesView;
+import org.eclipse.debug.internal.ui.views.variables.details.AvailableDetailPanesAction;
 import org.eclipse.debug.internal.ui.views.variables.details.DetailPaneProxy;
+import org.eclipse.debug.ui.IDebugUIConstants;
+import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
+import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
@@ -34,6 +40,7 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
+import org.eclipse.ui.IWorkbenchActionConstants;
 
 /**
  * This custom subclass of the debugger VariablesView allows us to customize the actions that the
@@ -155,6 +162,24 @@ public class DartVariablesView extends VariablesView {
 //    //tbm.add(getAction("ShowTypeNames")); //$NON-NLS-1$
 //    tbm.add(getAction("ToggleContentProviders")); //$NON-NLS-1$
 //    //tbm.add(getAction("CollapseAll")); //$NON-NLS-1$
+  }
+
+  @Override
+  protected void fillContextMenu(IMenuManager menu) {
+    menu.add(new Separator(IDebugUIConstants.EMPTY_VARIABLE_GROUP));
+    menu.add(new Separator(IDebugUIConstants.VARIABLE_GROUP));
+    menu.add(new Separator());
+    IAction action = new AvailableLogicalStructuresAction(this);
+    if (action.isEnabled()) {
+      menu.add(action);
+    }
+    action = new AvailableDetailPanesAction(this);
+    if (isDetailPaneVisible() && action.isEnabled()) {
+      menu.add(action);
+    }
+    menu.add(new Separator(IDebugUIConstants.EMPTY_RENDER_GROUP));
+    menu.add(new Separator(IDebugUIConstants.EMPTY_NAVIGATION_GROUP));
+    menu.add(new Separator(IWorkbenchActionConstants.MB_ADDITIONS));
   }
 
   @Override
