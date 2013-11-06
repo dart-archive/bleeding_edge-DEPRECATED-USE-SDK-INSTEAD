@@ -63,6 +63,9 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
 
   private VariableCollector variableCollector = VariableCollector.empty();
 
+  private IValue classValue;
+  private IValue globalScopeValue;
+
   public DartiumDebugStackFrame(IDebugTarget target, IThread thread, WebkitCallFrame webkitFrame) {
     this(target, thread, webkitFrame, null);
   }
@@ -168,30 +171,20 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
           return var;
         }
       }
+    }
 
-      // search statics for an instance method
-      if (thisValue instanceof DartiumDebugValue) {
-        IValue classValue = ((DartiumDebugValue) thisValue).getClassValue();
-
-        if (classValue != null) {
-          for (IVariable var : classValue.getVariables()) {
-            if (var.getName().equals(varName)) {
-              return var;
-            }
-          }
+    // search statics
+    if (getClassValue() != null) {
+      for (IVariable var : getClassValue().getVariables()) {
+        if (var.getName().equals(varName)) {
+          return var;
         }
       }
-    } else {
-      // TODO(devoncarew): search in statics in a class function
-      // This will require a change to the WIP protocol.
-
     }
 
     // search globals
-    IVariable globalVar = getGlobalVariable();
-
-    if (globalVar != null) {
-      for (IVariable var : globalVar.getValue().getVariables()) {
+    if (getGlobalsScope() != null) {
+      for (IVariable var : getGlobalsScope().getVariables()) {
         if (var.getName().equals(varName)) {
           return var;
         }
@@ -436,16 +429,34 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
     return null;
   }
 
-  protected IVariable getGlobalVariable() throws DebugException {
-    for (IVariable var : getVariables()) {
-      if (var instanceof DartiumDebugVariable) {
-        if (((DartiumDebugVariable) var).isLibraryObject()) {
-          return var;
-        }
+  protected IValue getClassValue() throws DebugException {
+    if (classValue != null) {
+      return classValue;
+    }
+
+    for (WebkitScope scope : webkitFrame.getScopeChain()) {
+      if (scope.isClass()) {
+        classValue = new DartiumDebugValue(getTarget(), null, scope.getObject());
+        break;
       }
     }
 
-    return null;
+    return classValue;
+  }
+
+  protected IValue getGlobalsScope() throws DebugException {
+    if (globalScopeValue != null) {
+      return globalScopeValue;
+    }
+
+    for (WebkitScope scope : webkitFrame.getScopeChain()) {
+      if (scope.isGlobal()) {
+        globalScopeValue = new DartiumDebugValue(getTarget(), null, scope.getObject());
+        break;
+      }
+    }
+
+    return globalScopeValue;
   }
 
   protected String getMappedLocationPath() {
