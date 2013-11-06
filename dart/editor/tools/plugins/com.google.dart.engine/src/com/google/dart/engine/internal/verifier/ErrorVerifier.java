@@ -335,9 +335,9 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   private HashMap<String, LibraryElement> nameToImportElement = new HashMap<String, LibraryElement>();
 
   /**
-   * A table mapping names to the export elements exported them.
+   * A table mapping names to the exported elements.
    */
-  private HashMap<String, ExportElement> exportedNames = new HashMap<String, ExportElement>();
+  private HashMap<String, Element> exportedElements = new HashMap<String, Element>();
 
   /**
    * A set of the names of the variable initializers we are visiting now.
@@ -1732,19 +1732,21 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     }
     // check exported names
     Namespace namespace = new NamespaceBuilder().createExportNamespace(exportElement);
-    Set<String> newNames = namespace.getDefinedNames().keySet();
-    for (String name : newNames) {
-      ExportElement prevElement = exportedNames.get(name);
-      if (prevElement != null && prevElement != exportElement) {
+    Map<String, Element> definedNames = namespace.getDefinedNames();
+    for (Entry<String, Element> definedEntry : definedNames.entrySet()) {
+      String name = definedEntry.getKey();
+      Element element = definedEntry.getValue();
+      Element prevElement = exportedElements.get(name);
+      if (element != null && prevElement != null && !prevElement.equals(element)) {
         errorReporter.reportError(
             CompileTimeErrorCode.AMBIGUOUS_EXPORT,
             node,
             name,
-            prevElement.getExportedLibrary().getDefiningCompilationUnit().getDisplayName(),
-            exportedLibrary.getDefiningCompilationUnit().getDisplayName());
+            prevElement.getLibrary().getDefiningCompilationUnit().getDisplayName(),
+            element.getLibrary().getDefiningCompilationUnit().getDisplayName());
         return true;
       } else {
-        exportedNames.put(name, exportElement);
+        exportedElements.put(name, element);
       }
     }
     return false;

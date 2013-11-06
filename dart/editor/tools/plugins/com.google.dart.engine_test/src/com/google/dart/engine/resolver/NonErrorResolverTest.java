@@ -70,6 +70,19 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_ambiguousExport_sameDeclaration() throws Exception {
+    Source source = addSource(createSource(//
+        "library L;",
+        "export 'lib.dart';",
+        "export 'lib.dart';"));
+    addSource("/lib.dart", createSource(//
+        "library lib;",
+        "class N {}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
   public void test_argumentDefinitionTestNonParameter_formalParameter() throws Exception {
     Source source = addSource(createSource(//
         "f(var v) {",

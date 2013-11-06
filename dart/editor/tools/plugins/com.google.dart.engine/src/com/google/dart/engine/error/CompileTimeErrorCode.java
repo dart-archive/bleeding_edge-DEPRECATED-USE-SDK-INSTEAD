@@ -25,7 +25,7 @@ public enum CompileTimeErrorCode implements ErrorCode {
   /**
    * 14.2 Exports: It is a compile-time error if a name <i>N</i> is re-exported by a library
    * <i>L</i> and <i>N</i> is introduced into the export namespace of <i>L</i> by more than one
-   * export.
+   * export, unless each all exports refer to same declaration for the name N.
    * 
    * @param ambiguousElementName the name of the ambiguous element
    * @param firstLibraryName the name of the first library that the type is found
