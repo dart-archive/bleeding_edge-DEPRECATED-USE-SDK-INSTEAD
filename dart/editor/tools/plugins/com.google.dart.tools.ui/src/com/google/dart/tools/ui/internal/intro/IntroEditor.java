@@ -200,7 +200,7 @@ public class IntroEditor extends EditorPart {
     composite.setLayout(lc);
     final String href = "http://www.dartlang.org/codelabs/darrrt/?utm_source=editor&utm_medium=welcome&utm_campaign=newuser";
 
-    Label label = toolkit.createLabel(composite, "", SWT.BORDER);
+    Label label = toolkit.createLabel(composite, "", SWT.NONE);
     label.setImage(DartToolsPlugin.getImage("samples/tutorial.png"));
     label.setCursor(getSite().getShell().getDisplay().getSystemCursor(SWT.CURSOR_HAND));
     label.addMouseListener(new MouseAdapter() {
@@ -223,7 +223,7 @@ public class IntroEditor extends EditorPart {
     composite.setLayout(lc);
 
     final String href2 = "http://api.dartlang.org/docs/releases/latest/?utm_source=editor&utm_medium=welcome&utm_campaign=newuser";
-    label = toolkit.createLabel(composite, "", SWT.BORDER);
+    label = toolkit.createLabel(composite, "", SWT.NONE);
     label.setImage(DartToolsPlugin.getImage("samples/sdk.png"));
     label.setCursor(getSite().getShell().getDisplay().getSystemCursor(SWT.CURSOR_HAND));
     label.addMouseListener(new MouseAdapter() {
@@ -311,7 +311,7 @@ public class IntroEditor extends EditorPart {
 
   private void addSampleInfo(Composite client, final SampleDescription description) {
 
-    Label label = toolkit.createLabel(client, "", SWT.BORDER);
+    Label label = toolkit.createLabel(client, "", SWT.NONE);
     label.setImage(DartToolsPlugin.getImage(description.logoPath));
     label.setCursor(getSite().getShell().getDisplay().getSystemCursor(SWT.CURSOR_HAND));
     label.addMouseListener(new MouseAdapter() {
