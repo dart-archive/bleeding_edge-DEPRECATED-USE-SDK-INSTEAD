@@ -1,4 +1,6 @@
 name: dgrep
 description: A simplified implementation of grep using Dart.
 dependencies:
-  args: any
+  args: ">=0.9.0 <0.10.0"
+environment:
+  sdk: ">=1.0.0 <2.0.0"
