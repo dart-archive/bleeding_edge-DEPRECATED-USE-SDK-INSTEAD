@@ -27,7 +27,7 @@ _Audio _audio;
 void startGame(PlatformTarget platform) {
   initPlatform(platform);
 
-  _loadingBar = query('.sprite.loading_bar');
+  _loadingBar = querySelector('.sprite.loading_bar');
   _loadingBar.style.display = 'block';
   _loadingBar.style.width = '0';
 
@@ -71,7 +71,7 @@ void _onLoaded(args) {
     final textureData = new TextureData(textures);
 
     // run the app
-    query('#loading').style.display = 'none';
+    querySelector('#loading').style.display = 'none';
     _runPPW(textureData);
   }
 }
@@ -80,7 +80,7 @@ void _runPPW(TextureData textureData) {
   final size = _processUrlHash(false) ? 16 : 7;
   final int m = (size * size * 0.15625).toInt();
 
-  final CanvasElement gameCanvas = query('#gameCanvas');
+  final CanvasElement gameCanvas = querySelector('#gameCanvas');
   gameCanvas.style.userSelect = 'none';
 
   final gameRoot = new GameRoot(size, size, m, gameCanvas, textureData);
@@ -91,7 +91,7 @@ void _runPPW(TextureData textureData) {
 
   window.onKeyDown.listen(_onKeyDown);
 
-  query('#popup').onClick.listen(_onPopupClick);
+  querySelector('#popup').onClick.listen(_onPopupClick);
 
   titleClickedEvent.listen((args) => _toggleAbout(true));
 }
@@ -156,7 +156,7 @@ bool _processUrlHash(bool forceReload) {
       break;
   }
 
-  query('#popup').style.display = showAbout ? 'inline-block' : 'none';
+  querySelector('#popup').style.display = showAbout ? 'inline-block' : 'none';
 
   return false;
 }

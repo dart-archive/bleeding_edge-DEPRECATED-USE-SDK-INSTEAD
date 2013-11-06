@@ -172,7 +172,7 @@ class GameElement extends ParentThing {
           SquareElement._size * c.y);
       final squareOffset = _popExplodeAnimationOffset + initialOffset;
 
-      var delay = _popAnimationHitFrame + ((c - start).length * 4).toInt();
+      var delay = _popAnimationHitFrame + ((c - start).magnitude * 4).toInt();
       delay += rnd.nextInt(10);
 
       return [c, initialOffset, squareOffset, delay];
