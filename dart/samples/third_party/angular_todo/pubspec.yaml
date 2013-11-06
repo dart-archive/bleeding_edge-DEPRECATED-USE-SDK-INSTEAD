@@ -1,7 +1,9 @@
 name: angular_dart_demo
-version: 0.0.1
+version: 0.0.2
 dependencies:
   angular: any
-  browser: any
-  js: any
-  unittest: any
+  browser: ">=0.9.0 <0.10.0"
+  js: ">=0.9.0 <0.10.0"
+  unittest: ">=0.9.0 <0.10.0"
+environment:
+  sdk: ">=0.8.10+6 <2.0.0"
