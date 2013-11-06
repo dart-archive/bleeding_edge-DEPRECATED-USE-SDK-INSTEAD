@@ -145,7 +145,8 @@ class DartiumStreamMonitor implements IStreamMonitor, WebkitConsole.ConsoleListe
     //   "text":"Invalid CSS property name: -webkit-touch-callout","level":"warning","source":"css",
     //   "column":1,"line":1886,"repeatCount":1,"type":"log","url":"chrome://newtab/"}}}
     // && url.startsWith(CHROME_NEW_TAB)) {
-    if (message.indexOf("Invalid CSS property name: -webkit") != -1) {
+    if (message.indexOf("Invalid CSS property name: -webkit") != -1
+        || message.indexOf("Invalid CSS property value: -webkit") != -1) {
       return true;
     }
 
