@@ -211,7 +211,7 @@ public class IntroEditor extends EditorPart {
     });
 
     FormText formText = toolkit.createFormText(composite, true);
-    formText.setText("<form><p><a href=\"a\">Tutorial</a><br></br>"
+    formText.setText("<form><p><a href=\"a\">Code Lab</a><br></br>"
         + "Learn Dart with pirates</p></form>", true, false);
     formText.setLayoutData(new TableWrapData(TableWrapData.FILL_GRAB, TableWrapData.TOP, 1, 1));
     formText.addHyperlinkListener(openLink(href));
@@ -222,9 +222,9 @@ public class IntroEditor extends EditorPart {
     lc.numColumns = 2;
     composite.setLayout(lc);
 
-    final String href2 = "http://api.dartlang.org/docs/releases/latest/?utm_source=editor&utm_medium=welcome&utm_campaign=newuser";
+    final String href2 = "https://www.dartlang.org/docs/?utm_source=editor&utm_medium=welcome&utm_campaign=newuser";
     label = toolkit.createLabel(composite, "", SWT.NONE);
-    label.setImage(DartToolsPlugin.getImage("samples/sdk.png"));
+    label.setImage(DartToolsPlugin.getImage("samples/docs.png"));
     label.setCursor(getSite().getShell().getDisplay().getSystemCursor(SWT.CURSOR_HAND));
     label.addMouseListener(new MouseAdapter() {
       @Override
@@ -234,8 +234,8 @@ public class IntroEditor extends EditorPart {
     });
 
     formText = toolkit.createFormText(composite, true);
-    formText.setText("<form><p><a href=\"a\">Browse Dart SDK</a><br></br>"
-        + "Lookup a call in the API reference</p></form>", true, false);
+    formText.setText("<form><p><a href=\"a\">Programmers Guide</a><br></br>"
+        + "Docs, articles and more</p></form>", true, false);
     formText.setFont(bigFont);
     formText.setLayoutData(new TableWrapData(TableWrapData.FILL_GRAB, TableWrapData.TOP, 1, 1));
     formText.addHyperlinkListener(openLink(href2));
