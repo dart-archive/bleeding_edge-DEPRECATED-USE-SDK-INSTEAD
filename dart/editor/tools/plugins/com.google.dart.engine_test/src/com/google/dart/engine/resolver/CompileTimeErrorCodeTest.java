@@ -3158,6 +3158,24 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     assertErrors(source, CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION);
   }
 
+  public void test_referencedBeforeDeclaration_inInitializer_closure() throws Exception {
+    Source source = addSource(createSource(//
+        "main() {",
+        "  var v = () => v;",
+        "}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION);
+  }
+
+  public void test_referencedBeforeDeclaration_inInitializer_directly() throws Exception {
+    Source source = addSource(createSource(//
+        "main() {",
+        "  var v = v;",
+        "}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION);
+  }
+
   public void test_rethrowOutsideCatch() throws Exception {
     Source source = addSource(createSource(//
         "f() {",

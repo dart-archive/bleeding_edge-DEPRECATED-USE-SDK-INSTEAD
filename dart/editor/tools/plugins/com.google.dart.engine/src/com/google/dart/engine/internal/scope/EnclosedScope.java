@@ -20,8 +20,7 @@ import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.error.CompileTimeErrorCode;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.HashMap;
 
 /**
  * Instances of the class {@code EnclosedScope} implement a scope that is lexically enclosed in
@@ -36,11 +35,11 @@ public class EnclosedScope extends Scope {
   private Scope enclosingScope;
 
   /**
-   * A set of names that will be defined in this scope, but right now are not defined. However
-   * according to the scoping rules these names are hidden, even if they were defined in an outer
+   * A table mapping names that will be defined in this scope, but right now are not initialized.
+   * According to the scoping rules these names are hidden, even if they were defined in an outer
    * scope.
    */
-  private Set<String> hiddenNames = new HashSet<String>();
+  private HashMap<String, Element> hiddenElements = new HashMap<String, Element>();
 
   /**
    * Initialize a newly created scope enclosed within another scope.
@@ -62,16 +61,17 @@ public class EnclosedScope extends Scope {
   }
 
   /**
-   * Hides the name of the given element in this scope. If there is already an element with the
-   * given name defined in an outer scope, then it will become unavailable.
+   * Record that given element is declared in this scope, but hasn't been initialized yet, so it is
+   * error to use. If there is already an element with the given name defined in an outer scope,
+   * then it will become unavailable.
    * 
-   * @param element the element to be hidden in this scope
+   * @param element the element declared, but not initialized in this scope
    */
   public void hide(Element element) {
     if (element != null) {
       String name = element.getName();
       if (name != null && !name.isEmpty()) {
-        hiddenNames.add(name);
+        hiddenElements.put(name, element);
       }
     }
   }
@@ -82,15 +82,18 @@ public class EnclosedScope extends Scope {
     if (element != null) {
       return element;
     }
-    if (hiddenNames.contains(name)) {
+    // May be there is a hidden Element.
+    Element hiddenElement = hiddenElements.get(name);
+    if (hiddenElement != null) {
       getErrorListener().onError(
           new AnalysisError(
               getSource(identifier),
               identifier.getOffset(),
               identifier.getLength(),
               CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION));
-      //return null;
+      return hiddenElement;
     }
+    // Check enclosing scope.
     return enclosingScope.lookup(identifier, name, referencingLibrary);
   }
 }

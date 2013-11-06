@@ -449,6 +449,7 @@ public abstract class ScopedVisitor extends UnifyingASTVisitor<Void> {
 
   @Override
   public Void visitVariableDeclaration(VariableDeclaration node) {
+    super.visitVariableDeclaration(node);
     if (!(node.getParent().getParent() instanceof TopLevelVariableDeclaration)
         && !(node.getParent().getParent() instanceof FieldDeclaration)) {
       VariableElement element = node.getElement();
@@ -456,7 +457,6 @@ public abstract class ScopedVisitor extends UnifyingASTVisitor<Void> {
         nameScope.define(element);
       }
     }
-    super.visitVariableDeclaration(node);
     return null;
   }
 
