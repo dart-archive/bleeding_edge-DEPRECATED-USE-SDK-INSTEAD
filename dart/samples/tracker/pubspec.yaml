@@ -1,8 +1,6 @@
 name: tracker
 description: A sample Polymer application
 dependencies:
-  polymer: ">=0.9.0 <0.10.0"
+  polymer: 0.8.7
 dev-dependencies:
-  unittest: ">=0.9.0 <0.10.0"
-environment:
-  sdk: ">=1.0.0 <2.0.0"
+  unittest: any

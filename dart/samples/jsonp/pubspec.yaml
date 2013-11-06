@@ -1,6 +1,4 @@
 name: using_jsonp_with_dart
 description: Fetches data about dart-lang repositories and displays it. Uses jsonp with the dart:js library.
 dependencies:
-  browser: ">=0.9.0 <0.10.0"
-environment:
-  sdk: ">=1.0.0 <2.0.0"
+  browser: any

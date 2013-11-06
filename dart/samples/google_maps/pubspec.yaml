@@ -2,6 +2,4 @@ name: google_maps_api_with_dart_js
 description: An app that displays a location using the JavaScript
     Google Maps API that is called using the dart:js library.
 dependencies:
-  browser: ">=0.9.0 <0.10.0"
-environment:
-  sdk: ">=1.0.0 <2.0.0"
+  browser: any
