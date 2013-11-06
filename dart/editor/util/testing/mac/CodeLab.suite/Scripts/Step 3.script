@@ -161,6 +161,8 @@ put ImageLocation("delete file X") into pos
 Click "delete file X"
 click (pos - (30,40))
 Wait 1
+click (pos - (30,40))
+Wait 1
 Click "red stripe"
 Click "delete file X"
 Click (Text:"Chromium",CaseSensitive:"yes")

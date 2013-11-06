@@ -3,9 +3,10 @@ Click(Text:"Welcome Page",CaseSensitive:"Yes")
 Click "clock icon"
 Wait 6
 Click "run button"
-WaitFor 2, "browser right arrow button"
+WaitFor 10, "browser right arrow button"
 Click "browser right arrow button"
 WaitFor 20,"clock title"
+
 Click "clock title"
 Click (Text:"Chromium",CaseSensitive:"yes")
 Click (Text:"Quit Chromium",CaseSensitive:"yes")

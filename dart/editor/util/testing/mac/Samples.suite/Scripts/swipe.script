@@ -5,7 +5,7 @@ Wait 5
 Click "run button"
 WaitFor 2, "browser right arrow button"
 Click "browser right arrow button"
-WaitFor 20,"swipe title"
+WaitFor 20,"swipe title","swipe title/swipe title 2"
 Click "swipe title"
 TypeText rightArrow
 TypeText rightArrow

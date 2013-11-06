@@ -23,9 +23,9 @@ TypeText commandKey,v
 TypeText enter
 Click (Text:"Chromium",CaseSensitive:"yes")
 Click (Text:"Quit Chromium",CaseSensitive:"yes")
-RightClick (Text:"index.html",CaseSensitive:"yes")
+RightClick (Text:"out/index.html",CaseSensitive:"yes", dpi:94)
 Click (Text:"Run as JavaScript",CaseSensitive:"yes")
-Wait 2
+Wait 5 (* todo(ericarnold): Restore to 2 after moving to physical machine *)
 WaitFor 10,"plus file"
 Click (Text:"Untitled",CaseSensitive:"yes")
 TypeText CommandKey,w

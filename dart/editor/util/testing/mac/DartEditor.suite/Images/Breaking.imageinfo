@@ -1,17 +1,38 @@
-{
-    CaptureDate = <*D2013-10-30 14:54:04 +0000>;
-    CaptureHost = "Mac Pro";
-    CaptureScreenSize = (
-	<*I1920>,
-	<*I1200>
-    );
-    HasAlpha = <*BY>;
-    HonorAlpha = <*BY>;
-    HotSpotX = <*I75>;
-    HotSpotY = <*I5>;
-    LastKnownLocationX = <*I0>;
-    LastKnownLocationY = <*I0>;
-    OriginalLocationX = <*I306>;
-    OriginalLocationY = <*I989>;
-    Pulsing = <*BN>;
-}
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CaptureDate</key>
+	<date>2013-10-30T14:54:04Z</date>
+	<key>CaptureHost</key>
+	<string>Mac Pro</string>
+	<key>CaptureScreenSize</key>
+	<array>
+		<integer>1920</integer>
+		<integer>1200</integer>
+	</array>
+	<key>HasAlpha</key>
+	<true/>
+	<key>HonorAlpha</key>
+	<true/>
+	<key>HotSpotX</key>
+	<integer>75</integer>
+	<key>HotSpotY</key>
+	<integer>5</integer>
+	<key>ImageDescription</key>
+	<data>
+	</data>
+	<key>LastKnownLocationX</key>
+	<integer>0</integer>
+	<key>LastKnownLocationY</key>
+	<integer>0</integer>
+	<key>MaxIgnoredPixels</key>
+	<real>0.019999999552965164</real>
+	<key>OriginalLocationX</key>
+	<integer>306</integer>
+	<key>OriginalLocationY</key>
+	<integer>989</integer>
+	<key>Pulsing</key>
+	<false/>
+</dict>
+</plist>

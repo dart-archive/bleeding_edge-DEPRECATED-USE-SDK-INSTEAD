@@ -5,7 +5,7 @@ WaitFor 60, "pubspec lock"
 Click "run button"
 WaitFor 6, "browser right arrow button"
 Click "browser right arrow button"
-WaitFor 20,"todo title"
+WaitFor 20,"todo title","todo title/todo title"
 Click "todo title"
 Click (Text:"needs to",CaseSensitive:"yes")
 Wait 0.5
