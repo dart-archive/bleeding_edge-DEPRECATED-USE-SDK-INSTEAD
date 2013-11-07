@@ -244,7 +244,7 @@ public class ResolverVisitor extends ScopedVisitor {
           promoteTypes(leftOperand);
           clearTypePromotionsIfPotentiallyMutatedIn(leftOperand);
           clearTypePromotionsIfPotentiallyMutatedIn(rightOperand);
-          clearTypePromotionsIfAccessedInScopeAndProtentiallyMutated(rightOperand);
+          clearTypePromotionsIfAccessedInClosureAndProtentiallyMutated(rightOperand);
           // Visit right operand.
           rightOperand.accept(this);
         } finally {
@@ -364,7 +364,7 @@ public class ResolverVisitor extends ScopedVisitor {
         // Type promotion.
         promoteTypes(condition);
         clearTypePromotionsIfPotentiallyMutatedIn(thenExpression);
-        clearTypePromotionsIfAccessedInScopeAndProtentiallyMutated(thenExpression);
+        clearTypePromotionsIfAccessedInClosureAndProtentiallyMutated(thenExpression);
         // Visit "then" expression.
         thenExpression.accept(this);
       } finally {
@@ -572,7 +572,7 @@ public class ResolverVisitor extends ScopedVisitor {
         // Type promotion.
         promoteTypes(condition);
         clearTypePromotionsIfPotentiallyMutatedIn(thenStatement);
-        clearTypePromotionsIfAccessedInScopeAndProtentiallyMutated(thenStatement);
+        clearTypePromotionsIfAccessedInClosureAndProtentiallyMutated(thenStatement);
         // Visit "then".
         visitStatementInScope(thenStatement);
       } finally {
@@ -923,41 +923,6 @@ public class ResolverVisitor extends ScopedVisitor {
   }
 
   /**
-   * If it is appropriate to do so, promotes the current type of the static element associated with
-   * the given expression with the given type. Generally speaking, it is appropriate if the given
-   * type is more specific than the current type.
-   * 
-   * @param expression the expression used to access the static element whose types might be
-   *          promoted
-   * @param potentialType the potential type of the elements
-   */
-  protected void promote(Expression expression, Type potentialType) {
-    VariableElement element = getPromotionStaticElement(expression);
-    if (element != null) {
-      // may be mutated somewhere in closure
-      if (((VariableElementImpl) element).isPotentiallyMutatedInClosure()) {
-        return;
-      }
-      // prepare current variable type
-      Type type = expression.getStaticType();
-      // Declared type should not be "dynamic".
-      if (type == null || type.isDynamic()) {
-        return;
-      }
-      // Promoted type should not be "dynamic".
-      if (potentialType == null || potentialType.isDynamic()) {
-        return;
-      }
-      // Promoted type should be more specific than declared.
-      if (!potentialType.isMoreSpecificThan(type)) {
-        return;
-      }
-      // Do promote type of variable.
-      promoteManager.setType(element, potentialType);
-    }
-  }
-
-  /**
    * Report a conditional analysis error with the given error code and arguments.
    * 
    * @param enclosingElement the enclosing element
@@ -1067,7 +1032,7 @@ public class ResolverVisitor extends ScopedVisitor {
    * If the variable <i>v</i> is accessed by a closure in <i>s<sub>1</sub></i> then the variable
    * <i>v</i> is not potentially mutated anywhere in the scope of <i>v</i>.
    */
-  private void clearTypePromotionsIfAccessedInScopeAndProtentiallyMutated(ASTNode target) {
+  private void clearTypePromotionsIfAccessedInClosureAndProtentiallyMutated(ASTNode target) {
     for (Element element : promoteManager.getPromotedElements()) {
       if (((VariableElementImpl) element).isPotentiallyMutatedInScope()) {
         if (isVariableAccessedInClosure(element, target)) {
@@ -1299,6 +1264,44 @@ public class ResolverVisitor extends ScopedVisitor {
       }
     });
     return result[0];
+  }
+
+  /**
+   * If it is appropriate to do so, promotes the current type of the static element associated with
+   * the given expression with the given type. Generally speaking, it is appropriate if the given
+   * type is more specific than the current type.
+   * 
+   * @param expression the expression used to access the static element whose types might be
+   *          promoted
+   * @param potentialType the potential type of the elements
+   */
+  private void promote(Expression expression, Type potentialType) {
+    VariableElement element = getPromotionStaticElement(expression);
+    if (element != null) {
+      // may be mutated somewhere in closure
+      if (((VariableElementImpl) element).isPotentiallyMutatedInClosure()) {
+        return;
+      }
+      // prepare current variable type
+      Type type = promoteManager.getType(element);
+      if (type == null) {
+        type = expression.getStaticType();
+      }
+      // Declared type should not be "dynamic".
+      if (type == null || type.isDynamic()) {
+        return;
+      }
+      // Promoted type should not be "dynamic".
+      if (potentialType == null || potentialType.isDynamic()) {
+        return;
+      }
+      // Promoted type should be more specific than declared.
+      if (!potentialType.isMoreSpecificThan(type)) {
+        return;
+      }
+      // Do promote type of variable.
+      promoteManager.setType(element, potentialType);
+    }
   }
 
   /**

@@ -3125,6 +3125,22 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_typePromotion_conditional_issue14655() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "class B extends A {}",
+        "class C extends B {",
+        "  mc() {}",
+        "}",
+        "print(_) {}",
+        "main(A p) {",
+        "  (p is C) && (print(() => p) && (p is B)) ? p.mc() : p = null;",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
   public void test_typePromotion_conditional_useInThen() throws Exception {
     Source source = addSource(createSource(//
         "main(Object p) {",
