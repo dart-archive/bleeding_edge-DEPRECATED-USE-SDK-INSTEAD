@@ -258,6 +258,6 @@ public class IncrementalAnalysisCache {
    * @return {@code true} if the cache contains changes to be analyzed, else {@code false}
    */
   public boolean hasWork() {
-    return oldLength > 0 && newLength > 0;
+    return oldLength > 0 || newLength > 0;
   }
 }

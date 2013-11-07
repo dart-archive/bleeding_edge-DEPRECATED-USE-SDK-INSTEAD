@@ -251,6 +251,7 @@ public class IncrementalAnalysisCacheTest extends TestCase {
     assertEquals(1, result.getOffset());
     assertEquals(2, result.getOldLength());
     assertEquals(3, result.getNewLength());
+    assertTrue(result.hasWork());
   }
 
   public void test_update_noCache_entry_noOldSource_append() {
@@ -263,6 +264,7 @@ public class IncrementalAnalysisCacheTest extends TestCase {
     assertEquals(4, result.getOffset());
     assertEquals(0, result.getOldLength());
     assertEquals(1, result.getNewLength());
+    assertTrue(result.hasWork());
   }
 
   public void test_update_noCache_entry_noOldSource_delete() {
