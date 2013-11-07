@@ -124,7 +124,7 @@ public class HTMLUIPreferenceInitializer extends AbstractPreferenceInitializer {
         "org.eclipse.wst.html.ui.templates.html"); //$NON-NLS-1$
 
     // Defaults for the Typing preference page
-    store.setDefault(HTMLUIPreferenceNames.TYPING_COMPLETE_COMMENTS, true);
+    store.setDefault(HTMLUIPreferenceNames.TYPING_COMPLETE_COMMENTS, false); // Changed by popular demand
     store.setDefault(HTMLUIPreferenceNames.TYPING_COMPLETE_END_TAGS, true);
     store.setDefault(HTMLUIPreferenceNames.TYPING_COMPLETE_ELEMENTS, true);
     store.setDefault(HTMLUIPreferenceNames.TYPING_REMOVE_END_TAGS, true);
