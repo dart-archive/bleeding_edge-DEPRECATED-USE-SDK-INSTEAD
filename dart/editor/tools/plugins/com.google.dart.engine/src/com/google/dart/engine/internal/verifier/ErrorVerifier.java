@@ -476,6 +476,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       checkForFinalNotInitialized(node);
       checkForDuplicateDefinitionInheritance();
       checkForConflictingGetterAndMethod();
+      checkForConflictingInstanceGetterAndSuperclassMember();
       checkImplementsSuperClass(node);
       checkImplementsFunctionWithoutCall(node);
       return super.visitClassDeclaration(node);
@@ -788,7 +789,6 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       }
       if (node.isSetter() || node.isGetter()) {
         checkForMismatchedAccessorTypes(node, methodName);
-        checkForConflictingInstanceGetterAndSuperclassMember(node);
       }
       if (node.isGetter()) {
         checkForConflictingStaticGetterAndInstanceSetter(node);
@@ -2198,61 +2198,69 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   }
 
   /**
-   * This verifies that the superclass of the enclosing class does not declare accessible static
-   * member with the same name as the passed instance getter/setter method declaration.
+   * This verifies that the superclass of the {@link #enclosingClass} does not declare accessible
+   * static members with the same name as the instance getters/setters declared in
+   * {@link #enclosingClass}.
    * 
    * @param node the method declaration to evaluate
    * @return {@code true} if and only if an error code is generated on the passed node
    * @see StaticWarningCode#CONFLICTING_INSTANCE_GETTER_AND_SUPERCLASS_MEMBER
    * @see StaticWarningCode#CONFLICTING_INSTANCE_SETTER_AND_SUPERCLASS_MEMBER
    */
-  private boolean checkForConflictingInstanceGetterAndSuperclassMember(MethodDeclaration node) {
-    if (node.isStatic()) {
-      return false;
-    }
-    // prepare name
-    SimpleIdentifier nameNode = node.getName();
-    if (nameNode == null) {
-      return false;
-    }
-    String name = nameNode.getName();
-    // prepare enclosing type
+  private boolean checkForConflictingInstanceGetterAndSuperclassMember() {
     if (enclosingClass == null) {
       return false;
     }
     InterfaceType enclosingType = enclosingClass.getType();
-    // try to find super element
-    ExecutableElement superElement;
-    superElement = enclosingType.lookUpGetterInSuperclass(name, currentLibrary);
-    if (superElement == null) {
-      superElement = enclosingType.lookUpSetterInSuperclass(name, currentLibrary);
+    // check every accessor
+    boolean hasProblem = false;
+    for (PropertyAccessorElement accessor : enclosingClass.getAccessors()) {
+      // we analyze instance accessors here
+      if (accessor.isStatic()) {
+        continue;
+      }
+      // prepare accessor properties
+      String name = accessor.getDisplayName();
+      boolean getter = accessor.isGetter();
+      // if non-final variable, ignore setter - we alreay reported problem for getter
+      if (accessor.isSetter() && accessor.isSynthetic()) {
+        continue;
+      }
+      // try to find super element
+      ExecutableElement superElement;
+      superElement = enclosingType.lookUpGetterInSuperclass(name, currentLibrary);
+      if (superElement == null) {
+        superElement = enclosingType.lookUpSetterInSuperclass(name, currentLibrary);
+      }
+      if (superElement == null) {
+        superElement = enclosingType.lookUpMethodInSuperclass(name, currentLibrary);
+      }
+      if (superElement == null) {
+        continue;
+      }
+      // OK, not static
+      if (!superElement.isStatic()) {
+        continue;
+      }
+      // prepare "super" type to report its name
+      ClassElement superElementClass = (ClassElement) superElement.getEnclosingElement();
+      InterfaceType superElementType = superElementClass.getType();
+      // report problem
+      hasProblem = true;
+      if (getter) {
+        errorReporter.reportError(
+            StaticWarningCode.CONFLICTING_INSTANCE_GETTER_AND_SUPERCLASS_MEMBER,
+            accessor,
+            superElementType.getDisplayName());
+      } else {
+        errorReporter.reportError(
+            StaticWarningCode.CONFLICTING_INSTANCE_SETTER_AND_SUPERCLASS_MEMBER,
+            accessor,
+            superElementType.getDisplayName());
+      }
     }
-    if (superElement == null) {
-      superElement = enclosingType.lookUpMethodInSuperclass(name, currentLibrary);
-    }
-    if (superElement == null) {
-      return false;
-    }
-    // OK, not static
-    if (!superElement.isStatic()) {
-      return false;
-    }
-    // prepare "super" type to report its name
-    ClassElement superElementClass = (ClassElement) superElement.getEnclosingElement();
-    InterfaceType superElementType = superElementClass.getType();
-    // report problem
-    if (node.isGetter()) {
-      errorReporter.reportError(
-          StaticWarningCode.CONFLICTING_INSTANCE_GETTER_AND_SUPERCLASS_MEMBER,
-          nameNode,
-          superElementType.getDisplayName());
-    } else {
-      errorReporter.reportError(
-          StaticWarningCode.CONFLICTING_INSTANCE_SETTER_AND_SUPERCLASS_MEMBER,
-          nameNode,
-          superElementType.getDisplayName());
-    }
-    return true;
+    // done
+    return hasProblem;
   }
 
   /**

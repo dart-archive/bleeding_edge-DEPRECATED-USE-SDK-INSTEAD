@@ -729,20 +729,22 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     assertErrors(source, StaticWarningCode.CONFLICTING_DART_IMPORT);
   }
 
-  public void test_conflictingInstanceGetterAndSuperclassMember_direct_field() throws Exception {
+  public void test_conflictingInstanceGetterAndSuperclassMember_declField_direct_setter()
+      throws Exception {
     Source source = addSource(createSource(//
         "class A {",
-        "  static int v;",
+        "  static set v(x) {}",
         "}",
         "class B extends A {",
-        "  get v => 0;",
+        "  var v;",
         "}"));
     resolve(source);
     assertErrors(source, StaticWarningCode.CONFLICTING_INSTANCE_GETTER_AND_SUPERCLASS_MEMBER);
     verify(source);
   }
 
-  public void test_conflictingInstanceGetterAndSuperclassMember_direct_getter() throws Exception {
+  public void test_conflictingInstanceGetterAndSuperclassMember_declGetter_direct_getter()
+      throws Exception {
     Source source = addSource(createSource(//
         "class A {",
         "  static get v => 0;",
@@ -755,7 +757,8 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_conflictingInstanceGetterAndSuperclassMember_direct_method() throws Exception {
+  public void test_conflictingInstanceGetterAndSuperclassMember_declGetter_direct_method()
+      throws Exception {
     Source source = addSource(createSource(//
         "class A {",
         "  static v() {}",
@@ -768,7 +771,8 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_conflictingInstanceGetterAndSuperclassMember_direct_setter() throws Exception {
+  public void test_conflictingInstanceGetterAndSuperclassMember_declGetter_direct_setter()
+      throws Exception {
     Source source = addSource(createSource(//
         "class A {",
         "  static set v(x) {}",
@@ -781,7 +785,8 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_conflictingInstanceGetterAndSuperclassMember_indirect() throws Exception {
+  public void test_conflictingInstanceGetterAndSuperclassMember_declGetter_indirect()
+      throws Exception {
     Source source = addSource(createSource(//
         "class A {",
         "  static int v;",
@@ -795,12 +800,25 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_conflictingInstanceGetterAndSuperclassMember_mixin() throws Exception {
+  public void test_conflictingInstanceGetterAndSuperclassMember_declGetter_mixin() throws Exception {
     Source source = addSource(createSource(//
         "class M {",
         "  static int v;",
         "}",
         "class B extends Object with M {",
+        "  get v => 0;",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.CONFLICTING_INSTANCE_GETTER_AND_SUPERCLASS_MEMBER);
+    verify(source);
+  }
+
+  public void test_conflictingInstanceGetterAndSuperclassMember_direct_field() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  static int v;",
+        "}",
+        "class B extends A {",
         "  get v => 0;",
         "}"));
     resolve(source);

@@ -14,6 +14,7 @@
 package com.google.dart.engine.internal.error;
 
 import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.element.Element;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.error.AnalysisErrorWithProperties;
@@ -95,6 +96,17 @@ public class ErrorReporter {
    */
   public void reportError(ErrorCode errorCode, ASTNode node, Object... arguments) {
     reportError(errorCode, node.getOffset(), node.getLength(), arguments);
+  }
+
+  /**
+   * Report an error with the given error code and arguments.
+   * 
+   * @param errorCode the error code of the error to be reported
+   * @param element the element which name should be used as the location of the error
+   * @param arguments the arguments to the error, used to compose the error message
+   */
+  public void reportError(ErrorCode errorCode, Element element, Object... arguments) {
+    reportError(errorCode, element.getNameOffset(), element.getDisplayName().length(), arguments);
   }
 
   /**
