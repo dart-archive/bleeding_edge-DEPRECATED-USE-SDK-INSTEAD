@@ -50,6 +50,11 @@ public class VoidTypeImpl extends TypeImpl implements VoidType {
   }
 
   @Override
+  public boolean isMoreSpecificThan(Type type, boolean withDynamic) {
+    return isSubtypeOf(type);
+  }
+
+  @Override
   public boolean isSubtypeOf(Type type) {
     // The only subtype relations that pertain to void are therefore:
     // void <: void (by reflexivity)

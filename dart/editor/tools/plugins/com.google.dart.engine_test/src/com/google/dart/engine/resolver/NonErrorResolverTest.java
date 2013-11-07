@@ -3216,12 +3216,12 @@ public class NonErrorResolverTest extends ResolverTestCase {
 
   public void test_typePromotion_functionType_return_ignoreIfNotMoreSpecific() throws Exception {
     Source source = addSource(createSource(//
-        "typedef FuncDynToDyn(x);",
-        "typedef void FuncDynToVoid(x);",
         "class A {}",
-        "main(FuncDynToDyn f) {",
-        "  if (f is FuncDynToVoid) {",
-        "    A a = f(null);",
+        "typedef FuncAtoDyn(A a);",
+        "typedef FuncDynToDyn(x);",
+        "main(FuncAtoDyn f) {",
+        "  if (f is FuncDynToDyn) {",
+        "    A a = f(new A());",
         "  }",
         "}"));
     resolve(source);
