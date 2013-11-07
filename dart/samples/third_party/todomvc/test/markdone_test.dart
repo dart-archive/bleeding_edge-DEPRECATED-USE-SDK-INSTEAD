@@ -60,13 +60,13 @@ main() {
     appModel.todos.add(new Todo('four (checked)'));
 
     return new Future(() {
-      var body = query('body');
+      var body = querySelector('body');
 
       var label = findWithText(body, 'four (checked)');
       expect(label is LabelElement, true, reason: 'text is in a label: $label');
 
       var host = findShadowHost(body, label.parentNode);
-      var node = host.parent.query('input');
+      var node = host.parent.querySelector('input');
       expect(node is InputElement, true, reason: 'node is a checkbox');
       expect(node.type, 'checkbox', reason: 'node type is checkbox');
       expect(node.checked, isFalse, reason: 'element is unchecked');

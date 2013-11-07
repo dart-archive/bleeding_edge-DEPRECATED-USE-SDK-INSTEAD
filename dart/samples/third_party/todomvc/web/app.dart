@@ -21,7 +21,7 @@ class TodoApp extends PolymerElement {
 
   void addTodo(Event e) {
     e.preventDefault(); // don't submit the form
-    InputElement input = getShadowRoot('todo-app').query('#new-todo');
+    InputElement input = getShadowRoot('todo-app').querySelector('#new-todo');
     if (input.value == '') return;
     app.todos.add(new Todo(input.value));
     input.value = '';

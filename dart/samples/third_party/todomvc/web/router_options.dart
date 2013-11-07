@@ -29,7 +29,7 @@ class RouterOptions extends UListElement with Polymer, Observable {
   void enteredView() {
     super.enteredView();
 
-    var anchors = this.queryAll('a');
+    var anchors = this.querySelectorAll('a');
 
     _updateHash(records) {
       var hash = window.location.hash;

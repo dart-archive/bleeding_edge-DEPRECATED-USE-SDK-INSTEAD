@@ -22,8 +22,8 @@ class TodoRow extends LIElement with Polymer, Observable {
 
   void ready() {
     var root = getShadowRoot("todo-row");
-    var label = root.query('#label');
-    var item = root.query('.todo-item');
+    var label = root.querySelector('#label');
+    var item = root.querySelector('.todo-item');
 
     bindCssClass(item, 'completed', this, 'todo.done');
     bindCssClass(item, 'editing', label, 'editing');

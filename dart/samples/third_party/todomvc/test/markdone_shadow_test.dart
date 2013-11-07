@@ -11,6 +11,6 @@ import 'markdone_test.dart' as markdone_test;
 
 main() {
   // Make analyzer happy by using dart:html.
-  document.query('body');
+  document.querySelector('body');
   markdone_test.main();
 }

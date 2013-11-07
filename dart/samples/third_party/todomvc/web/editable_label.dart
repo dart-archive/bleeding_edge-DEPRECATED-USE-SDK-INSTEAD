@@ -27,7 +27,7 @@ class EditableLabel extends PolymerElement {
 
   ShadowRoot get _shadowRoot => getShadowRoot('editable-label');
 
-  InputElement get _editBox => _shadowRoot.query('#edit');
+  InputElement get _editBox => _shadowRoot.querySelector('#edit');
 
   void edit() {
     editing = true;

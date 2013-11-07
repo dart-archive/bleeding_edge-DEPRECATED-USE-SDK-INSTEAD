@@ -22,12 +22,12 @@ main() {
   setUp(() => Polymer.onReady);
 
   test('initial state', () {
-    final todoApp = query('todo-app');
+    final todoApp = querySelector('todo-app');
     expect(appModel.todos.length, 0);
     expect(todoApp.xtag is TodoApp, true, reason: 'TodoApp should be created');
 
     final root = todoApp.shadowRoot;
-    final newTodo = root.query('#new-todo');
+    final newTodo = root.querySelector('#new-todo');
     expect(newTodo.placeholder, "What needs to be done?");
 
     // TODO(jmesserly): re-enable this. It fails on Firefox with ShadowDOM.
@@ -36,7 +36,7 @@ main() {
     /*Timer.run(expectAsync0(() {
       expect(document.activeElement, todoApp, reason: 'app should have focus');
       expect(root.activeElement, newTodo, reason: 'New todo should have focus');
-      expect(root.queryAll('[is=todo-row]').length, 0, reason: 'no items yet');
+      expect(root.querySelectorAll('[is=todo-row]').length, 0, reason: 'no items yet');
     }));*/
   });
 }

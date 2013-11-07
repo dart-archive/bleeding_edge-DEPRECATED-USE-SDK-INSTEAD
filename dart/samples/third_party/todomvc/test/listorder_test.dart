@@ -23,7 +23,7 @@ main() {
   ShadowRoot root;
 
   setUp(() => Polymer.onReady.then((_) {
-    root = query('todo-app').shadowRoot;
+    root = querySelector('todo-app').shadowRoot;
   }));
 
   test('programmatically add items to model', () {
@@ -34,12 +34,12 @@ main() {
     ]);
     Observable.dirtyCheck();
     return window.animationFrame.then((_) {
-      expect(root.queryAll('#todo-list li[is=todo-row]').length, 3);
+      expect(root.querySelectorAll('#todo-list li[is=todo-row]').length, 3);
 
       // TODO(jmesserly): HTML Imports breaks relative hash links when the
       // component is at a different path from the main HTML document. For now
       // fix it programmatically.
-      for (var a in root.queryAll('#filters > li > a')) {
+      for (var a in root.querySelectorAll('#filters > li > a')) {
         a.href = '#${Uri.parse(a.href).fragment}';
       }
     });
@@ -48,21 +48,21 @@ main() {
   test('navigate to #/active', () {
     windowLocation.hash = '#/active';
     return window.animationFrame.then((_) {
-      expect(root.queryAll('#todo-list li[is=todo-row]').length, 2);
+      expect(root.querySelectorAll('#todo-list li[is=todo-row]').length, 2);
     });
   });
 
   test('navigate to #/completed', () {
     windowLocation.hash = '#/completed';
     return window.animationFrame.then((_) {
-      expect(root.queryAll('#todo-list li[is=todo-row]').length, 1);
+      expect(root.querySelectorAll('#todo-list li[is=todo-row]').length, 1);
     });
   });
 
   test('navigate back to #/', () {
     windowLocation.hash = '#/';
     return window.animationFrame.then((_) {
-      expect(root.queryAll('#todo-list li[is=todo-row]').length, 3);
+      expect(root.querySelectorAll('#todo-list li[is=todo-row]').length, 3);
     });
   });
 }
