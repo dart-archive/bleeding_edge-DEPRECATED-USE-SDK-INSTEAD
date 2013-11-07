@@ -24,8 +24,6 @@ BUILD_OS = None
 DART_PATH = None
 TOOLS_PATH = None
 
-GSU_PATH_REV = None
-GSU_PATH_LATEST = None
 GSU_API_DOCS_PATH = None
 GSU_API_DOCS_BUCKET = 'gs://dartlang-api-docs'
 
@@ -33,7 +31,6 @@ CHANNEL = None
 PLUGINS_BUILD = None
 REVISION = None
 SYSTEM = None
-TRUNK_BUILD = None
 
 NO_UPLOAD = None
 
@@ -44,8 +41,6 @@ bot_utils = imp.load_source('bot_utils',
 
 def DartArchiveFile(local_path, remote_path, create_md5sum=False):
   # Copy it to the new unified gs://dart-archive bucket
-  # TODO(kustermann/ricow): Remove all the old archiving code, once everything
-  # points to the new location
   gsutil = bot_utils.GSUtil()
   gsutil.upload(local_path, remote_path, public=True)
   if create_md5sum:
@@ -57,9 +52,6 @@ def DartArchiveFile(local_path, remote_path, create_md5sum=False):
     gsutil.upload(local_md5sum, remote_path + '.md5sum', public=True)
 
 def DartArchiveUploadEditorZipFile(zipfile):
-  # TODO(kustermann): We don't archive trunk builds to gs://dart-archive/
-  # Remove this once the channel transition is done.
-  if CHANNEL == 'trunk': return
   namer = bot_utils.GCSNamer(CHANNEL, bot_utils.ReleaseType.RAW)
   gsutil = bot_utils.GSUtil()
 
@@ -85,9 +77,6 @@ def DartArchiveUploadEditorZipFile(zipfile):
         create_md5sum=True)
 
 def DartArchiveUploadUpdateSite(local_path):
-  # TODO(kustermann): We don't archive trunk builds to gs://dart-archive/
-  # Remove this once the channel transition is done.
-  if CHANNEL == 'trunk': return
   namer = bot_utils.GCSNamer(CHANNEL, bot_utils.ReleaseType.RAW)
   gsutil = bot_utils.GSUtil()
   for revision in [REVISION, 'latest']:
@@ -100,9 +89,6 @@ def DartArchiveUploadUpdateSite(local_path):
     gsutil.upload(local_path, update_site_dir, recursive=True, public=True)
 
 def DartArchiveUploadSDKs(system, sdk32_zip, sdk64_zip):
-  # TODO(kustermann): We don't archive trunk builds to gs://dart-archive/
-  # Remove this once the channel transition is done.
-  if CHANNEL == 'trunk': return
   namer = bot_utils.GCSNamer(CHANNEL, bot_utils.ReleaseType.RAW)
   for revision in [REVISION, 'latest']:
     path32 = namer.sdk_zipfilepath(revision, system, 'ia32', 'release')
@@ -111,9 +97,6 @@ def DartArchiveUploadSDKs(system, sdk32_zip, sdk64_zip):
     DartArchiveFile(sdk64_zip, path64, create_md5sum=True)
 
 def DartArchiveUploadAPIDocs(api_zip):
-  # TODO(kustermann): We don't archive trunk builds to gs://dart-archive/
-  # Remove this once the channel transition is done.
-  if CHANNEL == 'trunk': return
   namer = bot_utils.GCSNamer(CHANNEL, bot_utils.ReleaseType.RAW)
   for revision in [REVISION, 'latest']:
     destination = (namer.apidocs_directory(revision) + '/' +
@@ -121,9 +104,6 @@ def DartArchiveUploadAPIDocs(api_zip):
     DartArchiveFile(api_zip, destination, create_md5sum=False)
 
 def DartArchiveUploadVersionFile(version_file):
-  # TODO(kustermann): We don't archive trunk builds to gs://dart-archive/.
-  # Remove this once the channel transition is done.
-  if CHANNEL == 'trunk': return
   namer = bot_utils.GCSNamer(CHANNEL, bot_utils.ReleaseType.RAW)
   for revision in [REVISION, 'latest']:
     DartArchiveFile(version_file, namer.version_filepath(revision),
@@ -249,7 +229,6 @@ class AntWrapper(object):
 def BuildOptions():
   """Setup the argument processing for this program."""
   result = optparse.OptionParser()
-  result.set_default('dest', 'gs://dart-editor-archive-continuous')
   result.add_option('-m', '--mode',
                     help='Build variants (comma-separated).',
                     metavar='[all,debug,release]',
@@ -280,14 +259,11 @@ def main():
   global CHANNEL
   global DART_PATH
   global GSU_API_DOCS_PATH
-  global GSU_PATH_LATEST
-  global GSU_PATH_REV
   global NO_UPLOAD
   global PLUGINS_BUILD
   global REVISION
   global SYSTEM
   global TOOLS_PATH
-  global TRUNK_BUILD
 
   if not sys.argv:
     print 'Script pathname not known, giving up.'
@@ -370,13 +346,8 @@ def main():
     buildout = os.path.abspath(options.out)
     print 'buildout       = {0}'.format(buildout)
 
-    # Get user name. If it does not start with chrome then deploy to the test
-    # bucket; otherwise deploy to the continuous bucket.
-    username = os.environ.get('USER')
-    if username is None:
-      username = os.environ.get('USERNAME')
-
-    if username is None:
+    username = utils.GetUserName()
+    if not username:
       print 'Could not find username'
       return 6
 
@@ -385,12 +356,10 @@ def main():
     if sdk_environment.has_key('JAVA_HOME'):
       print 'JAVA_HOME = {0}'.format(str(sdk_environment['JAVA_HOME']))
 
-    # dart-editor[-trunk], dart-editor-(win/mac/linux)[-trunk/be/dev/stable]
-    builder_name = str(options.name)
-
     EDITOR_REGEXP = (r'^dart-editor(-(?P<installer>(installer)))?'
                       '(-(?P<system>(win|mac|linux)))?' +
-                      '(-(?P<channel>(trunk|be|dev|stable)))?$')
+                      '(-(?P<channel>(be|dev|stable)))?$')
+    builder_name = str(options.name)
     match = re.match(EDITOR_REGEXP, builder_name)
     if not match:
       raise Exception("Buildername '%s' does not match pattern '%s'."
@@ -400,26 +369,14 @@ def main():
     SYSTEM = match.groupdict()['system']
     BUILD_INSTALLER = bool(match.groupdict()['installer'])
 
-    TRUNK_BUILD = CHANNEL == 'trunk'
     PLUGINS_BUILD = SYSTEM is None
     REVISION = revision
 
     # Make sure the buildername and the options agree
     assert BUILD_INSTALLER == options.build_installer
 
-    if username.startswith('chrome'):
-      if TRUNK_BUILD:
-        bucket = 'gs://dart-editor-archive-trunk'
-      else:
-        bucket = 'gs://dart-editor-archive-continuous'
-      running_on_buildbot = True
-    else:
-      bucket = 'gs://dart-editor-archive-testing'
-      running_on_buildbot = False
-      sdk_environment['DART_LOCAL_BUILD'] = 'dart-editor-archive-testing'
+    running_on_buildbot = username.startswith('chrome')
 
-    GSU_PATH_REV = '%s/%s' % (bucket, REVISION)
-    GSU_PATH_LATEST = '%s/%s' % (bucket, 'latest')
     GSU_API_DOCS_PATH = '%s/%s' % (GSU_API_DOCS_BUCKET, REVISION)
 
     homegsutil = join(DART_PATH, 'third_party', 'gsutil', 'gsutil')
@@ -599,12 +556,10 @@ def main():
           if running_on_buildbot:
             version_file = _FindVersionFile(buildout)
             if version_file:
-              UploadFile(version_file, False)
               DartArchiveUploadVersionFile(version_file)
 
             found_zips = _FindRcpZipFiles(buildout)
             for zipfile in found_zips:
-              UploadFile(zipfile)
               DartArchiveUploadEditorZipFile(zipfile)
 
         return 0
@@ -820,113 +775,10 @@ def InstallDartiumFromDartArchive(buildroot, buildout, buildos, gsu):
   shutil.rmtree(tmp_dir, True)
 
 
-def InstallDartiumFromOldDartiumArchive(buildroot, buildout, buildos, gsu):
-  """Install Dartium into the RCP zip files and upload a version of Dartium
-
-  Args:
-    buildroot: the boot of the build output
-    buildout: the location of the ant build output
-    buildos: the OS the build is running under
-    gsu: the gsutil wrapper
-  Raises:
-    Exception: if no dartium files can be found
-  """
-  print 'InstallDartium(%s, %s, %s)' % (buildroot, buildout, buildos)
-
-  tmp_dir = os.path.join(buildroot, 'tmp')
-
-  rcpZipFiles = _FindRcpZipFiles(buildout)
-
-  for rcpZipFile in rcpZipFiles:
-    print '  found rcp: %s' % rcpZipFile
-
-  dartiumFiles = []
-
-  dartiumFiles.append("gs://dartium-archive/dartium-mac-full-trunk/"
-    + "dartium-mac-full-trunk-%s.0.zip" % REVISION)
-  dartiumFiles.append("gs://dartium-archive/dartium-win-full-trunk/"
-    + "dartium-win-full-trunk-%s.0.zip" % REVISION)
-  dartiumFiles.append("gs://dartium-archive/dartium-lucid32-full-trunk/"
-    + "dartium-lucid32-full-trunk-%s.0.zip" % REVISION)
-  dartiumFiles.append("gs://dartium-archive/dartium-lucid64-full-trunk/"
-    + "dartium-lucid64-full-trunk-%s.0.zip" % REVISION)
-
-  for rcpZipFile in rcpZipFiles:
-    searchString = None
-
-    # dart-editor-linux.gtk.x86.zip, ...
-
-    if '-linux.gtk.x86.zip' in rcpZipFile:
-      searchString = 'dartium-lucid32'
-    if '-linux.gtk.x86_64.zip' in rcpZipFile:
-      searchString = 'dartium-lucid64'
-    if 'macosx' in rcpZipFile:
-      searchString = 'dartium-mac'
-    if 'win32' in rcpZipFile:
-      searchString = 'dartium-win'
-
-    for dartiumFile in dartiumFiles:
-      if searchString in dartiumFile:
-        #download and unzip dartium
-        unzip_dir = os.path.join(tmp_dir,
-          os.path.splitext(os.path.basename(dartiumFile))[0])
-        if not os.path.exists(unzip_dir):
-          os.makedirs(unzip_dir)
-        # Always download as searchString.zip
-        basename = "%s.zip" % searchString
-        tmp_zip_file = os.path.join(tmp_dir, basename)
-
-        if not os.path.exists(tmp_zip_file):
-          if gsu.Copy(dartiumFile, tmp_zip_file, False):
-            raise Exception("gsutil command failed, aborting.")
-
-          # Upload dartium zip to make sure we have consistent dartium downloads
-          UploadFile(tmp_zip_file)
-
-          # Dartium is unzipped into ~ unzip_dir/dartium-win-full-7665.7665
-          dartium_zip = ziputils.ZipUtil(tmp_zip_file, buildos)
-          dartium_zip.UnZip(unzip_dir)
-        else:
-          dartium_zip = ziputils.ZipUtil(tmp_zip_file, buildos)
-
-        dart_zip_path = join(buildout, rcpZipFile)
-        dart_zip = ziputils.ZipUtil(dart_zip_path, buildos)
-
-        if 'lin' in buildos:
-          paths = glob.glob(join(unzip_dir, 'dartium-*'))
-          add_path = paths[0]
-          zip_rel_path = 'dart/chromium'
-          # add to the rcp zip
-          dart_zip.AddDirectoryTree(add_path, zip_rel_path)
-        if 'win' in buildos:
-          paths = glob.glob(join(unzip_dir, 'dartium-*'))
-          add_path = paths[0]
-          zip_rel_path = 'dart/chromium'
-          FileDelete(join(add_path, 'mini_installer.exe'))
-          FileDelete(join(add_path, 'sync_unit_tests.exe'))
-          FileDelete(join(add_path, 'chrome.packed.7z'))
-          # add to the rcp zip
-          dart_zip.AddDirectoryTree(add_path, zip_rel_path)
-        if 'mac' in buildos:
-          paths = glob.glob(join(unzip_dir, 'dartium-*'))
-          add_path = paths[0]
-          zip_rel_path = 'dart/chromium'
-          # add to the rcp zip
-          dart_zip.AddDirectoryTree(add_path, zip_rel_path)
-
-
-  shutil.rmtree(tmp_dir, True)
-
-
 def InstallDartium(buildroot, buildout, buildos, gsu):
-  if TRUNK_BUILD:
-    # On trunk builds we fetch dartium from the old location (where the
-    # dartium-*-trunk builders archive to)
-    InstallDartiumFromOldDartiumArchive(buildroot, buildout, buildos, gsu)
-  else:
-    # On our be/dev/stable channels, we fetch dartium from the new
-    # gs://dart-archive/ location.
-    InstallDartiumFromDartArchive(buildroot, buildout, buildos, gsu)
+  # On our be/dev/stable channels, we fetch dartium from the new
+  # gs://dart-archive/ location.
+  InstallDartiumFromDartArchive(buildroot, buildout, buildos, gsu)
 
 
 def _InstallArtifacts(buildout, buildos, extra_artifacts):
@@ -1066,7 +918,7 @@ def PostProcessEditorBuilds(out_dir, buildos):
       # If we're on -dev/-stable build: add an editor.properties file
       # pointing to the correct update location of the editor for the channel
       # we're building for.
-      if not TRUNK_BUILD and CHANNEL != 'be':
+      if CHANNEL != 'be':
         f = ziputils.ZipUtil(zipFile, buildos)
         f.AddFile(editor_properties, 'dart/editor.properties')
 
@@ -1121,7 +973,7 @@ def Modify64BitDartEditorIni(iniFilePath):
   # Add -d64 to give better error messages to user in 64 bit mode.
   lines[lines.index('-vmargs\n')] = '-vmargs\n-d64\n'
   f = open(iniFilePath, 'w')
-  f.writelines(lines);
+  f.writelines(lines)
   f.close()
 
 
@@ -1215,27 +1067,9 @@ def BuildUpdateSite(ant, revision, name, buildroot, buildout,
     BuildStepFailure()
   else:
     StartBuildStep('upload_artifacts')
-    UploadSite(buildout, "%s/%s" % (GSU_PATH_REV, 'eclipse-update'))
-    UploadSite(buildout, "%s/%s" % (GSU_PATH_LATEST, 'eclipse-update'))
+    DartArchiveUploadUpdateSite(join(buildout, 'buildRepo'))
   return status
 
-
-def UploadSite(buildout, gsPath) :
-  # remove any old artifacts
-  try:
-    Gsutil(['rm', '-R', join(gsPath, '*')])
-  except:
-    # Ignore this, in the general case there is nothing.
-    pass
-  # create eclipse-update/index.html first to ensure eclipse-update prefix
-  # exists (needed for recursive copy to follow)
-  Gsutil(['cp', '-a', 'public-read',
-          r'file://' + join(buildout, 'buildRepo', 'index.html'),
-          join(gsPath,'index.html')])
-
-  # recursively copy update site contents
-  UploadDirectory(glob.glob(join(buildout, 'buildRepo', '*')), gsPath)
-  DartArchiveUploadUpdateSite(join(buildout, 'buildRepo'))
 
 def CreateApiDocs(buildLocation):
   """Zip up api_docs, upload it, and upload the raw tree of docs"""
@@ -1253,9 +1087,6 @@ def CreateApiDocs(buildLocation):
   api_zip = join(buildLocation, 'dart-api-docs.zip')
 
   CreateZip(apidir, api_zip)
-
-  # upload to continuous/svn_rev and to continuous/latest
-  UploadFile(api_zip, False)
 
   DartArchiveUploadAPIDocs(api_zip)
 
@@ -1280,19 +1111,10 @@ def CreateLinuxSDK(sdkpath):
   CallBuildScript('release', 'ia32,x64', 'create_sdk')
 
   sdk32_zip = join(sdkpath, 'dartsdk-linux-32.zip')
-  sdk32_tgz = join(sdkpath, 'dartsdk-linux-32.tar.gz')
   sdk64_zip = join(sdkpath, 'dartsdk-linux-64.zip')
-  sdk64_tgz = join(sdkpath, 'dartsdk-linux-64.tar.gz')
 
   CreateZip(sdkdir32, sdk32_zip)
-  CreateTgz(sdkdir32, sdk32_tgz)
   CreateZip(sdkdir64, sdk64_zip)
-  CreateTgz(sdkdir64, sdk64_tgz)
-
-  UploadFile(sdk32_zip)
-  UploadFile(sdk32_tgz)
-  UploadFile(sdk64_zip)
-  UploadFile(sdk64_tgz)
 
   DartArchiveUploadSDKs('linux', sdk32_zip, sdk64_zip)
 
@@ -1305,22 +1127,11 @@ def CreateMacosSDK(sdkpath):
 
   sdk32_zip = join(sdkpath, 'dartsdk-macos-32.zip')
   sdk64_zip = join(sdkpath, 'dartsdk-macos-64.zip')
-  sdk32_tgz = join(sdkpath, 'dartsdk-macos-32.tar.gz')
-  sdk64_tgz = join(sdkpath, 'dartsdk-macos-64.tar.gz')
 
   CreateZip(join(DART_PATH, utils.GetBuildRoot('macos', 'release', 'ia32'),
                  'dart-sdk'), sdk32_zip)
   CreateZip(join(DART_PATH, utils.GetBuildRoot('macos', 'release', 'x64'),
                  'dart-sdk'), sdk64_zip)
-  CreateTgz(join(DART_PATH, utils.GetBuildRoot('macos', 'release', 'ia32'),
-                 'dart-sdk'), sdk32_tgz)
-  CreateTgz(join(DART_PATH, utils.GetBuildRoot('macos', 'release', 'x64'),
-                 'dart-sdk'), sdk64_tgz)
-
-  UploadFile(sdk32_zip)
-  UploadFile(sdk64_zip)
-  UploadFile(sdk32_tgz)
-  UploadFile(sdk64_tgz)
 
   DartArchiveUploadSDKs('macos', sdk32_zip, sdk64_zip)
 
@@ -1341,9 +1152,6 @@ def CreateWin32SDK(sdkpath):
                         utils.GetBuildRoot('win32', 'release', 'x64'),
                         'dart-sdk'), sdk64_zip)
 
-  UploadFile(sdk32_zip)
-  UploadFile(sdk64_zip)
-
   DartArchiveUploadSDKs('win32', sdk32_zip, sdk64_zip)
 
   return sdk32_zip
@@ -1356,8 +1164,8 @@ def CallBuildScript(mode, arch, target):
          target]
   try:
     ExecuteCommand(cmd, DART_PATH)
-  except:
-    print '%s build failed: %s' % (target, status)
+  except Exception as error:
+    print '%s build failed: %s' % (target, error)
     BuildStepFailure()
     raise Exception('%s build failed' % target)
 
@@ -1380,39 +1188,6 @@ def CreateZipWindows(directory, targetFile):
                  os.path.dirname(directory))
 
 
-def CreateTgz(directory, targetFile):
-  """tar gzip the given directory into the file"""
-  EnsureDirectoryExists(targetFile)
-  FileDelete(targetFile)
-  ExecuteCommand(['tar', 'czf', targetFile, os.path.basename(directory)],
-                 os.path.dirname(directory))
-
-
-def UploadFile(targetFile, createChecksum=True):
-  """Upload the given file to google storage."""
-
-  if (NO_UPLOAD):
-    return
-
-  filePathRev = "%s/%s" % (GSU_PATH_REV, os.path.basename(targetFile))
-  filePathLatest = "%s/%s" % (GSU_PATH_LATEST, os.path.basename(targetFile))
-
-  if createChecksum:
-    checksum = bot_utils.CreateChecksumFile(targetFile)
-
-    checksumRev = "%s/%s" % (GSU_PATH_REV, os.path.basename(checksum))
-    checksumLatest = "%s/%s" % (GSU_PATH_LATEST, os.path.basename(checksum))
-
-  Gsutil(['cp', '-a', 'public-read', r'file://' + targetFile, filePathRev])
-
-  if (createChecksum):
-    Gsutil(['cp', '-a', 'public-read', r'file://' + checksum, checksumRev])
-
-  Gsutil(['cp', '-a', 'public-read', filePathRev, filePathLatest])
-  if (createChecksum):
-    Gsutil(['cp', '-a', 'public-read', checksumRev, checksumLatest])
-
-
 def UploadDirectory(filesToUpload, gs_dir):
   Gsutil(['-m', 'cp', '-a', 'public-read', '-r'] + filesToUpload + [gs_dir])
 
@@ -1428,18 +1203,17 @@ def UploadApiDocs(dirName):
 
   # copy -R api_docs into dartlang-api-docs/REVISION
   filesToUpload = glob.glob(join(dirName, '*'))
-  result = Gsutil(['-m', 'cp', '-q', '-a', 'public-read', '-r'] +
-                  filesToUpload + [GSU_API_DOCS_PATH])
+  Gsutil(['-m', 'cp', '-q', '-a', 'public-read', '-r'] +
+          filesToUpload + [GSU_API_DOCS_PATH])
 
-  if result == 0:
-    destLatestRevFile = GSU_API_DOCS_BUCKET + '/latest.txt'
-    localLatestRevFilename = join(dirName, 'latest.txt')
-    with open(localLatestRevFilename, 'w+') as f:
-      f.write(REVISION)
+  destLatestRevFile = GSU_API_DOCS_BUCKET + '/latest.txt'
+  localLatestRevFilename = join(dirName, 'latest.txt')
+  with open(localLatestRevFilename, 'w+') as f:
+    f.write(REVISION)
 
-    # overwrite dartlang-api-docs/latest.txt to contain REVISION
-    Gsutil(['cp', '-a', 'public-read', localLatestRevFilename,
-            destLatestRevFile])
+  # overwrite dartlang-api-docs/latest.txt to contain REVISION
+  Gsutil(['cp', '-a', 'public-read', localLatestRevFilename,
+          destLatestRevFile])
 
 
 def Gsutil(cmd):
