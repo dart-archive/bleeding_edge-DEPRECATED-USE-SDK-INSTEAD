@@ -24,6 +24,7 @@ import com.google.dart.engine.ast.SimpleStringLiteral;
 import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
+import com.google.dart.engine.error.ErrorType;
 import com.google.dart.engine.parser.Parser;
 import com.google.dart.engine.scanner.CharSequenceReader;
 import com.google.dart.engine.scanner.Scanner;
@@ -162,7 +163,10 @@ public class SdkLibrariesReader {
     AnalysisErrorListener errorListener = new AnalysisErrorListener() {
       @Override
       public void onError(AnalysisError error) {
-        foundError[0] = true;
+        // TODO (danrubel): Remove this TODO check once TODO scraping is moved out of parser
+        if (error != null && error.getErrorCode().getType() != ErrorType.TODO) {
+          foundError[0] = true;
+        }
       }
     };
     Source source = new FileBasedSource(null, librariesFile, UriKind.FILE_URI);
