@@ -10,7 +10,7 @@ vars = {
   "chromium_url": "http://src.chromium.org/svn",
 
   "gyp_rev": "@1752",
-  "nss_rev": "@209026",
+  "nss_rev": "@232552",
 
   "bootstrap_css_rev" : "@28387",
 
