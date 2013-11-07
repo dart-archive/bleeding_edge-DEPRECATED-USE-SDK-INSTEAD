@@ -57,6 +57,24 @@ public class AboutDartDialog extends Shell implements DetailsProvider {
 
   private static final String NEW_LINE = System.getProperty("line.separator");
 
+  private static String getChannelLabel() {
+    //TODO (pquitslund): move to UpdateUtils
+    String updateUrl = UpdateCore.getUpdateUrl();
+    if (updateUrl != null) {
+      if (updateUrl.contains("/channels/be/")) {
+        return " (BLEEDING EDGE)";
+      }
+      if (updateUrl.contains("/channels/dev/")) {
+        return " (DEV)";
+      }
+      if (updateUrl.contains("/channels/stable/")) {
+        return " (STABLE)";
+      }
+    }
+    //Fall through
+    return "";
+  }
+
   private final UpdateListener updateListener = new UpdateAdapter() {
     @Override
     public void installing() {
@@ -236,7 +254,7 @@ public class AboutDartDialog extends Shell implements DetailsProvider {
   }
 
   private String getVersion() {
-    return DartToolsPlugin.getVersionString();
+    return DartToolsPlugin.getVersionString() + getChannelLabel();
   }
 
   private Label newLabel(int style) {

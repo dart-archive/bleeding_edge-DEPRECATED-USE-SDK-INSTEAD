@@ -38,7 +38,26 @@ public class UpdatePreferencePage extends PreferencePage implements IWorkbenchPr
 
   public static final String PAGE_ID = "com.google.dart.tools.ui.update.updatePreferencePage"; //$NON-NLS-1$
 
+  private static String getChannelLabel() {
+    //TODO (pquitslund): move to UpdateUtils
+    String updateUrl = UpdateCore.getUpdateUrl();
+    if (updateUrl != null) {
+      if (updateUrl.contains("/channels/be/")) {
+        return "(BLEEDING EDGE) ";
+      }
+      if (updateUrl.contains("/channels/dev/")) {
+        return "(DEV) ";
+      }
+      if (updateUrl.contains("/channels/stable/")) {
+        return "(STABLE) ";
+      }
+    }
+    //Fall through
+    return "";
+  }
+
   private Button autoDownloadCheck;
+
   private Group statusGroup;
 
   @Override
@@ -97,7 +116,9 @@ public class UpdatePreferencePage extends PreferencePage implements IWorkbenchPr
     GridLayoutFactory.fillDefaults().numColumns(1).margins(8, 8).applyTo(statusGroup);
 
     CLabel currentVersionLabel = new CLabel(statusGroup, SWT.NONE);
-    currentVersionLabel.setText(NLS.bind("Dart Editor build {0}", UpdateCore.getCurrentRevision()));
+    currentVersionLabel.setText(NLS.bind(
+        "Dart Editor " + getChannelLabel() + "build {0}",
+        UpdateCore.getCurrentRevision()));
     GridDataFactory.fillDefaults().applyTo(currentVersionLabel);
 
     new UpdateStatusControl(statusGroup, null, new Point(0, 0), false);
