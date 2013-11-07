@@ -98,7 +98,7 @@ onSliderChange(_) {
   final saturationMod = int.parse(saturation.value)/100;
   final lightnessMod = int.parse(lightness.value)/100;
 
-  logo.queryAll("path").forEach((p) {
+  logo.querySelectorAll("path").forEach((p) {
     final color = defaultColors[p.id].dup();
     color.hue += hueDelta;
 
@@ -160,19 +160,19 @@ void main() {
 </svg>
 """);
 
-  query("#icon").children.add(logo);
-  logo.queryAll("path").forEach((p) {
+  querySelector("#icon").children.add(logo);
+  logo.querySelectorAll("path").forEach((p) {
     defaultColors[p.id] = new Color.fromHex(p.style.getPropertyValue('fill'));
   });
 
-  hue = document.query("input[name=hue]");
+  hue = document.querySelector("input[name=hue]");
   hue.onChange.listen(onSliderChange);
-  saturation = document.query("input[name=saturation]");
+  saturation = document.querySelector("input[name=saturation]");
   saturation.onChange.listen(onSliderChange);
-  lightness = document.query("input[name=lightness]");
+  lightness = document.querySelector("input[name=lightness]");
   lightness.onChange.listen(onSliderChange);
 
-  document.query("input[name=invert]").onChange.listen((Event e) {
+  document.querySelector("input[name=invert]").onChange.listen((Event e) {
     InputElement invert = e.target;
     if (invert.checked) {
       logo.classes = ['inverse'];

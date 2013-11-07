@@ -177,7 +177,7 @@ Future verifyGrid(String example, [Map expected = null]) {
 
   for (String name in expected.keys) {
     final values = expected[name];
-    final node = document.body.query('#$name');
+    final node = document.body.querySelector('#$name');
     Expect.isNotNull(node);
     return new Future.value().then((_) {
       Expect.equals(values[0], node.offsetLeft);

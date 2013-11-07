@@ -46,9 +46,9 @@ class PageNumberView extends View {
           <div class="page-number-right">&rsaquo;</div>
         </div>
         ''');
-    _left = node.query('.page-number-left');
-    _label = node.query('.page-number-label');
-    _right = node.query('.page-number-right');
+    _left = node.querySelector('.page-number-left');
+    _label = node.querySelector('.page-number-label');
+    _right = node.querySelector('.page-number-right');
     return node;
   }
 
@@ -103,7 +103,7 @@ class PagedColumnView extends View {
       <div class="paged-column">
         <div class="paged-column-container"></div>
       </div>''');
-    _container = node.query('.paged-column-container');
+    _container = node.querySelector('.paged-column-container');
     _container.nodes.add(contentView.node);
 
     // TODO(jmesserly): if we end up with empty columns on the last page,
@@ -143,7 +143,7 @@ class PagedColumnView extends View {
       windowResized();
 
       // Hook img onload events, so we find out about changes in content size
-      for (ImageElement img in contentView.node.queryAll("img")) {
+      for (ImageElement img in contentView.node.querySelectorAll("img")) {
         if (!img.complete) {
           img.onLoad.listen((e) {
             _updatePageCount(null);

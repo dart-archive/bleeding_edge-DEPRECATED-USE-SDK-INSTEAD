@@ -96,12 +96,12 @@ void main() {
     Expect.equals(getView(swarm.sections[0]), swarm.frontView.currentSection);
 
     // Find the first slider menu item, and click on the one next after it.
-    click(document.queryAll('.${CSS.SM_ITEM}')[1]);
+    click(document.querySelectorAll('.${CSS.SM_ITEM}')[1]);
 
     Expect.equals(getView(swarm.sections[1]), swarm.frontView.currentSection);
 
     // Find the first menu item again and click on it.
-    click(document.query('.${CSS.SM_ITEM}'));
+    click(document.querySelector('.${CSS.SM_ITEM}'));
 
     Expect.equals(getView(swarm.sections[0]), swarm.frontView.currentSection);
   });

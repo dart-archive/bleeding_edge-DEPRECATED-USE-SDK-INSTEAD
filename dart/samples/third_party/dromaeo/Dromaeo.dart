@@ -77,7 +77,7 @@ class SuiteController {
     // to .innerHtml update above.
     _element = div.nodes[0];
 
-    document.query('#main').nodes.add(div);
+    document.querySelector('#main').nodes.add(div);
   }
 
   DivElement _createDiv(String clazz) {
@@ -221,7 +221,7 @@ class Dromaeo {
   }
 
   Element _byId(String id) {
-    return document.query('#$id');
+    return document.querySelector('#$id');
   }
 
   int get _suitesTotal {

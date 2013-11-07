@@ -26,7 +26,7 @@ View createGrid(Map<String, Map<String, String>> styles) {
 }
 
 void _onLoad() {
-  var query = SwarmUri.parseQuery(window.location.search)['q'];
+  var query = SwarmUri.parsequerySelector(window.location.search)['q'];
   if (query != null && query.length == 1) {
     query = SwarmUri.decodeComponent(query[0]);
     addGridStyles('100%', '100%', 'margin:0px;');
@@ -65,7 +65,7 @@ void addGridStyles(String width, String height, [String margin = '']) {
 }
 
 void _addColorStyles() {
-  final grid = document.body.query('#grid');
+  final grid = document.body.querySelector('#grid');
   final colors = const [ 'darkred', 'darkorange', 'darkgoldenrod',
                          'darkgreen', 'darkblue', 'darkviolet'];
   int c = 0;
@@ -103,7 +103,7 @@ class MockView extends View {
 
 
 void printMetrics(String example) {
-  final node = document.body.query('#grid');
+  final node = document.body.querySelector('#grid');
   String exampleId = example.split(' ')[0];
   final sb = new StringBuffer();
   sb.write("test('Spec Example $exampleId', () {\n");

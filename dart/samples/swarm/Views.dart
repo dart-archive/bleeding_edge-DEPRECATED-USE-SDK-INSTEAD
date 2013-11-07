@@ -970,10 +970,10 @@ class DialogView extends View {
 
     _done = new PushButtonView('Done', 'done-button',
         EventBatch.wrap((e) => onDone()));
-    final titleArea = node.query('.dialog-title-area');
+    final titleArea = node.querySelector('.dialog-title-area');
     titleArea.nodes.add(_done.node);
 
-    container = node.query('.dialog-body');
+    container = node.querySelector('.dialog-body');
     container.nodes.add(_content.node);
 
     return node;

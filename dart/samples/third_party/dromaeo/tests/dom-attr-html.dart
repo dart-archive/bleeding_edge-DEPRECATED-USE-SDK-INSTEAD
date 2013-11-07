@@ -12,8 +12,8 @@ void main() {
   // Try to force real results.
   var ret;
 
-  Element elem = document.query('#test1');
-  Element a = document.query('a');
+  Element elem = document.querySelector('#test1');
+  Element a = document.querySelector('a');
 
   new Suite(window, 'dom-attr')
     .test('getAttribute', () {

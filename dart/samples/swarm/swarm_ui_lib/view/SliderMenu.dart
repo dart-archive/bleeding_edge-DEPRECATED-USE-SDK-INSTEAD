@@ -60,7 +60,7 @@ class SliderMenu extends View {
     // Ideally, enterDocument should do nothing more than redecorate a view
     // and perhaps calculating the correct child sizes for edge cases that
     // cannot be handled by the browser layout engine.
-    selectItem(node.query('.sm-item'), false);
+    selectItem(node.querySelector('.sm-item'), false);
 
     // TODO(mattsh), abstract this somehow into a touch click mixin
     if (Device.supportsTouch) {
@@ -118,7 +118,7 @@ class SliderMenu extends View {
 
   void selectItemText(Element item) {
     // unselect all menu items
-    for (final sliderItem in node.queryAll('.sm-item')) {
+    for (final sliderItem in node.querySelectorAll('.sm-item')) {
       sliderItem.classes.remove('sel');
     }
 
@@ -138,14 +138,14 @@ class SliderMenu extends View {
   }
 
   void selectNext(bool animate) {
-    final result =  node.query('.sm-item.sel').nextElementSibling;
+    final result =  node.querySelector('.sm-item.sel').nextElementSibling;
     if (result != null) {
       selectItem(result, animate);
     }
   }
 
   void selectPrevious(bool animate) {
-    final result = node.query('.sm-item.sel').previousElementSibling;
+    final result = node.querySelector('.sm-item.sel').previousElementSibling;
     if (result != null) {
       selectItem(result, animate);
     }
@@ -171,7 +171,7 @@ class SliderMenu extends View {
     // find the slider filler (the div element to the left of the
     // triangle) set its width the push the triangle to where we want it.
     String duration = animate ? '.3s' : '0s';
-    final triangle = node.query('.sm-triangle');
+    final triangle = node.querySelector('.sm-triangle');
     triangle.style.transitionDuration = duration;
     FxUtil.setWebkitTransform(triangle, x, 0);
   }

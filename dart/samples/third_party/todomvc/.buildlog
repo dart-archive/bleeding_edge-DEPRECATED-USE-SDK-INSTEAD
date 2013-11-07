@@ -125,3 +125,13 @@ malformed type used.
 #4      main (file:///Users/shailentuli/workspace/dart-repo/dart/samples/third_party/todomvc/build.dart:9:8)
 build.dart finished [339 ms]
 
+---
+build.dart --machine --changed=test/listorder_test.dart --changed=test/mainpage_test.dart --changed=test/markdo...
+
+build.dart finished [1072 ms]
+
+---
+build.dart --machine --changed=test/listorder_test.dart --changed=test/mainpage_test.dart --changed=test/markdo...
+
+build.dart finished [1120 ms]
+

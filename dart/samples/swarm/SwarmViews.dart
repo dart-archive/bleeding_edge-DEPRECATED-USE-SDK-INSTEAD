@@ -734,7 +734,7 @@ class ArticleView extends View {
     // Remove the snippet entirely if it's empty. This keeps it from taking up
     // space and pushing the padding down.
     if ((item.textBody == null) || (item.textBody.trim() == '')) {
-      node.query('.snippet').remove();
+      node.querySelector('.snippet').remove();
     }
 
     return node;
@@ -850,7 +850,7 @@ class StoryContentView extends View {
   Element render() {
     final storyContent = new Element.html(
         '<div class="story-content">${item.htmlBody}</div>');
-    for (Element element in storyContent.queryAll(
+    for (Element element in storyContent.querySelectorAll(
         "iframe, script, style, object, embed, frameset, frame")) {
       element.remove();
     }
@@ -859,7 +859,7 @@ class StoryContentView extends View {
     // Modify all links to open in new windows....
     // TODO(jacobr): would it be better to add an event listener on click that
     // intercepts these instead?
-    for (AnchorElement anchor in storyContent.queryAll('a')) {
+    for (AnchorElement anchor in storyContent.querySelectorAll('a')) {
       anchor.target = '_blank';
     }
 
@@ -880,7 +880,7 @@ class StoryContentView extends View {
         </div>
       </div>''');
 
-    container.query('.paged-story').replaceWith(_pagedStory.node);
+    container.querySelector('.paged-story').replaceWith(_pagedStory.node);
 
     return container;
   }
