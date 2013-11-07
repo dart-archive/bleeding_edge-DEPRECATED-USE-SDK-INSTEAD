@@ -851,6 +851,11 @@ void main() {
         <p>~=[,,_,,]:3</p>
         ''', inlineSyntaxes: nyanSyntax);
 
+    validate('dart custom links', 'links [are<foo>] awesome',
+      '<p>links <a>are&lt;foo></a> awesome</p>',
+      linkResolver: (text) => new Element.text('a', text.replaceAll('<',
+      '&lt;')));
+
     // TODO(amouravski): need more tests here for custom syntaxes, as some
     // things are not quite working properly. The regexps are sometime a little
     // too greedy, I think.
