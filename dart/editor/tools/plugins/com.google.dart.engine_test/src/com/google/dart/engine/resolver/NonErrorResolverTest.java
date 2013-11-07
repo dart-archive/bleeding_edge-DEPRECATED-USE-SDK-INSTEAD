@@ -449,6 +449,15 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_constEval_functionTypeLiteral() throws Exception {
+    Source source = addSource(createSource(//
+        "typedef F();",
+        "const C = F;"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
   public void test_constEval_propertyExtraction_fieldStatic_targetType() throws Exception {
     addSource("/math.dart", createSource(//
         "library math;",
@@ -2009,6 +2018,32 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "    f(x);",
         "    return 0;",
         "  }",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_mixedReturnTypes_ignoreImplicit() throws Exception {
+    Source source = addSource(createSource(//
+        "f(bool p) {",
+        "  if (p) return 42;",
+        "  // implicit 'return;' is ignored",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_mixedReturnTypes_ignoreImplicit2() throws Exception {
+    Source source = addSource(createSource(//
+        "f(bool p) {",
+        "  if (p) {",
+        "    return 42;",
+        "  } else {",
+        "    return 42;",
+        "  }",
+        "  // implicit 'return;' is ignored",
         "}"));
     resolve(source);
     assertNoErrors(source);

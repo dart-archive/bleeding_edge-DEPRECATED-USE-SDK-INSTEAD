@@ -48,6 +48,7 @@ import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.FunctionElement;
+import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
@@ -401,7 +402,7 @@ public class ConstantVisitor extends UnifyingASTVisitor<EvaluationResultImpl> {
       if (((ExecutableElement) element).isStatic()) {
         return new ValidResult(element);
       }
-    } else if (element instanceof ClassElement) {
+    } else if (element instanceof ClassElement || element instanceof FunctionTypeAliasElement) {
       return ValidResult.RESULT_OBJECT;
     }
     // TODO(brianwilkerson) Figure out which error to report.
