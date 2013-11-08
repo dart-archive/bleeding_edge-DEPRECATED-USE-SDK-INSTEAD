@@ -150,21 +150,6 @@ deps = {
   "src/third_party/skia/include":
     (Var("googlecode_url") % "skia") + "/trunk/include@" + Var("skia_revision"),
 
-  "src/third_party/WebKit/LayoutTests":
-    Var("webkit_trunk") + "/LayoutTests@" + Var("webkit_revision"),
-
-  "src/third_party/WebKit/Source":
-    Var("webkit_trunk") + "/Source@" + Var("webkit_revision"),
-
-  "src/third_party/WebKit/Tools/DumpRenderTree":
-    Var("webkit_trunk") + "/Tools/DumpRenderTree@" + Var("webkit_revision"),
-
-  "src/third_party/WebKit/Tools/Scripts":
-    Var("webkit_trunk") + "/Tools/Scripts@" + Var("webkit_revision"),
-
-  "src/third_party/WebKit/Tools/TestWebKitAPI":
-    Var("webkit_trunk") + "/Tools/TestWebKitAPI@" + Var("webkit_revision"),
-
   "src/third_party/ots":
     (Var("googlecode_url") % "ots") + "/trunk@102",
 
@@ -190,64 +175,6 @@ deps = {
   # chrome/test/gpu and run generate_webgl_conformance_test_list.py.
   "src/third_party/webgl_conformance":
     "/trunk/deps/third_party/webgl/sdk/tests@170088",
-
-  # We run these layout tests as UI tests. Since many of the buildbots that
-  # run layout tests do NOT have access to the LayoutTest directory, we need
-  # to map them here. In practice, these do not take up much space.
-  "src/content/test/data/layout_tests/LayoutTests/fast/events":
-    Var("webkit_trunk") + "/LayoutTests/fast/events@" +
-    Var("webkit_revision"),
-  "src/content/test/data/layout_tests/LayoutTests/fast/js/resources":
-    Var("webkit_trunk") + "/LayoutTests/fast/js/resources@" +
-    Var("webkit_revision"),
-  "src/content/test/data/layout_tests/LayoutTests/fast/workers":
-    Var("webkit_trunk") + "/LayoutTests/fast/workers@" +
-    Var("webkit_revision"),
-  "src/content/test/data/layout_tests/LayoutTests/http/tests/resources":
-    Var("webkit_trunk") + "/LayoutTests/http/tests/resources@" +
-    Var("webkit_revision"),
-  "src/content/test/data/layout_tests/LayoutTests/http/tests/workers":
-    Var("webkit_trunk") + "/LayoutTests/http/tests/workers@" +
-    Var("webkit_revision"),
-  "src/content/test/data/layout_tests/LayoutTests/http/tests/xmlhttprequest":
-    Var("webkit_trunk") + "/LayoutTests/http/tests/xmlhttprequest@" +
-    Var("webkit_revision"),
-  "src/content/test/data/layout_tests/LayoutTests/http/tests/websocket/tests":
-    Var("webkit_trunk") + "/LayoutTests/http/tests/websocket/tests@" +
-    Var("webkit_revision"),
-  "src/content/test/data/layout_tests/LayoutTests/platform/chromium-win/fast/events":
-    Var("webkit_trunk") + "/LayoutTests/platform/chromium-win/fast/events@" +
-    Var("webkit_revision"),
-  "src/content/test/data/layout_tests/LayoutTests/platform/chromium-win/fast/workers":
-    Var("webkit_trunk") + "/LayoutTests/platform/chromium-win/fast/workers@" +
-    Var("webkit_revision"),
-  "src/content/test/data/layout_tests/LayoutTests/http/tests/appcache":
-    Var("webkit_trunk") + "/LayoutTests/http/tests/appcache@" +
-    Var("webkit_revision"),
-  "src/content/test/data/layout_tests/LayoutTests/platform/chromium-win/http/tests/workers":
-    Var("webkit_trunk") + "/LayoutTests/platform/chromium-win/http/tests/workers@" +
-    Var("webkit_revision"),
-  "src/content/test/data/layout_tests/LayoutTests/platform/chromium-win/storage/domstorage":
-    Var("webkit_trunk") + "/LayoutTests/platform/chromium-win/storage/domstorage@" +
-    Var("webkit_revision"),
-  "src/content/test/data/layout_tests/LayoutTests/storage/domstorage":
-    Var("webkit_trunk") + "/LayoutTests/storage/domstorage@" +
-    Var("webkit_revision"),
-  "src/content/test/data/layout_tests/LayoutTests/storage/indexeddb":
-    Var("webkit_trunk") + "/LayoutTests/storage/indexeddb@" +
-    Var("webkit_revision"),
-  "src/content/test/data/layout_tests/LayoutTests/fast/files":
-    Var("webkit_trunk") + "/LayoutTests/fast/files@" +
-    Var("webkit_revision"),
-  "src/content/test/data/layout_tests/LayoutTests/fast/filesystem":
-    Var("webkit_trunk") + "/LayoutTests/fast/filesystem@" +
-    Var("webkit_revision"),
-  "src/content/test/data/layout_tests/LayoutTests/media":
-    Var("webkit_trunk") + "/LayoutTests/media@" +
-    Var("webkit_revision"),
-  "src/content/test/data/layout_tests/LayoutTests/editing/pasteboard/resources":
-    Var("webkit_trunk") + "/LayoutTests/editing/pasteboard/resources@" +
-    Var("webkit_revision"),
 
   "src/third_party/swig/Lib":
     "/trunk/deps/third_party/swig/Lib@" + Var("swig_revision"),
@@ -434,23 +361,7 @@ deps_os = {
     # Code that's not needed due to not building everything (especially WebKit).
     "src/build/util/support": None,
     "src/chrome/test/data/extensions/api_test/permissions/nacl_enabled/bin": None,
-    "src/content/test/data/layout_tests/LayoutTests/editing/pasteboard/resources": None,
-    "src/content/test/data/layout_tests/LayoutTests/fast/events": None,
-    "src/content/test/data/layout_tests/LayoutTests/fast/filesystem_temp": None,
-    "src/content/test/data/layout_tests/LayoutTests/fast/js/resources": None,
-    "src/content/test/data/layout_tests/LayoutTests/fast/workers": None,
-    "src/content/test/data/layout_tests/LayoutTests/http/tests/appcache": None,
-    "src/content/test/data/layout_tests/LayoutTests/http/tests/resources": None,
-    "src/content/test/data/layout_tests/LayoutTests/http/tests/websocket/tests": None,
-    "src/content/test/data/layout_tests/LayoutTests/http/tests/workers": None,
-    "src/content/test/data/layout_tests/LayoutTests/http/tests/xmlhttprequest": None,
-    "src/content/test/data/layout_tests/LayoutTests/media": None,
-    "src/content/test/data/layout_tests/LayoutTests/platform/chromium-win/fast/events": None,
-    "src/content/test/data/layout_tests/LayoutTests/platform/chromium-win/fast/workers": None,
-    "src/content/test/data/layout_tests/LayoutTests/platform/chromium-win/http/tests/workers": None,
-    "src/content/test/data/layout_tests/LayoutTests/platform/chromium-win/storage/domstorage": None,
-    "src/content/test/data/layout_tests/LayoutTests/storage/indexeddb": None,
-    "src/content/test/data/layout_tests/LayoutTests/storage/domstorage": None,
+
     "src/chrome/test/data/perf/canvas_bench": None,
     "src/chrome/test/data/perf/frame_rate/content": None,
     "src/native_client": None,
@@ -486,7 +397,6 @@ deps_os = {
     "src/third_party/webpagereplay": None,
     "src/third_party/webrtc": None,
     "src/third_party/WebKit": None,
-    "src/third_party/WebKit/LayoutTests": None,
     "src/third_party/WebKit/Source": None,
     "src/third_party/WebKit/Tools/DumpRenderTree": None,
     "src/third_party/WebKit/Tools/Scripts": None,
@@ -696,13 +606,15 @@ hooks = [
                "-o", "src/build/util/LASTCHANGE"],
   },
   {
-    # Update LASTCHANGE.blink. This is also run by export_tarball.py in
-    # src/tools/export_tarball - please keep them in sync.
-    "name": "lastchange",
-    "pattern": ".",
-    "action": ["python", "src/build/util/lastchange.py",
-               "-s", "src/third_party/WebKit",
-               "-o", "src/build/util/LASTCHANGE.blink"],
+   # Update LASTCHANGE.blink. This is also run by export_tarball.py in
+   # src/tools/export_tarball - please keep them in sync.
+   # DevTools uses the webkit revision to fetch resources, so we hardcode
+   # the branch of webkit that we branched from here.
+   "name": "lastchange",
+   "pattern": ".",
+   "action": ["python", "-c",
+       "f=open('src/build/util/LASTCHANGE.blink','w'); f.write('LASTCHANGE=" +
+        Var('webkit_revision') + "\\n')" ],
   },
   {
     # A change to a .gyp, .gypi, or to GYP itself should run the generator.

@@ -8,7 +8,8 @@ execfile(os.path.join(path, 'clank.deps', 'DEPS.chromium')) # Include proper Chr
 
 vars.update({
   "chromium_url": "http://src.chromium.org/svn",
-  "chromium_revision": "224845",
+  "dartium_chromium_url": "http://src.chromium.org/multivm/branches/1650/chrome",
+  "dartium_chromium_revision": "1593",
   "clank_gerrit": "ssh://gerrit-int.chromium.org:29419/clank/",
   # This revision number should be kept in sync with the version of clank that
   # uses a similar chromium revision to that mentioned just above in
@@ -19,12 +20,11 @@ vars.update({
   # The Dart repository URL is pulled out here so that it can be easily
   # updated to "https" for committers.
   "dart_branch": "/branches/bleeding_edge",
-  "dart_rev": "29745",
-  "multivm_url": "http://src.chromium.org/multivm/trunk",
-  "dartium_webkit_trunk": "http://src.chromium.org/multivm/trunk/webkit",
-  "dartium_webkit_revision": "1516",
-  "dartium_tools_revision": "1508",
+  "dart_rev": "30053",
+  "dartium_webkit_trunk": "http://src.chromium.org/multivm/branches/1650/blink",
+  "dartium_webkit_revision": "1592",
   "bootstrap_css_rev" : "@28387",
+
   "co19_rev": "@651",
 })
 
@@ -39,7 +39,8 @@ def massage_deps(deps):
     if value.startswith(Var("webkit_trunk")):
       path, revision = value.split('@') # and svn revision.
       path = path[len(Var("webkit_trunk")):]  # Strip WebKit repo.
-      value = Var("dartium_webkit_trunk") + path + '@' + Var("dartium_webkit_revision")
+      value = (Var("dartium_webkit_trunk") + path +
+               '@' + Var("dartium_webkit_revision"))
       deps[key] = value
       continue
 
@@ -49,7 +50,7 @@ for os_deps in deps_os.values():
 
 deps.update({
   "src":
-    Var("chromium_url") + "/trunk/src@" + Var("chromium_revision"),
+    Var("dartium_chromium_url") + "@" + Var("dartium_chromium_revision"),
 
   'src/clank': Var('clank_gerrit') + "internal/apps.git@" + Var("clank_rev"),
   'src-internal': Var('chrome_internal') + "chrome/src-internal.git",
@@ -59,9 +60,6 @@ deps.update({
 
   "src/dart/tests/co19/src": ((Var("googlecode_url") % "co19") +
       "/trunk/co19/tests/co19/src" + Var("co19_rev")),
-
-  "src/dartium_tools":
-    Var("multivm_url") + "/tools@" + Var("dartium_tools_revision"),
 
   "src/dart/runtime/bin/vmservice/client/bootstrap_css":
     "/third_party/bootstrap_css" + Var("bootstrap_css_rev"),
