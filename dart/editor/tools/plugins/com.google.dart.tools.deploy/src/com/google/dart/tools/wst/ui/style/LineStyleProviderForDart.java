@@ -30,6 +30,7 @@ import com.google.dart.tools.ui.text.IColorManager;
 import com.google.dart.tools.ui.text.IColorManagerExtension;
 import com.google.dart.tools.wst.ui.DartReconcilerManager;
 import com.google.dart.tools.wst.ui.EmbeddedDartReconcilerHook;
+import com.google.dart.tools.wst.ui.StructuredTextViewerConfigurationDart;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ProjectScope;
@@ -112,6 +113,10 @@ public class LineStyleProviderForDart extends AbstractLineStyleProvider implemen
   public boolean prepareRegions(ITypedRegion typedRegion, int lineRequestStart,
       int lineRequestLength, Collection holdResults) {
 
+    if (!typedRegion.getType().equals(
+        StructuredTextViewerConfigurationDart.DART_SCRIPT_PARTITION_NAME)) {
+      return false;
+    }
     List<StyleRange> positions = new ArrayList<StyleRange>();
     IStructuredDocument document = getDocument();
     // semantic highlighting
