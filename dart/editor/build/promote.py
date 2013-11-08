@@ -77,9 +77,6 @@ def main():
 
   if command == 'promote':
     _PromoteDartArchiveBuild(options.channel, options.revision)
-    # FIXME/TODO(kustermann,ricow): Implement Api documentation upload/refresh.
-    # Issue: http://dartbug.com/14901
-    ## UpdateDocs()
 
 
 def UpdateDocs():

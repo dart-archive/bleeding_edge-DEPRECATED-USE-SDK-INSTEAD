@@ -24,9 +24,6 @@ BUILD_OS = None
 DART_PATH = None
 TOOLS_PATH = None
 
-GSU_API_DOCS_PATH = None
-GSU_API_DOCS_BUCKET = 'gs://dartlang-api-docs'
-
 CHANNEL = None
 PLUGINS_BUILD = None
 REVISION = None
@@ -1188,32 +1185,26 @@ def CreateZipWindows(directory, targetFile):
                  os.path.dirname(directory))
 
 
-def UploadDirectory(filesToUpload, gs_dir):
-  Gsutil(['-m', 'cp', '-a', 'public-read', '-r'] + filesToUpload + [gs_dir])
-
-
 def UploadApiDocs(dirName):
-  # create file in dartlang-api-docs/REVISION/index.html
-  # this lets us do the recursive copy in the next step
+  apidocs_namer = bot_utils.GCSNamerApiDocs(CHANNEL)
+  apidocs_destination_gcsdir = apidocs_namer.docs_dirpath(REVISION)
+  apidocs_destination_latestfile = apidocs_namer.docs_latestpath(REVISION)
 
-  localIndexFile = join(dirName, 'index.html')
-  destIndexFile = GSU_API_DOCS_PATH + '/index.html'
+  # Delete the old revision specific apidocs directory if present.
+  Gsutil(['-m', 'rm', '-R', '-f', apidocs_destination_gcsdir])
 
-  Gsutil(['cp', '-a', 'public-read', localIndexFile, destIndexFile])
+  # Upload everything inside the built apidocs directory.
+  Gsutil(['-m', 'cp', '-R', '-a', 'public-read', dirName,
+          apidocs_destination_gcsdir])
 
-  # copy -R api_docs into dartlang-api-docs/REVISION
-  filesToUpload = glob.glob(join(dirName, '*'))
-  Gsutil(['-m', 'cp', '-q', '-a', 'public-read', '-r'] +
-          filesToUpload + [GSU_API_DOCS_PATH])
+  # Update latest.txt to contain the newest revision.
+  with utils.TempDir('latest_file') as temp_dir:
+    latest_file = join(temp_dir, 'latest.txt')
+    with open(latest_file, 'w') as f:
+      f.write('%s' % REVISION)
 
-  destLatestRevFile = GSU_API_DOCS_BUCKET + '/latest.txt'
-  localLatestRevFilename = join(dirName, 'latest.txt')
-  with open(localLatestRevFilename, 'w+') as f:
-    f.write(REVISION)
-
-  # overwrite dartlang-api-docs/latest.txt to contain REVISION
-  Gsutil(['cp', '-a', 'public-read', localLatestRevFilename,
-          destLatestRevFile])
+    Gsutil(['cp', '-a', 'public-read', latest_file,
+            apidocs_destination_latestfile])
 
 
 def Gsutil(cmd):
