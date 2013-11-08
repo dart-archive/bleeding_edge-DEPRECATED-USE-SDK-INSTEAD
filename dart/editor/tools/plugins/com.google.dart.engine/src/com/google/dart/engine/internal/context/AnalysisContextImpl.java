@@ -1746,6 +1746,13 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       boolean isPriority, boolean hintsEnabled) {
     if (sourceEntry instanceof DartEntry) {
       DartEntry dartEntry = (DartEntry) sourceEntry;
+      if (!source.exists()) {
+        DartEntryImpl dartCopy = dartEntry.getWritableCopy();
+        dartCopy.recordParseError();
+        dartCopy.setException(new AnalysisException("Source does not exist"));
+        cache.put(source, dartCopy);
+        return null;
+      }
       CacheState parseErrorsState = dartEntry.getState(DartEntry.PARSE_ERRORS);
       if (parseErrorsState == CacheState.INVALID
           || (isPriority && parseErrorsState == CacheState.FLUSHED)) {
@@ -1821,6 +1828,13 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       }
     } else if (sourceEntry instanceof HtmlEntry) {
       HtmlEntry htmlEntry = (HtmlEntry) sourceEntry;
+      if (!source.exists()) {
+        HtmlEntryImpl htmlCopy = htmlEntry.getWritableCopy();
+        htmlCopy.recordParseError();
+        htmlCopy.setException(new AnalysisException("Source does not exist"));
+        cache.put(source, htmlCopy);
+        return null;
+      }
       CacheState parsedUnitState = htmlEntry.getState(HtmlEntry.PARSED_UNIT);
       if (parsedUnitState == CacheState.INVALID
           || (isPriority && parsedUnitState == CacheState.FLUSHED)) {
@@ -2469,9 +2483,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
           ChangeNoticeImpl notice = getNotice(source);
           notice.setErrors(htmlEntry.getAllErrors(), lineInfo);
         } else {
-          htmlCopy.setState(SourceEntry.LINE_INFO, CacheState.ERROR);
-          htmlCopy.setState(HtmlEntry.PARSED_UNIT, CacheState.ERROR);
-          htmlCopy.setState(HtmlEntry.REFERENCED_LIBRARIES, CacheState.ERROR);
+          htmlCopy.recordParseError();
         }
         htmlCopy.setException(thrownException);
         cache.put(source, htmlCopy);

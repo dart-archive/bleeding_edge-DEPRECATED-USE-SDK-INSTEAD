@@ -180,12 +180,24 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
   }
 
   /**
+   * Record that an error was encountered while attempting to parse the source associated with this
+   * entry.
+   */
+  public void recordParseError() {
+    setState(SourceEntry.LINE_INFO, CacheState.ERROR);
+    setState(HtmlEntry.PARSED_UNIT, CacheState.ERROR);
+    setState(HtmlEntry.REFERENCED_LIBRARIES, CacheState.ERROR);
+    recordResolutionError();
+  }
+
+  /**
    * Record that an error was encountered while attempting to resolve the source associated with
    * this entry.
    */
   public void recordResolutionError() {
     setState(HtmlEntry.ELEMENT, CacheState.ERROR);
     setState(HtmlEntry.RESOLUTION_ERRORS, CacheState.ERROR);
+    setState(HtmlEntry.HINTS, CacheState.ERROR);
   }
 
   @Override
