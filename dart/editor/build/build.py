@@ -255,7 +255,6 @@ def main():
   global BUILD_OS
   global CHANNEL
   global DART_PATH
-  global GSU_API_DOCS_PATH
   global NO_UPLOAD
   global PLUGINS_BUILD
   global REVISION
@@ -373,8 +372,6 @@ def main():
     assert BUILD_INSTALLER == options.build_installer
 
     running_on_buildbot = username.startswith('chrome')
-
-    GSU_API_DOCS_PATH = '%s/%s' % (GSU_API_DOCS_BUCKET, REVISION)
 
     homegsutil = join(DART_PATH, 'third_party', 'gsutil', 'gsutil')
     gsu = gsutil.GsUtil(False, homegsutil,
