@@ -451,7 +451,39 @@ public final class DartDocUtilities {
     // handle too much whitespace in front of list items
     str = str.replace("<br>\n<li>", "<li>");
 
+    // convert code and reference blocks
+    str = str.replace("[:", "<code>").replace(":]", "</code>");
+    str = str.replace("[", "<code>").replace("]", "</code>");
+    str = replacePairs(str, "`", "<code>", "</code>");
+
+    // convert bold and italic
+    str = replacePairs(str, "**", "<b>", "</b>");
+    str = replacePairs(str, "__", "<b>", "</b>");
+    str = replacePairs(str, "*", "<i>", "</i>");
+    str = replacePairs(str, "_", "<i>", "</i>");
+
     return str;
+  }
+
+  private static String replacePairs(String string, String delimiter, String leftReplacement,
+      String rightReplacement) {
+    int index = string.indexOf(delimiter);
+    if (index < 0) {
+      return string;
+    }
+    StringBuilder builder = new StringBuilder();
+    boolean left = true;
+    int start = 0;
+    int length = delimiter.length();
+    while (index >= 0) {
+      builder.append(string, start, index);
+      builder.append(left ? leftReplacement : rightReplacement);
+      start = index + length;
+      left = !left;
+      index = string.indexOf(delimiter, start);
+    }
+    builder.append(string, start, string.length());
+    return builder.toString();
   }
 
   private DartDocUtilities() {
