@@ -37,6 +37,7 @@ class ServerController {
 // Logic in main.dart determines which implementation we should
 // use.
 class NoServerController implements ServerController {
+  Http _http;
   init(TodoController todo) { }
 }
 
