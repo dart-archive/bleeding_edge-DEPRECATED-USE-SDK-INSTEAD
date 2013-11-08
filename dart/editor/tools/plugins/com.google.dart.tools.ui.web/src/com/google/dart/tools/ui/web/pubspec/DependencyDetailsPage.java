@@ -225,14 +225,10 @@ public class DependencyDetailsPage extends AbstractFormPart implements IDetailsP
     gd = new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1);
     filler.setLayoutData(gd);
 
-    Label label = new Label(client, SWT.WRAP);
-    label.setText("Packages with advanced requirements e.g. transformers, require manual editing.");
-    gd = new GridData(SWT.FILL, SWT.BOTTOM, false, false, 3, 1);
-    label.setLayoutData(gd);
-
-    Link infoLink = new Link(client, SWT.NONE);
-    infoLink.setText("<a href=\"" + "source" + "\">Switch to yaml editing mode</a>");
-    gd = new GridData(SWT.LEFT, SWT.BOTTOM, false, false, 3, 1);
+    Link infoLink = new Link(client, SWT.WRAP);
+    infoLink.setText("Packages with advanced requirements e.g. transformers, currently \n"
+        + "require manual editing. <a href=\"" + "source" + "\">Switch to yaml editing mode</a>");
+    gd = new GridData(SWT.LEFT, SWT.BOTTOM, true, false, 3, 1);
     infoLink.setLayoutData(gd);
     infoLink.addSelectionListener(new SelectionAdapter() {
       @Override
