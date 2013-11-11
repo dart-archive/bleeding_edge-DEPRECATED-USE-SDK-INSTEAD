@@ -10,6 +10,7 @@ import 'dart:html';
 class Client {
   static const Duration RECONNECT_DELAY = const Duration(milliseconds: 500);
 
+  bool connectPending = false;
   WebSocket webSocket;
   final DivElement log = new DivElement();
   SearchInputElement searchElement = querySelector('#q');
@@ -25,6 +26,7 @@ class Client {
   }
 
   void connect() {
+    connectPending = false;
     webSocket = new WebSocket('ws://${Uri.base.host}:${Uri.base.port}/ws');
     webSocket.onOpen.first.then((_) {
       onConnected();
@@ -50,8 +52,10 @@ class Client {
   }
 
   void onDisconnected() {
-    searchElement.disabled = true;
+    if (connectPending) return;
+    connectPending = true;
     setStatus('Disconnected - start \'bin/server.dart\' to continue');
+    searchElement.disabled = true;
     new Timer(RECONNECT_DELAY, connect);
   }
 
