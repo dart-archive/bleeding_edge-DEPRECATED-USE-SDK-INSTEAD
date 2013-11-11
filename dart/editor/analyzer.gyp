@@ -37,6 +37,7 @@
             'tools/compile_analyzer.py',
             'plugin_command_analyze_sources.gypi',
             'plugin_engine_sources.gypi',
+            '../tools/VERSION',
           ],
           'outputs': [
             '<(PRODUCT_DIR)/<(analyzer_name)/<(analyzer_name).jar',
