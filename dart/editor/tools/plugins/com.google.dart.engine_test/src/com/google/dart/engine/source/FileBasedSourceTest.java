@@ -129,6 +129,15 @@ public class FileBasedSourceTest extends TestCase {
     assertFalse(source.isInSystemLibrary());
   }
 
+  public void test_issue14500() {
+    ContentCache contentCache = new ContentCache();
+    // see https://code.google.com/p/dart/issues/detail?id=14500
+    File file = createFile("/some/packages/foo:bar.dart");
+    FileBasedSource source = new FileBasedSource(contentCache, file, UriKind.DART_URI);
+    assertNotNull(source);
+    assertFalse(source.exists());
+  }
+
   public void test_system() {
     ContentCache contentCache = new ContentCache();
     File file = createFile("/does/not/exist.dart");

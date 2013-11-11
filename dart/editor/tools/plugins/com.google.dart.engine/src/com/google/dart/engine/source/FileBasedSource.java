@@ -13,7 +13,6 @@
  */
 package com.google.dart.engine.source;
 
-import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.utilities.io.FileUtilities;
 
 import java.io.File;
@@ -81,17 +80,6 @@ public class FileBasedSource implements Source {
     this.contentCache = contentCache;
     this.file = file;
     this.uriKind = uriKind;
-    // Test for invalid path on Windows
-    // See exception in https://code.google.com/p/dart/issues/detail?id=12146
-    if (file.getPath().indexOf(':') > 2) {
-      try {
-        throw new IllegalArgumentException("Invalid source path: " + file);
-      } catch (IllegalArgumentException e) {
-        // Ensure that the exception is logged
-        AnalysisEngine.getInstance().getLogger().logError(e);
-        throw e;
-      }
-    }
   }
 
   @Override
