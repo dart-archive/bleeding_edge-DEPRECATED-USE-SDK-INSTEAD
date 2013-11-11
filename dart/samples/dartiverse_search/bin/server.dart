@@ -116,6 +116,23 @@ void main() {
       var indexUri = new Uri.file(dir.path).resolve('index.html');
       virDir.serveFile(new File(indexUri.toFilePath()), request);
     };
+
+    // Add an error page handler.
+    virDir.errorPageHandler = (HttpRequest request) {
+      log.warning("Resource not found ${request.uri.path}");
+      request.response.statusCode = HttpStatus.NOT_FOUND;
+      request.response.close();
+    };
+
+    // Serve everything not routed elsewhere through the virtual directory.
     virDir.serve(router.defaultStream);
+
+    // Special handling of client.dart. Running 'pub build' generates
+    // JavaScript files but does not copy the Dart files, which are
+    // needed for the Dartium browser.
+    router.serve("/client.dart").listen((request) {
+      Uri clientScript = Platform.script.resolve("../web/client.dart");
+      virDir.serveFile(new File(clientScript.toFilePath()), request);
+    });
   });
 }
