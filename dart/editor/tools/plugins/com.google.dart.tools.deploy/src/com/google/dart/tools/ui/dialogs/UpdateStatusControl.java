@@ -41,9 +41,6 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Link;
 
-import java.net.MalformedURLException;
-import java.net.URL;
-
 /**
  * Contributes an update status label and update action button to the {@link AboutDartDialog}.
  * TODO(pquitslund): this implementation and UX is provisional and under active development
@@ -228,15 +225,10 @@ public class UpdateStatusControl extends UpdateAdapter implements DisposeListene
       public void run() {
 
         String link = "";
-        try {
-          //TODO (pquitslund): flip to true when the new naming scheme lands
-          URL url = revision.getUrl(false);
-          //sanity check in case a custom URL is being used
-          if (url.getPath().contains("integration")) {
-            link = WHATS_NEW_LINK_TEXT;
-          }
-        } catch (MalformedURLException e) {
-          //bad URL means no link
+        String url = UpdateCore.getUpdateUrl();
+        //sanity check in case a custom URL is being used
+        if (url != null && url.contains("/channels/dev/")) {
+          link = WHATS_NEW_LINK_TEXT;
         }
 
         setStatus(

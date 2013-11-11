@@ -63,8 +63,8 @@ import java.util.zip.ZipException;
 public class UpdateUtils {
 
   private static enum Arch {
-    x32("32"),
-    x64("64"),
+    x32("ia32"),
+    x64("x64"),
     UNKNOWN(null);
 
     private final String qualifier;
@@ -75,7 +75,7 @@ public class UpdateUtils {
   }
 
   private static enum OS {
-    WIN("win32"),
+    WIN("windows"),
     OSX("macos"),
     LINUX("linux"),
     UNKNOWN(null);
@@ -315,15 +315,12 @@ public class UpdateUtils {
    * Build a platform-aware installer download URL for the given revision.
    * 
    * @param revision the revision
-   * @param newBinaryNamingScheme <code>true</code> if the new binary naming scheme is to be used,
-   *          <code>false</code> otherwise
    * @return a download url
    * @throws MalformedURLException
    */
-  public static URL getInstallerUrl(Revision revision, boolean newBinaryNamingScheme)
-      throws MalformedURLException {
+  public static URL getInstallerUrl(Revision revision) throws MalformedURLException {
     // darteditor-windows-ia32.zip => darteditor-installer-windows-ia32.msi
-    String binaryName = getBinaryName(newBinaryNamingScheme);
+    String binaryName = getBinaryName();
     binaryName = binaryName.replace("darteditor-windows", "darteditor-installer-windows");
     binaryName = binaryName.subSequence(0, binaryName.length() - "zip".length()) + "msi";
     return new URL(UpdateCore.getUpdateUrl() + revision.toString() + "/" + binaryName);
@@ -411,15 +408,11 @@ public class UpdateUtils {
    * Build a platform-aware download URL for the given revision.
    * 
    * @param revision the revision
-   * @param newBinaryNamingScheme <code>true</code> if the new binary naming scheme is to be used,
-   *          <code>false</code> otherwise
    * @return a download url
    * @throws MalformedURLException
    */
-  public static URL getUrl(Revision revision, boolean newBinaryNamingScheme)
-      throws MalformedURLException {
-    return new URL(UpdateCore.getUpdateUrl() + revision.toString() + "/"
-        + getBinaryName(newBinaryNamingScheme));
+  public static URL getUrl(Revision revision) throws MalformedURLException {
+    return new URL(UpdateCore.getUpdateUrl() + revision.toString() + "/" + getBinaryName());
   }
 
   /**
@@ -600,22 +593,8 @@ public class UpdateUtils {
     }
   }
 
-  private static String getBinaryName(boolean newNamingScheme) {
-    String os = OS.qualifier;
-    String arch = ARCH.qualifier;
-    if (newNamingScheme) {
-      if (arch.equals("32")) {
-        arch = "ia32";
-      } else if (arch.equals("64")) {
-        arch = "x64";
-      }
-      if (os.equals("win32")) {
-        os = "windows";
-      }
-      return "editor/darteditor-" + os + "-" + arch + ".zip";
-    } else {
-      return "darteditor-" + os + "-" + arch + ".zip";
-    }
+  private static String getBinaryName() {
+    return "editor/darteditor-" + OS.qualifier + "-" + ARCH.qualifier + ".zip";
   }
 
   @SuppressWarnings("static-access")

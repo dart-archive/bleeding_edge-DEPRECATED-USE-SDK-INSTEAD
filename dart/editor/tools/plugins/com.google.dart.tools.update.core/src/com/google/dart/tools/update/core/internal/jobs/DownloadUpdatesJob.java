@@ -26,7 +26,6 @@ import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.osgi.util.NLS;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MalformedURLException;
 
@@ -77,21 +76,11 @@ public class DownloadUpdatesJob extends Job {
       installerFile = new File(updateDir, revision.toString() + ".msi"); //$NON-NLS-1$
       installerFile.createNewFile();
 
-      //TODO (pquitslund): remove retry when the new scheme has settled in
-      try {
-        UpdateUtils.downloadFile(
-            UpdateUtils.getInstallerUrl(revision, true),
-            installerFile,
-            NLS.bind(UpdateJobMessages.DownloadUpdatesJob_editor_rev_label, revision.toString()),
-            mon);
-      } catch (FileNotFoundException e) {
-        // fall back to old bucket
-        UpdateUtils.downloadFile(
-            UpdateUtils.getInstallerUrl(revision, false),
-            installerFile,
-            NLS.bind(UpdateJobMessages.DownloadUpdatesJob_editor_rev_label, revision.toString()),
-            mon);
-      }
+      UpdateUtils.downloadFile(
+          UpdateUtils.getInstallerUrl(revision),
+          installerFile,
+          NLS.bind(UpdateJobMessages.DownloadUpdatesJob_editor_rev_label, revision.toString()),
+          mon);
 
     } finally {
       if (installerFile != null) {
@@ -125,21 +114,11 @@ public class DownloadUpdatesJob extends Job {
       updateFile = new File(updateDir, revision.toString() + ".zip"); //$NON-NLS-1$
       updateFile.createNewFile();
 
-      //TODO (pquitslund): remove retry when the new scheme has settled in
-      try {
-        UpdateUtils.downloadFile(
-            revision.getUrl(true),
-            updateFile,
-            NLS.bind(UpdateJobMessages.DownloadUpdatesJob_editor_rev_label, revision.toString()),
-            mon);
-      } catch (FileNotFoundException e) {
-        // fall back to old bucket
-        UpdateUtils.downloadFile(
-            revision.getUrl(false),
-            updateFile,
-            NLS.bind(UpdateJobMessages.DownloadUpdatesJob_editor_rev_label, revision.toString()),
-            mon);
-      }
+      UpdateUtils.downloadFile(
+          revision.getUrl(),
+          updateFile,
+          NLS.bind(UpdateJobMessages.DownloadUpdatesJob_editor_rev_label, revision.toString()),
+          mon);
 
     } finally {
       if (updateFile != null) {

@@ -77,13 +77,11 @@ public class Revision implements Comparable<Revision> {
   /**
    * Get a platform-aware download URL for this revision.
    * 
-   * @param newBinaryNamingScheme <code>true</code> if the new binary naming scheme is to be used,
-   *          <code>false</code> otherwise
    * @return the download URL
    * @throws MalformedURLException
    */
-  public URL getUrl(boolean newNamingScheme) throws MalformedURLException {
-    return UpdateUtils.getUrl(this, newNamingScheme);
+  public URL getUrl() throws MalformedURLException {
+    return UpdateUtils.getUrl(this);
   }
 
   /**
