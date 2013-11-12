@@ -1,4 +1,4 @@
-## Dcat
+## Dcat: Concatenating Files
 
 A bare-bones implementation of the the Unix `cat` utility.
 

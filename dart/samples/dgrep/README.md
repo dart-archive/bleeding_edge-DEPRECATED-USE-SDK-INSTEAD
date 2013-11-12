@@ -1,4 +1,4 @@
-## Dgrep
+## Dgrep: Searching Files for Content
 
 A bare-bones implementation of the the Unix `grep` utility.
 

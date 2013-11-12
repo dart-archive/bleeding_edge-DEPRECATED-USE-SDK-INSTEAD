@@ -1,3 +1,5 @@
+dartiverse_search: A Search App using HttpServer and WebSockets
+===============================================================
 
 To run the sample:
 

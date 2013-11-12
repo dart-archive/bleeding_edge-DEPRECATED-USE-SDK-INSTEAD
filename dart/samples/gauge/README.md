@@ -1,6 +1,6 @@
-## Using jsonp with dart:js
+## Gauge: Using the Google Charts Visualization API
 
-A sample that uses the Google Visualization library with dart:js.
+A sample that uses the Google Charts Visualization library with dart:js.
 
 Open `web/gauge.html` with Dartium.
 

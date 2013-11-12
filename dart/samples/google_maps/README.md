@@ -1,4 +1,4 @@
-## Google Maps API and dart:js
+## Google Maps: Using the JavaScript API with dart:js
 
 This code is derived from
 https://developers.google.com/maps/documentation/javascript/tutorial#HelloWorld

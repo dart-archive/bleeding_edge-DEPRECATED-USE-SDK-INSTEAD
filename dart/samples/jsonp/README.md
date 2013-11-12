@@ -1,7 +1,7 @@
-## Using jsonp with dart:js
+## Fetching Data Using JSONP
 
-This sample uses jsonp and the dart:js library to retreive data about Github
-repos belonging to the user, dart-lang.
+This sample uses JSONP and the dart:js library to retrieve data about GitHub
+repos belonging to the user dart-lang.
 
 Open `web/index.html` with Dartium.
 
