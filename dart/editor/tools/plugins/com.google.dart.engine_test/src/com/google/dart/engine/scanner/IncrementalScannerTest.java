@@ -21,57 +21,63 @@ import com.google.dart.engine.utilities.collection.TokenMap;
 
 public class IncrementalScannerTest extends EngineTestCase {
   /**
+   * The first token from the token stream resulting from parsing the original source, or
+   * {@code null} if {@link #scan} has not been invoked.
+   */
+  private Token originalTokens;
+
+  /**
    * The scanner used to perform incremental scanning, or {@code null} if {@link #scan} has not been
    * invoked.
    */
   private IncrementalScanner incrementalScanner;
 
   /**
-   * The first token from the token stream resulting from parsing the original source, or
+   * The first token from the token stream resulting from performing an incremental scan, or
    * {@code null} if {@link #scan} has not been invoked.
    */
-  private Token originalTokens;
+  private Token incrementalTokens;
 
   public void fail_delete_identifier_beginning() {
     // "abs + b;"
     // "s + b;")
     scan("", "ab", "", "s + b;");
-    assertTokens("s");
+    assertTokens(0, 0, "s", "+", "b", ";");
   }
 
   public void fail_delete_mergeTokens() {
     // "a + b + c;"
     // "ac;")
     scan("a", " + b + ", "", "c;");
-    assertTokens("ac");
+    assertTokens(0, 0, "ac", ";");
   }
 
   public void fail_replace_multiple_partialFirstAndLast() {
     // "aa + bb;"
     // "ab * ab;")
     scan("a", "a + b", "b * a", "b;");
-    assertTokens("ab", "*", "ab");
+    assertTokens(0, 2, "ab", "*", "ab", ";");
   }
 
   public void test_delete_identifier_end() {
     // "abs + b;"
     // "a + b;")
     scan("a", "bs", "", " + b;");
-    assertTokens("a");
+    assertTokens(0, 0, "a", "+", "b", ";");
   }
 
   public void test_delete_identifier_middle() {
     // "abs + b;"
     // "as + b;")
     scan("a", "b", "", "s + b;");
-    assertTokens("as");
+    assertTokens(0, 0, "as", "+", "b", ";");
   }
 
   public void test_insert_afterIdentifier1() {
     // "a + b;"
     // "abs + b;"
     scan("a", "", "bs", " + b;");
-    assertTokens("abs");
+    assertTokens(0, 0, "abs", "+", "b", ";");
     assertReplaced(1, "+");
   }
 
@@ -79,42 +85,42 @@ public class IncrementalScannerTest extends EngineTestCase {
     // "a + b;"
     // "a + by;"
     scan("a + b", "", "y", ";");
-    assertTokens("by");
+    assertTokens(2, 2, "a", "+", "by", ";");
   }
 
   public void test_insert_beforeIdentifier() {
     // "a + b;"
     // "a + xb;")
     scan("a + ", "", "x", "b;");
-    assertTokens("xb");
+    assertTokens(2, 2, "a", "+", "xb", ";");
   }
 
   public void test_insert_beforeIdentifier_firstToken() {
     // "a + b;"
     // "xa + b;"
     scan("", "", "x", "a + b;");
-    assertTokens("xa");
+    assertTokens(0, 0, "xa", "+", "b", ";");
   }
 
   public void test_insert_convertOneFunctionToTwo() {
     // "f() {}"
     // "f() => 0; g() {}"
     scan("f()", "", " => 0; g()", " {}");
-    assertTokens("=>", "0", ";", "g", "(", ")");
+    assertTokens(3, 8, "f", "(", ")", "=>", "0", ";", "g", "(", ")", "{", "}");
   }
 
   public void test_insert_newIdentifier1() {
     // "a;  c;"
     // "a; b c;"
     scan("a; ", "", "b", " c;");
-    assertTokens("b");
+    assertTokens(2, 2, "a", ";", "b", "c", ";");
   }
 
   public void test_insert_newIdentifier2() {
     // "a;  c;"
     // "a;b  c;"
     scan("a;", "", "b", "  c;");
-    assertTokens("b");
+    assertTokens(2, 2, "a", ";", "b", "c", ";");
     assertReplaced(1, ";");
   }
 
@@ -122,70 +128,70 @@ public class IncrementalScannerTest extends EngineTestCase {
     // "a + b;"
     // "a + b.;"
     scan("a + b", "", ".", ";");
-    assertTokens(".");
+    assertTokens(3, 3, "a", "+", "b", ".", ";");
   }
 
   public void test_insert_period_betweenIdentifiers1() {
     // "a b;"
     // "a. b;"
-    scan("a", "", ".", " b");
-    assertTokens(".");
+    scan("a", "", ".", " b;");
+    assertTokens(1, 1, "a", ".", "b", ";");
   }
 
   public void test_insert_period_betweenIdentifiers2() {
     // "a b;"
     // "a .b;"
     scan("a ", "", ".", "b;");
-    assertTokens(".");
+    assertTokens(1, 1, "a", ".", "b", ";");
   }
 
   public void test_insert_period_betweenIdentifiers3() {
     // "a  b;"
     // "a . b;"
     scan("a ", "", ".", " b;");
-    assertTokens(".");
+    assertTokens(1, 1, "a", ".", "b", ";");
   }
 
   public void test_insert_period_insideExistingIdentifier() {
     // "ab;"
     // "a.b;"
     scan("a", "", ".", "b;");
-    assertTokens("a", ".", "b");
+    assertTokens(0, 2, "a", ".", "b", ";");
   }
 
   public void test_insert_periodAndIdentifier() {
     // "a + b;"
     // "a + b.x;"
     scan("a + b", "", ".x", ";");
-    assertTokens(".", "x");
+    assertTokens(3, 4, "a", "+", "b", ".", "x", ";");
   }
 
   public void test_insert_whitespace_beginning_beforeToken() {
     // "a + b;"
     // " a + b;"
     scan("", "", " ", "a + b;");
-    assertTokens();
+    assertTokens(-1, -1, "a", "+", "b", ";");
   }
 
   public void test_insert_whitespace_betweenTokens() {
     // "a + b;"
     // "a  + b;"
     scan("a ", "", " ", "+ b;");
-    assertTokens();
+    assertTokens(-1, -1, "a", "+", "b", ";");
   }
 
   public void test_insert_whitespace_end_afterToken() {
     // "a + b;"
     // "a + b; "
     scan("a + b;", "", " ", "");
-    assertTokens();
+    assertTokens(-1, -1, "a", "+", "b", ";");
   }
 
   public void test_insert_whitespace_end_afterWhitespace() {
     // "a + b; "
     // "a + b;  "
     scan("a + b; ", "", " ", "");
-    assertTokens();
+    assertTokens(-1, -1, "a", "+", "b", ";");
   }
 
   public void test_insert_whitespace_withMultipleComments() {
@@ -195,42 +201,42 @@ public class IncrementalScannerTest extends EngineTestCase {
         "//comment",
         "//comment2",
         "a"), "", " ", " + b;");
-    assertTokens();
+    assertTokens(-1, -1, "a", "+", "b", ";");
   }
 
   public void test_replace_identifier_beginning() {
     // "bell + b;"
     // "fell + b;")
     scan("", "b", "f", "ell + b;");
-    assertTokens("fell");
+    assertTokens(0, 0, "fell", "+", "b", ";");
   }
 
   public void test_replace_identifier_end() {
     // "bell + b;"
     // "belt + b;")
     scan("bel", "l", "t", " + b;");
-    assertTokens("belt");
+    assertTokens(0, 0, "belt", "+", "b", ";");
   }
 
   public void test_replace_identifier_middle() {
     // "first + b;"
     // "frost + b;")
     scan("f", "ir", "ro", "st + b;");
-    assertTokens("frost");
+    assertTokens(0, 0, "frost", "+", "b", ";");
   }
 
   public void test_replace_operator_oneForMany() {
     // "a + b;"
     // "a * c - b;")
     scan("a ", "+", "* c -", " b;");
-    assertTokens("*", "c", "-");
+    assertTokens(1, 3, "a", "*", "c", "-", "b", ";");
   }
 
   public void test_replace_operator_oneForOne() {
     // "a + b;"
     // "a * b;")
     scan("a ", "+", "*", " b;");
-    assertTokens("*");
+    assertTokens(1, 1, "a", "*", "b", ";");
   }
 
   public void test_tokenMap() throws Exception {
@@ -260,25 +266,30 @@ public class IncrementalScannerTest extends EngineTestCase {
     assertNotSame(oldToken, newToken);
   }
 
-  private void assertTokens(String... lexemes) {
-    Token first = incrementalScanner.getFirstToken();
-    Token last = incrementalScanner.getLastToken();
+  private void assertTokens(int firstIndex, int lastIndex, String... lexemes) {
+    Token firstToken = null;
+    Token lastToken = null;
     int count = lexemes.length;
-    if (count == 0) {
-      assertNull(first);
-      assertNull(last);
-    } else if (count == 1) {
-      assertNotNull(first);
-      assertEquals(lexemes[0], first.getLexeme());
-      assertSame(first, last);
-    } else {
-      for (String lexeme : lexemes) {
-        assertNotNull(first);
-        assertEquals(lexeme, first.getLexeme());
-        first = first.getNext();
+    Token token = incrementalTokens;
+    for (int i = 0; i < count; i++) {
+      assertEquals(lexemes[i], token.getLexeme());
+      if (i == firstIndex) {
+        firstToken = token;
       }
-      assertSame(last.getNext(), first);
+      if (i == lastIndex) {
+        lastToken = token;
+      }
+      token = token.getNext();
     }
+    assertSame("Too many tokens", TokenType.EOF, token.getType());
+    if (firstIndex >= 0) {
+      assertNotNull(firstToken);
+    }
+    assertSame(firstToken, incrementalScanner.getFirstToken());
+    if (lastIndex >= 0) {
+      assertNotNull(lastToken);
+    }
+    assertSame(lastToken, incrementalScanner.getLastToken());
   }
 
   /**
@@ -326,7 +337,7 @@ public class IncrementalScannerTest extends EngineTestCase {
         source,
         new CharSequenceReader(modifiedContents),
         incrementalListener);
-    Token incrementalTokens = incrementalScanner.rescan(
+    incrementalTokens = incrementalScanner.rescan(
         originalTokens,
         replaceStart,
         removed.length(),

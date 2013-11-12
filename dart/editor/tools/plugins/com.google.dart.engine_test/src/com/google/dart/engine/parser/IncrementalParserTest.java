@@ -25,93 +25,185 @@ import com.google.dart.engine.source.TestSource;
 import com.google.dart.engine.utilities.ast.ASTComparator;
 
 public class IncrementalParserTest extends EngineTestCase {
-  public void fail_reparse_oneFunctionToTwo() {
+  public void fail_delete_identifier_beginning() {
+    // "f() => abs + b;"
+    // "f() => s + b;")
+    assertParse("f() => ", "ab", "", "s + b;");
+  }
+
+  public void fail_delete_mergeTokens() {
+    // "f() => a + b + c;"
+    // "f() => ac;")
+    assertParse("f() => a", " + b + ", "", "c;");
+  }
+
+  public void fail_insert_convertOneFunctionToTwo() {
     // We are not currently able to handle the case where one node must be replaced by more than one
     // node.
-    assertParse(//
-        "f() {}",
-        "f() => 0; g() {}");
+    // "f() {}"
+    // "f() => 0; g() {}"
+    assertParse("f()", "", " => 0; g()", " {}");
   }
 
-  public void test_reparse_addedAfterIdentifier1() {
-    assertParse(//
-        "f() => a + b;",
-        "f() => abs + b;");
-  }
-
-  public void test_reparse_addedAfterIdentifier2() {
-    assertParse(//
-        "f() => a + b;",
-        "f() => a + bar;");
-  }
-
-  public void test_resparse_addedBeforeIdentifier1() {
-    assertParse(//
-        "f() => a + b;",
-        "f() => xa + b;");
-  }
-
-  public void test_resparse_addedBeforeIdentifier2() {
-    assertParse(//
-        "f() => a + b;",
-        "f() => a + xb;");
-  }
-
-  public void test_resparse_addedNewIdentifier1() {
-    assertParse(//
-        "a; c;",
-        "a; b c;");
-  }
-
-  public void test_resparse_addedNewIdentifier2() {
-    assertParse(//
-        "a;  c;",
-        "a;b  c;");
-  }
-
-  public void test_resparse_appendWhitespace1() {
-    assertParse(//
-        "f() => a + b;",
-        "f() => a + b; ");
-  }
-
-  public void test_resparse_appendWhitespace2() {
-    assertParse(//
-        "f() => a + b;",
-        "f() => a + b;  ");
-  }
-
-  public void test_resparse_insertedPeriod() {
-    assertParse(//
-        "f() => a + b;",
-        "f() => a + b.;");
-  }
-
-  public void test_resparse_insertWhitespace() {
-    assertParse(//
-        "f() => a + b;",
-        "f() => a  + b;");
-  }
-
-  private void assertParse(String originalContents, String modifiedContents) {
+  public void fail_insert_period_betweenIdentifiers1() {
+    // The original text is not valid Dart code, so the parser inserts a semicolon between the 'a'
+    // and the 'b' and treats that 'b' as a separate top-level declaration. That doesn't happen for
+    // the modified source, but the incremental parser doesn't fail after consuming tokens that are
+    // outside the range of what's being re-parsed. I'm not sure why betweenIdentifiers2 and 3 pass.
     //
-    // Compute the location of the deleted and inserted text.
+    // "f() => a b;"
+    // "f() => a. b;"
+    assertParse("f() => a", "", ".", " b;");
+  }
+
+  public void fail_replace_multiple_partialFirstAndLast() {
+    // "f() => aa + bb;"
+    // "f() => ab * ab;")
+    assertParse("f() => a", "a + b", "b * a", "b;");
+  }
+
+  public void test_delete_identifier_end() {
+    // "f() => abs + b;"
+    // "f() => a + b;")
+    assertParse("f() => a", "bs", "", " + b;");
+  }
+
+  public void test_delete_identifier_middle() {
+    // "f() => abs + b;"
+    // "f() => as + b;")
+    assertParse("f() => a", "b", "", "s + b;");
+  }
+
+  public void test_insert_afterIdentifier1() {
+    // "f() => a + b;"
+    // "f() => abs + b;"
+    assertParse("f() => a", "", "bs", " + b;");
+  }
+
+  public void test_insert_afterIdentifier2() {
+    // "f() => a + b;"
+    // "f() => a + bar;"
+    assertParse("f() => a + b", "", "ar", ";");
+  }
+
+  public void test_insert_beforeIdentifier1() {
+    // "f() => a + b;"
+    // "f() => xa + b;"
+    assertParse("f() => ", "", "x", "a + b;");
+  }
+
+  public void test_insert_beforeIdentifier2() {
+    // "f() => a + b;"
+    // "f() => a + xb;"
+    assertParse("f() => a + ", "", "x", "b;");
+  }
+
+  public void test_insert_newIdentifier1() {
+    // "f() => a; c;"
+    // "f() => a; b c;"
+    assertParse("f() => a;", "", " b", " c;");
+  }
+
+  public void test_insert_newIdentifier2() {
+    // "f() => a;  c;"
+    // "f() => a;b  c;"
+    assertParse("f() => a;", "", "b", "  c;");
+  }
+
+  public void test_insert_period() {
+    // "f() => a + b;"
+    // "f() => a + b.;"
+    assertParse("f() => a + b", "", ".", ";");
+  }
+
+  public void test_insert_period_betweenIdentifiers2() {
+    // "f() => a b;"
+    // "f() => a .b;"
+    assertParse("f() => a ", "", ".", "b;");
+  }
+
+  public void test_insert_period_betweenIdentifiers3() {
+    // "f() => a  b;"
+    // "f() => a . b;"
+    assertParse("f() => a ", "", ".", " b;");
+  }
+
+  public void test_insert_period_insideExistingIdentifier() {
+    // "f() => ab;"
+    // "f() => a.b;"
+    assertParse("f() => a", "", ".", "b;");
+  }
+
+  public void test_insert_periodAndIdentifier() {
+    // "f() => a + b;"
+    // "f() => a + b.x;"
+    assertParse("f() => a + b", "", ".x", ";");
+  }
+
+  public void test_insert_whitespace_end() {
+    // "f() => a + b;"
+    // "f() => a + b; "
+    assertParse("f() => a + b;", "", " ", "");
+  }
+
+  public void test_insert_whitespace_end_multiple() {
+    // "f() => a + b;"
+    // "f() => a + b;  "
+    assertParse("f() => a + b;", "", "  ", "");
+  }
+
+  public void test_insert_whitespace_middle() {
+    // "f() => a + b;"
+    // "f() => a  + b;"
+    assertParse("f() => a", "", " ", " + b;");
+  }
+
+  public void test_replace_identifier_beginning() {
+    // "f() => bell + b;"
+    // "f() => fell + b;")
+    assertParse("f() => ", "b", "f", "ell + b;");
+  }
+
+  public void test_replace_identifier_end() {
+    // "f() => bell + b;"
+    // "f() => belt + b;")
+    assertParse("f() => bel", "l", "t", " + b;");
+  }
+
+  public void test_replace_identifier_middle() {
+    // "f() => first + b;"
+    // "f() => frost + b;")
+    assertParse("f() => f", "ir", "ro", "st + b;");
+  }
+
+  public void test_replace_operator_oneForMany() {
+    // "f() => a + b;"
+    // "f() => a * c - b;")
+    assertParse("f() => a ", "+", "* c -", " b;");
+  }
+
+  public void test_replace_operator_oneForOne() {
+    // "f() => a + b;"
+    // "f() => a * b;")
+    assertParse("f() => a ", "+", "*", " b;");
+  }
+
+  /**
+   * Given a description of the original and modified contents, perform an incremental scan of the
+   * two pieces of text.
+   * 
+   * @param prefix the unchanged text before the edit region
+   * @param removed the text that was removed from the original contents
+   * @param added the text that was added to the modified contents
+   * @param suffix the unchanged text after the edit region
+   */
+  private void assertParse(String prefix, String removed, String added, String suffix) {
     //
-    int originalLength = originalContents.length();
-    int modifiedLength = modifiedContents.length();
-    int replaceStart = 0;
-    while (replaceStart < originalLength && replaceStart < modifiedLength
-        && originalContents.charAt(replaceStart) == modifiedContents.charAt(replaceStart)) {
-      replaceStart++;
-    }
-    int lengthDelta = modifiedLength - originalLength;
-    int originalEnd = originalLength - 1;
-    int modifiedEnd = modifiedLength - 1;
-    while (originalEnd >= replaceStart && modifiedEnd >= (replaceStart + lengthDelta)
-        && originalContents.charAt(originalEnd) == modifiedContents.charAt(modifiedEnd)) {
-      originalEnd--;
-      modifiedEnd--;
-    }
+    // Compute the information needed to perform the test.
+    //
+    String originalContents = prefix + removed + suffix;
+    String modifiedContents = prefix + added + suffix;
+    int replaceStart = prefix.length();
     Source source = new TestSource();
     //
     // Parse the original contents.
@@ -121,10 +213,10 @@ public class IncrementalParserTest extends EngineTestCase {
         source,
         new CharSequenceReader(originalContents),
         originalListener);
-    Token originalToken = originalScanner.tokenize();
-    assertNotNull(originalToken);
+    Token originalTokens = originalScanner.tokenize();
+    assertNotNull(originalTokens);
     Parser originalParser = new Parser(source, originalListener);
-    CompilationUnit originalUnit = originalParser.parseCompilationUnit(originalToken);
+    CompilationUnit originalUnit = originalParser.parseCompilationUnit(originalTokens);
     assertNotNull(originalUnit);
     //
     // Parse the modified contents.
@@ -134,10 +226,10 @@ public class IncrementalParserTest extends EngineTestCase {
         source,
         new CharSequenceReader(modifiedContents),
         modifiedListener);
-    Token modifiedToken = modifiedScanner.tokenize();
-    assertNotNull(modifiedToken);
+    Token modifiedTokens = modifiedScanner.tokenize();
+    assertNotNull(modifiedTokens);
     Parser modifiedParser = new Parser(source, modifiedListener);
-    CompilationUnit modifiedUnit = modifiedParser.parseCompilationUnit(modifiedToken);
+    CompilationUnit modifiedUnit = modifiedParser.parseCompilationUnit(modifiedTokens);
     assertNotNull(modifiedUnit);
     //
     // Incrementally parse the modified contents.
@@ -145,9 +237,12 @@ public class IncrementalParserTest extends EngineTestCase {
     GatheringErrorListener incrementalListener = new GatheringErrorListener();
     IncrementalScanner incrementalScanner = new IncrementalScanner(source, new CharSequenceReader(
         modifiedContents), incrementalListener);
-    Token incrementalToken = incrementalScanner.rescan(originalToken, replaceStart, originalEnd
-        - replaceStart + 1, modifiedEnd - replaceStart + 1);
-    assertNotNull(incrementalToken);
+    Token incrementalTokens = incrementalScanner.rescan(
+        originalTokens,
+        replaceStart,
+        removed.length(),
+        added.length());
+    assertNotNull(incrementalTokens);
     IncrementalParser incrementalParser = new IncrementalParser(
         source,
         incrementalScanner.getTokenMap(),
@@ -157,7 +252,7 @@ public class IncrementalParserTest extends EngineTestCase {
         incrementalScanner.getFirstToken(),
         incrementalScanner.getLastToken(),
         replaceStart,
-        originalEnd);
+        prefix.length() + removed.length());
     assertNotNull(incrementalUnit);
     //
     // Validate that the results of the incremental parse are the same as the full parse of the
