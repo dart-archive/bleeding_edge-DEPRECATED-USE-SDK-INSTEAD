@@ -114,7 +114,7 @@ public class ToFormattedSourceVisitor implements ASTVisitor<Void> {
     writer.print('{');
     {
       indentInc();
-      visitList(node.getStatements(), "\n");
+      visitList("\n", node.getStatements(), "\n");
       indentDec();
     }
     nl2();
@@ -180,7 +180,7 @@ public class ToFormattedSourceVisitor implements ASTVisitor<Void> {
     writer.print(" {");
     {
       indentInc();
-      visitList(node.getMembers(), "\n");
+      visitList("\n", node.getMembers(), "\n\n");
       indentDec();
     }
     nl2();
@@ -212,10 +212,6 @@ public class ToFormattedSourceVisitor implements ASTVisitor<Void> {
       for (String line : StringUtils.split(token.getLexeme(), "\n")) {
         if (firstLine) {
           firstLine = false;
-          // TODO (danrubel): clean this up if isDocumentation() is modified to include ///
-          if (node.isDocumentation()) {
-            nl2();
-          }
         } else {
           line = " " + line.trim();
           line = StringUtils.replace(line, "/*", "/ *");
@@ -241,10 +237,13 @@ public class ToFormattedSourceVisitor implements ASTVisitor<Void> {
     ScriptTag scriptTag = node.getScriptTag();
     NodeList<Directive> directives = node.getDirectives();
     visit(scriptTag);
+    // directives
     String prefix = scriptTag == null ? "" : " ";
     visitList(prefix, directives, "\n");
-    prefix = scriptTag == null && directives.isEmpty() ? "" : "\n\n";
-    visitList(prefix, node.getDeclarations(), "\n");
+    nl();
+    // declarations
+    prefix = scriptTag == null && directives.isEmpty() ? "" : "\n";
+    visitList(prefix, node.getDeclarations(), "\n\n");
     return null;
   }
 
@@ -1108,18 +1107,7 @@ public class ToFormattedSourceVisitor implements ASTVisitor<Void> {
    * @param separator the separator to be printed between adjacent nodes
    */
   private void visitList(NodeList<? extends ASTNode> nodes, String separator) {
-    if (nodes != null) {
-      int size = nodes.size();
-      for (int i = 0; i < size; i++) {
-        if ("\n".equals(separator)) {
-          writer.print("\n");
-          indent();
-        } else if (i > 0) {
-          writer.print(separator);
-        }
-        nodes.get(i).accept(this);
-      }
-    }
+    visitList("", nodes, separator, "");
   }
 
   /**
@@ -1130,18 +1118,7 @@ public class ToFormattedSourceVisitor implements ASTVisitor<Void> {
    * @param suffix the suffix to be printed if the list is not empty
    */
   private void visitList(NodeList<? extends ASTNode> nodes, String separator, String suffix) {
-    if (nodes != null) {
-      int size = nodes.size();
-      if (size > 0) {
-        for (int i = 0; i < size; i++) {
-          if (i > 0) {
-            writer.print(separator);
-          }
-          nodes.get(i).accept(this);
-        }
-        writer.print(suffix);
-      }
-    }
+    visitList("", nodes, separator, suffix);
   }
 
   /**
@@ -1152,16 +1129,40 @@ public class ToFormattedSourceVisitor implements ASTVisitor<Void> {
    * @param separator the separator to be printed between adjacent nodes
    */
   private void visitList(String prefix, NodeList<? extends ASTNode> nodes, String separator) {
+    visitList(prefix, nodes, separator, "");
+  }
+
+  /**
+   * Print a list of nodes, separated by the given separator.
+   * 
+   * @param prefix the prefix to be printed if the list is not empty
+   * @param nodes the nodes to be printed
+   * @param separator the separator to be printed between adjacent nodes
+   * @param suffix the suffix to be printed if the list is not empty
+   */
+  private void visitList(String prefix, NodeList<? extends ASTNode> nodes, String separator,
+      String suffix) {
     if (nodes != null) {
       int size = nodes.size();
-      if (size > 0) {
+      if (size != 0) {
+        // prefix
         writer.print(prefix);
+        if (prefix.endsWith("\n")) {
+          indent();
+        }
+        // nodes
+        boolean newLineSeparator = separator.endsWith("\n");
         for (int i = 0; i < size; i++) {
           if (i > 0) {
             writer.print(separator);
+            if (newLineSeparator) {
+              indent();
+            }
           }
           nodes.get(i).accept(this);
         }
+        // suffix
+        writer.print(suffix);
       }
     }
   }

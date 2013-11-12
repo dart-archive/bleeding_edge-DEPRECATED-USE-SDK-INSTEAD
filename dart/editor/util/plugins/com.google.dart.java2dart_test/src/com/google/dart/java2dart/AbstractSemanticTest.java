@@ -32,14 +32,14 @@ import java.io.File;
  * Test for general Java semantics to Dart translation.
  */
 public class AbstractSemanticTest extends TestCase {
-
   /**
    * @return the formatted Dart source dump of the given {@link ASTNode}.
    */
   protected static String getFormattedSource(ASTNode node) {
     PrintStringWriter writer = new PrintStringWriter();
     node.accept(new ToFormattedSourceVisitor(writer));
-    return writer.toString();
+    String result = writer.toString();
+    return StringUtils.join(StringUtils.split(result, '\n'), "\n");
   }
 
   protected static void printFormattedSource(ASTNode node) {

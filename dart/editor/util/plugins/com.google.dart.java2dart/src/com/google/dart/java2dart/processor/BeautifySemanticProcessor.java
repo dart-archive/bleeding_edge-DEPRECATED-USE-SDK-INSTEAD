@@ -14,6 +14,7 @@
 
 package com.google.dart.java2dart.processor;
 
+import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.ArgumentList;
 import com.google.dart.engine.ast.AsExpression;
 import com.google.dart.engine.ast.AssignmentExpression;
@@ -38,47 +39,44 @@ import static com.google.dart.java2dart.util.TokenFactory.token;
  */
 public class BeautifySemanticProcessor extends SemanticProcessor {
   private static boolean canRemovePathenthesis(ParenthesizedExpression node) {
-    // unwrap all enclosing parentheses
-    while (node.getParent() instanceof ParenthesizedExpression) {
-      node = (ParenthesizedExpression) node.getParent();
-    }
+    ASTNode parent = node.getParent();
     // argument of invocation
-    if (node.getParent() instanceof ArgumentList) {
+    if (parent instanceof ArgumentList) {
       return true;
     }
     // list literal element
-    if (node.getParent() instanceof ListLiteral) {
+    if (parent instanceof ListLiteral) {
       return true;
     }
     // RHS of assignment
-    if (node.getParent() instanceof AssignmentExpression) {
-      AssignmentExpression assignment = (AssignmentExpression) node.getParent();
+    if (parent instanceof AssignmentExpression) {
+      AssignmentExpression assignment = (AssignmentExpression) parent;
       if (assignment.getRightHandSide() == node) {
         return true;
       }
     }
     // initializer
-    if (node.getParent() instanceof VariableDeclaration) {
-      VariableDeclaration declaration = (VariableDeclaration) node.getParent();
+    if (parent instanceof VariableDeclaration) {
+      VariableDeclaration declaration = (VariableDeclaration) parent;
       if (declaration.getInitializer() == node) {
         return true;
       }
     }
     // return statement
-    if (node.getParent() instanceof ReturnStatement) {
-      ReturnStatement returnStatement = (ReturnStatement) node.getParent();
+    if (parent instanceof ReturnStatement) {
+      ReturnStatement returnStatement = (ReturnStatement) parent;
       if (returnStatement.getExpression() == node) {
         return true;
       }
     }
-    if (node.getParent() instanceof ExpressionFunctionBody) {
-      ExpressionFunctionBody body = (ExpressionFunctionBody) node.getParent();
+    if (parent instanceof ExpressionFunctionBody) {
+      ExpressionFunctionBody body = (ExpressionFunctionBody) parent;
       if (body.getExpression() == node) {
         return true;
       }
     }
     // 'if' condition
-    if (node.getParent() instanceof IfStatement) {
+    if (parent instanceof IfStatement) {
       return true;
     }
     // no
@@ -104,12 +102,23 @@ public class BeautifySemanticProcessor extends SemanticProcessor {
 
       @Override
       public Void visitParenthesizedExpression(ParenthesizedExpression node) {
-        super.visitParenthesizedExpression(node);
+        // dig into () until found something different
+        {
+          ParenthesizedExpression node2 = node;
+          while (node2.getExpression() instanceof ParenthesizedExpression) {
+            node2 = (ParenthesizedExpression) node2.getExpression();
+          }
+          if (node2 != node) {
+            replaceNode(node, node2);
+            node = node2;
+          }
+        }
+        // may be remove this last ()
         if (canRemovePathenthesis(node)) {
           replaceNode(node, node.getExpression());
-          return null;
         }
-        return null;
+        // process expression
+        return super.visitParenthesizedExpression(node);
       }
 
       @Override

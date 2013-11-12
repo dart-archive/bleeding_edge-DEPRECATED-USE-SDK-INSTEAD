@@ -77,7 +77,7 @@ public abstract class ASTNode {
     ASTNode node = this;
     while (node != null && !enclosingClass.isInstance(node)) {
       node = node.getParent();
-    };
+    }
     return (E) node;
   }
 

@@ -32,14 +32,14 @@ import static org.fest.assertions.Assertions.assertThat;
  * Test for {@link SyntaxTranslator}.
  */
 public class SyntaxTranslatorTest extends AbstractSemanticTest {
-
   /**
    * @return the formatted Dart source dump of the given {@link ASTNode}.
    */
   private static String toFormattedSource(ASTNode node) {
     PrintStringWriter writer = new PrintStringWriter();
     node.accept(new ToFormattedSourceVisitor(writer));
-    return writer.toString();
+    String result = writer.toString();
+    return StringUtils.join(StringUtils.split(result, '\n'), "\n");
   }
 
   private Context context = new Context();
@@ -142,7 +142,6 @@ public class SyntaxTranslatorTest extends AbstractSemanticTest {
         "public class A {",
         "}");
     assertDartSource(//
-        "",
         "/**",
         " * Some comment.",
         " */",
@@ -159,14 +158,7 @@ public class SyntaxTranslatorTest extends AbstractSemanticTest {
         " */",
         "public class A {",
         "}");
-    assertDartSource(
-        "",
-        "/**",
-        " * Some [ident] ignored.",
-        " * Second line.",
-        " */",
-        "class A {",
-        "}");
+    assertDartSource("/**", " * Some [ident] ignored.", " * Second line.", " */", "class A {", "}");
   }
 
   public void test_commentDoc_field() throws Exception {
@@ -180,7 +172,6 @@ public class SyntaxTranslatorTest extends AbstractSemanticTest {
         "}");
     assertDartSource(//
         "class A {",
-        "  ",
         "  /**",
         "   * Some comment.",
         "   */",
@@ -199,7 +190,6 @@ public class SyntaxTranslatorTest extends AbstractSemanticTest {
         "}");
     assertDartSource(
         "class A {",
-        "  ",
         "  /**",
         "   * Some comment.",
         "   */",
@@ -781,7 +771,6 @@ public class SyntaxTranslatorTest extends AbstractSemanticTest {
         "public class A {",
         "}");
     assertDartSource(//
-        "",
         "/**",
         " * aaa `fooBar` bbb",
         " */",
@@ -799,7 +788,6 @@ public class SyntaxTranslatorTest extends AbstractSemanticTest {
         "public class A {",
         "}");
     assertDartSource(//
-        "",
         "/**",
         " *",
         " * * foo bar",
@@ -817,7 +805,6 @@ public class SyntaxTranslatorTest extends AbstractSemanticTest {
         "public class A {",
         "}");
     assertDartSource(//
-        "",
         "/**",
         " * [fooBar]",
         " */",
@@ -835,7 +822,6 @@ public class SyntaxTranslatorTest extends AbstractSemanticTest {
         "public class A {",
         "}");
     assertDartSource(//
-        "",
         "/**",
         " * aaa bbb",
         " * [Source] ccc",
@@ -853,7 +839,6 @@ public class SyntaxTranslatorTest extends AbstractSemanticTest {
         "public class A {",
         "}");
     assertDartSource(//
-        "",
         "/**",
         " * [Source]",
         " */",
@@ -869,7 +854,6 @@ public class SyntaxTranslatorTest extends AbstractSemanticTest {
         "public class A {",
         "}");
     assertDartSource(//
-        "",
         "/**",
         " *",
         " */",

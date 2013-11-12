@@ -651,8 +651,9 @@ public class MainEngine {
     unit.getDirectives().add(libraryDirective("engine", "error"));
     unit.getDirectives().add(importDirective("java_core.dart", null));
     unit.getDirectives().add(importDirective("source.dart", null));
-    unit.getDirectives().add(importDirective("ast.dart", null, importShowCombinator("ASTNode")));
     unit.getDirectives().add(importDirective("scanner.dart", null, importShowCombinator("Token")));
+    unit.getDirectives().add(importDirective("ast.dart", null, importShowCombinator("ASTNode")));
+    unit.getDirectives().add(importDirective("element.dart", null, importShowCombinator("Element")));
     for (Entry<File, List<CompilationUnitMember>> entry : context.getFileToMembers().entrySet()) {
       File file = entry.getKey();
       if (isEnginePath(file, "error/") || isEnginePath(file, "internal/error/")) {
@@ -1123,7 +1124,7 @@ public class MainEngine {
    * Removes trailing spaces from the given Dart source.
    */
   private static String removeTrailingWhitespaces(String source) {
-    String[] lines = StringUtils.split(source, '\n');
+    String[] lines = StringUtils.splitPreserveAllTokens(source, '\n');
     for (int i = 0; i < lines.length; i++) {
       lines[i] = StringUtils.stripEnd(lines[i], null);
     }
