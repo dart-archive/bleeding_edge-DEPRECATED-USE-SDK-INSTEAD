@@ -15,14 +15,12 @@ package com.google.dart.tools.ui.internal.text.completion;
 
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.completion.CompletionProposal;
 import com.google.dart.tools.core.internal.util.CharOperation;
-import com.google.dart.tools.core.model.DartElement;
-import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.PreferenceConstants;
 import com.google.dart.tools.ui.internal.text.dart.SmartSemicolonAutoEditStrategy;
-import com.google.dart.tools.ui.internal.text.html.BrowserInformationControl;
 import com.google.dart.tools.ui.internal.text.html.HTMLPrinter;
 import com.google.dart.tools.ui.text.DartPartitions;
 import com.google.dart.tools.ui.text.DartTextTools;
@@ -94,6 +92,19 @@ import java.net.URL;
 public abstract class AbstractDartCompletionProposal implements IDartCompletionProposal,
     ICompletionProposalExtension, ICompletionProposalExtension2, ICompletionProposalExtension3,
     ICompletionProposalExtension5, ICompletionProposalExtension6 {
+
+  /**
+   * Presenter control creator.
+   */
+  public static final class PresenterControlCreator extends
+      AbstractReusableInformationControlCreator {
+    @Override
+    @SuppressWarnings("restriction")
+    public IInformationControl doCreateInformationControl(Shell parent) {
+      String font = PreferenceConstants.APPEARANCE_JAVADOC_FONT;
+      return new org.eclipse.jface.internal.text.html.BrowserInformationControl(parent, font, true);
+    }
+  }
 
   /**
    * Allow the linked mode editor to continue running even when the exit character is typed as part
@@ -307,8 +318,18 @@ public abstract class AbstractDartCompletionProposal implements IDartCompletionP
    */
   private static final class ControlCreator extends AbstractReusableInformationControlCreator {
     @Override
+    @SuppressWarnings("restriction")
     public IInformationControl doCreateInformationControl(Shell parent) {
-      return new BrowserInformationControl(parent, SWT.NO_TRIM | SWT.TOOL, SWT.NONE, null);
+      String font = PreferenceConstants.APPEARANCE_JAVADOC_FONT;
+      return new org.eclipse.jface.internal.text.html.BrowserInformationControl(
+          parent,
+          font,
+          DartToolsPlugin.getAdditionalInfoAffordanceString()) {
+        @Override
+        public IInformationControlCreator getInformationPresenterControlCreator() {
+          return new PresenterControlCreator();
+        }
+      };
     }
   }
 
@@ -402,26 +423,26 @@ public abstract class AbstractDartCompletionProposal implements IDartCompletionP
     instrumentation.metric("Trigger", trigger);
 
     try {
-      if (isSupportingRequiredProposals()) {
-        CompletionProposal coreProposal = ((MemberProposalInfo) getProposalInfo()).fProposal;
-        CompletionProposal[] requiredProposals = coreProposal.getRequiredProposals();
-        for (int i = 0; requiredProposals != null && i < requiredProposals.length; i++) {
-          int oldLen = document.getLength();
-          if (requiredProposals[i].getKind() == CompletionProposal.TYPE_REF) {
-            LazyDartCompletionProposal proposal = createRequiredTypeCompletionProposal(
-                requiredProposals[i],
-                fInvocationContext);
-            proposal.apply(document);
-            setReplacementOffset(getReplacementOffset() + document.getLength() - oldLen);
-          } else {
-            /*
-             * we only support the above required proposals, see
-             * CompletionProposal#getRequiredProposals()
-             */
-            Assert.isTrue(false);
-          }
-        }
-      }
+//      if (isSupportingRequiredProposals()) {
+//        CompletionProposal coreProposal = ((MemberProposalInfo) getProposalInfo()).fProposal;
+//        CompletionProposal[] requiredProposals = coreProposal.getRequiredProposals();
+//        for (int i = 0; requiredProposals != null && i < requiredProposals.length; i++) {
+//          int oldLen = document.getLength();
+//          if (requiredProposals[i].getKind() == CompletionProposal.TYPE_REF) {
+//            LazyDartCompletionProposal proposal = createRequiredTypeCompletionProposal(
+//                requiredProposals[i],
+//                fInvocationContext);
+//            proposal.apply(document);
+//            setReplacementOffset(getReplacementOffset() + document.getLength() - oldLen);
+//          } else {
+//            /*
+//             * we only support the above required proposals, see
+//             * CompletionProposal#getRequiredProposals()
+//             */
+//            Assert.isTrue(false);
+//          }
+//        }
+//      }
 
       try {
         boolean isSmartTrigger = isSmartTrigger(trigger);
@@ -547,22 +568,6 @@ public abstract class AbstractDartCompletionProposal implements IDartCompletionP
     return getReplacementOffset() + getCursorPosition();
   }
 
-  /**
-   * Returns the java element proposed by the receiver, possibly <code>null</code>.
-   * 
-   * @return the java element proposed by the receiver, possibly <code>null</code>
-   */
-  public DartElement getDartElement() {
-    if (getProposalInfo() != null) {
-      try {
-        return getProposalInfo().getJavaElement();
-      } catch (DartModelException x) {
-        DartToolsPlugin.log(x);
-      }
-    }
-    return null;
-  }
-
   @Override
   public String getDisplayString() {
     if (fDisplayString != null) {
@@ -577,18 +582,25 @@ public abstract class AbstractDartCompletionProposal implements IDartCompletionP
   }
 
   @Override
+  @SuppressWarnings("restriction")
   public IInformationControlCreator getInformationControlCreator() {
-    // FIXME(scheglov) disabled because of https://code.google.com/p/dart/issues/detail?id=12903
-    return null;
-//    Shell shell = DartToolsPlugin.getActiveWorkbenchShell();
-//    if (shell == null || !BrowserInformationControl.isAvailable(shell)) {
-//      return null;
-//    }
-//
-//    if (fCreator == null) {
-//      fCreator = new ControlCreator();
-//    }
-//    return fCreator;
+    // TODO(scheglov) Linux is known to crash sometimes when we create Browser.
+    // https://code.google.com/p/dart/issues/detail?id=12903
+    // It always was like this.
+    if (DartCore.isLinux()) {
+      return null;
+    }
+    // For luckier OSes.
+    Shell shell = DartToolsPlugin.getActiveWorkbenchShell();
+    if (shell == null
+        || !org.eclipse.jface.internal.text.html.BrowserInformationControl.isAvailable(shell)) {
+      return null;
+    }
+
+    if (fCreator == null) {
+      fCreator = new ControlCreator();
+    }
+    return fCreator;
   }
 
   @Override
@@ -1038,18 +1050,17 @@ public abstract class AbstractDartCompletionProposal implements IDartCompletionP
     }
 
     ProposalInfo proposalInfo = getProposalInfo();
-    if (!(proposalInfo instanceof MemberProposalInfo)) {
+    CompletionProposal proposal = proposalInfo.getProposal();
+
+    if (proposal == null) {
       return false;
     }
 
-    CompletionProposal proposal = ((MemberProposalInfo) proposalInfo).fProposal;
-    return proposal != null
-        && (proposal.getKind() == CompletionProposal.METHOD_REF
-            || proposal.getKind() == CompletionProposal.ARGUMENT_LIST
-            || proposal.getKind() == CompletionProposal.FIELD_REF
-            || proposal.getKind() == CompletionProposal.TYPE_REF
-//          || proposal.getKind() == CompletionProposal.ANONYMOUS_CLASS_CONSTRUCTOR_INVOCATION
-        || proposal.getKind() == CompletionProposal.CONSTRUCTOR_INVOCATION);
+    int kind = proposal.getKind();
+    return (kind == CompletionProposal.METHOD_REF || kind == CompletionProposal.ARGUMENT_LIST
+        || kind == CompletionProposal.FIELD_REF || kind == CompletionProposal.TYPE_REF
+//          || kind == CompletionProposal.ANONYMOUS_CLASS_CONSTRUCTOR_INVOCATION
+    || kind == CompletionProposal.CONSTRUCTOR_INVOCATION);
   }
 
   protected boolean isToggleEating() {

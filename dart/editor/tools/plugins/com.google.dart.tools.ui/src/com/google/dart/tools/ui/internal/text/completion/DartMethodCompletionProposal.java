@@ -14,7 +14,6 @@
 package com.google.dart.tools.ui.internal.text.completion;
 
 import com.google.dart.tools.core.completion.CompletionProposal;
-import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.ui.DartElementLabels;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.PreferenceConstants;
@@ -108,15 +107,6 @@ public class DartMethodCompletionProposal extends LazyDartCompletionProposal {
       return contextInformation;
     }
     return super.computeContextInformation();
-  }
-
-  @Override
-  protected ProposalInfo computeProposalInfo() {
-    DartProject project = fInvocationContext.getProject();
-    if (project != null) {
-      return new MethodProposalInfo(project, fProposal);
-    }
-    return super.computeProposalInfo();
   }
 
   @Override

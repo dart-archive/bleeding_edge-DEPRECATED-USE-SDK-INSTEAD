@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.text.completion;
 
+import com.google.dart.engine.element.Element;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.ui.DartToolsPlugin;
@@ -46,7 +47,7 @@ public class DartTypeCompletionProposal extends DartCompletionProposal {
 
   public DartTypeCompletionProposal(String replacementString, CompilationUnit cu,
       int replacementOffset, int replacementLength, Image image, StyledString displayString,
-      int relevance) {
+      int relevance, Element element) {
     this(
         replacementString,
         cu,
@@ -55,12 +56,13 @@ public class DartTypeCompletionProposal extends DartCompletionProposal {
         image,
         displayString,
         relevance,
-        null);
+        null,
+        element);
   }
 
   public DartTypeCompletionProposal(String replacementString, CompilationUnit cu,
       int replacementOffset, int replacementLength, Image image, StyledString displayString,
-      int relevance, String fullyQualifiedTypeName) {
+      int relevance, String fullyQualifiedTypeName, Element element) {
     this(
         replacementString,
         cu,
@@ -70,12 +72,13 @@ public class DartTypeCompletionProposal extends DartCompletionProposal {
         displayString,
         relevance,
         fullyQualifiedTypeName,
+        element,
         null);
   }
 
   public DartTypeCompletionProposal(String replacementString, CompilationUnit cu,
       int replacementOffset, int replacementLength, Image image, StyledString displayString,
-      int relevance, String fullyQualifiedTypeName,
+      int relevance, String fullyQualifiedTypeName, Element element,
       DartContentAssistInvocationContext invocationContext) {
     super(
         replacementString,
@@ -85,6 +88,7 @@ public class DartTypeCompletionProposal extends DartCompletionProposal {
         displayString,
         relevance,
         false,
+        element,
         invocationContext);
     fCompilationUnit = cu;
     fFullyQualifiedTypeName = fullyQualifiedTypeName;

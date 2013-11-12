@@ -1,6 +1,6 @@
 /* Font definitions */
 html         { font-family: sans-serif; font-size: 9pt; font-style: normal; font-weight: normal; }
-body, h1, h2, h3, h4, h5, h6, p, table, td, caption, th, ul, ol, dl, li, dd, dt { font-size: 1em; }
+body, h1, h2, h3, h4, h5, h6, p, table, td, caption, th, ul, ol, dl, li, dd, dt { font-size: 9pt; }
 pre          { font-family: monospace; }
 
 /* Margins */

@@ -13,11 +13,13 @@
  */
 package com.google.dart.tools.ui.internal.text.completion;
 
+import com.google.dart.engine.element.Element;
 import com.google.dart.tools.core.completion.CompletionProposal;
 import com.google.dart.tools.core.formatter.DefaultCodeFormatterConstants;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.internal.text.editor.DartTextHover;
 import com.google.dart.tools.ui.text.dart.DartContentAssistInvocationContext;
 import com.google.dart.tools.ui.text.editor.tmp.JavaScriptCore;
 import com.google.dart.tools.ui.text.editor.tmp.Signature;
@@ -393,7 +395,9 @@ public class LazyDartCompletionProposal extends AbstractDartCompletionProposal {
   }
 
   protected ProposalInfo computeProposalInfo() {
-    return null;
+    Element element = fProposal.getElement();
+    String html = DartTextHover.getElementDocumentationHtml(element);
+    return new ProposalInfo(fProposal, html);
   }
 
   protected int computeRelevance() {

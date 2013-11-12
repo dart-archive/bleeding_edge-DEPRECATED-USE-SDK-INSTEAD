@@ -373,7 +373,8 @@ public final class ParameterGuessingProposal extends DartMethodCompletionProposa
             paramName.length(),
             null,
             paramName,
-            0)};
+            0,
+            null)};
       }
 
       fPositions[i] = position;

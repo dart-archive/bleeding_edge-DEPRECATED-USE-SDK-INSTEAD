@@ -352,13 +352,21 @@ public final class DartDocUtilities {
 
     try {
       String docString = element.computeDocumentationComment();
-      if (docString != null) {
-        return convertToHtml(cleanDartDoc(docString));
-      }
+      return getDartDocAsHtml(docString);
     } catch (AnalysisException e) {
       DartCore.logError(e);
     }
 
+    return null;
+  }
+
+  /**
+   * Return the prettified DartDoc text for the given element.
+   */
+  public static String getDartDocAsHtml(String docString) {
+    if (docString != null) {
+      return convertToHtml(cleanDartDoc(docString));
+    }
     return null;
   }
 
@@ -385,7 +393,7 @@ public final class DartDocUtilities {
    * Return a one-line description of the given Element as html
    */
   public static String getTextSummaryAsHtml(Element element) {
-    return convertToHtml(getTextSummary(element));
+    return escapeHtmlEntities(getTextSummary(element));
   }
 
   private static String convertListItems(String[] lines) {
@@ -440,7 +448,7 @@ public final class DartDocUtilities {
     }
 
     // escape html entities
-    str = str.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
+    str = escapeHtmlEntities(str);
 
     // convert lines starting with "  " to list items
     str = convertListItems(str.split("\n"));
@@ -463,6 +471,10 @@ public final class DartDocUtilities {
     str = replacePairs(str, "_", "<i>", "</i>");
 
     return str;
+  }
+
+  private static String escapeHtmlEntities(String str) {
+    return str.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
   }
 
   private static String replacePairs(String string, String delimiter, String leftReplacement,

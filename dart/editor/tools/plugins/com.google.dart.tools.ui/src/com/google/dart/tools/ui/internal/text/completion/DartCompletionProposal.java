@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.ui.internal.text.completion;
 
+import com.google.dart.engine.element.Element;
+import com.google.dart.tools.ui.internal.text.editor.DartTextHover;
 import com.google.dart.tools.ui.text.dart.DartContentAssistInvocationContext;
 
 import org.eclipse.core.runtime.Assert;
@@ -22,6 +24,7 @@ import org.eclipse.osgi.util.TextProcessor;
 import org.eclipse.swt.graphics.Image;
 
 public class DartCompletionProposal extends AbstractDartCompletionProposal {
+  private Element element;
 
   /**
    * Creates a new completion proposal. All fields are initialized based on the provided
@@ -36,33 +39,9 @@ public class DartCompletionProposal extends AbstractDartCompletionProposal {
    * @param relevance the relevance
    */
   public DartCompletionProposal(String replacementString, int replacementOffset,
-      int replacementLength, Image image, String displayString, int relevance) {
+      int replacementLength, Image image, String displayString, int relevance, Element element) {
     this(replacementString, replacementOffset, replacementLength, image, new StyledString(
-        displayString), relevance, false);
-  }
-
-  /**
-   * Creates a new completion proposal. All fields are initialized based on the provided
-   * information.
-   * 
-   * @param replacementString the actual string to be inserted into the document
-   * @param replacementOffset the offset of the text to be replaced
-   * @param replacementLength the length of the text to be replaced
-   * @param image the image to display for this proposal
-   * @param displayString the string to be displayed for the proposal If set to <code>null</code>,
-   *          the replacement string will be taken as display string.
-   * @param relevance the relevance
-   */
-  public DartCompletionProposal(String replacementString, int replacementOffset,
-      int replacementLength, Image image, StyledString displayString, int relevance) {
-    this(
-        replacementString,
-        replacementOffset,
-        replacementLength,
-        image,
-        displayString,
-        relevance,
-        false);
+        displayString), relevance, false, element);
   }
 
   /**
@@ -80,7 +59,7 @@ public class DartCompletionProposal extends AbstractDartCompletionProposal {
    */
   public DartCompletionProposal(String replacementString, int replacementOffset,
       int replacementLength, Image image, StyledString displayString, int relevance,
-      boolean inJavadoc) {
+      boolean inJavadoc, Element element) {
     this(
         replacementString,
         replacementOffset,
@@ -89,6 +68,7 @@ public class DartCompletionProposal extends AbstractDartCompletionProposal {
         displayString,
         relevance,
         inJavadoc,
+        element,
         null);
   }
 
@@ -109,7 +89,7 @@ public class DartCompletionProposal extends AbstractDartCompletionProposal {
    */
   public DartCompletionProposal(String replacementString, int replacementOffset,
       int replacementLength, Image image, StyledString displayString, int relevance,
-      boolean inJavadoc, DartContentAssistInvocationContext invocationContext) {
+      boolean inJavadoc, Element element, DartContentAssistInvocationContext invocationContext) {
     super(invocationContext);
     Assert.isNotNull(replacementString);
     Assert.isTrue(replacementOffset >= 0);
@@ -125,6 +105,36 @@ public class DartCompletionProposal extends AbstractDartCompletionProposal {
     setCursorPosition(replacementString.length());
     setInDartDoc(inJavadoc);
     setSortString(displayString == null ? replacementString : displayString.getString());
+    setElement(element);
+  }
+
+  /**
+   * Creates a new completion proposal. All fields are initialized based on the provided
+   * information.
+   * 
+   * @param replacementString the actual string to be inserted into the document
+   * @param replacementOffset the offset of the text to be replaced
+   * @param replacementLength the length of the text to be replaced
+   * @param image the image to display for this proposal
+   * @param displayString the string to be displayed for the proposal If set to <code>null</code>,
+   *          the replacement string will be taken as display string.
+   * @param relevance the relevance
+   */
+  public DartCompletionProposal(String replacementString, int replacementOffset,
+      int replacementLength, Image image, StyledString displayString, int relevance, Element element) {
+    this(
+        replacementString,
+        replacementOffset,
+        replacementLength,
+        image,
+        displayString,
+        relevance,
+        false,
+        element);
+  }
+
+  public Element getElement() {
+    return element;
   }
 
   @Override
@@ -138,6 +148,16 @@ public class DartCompletionProposal extends AbstractDartCompletionProposal {
     } else {
       return string;
     }
+  }
+
+  public void setElement(Element element) {
+    this.element = element;
+  }
+
+  @Override
+  protected ProposalInfo getProposalInfo() {
+    String html = DartTextHover.getElementDocumentationHtml(element);
+    return new ProposalInfo(null, html);
   }
 
   @Override

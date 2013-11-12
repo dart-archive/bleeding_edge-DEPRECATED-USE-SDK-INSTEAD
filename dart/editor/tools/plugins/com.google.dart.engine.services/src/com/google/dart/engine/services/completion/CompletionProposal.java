@@ -13,6 +13,8 @@
  */
 package com.google.dart.engine.services.completion;
 
+import com.google.dart.engine.element.Element;
+
 public interface CompletionProposal {
 
   void applyPartitionOffset(int partitionOffset);
@@ -20,6 +22,8 @@ public interface CompletionProposal {
   String getCompletion();
 
   String getDeclaringType();
+
+  Element getElement();
 
   ProposalKind getKind();
 
@@ -54,6 +58,8 @@ public interface CompletionProposal {
   CompletionProposal setDeclaringType(String name);
 
   CompletionProposal setDeprecated(boolean deprecated);
+
+  CompletionProposal setElement(Element element);
 
   CompletionProposal setKind(ProposalKind x);
 

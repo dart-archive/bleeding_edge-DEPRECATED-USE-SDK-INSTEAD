@@ -71,7 +71,8 @@ public class VariableNamesProcessor implements IContentAssistProcessor,
           input.length(),
           image,
           tempName,
-          0);
+          0,
+          null);
       proposals.add(proposal);
     }
     fErrorMessage = proposals.size() > 0 ? null

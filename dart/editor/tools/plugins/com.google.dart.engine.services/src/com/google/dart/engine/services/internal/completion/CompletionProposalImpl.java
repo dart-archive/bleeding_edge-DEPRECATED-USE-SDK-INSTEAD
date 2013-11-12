@@ -18,6 +18,7 @@ package com.google.dart.engine.services.internal.completion;
  * 
  * @coverage com.google.dart.engine.services.completion
  */
+import com.google.dart.engine.element.Element;
 import com.google.dart.engine.services.completion.CompletionProposal;
 import com.google.dart.engine.services.completion.ProposalKind;
 import com.google.dart.engine.utilities.general.StringUtilities;
@@ -25,6 +26,7 @@ import com.google.dart.engine.utilities.general.StringUtilities;
 public class CompletionProposalImpl implements CompletionProposal {
 
   // All fields must be initialized to ensure getters never return null.
+  private Element element;
   private String completion = "";
   private String returnType = "";
   private String declaringType = "";
@@ -55,6 +57,11 @@ public class CompletionProposalImpl implements CompletionProposal {
   @Override
   public String getDeclaringType() {
     return declaringType;
+  }
+
+  @Override
+  public Element getElement() {
+    return element;
   }
 
   @Override
@@ -145,6 +152,12 @@ public class CompletionProposalImpl implements CompletionProposal {
   @Override
   public CompletionProposal setDeprecated(boolean deprecated) {
     this.deprecated = deprecated;
+    return this;
+  }
+
+  @Override
+  public CompletionProposal setElement(Element element) {
+    this.element = element;
     return this;
   }
 

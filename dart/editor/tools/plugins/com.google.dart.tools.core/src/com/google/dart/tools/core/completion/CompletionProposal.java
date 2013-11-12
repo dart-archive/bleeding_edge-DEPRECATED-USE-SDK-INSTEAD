@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.core.completion;
 
+import com.google.dart.engine.element.Element;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.completion.InternalCompletionProposal;
 import com.google.dart.tools.core.model.DartModifiers;
@@ -788,6 +789,13 @@ public class CompletionProposal {
    */
   public char[] getDeclarationSignature() {
     return null; // default overridden by concrete implementation
+  }
+
+  /**
+   * @return the {@link Element} associated with this completion proposal, may be {@code null}.
+   */
+  public Element getElement() {
+    return null;
   }
 
   /**

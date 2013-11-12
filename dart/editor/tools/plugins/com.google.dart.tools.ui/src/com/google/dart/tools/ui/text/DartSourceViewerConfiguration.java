@@ -275,7 +275,8 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
 
   @Override
   public int[] getConfiguredTextHoverStateMasks(ISourceViewer sourceViewer, String contentType) {
-    return super.getConfiguredTextHoverStateMasks(sourceViewer, contentType);
+    return new int[] {0};
+//    return super.getConfiguredTextHoverStateMasks(sourceViewer, contentType);
     // JavaEditorTextHoverDescriptor[] hoverDescs =
     // DartToolsPlugin.getDefault().getJavaEditorTextHoverDescriptors();
     // int stateMasks[] = new int[hoverDescs.length];

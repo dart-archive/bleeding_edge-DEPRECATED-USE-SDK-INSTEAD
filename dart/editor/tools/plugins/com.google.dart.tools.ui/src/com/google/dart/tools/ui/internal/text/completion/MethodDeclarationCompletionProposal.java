@@ -117,7 +117,7 @@ public class MethodDeclarationCompletionProposal extends DartTypeCompletionPropo
   public MethodDeclarationCompletionProposal(Type type, String methodName, String returnTypeSig,
       int start, int length, int relevance) {
     super(
-        "", type.getCompilationUnit(), start, length, null, getDisplayName(methodName, returnTypeSig), relevance); //$NON-NLS-1$
+        "", type.getCompilationUnit(), start, length, null, getDisplayName(methodName, returnTypeSig), relevance, null); //$NON-NLS-1$
     Assert.isNotNull(type);
     Assert.isNotNull(methodName);
 
@@ -126,7 +126,8 @@ public class MethodDeclarationCompletionProposal extends DartTypeCompletionPropo
     fReturnTypeSig = returnTypeSig;
 
     if (returnTypeSig == null) {
-      setProposalInfo(new ProposalInfo(type));
+      // TODO(scheglov) implement documentation comment
+//      setProposalInfo(new ProposalInfo(type));
 
       ImageDescriptor desc = new DartElementImageDescriptor(
           DartPluginImages.DESC_MISC_PUBLIC,

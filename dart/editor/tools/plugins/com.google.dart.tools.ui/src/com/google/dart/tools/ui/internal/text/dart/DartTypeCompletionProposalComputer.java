@@ -15,7 +15,6 @@ package com.google.dart.tools.ui.internal.text.dart;
 
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.completion.CompletionProposal;
-import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.model.Type;
@@ -73,10 +72,10 @@ public class DartTypeCompletionProposalComputer extends DartCompletionProposalCo
             Set proposed = new HashSet();
             for (Iterator it = types.iterator(); it.hasNext();) {
               AbstractDartCompletionProposal p = (AbstractDartCompletionProposal) it.next();
-              DartElement element = p.getDartElement();
-              if (element instanceof Type) {
-                proposed.add(((Type) element).getElementName());
-              }
+//              DartElement element = p.getDartElement();
+//              if (element instanceof Type) {
+//                proposed.add(((Type) element).getElementName());
+//              }
               relevance = Math.min(relevance, p.getRelevance());
             }
 

@@ -51,6 +51,28 @@ public class DartTextHover extends DefaultTextHover implements ITextHoverExtensi
     hoverContributors.add(hoverContributor);
   }
 
+  public static String getElementDocumentationHtml(Element element) {
+    if (element != null) {
+      String textSummary = DartDocUtilities.getTextSummaryAsHtml(element);
+
+      if (textSummary != null) {
+
+        StringBuffer docs = new StringBuffer();
+        docs.append("<b>" + textSummary + "</b>");
+
+        String dartdoc = DartDocUtilities.getDartDocAsHtml(element);
+
+        if (dartdoc != null) {
+          docs.append("<br><br>");
+          docs.append(dartdoc);
+        }
+
+        return docs.toString().trim();
+      }
+    }
+    return null;
+  }
+
   /**
    * Remove a hover contributor
    * 
@@ -168,25 +190,7 @@ public class DartTextHover extends DefaultTextHover implements ITextHoverExtensi
   private String getDartDocHover(IRegion region) {
     if (editor != null) {
       Element element = NewSelectionConverter.getElementAtOffset(editor, region.getOffset());
-
-      if (element != null) {
-        String textSummary = DartDocUtilities.getTextSummaryAsHtml(element);
-
-        if (textSummary != null) {
-
-          StringBuffer docs = new StringBuffer();
-          docs.append("<b>" + textSummary + "</b>");
-
-          String dartdoc = DartDocUtilities.getDartDocAsHtml(element);
-
-          if (dartdoc != null) {
-            docs.append("<br><br>");
-            docs.append(dartdoc);
-          }
-
-          return docs.toString().trim();
-        }
-      }
+      return getElementDocumentationHtml(element);
     }
 
     return null;

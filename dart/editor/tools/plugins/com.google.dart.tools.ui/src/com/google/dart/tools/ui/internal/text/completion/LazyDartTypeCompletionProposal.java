@@ -17,7 +17,6 @@ import com.google.dart.tools.core.completion.CompletionProposal;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
-import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.internal.corext.util.QualifiedTypeNameHistory;
 import com.google.dart.tools.ui.ContextSensitiveImportRewriteContext;
 import com.google.dart.tools.ui.DartToolsPlugin;
@@ -180,12 +179,13 @@ public class LazyDartTypeCompletionProposal extends LazyDartCompletionProposal {
 
   @Override
   protected ProposalInfo computeProposalInfo() {
-    if (fCompilationUnit != null) {
-      DartProject project = fCompilationUnit.getDartProject();
-      if (project != null) {
-        return new TypeProposalInfo(project, fProposal);
-      }
-    }
+    // TODO(scheglov) implement documentation comment
+//    if (fCompilationUnit != null) {
+//      DartProject project = fCompilationUnit.getDartProject();
+//      if (project != null) {
+//        return new TypeProposalInfo(project, fProposal);
+//      }
+//    }
     return super.computeProposalInfo();
   }
 
@@ -328,13 +328,13 @@ public class LazyDartTypeCompletionProposal extends LazyDartCompletionProposal {
    * @throws DartModelException if anything goes wrong
    */
   protected final void rememberSelection() throws DartModelException {
-    Type lhs = fInvocationContext.getExpectedType();
-    Type rhs = (Type) getDartElement();
-    if (lhs != null && rhs != null) {
-      DartToolsPlugin.getDefault().getContentAssistHistory().remember(lhs, rhs);
-    }
-
-    QualifiedTypeNameHistory.remember(getQualifiedTypeName());
+//    Type lhs = fInvocationContext.getExpectedType();
+//    Type rhs = (Type) getDartElement();
+//    if (lhs != null && rhs != null) {
+//      DartToolsPlugin.getDefault().getContentAssistHistory().remember(lhs, rhs);
+//    }
+//
+//    QualifiedTypeNameHistory.remember(getQualifiedTypeName());
   }
 
   protected void updateReplacementWithParentheses(StringBuffer replacement) {

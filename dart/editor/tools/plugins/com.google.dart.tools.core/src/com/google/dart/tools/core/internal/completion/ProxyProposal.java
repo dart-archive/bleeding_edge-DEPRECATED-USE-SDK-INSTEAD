@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.core.internal.completion;
 
+import com.google.dart.engine.element.Element;
 import com.google.dart.engine.services.completion.ProposalKind;
 import com.google.dart.tools.core.completion.CompletionProposal;
 
@@ -54,6 +55,11 @@ public class ProxyProposal extends CompletionProposal {
   @Override
   public char[] getDeclarationSignature() {
     return proposal.getDeclaringType().toCharArray();
+  }
+
+  @Override
+  public Element getElement() {
+    return proposal.getElement();
   }
 
   @Override
