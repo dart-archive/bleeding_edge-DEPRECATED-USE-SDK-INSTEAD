@@ -1,9 +1,23 @@
+import 'dart:html';
+
+@MirrorsUsed(targets: const[
+  'angular',
+  'angular.core',
+  'angular.core.dom',
+  'angular.filter',
+  'angular.perf',
+  'angular.directive',
+  'angular.routing',
+  'angular.core.parser',
+  'NodeTreeSanitizer'
+  ],
+  override: '*')
+import 'dart:mirrors';
 import 'package:di/di.dart';
 import 'package:angular/angular.dart';
 import 'package:angular/playback/playback_http.dart';
 import 'todo.dart';
 
-import 'dart:html';
 
 main() {
 
