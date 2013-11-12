@@ -1187,8 +1187,13 @@ def UploadApiDocs(dirName):
   apidocs_destination_gcsdir = apidocs_namer.docs_dirpath(REVISION)
   apidocs_destination_latestfile = apidocs_namer.docs_latestpath(REVISION)
 
-  # Delete the old revision specific apidocs directory if present.
-  Gsutil(['-m', 'rm', '-R', '-f', apidocs_destination_gcsdir])
+  # Return early if the documents have already been uploaded.
+  # (This can happen if a build was forced, or a commit had no changes in the
+  # dart repository (e.g. DEPS file update).)
+  if GsutilExists(apidocs_destination_gcsdir):
+    print ("Not uploading api docs, since %s is already present."
+           % apidocs_destination_gcsdir)
+    return
 
   # Upload everything inside the built apidocs directory.
   Gsutil(['-m', 'cp', '-R', '-a', 'public-read', dirName,
@@ -1203,11 +1208,23 @@ def UploadApiDocs(dirName):
     Gsutil(['cp', '-a', 'public-read', latest_file,
             apidocs_destination_latestfile])
 
-
 def Gsutil(cmd):
   gsutilTool = join(DART_PATH, 'third_party', 'gsutil', 'gsutil')
   ExecuteCommand([sys.executable, gsutilTool] + cmd)
 
+def GsutilExists(gsu_path):
+  gsutilTool = join(DART_PATH, 'third_party', 'gsutil', 'gsutil')
+  (_, stderr, returncode) = bot_utils.run(
+      [gsutilTool, 'ls', gsu_path],
+      throw_on_error=False)
+  # If the returncode is nonzero and we can find a specific error message,
+  # we know there are no objects with a prefix of [gsu_path].
+  missing = (returncode and 'CommandException: No such object' in stderr)
+  # Either the returncode has to be zero or the object must be missing,
+  # otherwise throw an exception.
+  if not missing and returncode:
+    raise Exception("Failed to determine whether %s exists" % gsu_path)
+  return not missing
 
 def EnsureDirectoryExists(f):
   d = os.path.dirname(f)
@@ -1232,7 +1249,6 @@ def FileDelete(f):
       os.remove(f)
     except OSError:
       print 'error deleting %s' % f
-
 
 if __name__ == '__main__':
   sys.exit(main())
