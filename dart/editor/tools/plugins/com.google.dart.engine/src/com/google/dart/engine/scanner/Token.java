@@ -148,8 +148,7 @@ public class Token {
 
   /**
    * Return {@code true} if this token is a synthetic token. A synthetic token is a token that was
-   * introduced by the parser in order to recover from an error in the code. Synthetic tokens always
-   * have a length of zero ({@code 0}).
+   * introduced by the parser in order to recover from an error in the code.
    * 
    * @return {@code true} if this token is a synthetic token
    */

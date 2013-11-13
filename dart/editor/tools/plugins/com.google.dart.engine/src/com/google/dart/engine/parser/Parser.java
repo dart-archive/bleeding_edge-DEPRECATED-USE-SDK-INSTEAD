@@ -28,6 +28,7 @@ import com.google.dart.engine.scanner.KeywordToken;
 import com.google.dart.engine.scanner.Scanner;
 import com.google.dart.engine.scanner.StringToken;
 import com.google.dart.engine.scanner.SubSequenceReader;
+import com.google.dart.engine.scanner.SyntheticStringToken;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.source.Source;
@@ -1560,7 +1561,20 @@ public class Parser {
    * @return the synthetic identifier that was created
    */
   private SimpleIdentifier createSyntheticIdentifier() {
-    return new SimpleIdentifier(createSyntheticToken(TokenType.IDENTIFIER));
+    Token syntheticToken;
+    if (currentToken.getType() == TokenType.KEYWORD) {
+      // Consider current keyword token as an identifier.
+      // It is not always true, e.g. "^is T" where "^" is place the place for synthetic identifier.
+      // By creating SyntheticStringToken we can distinguish a real identifier from synthetic.
+      // In the code completion behavior will depend on a cursor position - before or on "is".
+      syntheticToken = new SyntheticStringToken(
+          TokenType.IDENTIFIER,
+          currentToken.getLexeme(),
+          currentToken.getOffset());
+    } else {
+      syntheticToken = createSyntheticToken(TokenType.IDENTIFIER);
+    }
+    return new SimpleIdentifier(syntheticToken);
   }
 
   /**

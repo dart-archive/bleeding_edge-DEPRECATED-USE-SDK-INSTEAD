@@ -1648,6 +1648,15 @@ public class CompletionTests extends CompletionTestCase {
     test("class Foo { int input = 7; mth() { if (in!1) {}}}", "1+input");
   }
 
+  public void testCompletion_keyword_syntheticIdentifier() throws Exception {
+    test(src(//
+        "main() {",
+        "  var caseVar;",
+        "  var otherVar;",
+        "  var v = case!1",
+        "}"), "1+caseVar", "1-otherVar");
+  }
+
   public void testCompletion_namedArgument_alreadyUsed() throws Exception {
     test("func({foo}) {} main() { func(foo: 0, fo!1); }", "1-foo");
   }
