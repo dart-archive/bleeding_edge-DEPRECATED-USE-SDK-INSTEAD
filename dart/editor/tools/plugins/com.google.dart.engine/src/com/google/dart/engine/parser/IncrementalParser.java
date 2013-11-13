@@ -62,18 +62,22 @@ public class IncrementalParser {
    * produce a consistent AST structure. The range is represented by the first and last tokens in
    * the range. The tokens are assumed to be contained in the same token stream.
    * 
-   * @param firstToken the first token in the range of tokens that were re-scanned or {@code null}
-   *          if no new tokens were inserted
-   * @param lastToken the last token in the range of tokens that were re-scanned or {@code null} if
-   *          no new tokens were inserted
+   * @param leftToken the token in the new token stream immediately to the left of the range of
+   *          tokens that were inserted
+   * @param rightToken the token in the new token stream immediately to the right of the range of
+   *          tokens that were inserted
    * @param originalStart the offset in the original source of the first character that was modified
    * @param originalEnd the offset in the original source of the last character that was modified
    */
   @SuppressWarnings("unchecked")
-  public <E extends ASTNode> E reparse(E originalStructure, Token firstToken, Token lastToken,
+  public <E extends ASTNode> E reparse(E originalStructure, Token leftToken, Token rightToken,
       int originalStart, int originalEnd) {
     ASTNode oldNode = null;
     ASTNode newNode = null;
+    Token firstToken = leftToken.getNext();
+    if (firstToken == rightToken) {
+      firstToken = leftToken;
+    }
     if (firstToken != null) {
       //
       // Find the smallest AST node that encompasses the range of re-scanned tokens.

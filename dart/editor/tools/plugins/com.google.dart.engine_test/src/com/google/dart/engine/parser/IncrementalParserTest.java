@@ -25,15 +25,21 @@ import com.google.dart.engine.source.TestSource;
 import com.google.dart.engine.utilities.ast.ASTComparator;
 
 public class IncrementalParserTest extends EngineTestCase {
+  public void fail_delete_everything() {
+    // "f() => a + b;"
+    // ""
+    assertParse("", "f() => a + b;", "", "");
+  }
+
   public void fail_delete_identifier_beginning() {
     // "f() => abs + b;"
-    // "f() => s + b;")
+    // "f() => s + b;"
     assertParse("f() => ", "ab", "", "s + b;");
   }
 
   public void fail_delete_mergeTokens() {
     // "f() => a + b + c;"
-    // "f() => ac;")
+    // "f() => ac;"
     assertParse("f() => a", " + b + ", "", "c;");
   }
 
@@ -58,19 +64,19 @@ public class IncrementalParserTest extends EngineTestCase {
 
   public void fail_replace_multiple_partialFirstAndLast() {
     // "f() => aa + bb;"
-    // "f() => ab * ab;")
+    // "f() => ab * ab;"
     assertParse("f() => a", "a + b", "b * a", "b;");
   }
 
   public void test_delete_identifier_end() {
     // "f() => abs + b;"
-    // "f() => a + b;")
+    // "f() => a + b;"
     assertParse("f() => a", "bs", "", " + b;");
   }
 
   public void test_delete_identifier_middle() {
     // "f() => abs + b;"
-    // "f() => as + b;")
+    // "f() => as + b;"
     assertParse("f() => a", "b", "", "s + b;");
   }
 
@@ -160,31 +166,31 @@ public class IncrementalParserTest extends EngineTestCase {
 
   public void test_replace_identifier_beginning() {
     // "f() => bell + b;"
-    // "f() => fell + b;")
+    // "f() => fell + b;"
     assertParse("f() => ", "b", "f", "ell + b;");
   }
 
   public void test_replace_identifier_end() {
     // "f() => bell + b;"
-    // "f() => belt + b;")
+    // "f() => belt + b;"
     assertParse("f() => bel", "l", "t", " + b;");
   }
 
   public void test_replace_identifier_middle() {
     // "f() => first + b;"
-    // "f() => frost + b;")
+    // "f() => frost + b;"
     assertParse("f() => f", "ir", "ro", "st + b;");
   }
 
   public void test_replace_operator_oneForMany() {
     // "f() => a + b;"
-    // "f() => a * c - b;")
+    // "f() => a * c - b;"
     assertParse("f() => a ", "+", "* c -", " b;");
   }
 
   public void test_replace_operator_oneForOne() {
     // "f() => a + b;"
-    // "f() => a * b;")
+    // "f() => a * b;"
     assertParse("f() => a ", "+", "*", " b;");
   }
 
@@ -249,8 +255,8 @@ public class IncrementalParserTest extends EngineTestCase {
         incrementalListener);
     CompilationUnit incrementalUnit = incrementalParser.reparse(
         originalUnit,
-        incrementalScanner.getFirstToken(),
-        incrementalScanner.getLastToken(),
+        incrementalScanner.getLeftToken(),
+        incrementalScanner.getRightToken(),
         replaceStart,
         prefix.length() + removed.length());
     assertNotNull(incrementalUnit);

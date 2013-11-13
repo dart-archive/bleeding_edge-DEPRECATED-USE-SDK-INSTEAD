@@ -35,16 +35,18 @@ public class IncrementalScanner extends Scanner {
   private TokenMap tokenMap = new TokenMap();
 
   /**
-   * The first token in the range of tokens that are different from the tokens in the original token
-   * stream.
+   * The token in the new token stream immediately to the left of the range of tokens that were
+   * inserted, or the token immediately to the left of the modified region if there were no new
+   * tokens.
    */
-  private Token firstToken;
+  private Token leftToken;
 
   /**
-   * The last token in the range of tokens that are different from the tokens in the original token
-   * stream.
+   * The token in the new token stream immediately to the right of the range of tokens that were
+   * inserted, or the token immediately to the right of the modified region if there were no new
+   * tokens.
    */
-  private Token lastToken;
+  private Token rightToken;
 
   /**
    * Initialize a newly created scanner.
@@ -60,26 +62,25 @@ public class IncrementalScanner extends Scanner {
   }
 
   /**
-   * Return the first token in the range of tokens that are different from the tokens in the
-   * original token stream or {@code null} if the new tokens are the same as the original tokens
-   * except for offset.
+   * Return the token in the new token stream immediately to the left of the range of tokens that
+   * were inserted, or the token immediately to the left of the modified region if there were no new
+   * tokens.
    * 
-   * @return the first token in the range of new tokens
+   * @return the token to the left of the inserted tokens
    */
-  @Override
-  public Token getFirstToken() {
-    return firstToken;
+  public Token getLeftToken() {
+    return leftToken;
   }
 
   /**
-   * Return the last token in the range of tokens that are different from the tokens in the original
-   * token stream or {@code null} if the new tokens are the same as the original tokens except for
-   * offset.
+   * Return the token in the new token stream immediately to the right of the range of tokens that
+   * were inserted, or the token immediately to the right of the modified region if there were no
+   * new tokens.
    * 
-   * @return the last token in the range of new tokens
+   * @return the token to the right of the inserted tokens
    */
-  public Token getLastToken() {
-    return lastToken;
+  public Token getRightToken() {
+    return rightToken;
   }
 
   /**
@@ -106,18 +107,18 @@ public class IncrementalScanner extends Scanner {
   public Token rescan(Token originalStream, int index, int removedLength, int insertedLength) {
     //
     // Copy all of the tokens in the originalStream whose end is less than the replacement start.
-    // (If the replacement start is less than or equal to the end of an existing token, then it
-    // means that the existing token might have been modified, so we need to rescan it.)
+    // (If the replacement start is equal to the end of an existing token, then it means that the
+    // existing token might have been modified, so we need to rescan it.)
     //
     while (originalStream.getType() != TokenType.EOF && originalStream.getEnd() < index) {
       originalStream = copyAndAdvance(originalStream, 0);
     }
-    Token lastCopied = getTail();
+    leftToken = getTail();
     //
     // Starting at the smaller of the start of the next token or the given index, scan tokens from
     // the modifiedSource until the end of the just scanned token is greater than or equal to end of
-    // the modified region in the modified source. Include trailing characters of any token that
-    // was split as a result of inserted text (e.g. "ab" --> "a.b")
+    // the scan region in the modified source. Include trailing characters of any token that was
+    // split as a result of inserted text, as in "ab" --> "a.b".
     //
     int modifiedEnd = index + insertedLength - 1;
     if (originalStream.getOffset() < index) {
@@ -128,22 +129,22 @@ public class IncrementalScanner extends Scanner {
     while (next != -1 && reader.getOffset() <= modifiedEnd) {
       next = bigSwitch(next);
     }
-    firstToken = lastCopied.getNext();
-    lastToken = getTail();
+    Token firstToken = leftToken.getNext();
+    Token lastToken = getTail();
     if (firstToken == null || firstToken.getType() == TokenType.EOF) {
-      // This only happens if there were no tokens added, either because the inserted text was empty
-      // or consisted of only whitespace.
+      // This happens if there were no tokens added, either because the inserted text was empty or
+      // consisted of only whitespace.
       firstToken = null;
       lastToken = null;
     } else if (originalStream.getEnd() == index && firstToken.getEnd() == index) {
-      // This only happens when the index immediately after an existing token
-      // and the inserted characters does not change that original token
-      // For example given "a; c;" and user types "b" such that "a;b c;
-      // firstToken was ";" and this code advances it to "b" since "b" is the first new token
+      // This happens when the index is immediately after an existing token and the inserted
+      // characters do not change that original token. For example, in "a; c;" --> "a;b c;", the
+      // firstToken was ";", but this code advances it to "b" since "b" is the first new token.
       tokenMap.put(originalStream, firstToken);
       if (lastToken == firstToken) {
         lastToken = lastToken.getNext();
       }
+      leftToken = leftToken.getNext();
       firstToken = firstToken.getNext();
     }
     //
@@ -163,17 +164,25 @@ public class IncrementalScanner extends Scanner {
     //
     // Copy the remaining tokens in the original stream, but apply the delta to the token's offset.
     //
-    while (originalStream.getType() != TokenType.EOF) {
+    if (originalStream.getType() == TokenType.EOF) {
+      copyAndAdvance(originalStream, delta);
+      rightToken = getTail();
+      rightToken.setNextWithoutSettingPrevious(rightToken);
+    } else {
       originalStream = copyAndAdvance(originalStream, delta);
+      rightToken = getTail();
+      while (originalStream.getType() != TokenType.EOF) {
+        originalStream = copyAndAdvance(originalStream, delta);
+      }
+      Token eof = copyAndAdvance(originalStream, delta);
+      eof.setNextWithoutSettingPrevious(eof);
     }
-    Token eof = copyAndAdvance(originalStream, delta);
-    eof.setNextWithoutSettingPrevious(eof);
     //
     // TODO(brianwilkerson) Begin tokens are not getting associated with the corresponding end
     //     tokens (because the end tokens have not been copied when we're copying the begin tokens).
     // TODO(brianwilkerson) Update the lineInfo.
     //
-    return super.getFirstToken();
+    return getFirstToken();
   }
 
   private Token copyAndAdvance(Token originalToken, int delta) {
