@@ -10,7 +10,7 @@ import 'package:polymer/polymer.dart';
 class SearchableList extends PolymerElement {
   @observable bool applyAuthorStyles = true;
   @observable String searchParam;
-  List<String> data = [];
+  @published List<String> data = [];
   final List<String> results = toObservable([]);
 
   SearchableList.created() : super.created();
