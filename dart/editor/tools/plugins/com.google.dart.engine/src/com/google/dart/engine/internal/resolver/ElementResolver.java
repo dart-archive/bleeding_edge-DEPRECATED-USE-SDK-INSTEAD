@@ -938,12 +938,18 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
 
   @Override
   public Void visitMethodInvocation(MethodInvocation node) {
+    SimpleIdentifier methodName = node.getMethodName();
+    //
+    // Synthetic identifiers have been already reported during parsing.
+    //
+    if (methodName.isSynthetic()) {
+      return null;
+    }
     //
     // We have a method invocation of one of two forms: 'e.m(a1, ..., an)' or 'm(a1, ..., an)'. The
     // first step is to figure out which executable is being invoked, using both the static and the
     // propagated type information.
     //
-    SimpleIdentifier methodName = node.getMethodName();
     Expression target = node.getRealTarget();
     if (target instanceof SuperExpression && !isSuperInValidContext((SuperExpression) target)) {
       return null;
@@ -1310,6 +1316,12 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
 
   @Override
   public Void visitSimpleIdentifier(SimpleIdentifier node) {
+    //
+    // Synthetic identifiers have been already reported during parsing.
+    //
+    if (node.isSynthetic()) {
+      return null;
+    }
     //
     // We ignore identifiers that have already been resolved, such as identifiers representing the
     // name in a declaration.

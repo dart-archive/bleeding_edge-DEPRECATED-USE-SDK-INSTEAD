@@ -3589,6 +3589,26 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_undefinedIdentifier_synthetic_whenExpression() throws Exception {
+    Source source = addSource(createSource(//
+        "print(x) {}",
+        "main() {",
+        "  print(is String);",
+        "}"));
+    resolve(source);
+    assertErrors(source, ParserErrorCode.MISSING_IDENTIFIER);
+  }
+
+  public void test_undefinedIdentifier_synthetic_whenMethodName() throws Exception {
+    Source source = addSource(createSource(//
+        "print(x) {}",
+        "main(int p) {",
+        "  p.();",
+        "}"));
+    resolve(source);
+    assertErrors(source, ParserErrorCode.MISSING_IDENTIFIER);
+  }
+
   public void test_undefinedMethod_functionExpression_callMethod() throws Exception {
     Source source = addSource(createSource(//
         "main() {",
