@@ -850,6 +850,30 @@ public class InterfaceTypeImplTest extends EngineTestCase {
     assertFalse(0 == typeA.hashCode());
   }
 
+  public void test_isAssignableTo_typeVariables() {
+    //
+    // class A<E> {}
+    // class B<F, G> {
+    //   A<F> af;
+    //   f (A<G> ag) {
+    //     af = ag;
+    //   }
+    // }
+    //
+    ClassElement classA = classElement("A", "E");
+    ClassElement classB = classElement("B", "F", "G");
+    InterfaceTypeImpl typeAF = new InterfaceTypeImpl(classA);
+    typeAF.setTypeArguments(new Type[] {classB.getTypeParameters()[0].getType()});
+    InterfaceTypeImpl typeAG = new InterfaceTypeImpl(classA);
+    typeAG.setTypeArguments(new Type[] {classB.getTypeParameters()[1].getType()});
+
+    assertFalse(typeAG.isAssignableTo(typeAF));
+  }
+
+  public void test_isAssignableTo_void() {
+    assertFalse(VoidTypeImpl.getInstance().isAssignableTo(typeProvider.getIntType()));
+  }
+
   public void test_isDirectSupertypeOf_extends() {
     ClassElement classA = classElement("A");
     ClassElement classB = classElement("B", classA.getType());
