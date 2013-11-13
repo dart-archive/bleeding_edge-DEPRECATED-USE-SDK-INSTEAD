@@ -1,11 +1,11 @@
 /*
  * Copyright (c) 2013, the Dart project authors.
- *
+ * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- *
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -1546,6 +1546,25 @@ public class CompletionTests extends CompletionTestCase {
   public void testCompletion_ifStmt_topLevelVara() throws Exception {
     test("topValue = 7; class Foo { mth() { if (t!1) {}}}", "1+topValue");
   }
+
+  public void testCompletion_import_dart() throws Exception {
+    test(
+        src(//
+            "import 'dart:math",
+            "import 'dart:_chrome",
+            "import 'dart:_collection.dev",
+            "import 'dart:!1"),
+        "1+dart:core",
+        "1+dart:math",
+        "1-dart:_chrome",
+        "1-dart:_collection.dev");
+  }
+
+  // TODO(scheglov)
+//  public void testCompletion_import_lib() throws Exception {
+//    addSource("/my_lib.dart", "");
+//    test("import '!1", "1+my_lib.dart");
+//  }
 
   public void testCompletion_keyword_in() throws Exception {
     test("class Foo { int input = 7; mth() { if (in!1) {}}}", "1+input");

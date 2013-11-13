@@ -121,6 +121,9 @@ import com.google.dart.engine.type.Type;
 import com.google.dart.engine.utilities.ast.ScopedNameFinder;
 import com.google.dart.engine.utilities.dart.ParameterKind;
 
+import org.apache.commons.lang3.StringUtils;
+
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -1855,9 +1858,32 @@ public class CompletionEngine {
 //    }
   }
 
-  void importPubReference(ImportDirective node, List<LibraryElement> packages,
-      List<LibraryElement> librariesInLib) {
-
+  void importPubReference(ImportDirective node, List<String> packages) {
+    // no import URI or package:
+    String prefix = filter.prefix;
+    String[] prefixStrings = prefix.split(":");
+    if (!prefix.isEmpty() && !"package:".startsWith(prefixStrings[0])) {
+      return;
+    }
+    // if no URI yet, propose package:
+    if (prefix.isEmpty()) {
+      pName("package:", ProposalKind.IMPORT);
+      return;
+    }
+    // add known package: URIs
+    for (String lib : packages) {
+      if (filterDisallows(lib)) {
+        continue;
+      }
+      CompletionProposal prop = createProposal(ProposalKind.IMPORT);
+      prop.setCompletion(lib);
+      // pub "lib" before "lib/src"
+      if (!lib.contains("/src/")) {
+        prop.setRelevance(10);
+      }
+      // done
+      requestor.accept(prop);
+    }
   }
 
   void importReference(ImportDirective node, SimpleStringLiteral literal) {
@@ -1866,7 +1892,7 @@ public class CompletionEngine {
       lit = lit.substring(1, Math.max(lit.length() - 1, 0));
     }
     filter = new Filter(new Ident(node, lit, literal.getOffset() + 1));
-    List<LibraryElement> packages = new ArrayList<LibraryElement>();
+    List<String> packages = new ArrayList<String>();
     List<LibraryElement> libraries = new ArrayList<LibraryElement>();
     List<LibraryElement> librariesInLib = new ArrayList<LibraryElement>();
     String currentLibraryName = getCurrentLibrary().getSource().getFullName();
@@ -1874,14 +1900,23 @@ public class CompletionEngine {
     Source[] sources = ac.getLibrarySources();
     for (Source s : sources) {
       String sName = s.getFullName();
+      // skip current library
       if (currentLibraryName.equals(sName)) {
         continue;
+      }
+      // ".pub-cache/..../unittest-0.8.8/lib/unittest.dart" -> "package:unittest/unittest.dart"
+      {
+        URI uri = ac.getSourceFactory().restoreUri(s);
+        if (uri != null) {
+          String uriString = uri.toString();
+          if (uriString.startsWith("package:")) {
+            packages.add(uriString);
+          }
+        }
       }
       LibraryElement lib = ac.getLibraryElement(s);
       if (lib == null) {
         continue;
-      } else if (sName.contains("/packages/")) {
-        packages.add(lib);
       } else if (isUnitInLibFolder(lib.getDefiningCompilationUnit())) {
         librariesInLib.add(lib);
       } else {
@@ -1889,8 +1924,8 @@ public class CompletionEngine {
       }
     }
     importSdkReference(node);
-    importPubReference(node, packages, librariesInLib);
-    importPackageReference(node, libraries, librariesInLib);
+    importPubReference(node, packages);
+//    importPackageReference(node, libraries, librariesInLib);
   }
 
   void importSdkReference(ImportDirective node) {
@@ -1906,8 +1941,13 @@ public class CompletionEngine {
     List<LibraryElement> libs = getSystemLibraries();
     for (LibraryElement lib : libs) {
       String name = lib.getDisplayName();
-      name = name.substring(5);
-      // TODO(scheglov)
+      // standard libraries name name starting with "dart."
+      name = StringUtils.removeStart(name, "dart.");
+      // ignore private libraries
+      if (Identifier.isPrivateName(name)) {
+        continue;
+      }
+      // add with "dart:" prefix
       pName("dart:" + name, ProposalKind.IMPORT);
     }
   }
@@ -2156,7 +2196,7 @@ public class CompletionEngine {
     List<LibraryElement> sl = new ArrayList<LibraryElement>();
     for (Source s : ss) {
       if (s.isInSystemLibrary()) {
-//        sl.add(ac.getLibraryElement(s));
+        sl.add(ac.getLibraryElement(s));
       }
     }
     return sl;

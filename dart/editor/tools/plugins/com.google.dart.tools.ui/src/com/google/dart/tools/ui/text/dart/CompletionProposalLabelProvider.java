@@ -105,9 +105,11 @@ public class CompletionProposalLabelProvider {
       case CompletionProposal.LIBRARY_PREFIX:
         descriptor = DartPluginImages.DESC_OBJS_LIBRARY;
         break;
+      case CompletionProposal.TYPE_IMPORT:
+        descriptor = DartPluginImages.DESC_OBJS_PACKAGE;
+        break;
       case CompletionProposal.KEYWORD:
       case CompletionProposal.LABEL_REF:
-      case CompletionProposal.TYPE_IMPORT:
         descriptor = null;
         break;
       case CompletionProposal.JAVADOC_METHOD_REF:
