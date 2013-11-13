@@ -149,7 +149,7 @@ public class IntroEditor extends EditorPart {
         client,
         "See more Dart samples...",
         "http://www.dartlang.org/samples/?utm_source=editor&utm_medium=welcome&utm_campaign=newuser");
-    createExternalLink(client, "Browse Dart Libraries...", "http://pub.dartlang.org/");
+    createExternalLink(client, "Browse Dart libraries...", "http://pub.dartlang.org/");
     section.setClient(client);
 
     // Create the samples area.
