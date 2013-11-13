@@ -19,7 +19,6 @@ import com.google.dart.engine.ast.*;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.error.BooleanErrorListener;
-import com.google.dart.engine.error.TodoCode;
 import com.google.dart.engine.internal.parser.CommentAndMetadata;
 import com.google.dart.engine.internal.parser.FinalConstVarOrType;
 import com.google.dart.engine.internal.parser.Modifiers;
@@ -40,7 +39,6 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.regex.Matcher;
 
 /**
  * Instances of the class {@code Parser} are used to parse tokens into an AST structure.
@@ -126,10 +124,7 @@ public class Parser {
     InstrumentationBuilder instrumentation = Instrumentation.builder("dart.engine.Parser.parseCompilationUnit");
     try {
       currentToken = token;
-      CompilationUnit compilationUnit = parseCompilationUnit();
-      // TODO(devoncarew): we should move this work to a later phase of analysis
-      gatherTodoComments(token);
-      return compilationUnit;
+      return parseCompilationUnit();
     } finally {
       instrumentation.log(2); //Record if takes over 1ms
     }
@@ -1672,23 +1667,6 @@ public class Parser {
       }
     }
     return null;
-  }
-
-  private void gatherTodoComments(Token token) {
-    while (token != null && token.getType() != TokenType.EOF) {
-      Token commentToken = token.getPrecedingComments();
-
-      while (commentToken != null) {
-        if (commentToken.getType() == TokenType.SINGLE_LINE_COMMENT
-            || commentToken.getType() == TokenType.MULTI_LINE_COMMENT) {
-          scrapeTodoComment(commentToken);
-        }
-
-        commentToken = commentToken.getNext();
-      }
-
-      token = token.getNext();
-    }
   }
 
   /**
@@ -5657,26 +5635,6 @@ public class Parser {
         token.getLength(),
         errorCode,
         arguments));
-  }
-
-  /**
-   * Look for user defined tasks in comments and convert them into info level analysis issues.
-   * 
-   * @param commentToken the comment token to analyze
-   */
-  private void scrapeTodoComment(Token commentToken) {
-    Matcher matcher = TodoCode.TODO_REGEX.matcher(commentToken.getLexeme());
-
-    if (matcher.find()) {
-      int offset = commentToken.getOffset() + matcher.start() + matcher.group(1).length();
-      int length = matcher.group(2).length();
-      errorListener.onError(new AnalysisError(
-          source,
-          offset,
-          length,
-          TodoCode.TODO,
-          matcher.group(2)));
-    }
   }
 
   /**

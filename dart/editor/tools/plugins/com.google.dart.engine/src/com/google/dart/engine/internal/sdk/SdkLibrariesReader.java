@@ -22,9 +22,7 @@ import com.google.dart.engine.ast.NamedExpression;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.SimpleStringLiteral;
 import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
-import com.google.dart.engine.error.AnalysisError;
-import com.google.dart.engine.error.AnalysisErrorListener;
-import com.google.dart.engine.error.ErrorType;
+import com.google.dart.engine.error.BooleanErrorListener;
 import com.google.dart.engine.parser.Parser;
 import com.google.dart.engine.scanner.CharSequenceReader;
 import com.google.dart.engine.scanner.Scanner;
@@ -159,17 +157,7 @@ public class SdkLibrariesReader {
    * @return the library map read from the given source
    */
   public LibraryMap readFrom(File librariesFile, String libraryFileContents) {
-    final boolean[] foundError = {false};
-    AnalysisErrorListener errorListener = new AnalysisErrorListener() {
-      @Override
-      public void onError(AnalysisError error) {
-        // TODO (danrubel): Remove this TODO check once TODO scraping is moved out of parser and
-        // replace the anonymous inner class with "new BooleanErrorListener()"
-        if (error != null && error.getErrorCode().getType() != ErrorType.TODO) {
-          foundError[0] = true;
-        }
-      }
-    };
+    BooleanErrorListener errorListener = new BooleanErrorListener();
     Source source = new FileBasedSource(null, librariesFile, UriKind.FILE_URI);
     Scanner scanner = new Scanner(
         source,
@@ -179,7 +167,7 @@ public class SdkLibrariesReader {
     CompilationUnit unit = parser.parseCompilationUnit(scanner.tokenize());
     LibraryBuilder libraryBuilder = new LibraryBuilder();
     // If any syntactic errors were found then don't try to visit the AST structure.
-    if (!foundError[0]) {
+    if (!errorListener.getErrorReported()) {
       unit.accept(libraryBuilder);
     }
     return libraryBuilder.getLibrariesMap();
