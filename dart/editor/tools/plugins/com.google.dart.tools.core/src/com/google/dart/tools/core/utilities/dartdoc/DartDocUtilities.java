@@ -393,7 +393,11 @@ public final class DartDocUtilities {
    * Return a one-line description of the given Element as html
    */
   public static String getTextSummaryAsHtml(Element element) {
-    return escapeHtmlEntities(getTextSummary(element));
+    String summary = getTextSummary(element);
+    if (summary == null) {
+      return null;
+    }
+    return escapeHtmlEntities(summary);
   }
 
   private static String convertListItems(String[] lines) {
