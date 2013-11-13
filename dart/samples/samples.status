@@ -35,6 +35,7 @@ clock: Skip
 gauge: Skip
 google_maps: Skip
 jsonp: Skip
+multi_touch: Skip
 searchable_list: Skip
 solar: Skip
 spirodraw: Skip

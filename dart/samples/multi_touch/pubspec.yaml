@@ -1,0 +1,4 @@
+name: multi_touch
+description: A sample that demonstrates the use of multiple touch events
+dependencies:
+  browser: any
