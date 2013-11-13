@@ -1068,24 +1068,34 @@ public class CompletionEngine {
     @Override
     public Void visitIsExpression(IsExpression node) {
       Ident ident;
-      if (node.getIsOperator().getEnd() == completionLocation()) {
-        int offset = 0;
-        Token isToken = node.getIsOperator();
-        if (isToken != null) {
-          offset = isToken.getOffset();
-        }
-        if (node.getExpression() instanceof PrefixedIdentifier) {
-          PrefixedIdentifier prefIdent = (PrefixedIdentifier) node.getExpression();
-          if (prefIdent.getLength() == 0) {
+      Token isToken = node.getIsOperator();
+      int isTokenEnd = isToken.getEnd();
+      if (isTokenEnd == completionLocation()) {
+        Expression expression = node.getExpression();
+        int offset = isToken.getOffset();
+        // { target.is! } possible name completion, parsed as "target.{synthetic} is!"
+        if (expression instanceof PrefixedIdentifier) {
+          PrefixedIdentifier prefIdent = (PrefixedIdentifier) expression;
+          if (prefIdent.getIdentifier().isSynthetic()) {
             Type type = typeOf(prefIdent.getPrefix());
             analyzePrefixedAccess(type, new Ident(node, "is", offset));
           } else {
-            pKeyword(node.getIsOperator());
+            pKeyword(isToken);
           }
           return null;
-        } else {
-          ident = new Ident(node, "is", offset);
         }
+        // { expr is! }
+        if (!isSyntheticIdentifier(expression)) {
+          pKeyword(node.getIsOperator());
+          return null;
+        }
+        // { is! } possible name completion
+        ident = new Ident(node, "is", offset);
+      } else if (isCompletionAfter(isTokenEnd)) {
+        state.isDynamicAllowed = false;
+        state.isVoidAllowed = false;
+        analyzeTypeName(new Ident(node), null);
+        return null;
       } else {
         ident = new Ident(node);
       }
@@ -1368,24 +1378,28 @@ public class CompletionEngine {
     @Override
     public Void visitIsExpression(IsExpression node) {
       if (typeName == node.getType()) {
-        SimpleIdentifier ident;
         Token isToken = node.getIsOperator();
         if (completionLocation() == isToken.getEnd()) {
-          // { is! } possible name completion
+          Expression expression = node.getExpression();
           int offset = isToken.getOffset();
-          if (node.getExpression() instanceof PrefixedIdentifier) {
-            PrefixedIdentifier prefIdent = (PrefixedIdentifier) node.getExpression();
-            if (prefIdent.getLength() == 0) {
+          // { target.is! } possible name completion, parsed as "target.{synthetic} is!"
+          if (expression instanceof PrefixedIdentifier) {
+            PrefixedIdentifier prefIdent = (PrefixedIdentifier) expression;
+            if (prefIdent.getIdentifier().isSynthetic()) {
               Type type = typeOf(prefIdent.getPrefix());
               analyzePrefixedAccess(type, new Ident(node, "is", offset));
             } else {
               pKeyword(node.getIsOperator());
             }
             return null;
-          } else {
-            ident = new Ident(node, "is", offset);
           }
-          analyzeLocalName(ident);
+          // { expr is! }
+          if (!isSyntheticIdentifier(expression)) {
+            pKeyword(node.getIsOperator());
+            return null;
+          }
+          // { is! } possible name completion
+          analyzeLocalName(new Ident(node, "is", offset));
         } else {
           analyzeTypeName((SimpleIdentifier) node.getType().getName(), null);
         }
@@ -1455,10 +1469,15 @@ public class CompletionEngine {
     return Identifier.isPrivateName(name);
   }
 
+  private static boolean isSyntheticIdentifier(Expression expression) {
+    return expression instanceof SimpleIdentifier && ((SimpleIdentifier) expression).isSynthetic();
+  }
+
   private CompletionRequestor requestor;
   private CompletionFactory factory;
   private AssistContext context;
   private Filter filter;
+
   private CompletionState state;
 
   private LibraryElement[] libraries;

@@ -1485,6 +1485,34 @@ public class CompletionTests extends CompletionTestCase {
     test("typedef int fnint(int k); fn!1int x;", "1+fnint");
   }
 
+  public void testCompletion_as_asIdentifierPrefix() throws Exception {
+    test(src(//
+        "main(p) {",
+        "  var asVisible;",
+        "  var v = as!1;",
+        "}"), "1+asVisible");
+  }
+
+  public void testCompletion_as_asPrefixedIdentifierStart() throws Exception {
+    test(src(//
+        "class A {",
+        "  var asVisible;",
+        "}",
+        "",
+        "main(A p) {",
+        "  var v = p.as!1;",
+        "}"), "1+asVisible");
+  }
+
+  public void testCompletion_as_incompleteStatement() throws Exception {
+    test(src(//
+        "class MyClass {}",
+        "main(p) {",
+        "  var justSomeVar;",
+        "  var v = p as !1",
+        "}"), "1+MyClass", "1-justSomeVar");
+  }
+
   public void testCompletion_constructor_field() throws Exception {
     test("class X { X(this.field); int f!1ield;}", "1+field");
   }
@@ -1565,6 +1593,56 @@ public class CompletionTests extends CompletionTestCase {
 //    addSource("/my_lib.dart", "");
 //    test("import '!1", "1+my_lib.dart");
 //  }
+  public void testCompletion_is() throws Exception {
+    test(src(//
+        "class MyClass {}",
+        "main(p) {",
+        "  var isVariable;",
+        "  if (p is MyCla!1) {}",
+        "  var v1 = p is MyCla!2;",
+        "  var v2 = p is !3;",
+        "  var v2 = p is!4;",
+        "}"), "1+MyClass", "2+MyClass", "3+MyClass", "3-v1", "4+is", "4-isVariable");
+  }
+
+  public void testCompletion_is_asIdentifierStart() throws Exception {
+    test(src(//
+        "main(p) {",
+        "  var isVisible;",
+        "  var v1 = is!1;",
+        "  var v2 = is!2",
+        "}"), "1+isVisible", "2+isVisible");
+  }
+
+  public void testCompletion_is_asPrefixedIdentifierStart() throws Exception {
+    test(src(//
+        "class A {",
+        "  var isVisible;",
+        "}",
+        "",
+        "main(A p) {",
+        "  var v1 = p.is!1;",
+        "  var v2 = p.is!2",
+        "}"), "1+isVisible", "2+isVisible");
+  }
+
+  public void testCompletion_is_incompleteStatement1() throws Exception {
+    test(src(//
+        "class MyClass {}",
+        "main(p) {",
+        "  var justSomeVar;",
+        "  var v = p is !1",
+        "}"), "1+MyClass", "1-justSomeVar");
+  }
+
+  public void testCompletion_is_incompleteStatement2() throws Exception {
+    test(src(//
+        "class MyClass {}",
+        "main(p) {",
+        "  var isVariable;",
+        "  var v = p is!1",
+        "}"), "1+is", "1-isVariable");
+  }
 
   public void testCompletion_keyword_in() throws Exception {
     test("class Foo { int input = 7; mth() { if (in!1) {}}}", "1+input");
