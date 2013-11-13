@@ -163,7 +163,8 @@ public class SdkLibrariesReader {
     AnalysisErrorListener errorListener = new AnalysisErrorListener() {
       @Override
       public void onError(AnalysisError error) {
-        // TODO (danrubel): Remove this TODO check once TODO scraping is moved out of parser
+        // TODO (danrubel): Remove this TODO check once TODO scraping is moved out of parser and
+        // replace the anonymous inner class with "new BooleanErrorListener()"
         if (error != null && error.getErrorCode().getType() != ErrorType.TODO) {
           foundError[0] = true;
         }

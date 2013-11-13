@@ -25,7 +25,6 @@ import com.google.dart.engine.ast.WhileStatement;
 import com.google.dart.engine.ast.visitor.NodeLocator;
 import com.google.dart.engine.ast.visitor.SimpleASTVisitor;
 import com.google.dart.engine.context.AnalysisException;
-import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.internal.context.RecordingErrorListener;
 import com.google.dart.engine.parser.Parser;
@@ -386,12 +385,7 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
   private static IRegion getToken(IDocument document, IRegion scanRegion, Keyword keyword) {
     try {
       String source = document.get(scanRegion.getOffset(), scanRegion.getLength());
-      AnalysisErrorListener errorListener = new AnalysisErrorListener() {
-        @Override
-        public void onError(AnalysisError error) {
-        }
-      };
-      Token token = internalScan(source, errorListener);
+      Token token = internalScan(source, AnalysisErrorListener.NULL_LISTENER);
       while (token != null && token.getType() != TokenType.EOF) {
         if (token instanceof KeywordToken) {
           if (((KeywordToken) token).getKeyword() == keyword) {

@@ -18,6 +18,7 @@ import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.ast.*;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
+import com.google.dart.engine.error.BooleanErrorListener;
 import com.google.dart.engine.error.TodoCode;
 import com.google.dart.engine.internal.parser.CommentAndMetadata;
 import com.google.dart.engine.internal.parser.FinalConstVarOrType;
@@ -2779,20 +2780,14 @@ public class Parser {
       return null;
     }
     try {
-      final boolean[] errorFound = {false};
-      AnalysisErrorListener listener = new AnalysisErrorListener() {
-        @Override
-        public void onError(AnalysisError error) {
-          errorFound[0] = true;
-        }
-      };
+      BooleanErrorListener listener = new BooleanErrorListener();
       Scanner scanner = new Scanner(
           null,
           new SubSequenceReader(referenceSource, sourceOffset),
           listener);
       scanner.setSourceStart(1, 1);
       Token firstToken = scanner.tokenize();
-      if (errorFound[0]) {
+      if (listener.getErrorReported()) {
         return null;
       }
       Token newKeyword = null;

@@ -23,8 +23,7 @@ import com.google.dart.engine.ast.Statement;
 import com.google.dart.engine.ast.visitor.BreadthFirstVisitor;
 import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
 import com.google.dart.engine.element.ExecutableElement;
-import com.google.dart.engine.error.AnalysisError;
-import com.google.dart.engine.error.AnalysisErrorListener;
+import com.google.dart.engine.error.BooleanErrorListener;
 import com.google.dart.engine.scanner.CharSequenceReader;
 import com.google.dart.engine.scanner.Scanner;
 import com.google.dart.engine.scanner.Token;
@@ -546,15 +545,9 @@ public class DartFoldingStructureProvider implements IDartFoldingStructureProvid
     int begin;
 
     TokenStream(String source) throws InvalidSourceException {
-      final boolean[] errorFound = {false};
-      AnalysisErrorListener listener = new AnalysisErrorListener() {
-        @Override
-        public void onError(AnalysisError error) {
-          errorFound[0] = true;
-        }
-      };
+      BooleanErrorListener listener = new BooleanErrorListener();
       Scanner scanner = new Scanner(null, new CharSequenceReader(source), listener);
-      if (errorFound[0]) {
+      if (listener.getErrorReported()) {
         throw new InvalidSourceException();
       } else {
         firstToken = scanner.tokenize();
