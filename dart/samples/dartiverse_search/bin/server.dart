@@ -95,9 +95,9 @@ void main() {
 
   int port = 9223;  // TODO use args from command line to set this
 
-  HttpServer.bind(InternetAddress.ANY_IP_V4, port).then((server) {
+  HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, port).then((server) {
     log.info("Search server is running on "
-             "'http://${Platform.localHostname}:$port/'");
+             "'http://${server.address.address}:$port/'");
     var router = new Router(server);
 
     // The client will connect using a WebSocket. Upgrade requests to '/ws' and
