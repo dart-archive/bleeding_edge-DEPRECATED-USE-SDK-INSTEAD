@@ -36,6 +36,7 @@ import com.google.dart.engine.services.status.RefactoringStatusEntry;
 import com.google.dart.engine.services.status.RefactoringStatusSeverity;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.source.SourceRange;
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.refactoring.CompilationUnitChange;
 import com.google.dart.tools.internal.corext.refactoring.base.DartStatusContext;
 import com.google.dart.tools.internal.corext.refactoring.changes.TextChangeCompatibility;
@@ -48,6 +49,7 @@ import com.google.dart.tools.ui.internal.text.correction.proposals.TrackedPositi
 import com.google.dart.tools.ui.text.dart.IDartCompletionProposal;
 
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -148,12 +150,19 @@ public class ServiceUtils {
    * @return the LTK change for the given Services {@link CompositeChange}.
    */
   public static org.eclipse.ltk.core.refactoring.Change toLTK(MergeCompositeChange mergeChange) {
+    String mergedName = mergeChange.getName();
     CompositeChange pChange = mergeChange.getPreviewChange();
     CompositeChange eChange = mergeChange.getExecuteChange();
     final org.eclipse.ltk.core.refactoring.CompositeChange previewChange = toLTK(pChange);
     final org.eclipse.ltk.core.refactoring.CompositeChange executeChange = toLTK(eChange);
+    // May be no preview changes, for example because all these changes are applied to external
+    // files (in the Pub cache) and we ignored them.
+    if (previewChange.getChildren().length == 0) {
+      return getRenamedChange(mergedName, executeChange);
+    }
+    // OK, create wrapper LTK CompositeChange
     return new org.eclipse.ltk.core.refactoring.CompositeChange(
-        mergeChange.getName(),
+        mergedName,
         new org.eclipse.ltk.core.refactoring.Change[] {previewChange, executeChange}) {
       @Override
       public org.eclipse.ltk.core.refactoring.Change perform(IProgressMonitor pm)
@@ -196,7 +205,13 @@ public class ServiceUtils {
    */
   public static TextFileChange toLTK(SourceChange change) {
     Source source = change.getSource();
-    CompilationUnitChange ltkChange = new CompilationUnitChange(change.getName(), source);
+    // prepare IFile
+    IFile file = getFile(source);
+    if (file == null) {
+      return null;
+    }
+    // prepare CompilationUnitChange
+    CompilationUnitChange ltkChange = new CompilationUnitChange(change.getName(), file);
     ltkChange.setEdit(new MultiTextEdit());
     Map<String, List<Edit>> editGroups = change.getEditGroups();
     for (Entry<String, List<Edit>> entry : editGroups.entrySet()) {
@@ -299,6 +314,21 @@ public class ServiceUtils {
    */
   private static IStatus createRuntimeStatus(Throwable e) {
     return new Status(IStatus.ERROR, DartToolsPlugin.getPluginId(), e.getMessage(), e);
+  }
+
+  /**
+   * @return the {@link IFile} of the given {@link Source}, may be {@code null} if external.
+   */
+  private static IFile getFile(Source source) {
+    return (IFile) DartCore.getProjectManager().getResource(source);
+  }
+
+  private static org.eclipse.ltk.core.refactoring.CompositeChange getRenamedChange(String newName,
+      final org.eclipse.ltk.core.refactoring.CompositeChange executeChange) {
+    org.eclipse.ltk.core.refactoring.CompositeChange renamedExecuteChange;
+    renamedExecuteChange = new org.eclipse.ltk.core.refactoring.CompositeChange(newName);
+    renamedExecuteChange.merge(executeChange);
+    return renamedExecuteChange;
   }
 
   /**

@@ -14,11 +14,9 @@
 package com.google.dart.tools.core.refactoring;
 
 import com.google.dart.engine.source.Source;
-import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.utilities.general.ScriptUtils;
 
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -35,13 +33,8 @@ import java.util.Properties;
  */
 public class CompilationUnitChange extends TextFileChange {
 
-  private static IFile getFile(Source source) {
-    return (IFile) DartCore.getProjectManager().getResource(source);
-  }
-
-  public CompilationUnitChange(String name, Source source) {
-    super(name, getFile(source));
-    Assert.isNotNull(source);
+  public CompilationUnitChange(String name, IFile file) {
+    super(name, file);
     setTextType("dart"); //$NON-NLS-1$
   }
 

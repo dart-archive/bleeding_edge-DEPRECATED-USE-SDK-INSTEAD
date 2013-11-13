@@ -28,6 +28,7 @@ import com.google.dart.engine.services.status.RefactoringStatus;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.UriKind;
+import com.google.dart.engine.utilities.io.FileUtilities2;
 import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.refactoring.CompilationUnitChange;
 import com.google.dart.tools.ui.internal.refactoring.ServiceUtils;
@@ -109,6 +110,27 @@ public class ServiceUtilsTest extends AbstractDartTest {
     assertEquals("a01b2345", newContent);
   }
 
+  public void test_toLTK_Change_MergeCompositeChange_emptyPreview() throws Exception {
+    IFile testFile = testProject.setFileContent("test.dart", "012345");
+    Source source = createFileSource(testFile);
+    // fill SourceChange
+    SourceChange sourceChangeB = new SourceChange("My change B", source);
+    sourceChangeB.addEdit(new Edit(2, 0, "b"));
+    CompositeChange compositeChangeA = new CompositeChange("A");
+    CompositeChange compositeChangeB = new CompositeChange("B", sourceChangeB);
+    MergeCompositeChange mergeChange = new MergeCompositeChange(
+        "My composite change",
+        compositeChangeA,
+        compositeChangeB);
+    // toLTK
+    org.eclipse.ltk.core.refactoring.Change ltkChange_ = ServiceUtils.toLTK(mergeChange);
+    org.eclipse.ltk.core.refactoring.CompositeChange ltkChange = (org.eclipse.ltk.core.refactoring.CompositeChange) ltkChange_;
+    assertEquals("My composite change", ltkChange.getName());
+    org.eclipse.ltk.core.refactoring.Change[] ltkChanges = ltkChange.getChildren();
+    assertThat(ltkChanges).hasSize(1);
+    assertThat(ltkChanges[0]).isInstanceOf(CompilationUnitChange.class);
+  }
+
   public void test_toLTK_Change_SourceChange() throws Exception {
     Source source = createTestFileSource();
     // fill SourceChange
@@ -118,6 +140,27 @@ public class ServiceUtilsTest extends AbstractDartTest {
     // toLTK
     TextFileChange ltkChange = (TextFileChange) ServiceUtils.toLTK((Change) sourceChange);
     assertEquals("My change", ltkChange.getName());
+  }
+
+  public void test_toLTK_Change_SourceChange_externalFile() throws Exception {
+    FileBasedSource source = new FileBasedSource(null, FileUtilities2.createFile("/some/path"));
+    // fill SourceChange
+    SourceChange sourceChange = new SourceChange("My change", source);
+    sourceChange.addEdit(new Edit(10, 1, "a"));
+    sourceChange.addEdit(new Edit(20, 2, "b"));
+    // no IFile for this Source, so no LTK change
+    {
+      org.eclipse.ltk.core.refactoring.Change ltkChange = ServiceUtils.toLTK(sourceChange);
+      assertNull(ltkChange);
+    }
+    // try as part of CompositeChange
+    {
+      CompositeChange compositeChange = new CompositeChange("My composite change", sourceChange);
+      org.eclipse.ltk.core.refactoring.CompositeChange ltkChange = ServiceUtils.toLTK(compositeChange);
+      assertNotNull(ltkChange);
+      // wrong SourceChange was ignored
+      assertThat(ltkChange.getChildren()).isEmpty();
+    }
   }
 
   public void test_toLTK_CorrectionImage() throws Exception {
