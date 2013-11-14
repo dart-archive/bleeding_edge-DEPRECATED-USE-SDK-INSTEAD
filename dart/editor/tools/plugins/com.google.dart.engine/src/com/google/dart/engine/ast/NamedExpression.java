@@ -98,6 +98,11 @@ public class NamedExpression extends Expression {
     return name;
   }
 
+  @Override
+  public int getPrecedence() {
+    return 0;
+  }
+
   /**
    * Set the expression with which the name is associated to the given expression.
    * 

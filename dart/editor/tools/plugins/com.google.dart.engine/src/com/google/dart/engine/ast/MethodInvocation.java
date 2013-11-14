@@ -117,6 +117,11 @@ public class MethodInvocation extends Expression {
     return period;
   }
 
+  @Override
+  public int getPrecedence() {
+    return 15;
+  }
+
   /**
    * Return the expression used to compute the receiver of the invocation. If this invocation is not
    * part of a cascade expression, then this is the same as {@link #getTarget()}. If this invocation

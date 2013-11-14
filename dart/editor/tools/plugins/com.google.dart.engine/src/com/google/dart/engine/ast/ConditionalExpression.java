@@ -113,6 +113,11 @@ public class ConditionalExpression extends Expression {
     return elseExpression.getEndToken();
   }
 
+  @Override
+  public int getPrecedence() {
+    return 3;
+  }
+
   /**
    * Return the token used to separate the condition from the then expression.
    * 

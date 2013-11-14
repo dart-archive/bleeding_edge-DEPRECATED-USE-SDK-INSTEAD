@@ -64,6 +64,11 @@ public class SuperExpression extends Expression {
     return keyword;
   }
 
+  @Override
+  public int getPrecedence() {
+    return 16;
+  }
+
   /**
    * Set the token representing the keyword to the given token.
    * 

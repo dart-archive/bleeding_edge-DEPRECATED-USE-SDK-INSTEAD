@@ -119,6 +119,11 @@ public class BinaryExpression extends Expression {
     return operator;
   }
 
+  @Override
+  public int getPrecedence() {
+    return operator.getType().getPrecedence();
+  }
+
   /**
    * Return the element associated with the operator based on the propagated type of the left
    * operand, or {@code null} if the AST structure has not been resolved, if the operator is not

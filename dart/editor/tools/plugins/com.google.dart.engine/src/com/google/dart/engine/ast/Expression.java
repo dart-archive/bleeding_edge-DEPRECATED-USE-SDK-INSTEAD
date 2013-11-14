@@ -76,6 +76,19 @@ public abstract class Expression extends ASTNode {
   }
 
   /**
+   * Return the precedence of this expression. The precedence is a positive integer value that
+   * defines how the source code is parsed into an AST. For example {@code a * b + c} is parsed as
+   * {@code (a * b) + c} because the precedence of {@code *} is greater than the precedence of
+   * {@code +}.
+   * <p>
+   * You should not assume that returned values will stay the same, they might change as result of
+   * specification change. Only relative order should be used.
+   * 
+   * @return the precedence of this expression
+   */
+  public abstract int getPrecedence();
+
+  /**
    * If this expression is an argument to an invocation, and the AST structure has been resolved,
    * and the function being invoked is known based on propagated type information, and this
    * expression corresponds to one of the parameters of the function being invoked, then return the

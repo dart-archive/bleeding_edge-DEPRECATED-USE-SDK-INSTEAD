@@ -88,6 +88,11 @@ public class ParenthesizedExpression extends Expression {
     return leftParenthesis;
   }
 
+  @Override
+  public int getPrecedence() {
+    return 15;
+  }
+
   /**
    * Return the right parenthesis.
    * 

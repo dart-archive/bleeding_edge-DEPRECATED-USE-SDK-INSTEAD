@@ -83,6 +83,11 @@ public class CascadeExpression extends Expression {
     return cascadeSections.getEndToken();
   }
 
+  @Override
+  public int getPrecedence() {
+    return 2;
+  }
+
   /**
    * Return the target of the cascade sections.
    * 

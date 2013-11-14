@@ -71,6 +71,11 @@ public class ArgumentDefinitionTest extends Expression {
     return identifier;
   }
 
+  @Override
+  public int getPrecedence() {
+    return 15;
+  }
+
   /**
    * Return the token representing the question mark.
    * 

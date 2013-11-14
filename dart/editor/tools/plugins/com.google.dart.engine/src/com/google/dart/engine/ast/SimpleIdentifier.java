@@ -112,6 +112,11 @@ public class SimpleIdentifier extends Identifier {
   }
 
   @Override
+  public int getPrecedence() {
+    return 16;
+  }
+
+  @Override
   public Element getPropagatedElement() {
     return propagatedElement;
   }

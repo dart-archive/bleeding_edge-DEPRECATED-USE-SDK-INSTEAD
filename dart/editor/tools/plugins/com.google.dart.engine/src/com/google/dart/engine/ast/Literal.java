@@ -31,4 +31,8 @@ package com.google.dart.engine.ast;
  * @coverage dart.engine.ast
  */
 public abstract class Literal extends Expression {
+  @Override
+  public int getPrecedence() {
+    return 16;
+  }
 }

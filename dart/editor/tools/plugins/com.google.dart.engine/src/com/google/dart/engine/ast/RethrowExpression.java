@@ -64,6 +64,11 @@ public class RethrowExpression extends Expression {
     return keyword;
   }
 
+  @Override
+  public int getPrecedence() {
+    return 0;
+  }
+
   /**
    * Set the token representing the 'rethrow' keyword to the given token.
    * 

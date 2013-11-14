@@ -103,6 +103,11 @@ public class IsExpression extends Expression {
     return notOperator;
   }
 
+  @Override
+  public int getPrecedence() {
+    return 7;
+  }
+
   /**
    * Return the name of the type being tested for.
    * 

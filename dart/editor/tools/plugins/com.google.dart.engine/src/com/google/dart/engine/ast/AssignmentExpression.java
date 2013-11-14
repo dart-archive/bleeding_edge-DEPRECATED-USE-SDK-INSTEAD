@@ -119,6 +119,11 @@ public class AssignmentExpression extends Expression {
     return operator;
   }
 
+  @Override
+  public int getPrecedence() {
+    return 1;
+  }
+
   /**
    * Return the element associated with the operator based on the propagated type of the
    * left-hand-side, or {@code null} if the AST structure has not been resolved, if the operator is

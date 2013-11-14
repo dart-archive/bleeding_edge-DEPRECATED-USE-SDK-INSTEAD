@@ -178,6 +178,11 @@ public class IndexExpression extends Expression {
     return period;
   }
 
+  @Override
+  public int getPrecedence() {
+    return 15;
+  }
+
   /**
    * Return the element associated with the operator based on the propagated type of the target, or
    * {@code null} if the AST structure has not been resolved or if the operator could not be

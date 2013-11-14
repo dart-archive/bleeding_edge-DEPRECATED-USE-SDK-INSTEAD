@@ -88,6 +88,11 @@ public class LibraryIdentifier extends Identifier {
   }
 
   @Override
+  public int getPrecedence() {
+    return 15;
+  }
+
+  @Override
   public Element getPropagatedElement() {
     return null;
   }

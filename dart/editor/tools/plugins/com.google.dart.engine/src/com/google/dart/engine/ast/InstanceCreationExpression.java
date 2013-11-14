@@ -107,6 +107,11 @@ public class InstanceCreationExpression extends Expression {
     return keyword;
   }
 
+  @Override
+  public int getPrecedence() {
+    return 15;
+  }
+
   /**
    * Return the element associated with the constructor based on static type information, or
    * {@code null} if the AST structure has not been resolved or if the constructor could not be

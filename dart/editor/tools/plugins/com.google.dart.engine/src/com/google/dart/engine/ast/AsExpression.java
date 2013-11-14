@@ -87,6 +87,11 @@ public class AsExpression extends Expression {
     return expression;
   }
 
+  @Override
+  public int getPrecedence() {
+    return 7;
+  }
+
   /**
    * Return the name of the type being cast to.
    * 

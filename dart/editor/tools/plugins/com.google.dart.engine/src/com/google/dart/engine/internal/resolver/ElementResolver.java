@@ -222,6 +222,11 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     }
 
     @Override
+    public int getPrecedence() {
+      return 16;
+    }
+
+    @Override
     public Element getPropagatedElement() {
       return null;
     }

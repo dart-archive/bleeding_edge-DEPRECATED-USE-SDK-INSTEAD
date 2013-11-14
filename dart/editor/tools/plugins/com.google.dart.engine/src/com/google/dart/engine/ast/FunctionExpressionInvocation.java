@@ -113,6 +113,11 @@ public class FunctionExpressionInvocation extends Expression {
     return function;
   }
 
+  @Override
+  public int getPrecedence() {
+    return 15;
+  }
+
   /**
    * Return the element associated with the function being invoked based on propagated type
    * information, or {@code null} if the AST structure has not been resolved or the function could

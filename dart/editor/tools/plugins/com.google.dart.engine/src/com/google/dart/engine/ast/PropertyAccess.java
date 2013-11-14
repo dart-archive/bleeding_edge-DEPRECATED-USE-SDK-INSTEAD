@@ -86,6 +86,11 @@ public class PropertyAccess extends Expression {
     return operator;
   }
 
+  @Override
+  public int getPrecedence() {
+    return 15;
+  }
+
   /**
    * Return the name of the property being accessed.
    * 

@@ -111,6 +111,11 @@ public class FunctionExpression extends Expression {
     return parameters;
   }
 
+  @Override
+  public int getPrecedence() {
+    return 16;
+  }
+
   /**
    * Set the body of the function to the given function body.
    * 

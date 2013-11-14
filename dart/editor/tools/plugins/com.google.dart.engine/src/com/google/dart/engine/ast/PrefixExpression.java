@@ -112,6 +112,11 @@ public class PrefixExpression extends Expression {
     return operator;
   }
 
+  @Override
+  public int getPrecedence() {
+    return 14;
+  }
+
   /**
    * Return the element associated with the operator based on the propagated type of the operand, or
    * {@code null} if the AST structure has not been resolved, if the operator is not user definable,

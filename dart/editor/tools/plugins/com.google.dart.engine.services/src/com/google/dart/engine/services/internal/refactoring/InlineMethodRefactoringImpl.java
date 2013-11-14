@@ -438,14 +438,14 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
   }
 
   /**
-   * @return the precedence of the operator, may be <code>1000</code> if not binary expression.
+   * @return the precedence of the given node - result of {@link Expression#getPrecedence()} if an
+   *         {@link Expression}, negative otherwise.
    */
   private static int getExpressionPrecedence(ASTNode node) {
-    if (node instanceof BinaryExpression) {
-      BinaryExpression binary = (BinaryExpression) node;
-      return binary.getOperator().getType().getPrecedence();
+    if (node instanceof Expression) {
+      return ((Expression) node).getPrecedence();
     }
-    return 1000;
+    return -1000;
   }
 
   private final AssistContext context;

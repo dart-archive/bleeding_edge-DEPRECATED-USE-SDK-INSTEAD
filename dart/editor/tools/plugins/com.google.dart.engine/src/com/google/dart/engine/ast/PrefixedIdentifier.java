@@ -103,6 +103,11 @@ public class PrefixedIdentifier extends Identifier {
     return period;
   }
 
+  @Override
+  public int getPrecedence() {
+    return 15;
+  }
+
   /**
    * Return the prefix associated with the library in which the identifier is defined.
    * 

@@ -37,17 +37,17 @@ public enum TokenClass {
   /**
    * A value used to indicate that the token type is a bitwise-and operator.
    */
-  BITWISE_AND_OPERATOR(8),
+  BITWISE_AND_OPERATOR(10),
 
   /**
    * A value used to indicate that the token type is a bitwise-or operator.
    */
-  BITWISE_OR_OPERATOR(6),
+  BITWISE_OR_OPERATOR(8),
 
   /**
    * A value used to indicate that the token type is a bitwise-xor operator.
    */
-  BITWISE_XOR_OPERATOR(7),
+  BITWISE_XOR_OPERATOR(9),
 
   /**
    * A value used to indicate that the token type is a cascade operator.
@@ -62,7 +62,7 @@ public enum TokenClass {
   /**
    * A value used to indicate that the token type is an equality operator.
    */
-  EQUALITY_OPERATOR(9),
+  EQUALITY_OPERATOR(6),
 
   /**
    * A value used to indicate that the token type is a logical-and operator.
@@ -82,7 +82,7 @@ public enum TokenClass {
   /**
    * A value used to indicate that the token type is a relational operator.
    */
-  RELATIONAL_OPERATOR(10),
+  RELATIONAL_OPERATOR(7),
 
   /**
    * A value used to indicate that the token type is a shift operator.

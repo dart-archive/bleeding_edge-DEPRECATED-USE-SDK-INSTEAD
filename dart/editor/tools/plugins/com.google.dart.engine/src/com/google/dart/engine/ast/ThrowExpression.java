@@ -83,6 +83,11 @@ public class ThrowExpression extends Expression {
     return keyword;
   }
 
+  @Override
+  public int getPrecedence() {
+    return 0;
+  }
+
   /**
    * Set the expression computing the exception to be thrown to the given expression.
    * 
