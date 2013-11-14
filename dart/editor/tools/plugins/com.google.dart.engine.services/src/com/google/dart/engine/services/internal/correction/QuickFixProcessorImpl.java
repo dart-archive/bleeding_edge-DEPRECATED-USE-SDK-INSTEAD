@@ -20,6 +20,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AsExpression;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.ClassMember;
@@ -404,6 +405,9 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
       if (errorCode == HintCode.TYPE_CHECK_IS_NULL) {
         addFix_isNull();
       }
+      if (errorCode == HintCode.UNNECESSARY_CAST) {
+        addFix_removeUnnecessaryCast();
+      }
       if (errorCode == ParserErrorCode.EXPECTED_TOKEN) {
         addFix_insertSemicolon();
       }
@@ -482,7 +486,7 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
         || errorCode == CompileTimeErrorCode.URI_DOES_NOT_EXIST
         || errorCode == HintCode.DIVISION_OPTIMIZATION
         || errorCode == HintCode.TYPE_CHECK_IS_NOT_NULL || errorCode == HintCode.TYPE_CHECK_IS_NULL
-        || errorCode == ParserErrorCode.EXPECTED_TOKEN
+        || errorCode == HintCode.UNNECESSARY_CAST || errorCode == ParserErrorCode.EXPECTED_TOKEN
         || errorCode == ParserErrorCode.GETTER_WITH_PARAMETERS
         || errorCode == StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
         || errorCode == StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE
@@ -1063,6 +1067,20 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
         addUnitCorrectionProposal(CorrectionKind.QF_REMOVE_PARENTHESIS_IN_GETTER_INVOCATION);
       }
     }
+  }
+
+  private void addFix_removeUnnecessaryCast() {
+    if (!(coveredNode instanceof AsExpression)) {
+      return;
+    }
+    AsExpression asExpression = (AsExpression) coveredNode;
+    Expression expression = asExpression.getExpression();
+    int expressionPrecedence = CorrectionUtils.getExpressionPrecedence(expression);
+    // remove 'as T' from 'e as T'
+    addRemoveEdit(rangeEndEnd(expression, asExpression));
+    removeEnclosingParentheses(asExpression, expressionPrecedence);
+    // done
+    addUnitCorrectionProposal(CorrectionKind.QF_REMOVE_UNNECASSARY_CAST);
   }
 
   private void addFix_undefinedClass_useSimilar() {
@@ -1750,6 +1768,25 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
       }
     }
     return defaultSourceMap;
+  }
+
+  /**
+   * Removes any {@link ParenthesizedExpression} enclosing the given {@link Expression}.
+   * 
+   * @param expr the expression in {@link ParenthesizedExpression}
+   * @param exprPrecedence the effective precedence of the "expr", may be not its
+   *          {@link Expression#getPrecedence()}
+   */
+  private void removeEnclosingParentheses(Expression expr, int exprPrecedence) {
+    while (expr.getParent() instanceof ParenthesizedExpression) {
+      ParenthesizedExpression parenthesized = (ParenthesizedExpression) expr.getParent();
+      if (CorrectionUtils.getExpressionParentPrecedence(parenthesized) > exprPrecedence) {
+        return;
+      }
+      addRemoveEdit(rangeToken(parenthesized.getLeftParenthesis()));
+      addRemoveEdit(rangeToken(parenthesized.getRightParenthesis()));
+      expr = parenthesized;
+    }
   }
 
   private void resetProposalElements() {

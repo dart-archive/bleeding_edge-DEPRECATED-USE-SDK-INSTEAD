@@ -429,25 +429,6 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
     return expr.getBestParameterElement();
   }
 
-  /**
-   * @return {@link #getExpressionPrecedence(ASTNode)} for parent node.
-   */
-  private static int getExpressionParentPrecedence(ASTNode node) {
-    ASTNode parent = node.getParent();
-    return getExpressionPrecedence(parent);
-  }
-
-  /**
-   * @return the precedence of the given node - result of {@link Expression#getPrecedence()} if an
-   *         {@link Expression}, negative otherwise.
-   */
-  private static int getExpressionPrecedence(ASTNode node) {
-    if (node instanceof Expression) {
-      return ((Expression) node).getPrecedence();
-    }
-    return -1000;
-  }
-
   private final AssistContext context;
   private SourceChangeManager safeManager;
   private SourceChangeManager previewManager;
@@ -670,7 +651,7 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
         }
         // OK, add occurrence
         SourceRange nodeRange = rangeNode(node);
-        int parentPrecedence = getExpressionParentPrecedence(node);
+        int parentPrecedence = CorrectionUtils.getExpressionParentPrecedence(node);
         result.addParameterOccurrence(parameterElement, nodeRange, parentPrecedence);
       }
 
@@ -706,7 +687,7 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
       if (argument instanceof NamedExpression) {
         argument = ((NamedExpression) argument).getExpression();
       }
-      int argumentPrecedence = getExpressionPrecedence(argument);
+      int argumentPrecedence = CorrectionUtils.getExpressionPrecedence(argument);
       String argumentSource = utils.getText(argument);
       // replace all occurrences of this parameter
       for (ParameterOccurrence occurrence : entry.getValue()) {

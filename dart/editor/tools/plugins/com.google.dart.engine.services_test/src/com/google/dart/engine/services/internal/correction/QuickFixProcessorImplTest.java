@@ -1116,6 +1116,68 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
             ""));
   }
 
+  public void test_removeUnnecessaryCast_assignment() throws Exception {
+    enableContextHints();
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main(Object p) {",
+        "  if (p is String) {",
+        "    String v = ((p as String));",
+        "  }",
+        "}",
+        "");
+    assert_runProcessor(
+        CorrectionKind.QF_REMOVE_UNNECASSARY_CAST,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "main(Object p) {",
+            "  if (p is String) {",
+            "    String v = p;",
+            "  }",
+            "}",
+            ""));
+  }
+
+  public void test_removeUnnecessaryCast_invocationTarget() throws Exception {
+    enableContextHints();
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main(Object p) {",
+        "  if (p is String) {",
+        "    (p as String).length;",
+        "  }",
+        "}",
+        "");
+    assert_runProcessor(
+        CorrectionKind.QF_REMOVE_UNNECASSARY_CAST,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "main(Object p) {",
+            "  if (p is String) {",
+            "    p.length;",
+            "  }",
+            "}",
+            ""));
+  }
+
+  public void test_removeUnnecessaryCast_multiplyArgument() throws Exception {
+    enableContextHints();
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  3 * ((1 + 2 as int));",
+        "}",
+        "");
+    assert_runProcessor(
+        CorrectionKind.QF_REMOVE_UNNECASSARY_CAST,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "main() {",
+            "  3 * (1 + 2);",
+            "}",
+            ""));
+  }
+
   public void test_undefinedClass_useSimilar_fromThisLibrary() throws Exception {
     prepareProblemWithFix(
         "// filler filler filler filler filler filler filler filler filler filler",

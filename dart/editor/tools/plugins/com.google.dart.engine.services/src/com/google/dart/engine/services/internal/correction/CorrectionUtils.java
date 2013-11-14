@@ -363,6 +363,25 @@ public class CorrectionUtils {
   }
 
   /**
+   * @return {@link #getExpressionPrecedence(ASTNode)} for parent node.
+   */
+  public static int getExpressionParentPrecedence(ASTNode node) {
+    ASTNode parent = node.getParent();
+    return getExpressionPrecedence(parent);
+  }
+
+  /**
+   * @return the precedence of the given node - result of {@link Expression#getPrecedence()} if an
+   *         {@link Expression}, negative otherwise.
+   */
+  public static int getExpressionPrecedence(ASTNode node) {
+    if (node instanceof Expression) {
+      return ((Expression) node).getPrecedence();
+    }
+    return -1000;
+  }
+
+  /**
    * TODO(scheglov) may be replace with some API for this
    * 
    * @return the namespace of the given {@link ImportElement}.
