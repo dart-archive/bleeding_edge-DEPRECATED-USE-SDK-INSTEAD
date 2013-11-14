@@ -36,6 +36,14 @@ public class VmValue extends VmRef {
     value.text = obj.optString("text");
     value.length = obj.optInt("length", 0);
 
+    // for kind == function
+    value.name = obj.optString("name");
+    value.signature = obj.optString("signature");
+
+    if (value.text == null && value.isFunction()) {
+      value.text = value.name + value.signature;
+    }
+
     return value;
   }
 
@@ -48,6 +56,10 @@ public class VmValue extends VmRef {
   private int classId;
 
   private int length;
+
+  private String name;
+
+  private String signature;
 
   private VmObject vmObject;
 
@@ -65,7 +77,7 @@ public class VmValue extends VmRef {
   }
 
   /**
-   * @return one of "string", "number", "object", "boolean".
+   * @return one of "string", "number", "object", "boolean", "function".
    */
   public String getKind() {
     return kind;
@@ -80,8 +92,16 @@ public class VmValue extends VmRef {
     return length;
   }
 
+  public String getName() {
+    return name;
+  }
+
   public int getObjectId() {
     return objectId;
+  }
+
+  public String getSignature() {
+    return signature;
   }
 
   public String getText() {
@@ -90,6 +110,10 @@ public class VmValue extends VmRef {
 
   public VmObject getVmObject() {
     return vmObject;
+  }
+
+  public boolean isFunction() {
+    return "function".equals(kind);
   }
 
   public boolean isList() {
