@@ -67,6 +67,7 @@ import com.google.dart.engine.ast.SimpleFormalParameter;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.SimpleStringLiteral;
 import com.google.dart.engine.ast.Statement;
+import com.google.dart.engine.ast.SuperExpression;
 import com.google.dart.engine.ast.SwitchCase;
 import com.google.dart.engine.ast.SwitchMember;
 import com.google.dart.engine.ast.SwitchStatement;
@@ -121,6 +122,7 @@ import com.google.dart.engine.type.Type;
 import com.google.dart.engine.utilities.ast.ScopedNameFinder;
 import com.google.dart.engine.utilities.dart.ParameterKind;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.net.URI;
@@ -204,8 +206,12 @@ public class CompletionEngine {
       mergeNames(execElement.getFunctions());
     }
 
-    void addNamesDefinedByHierarchy(ClassElement classElement) {
-      addNamesDefinedByTypes(allSuperTypes(classElement));
+    void addNamesDefinedByHierarchy(ClassElement classElement, boolean forSuper) {
+      InterfaceType[] superTypes = classElement.getAllSupertypes();
+      if (!forSuper) {
+        superTypes = ArrayUtils.add(superTypes, 0, classElement.getType());
+      }
+      addNamesDefinedByTypes(superTypes);
       // Collect names defined by subtypes separately so they can be identified later.
       NameCollector potentialMatchCollector = new NameCollector();
       if (!classElement.getType().isObject()) {
@@ -629,8 +635,7 @@ public class CompletionEngine {
       }
       // { o.!hashCode }
       if (node.getPropertyName() == completionNode) {
-        Type receiverType = typeOf(node.getRealTarget());
-        analyzePrefixedAccess(receiverType, node.getPropertyName());
+        analyzePrefixedAccess(node.getRealTarget(), node.getPropertyName());
       }
       return null;
     }
@@ -1077,8 +1082,7 @@ public class CompletionEngine {
         if (expression instanceof PrefixedIdentifier) {
           PrefixedIdentifier prefIdent = (PrefixedIdentifier) expression;
           if (prefIdent.getIdentifier().isSynthetic()) {
-            Type type = typeOf(prefIdent.getPrefix());
-            analyzePrefixedAccess(type, new Ident(node, "is", offset));
+            analyzePrefixedAccess(prefIdent.getPrefix(), new Ident(node, "is", offset));
           } else {
             pKeyword(isToken);
           }
@@ -1140,8 +1144,7 @@ public class CompletionEngine {
       if (node.getTarget() != null && node.getTarget().getLength() == 0) {
         return null; // { . }
       }
-      Type receiverType = typeOf(node.getRealTarget());
-      analyzePrefixedAccess(receiverType, node.getPropertyName());
+      analyzePrefixedAccess(node.getRealTarget(), node.getPropertyName());
       return null;
     }
 
@@ -1386,8 +1389,7 @@ public class CompletionEngine {
           if (expression instanceof PrefixedIdentifier) {
             PrefixedIdentifier prefIdent = (PrefixedIdentifier) expression;
             if (prefIdent.getIdentifier().isSynthetic()) {
-              Type type = typeOf(prefIdent.getPrefix());
-              analyzePrefixedAccess(type, new Ident(node, "is", offset));
+              analyzePrefixedAccess(prefIdent.getPrefix(), new Ident(node, "is", offset));
             } else {
               pKeyword(node.getIsOperator());
             }
@@ -1684,7 +1686,13 @@ public class CompletionEngine {
     }
   }
 
-  void analyzePrefixedAccess(Type receiverType, SimpleIdentifier completionNode) {
+  void analyzePrefixedAccess(Expression receiver, SimpleIdentifier completionNode) {
+    Type receiverType = typeOf(receiver);
+    boolean forSuper = receiver instanceof SuperExpression;
+    analyzePrefixedAccess(receiverType, forSuper, completionNode);
+  }
+
+  void analyzePrefixedAccess(Type receiverType, boolean forSuper, SimpleIdentifier completionNode) {
     if (receiverType != null) {
       // Complete x.!y
       Element rcvrTypeElem = receiverType.getElement();
@@ -1695,10 +1703,10 @@ public class CompletionEngine {
         rcvrTypeElem = getObjectClassElement();
       }
       if (rcvrTypeElem instanceof ClassElement) {
-        prefixedAccess((ClassElement) rcvrTypeElem, completionNode);
+        prefixedAccess((ClassElement) rcvrTypeElem, forSuper, completionNode);
       } else if (rcvrTypeElem instanceof TypeParameterElement) {
         TypeParameterElement typeParamElem = (TypeParameterElement) rcvrTypeElem;
-        analyzePrefixedAccess(typeParamElem.getBound(), completionNode);
+        analyzePrefixedAccess(typeParamElem.getBound(), false, completionNode);
       }
     }
   }
@@ -1770,7 +1778,7 @@ public class CompletionEngine {
     filter = new Filter(identifier);
     NameCollector names = new NameCollector();
     names.addLocalNames(identifier);
-    names.addNamesDefinedByHierarchy(classElement);
+    names.addNamesDefinedByHierarchy(classElement, false);
     names.addTopLevelNames();
     proposeNames(names, identifier);
   }
@@ -1805,8 +1813,7 @@ public class CompletionEngine {
     if (expr == null) {
       analyzeLocalName(new Ident(node));
     } else {
-      Type receiverType = typeOf(expr);
-      analyzePrefixedAccess(receiverType, node.getMethodName());
+      analyzePrefixedAccess(expr, node.getMethodName());
     }
   }
 
@@ -1836,7 +1843,7 @@ public class CompletionEngine {
             receiverType = declType;
           }
         }
-        analyzePrefixedAccess(receiverType, identifier);
+        analyzePrefixedAccess(receiverType, false, identifier);
         break;
       }
     }
@@ -1990,15 +1997,14 @@ public class CompletionEngine {
 
   void operatorAccess(Expression expr, SimpleIdentifier identifier) {
     state.requiresOperators();
-    Type receiverType = typeOf(expr);
-    analyzePrefixedAccess(receiverType, identifier);
+    analyzePrefixedAccess(expr, identifier);
   }
 
-  void prefixedAccess(ClassElement classElement, SimpleIdentifier identifier) {
+  void prefixedAccess(ClassElement classElement, boolean forSuper, SimpleIdentifier identifier) {
     // Complete identifier when it refers to field or method in classElement.
     filter = new Filter(identifier);
     NameCollector names = new NameCollector();
-    names.addNamesDefinedByHierarchy(classElement);
+    names.addNamesDefinedByHierarchy(classElement, forSuper);
     proposeNames(names, identifier);
   }
 
@@ -2047,14 +2053,6 @@ public class CompletionEngine {
     return subtypes;
   }
 
-  private InterfaceType[] allSuperTypes(ClassElement classElement) {
-    InterfaceType[] supertypes = classElement.getAllSupertypes();
-    InterfaceType[] allTypes = new InterfaceType[supertypes.length + 1];
-    allTypes[0] = classElement.getType();
-    System.arraycopy(supertypes, 0, allTypes, 1, supertypes.length);
-    return allTypes;
-  }
-
   private NameCollector collectIdentifiersVisibleAt(ASTNode ident) {
     NameCollector names = new NameCollector();
     ScopedNameFinder finder = new ScopedNameFinder(completionLocation());
@@ -2063,7 +2061,7 @@ public class CompletionEngine {
     Declaration decl = finder.getDeclaration();
     if (decl != null && decl.getParent() instanceof ClassDeclaration) {
       ClassElement classElement = ((ClassDeclaration) decl.getParent()).getElement();
-      names.addNamesDefinedByHierarchy(classElement);
+      names.addNamesDefinedByHierarchy(classElement, false);
     }
     names.addTopLevelNames();
     return names;

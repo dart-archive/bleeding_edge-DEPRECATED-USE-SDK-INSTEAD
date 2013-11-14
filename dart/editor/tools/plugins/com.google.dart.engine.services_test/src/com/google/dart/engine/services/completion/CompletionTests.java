@@ -613,10 +613,6 @@ public class CompletionTests extends CompletionTestCase {
         "2+JUL");
   }
 
-  public void testCommentSnippets006() throws Exception {
-    test("class B1 {B1();x(){}}class B2 extends B1 {B2() { super.!2x();}}", "2+x");
-  }
-
   public void testCommentSnippets007() throws Exception {
     test(
         "class C {mth(Map x, !1) {}mtf(!2, Map x) {}m() {for (in!3t i=0; i<5; i++); A!4 x;}}class int{}class Arrays{}class bool{}",
@@ -1769,6 +1765,36 @@ public class CompletionTests extends CompletionTestCase {
         "2+num",
         "3+num",
         "4+Sunflower");
+  }
+
+  public void testCompletion_super_superType() throws Exception {
+    test(src(//
+        "class A {",
+        "  var fa;",
+        "  ma() {}",
+        "}",
+        "class B extends A {",
+        "  var fb;",
+        "  mb() {}",
+        "  main() {",
+        "    super.!1",
+        "  }",
+        "}"), "1+fa", "1-fb", "1+ma", "1-mb");
+  }
+
+  public void testCompletion_this() throws Exception {
+    test(src(//
+        "class A {",
+        "  var fa;",
+        "  ma() {}",
+        "}",
+        "class B extends A {",
+        "  var fb;",
+        "  mb() {}",
+        "  main() {",
+        "    this.!1",
+        "  }",
+        "}"), "1+fa", "1+fb", "1+ma", "1+mb");
   }
 
   public void testCompletion_topLevelField_init2() throws Exception {
