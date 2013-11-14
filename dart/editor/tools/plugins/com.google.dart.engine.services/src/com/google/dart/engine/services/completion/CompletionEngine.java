@@ -2360,6 +2360,17 @@ public class CompletionEngine {
     if (!isVisible(element)) {
       return;
     }
+
+    // May be we are in argument of function type parameter, propose function reference.
+    if (state.targetParameter != null) {
+      Type parameterType = state.targetParameter.getType();
+      if (parameterType instanceof FunctionType) {
+        if (element.getType().isAssignableTo(parameterType)) {
+          pName(name, element, 2, ProposalKind.METHOD_NAME);
+        }
+      }
+    }
+
     CompletionProposal prop = createProposal(element);
 
     prop.setPotentialMatch(isPotentialMatch);
@@ -2448,6 +2459,17 @@ public class CompletionEngine {
 
   private void pName(SimpleIdentifier identifier) {
     pName(identifier.getName(), ProposalKind.VARIABLE);
+  }
+
+  private void pName(String name, Element element, int relevance, ProposalKind kind) {
+    if (filterDisallows(name)) {
+      return;
+    }
+    CompletionProposal prop = createProposal(kind);
+    prop.setRelevance(relevance);
+    prop.setCompletion(name);
+    prop.setElement(element);
+    requestor.accept(prop);
   }
 
   private void pName(String name, ProposalKind kind) {

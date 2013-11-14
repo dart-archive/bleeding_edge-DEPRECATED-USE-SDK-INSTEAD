@@ -1,6 +1,7 @@
 package com.google.dart.engine.services.completion;
 
 import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.element.ParameterElement;
 
 /**
  * @coverage com.google.dart.engine.services.completion
@@ -21,6 +22,7 @@ class CompletionState {
   boolean isOptionalArgumentRequired;
   boolean areMethodsProhibited;
   boolean areClassesRequired;
+  ParameterElement targetParameter;
 
   public void mustBeInstantiableType() {
     areClassesRequired = true;

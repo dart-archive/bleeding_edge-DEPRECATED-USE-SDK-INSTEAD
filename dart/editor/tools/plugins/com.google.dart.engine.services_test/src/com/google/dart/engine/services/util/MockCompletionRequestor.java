@@ -31,7 +31,9 @@ public class MockCompletionRequestor implements CompletionRequestor {
   @Override
   public void accept(CompletionProposal proposal) {
     CompletionTests.assertEquals("Expected accept to be called after beginReporting", 1, state);
-    suggestions.add(proposal.getCompletion());
+    String suggestion = proposal.getCompletion();
+    suggestions.add(suggestion);
+    suggestions.add(suggestion + ":" + proposal.getKind());
   }
 
   /**

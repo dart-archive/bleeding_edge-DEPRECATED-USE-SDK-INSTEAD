@@ -1653,6 +1653,43 @@ public class CompletionTests extends CompletionTestCase {
         "}"), "1+caseVar", "1-otherVar");
   }
 
+  public void testCompletion_methodRef_asArg_incompatibleFunctionType() throws Exception {
+    test(src(//
+        "foo( f(int p) ) {}",
+        "class Functions {",
+        "  static myFuncInt(int p) {}",
+        "  static myFuncDouble(double p) {}",
+        "}",
+        "bar(p) {}",
+        "main(p) {",
+        "  foo( Functions.!1; );",
+        "}"), "1+myFuncInt:" + ProposalKind.METHOD_NAME, "1-myFuncDouble:"
+        + ProposalKind.METHOD_NAME);
+  }
+
+  public void testCompletion_methodRef_asArg_notFunctionType() throws Exception {
+    test(src(//
+        "foo( f(int p) ) {}",
+        "class Functions {",
+        "  static myFunc(int p) {}",
+        "}",
+        "bar(p) {}",
+        "main(p) {",
+        "  foo( (int p) => Functions.!1; );",
+        "}"), "1+myFunc:" + ProposalKind.METHOD, "1-myFunc:" + ProposalKind.METHOD_NAME);
+  }
+
+  public void testCompletion_methodRef_asArg_ofFunctionType() throws Exception {
+    test(src(//
+        "foo( f(int p) ) {}",
+        "class Functions {",
+        "  static int myFunc(int p) {}",
+        "}",
+        "main(p) {",
+        "  foo(Functions.!1);",
+        "}"), "1+myFunc:" + ProposalKind.METHOD, "1+myFunc:" + ProposalKind.METHOD_NAME);
+  }
+
   public void testCompletion_namedArgument_alreadyUsed() throws Exception {
     test("func({foo}) {} main() { func(foo: 0, fo!1); }", "1-foo");
   }

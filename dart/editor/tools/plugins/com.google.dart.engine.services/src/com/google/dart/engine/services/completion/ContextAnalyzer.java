@@ -2,6 +2,7 @@ package com.google.dart.engine.services.completion;
 
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.ArgumentDefinitionTest;
+import com.google.dart.engine.ast.ArgumentList;
 import com.google.dart.engine.ast.CatchClause;
 import com.google.dart.engine.ast.Declaration;
 import com.google.dart.engine.ast.Directive;
@@ -35,9 +36,10 @@ class ContextAnalyzer extends GeneralizingASTVisitor<Void> {
   CompletionState state;
   ASTNode completionNode;
   ASTNode child;
-  boolean inTypeName;
-  boolean inIdentifier;
   boolean inExpression;
+  boolean inIdentifier;
+  boolean inTypeName;
+  boolean maybeInvocationArgument = true;
 
   ContextAnalyzer(CompletionState state, ASTNode completionNode) {
     this.state = state;
@@ -76,6 +78,7 @@ class ContextAnalyzer extends GeneralizingASTVisitor<Void> {
   public Void visitExpression(Expression node) {
     inExpression = true;
     state.includesLiterals();
+    mayBeSetParameterElement(node);
     return super.visitExpression(node);
   }
 
@@ -108,6 +111,7 @@ class ContextAnalyzer extends GeneralizingASTVisitor<Void> {
 
   @Override
   public Void visitIdentifier(Identifier node) {
+    mayBeSetParameterElement(node);
     // Identifiers cannot safely be generalized to expressions, so just walk up one level.
     // LibraryIdentifier is never an expression. PrefixedIdentifier may be an expression, but
     // not in a catch-clause or a declaration. SimpleIdentifier may be an expression, but not
@@ -135,6 +139,7 @@ class ContextAnalyzer extends GeneralizingASTVisitor<Void> {
   public Void visitNode(ASTNode node) {
     // Walk UP the tree, not down.
     ASTNode parent = node.getParent();
+    updateIfShouldGetTargetParameter(node, parent);
     if (parent != null) {
       child = node;
       parent.accept(this);
@@ -227,5 +232,30 @@ class ContextAnalyzer extends GeneralizingASTVisitor<Void> {
   public Void visitWithClause(WithClause node) {
     state.mustBeMixin();
     return super.visitWithClause(node);
+  }
+
+  private void mayBeSetParameterElement(Expression node) {
+    if (!maybeInvocationArgument) {
+      return;
+    }
+    if (node.getParent() instanceof ArgumentList) {
+      if (state.targetParameter == null) {
+        state.targetParameter = node.getBestParameterElement();
+      }
+    }
+  }
+
+  private void updateIfShouldGetTargetParameter(ASTNode node, ASTNode parent) {
+    if (!maybeInvocationArgument) {
+      return;
+    }
+    // prefix.node
+    if (parent instanceof PrefixedIdentifier) {
+      if (((PrefixedIdentifier) parent).getIdentifier() == node) {
+        return;
+      }
+    }
+    // something unknown
+    maybeInvocationArgument = false;
   }
 }

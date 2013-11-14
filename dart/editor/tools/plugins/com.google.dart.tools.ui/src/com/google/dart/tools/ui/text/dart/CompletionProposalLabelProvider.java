@@ -404,8 +404,10 @@ public class CompletionProposalLabelProvider {
     // method name
     nameBuffer.append(methodProposal.getName());
 
+    boolean hasParameters = methodProposal.getKind() != CompletionProposal.METHOD_NAME_REFERENCE;
+
     // parameters
-    if (Character.isJavaIdentifierStart(methodProposal.getName()[0])) {
+    if (hasParameters && Character.isJavaIdentifierStart(methodProposal.getName()[0])) {
       if (!methodProposal.isGetOrSet()) {
         nameBuffer.append('(');
         appendUnboundedParameterList(nameBuffer, methodProposal);
