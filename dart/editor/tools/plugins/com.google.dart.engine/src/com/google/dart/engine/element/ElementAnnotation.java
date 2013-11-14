@@ -27,4 +27,29 @@ public interface ElementAnnotation {
    * @return the field, variable, or constructor being used as an annotation
    */
   public Element getElement();
+
+  /**
+   * Return {@code true} if this annotation marks the associated element as being deprecated.
+   * 
+   * @return {@code true} if this annotation marks the associated element as being deprecated
+   */
+  public boolean isDeprecated();
+
+  /**
+   * Return {@code true} if this annotation marks the associated method as being expected to
+   * override an inherited method.
+   * 
+   * @return {@code true} if this annotation marks the associated method as overriding another
+   *         method
+   */
+  public boolean isOverride();
+
+  /**
+   * Return {@code true} if this annotation marks the associated class as implementing a proxy
+   * object.
+   * 
+   * @return {@code true} if this annotation marks the associated class as implementing a proxy
+   *         object
+   */
+  public boolean isProxy();
 }

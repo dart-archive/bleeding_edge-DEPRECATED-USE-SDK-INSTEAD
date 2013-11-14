@@ -181,6 +181,13 @@ public interface ClassElement extends Element {
   public boolean isAbstract();
 
   /**
+   * Return {@code true} if this element has an annotation of the form '@proxy'.
+   * 
+   * @return {@code true} if this element defines a proxy
+   */
+  public boolean isProxy();
+
+  /**
    * Return {@code true} if this class is defined by a typedef construct.
    * 
    * @return {@code true} if this class is defined by a typedef construct

@@ -13,8 +13,11 @@
  */
 package com.google.dart.engine.internal.element;
 
+import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementAnnotation;
+import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.element.PropertyAccessorElement;
 
 /**
  * Instances of the class {@code ElementAnnotationImpl} implement an {@link ElementAnnotation}.
@@ -33,6 +36,27 @@ public class ElementAnnotationImpl implements ElementAnnotation {
   public static final ElementAnnotationImpl[] EMPTY_ARRAY = new ElementAnnotationImpl[0];
 
   /**
+   * The name of the class used to mark an element as being deprecated.
+   */
+  private static final String DEPRECATED_CLASS_NAME = "Deprecated";
+
+  /**
+   * The name of the top-level variable used to mark an element as being deprecated.
+   */
+  private static final String DEPRECATED_VARIABLE_NAME = "deprecated";
+
+  /**
+   * The name of the top-level variable used to mark a method as being expected to override an
+   * inherited method.
+   */
+  private static final String OVERRIDE_VARIABLE_NAME = "override";
+
+  /**
+   * The name of the top-level variable used to mark a class as implementing a proxy object.
+   */
+  private static final String PROXY_VARIABLE_NAME = "proxy";
+
+  /**
    * Initialize a newly created annotation.
    * 
    * @param element the element representing the field, variable, or constructor being used as an
@@ -45,6 +69,53 @@ public class ElementAnnotationImpl implements ElementAnnotation {
   @Override
   public Element getElement() {
     return element;
+  }
+
+  @Override
+  public boolean isDeprecated() {
+    if (element != null) {
+      LibraryElement library = element.getLibrary();
+      if (library != null && library.isDartCore()) {
+        if (element instanceof ConstructorElement) {
+          ConstructorElement constructorElement = (ConstructorElement) element;
+          if (constructorElement.getEnclosingElement().getName().equals(DEPRECATED_CLASS_NAME)) {
+            return true;
+          }
+        } else if (element instanceof PropertyAccessorElement
+            && element.getName().equals(DEPRECATED_VARIABLE_NAME)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  @Override
+  public boolean isOverride() {
+    if (element != null) {
+      LibraryElement library = element.getLibrary();
+      if (library != null && library.isDartCore()) {
+        if (element instanceof PropertyAccessorElement
+            && element.getName().equals(OVERRIDE_VARIABLE_NAME)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  @Override
+  public boolean isProxy() {
+    if (element != null) {
+      LibraryElement library = element.getLibrary();
+      if (library != null && library.isDartCore()) {
+        if (element instanceof PropertyAccessorElement
+            && element.getName().equals(PROXY_VARIABLE_NAME)) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   @Override

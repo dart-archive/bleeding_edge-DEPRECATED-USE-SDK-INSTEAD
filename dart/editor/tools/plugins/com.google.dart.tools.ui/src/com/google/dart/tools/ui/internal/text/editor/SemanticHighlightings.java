@@ -46,7 +46,6 @@ import com.google.dart.engine.ast.VariableDeclarationStatement;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
-import com.google.dart.engine.element.ElementAnnotation;
 import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.FieldFormalParameterElement;
 import com.google.dart.engine.element.FunctionElement;
@@ -439,15 +438,7 @@ public class SemanticHighlightings {
             element = accessor.getVariable();
           }
         }
-        ElementAnnotation[] annotations = element.getMetadata();
-        for (ElementAnnotation annotation : annotations) {
-          Element annotationElement = annotation.getElement();
-          if (annotationElement != null) {
-            if (annotationElement.getName().equals("deprecated")) {
-              return true;
-            }
-          }
-        }
+        return element.isDeprecated();
       }
       return false;
     }

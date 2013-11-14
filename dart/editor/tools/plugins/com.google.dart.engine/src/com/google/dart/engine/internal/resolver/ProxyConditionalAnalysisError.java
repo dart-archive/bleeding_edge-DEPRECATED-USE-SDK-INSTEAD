@@ -15,8 +15,6 @@ package com.google.dart.engine.internal.resolver;
 
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
-import com.google.dart.engine.element.ElementAnnotation;
-import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.error.AnalysisError;
 
 /**
@@ -29,12 +27,6 @@ import com.google.dart.engine.error.AnalysisError;
  * instead of multiple lists of *ConditionalErrorCodes.
  */
 public class ProxyConditionalAnalysisError {
-
-  /**
-   * The name of the proxy annotation, from dart:core.
-   */
-  private static final String PROXY_ANNOTATION_NAME = "proxy";
-
   /**
    * Return {@code true} if the given element represents a class that has the proxy annotation.
    * 
@@ -42,21 +34,7 @@ public class ProxyConditionalAnalysisError {
    * @return {@code true} if the given element represents a class that has the proxy annotation
    */
   private static boolean classHasProxyAnnotation(Element element) {
-    if (element instanceof ClassElement) {
-      ClassElement classElement = (ClassElement) element;
-      ElementAnnotation[] annotations = classElement.getMetadata();
-      for (ElementAnnotation annotation : annotations) {
-        Element elementAnnotation = annotation.getElement();
-        if (elementAnnotation != null) {
-          LibraryElement lib = elementAnnotation.getLibrary();
-          if (lib != null && lib.isDartCore()
-              && elementAnnotation.getName().equals(PROXY_ANNOTATION_NAME)) {
-            return true;
-          }
-        }
-      }
-    }
-    return false;
+    return (element instanceof ClassElement) && ((ClassElement) element).isProxy();
   }
 
   /**

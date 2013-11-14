@@ -87,7 +87,6 @@ import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
-import com.google.dart.engine.element.ElementAnnotation;
 import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.FieldElement;
@@ -2265,13 +2264,7 @@ public class CompletionEngine {
   }
 
   private boolean isDeprecated(Element element) {
-    ElementAnnotation[] annos = element.getMetadata();
-    for (ElementAnnotation anno : annos) {
-      if ("deprecated".equals(anno.getElement().getName())) {
-        return true;
-      }
-    }
-    return false;
+    return element != null && element.isDeprecated();
   }
 
   private boolean isInCurrentLibrary(Element element) {

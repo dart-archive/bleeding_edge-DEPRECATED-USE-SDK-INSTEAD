@@ -138,6 +138,11 @@ public class ClassElementHandle extends ElementHandle implements ClassElement {
   }
 
   @Override
+  public boolean isProxy() {
+    return getActualElement().isProxy();
+  }
+
+  @Override
   public boolean isTypedef() {
     return getActualElement().isTypedef();
   }

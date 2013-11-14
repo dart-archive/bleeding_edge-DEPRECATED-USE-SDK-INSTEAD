@@ -16,6 +16,7 @@ package com.google.dart.engine.internal.element;
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.ConstructorElement;
+import com.google.dart.engine.element.ElementAnnotation;
 import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.ElementVisitor;
 import com.google.dart.engine.element.FieldElement;
@@ -305,6 +306,16 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
   @Override
   public boolean isAbstract() {
     return hasModifier(Modifier.ABSTRACT);
+  }
+
+  @Override
+  public boolean isProxy() {
+    for (ElementAnnotation annotation : getMetadata()) {
+      if (annotation.isProxy()) {
+        return true;
+      }
+    }
+    return false;
   }
 
   @Override
