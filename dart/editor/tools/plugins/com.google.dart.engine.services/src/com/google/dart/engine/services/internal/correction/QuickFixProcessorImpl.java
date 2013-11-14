@@ -1781,7 +1781,7 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
     while (expr.getParent() instanceof ParenthesizedExpression) {
       ParenthesizedExpression parenthesized = (ParenthesizedExpression) expr.getParent();
       if (CorrectionUtils.getExpressionParentPrecedence(parenthesized) > exprPrecedence) {
-        return;
+        break;
       }
       addRemoveEdit(rangeToken(parenthesized.getLeftParenthesis()));
       addRemoveEdit(rangeToken(parenthesized.getRightParenthesis()));

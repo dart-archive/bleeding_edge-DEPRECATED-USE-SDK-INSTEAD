@@ -1198,6 +1198,27 @@ public class InlineMethodRefactoringImplTest extends RefactoringImplTest {
         "  return a * b;",
         "}",
         "main() {",
+        "  var res1 = test(1, 2 + 3);",
+        "  var res2 = test(1, (2 + 3));",
+        "}");
+    selection = findOffset("test(a, b)");
+    createRefactoring();
+    // do refactoring
+    assertSuccessfulRefactoring(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var res1 = 1 * (2 + 3);",
+        "  var res2 = 1 * (2 + 3);",
+        "}");
+  }
+
+  public void test_singleExpression_wrapIntoParenthesized2() throws Exception {
+    indexTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "test(a, b) {",
+        "  return a * (b);",
+        "}",
+        "main() {",
         "  var res = test(1, 2 + 3);",
         "}");
     selection = findOffset("test(a, b)");

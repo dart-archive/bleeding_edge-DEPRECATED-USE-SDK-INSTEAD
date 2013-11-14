@@ -363,10 +363,15 @@ public class CorrectionUtils {
   }
 
   /**
-   * @return {@link #getExpressionPrecedence(ASTNode)} for parent node.
+   * @return {@link #getExpressionPrecedence(ASTNode)} for parent node, or {@code 0} if parent node
+   *         is {@link ParenthesizedExpression}. The reason is that {@code (expr)} is always
+   *         executed after {@code expr}.
    */
   public static int getExpressionParentPrecedence(ASTNode node) {
     ASTNode parent = node.getParent();
+    if (parent instanceof ParenthesizedExpression) {
+      return 0;
+    }
     return getExpressionPrecedence(parent);
   }
 
