@@ -191,11 +191,13 @@ public class BrowserLaunchConfigurationDelegate extends DartLaunchConfigurationD
     Source htmlSource = manager.getSource((IFile) resource);
     AnalysisContext context = manager.getContext(resource);
     HtmlElement htmlElement = context.getHtmlElement(htmlSource);
-    HtmlScriptElement[] scripts = htmlElement.getScripts();
-    for (HtmlScriptElement script : scripts) {
-      // TODO(keertip): handle case of html having multiple external script tags
-      if (script instanceof ExternalHtmlScriptElement) {
-        libraryFile = manager.getResource(((ExternalHtmlScriptElement) script).getScriptSource());
+    if (htmlElement != null) {
+      HtmlScriptElement[] scripts = htmlElement.getScripts();
+      for (HtmlScriptElement script : scripts) {
+        // TODO(keertip): handle case of html having multiple external script tags
+        if (script instanceof ExternalHtmlScriptElement) {
+          libraryFile = manager.getResource(((ExternalHtmlScriptElement) script).getScriptSource());
+        }
       }
     }
 
