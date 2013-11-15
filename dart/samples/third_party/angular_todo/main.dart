@@ -3,6 +3,24 @@ import 'package:angular/angular.dart';
 import 'package:angular/playback/playback_http.dart';
 import 'todo.dart';
 
+@MirrorsUsed(targets: const[
+  'angular',
+  'angular.core',
+  'angular.core.dom',
+  'angular.filter',
+  'angular.perf',
+  'angular.directive',
+  'angular.routing',
+  'angular.core.parser',
+  'todo',
+  'perf_api',
+  'List',
+  'NodeTreeSanitizer',
+  'PlaybackHttpBackendConfig'
+  ],
+  override: '*')
+import 'dart:mirrors';
+
 import 'dart:html';
 
 main() {
