@@ -317,6 +317,7 @@ public class BuildDartParticipant implements BuildParticipant {
 
     args.addAll(buildArgs);
 
+    //TODO (danrubel): Older build.dart may rely on DART_SDK env var... so leave for now
     Map<String, String> env = builder.environment();
     DartSdk sdk = DartSdkManager.getManager().getSdk();
     env.put("DART_SDK", sdk.getDirectory().getAbsolutePath());
