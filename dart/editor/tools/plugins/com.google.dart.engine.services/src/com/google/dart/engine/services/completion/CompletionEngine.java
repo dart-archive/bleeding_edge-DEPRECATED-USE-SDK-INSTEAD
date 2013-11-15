@@ -37,6 +37,7 @@ import com.google.dart.engine.ast.Declaration;
 import com.google.dart.engine.ast.Directive;
 import com.google.dart.engine.ast.DoStatement;
 import com.google.dart.engine.ast.EphemeralIdentifier;
+import com.google.dart.engine.ast.ExportDirective;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.ExpressionFunctionBody;
 import com.google.dart.engine.ast.ExpressionStatement;
@@ -57,6 +58,7 @@ import com.google.dart.engine.ast.IsExpression;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.NamedExpression;
+import com.google.dart.engine.ast.NamespaceDirective;
 import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.PartOfDirective;
 import com.google.dart.engine.ast.PrefixedIdentifier;
@@ -734,9 +736,9 @@ public class CompletionEngine {
     }
 
     @Override
-    public Void visitImportDirective(ImportDirective node) {
+    public Void visitNamespaceDirective(NamespaceDirective node) {
       if (completionNode == node.getUri()) {
-        importReference(node, completionNode);
+        namespaceReference(node, completionNode);
       }
       return null;
     }
@@ -930,6 +932,12 @@ public class CompletionEngine {
           node.getRightParenthesis().getOffset())) {
         operatorAccess(node.getCondition(), new Ident(node));
       }
+      return null;
+    }
+
+    @Override
+    public Void visitExportDirective(ExportDirective node) {
+      visitNamespaceDirective(node);
       return null;
     }
 
@@ -1858,20 +1866,37 @@ public class CompletionEngine {
     }
   }
 
-  void importPackageReference(ImportDirective node, List<LibraryElement> libraries,
+  void namedConstructorReference(ClassElement classElement, SimpleIdentifier identifier) {
+    // Complete identifier when it refers to a named constructor defined in classElement.
+    if (filter == null) {
+      filter = new Filter(identifier);
+    }
+    // TODO(scheglov)
+    for (ConstructorElement cons : classElement.getConstructors()) {
+      if (!isVisible(cons)) {
+        continue;
+      }
+      if (state.isCompileTimeConstantRequired && !cons.isConst()) {
+        continue;
+      }
+      pNamedConstructor(classElement, cons, identifier);
+    }
+  }
+
+  void namespacePackageReference(NamespaceDirective node, List<LibraryElement> libraries,
       List<LibraryElement> librariesInLib) {
     String prefix = filter.prefix;
     if (prefix.startsWith("dart:") || prefix.startsWith("package:")) {
       return;
     }
     if (isUnitInLibFolder(context.getCompilationUnit().getElement())) {
-      importPackageReferenceFromList(node, prefix, librariesInLib);
+      namespacePackageReferenceFromList(node, prefix, librariesInLib);
     } else {
-      importPackageReferenceFromList(node, prefix, libraries);
+      namespacePackageReferenceFromList(node, prefix, libraries);
     }
   }
 
-  void importPackageReferenceFromList(ImportDirective node, String prefix,
+  void namespacePackageReferenceFromList(NamespaceDirective node, String prefix,
       List<LibraryElement> libraries) {
 //    context.getCompilationUnit().getElement().getSource().getFullName();
 //    URI baseUri = currentCompilationUnit.getUnderlyingResource().getParent().getLocationURI();
@@ -1883,7 +1908,7 @@ public class CompletionEngine {
 //    }
   }
 
-  void importPubReference(ImportDirective node, List<String> packages) {
+  void namespacePubReference(NamespaceDirective node, List<String> packages) {
     // no import URI or package:
     String prefix = filter.prefix;
     String[] prefixStrings = prefix.split(":");
@@ -1911,7 +1936,7 @@ public class CompletionEngine {
     }
   }
 
-  void importReference(ImportDirective node, SimpleStringLiteral literal) {
+  void namespaceReference(NamespaceDirective node, SimpleStringLiteral literal) {
     String lit = literal.getLiteral().getLexeme();
     if (!lit.isEmpty()) {
       lit = lit.substring(1, Math.max(lit.length() - 1, 0));
@@ -1948,12 +1973,12 @@ public class CompletionEngine {
         libraries.add(lib);
       }
     }
-    importSdkReference(node);
-    importPubReference(node, packages);
+    namespaceSdkReference(node);
+    namespacePubReference(node, packages);
 //    importPackageReference(node, libraries, librariesInLib);
   }
 
-  void importSdkReference(ImportDirective node) {
+  void namespaceSdkReference(NamespaceDirective node) {
     String prefix = filter.prefix;
     String[] prefixStrings = prefix.split(":");
     if (!prefix.isEmpty() && !"dart:".startsWith(prefixStrings[0])) {
@@ -1974,23 +1999,6 @@ public class CompletionEngine {
       }
       // add with "dart:" prefix
       pName("dart:" + name, ProposalKind.IMPORT);
-    }
-  }
-
-  void namedConstructorReference(ClassElement classElement, SimpleIdentifier identifier) {
-    // Complete identifier when it refers to a named constructor defined in classElement.
-    if (filter == null) {
-      filter = new Filter(identifier);
-    }
-    // TODO(scheglov)
-    for (ConstructorElement cons : classElement.getConstructors()) {
-      if (!isVisible(cons)) {
-        continue;
-      }
-      if (state.isCompileTimeConstantRequired && !cons.isConst()) {
-        continue;
-      }
-      pNamedConstructor(classElement, cons, identifier);
     }
   }
 

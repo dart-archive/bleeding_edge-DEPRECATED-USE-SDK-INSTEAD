@@ -1513,6 +1513,19 @@ public class CompletionTests extends CompletionTestCase {
     test("class X { X(this.field); int f!1ield;}", "1+field");
   }
 
+  public void testCompletion_export_dart() throws Exception {
+    test(
+        src(//
+            "import 'dart:math",
+            "import 'dart:_chrome",
+            "import 'dart:_collection.dev",
+            "export 'dart:!1"),
+        "1+dart:core",
+        "1+dart:math",
+        "1-dart:_chrome",
+        "1-dart:_collection.dev");
+  }
+
   public void testCompletion_forStmt_vars() throws Exception {
     test(
         "class int{}class Foo { mth() { for (in!1t i = 0; i!2 < 5; i!3++); }}",
