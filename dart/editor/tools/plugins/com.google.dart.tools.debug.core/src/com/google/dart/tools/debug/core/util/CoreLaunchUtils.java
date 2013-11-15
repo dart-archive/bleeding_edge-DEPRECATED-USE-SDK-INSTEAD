@@ -84,8 +84,9 @@ public class CoreLaunchUtils {
   public static void removeTerminatedLaunches() throws CoreException {
     ILaunch[] launches = DebugPlugin.getDefault().getLaunchManager().getLaunches();
     for (ILaunch launch : launches) {
-      if (launch.getLaunchConfiguration().getType().getIdentifier().startsWith("com.google.dart")
-          && launch.isTerminated()) {
+      if (launch.getLaunchConfiguration() == null
+          || (launch.getLaunchConfiguration().getType().getIdentifier().startsWith(
+              "com.google.dart") && launch.isTerminated())) {
         removeLaunch(launch);
       }
     }
