@@ -9,7 +9,7 @@ execfile(os.path.join(path, 'clank.deps', 'DEPS.chromium')) # Include proper Chr
 vars.update({
   "chromium_url": "http://src.chromium.org/svn",
   "dartium_chromium_url": "http://src.chromium.org/multivm/branches/1650/chrome",
-  "dartium_chromium_revision": "1595",
+  "dartium_chromium_revision": "1606",
   "clank_gerrit": "ssh://gerrit-int.chromium.org:29419/clank/",
   # This revision number should be kept in sync with the version of clank that
   # uses a similar chromium revision to that mentioned just above in
@@ -20,9 +20,9 @@ vars.update({
   # The Dart repository URL is pulled out here so that it can be easily
   # updated to "https" for committers.
   "dart_branch": "/branches/bleeding_edge",
-  "dart_rev": "30141",
+  "dart_rev": "30286",
   "dartium_webkit_trunk": "http://src.chromium.org/multivm/branches/1650/blink",
-  "dartium_webkit_revision": "1594",
+  "dartium_webkit_revision": "1605",
   "bootstrap_css_rev" : "@28387",
 
   "co19_rev": "@651",
