@@ -2401,7 +2401,7 @@ public class CompletionEngine {
     }
 
     setParameterInfo(element, prop);
-    prop.setCompletion(name).setReturnType(element.getType().getReturnType().getName());
+    prop.setCompletion(name).setReturnType(element.getType().getReturnType().getDisplayName());
     prop.setElement(element);
 
     // If there is already argument list, then update only method name.
