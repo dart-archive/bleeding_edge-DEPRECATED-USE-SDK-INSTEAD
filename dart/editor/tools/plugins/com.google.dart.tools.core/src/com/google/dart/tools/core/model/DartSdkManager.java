@@ -59,6 +59,8 @@ import java.util.zip.ZipInputStream;
  */
 public class DartSdkManager {
 
+  private static final String SDK_GS_PREFIX = "http://commondatastorage.googleapis.com/dart-archive/channels/dev/release/latest/sdk/dartsdk-";
+
   /**
    * A special instance of {@link com.google.dart.engine.sdk.DartSdk} representing missing SDK.
    */
@@ -166,13 +168,13 @@ public class DartSdkManager {
   }
 
   /**
-   * @return one of 32 or 64
+   * @return one of ia32 or x64
    */
   private static String getPlatformBititude() {
     if (DartCore.is32Bit()) {
-      return "32";
+      return "ia32";
     } else {
-      return "64";
+      return "x64";
     }
   }
 
@@ -181,7 +183,7 @@ public class DartSdkManager {
    */
   private static String getPlatformCode() {
     if (DartCore.isWindows()) {
-      return "win32";
+      return "windows";
     } else if (DartCore.isMac()) {
       return "macos";
     } else if (DartCore.isLinux()) {
@@ -330,9 +332,8 @@ public class DartSdkManager {
     File tempFile = File.createTempFile(SDK_DIR_NAME, ".zip");
     tempFile.deleteOnExit();
 
-    //TODO (pquitslund): fix this to work with the new bucket scheme (dartbug.com/14286)
-    URI downloadURI = URI.create("http://commondatastorage.googleapis.com/dart-editor-archive-integration/latest/dartsdk-"
-        + getPlatformCode() + "-" + getPlatformBititude() + ".zip");
+    URI downloadURI = URI.create(SDK_GS_PREFIX + getPlatformCode() + "-" + getPlatformBititude()
+        + "-release.zip");
 
     URLConnection connection = downloadURI.toURL().openConnection();
 
