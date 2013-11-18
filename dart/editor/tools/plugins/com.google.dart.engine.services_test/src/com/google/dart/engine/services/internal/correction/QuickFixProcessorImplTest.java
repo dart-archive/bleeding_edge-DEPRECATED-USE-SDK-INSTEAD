@@ -367,7 +367,7 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
             "  A.named(p1, int p2);",
             "}",
             "class B extends A {",
-            "  B(p1, int p2) : super.named(p1, p2);",
+            "  B.named(p1, int p2) : super.named(p1, p2);",
             "}"));
   }
 

@@ -654,13 +654,20 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
         argumentsBuffer.append(parameterName);
       }
       // add proposal
-      StringBuilder sb = new StringBuilder();
+      int insertOffset = targetClassNode.getLeftBracket().getEnd();
+      SourceBuilder sb = new SourceBuilder(insertOffset);
       {
         String eol = utils.getEndOfLine();
         String indent = utils.getIndent(1);
         sb.append(eol);
         sb.append(indent);
         sb.append(targetClassName);
+        if (!constructorName.isEmpty()) {
+          sb.startPosition("NAME");
+          sb.append(".");
+          sb.append(constructorName);
+          sb.endPosition();
+        }
         sb.append("(");
         sb.append(parametersBuffer);
         sb.append(") : super");
@@ -675,7 +682,7 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
           sb.append(eol);
         }
       }
-      addInsertEdit(targetClassNode.getLeftBracket().getEnd(), sb.toString());
+      addInsertEdit(sb);
       // add proposal
       String proposalName = getConstructorProposalName(superConstructor);
       addUnitCorrectionProposal(CorrectionKind.QF_CREATE_CONSTRUCTOR_SUPER, proposalName);
