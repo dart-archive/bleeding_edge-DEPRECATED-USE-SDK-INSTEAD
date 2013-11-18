@@ -10,7 +10,7 @@ vars.update({
   "chromium_url": "http://src.chromium.org/svn",
   "dartium_chromium_url": "http://src.chromium.org/multivm/branches/1650/chrome",
   "dartium_chromium_revision": "1606",
-  "clank_gerrit": "ssh://gerrit-int.chromium.org:29419/clank/",
+  "clank_url": "https://chrome-internal.googlesource.com/clank/",
   # This revision number should be kept in sync with the version of clank that
   # uses a similar chromium revision to that mentioned just above in
   # "chromium_revision". You can check which might be a good revision at:
@@ -52,7 +52,7 @@ deps.update({
   "src":
     Var("dartium_chromium_url") + "@" + Var("dartium_chromium_revision"),
 
-  'src/clank': Var('clank_gerrit') + "internal/apps.git@" + Var("clank_rev"),
+  'src/clank': Var('clank_url') + "internal/apps.git@" + Var("clank_rev"),
   'src-internal': Var('chrome_internal') + "chrome/src-internal.git",
 
   "src/dart":
