@@ -31,18 +31,6 @@ public class IncrementalParserTest extends EngineTestCase {
     assertParse("", "f() => a + b;", "", "");
   }
 
-  public void fail_delete_identifier_beginning() {
-    // "f() => abs + b;"
-    // "f() => s + b;"
-    assertParse("f() => ", "ab", "", "s + b;");
-  }
-
-  public void fail_delete_mergeTokens() {
-    // "f() => a + b + c;"
-    // "f() => ac;"
-    assertParse("f() => a", " + b + ", "", "c;");
-  }
-
   public void fail_insert_convertOneFunctionToTwo() {
     // We are not currently able to handle the case where one node must be replaced by more than one
     // node.
@@ -62,10 +50,10 @@ public class IncrementalParserTest extends EngineTestCase {
     assertParse("f() => a", "", ".", " b;");
   }
 
-  public void fail_replace_multiple_partialFirstAndLast() {
-    // "f() => aa + bb;"
-    // "f() => ab * ab;"
-    assertParse("f() => a", "a + b", "b * a", "b;");
+  public void test_delete_identifier_beginning() {
+    // "f() => abs + b;"
+    // "f() => s + b;"
+    assertParse("f() => ", "ab", "", "s + b;");
   }
 
   public void test_delete_identifier_end() {
@@ -78,6 +66,12 @@ public class IncrementalParserTest extends EngineTestCase {
     // "f() => abs + b;"
     // "f() => as + b;"
     assertParse("f() => a", "b", "", "s + b;");
+  }
+
+  public void test_delete_mergeTokens() {
+    // "f() => a + b + c;"
+    // "f() => ac;"
+    assertParse("f() => a", " + b + ", "", "c;");
   }
 
   public void test_insert_afterIdentifier1() {
@@ -180,6 +174,12 @@ public class IncrementalParserTest extends EngineTestCase {
     // "f() => first + b;"
     // "f() => frost + b;"
     assertParse("f() => f", "ir", "ro", "st + b;");
+  }
+
+  public void test_replace_multiple_partialFirstAndLast() {
+    // "f() => aa + bb;"
+    // "f() => ab * ab;"
+    assertParse("f() => a", "a + b", "b * a", "b;");
   }
 
   public void test_replace_operator_oneForMany() {

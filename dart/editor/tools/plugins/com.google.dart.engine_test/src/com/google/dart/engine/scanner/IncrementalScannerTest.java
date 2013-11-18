@@ -38,25 +38,12 @@ public class IncrementalScannerTest extends EngineTestCase {
    */
   private Token incrementalTokens;
 
-  public void fail_delete_identifier_beginning() {
+  public void test_delete_identifier_beginning() {
     // "abs + b;"
     // "s + b;")
     scan("", "ab", "", "s + b;");
     assertTokens(-1, 1, "s", "+", "b", ";");
-  }
-
-  public void fail_delete_mergeTokens() {
-    // "a + b + c;"
-    // "ac;")
-    scan("a", " + b + ", "", "c;");
-    assertTokens(-1, 1, "ac", ";");
-  }
-
-  public void fail_replace_multiple_partialFirstAndLast() {
-    // "aa + bb;"
-    // "ab * ab;")
-    scan("a", "a + b", "b * a", "b;");
-    assertTokens(-1, 3, "ab", "*", "ab", ";");
+    assertTrue(incrementalScanner.hasNonWhitespaceChange());
   }
 
   public void test_delete_identifier_end() {
@@ -64,6 +51,7 @@ public class IncrementalScannerTest extends EngineTestCase {
     // "a + b;")
     scan("a", "bs", "", " + b;");
     assertTokens(-1, 1, "a", "+", "b", ";");
+    assertTrue(incrementalScanner.hasNonWhitespaceChange());
   }
 
   public void test_delete_identifier_middle() {
@@ -71,6 +59,15 @@ public class IncrementalScannerTest extends EngineTestCase {
     // "as + b;")
     scan("a", "b", "", "s + b;");
     assertTokens(-1, 1, "as", "+", "b", ";");
+    assertTrue(incrementalScanner.hasNonWhitespaceChange());
+  }
+
+  public void test_delete_mergeTokens() {
+    // "a + b + c;"
+    // "ac;")
+    scan("a", " + b + ", "", "c;");
+    assertTokens(-1, 1, "ac", ";");
+    assertTrue(incrementalScanner.hasNonWhitespaceChange());
   }
 
   public void test_insert_afterIdentifier1() {
@@ -79,6 +76,7 @@ public class IncrementalScannerTest extends EngineTestCase {
     scan("a", "", "bs", " + b;");
     assertTokens(-1, 1, "abs", "+", "b", ";");
     assertReplaced(1, "+");
+    assertTrue(incrementalScanner.hasNonWhitespaceChange());
   }
 
   public void test_insert_afterIdentifier2() {
@@ -86,6 +84,7 @@ public class IncrementalScannerTest extends EngineTestCase {
     // "a + by;"
     scan("a + b", "", "y", ";");
     assertTokens(1, 3, "a", "+", "by", ";");
+    assertTrue(incrementalScanner.hasNonWhitespaceChange());
   }
 
   public void test_insert_beforeIdentifier() {
@@ -93,6 +92,7 @@ public class IncrementalScannerTest extends EngineTestCase {
     // "a + xb;")
     scan("a + ", "", "x", "b;");
     assertTokens(1, 3, "a", "+", "xb", ";");
+    assertTrue(incrementalScanner.hasNonWhitespaceChange());
   }
 
   public void test_insert_beforeIdentifier_firstToken() {
@@ -100,6 +100,7 @@ public class IncrementalScannerTest extends EngineTestCase {
     // "xa + b;"
     scan("", "", "x", "a + b;");
     assertTokens(-1, 1, "xa", "+", "b", ";");
+    assertTrue(incrementalScanner.hasNonWhitespaceChange());
   }
 
   public void test_insert_convertOneFunctionToTwo() {
@@ -107,6 +108,7 @@ public class IncrementalScannerTest extends EngineTestCase {
     // "f() => 0; g() {}"
     scan("f()", "", " => 0; g()", " {}");
     assertTokens(2, 9, "f", "(", ")", "=>", "0", ";", "g", "(", ")", "{", "}");
+    assertTrue(incrementalScanner.hasNonWhitespaceChange());
   }
 
   public void test_insert_end() {
@@ -114,6 +116,15 @@ public class IncrementalScannerTest extends EngineTestCase {
     // "class A {} class B {}"
     scan("class A {}", "", " class B {}", "");
     assertTokens(3, 8, "class", "A", "{", "}", "class", "B", "{", "}");
+    assertTrue(incrementalScanner.hasNonWhitespaceChange());
+  }
+
+  public void test_insert_insideIdentifier() {
+    // "cob;"
+    // "cow.b;"
+    scan("co", "", "w.", "b;");
+    assertTokens(-1, 3, "cow", ".", "b", ";");
+    assertTrue(incrementalScanner.hasNonWhitespaceChange());
   }
 
   public void test_insert_newIdentifier1() {
@@ -121,6 +132,7 @@ public class IncrementalScannerTest extends EngineTestCase {
     // "a; b c;"
     scan("a; ", "", "b", " c;");
     assertTokens(1, 3, "a", ";", "b", "c", ";");
+    assertTrue(incrementalScanner.hasNonWhitespaceChange());
   }
 
   public void test_insert_newIdentifier2() {
@@ -129,6 +141,7 @@ public class IncrementalScannerTest extends EngineTestCase {
     scan("a;", "", "b", "  c;");
     assertTokens(1, 3, "a", ";", "b", "c", ";");
     assertReplaced(1, ";");
+    assertTrue(incrementalScanner.hasNonWhitespaceChange());
   }
 
   public void test_insert_period() {
@@ -143,6 +156,7 @@ public class IncrementalScannerTest extends EngineTestCase {
     // "a. b;"
     scan("a", "", ".", " b;");
     assertTokens(0, 2, "a", ".", "b", ";");
+    assertTrue(incrementalScanner.hasNonWhitespaceChange());
   }
 
   public void test_insert_period_betweenIdentifiers2() {
@@ -157,6 +171,7 @@ public class IncrementalScannerTest extends EngineTestCase {
     // "a . b;"
     scan("a ", "", ".", " b;");
     assertTokens(0, 2, "a", ".", "b", ";");
+    assertTrue(incrementalScanner.hasNonWhitespaceChange());
   }
 
   public void test_insert_period_insideExistingIdentifier() {
@@ -164,6 +179,7 @@ public class IncrementalScannerTest extends EngineTestCase {
     // "a.b;"
     scan("a", "", ".", "b;");
     assertTokens(-1, 3, "a", ".", "b", ";");
+    assertTrue(incrementalScanner.hasNonWhitespaceChange());
   }
 
   public void test_insert_periodAndIdentifier() {
@@ -177,14 +193,16 @@ public class IncrementalScannerTest extends EngineTestCase {
     // "a + b;"
     // " a + b;"
     scan("", "", " ", "a + b;");
-    assertTokens(-1, 0, "a", "+", "b", ";");
+    assertTokens(0, 1, "a", "+", "b", ";");
+    assertFalse(incrementalScanner.hasNonWhitespaceChange());
   }
 
   public void test_insert_whitespace_betweenTokens() {
     // "a + b;"
     // "a  + b;"
     scan("a ", "", " ", "+ b;");
-    assertTokens(0, 1, "a", "+", "b", ";");
+    assertTokens(1, 2, "a", "+", "b", ";");
+    assertFalse(incrementalScanner.hasNonWhitespaceChange());
   }
 
   public void test_insert_whitespace_end_afterToken() {
@@ -192,6 +210,7 @@ public class IncrementalScannerTest extends EngineTestCase {
     // "a + b; "
     scan("a + b;", "", " ", "");
     assertTokens(3, 4, "a", "+", "b", ";");
+    assertFalse(incrementalScanner.hasNonWhitespaceChange());
   }
 
   public void test_insert_whitespace_end_afterWhitespace() {
@@ -199,6 +218,7 @@ public class IncrementalScannerTest extends EngineTestCase {
     // "a + b;  "
     scan("a + b; ", "", " ", "");
     assertTokens(3, 4, "a", "+", "b", ";");
+    assertFalse(incrementalScanner.hasNonWhitespaceChange());
   }
 
   public void test_insert_whitespace_withMultipleComments() {
@@ -208,7 +228,8 @@ public class IncrementalScannerTest extends EngineTestCase {
         "//comment",
         "//comment2",
         "a"), "", " ", " + b;");
-    assertTokens(0, 1, "a", "+", "b", ";");
+    assertTokens(1, 2, "a", "+", "b", ";");
+    assertFalse(incrementalScanner.hasNonWhitespaceChange());
   }
 
   public void test_replace_identifier_beginning() {
@@ -216,6 +237,7 @@ public class IncrementalScannerTest extends EngineTestCase {
     // "fell + b;")
     scan("", "b", "f", "ell + b;");
     assertTokens(-1, 1, "fell", "+", "b", ";");
+    assertTrue(incrementalScanner.hasNonWhitespaceChange());
   }
 
   public void test_replace_identifier_end() {
@@ -223,6 +245,7 @@ public class IncrementalScannerTest extends EngineTestCase {
     // "belt + b;")
     scan("bel", "l", "t", " + b;");
     assertTokens(-1, 1, "belt", "+", "b", ";");
+    assertTrue(incrementalScanner.hasNonWhitespaceChange());
   }
 
   public void test_replace_identifier_middle() {
@@ -230,6 +253,15 @@ public class IncrementalScannerTest extends EngineTestCase {
     // "frost + b;")
     scan("f", "ir", "ro", "st + b;");
     assertTokens(-1, 1, "frost", "+", "b", ";");
+    assertTrue(incrementalScanner.hasNonWhitespaceChange());
+  }
+
+  public void test_replace_multiple_partialFirstAndLast() {
+    // "aa + bb;"
+    // "ab * ab;")
+    scan("a", "a + b", "b * a", "b;");
+    assertTokens(-1, 3, "ab", "*", "ab", ";");
+    assertTrue(incrementalScanner.hasNonWhitespaceChange());
   }
 
   public void test_replace_operator_oneForMany() {
@@ -237,6 +269,7 @@ public class IncrementalScannerTest extends EngineTestCase {
     // "a * c - b;")
     scan("a ", "+", "* c -", " b;");
     assertTokens(0, 4, "a", "*", "c", "-", "b", ";");
+    assertTrue(incrementalScanner.hasNonWhitespaceChange());
   }
 
   public void test_replace_operator_oneForOne() {
@@ -244,6 +277,7 @@ public class IncrementalScannerTest extends EngineTestCase {
     // "a * b;")
     scan("a ", "+", "*", " b;");
     assertTokens(0, 2, "a", "*", "b", ";");
+    assertTrue(incrementalScanner.hasNonWhitespaceChange());
   }
 
   public void test_tokenMap() throws Exception {
@@ -259,8 +293,16 @@ public class IncrementalScannerTest extends EngineTestCase {
       assertEquals(oldToken.getLexeme(), newToken.getLexeme());
       oldToken = oldToken.getNext();
     }
+    assertFalse(incrementalScanner.hasNonWhitespaceChange());
   }
 
+  /**
+   * Assert that the token at the given offset was replaced with a new token having the given
+   * lexeme.
+   * 
+   * @param tokenOffset the offset of the token being tested
+   * @param lexeme the expected lexeme of the new token
+   */
   private void assertReplaced(int tokenOffset, String lexeme) {
     Token oldToken = originalTokens;
     for (int i = 0; i < tokenOffset; i++) {
@@ -273,43 +315,52 @@ public class IncrementalScannerTest extends EngineTestCase {
     assertNotSame(oldToken, newToken);
   }
 
-  private void assertTokens(int firstIndex, int lastIndex, String... lexemes) {
+  /**
+   * Assert that the result of the incremental scan matches the given list of lexemes and that the
+   * left and right tokens correspond to the tokens at the given indices.
+   * 
+   * @param leftIndex the expected index of the left token
+   * @param rightIndex the expected index of the right token
+   * @param lexemes the expected lexemes of the resulting tokens
+   */
+  private void assertTokens(int leftIndex, int rightIndex, String... lexemes) {
     int count = lexemes.length;
-    assertTrue("Invalid first index", firstIndex >= -1 && firstIndex < count);
-    assertTrue("Invalid last index", lastIndex >= 0 && lastIndex <= count);
+    assertTrue("Invalid left index", leftIndex >= -1 && leftIndex < count);
+    assertTrue("Invalid right index", rightIndex >= 0 && rightIndex <= count);
     Token leftToken = null;
     Token rightToken = null;
     Token token = incrementalTokens;
-    if (firstIndex < 0) {
+    if (leftIndex < 0) {
       leftToken = token.getPrevious();
     }
     for (int i = 0; i < count; i++) {
       assertEquals(lexemes[i], token.getLexeme());
-      if (i == firstIndex) {
+      if (i == leftIndex) {
         leftToken = token;
       }
-      if (i == lastIndex) {
+      if (i == rightIndex) {
         rightToken = token;
       }
       token = token.getNext();
     }
-    if (lastIndex >= count) {
+    if (rightIndex >= count) {
       rightToken = token;
     }
     assertSame("Too many tokens", TokenType.EOF, token.getType());
-    if (firstIndex >= 0) {
+    if (leftIndex >= 0) {
       assertNotNull(leftToken);
     }
-    assertSame(leftToken, incrementalScanner.getLeftToken());
-    if (lastIndex >= 0) {
+    assertSame("Invalid left token", leftToken, incrementalScanner.getLeftToken());
+    if (rightIndex >= 0) {
       assertNotNull(rightToken);
     }
-    assertSame(rightToken, incrementalScanner.getRightToken());
+    assertSame("Invalid right token", rightToken, incrementalScanner.getRightToken());
   }
 
   /**
    * Given a description of the original and modified contents, perform an incremental scan of the
-   * two pieces of text.
+   * two pieces of text. Verify that the incremental scan produced the same tokens as those that
+   * would be produced by a full scan of the new contents.
    * 
    * @param prefix the unchanged text before the edit region
    * @param removed the text that was removed from the original contents
