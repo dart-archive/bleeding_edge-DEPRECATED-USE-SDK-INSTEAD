@@ -195,6 +195,7 @@ public class TextSearchPage extends SearchPage {
                   searchResult.getMatchCount()));
               if (fileSearchPage != null) {
                 fileSearchPage.setInput(searchResult, fileSearchPage);
+                fileSearchPage.setViewPart(searchView);
               }
               return Status.OK_STATUS;
             }

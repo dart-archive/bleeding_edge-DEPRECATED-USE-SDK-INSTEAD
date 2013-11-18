@@ -15,10 +15,13 @@
 package com.google.dart.tools.search.internal.ui;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.dart.tools.search.ui.ISearchResultPage;
+import com.google.dart.tools.search.ui.ISearchResultViewPart;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.util.GridLayoutFactory;
 import com.google.dart.tools.ui.internal.util.SWTUtil;
 
+import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
@@ -37,7 +40,7 @@ import org.eclipse.ui.part.ViewPart;
  * 
  * @coverage dart.editor.ui.search
  */
-public class SearchView extends ViewPart {
+public class SearchView extends ViewPart implements ISearchResultViewPart {
   public static final String ID = "com.google.dart.tools.SearchView";
   public static final String SEARCH_MARKER = "com.google.dart.tools.search.searchmarker";
 
@@ -85,6 +88,17 @@ public class SearchView extends ViewPart {
     preferences.removePropertyChangeListener(propertyChangeListener);
     showPage(null);
     super.dispose();
+  }
+
+  @Override
+  public void fillContextMenu(IMenuManager menuManager) {
+    // No contributions
+  }
+
+  @Override
+  public ISearchResultPage getActivePage() {
+    // Unused
+    return null;
   }
 
   /**
@@ -145,6 +159,11 @@ public class SearchView extends ViewPart {
       pageBook.showPage(emptyComposite);
       actionBars.updateActionBars();
     }
+  }
+
+  @Override
+  public void updateLabel() {
+    // unused
   }
 
   @Override
