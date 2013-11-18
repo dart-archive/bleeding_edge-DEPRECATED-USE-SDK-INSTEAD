@@ -49,9 +49,11 @@ import com.google.dart.engine.ast.StringLiteral;
 import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
 import com.google.dart.engine.ast.visitor.NodeLocator;
 import com.google.dart.engine.context.AnalysisException;
+import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.ExecutableElement;
+import com.google.dart.engine.element.ExportElement;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.LocalVariableElement;
@@ -355,6 +357,16 @@ public class CorrectionUtils {
   /**
    * TODO(scheglov) may be replace with some API for this
    * 
+   * @return the namespace of the given {@link ExportElement}.
+   */
+  public static Map<String, Element> getExportNamespace(ExportElement exp) {
+    Namespace namespace = new NamespaceBuilder().createExportNamespace(exp);
+    return namespace.getDefinedNames();
+  }
+
+  /**
+   * TODO(scheglov) may be replace with some API for this
+   * 
    * @return the export namespace of the given {@link LibraryElement}.
    */
   public static Map<String, Element> getExportNamespace(LibraryElement library) {
@@ -394,6 +406,16 @@ public class CorrectionUtils {
   public static Map<String, Element> getImportNamespace(ImportElement imp) {
     Namespace namespace = new NamespaceBuilder().createImportNamespace(imp);
     return namespace.getDefinedNames();
+  }
+
+  /**
+   * @return all {@link CompilationUnitElement} the given {@link LibraryElement} consists of.
+   */
+  public static List<CompilationUnitElement> getLibraryUnits(LibraryElement library) {
+    List<CompilationUnitElement> units = Lists.newArrayList();
+    units.add(library.getDefiningCompilationUnit());
+    Collections.addAll(units, library.getParts());
+    return units;
   }
 
   /**
@@ -682,6 +704,21 @@ public class CorrectionUtils {
       return s;
     }
     return s.substring(0, index);
+  }
+
+  /**
+   * @return all top-level elements declared in the given {@link LibraryElement}.
+   */
+  public static List<Element> getTopLevelElements(LibraryElement library) {
+    List<Element> elements = Lists.newArrayList();
+    List<CompilationUnitElement> units = getLibraryUnits(library);
+    for (CompilationUnitElement unit : units) {
+      Collections.addAll(elements, unit.getFunctions());
+      Collections.addAll(elements, unit.getFunctionTypeAliases());
+      Collections.addAll(elements, unit.getTypes());
+      Collections.addAll(elements, unit.getTopLevelVariables());
+    }
+    return elements;
   }
 
   /**

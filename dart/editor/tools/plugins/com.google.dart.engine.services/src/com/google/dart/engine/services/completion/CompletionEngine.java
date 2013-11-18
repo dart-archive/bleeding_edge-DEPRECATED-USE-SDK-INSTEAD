@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.services.completion;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.Annotation;
@@ -111,11 +112,10 @@ import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchFilter;
 import com.google.dart.engine.search.SearchMatch;
-import com.google.dart.engine.search.SearchPattern;
-import com.google.dart.engine.search.SearchPatternFactory;
 import com.google.dart.engine.search.SearchScope;
 import com.google.dart.engine.search.SearchScopeFactory;
 import com.google.dart.engine.services.assist.AssistContext;
+import com.google.dart.engine.services.internal.correction.CorrectionUtils;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.InterfaceType;
@@ -246,14 +246,19 @@ public class CompletionEngine {
       }
     }
 
-    void addTopLevelNames() {
+    void addTopLevelNames(LibraryElement library, TopLevelNamesKind topKind) {
       if (!state.areLiteralsAllowed) {
-        mergeNames(findAllTypes());
+        mergeNames(findAllTypes(library, topKind));
       }
       if (!state.areClassesRequired) {
-        mergeNames(findAllVariables());
-        mergeNames(findAllFunctions());
+        mergeNames(findAllNotTypes(library, topKind));
         mergeNames(findAllPrefixes());
+      }
+    }
+
+    void addTopLevelNames(LibraryElement[] libraries, TopLevelNamesKind topKind) {
+      for (LibraryElement library : libraries) {
+        addTopLevelNames(library, topKind);
       }
     }
 
@@ -321,6 +326,11 @@ public class CompletionEngine {
     }
   }
 
+  enum TopLevelNamesKind {
+    DECLARED_AND_IMPORTS,
+    DECLARED_AND_EXPORTS
+  }
+
   private class Filter {
     String prefix;
     String originalPrefix;
@@ -383,6 +393,15 @@ public class CompletionEngine {
         return true;
       }
       return pattern != null && pattern.matcher(name).matches();
+    }
+
+    void removeNotMatching(List<Element> elements) {
+      for (Iterator<Element> I = elements.iterator(); I.hasNext();) {
+        Element element = I.next();
+        if (!match(element)) {
+          I.remove();
+        }
+      }
     }
   }
 
@@ -1517,7 +1536,7 @@ public class CompletionEngine {
 
   void analyzeConstructorTypeName(SimpleIdentifier identifier) {
     filter = new Filter(identifier);
-    Element[] types = findAllTypes();
+    Element[] types = findAllTypes(getCurrentLibrary(), TopLevelNamesKind.DECLARED_AND_IMPORTS);
     for (Element type : types) {
       if (type instanceof ClassElement) {
         namedConstructorReference((ClassElement) type, identifier);
@@ -1731,7 +1750,7 @@ public class CompletionEngine {
   void analyzeTypeName(SimpleIdentifier identifier, SimpleIdentifier nameIdent) {
     filter = new Filter(identifier);
     String name = nameIdent == null ? "" : nameIdent.getName();
-    Element[] types = findAllTypes();
+    Element[] types = findAllTypes(getCurrentLibrary(), TopLevelNamesKind.DECLARED_AND_IMPORTS);
     for (Element type : types) {
       if (state.isForMixin) {
         if (!(type instanceof ClassElement)) {
@@ -1786,7 +1805,7 @@ public class CompletionEngine {
     NameCollector names = new NameCollector();
     names.addLocalNames(identifier);
     names.addNamesDefinedByHierarchy(classElement, false);
-    names.addTopLevelNames();
+    names.addTopLevelNames(getCurrentLibrary(), TopLevelNamesKind.DECLARED_AND_IMPORTS);
     proposeNames(names, identifier);
   }
 
@@ -2015,13 +2034,13 @@ public class CompletionEngine {
     proposeNames(names, identifier);
   }
 
-  void prefixedAccess(SimpleIdentifier libName, SimpleIdentifier identifier) {
+  void prefixedAccess(SimpleIdentifier prefixName, SimpleIdentifier identifier) {
     if (filter == null) {
       filter = new Filter(identifier);
     }
-    libraries = librariesImportedByName(libName);
     NameCollector names = new NameCollector();
-    names.addTopLevelNames();
+    LibraryElement[] prefixLibraries = librariesImportedByName(prefixName);
+    names.addTopLevelNames(prefixLibraries, TopLevelNamesKind.DECLARED_AND_EXPORTS);
     proposeNames(names, identifier);
   }
 
@@ -2070,7 +2089,7 @@ public class CompletionEngine {
       ClassElement classElement = ((ClassDeclaration) decl.getParent()).getElement();
       names.addNamesDefinedByHierarchy(classElement, false);
     }
-    names.addTopLevelNames();
+    names.addTopLevelNames(getCurrentLibrary(), TopLevelNamesKind.DECLARED_AND_IMPORTS);
     return names;
   }
 
@@ -2150,15 +2169,6 @@ public class CompletionEngine {
     }
   }
 
-  private Element[] extractElementsFromSearchMatches(List<SearchMatch> matches) {
-    Element[] funcs = new Element[matches.size()];
-    int i = 0;
-    for (SearchMatch match : matches) {
-      funcs[i++] = match.getElement();
-    }
-    return funcs;
-  }
-
   private boolean filterAllows(Element element) {
     return filter.match(element);
   }
@@ -2171,13 +2181,18 @@ public class CompletionEngine {
     return !filter.match(name);
   }
 
-  private Element[] findAllFunctions() {
-    SearchEngine engine = context.getSearchEngine();
-    SearchScope scope = constructSearchScope();
-    SearchPattern pattern = SearchPatternFactory.createWildcardPattern(makeSearchPattern(), false);
-    SearchFilter filter = new ContainmentFilter(null);
-    List<SearchMatch> matches = engine.searchFunctionDeclarations(scope, pattern, filter);
-    return extractElementsFromSearchMatches(matches);
+  private Element[] findAllNotTypes(LibraryElement library, TopLevelNamesKind topKind) {
+    List<Element> elements = findTopLevelElements(library, topKind);
+    for (Iterator<Element> I = elements.iterator(); I.hasNext();) {
+      Element element = I.next();
+      ElementKind kind = element.getKind();
+      if (kind == ElementKind.FUNCTION || kind == ElementKind.TOP_LEVEL_VARIABLE
+          || kind == ElementKind.GETTER || kind == ElementKind.SETTER) {
+        continue;
+      }
+      I.remove();
+    }
+    return elements.toArray(new Element[elements.size()]);
   }
 
   private Element[] findAllPrefixes() {
@@ -2185,20 +2200,33 @@ public class CompletionEngine {
     return lib.getPrefixes();
   }
 
-  private Element[] findAllTypes() {
-    SearchEngine engine = context.getSearchEngine();
-    SearchScope scope = constructSearchScope();
-    SearchPattern pattern = SearchPatternFactory.createWildcardPattern(makeSearchPattern(), false);
-    List<SearchMatch> matches = engine.searchTypeDeclarations(scope, pattern, null);
-    return extractElementsFromSearchMatches(matches);
+  private Element[] findAllTypes(LibraryElement library, TopLevelNamesKind topKind) {
+    List<Element> elements = findTopLevelElements(library, topKind);
+    for (Iterator<Element> I = elements.iterator(); I.hasNext();) {
+      Element element = I.next();
+      ElementKind kind = element.getKind();
+      if (kind == ElementKind.CLASS || kind == ElementKind.FUNCTION_TYPE_ALIAS) {
+        continue;
+      }
+      I.remove();
+    }
+    return elements.toArray(new Element[elements.size()]);
   }
 
-  private Element[] findAllVariables() {
-    SearchEngine engine = context.getSearchEngine();
-    SearchScope scope = constructSearchScope();
-    SearchPattern pattern = SearchPatternFactory.createWildcardPattern(makeSearchPattern(), false);
-    List<SearchMatch> matches = engine.searchVariableDeclarations(scope, pattern, null);
-    return extractElementsFromSearchMatches(matches);
+  private List<Element> findTopLevelElements(LibraryElement library, TopLevelNamesKind topKind) {
+    List<Element> elements = Lists.newArrayList();
+    if (topKind == TopLevelNamesKind.DECLARED_AND_IMPORTS) {
+      elements.addAll(CorrectionUtils.getTopLevelElements(library));
+      for (ImportElement imp : library.getImports()) {
+        elements.addAll(CorrectionUtils.getImportNamespace(imp).values());
+      }
+      removeNotMatchingFilter(elements);
+    }
+    if (topKind == TopLevelNamesKind.DECLARED_AND_EXPORTS) {
+      elements.addAll(CorrectionUtils.getExportNamespace(library).values());
+      removeNotMatchingFilter(elements);
+    }
+    return elements;
   }
 
   private AnalysisContext getAnalysisContext() {
@@ -2321,13 +2349,6 @@ public class CompletionEngine {
       }
       return name;
     }
-  }
-
-  private String makeSearchPattern() {
-    if (filter == null) {
-      return "*";
-    }
-    return filter.makePattern();
   }
 
   private void pArgumentList(CompletionProposal proposal, int offset, int len) {
@@ -2613,6 +2634,14 @@ public class CompletionEngine {
     CompletionProposal prop = factory.createCompletionProposal(kind, completionTokenOffset());
     prop.setCompletion(word);
     requestor.accept(prop);
+  }
+
+  private void removeNotMatchingFilter(List<Element> elements) {
+    if (filter == null) {
+      return;
+    }
+    filter.makePattern();
+    filter.removeNotMatching(elements);
   }
 
   private void setParameterInfo(ExecutableElement cons, CompletionProposal prop) {

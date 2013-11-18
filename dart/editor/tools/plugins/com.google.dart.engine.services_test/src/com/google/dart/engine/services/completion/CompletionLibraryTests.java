@@ -1,11 +1,11 @@
 /*
  * Copyright (c) 2013, the Dart project authors.
- *
+ * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- *
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -18,6 +18,41 @@ import com.google.dart.engine.source.Source;
 import java.util.ArrayList;
 
 public class CompletionLibraryTests extends CompletionTestCase {
+
+  public void test_export_ignoreIfThisLibraryExports() throws Exception {
+    ArrayList<Source> sources = new ArrayList<Source>();
+    test(//
+        src(//
+            "export 'dart:math';",
+            "libFunction() {};",
+            "main() {",
+            "  !1",
+            "}"),
+        sources,
+        "1-cos",
+        "1+libFunction");
+  }
+
+  public void test_export_showIfImportLibraryWithExport() throws Exception {
+    ArrayList<Source> sources = new ArrayList<Source>();
+    sources.add(addSource(//
+        "/lib.dart",
+        src(//
+            "library lib;",
+            "export 'dart:math' hide sin;",
+            "libFunction() {};",
+            "")));
+    test(//
+        src(//
+            "import 'lib.dart' as p;",
+            "main() {",
+            "  p.!1",
+            "}"),
+        sources,
+        "1+cos",
+        "1-sin",
+        "1+libFunction");
+  }
 
   public void test_noPrivateElement_otherLibrary_constructor() throws Exception {
     ArrayList<Source> sources = new ArrayList<Source>();
