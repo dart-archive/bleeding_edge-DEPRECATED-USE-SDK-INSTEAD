@@ -18,6 +18,8 @@ import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.resolver.ResolverErrorCode;
 import com.google.dart.engine.source.TestSource;
 
+import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
+
 import junit.framework.TestCase;
 
 import java.io.ByteArrayOutputStream;
@@ -71,6 +73,26 @@ public class ErrorFormatterTest extends TestCase {
     AnalysisError error = new AnalysisError(
         new TestSource(),
         ResolverErrorCode.MISSING_LIBRARY_DIRECTIVE_WITH_PART);
+
+    formatter.formatError(error);
+
+    String actual = out.toString("UTF-8").trim();
+
+    assertEquals(
+        "[error] Libraries that have parts must have a library directive (/test.dart, line 1, col 1)",
+        actual);
+  }
+
+  public void test_format_withError() throws UnsupportedEncodingException {
+    AnalyzerOptions options = new AnalyzerOptions();
+
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
+    ErrorFormatter formatter = new ErrorFormatter(new PrintStream(out), options);
+
+    AnalysisError error = new AnalysisError(new TestSource(
+        null,
+        createFile("/test.dart"),
+        "import 'foo.dart"), ResolverErrorCode.MISSING_LIBRARY_DIRECTIVE_WITH_PART);
 
     formatter.formatError(error);
 
