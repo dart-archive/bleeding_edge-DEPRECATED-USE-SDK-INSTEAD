@@ -16,6 +16,7 @@ package com.google.dart.tools.deploy;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.MessageConsole.MessageStream;
+import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.ui.PreferenceConstants;
 import com.google.dart.tools.ui.actions.DeployConsolePatternMatcher;
 import com.google.dart.tools.ui.actions.OpenIntroEditorAction;
@@ -345,8 +346,9 @@ public class ApplicationWorkbenchAdvisor extends WorkbenchAdvisor {
   }
 
   private void cleanupClosedOrNonExistentProjects() {
-    for (IProject project : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
-      if (!project.isOpen() || project.getRawLocation() == null) {
+    IProject[] projects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
+    for (IProject project : projects) {
+      if (!ResourceUtil.isExistingProject(project)) {
         try {
           Activator.log("removing closed or non-existent project '" + project.getName()
               + "' pre startup");

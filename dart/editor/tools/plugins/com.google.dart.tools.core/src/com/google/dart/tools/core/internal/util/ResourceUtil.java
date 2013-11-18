@@ -18,6 +18,7 @@ import com.google.dart.compiler.Source;
 import com.google.dart.tools.core.DartCore;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
@@ -26,6 +27,7 @@ import org.eclipse.core.resources.IResourceProxyVisitor;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
 
 import java.io.File;
 import java.net.URI;
@@ -114,6 +116,14 @@ public class ResourceUtil {
     return null;
   }
 
+  public static IPath getProjectLocation(IProject project) {
+    if (project.getRawLocation() == null) {
+      return project.getLocation();
+    } else {
+      return project.getRawLocation();
+    }
+  }
+
   /**
    * Answer the Eclipse resource associated with the specified file or <code>null</code> if none
    */
@@ -192,6 +202,21 @@ public class ResourceUtil {
       return new IResource[] {resource};
     }
     return root.findFilesForLocationURI(uri);
+  }
+
+  public static boolean isExistingProject(IProject project) {
+    if (!project.isOpen()) {
+      return false;
+    }
+    IPath location = getProjectLocation(project);
+    if (location == null) {
+      return false;
+    }
+    File file = location.toFile();
+    if (file == null) {
+      return false;
+    }
+    return file.exists();
   }
 
   /**
