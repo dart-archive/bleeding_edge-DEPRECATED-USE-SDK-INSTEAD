@@ -201,7 +201,7 @@ public class CompletionProposalLabelProvider {
     switch (kind) {
       case CompletionProposal.METHOD_REF:
       case CompletionProposal.ARGUMENT_LIST:
-        return appendUnboundedParameterList(new StringBuffer(), proposal).toString();
+        return appendUnboundedParameterList(new StyledString(), proposal).toString();
       default:
         Assert.isLegal(false);
         return null; // dummy
@@ -234,7 +234,7 @@ public class CompletionProposalLabelProvider {
   String createAnonymousTypeLabel(CompletionProposal proposal) {
     char[] declaringTypeSignature = proposal.getDeclarationSignature();
 
-    StringBuffer buffer = new StringBuffer();
+    StyledString buffer = new StyledString();
     buffer.append(Signature.getSignatureSimpleName(declaringTypeSignature));
     buffer.append('(');
     appendUnboundedParameterList(buffer, proposal);
@@ -246,10 +246,9 @@ public class CompletionProposalLabelProvider {
   }
 
   StyledString createArgumentList(CompletionProposal methodProposal) {
-    StringBuffer nameBuffer = new StringBuffer();
+    StyledString nameBuffer = new StyledString();
     appendUnboundedParameterList(nameBuffer, methodProposal);
-    StyledString label = new StyledString(nameBuffer.toString());
-    return label;
+    return nameBuffer;
   }
 
   ImageDescriptor createFieldImageDescriptor(CompletionProposal proposal) {
@@ -399,45 +398,46 @@ public class CompletionProposalLabelProvider {
    * @return the display label for the given method proposal
    */
   StyledString createMethodProposalLabel(CompletionProposal methodProposal) {
-    StringBuffer nameBuffer = new StringBuffer();
+    StyledString buffer = new StyledString();
 
     // method name
-    nameBuffer.append(methodProposal.getName());
+    buffer.append(methodProposal.getName());
 
     boolean hasParameters = methodProposal.getKind() != CompletionProposal.METHOD_NAME_REFERENCE;
 
     // parameters
     if (hasParameters && Character.isJavaIdentifierStart(methodProposal.getName()[0])) {
       if (!methodProposal.isGetOrSet()) {
-        nameBuffer.append('(');
-        appendUnboundedParameterList(nameBuffer, methodProposal);
-        nameBuffer.append(')');
+        int start = buffer.length();
+        buffer.append('(');
+        appendUnboundedParameterList(buffer, methodProposal);
+        buffer.append(')');
+        buffer.setStyle(start, buffer.length() - start, StyledString.DECORATIONS_STYLER);
       }
     }
 
-    StyledString label = new StyledString(nameBuffer.toString());
     // return type
     if (!methodProposal.isConstructor()) {
       char[] returnType = createTypeDisplayName(methodProposal.getReturnTypeName());
       if (!Arrays.equals(Signature.ANY, returnType)) {
         if (isVoid(returnType)) {
-          label.append(VOID_INDICATOR, StyledString.QUALIFIER_STYLER);
+          buffer.append(VOID_INDICATOR, StyledString.QUALIFIER_STYLER);
         } else if (isDynamic(returnType)) {
-          label.append(DYNAMIC_INDICATOR, StyledString.QUALIFIER_STYLER);
+          buffer.append(DYNAMIC_INDICATOR, StyledString.QUALIFIER_STYLER);
         } else {
-          label.append(RIGHT_ARROW, StyledString.QUALIFIER_STYLER);
-          TypeLabelUtil.insertTypeLabel(returnType, label);
+          buffer.append(RIGHT_ARROW, StyledString.QUALIFIER_STYLER);
+          TypeLabelUtil.insertTypeLabel(returnType, buffer);
         }
       }
     }
     if (methodProposal.isPotentialMatch()) {
-      potentialize(label, methodProposal);
+      potentialize(buffer, methodProposal);
     }
-    return label;
+    return buffer;
   }
 
   String createOverrideMethodProposalLabel(CompletionProposal methodProposal) {
-    StringBuffer nameBuffer = new StringBuffer();
+    StyledString nameBuffer = new StyledString();
 
     // method name
     nameBuffer.append(methodProposal.getName());
@@ -558,7 +558,7 @@ public class CompletionProposalLabelProvider {
    * @param parameterNames the parameter names
    * @return the display string of the parameter list defined by the passed arguments
    */
-  private StringBuffer appendParameterSignature(StringBuffer buffer, char[][] parameterTypes,
+  private StyledString appendParameterSignature(StyledString buffer, char[][] parameterTypes,
       char[][] parameterNames, int positionalCount, boolean hasNamed, boolean hasOptional) {
     if (parameterTypes == null) {
       if (parameterNames != null && parameterNames.length > 0) {
@@ -607,7 +607,7 @@ public class CompletionProposalLabelProvider {
    * @param methodProposal the method proposal
    * @return the modified <code>buffer</code>
    */
-  private StringBuffer appendUnboundedParameterList(StringBuffer buffer,
+  private StyledString appendUnboundedParameterList(StyledString buffer,
       CompletionProposal methodProposal) {
     char[][] parameterNames = methodProposal.findParameterNames(null);
     char[][] parameterTypes = methodProposal.getParameterTypeNames();

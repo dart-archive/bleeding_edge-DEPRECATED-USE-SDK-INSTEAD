@@ -24,15 +24,15 @@ public class TypeLabelUtil {
     if (typeName != null) {
       buf.append(typeName);
     } else {
-      buf.append("Dynamic");
+      buf.append("dynamic");
     }
   }
 
   public static void insertTypeLabel(char[] typeName, StyledString buf) {
     if (typeName != null) {
-      buf.append(typeName);
+      buf.append(typeName, StyledString.QUALIFIER_STYLER);
     } else {
-      buf.append("Dynamic");
+      buf.append("dynamic", StyledString.QUALIFIER_STYLER);
     }
   }
 
