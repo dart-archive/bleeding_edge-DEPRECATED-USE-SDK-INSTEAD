@@ -63,7 +63,9 @@ public class PubspecEditor extends FormEditor {
 
     @Override
     public void elementDirtyStateChanged(Object element, boolean isDirty) {
-
+      if (!model.isDirty()) {
+        model.setValuesFromString(yamlEditor.getDocument().get());
+      }
     }
 
     @Override
