@@ -36,6 +36,7 @@ import com.google.dart.engine.source.PackageUriResolver;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.engine.source.UriKind;
+import com.google.dart.engine.utilities.source.LineInfo;
 
 import java.io.File;
 import java.io.IOException;
@@ -43,6 +44,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -90,15 +92,16 @@ class AnalyzerImpl {
 
   /**
    * Treats the {@code sourceFile} as the top level library and analyzes the unit for warnings and
-   * errors.
+   * errors. The errors are added to the given list, and line information for all sources that have
+   * errors is added to the given map.
    * 
    * @param sourceFile file to analyze
-   * @param options configuration for this analysis pass
-   * @param errors the list to add errors to
-   * @return {@code  true} on success, {@code false} on failure.
+   * @param errors the list to which errors will be added
+   * @param lineInfoMap the map to which line information will be added
+   * @return the severity of the most severe error or warning
    */
-  public ErrorSeverity analyze(File sourceFile, List<AnalysisError> errors) throws IOException,
-      AnalysisException {
+  public ErrorSeverity analyze(File sourceFile, List<AnalysisError> errors,
+      Map<Source, LineInfo> lineInfoMap) throws IOException, AnalysisException {
     if (sourceFile == null) {
       throw new IllegalArgumentException("sourceFile cannot be null");
     }
@@ -143,7 +146,7 @@ class AnalyzerImpl {
     UriKind uriKind = getUriKind(sourceFile);
     Source librarySource = new FileBasedSource(sourceFactory.getContentCache(), sourceFile, uriKind);
 
-    // don't try to analyzer parts
+    // don't try to analyze parts
     CompilationUnit unit = context.parseCompilationUnit(librarySource);
     boolean hasLibraryDirective = false;
     boolean hasPartOfDirective = false;
@@ -163,8 +166,11 @@ class AnalyzerImpl {
 
     // prepare errors
     Set<Source> sources = getAllSources(library);
-    getAllErrors(context, sources, errors);
+    getAllErrors(context, sources, errors, lineInfoMap);
     filterOutTodos(errors);
+    if (options.getDisableHints()) {
+      filterOutHints(errors);
+    }
     return getMaxErrorSeverity(errors);
   }
 
@@ -227,24 +233,41 @@ class AnalyzerImpl {
   }
 
   /**
-   * Remove any todo error (ErrorSeverity.INFO severity and ErrorType.TODO type) from the passed
-   * list.
+   * Remove any hints (ErrorType.HINT) from the passed list.
+   */
+  private void filterOutHints(List<AnalysisError> errors) {
+    for (int i = errors.size() - 1; i >= 0; i--) {
+      AnalysisError error = errors.get(i);
+      if (error.getErrorCode().getType() == ErrorType.HINT) {
+        errors.remove(i);
+      }
+    }
+  }
+
+  /**
+   * Remove any to-do's (ErrorType.TODO) from the passed list.
    */
   private void filterOutTodos(List<AnalysisError> errors) {
     for (int i = errors.size() - 1; i >= 0; i--) {
       AnalysisError error = errors.get(i);
-
       if (error.getErrorCode().getType() == ErrorType.TODO) {
         errors.remove(i);
       }
     }
   }
 
-  private void getAllErrors(AnalysisContext context, Set<Source> sources, List<AnalysisError> errors)
-      throws AnalysisException {
+  private void getAllErrors(AnalysisContext context, Set<Source> sources,
+      List<AnalysisError> errors, Map<Source, LineInfo> lineInfoMap) throws AnalysisException {
     for (Source source : sources) {
       AnalysisError[] sourceErrors = context.computeErrors(source);
-      errors.addAll(Arrays.asList(sourceErrors));
+      if (sourceErrors.length > 0) {
+        errors.addAll(Arrays.asList(sourceErrors));
+        LineInfo lineInfo = context.getLineInfo(source);
+        if (lineInfo == null) {
+          lineInfo = new LineInfo(new int[] {0});
+        }
+        lineInfoMap.put(source, lineInfo);
+      }
     }
   }
 

@@ -19,12 +19,16 @@ import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.ErrorSeverity;
 import com.google.dart.engine.internal.context.PerformanceStatistics;
+import com.google.dart.engine.source.Source;
+import com.google.dart.engine.utilities.source.LineInfo;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Entry point for the Dart command line analyzer.
@@ -157,16 +161,17 @@ public class AnalyzerMain {
       return ErrorSeverity.ERROR;
     }
 
-    ErrorFormatter formatter = new ErrorFormatter(options.getMachineFormat() ? System.err
-        : System.out, options);
-
     List<AnalysisError> errors = new ArrayList<AnalysisError>();
+    Map<Source, LineInfo> lineInfoMap = new HashMap<Source, LineInfo>();
+
+    ErrorFormatter formatter = new ErrorFormatter(options.getMachineFormat() ? System.err
+        : System.out, options, lineInfoMap);
 
     formatter.startAnalysis();
 
     long startTime = System.currentTimeMillis();
     AnalyzerImpl analyzer = new AnalyzerImpl(options);
-    ErrorSeverity status = analyzer.analyze(sourceFile, errors);
+    ErrorSeverity status = analyzer.analyze(sourceFile, errors, lineInfoMap);
 
     formatter.formatErrors(errors);
 

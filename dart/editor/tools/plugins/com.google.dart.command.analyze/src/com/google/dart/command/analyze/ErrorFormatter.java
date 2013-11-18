@@ -15,20 +15,15 @@
 package com.google.dart.command.analyze;
 
 import com.google.dart.engine.error.AnalysisError;
-import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.error.ErrorSeverity;
 import com.google.dart.engine.error.ErrorType;
-import com.google.dart.engine.scanner.CharSequenceReader;
-import com.google.dart.engine.scanner.Scanner;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.source.LineInfo;
 import com.google.dart.engine.utilities.source.LineInfo.Location;
 
 import java.io.PrintStream;
-import java.nio.CharBuffer;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -82,11 +77,12 @@ public class ErrorFormatter {
 
   private AnalyzerOptions options;
 
-  private Map<Source, LineInfo> lineInfoMap = new HashMap<Source, LineInfo>();
+  private Map<Source, LineInfo> lineInfoMap;
 
-  public ErrorFormatter(PrintStream out, AnalyzerOptions options) {
+  public ErrorFormatter(PrintStream out, AnalyzerOptions options, Map<Source, LineInfo> lineInfoMap) {
     this.out = out;
     this.options = options;
+    this.lineInfoMap = lineInfoMap;
   }
 
   public void formatError(AnalysisError error) {
@@ -193,44 +189,11 @@ public class ErrorFormatter {
   }
 
   Location getLocation(Source source, int offset) {
-    if (!lineInfoMap.containsKey(source)) {
-      calculateLineInfo(source);
-    }
-
-    if (!lineInfoMap.containsKey(source)) {
+    LineInfo lineInfo = lineInfoMap.get(source);
+    if (lineInfo == null) {
       return new Location(-1, -1);
     } else {
-      return lineInfoMap.get(source).getLocation(offset);
-    }
-  }
-
-  private void calculateLineInfo(final Source source) {
-    try {
-      // TODO(devoncarew): we should get the source and line information when we retrieve the errors
-
-      source.getContents(new Source.ContentReceiver() {
-        @Override
-        public void accept(CharBuffer contents, long modificationTime) {
-          Scanner scanner = new Scanner(
-              source,
-              new CharSequenceReader(contents),
-              AnalysisErrorListener.NULL_LISTENER);
-          scanner.tokenize();
-          lineInfoMap.put(source, new LineInfo(scanner.getLineStarts()));
-        }
-
-        @Override
-        public void accept(String contents, long modificationTime) {
-          Scanner scanner = new Scanner(
-              source,
-              new CharSequenceReader(contents),
-              AnalysisErrorListener.NULL_LISTENER);
-          scanner.tokenize();
-          lineInfoMap.put(source, new LineInfo(scanner.getLineStarts()));
-        }
-      });
-    } catch (Exception e) {
-      System.err.println("Source not available for " + source.getFullName());
+      return lineInfo.getLocation(offset);
     }
   }
 

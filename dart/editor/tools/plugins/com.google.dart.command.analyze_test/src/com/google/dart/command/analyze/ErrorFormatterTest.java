@@ -16,7 +16,9 @@ package com.google.dart.command.analyze;
 
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.resolver.ResolverErrorCode;
+import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.TestSource;
+import com.google.dart.engine.utilities.source.LineInfo;
 
 import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
 
@@ -25,17 +27,22 @@ import junit.framework.TestCase;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ErrorFormatterTest extends TestCase {
 
   public void test_format_machine() throws UnsupportedEncodingException {
     AnalyzerOptions options = AnalyzerOptions.createFromArgs(new String[] {"--format=machine"});
 
+    Source source = new TestSource();
     ByteArrayOutputStream out = new ByteArrayOutputStream();
-    ErrorFormatter formatter = new ErrorFormatter(new PrintStream(out), options);
+    Map<Source, LineInfo> lineInfoMap = new HashMap<Source, LineInfo>();
+    lineInfoMap.put(source, new LineInfo(new int[] {0}));
+    ErrorFormatter formatter = new ErrorFormatter(new PrintStream(out), options, lineInfoMap);
 
     AnalysisError error = new AnalysisError(
-        new TestSource(),
+        source,
         ResolverErrorCode.MISSING_LIBRARY_DIRECTIVE_WITH_PART);
 
     formatter.formatError(error);
@@ -49,11 +56,14 @@ public class ErrorFormatterTest extends TestCase {
   public void test_format_machine_deprecated() throws UnsupportedEncodingException {
     AnalyzerOptions options = AnalyzerOptions.createFromArgs(new String[] {"--machine"});
 
+    Source source = new TestSource();
     ByteArrayOutputStream out = new ByteArrayOutputStream();
-    ErrorFormatter formatter = new ErrorFormatter(new PrintStream(out), options);
+    Map<Source, LineInfo> lineInfoMap = new HashMap<Source, LineInfo>();
+    lineInfoMap.put(source, new LineInfo(new int[] {0}));
+    ErrorFormatter formatter = new ErrorFormatter(new PrintStream(out), options, lineInfoMap);
 
     AnalysisError error = new AnalysisError(
-        new TestSource(),
+        source,
         ResolverErrorCode.MISSING_LIBRARY_DIRECTIVE_WITH_PART);
 
     formatter.formatError(error);
@@ -67,11 +77,14 @@ public class ErrorFormatterTest extends TestCase {
   public void test_format_normal() throws UnsupportedEncodingException {
     AnalyzerOptions options = new AnalyzerOptions();
 
+    Source source = new TestSource();
     ByteArrayOutputStream out = new ByteArrayOutputStream();
-    ErrorFormatter formatter = new ErrorFormatter(new PrintStream(out), options);
+    Map<Source, LineInfo> lineInfoMap = new HashMap<Source, LineInfo>();
+    lineInfoMap.put(source, new LineInfo(new int[] {0}));
+    ErrorFormatter formatter = new ErrorFormatter(new PrintStream(out), options, lineInfoMap);
 
     AnalysisError error = new AnalysisError(
-        new TestSource(),
+        source,
         ResolverErrorCode.MISSING_LIBRARY_DIRECTIVE_WITH_PART);
 
     formatter.formatError(error);
@@ -86,13 +99,15 @@ public class ErrorFormatterTest extends TestCase {
   public void test_format_withError() throws UnsupportedEncodingException {
     AnalyzerOptions options = new AnalyzerOptions();
 
+    Source source = new TestSource(null, createFile("/test.dart"), "import 'foo.dart");
     ByteArrayOutputStream out = new ByteArrayOutputStream();
-    ErrorFormatter formatter = new ErrorFormatter(new PrintStream(out), options);
+    Map<Source, LineInfo> lineInfoMap = new HashMap<Source, LineInfo>();
+    lineInfoMap.put(source, new LineInfo(new int[] {0}));
+    ErrorFormatter formatter = new ErrorFormatter(new PrintStream(out), options, lineInfoMap);
 
-    AnalysisError error = new AnalysisError(new TestSource(
-        null,
-        createFile("/test.dart"),
-        "import 'foo.dart"), ResolverErrorCode.MISSING_LIBRARY_DIRECTIVE_WITH_PART);
+    AnalysisError error = new AnalysisError(
+        source,
+        ResolverErrorCode.MISSING_LIBRARY_DIRECTIVE_WITH_PART);
 
     formatter.formatError(error);
 
