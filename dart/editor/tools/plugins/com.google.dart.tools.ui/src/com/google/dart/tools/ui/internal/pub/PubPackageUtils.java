@@ -22,6 +22,12 @@ import com.google.dart.tools.core.pub.RunPubJob;
 import com.google.dart.tools.core.utilities.io.FileUtilities;
 import com.google.dart.tools.core.utilities.yaml.PubYamlUtils;
 
+import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IFolder;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 
 import java.io.File;
@@ -85,6 +91,13 @@ public class PubPackageUtils {
       }
     }
     return true;
+  }
+
+  /**
+   * Recursively deletes all "packages" folders.
+   */
+  public static void deletePackageDirectories(IProject project) throws CoreException {
+    deletePackageDirectories(project.members());
   }
 
   /**
@@ -157,6 +170,41 @@ public class PubPackageUtils {
       return true;
     }
     return false;
+  }
+
+  /**
+   * Recursively visits all {@link IContainer} and runs "pub install" in ones that have a "pubspec"
+   * file.
+   */
+  public static void runPubInstall(IContainer container) throws CoreException {
+    for (IResource resource : container.members()) {
+      if (resource instanceof IFile && resource.getName().equals(DartCore.PUBSPEC_FILE_NAME)) {
+        RunPubJob job = new RunPubJob(container, RunPubJob.INSTALL_COMMAND);
+        job.schedule();
+        // Do we support Pub folder in another Pub folder?
+        return;
+      }
+      if (resource instanceof IFolder) {
+        IFolder folder = (IFolder) resource;
+        runPubInstall(folder);
+      }
+    }
+  }
+
+  /**
+   * Recursively deletes all "packages" folders.
+   */
+  private static void deletePackageDirectories(IResource[] resources) throws CoreException {
+    for (IResource resource : resources) {
+      if (resource instanceof IFolder) {
+        IFolder folder = (IFolder) resource;
+        if (DartCore.isPackagesDirectory(folder)) {
+          folder.delete(true, null);
+        } else {
+          deletePackageDirectories(folder.members());
+        }
+      }
+    }
   }
 
 }

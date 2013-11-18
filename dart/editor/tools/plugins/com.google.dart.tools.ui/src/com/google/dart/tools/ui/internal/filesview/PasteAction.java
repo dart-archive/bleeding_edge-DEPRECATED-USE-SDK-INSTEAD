@@ -13,7 +13,9 @@
  */
 package com.google.dart.tools.ui.internal.filesview;
 
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.internal.pub.PubPackageUtils;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
@@ -29,7 +31,6 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.actions.CopyFilesAndFoldersOperation;
-import org.eclipse.ui.actions.CopyProjectOperation;
 import org.eclipse.ui.actions.SelectionListenerAction;
 import org.eclipse.ui.internal.views.navigator.ResourceNavigatorMessages;
 import org.eclipse.ui.part.ResourceTransfer;
@@ -93,6 +94,21 @@ public class PasteAction extends SelectionListenerAction {
         for (int i = 0; i < resourceData.length; i++) {
           CopyProjectOperation operation = new CopyProjectOperation(this.shell);
           operation.copyProject((IProject) resourceData[i]);
+          // remove "packages" folders
+          IProject newProject = operation.newProject;
+          if (newProject != null) {
+            try {
+              DartCore.addToIgnores(newProject);
+              try {
+                PubPackageUtils.deletePackageDirectories(newProject);
+                PubPackageUtils.runPubInstall(newProject);
+              } finally {
+                DartCore.removeFromIgnores(newProject);
+              }
+            } catch (Throwable e) {
+              DartToolsPlugin.log(e);
+            }
+          }
         }
         return;
       }

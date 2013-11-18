@@ -135,7 +135,7 @@ public class CopyAction extends SelectionListenerAction {
     setClipboard(resources, fileNames, buf.toString());
 
     // update the enablement of the paste action
-    // workaround since the clipboard does not suppot callbacks
+    // workaround since the clipboard does not support callbacks
     if (pasteAction != null && pasteAction.getStructuredSelection() != null) {
       pasteAction.selectionChanged(pasteAction.getStructuredSelection());
     }
