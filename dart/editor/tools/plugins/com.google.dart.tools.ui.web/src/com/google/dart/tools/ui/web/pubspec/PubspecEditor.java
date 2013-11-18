@@ -24,6 +24,7 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.QualifiedName;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IFileEditorInput;
@@ -116,6 +117,7 @@ public class PubspecEditor extends FormEditor {
     yamlEditor.doSave(monitor);
     editorDirtyStateChanged();
     model.fireModelChanged(null, IModelListener.REFRESH);
+    updateTitleImage();
   }
 
   @Override
@@ -267,5 +269,15 @@ public class PubspecEditor extends FormEditor {
     if (contents != null) {
       yamlEditor.getDocument().set(contents);
     }
+  }
+
+  private void updateTitleImage() {
+    final Image image;
+    if (model.isErrorOnParse()) {
+      image = DartWebPlugin.getImage("pubspec_error.png");
+    } else {
+      image = DartWebPlugin.getImage("pubspec.png");
+    }
+    setTitleImage(image);
   }
 }
