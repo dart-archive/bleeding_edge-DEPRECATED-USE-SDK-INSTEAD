@@ -325,9 +325,14 @@ class AnalyzerImpl {
     // may be file in SDK
     if (sdk instanceof DirectoryBasedDartSdk) {
       DirectoryBasedDartSdk directoryBasedSdk = sdk;
-      String sdkLibPath = directoryBasedSdk.getLibraryDirectory().getPath() + File.separator;
-      if (file.getPath().startsWith(sdkLibPath)) {
-        return UriKind.DART_URI;
+      File libraryDirectory = directoryBasedSdk.getLibraryDirectory();
+      String sdkLibPath = libraryDirectory.getPath() + File.separator;
+      String filePath = file.getPath();
+      if (filePath.startsWith(sdkLibPath)) {
+        String internalPath = new File(libraryDirectory, "_internal").getPath() + File.separator;
+        if (!filePath.startsWith(internalPath)) {
+          return UriKind.DART_URI;
+        }
       }
     }
     // some generic file
