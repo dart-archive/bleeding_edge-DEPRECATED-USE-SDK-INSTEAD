@@ -22,15 +22,17 @@ import java.util.Map;
  * @coverage dart.editor.ui.search
  */
 class PositionTracker implements IFileBufferListener {
+  private final SearchMatchPage page;
   private final Map<IFile, List<Position>> fileToPositions = Maps.newHashMap();
 
-  public PositionTracker() {
+  public PositionTracker(SearchMatchPage page) {
+    this.page = page;
     FileBuffers.getTextFileBufferManager().addFileBufferListener(this);
   }
 
   @Override
   public void bufferContentAboutToBeReplaced(IFileBuffer buffer) {
-    // not interesting for us
+    page.close();
   }
 
   @Override

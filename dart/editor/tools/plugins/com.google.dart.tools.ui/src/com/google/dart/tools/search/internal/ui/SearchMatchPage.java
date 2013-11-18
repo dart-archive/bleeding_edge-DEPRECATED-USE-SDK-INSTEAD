@@ -779,7 +779,7 @@ public abstract class SearchMatchPage extends SearchPage {
 
     @Override
     public void run() {
-      searchView.showPage(null);
+      close();
     }
   };
 
@@ -1011,6 +1011,13 @@ public abstract class SearchMatchPage extends SearchPage {
    * @return the {@link SearchMatch}s to display.
    */
   protected abstract List<SearchMatch> runQuery();
+
+  /**
+   * Closes this page and removes all search markers
+   */
+  void close() {
+    searchView.showPage(null);
+  }
 
   /**
    * Adds markers for all {@link ElementItem}s starting from {@link #rootItem}.
@@ -1340,7 +1347,7 @@ public abstract class SearchMatchPage extends SearchPage {
    */
   private void trackPositions() {
     disposePositionTracker();
-    positionTracker = new PositionTracker();
+    positionTracker = new PositionTracker(this);
     trackPositions(rootItem);
   }
 
