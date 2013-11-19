@@ -663,6 +663,7 @@ public class CompletionProposalCollector extends CompletionRequestor {
             prefix,
             completionStart,
             completionEnd - completionStart,
+            proposal.getReplaceEndIdentifier() - completionStart,
             relevance + 2,
             fSuggestedMethodNames,
             fDartProposals);
@@ -671,6 +672,7 @@ public class CompletionProposalCollector extends CompletionRequestor {
             prefix,
             completionStart,
             completionEnd - completionStart,
+            proposal.getReplaceEndIdentifier() - completionStart,
             relevance,
             fSuggestedMethodNames,
             fDartProposals);
@@ -692,6 +694,7 @@ public class CompletionProposalCollector extends CompletionRequestor {
               paramTypes,
               completionStart,
               completionEnd - completionStart,
+              prop.getReplaceEndIdentifier() - completionStart,
               relevance + 2,
               fSuggestedMethodNames,
               fDartProposals);
@@ -764,6 +767,7 @@ public class CompletionProposalCollector extends CompletionRequestor {
         completion,
         start,
         length,
+        getLengthIdentifier(proposal),
         image,
         label,
         relevance,
@@ -778,6 +782,25 @@ public class CompletionProposalCollector extends CompletionRequestor {
     dartProposal.setTriggerCharacters(VAR_TRIGGER);
 
     return dartProposal;
+  }
+
+  private IDartCompletionProposal createImportProposal(CompletionProposal proposal) {
+    String completion = String.valueOf(proposal.getCompletion());
+    int start = proposal.getReplaceStart();
+    int length = getLength(proposal);
+    StyledString label = new StyledString(fLabelProvider.createSimpleLabel(proposal));//TODO(messick)
+    int relevance = computeRelevance(proposal);
+    ImageDescriptor imageDesc = fLabelProvider.createImageDescriptor(proposal);
+    Image image = DartToolsPlugin.getImageDescriptorRegistry().get(imageDesc);
+    return new DartCompletionProposal(
+        completion,
+        start,
+        length,
+        getLengthIdentifier(proposal),
+        image,
+        label,
+        relevance,
+        proposal.getElement());
   }
 
 //  /**
@@ -839,24 +862,6 @@ public class CompletionProposalCollector extends CompletionRequestor {
 //    return proposal;
 //  }
 
-  private IDartCompletionProposal createImportProposal(CompletionProposal proposal) {
-    String completion = String.valueOf(proposal.getCompletion());
-    int start = proposal.getReplaceStart();
-    int length = getLength(proposal);
-    StyledString label = new StyledString(fLabelProvider.createSimpleLabel(proposal));//TODO(messick)
-    int relevance = computeRelevance(proposal);
-    ImageDescriptor imageDesc = fLabelProvider.createImageDescriptor(proposal);
-    Image image = DartToolsPlugin.getImageDescriptorRegistry().get(imageDesc);
-    return new DartCompletionProposal(
-        completion,
-        start,
-        length,
-        image,
-        label,
-        relevance,
-        proposal.getElement());
-  }
-
   private IDartCompletionProposal createKeywordProposal(CompletionProposal proposal) {
     String completion = String.valueOf(proposal.getCompletion());
     int start = proposal.getReplaceStart();
@@ -867,6 +872,7 @@ public class CompletionProposalCollector extends CompletionRequestor {
         completion,
         start,
         length,
+        getLengthIdentifier(proposal),
         null,
         label,
         relevance,
@@ -884,6 +890,7 @@ public class CompletionProposalCollector extends CompletionRequestor {
         completion,
         start,
         length,
+        getLengthIdentifier(proposal),
         null,
         label,
         relevance,
@@ -902,6 +909,7 @@ public class CompletionProposalCollector extends CompletionRequestor {
         completion,
         start,
         length,
+        getLengthIdentifier(proposal),
         image,
         label,
         relevance,
@@ -919,6 +927,7 @@ public class CompletionProposalCollector extends CompletionRequestor {
         completion,
         start,
         length,
+        getLengthIdentifier(proposal),
         image,
         label,
         relevance,
@@ -950,6 +959,7 @@ public class CompletionProposalCollector extends CompletionRequestor {
         paramTypes,
         start,
         length,
+        getLengthIdentifier(proposal),
         label,
         String.valueOf(proposal.getCompletion()));
     dartProposal.setImage(getImage(fLabelProvider.createMethodImageDescriptor(proposal)));
@@ -975,5 +985,9 @@ public class CompletionProposalCollector extends CompletionRequestor {
         getInvocationContext());
     adaptLength(proposal, typeProposal);
     return proposal;
+  }
+
+  private int getLengthIdentifier(CompletionProposal proposal) {
+    return proposal.getReplaceEndIdentifier() - proposal.getReplaceStart();
   }
 }

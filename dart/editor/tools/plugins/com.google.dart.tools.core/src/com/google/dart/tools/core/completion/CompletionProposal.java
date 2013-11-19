@@ -1006,6 +1006,18 @@ public class CompletionProposal {
   }
 
   /**
+   * Return the character index of the end of the subrange in the source file buffer to be replaced
+   * by the completion string with <code>Ctrl+Enter</code>. If the subrange is empty (
+   * <code>getReplaceEnd2() == getReplaceStart()</code>), the completion string is to be inserted at
+   * this index.
+   * 
+   * @return replacement end position (exclusive)
+   */
+  public int getReplaceEndIdentifier() {
+    return -1; // default overridden by concrete implementation
+  }
+
+  /**
    * Return the character index of the start of the subrange in the source file buffer to be
    * replaced by the completion string. If the subrange is empty (
    * <code>getReplaceEnd() == getReplaceStart()</code>), the completion string is to be inserted at

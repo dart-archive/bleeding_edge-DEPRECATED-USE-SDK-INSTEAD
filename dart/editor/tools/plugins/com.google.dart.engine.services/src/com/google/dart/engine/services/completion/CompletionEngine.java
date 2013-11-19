@@ -1565,7 +1565,7 @@ public class CompletionEngine {
     }
     Element[] prefixes = findAllPrefixes();
     for (Element prefix : prefixes) {
-      pName(prefix);
+      pName(prefix, identifier);
     }
   }
 
@@ -1783,20 +1783,20 @@ public class CompletionEngine {
       if (type.getDisplayName().equals(name)) {
         continue;
       }
-      pName(type);
+      pName(type, nameIdent);
     }
     if (!state.isForMixin) {
       ClassDeclaration classDecl = identifier.getAncestor(ClassDeclaration.class);
       if (classDecl != null) {
         ClassElement classElement = classDecl.getElement();
         for (TypeParameterElement param : classElement.getTypeParameters()) {
-          pName(param);
+          pName(param, nameIdent);
         }
       }
     }
     Element[] prefixes = findAllPrefixes();
     for (Element prefix : prefixes) {
-      pName(prefix);
+      pName(prefix, nameIdent);
     }
     if (state.isDynamicAllowed) {
       pDynamic();
@@ -2452,6 +2452,9 @@ public class CompletionEngine {
     if (container != null) {
       prop.setDeclaringType(container.getDisplayName());
     }
+    if (identifier != null) {
+      prop.setReplacementLengthIdentifier(identifier.getLength());
+    }
     requestor.accept(prop);
   }
 
@@ -2481,7 +2484,7 @@ public class CompletionEngine {
     requestor.accept(prop);
   }
 
-  private void pName(Element element) {
+  private void pName(Element element, SimpleIdentifier identifier) {
     // Create a completion proposal for the element: variable, field, class, function.
     if (filterDisallows(element)) {
       return;
@@ -2494,6 +2497,9 @@ public class CompletionEngine {
     Type type = typeOf(element);
     if (type != null) {
       prop.setReturnType(type.getName());
+    }
+    if (identifier != null) {
+      prop.setReplacementLengthIdentifier(identifier.getLength());
     }
     requestor.accept(prop);
   }
@@ -2537,6 +2543,7 @@ public class CompletionEngine {
     prop.setReturnType(element.getType().getReturnType().getName());
     Element container = element.getEnclosingElement();
     prop.setDeclaringType(container.getDisplayName());
+    prop.setReplacementLengthIdentifier(identifier.getLength());
     requestor.accept(prop);
   }
 
@@ -2645,7 +2652,7 @@ public class CompletionEngine {
         pExecutable(var, identifier);
         break;
       case CLASS:
-        pName(element);
+        pName(element, identifier);
         break;
       default:
         break;

@@ -49,8 +49,8 @@ public class MethodDeclarationCompletionProposal extends DartTypeCompletionPropo
     ICompletionProposalExtension4 {
 
   public static void evaluateProposals(Type type, String prefix, int offset, int length,
-      int relevance, Set<String> suggestedMethods, Collection<IDartCompletionProposal> result)
-      throws CoreException {
+      int lengthIdentifier, int relevance, Set<String> suggestedMethods,
+      Collection<IDartCompletionProposal> result) throws CoreException {
     Method[] methods = type.getMethods();
     String constructorName = type.getElementName();
     if (constructorName.length() > 0 && constructorName.startsWith(prefix)
@@ -61,6 +61,7 @@ public class MethodDeclarationCompletionProposal extends DartTypeCompletionPropo
           null,
           offset,
           length,
+          lengthIdentifier,
           relevance + 500));
     }
 
@@ -73,6 +74,7 @@ public class MethodDeclarationCompletionProposal extends DartTypeCompletionPropo
             Signature.SIG_VOID,
             offset,
             length,
+            lengthIdentifier,
             relevance));
       }
     }
@@ -115,9 +117,9 @@ public class MethodDeclarationCompletionProposal extends DartTypeCompletionPropo
   private final String fMethodName;
 
   public MethodDeclarationCompletionProposal(Type type, String methodName, String returnTypeSig,
-      int start, int length, int relevance) {
+      int start, int length, int lengthIdentifier, int relevance) {
     super(
-        "", type.getCompilationUnit(), start, length, null, getDisplayName(methodName, returnTypeSig), relevance, null); //$NON-NLS-1$
+        "", type.getCompilationUnit(), start, length, lengthIdentifier, null, getDisplayName(methodName, returnTypeSig), relevance, null); //$NON-NLS-1$
     Assert.isNotNull(type);
     Assert.isNotNull(methodName);
 

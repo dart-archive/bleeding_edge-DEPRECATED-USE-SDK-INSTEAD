@@ -360,6 +360,7 @@ public abstract class AbstractDartCompletionProposal implements IDartCompletionP
   private String fReplacementString;
   private int fReplacementOffset;
   private int fReplacementLength;
+  private int fReplacementLengthIdentifier;
   private int fCursorPosition;
   private Image fImage;
   private IContextInformation fContextInformation;
@@ -523,9 +524,12 @@ public abstract class AbstractDartCompletionProposal implements IDartCompletionP
     // don't eat if not in preferences, XOR with Ctrl
     // but: if there is a selection, replace it!
     Point selection = viewer.getSelectedRange();
-    fToggleEating = (stateMask & SWT.CTRL) != 0;
     int newLength = selection.x + selection.y - getReplacementOffset();
-    if ((insertCompletion() ^ fToggleEating) && newLength >= 0) {
+    fToggleEating = (stateMask & SWT.CTRL) != 0;
+    if (fToggleEating) {
+      newLength = getReplacementLengthIdentifier();
+    }
+    if (newLength >= 0) {
       setReplacementLength(newLength);
     }
 
@@ -635,6 +639,15 @@ public abstract class AbstractDartCompletionProposal implements IDartCompletionP
    */
   public int getReplacementLength() {
     return fReplacementLength;
+  }
+
+  /**
+   * Gets the replacement length for identifier.
+   * 
+   * @return Returns an int
+   */
+  public int getReplacementLengthIdentifier() {
+    return fReplacementLengthIdentifier;
   }
 
   /**
@@ -771,6 +784,16 @@ public abstract class AbstractDartCompletionProposal implements IDartCompletionP
   public void setReplacementLength(int replacementLength) {
     Assert.isTrue(replacementLength >= 0);
     fReplacementLength = replacementLength;
+  }
+
+  /**
+   * Sets the replacement length for identifier.
+   * 
+   * @param length The replacementLength to set
+   */
+  public void setReplacementLengthIdentifier(int length) {
+    Assert.isTrue(length >= 0);
+    fReplacementLengthIdentifier = length;
   }
 
   /**

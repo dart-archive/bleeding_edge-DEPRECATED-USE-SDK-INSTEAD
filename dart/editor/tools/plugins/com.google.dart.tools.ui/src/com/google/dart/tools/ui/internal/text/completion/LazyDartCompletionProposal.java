@@ -210,6 +210,11 @@ public class LazyDartCompletionProposal extends AbstractDartCompletionProposal {
     return super.getReplacementLength();
   }
 
+  @Override
+  public int getReplacementLengthIdentifier() {
+    return fProposal.getReplaceEndIdentifier() - fProposal.getReplaceStart();
+  }
+
   /**
    * Gets the replacement offset.
    * 

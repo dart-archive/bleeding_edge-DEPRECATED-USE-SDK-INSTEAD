@@ -45,8 +45,8 @@ public class GetterSetterCompletionProposal extends DartTypeCompletionProposal i
     ICompletionProposalExtension4 {
 
   public static void evaluateProposals(Type type, String prefix, int offset, int length,
-      int relevance, Set<String> suggestedMethods, Collection<IDartCompletionProposal> result)
-      throws CoreException {
+      int lengthIdentifier, int relevance, Set<String> suggestedMethods,
+      Collection<IDartCompletionProposal> result) throws CoreException {
     if (prefix.length() == 0) {
       relevance--;
     }
@@ -62,14 +62,26 @@ public class GetterSetterCompletionProposal extends DartTypeCompletionProposal i
         if (curr.isStatic() && curr.isFinal()) {
           getterRelevance = relevance - 1;
         }
-        result.add(new GetterSetterCompletionProposal(curr, offset, length, true, getterRelevance));
+        result.add(new GetterSetterCompletionProposal(
+            curr,
+            offset,
+            length,
+            lengthIdentifier,
+            true,
+            getterRelevance));
       }
 
       if (!curr.isFinal()) {
         String setterName = GetterSetterUtil.getSetterName(curr, null);
         if (Strings.startsWithIgnoreCase(setterName, prefix) && !hasMethod(methods, setterName)) {
           suggestedMethods.add(setterName);
-          result.add(new GetterSetterCompletionProposal(curr, offset, length, false, relevance));
+          result.add(new GetterSetterCompletionProposal(
+              curr,
+              offset,
+              length,
+              lengthIdentifier,
+              false,
+              relevance));
         }
       }
     }
@@ -111,10 +123,10 @@ public class GetterSetterCompletionProposal extends DartTypeCompletionProposal i
 
   private final boolean fIsGetter;
 
-  public GetterSetterCompletionProposal(Field field, int start, int length, boolean isGetter,
-      int relevance) throws DartModelException {
+  public GetterSetterCompletionProposal(Field field, int start, int length, int lengthIdentifier,
+      boolean isGetter, int relevance) throws DartModelException {
     super(
-        "", field.getCompilationUnit(), start, length, DartPluginImages.get(DartPluginImages.IMG_MISC_PUBLIC), getDisplayName(field, isGetter), relevance, null); //$NON-NLS-1$
+        "", field.getCompilationUnit(), start, length, lengthIdentifier, DartPluginImages.get(DartPluginImages.IMG_MISC_PUBLIC), getDisplayName(field, isGetter), relevance, null); //$NON-NLS-1$
     Assert.isNotNull(field);
 
     fField = field;

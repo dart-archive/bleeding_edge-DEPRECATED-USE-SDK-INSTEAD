@@ -371,6 +371,7 @@ public final class ParameterGuessingProposal extends DartMethodCompletionProposa
             paramName,
             0,
             paramName.length(),
+            0,
             null,
             paramName,
             0,

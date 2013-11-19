@@ -39,9 +39,18 @@ public class DartCompletionProposal extends AbstractDartCompletionProposal {
    * @param relevance the relevance
    */
   public DartCompletionProposal(String replacementString, int replacementOffset,
-      int replacementLength, Image image, String displayString, int relevance, Element element) {
-    this(replacementString, replacementOffset, replacementLength, image, new StyledString(
-        displayString), relevance, false, element);
+      int replacementLength, int replacementLengthIdentifier, Image image, String displayString,
+      int relevance, Element element) {
+    this(
+        replacementString,
+        replacementOffset,
+        replacementLength,
+        replacementLengthIdentifier,
+        image,
+        new StyledString(displayString),
+        relevance,
+        false,
+        element);
   }
 
   /**
@@ -58,12 +67,13 @@ public class DartCompletionProposal extends AbstractDartCompletionProposal {
    * @param inJavadoc <code>true</code> for a javadoc proposal
    */
   public DartCompletionProposal(String replacementString, int replacementOffset,
-      int replacementLength, Image image, StyledString displayString, int relevance,
-      boolean inJavadoc, Element element) {
+      int replacementLength, int replacementLengthIdentifier, Image image,
+      StyledString displayString, int relevance, boolean inJavadoc, Element element) {
     this(
         replacementString,
         replacementOffset,
         replacementLength,
+        replacementLengthIdentifier,
         image,
         displayString,
         relevance,
@@ -88,16 +98,19 @@ public class DartCompletionProposal extends AbstractDartCompletionProposal {
    *          <code>null</code> not available
    */
   public DartCompletionProposal(String replacementString, int replacementOffset,
-      int replacementLength, Image image, StyledString displayString, int relevance,
-      boolean inJavadoc, Element element, DartContentAssistInvocationContext invocationContext) {
+      int replacementLength, int replacementLengthIdentifier, Image image,
+      StyledString displayString, int relevance, boolean inJavadoc, Element element,
+      DartContentAssistInvocationContext invocationContext) {
     super(invocationContext);
     Assert.isNotNull(replacementString);
     Assert.isTrue(replacementOffset >= 0);
     Assert.isTrue(replacementLength >= 0);
+    Assert.isTrue(replacementLengthIdentifier >= 0);
 
     setReplacementString(replacementString);
     setReplacementOffset(replacementOffset);
     setReplacementLength(replacementLength);
+    setReplacementLengthIdentifier(replacementLengthIdentifier);
     setImage(image);
     setStyledDisplayString(displayString == null ? new StyledString(replacementString)
         : displayString);
@@ -121,11 +134,13 @@ public class DartCompletionProposal extends AbstractDartCompletionProposal {
    * @param relevance the relevance
    */
   public DartCompletionProposal(String replacementString, int replacementOffset,
-      int replacementLength, Image image, StyledString displayString, int relevance, Element element) {
+      int replacementLength, int replacementLengthIdentifier, Image image,
+      StyledString displayString, int relevance, Element element) {
     this(
         replacementString,
         replacementOffset,
         replacementLength,
+        replacementLengthIdentifier,
         image,
         displayString,
         relevance,

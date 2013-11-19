@@ -46,9 +46,9 @@ public class OverrideCompletionProposal extends DartTypeCompletionProposal imple
   private String[] fParamTypes;
 
   public OverrideCompletionProposal(DartProject jproject, CompilationUnit cu, String methodName,
-      String[] paramTypes, int start, int length, StyledString displayName,
+      String[] paramTypes, int start, int length, int lengthIdentifier, StyledString displayName,
       String completionProposal) {
-    super(completionProposal, cu, start, length, null, displayName, 0, null);
+    super(completionProposal, cu, start, length, lengthIdentifier, null, displayName, 0, null);
     Assert.isNotNull(jproject);
     Assert.isNotNull(methodName);
     Assert.isNotNull(paramTypes);

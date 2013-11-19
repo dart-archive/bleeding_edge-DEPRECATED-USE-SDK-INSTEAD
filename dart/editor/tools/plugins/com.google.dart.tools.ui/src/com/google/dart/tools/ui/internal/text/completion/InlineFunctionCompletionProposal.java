@@ -34,8 +34,8 @@ public class InlineFunctionCompletionProposal extends DartTypeCompletionProposal
     ICompletionProposalExtension4 {
 
   public static void evaluateProposals(CompilationUnit cu, String prefix, char[][] paramNames,
-      char[][] paramTypes, int offset, int length, int relevance, Set<String> suggestedMethods,
-      Collection<IDartCompletionProposal> result) {
+      char[][] paramTypes, int offset, int length, int lengthIdentifier, int relevance,
+      Set<String> suggestedMethods, Collection<IDartCompletionProposal> result) {
     suggestedMethods.add(prefix);
     result.add(new InlineFunctionCompletionProposal(
         cu,
@@ -44,6 +44,7 @@ public class InlineFunctionCompletionProposal extends DartTypeCompletionProposal
         prefix,
         offset,
         length,
+        lengthIdentifier,
         relevance));
   }
 
@@ -82,9 +83,10 @@ public class InlineFunctionCompletionProposal extends DartTypeCompletionProposal
   private char[][] paramTypes;
 
   public InlineFunctionCompletionProposal(CompilationUnit cu, char[][] paramNames,
-      char[][] paramTypes, String typeName, int start, int length, int relevance) {
+      char[][] paramTypes, String typeName, int start, int length, int lengthIdentifier,
+      int relevance) {
     super(
-        "", cu, start, length, null, getDisplayName(paramNames, paramTypes, typeName), relevance, null); //$NON-NLS-1$
+        "", cu, start, length, lengthIdentifier, null, getDisplayName(paramNames, paramTypes, typeName), relevance, null); //$NON-NLS-1$
     this.typeName = typeName;
     this.paramNames = paramNames;
     this.paramTypes = paramTypes;

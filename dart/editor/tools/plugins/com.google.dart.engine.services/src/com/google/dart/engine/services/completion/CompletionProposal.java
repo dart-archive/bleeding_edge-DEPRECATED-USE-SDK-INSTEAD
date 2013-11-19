@@ -43,6 +43,8 @@ public interface CompletionProposal {
 
   int getReplacementLength();
 
+  int getReplacementLengthIdentifier();
+
   String getReturnType();
 
   boolean hasNamed();
@@ -80,6 +82,8 @@ public interface CompletionProposal {
   CompletionProposal setRelevance(int n);
 
   CompletionProposal setReplacementLength(int x);
+
+  CompletionProposal setReplacementLengthIdentifier(int x);
 
   CompletionProposal setReturnType(String name);
 }

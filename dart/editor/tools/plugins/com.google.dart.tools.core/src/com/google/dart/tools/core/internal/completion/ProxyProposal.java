@@ -149,6 +149,11 @@ public class ProxyProposal extends CompletionProposal {
   }
 
   @Override
+  public int getReplaceEndIdentifier() {
+    return proposal.getLocation() + proposal.getReplacementLengthIdentifier();
+  }
+
+  @Override
   public int getReplaceStart() {
     return proposal.getLocation();
   }

@@ -37,6 +37,7 @@ public class CompletionProposalImpl implements CompletionProposal {
   private ProposalKind kind = ProposalKind.NONE;
   private int location = 0;
   private int replacementLength = 0;
+  private int replacementLength2 = 0;
   private int positionalParameterCount = 0;
   private boolean named = false;
   private boolean positional = false;
@@ -107,6 +108,11 @@ public class CompletionProposalImpl implements CompletionProposal {
   @Override
   public int getReplacementLength() {
     return replacementLength;
+  }
+
+  @Override
+  public int getReplacementLengthIdentifier() {
+    return replacementLength2;
   }
 
   @Override
@@ -220,6 +226,12 @@ public class CompletionProposalImpl implements CompletionProposal {
   @Override
   public CompletionProposal setReplacementLength(int x) {
     replacementLength = x;
+    return this;
+  }
+
+  @Override
+  public CompletionProposal setReplacementLengthIdentifier(int x) {
+    replacementLength2 = x;
     return this;
   }
 

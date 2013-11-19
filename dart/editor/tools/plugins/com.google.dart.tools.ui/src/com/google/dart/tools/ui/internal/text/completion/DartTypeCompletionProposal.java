@@ -46,13 +46,14 @@ public class DartTypeCompletionProposal extends DartCompletionProposal {
   private final String fFullyQualifiedTypeName;
 
   public DartTypeCompletionProposal(String replacementString, CompilationUnit cu,
-      int replacementOffset, int replacementLength, Image image, StyledString displayString,
-      int relevance, Element element) {
+      int replacementOffset, int replacementLength, int replacementLengthIdentifier, Image image,
+      StyledString displayString, int relevance, Element element) {
     this(
         replacementString,
         cu,
         replacementOffset,
         replacementLength,
+        replacementLengthIdentifier,
         image,
         displayString,
         relevance,
@@ -61,13 +62,14 @@ public class DartTypeCompletionProposal extends DartCompletionProposal {
   }
 
   public DartTypeCompletionProposal(String replacementString, CompilationUnit cu,
-      int replacementOffset, int replacementLength, Image image, StyledString displayString,
-      int relevance, String fullyQualifiedTypeName, Element element) {
+      int replacementOffset, int replacementLength, int replacementLengthIdentifier, Image image,
+      StyledString displayString, int relevance, String fullyQualifiedTypeName, Element element) {
     this(
         replacementString,
         cu,
         replacementOffset,
         replacementLength,
+        replacementLengthIdentifier,
         image,
         displayString,
         relevance,
@@ -77,13 +79,14 @@ public class DartTypeCompletionProposal extends DartCompletionProposal {
   }
 
   public DartTypeCompletionProposal(String replacementString, CompilationUnit cu,
-      int replacementOffset, int replacementLength, Image image, StyledString displayString,
-      int relevance, String fullyQualifiedTypeName, Element element,
+      int replacementOffset, int replacementLength, int replacementLengthIdentifier, Image image,
+      StyledString displayString, int relevance, String fullyQualifiedTypeName, Element element,
       DartContentAssistInvocationContext invocationContext) {
     super(
         replacementString,
         replacementOffset,
         replacementLength,
+        replacementLengthIdentifier,
         image,
         displayString,
         relevance,
