@@ -266,6 +266,15 @@ public class CompletionEngine {
       return uniqueNames.values();
     }
 
+    Collection<Element> getUniqueElements() {
+      List<Element> uniqueElements = Lists.newArrayList();
+      for (List<Element> uniques : uniqueNames.values()) {
+        Element element = uniques.get(0);
+        uniqueElements.add(element);
+      }
+      return uniqueElements;
+    }
+
     boolean isPotentialMatch(Element element) {
       return potentialMatches != null && potentialMatches.contains(element);
     }
@@ -478,6 +487,12 @@ public class CompletionEngine {
       } else if (node.getRightOperand() == completionNode) {
         analyzeLocalName(completionNode);
       }
+      return null;
+    }
+
+    @Override
+    public Void visitCombinator(Combinator node) {
+      proposeCombinator(node, completionNode);
       return null;
     }
 
@@ -1603,29 +1618,28 @@ public class CompletionEngine {
     filter = new Filter(identifier);
     // TODO Filter out types that have no static members.
     NameCollector names = collectIdentifiersVisibleAt(identifier);
-    for (List<Element> uniques : names.getNames()) {
-      Element candidate = uniques.get(0);
+    for (Element element : names.getUniqueElements()) {
       if (state.isSourceDeclarationStatic) {
-        if (candidate instanceof FieldElement) {
-          if (!((FieldElement) candidate).isStatic()) {
+        if (element instanceof FieldElement) {
+          if (!((FieldElement) element).isStatic()) {
             continue;
           }
-        } else if (candidate instanceof PropertyAccessorElement) {
-          if (!((PropertyAccessorElement) candidate).isStatic()) {
+        } else if (element instanceof PropertyAccessorElement) {
+          if (!((PropertyAccessorElement) element).isStatic()) {
             continue;
           }
         }
       }
       if (state.isOptionalArgumentRequired) {
-        if (!(candidate instanceof ParameterElement)) {
+        if (!(element instanceof ParameterElement)) {
           continue;
         }
-        ParameterElement param = (ParameterElement) candidate;
+        ParameterElement param = (ParameterElement) element;
         if (!param.getParameterKind().isOptional()) {
           continue;
         }
       }
-      proposeName(candidate, identifier, names);
+      proposeName(element, identifier, names);
     }
     if (state.areLiteralsAllowed) {
       pNull();
@@ -1741,9 +1755,8 @@ public class CompletionEngine {
     // Completion x!.y
     filter = new Filter(identifier);
     NameCollector names = collectIdentifiersVisibleAt(identifier);
-    for (List<Element> uniques : names.getNames()) {
-      Element candidate = uniques.get(0);
-      proposeName(candidate, identifier, names);
+    for (Element element : names.getUniqueElements()) {
+      proposeName(element, identifier, names);
     }
   }
 
@@ -2585,6 +2598,31 @@ public class CompletionEngine {
     return kind;
   }
 
+  private void proposeCombinator(Combinator node, SimpleIdentifier identifier) {
+    filter = new Filter(identifier);
+    NamespaceDirective directive = (NamespaceDirective) node.getParent();
+    LibraryElement libraryElement = directive.getUriElement();
+    if (libraryElement != null) {
+      // prepare Elements with unique names
+      NameCollector nameCollector = new NameCollector();
+      Collection<Element> elements = CorrectionUtils.getExportNamespace(libraryElement).values();
+      for (Element element : elements) {
+        if (filterDisallows(element)) {
+          continue;
+        }
+        nameCollector.mergeName(element);
+      }
+      // propose each Element
+      for (Element element : nameCollector.getUniqueElements()) {
+        CompletionProposal proposal = createProposal(element);
+        if (proposal.getKind() == ProposalKind.FUNCTION) {
+          proposal.setKind(ProposalKind.METHOD_NAME);
+        }
+        requestor.accept(proposal);
+      }
+    }
+  }
+
   private void proposeName(Element element, SimpleIdentifier identifier, NameCollector names) {
     switch (element.getKind()) {
       case FUNCTION:
@@ -2609,8 +2647,7 @@ public class CompletionEngine {
   }
 
   private void proposeNames(NameCollector names, SimpleIdentifier identifier) {
-    for (List<Element> uniques : names.getNames()) {
-      Element element = uniques.get(0);
+    for (Element element : names.getUniqueElements()) {
       proposeName(element, identifier, names);
     }
   }

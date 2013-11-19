@@ -1509,6 +1509,30 @@ public class CompletionTests extends CompletionTestCase {
         "}"), "1+MyClass", "1-justSomeVar");
   }
 
+  public void testCompletion_combinator_afterComma() throws Exception {
+    test("import 'dart:math' show cos, !1;", "1+PI", "1+sin", "1+Random", "1-String");
+  }
+
+  public void testCompletion_combinator_ended() throws Exception {
+    test("import 'dart:math' show !1;", "1+PI", "1+sin", "1+Random", "1-String");
+  }
+
+  public void testCompletion_combinator_export() throws Exception {
+    test("export 'dart:math' show !1;", "1+PI", "1+sin", "1+Random", "1-String");
+  }
+
+  public void testCompletion_combinator_hide() throws Exception {
+    test("import 'dart:math' hide !1;", "1+PI", "1+sin", "1+Random", "1-String");
+  }
+
+  public void testCompletion_combinator_notEnded() throws Exception {
+    test("import 'dart:math' show !1", "1+PI", "1+sin", "1+Random", "1-String");
+  }
+
+  public void testCompletion_combinator_usePrefix() throws Exception {
+    test("import 'dart:math' show s!1", "1+sin", "1+sqrt", "1-cos", "1-String");
+  }
+
   public void testCompletion_constructor_field() throws Exception {
     test("class X { X(this.field); int f!1ield;}", "1+field");
   }
