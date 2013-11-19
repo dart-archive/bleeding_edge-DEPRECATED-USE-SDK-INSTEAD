@@ -1537,6 +1537,13 @@ public class CompletionTests extends CompletionTestCase {
     test("class X { X(this.field); int f!1ield;}", "1+field");
   }
 
+  public void testCompletion_double_inFractionPart() throws Exception {
+    test(src(//
+        "main() {",
+        "  1.0!1",
+        "}"), "1-abs", "1-main");
+  }
+
   public void testCompletion_export_dart() throws Exception {
     test(
         src(//

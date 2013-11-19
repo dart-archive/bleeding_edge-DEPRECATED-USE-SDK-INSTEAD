@@ -37,6 +37,7 @@ import com.google.dart.engine.ast.ContinueStatement;
 import com.google.dart.engine.ast.Declaration;
 import com.google.dart.engine.ast.Directive;
 import com.google.dart.engine.ast.DoStatement;
+import com.google.dart.engine.ast.DoubleLiteral;
 import com.google.dart.engine.ast.EphemeralIdentifier;
 import com.google.dart.engine.ast.ExportDirective;
 import com.google.dart.engine.ast.Expression;
@@ -966,6 +967,11 @@ public class CompletionEngine {
           node.getRightParenthesis().getOffset())) {
         operatorAccess(node.getCondition(), new Ident(node));
       }
+      return null;
+    }
+
+    @Override
+    public Void visitDoubleLiteral(DoubleLiteral node) {
       return null;
     }
 
