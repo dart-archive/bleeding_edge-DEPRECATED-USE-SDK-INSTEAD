@@ -15,6 +15,7 @@ package com.google.dart.engine.utilities.ast;
 
 import com.google.dart.engine.ast.*;
 import com.google.dart.engine.scanner.Token;
+import com.google.dart.engine.utilities.general.ObjectUtilities;
 
 /**
  * Instances of the class {@code ASTComparator} compare the structure of two ASTNodes to see whether
@@ -512,7 +513,8 @@ public class ASTComparator implements ASTVisitor<Boolean> {
   @Override
   public Boolean visitIntegerLiteral(IntegerLiteral node) {
     IntegerLiteral other = (IntegerLiteral) this.other;
-    return isEqual(node.getLiteral(), other.getLiteral()) && node.getValue() == other.getValue();
+    return isEqual(node.getLiteral(), other.getLiteral())
+        && ObjectUtilities.equals(node.getValue(), other.getValue());
   }
 
   @Override
@@ -762,7 +764,8 @@ public class ASTComparator implements ASTVisitor<Boolean> {
   @Override
   public Boolean visitSimpleStringLiteral(SimpleStringLiteral node) {
     SimpleStringLiteral other = (SimpleStringLiteral) this.other;
-    return isEqual(node.getLiteral(), other.getLiteral()) && node.getValue() == other.getValue();
+    return isEqual(node.getLiteral(), other.getLiteral())
+        && ObjectUtilities.equals(node.getValue(), other.getValue());
   }
 
   @Override
