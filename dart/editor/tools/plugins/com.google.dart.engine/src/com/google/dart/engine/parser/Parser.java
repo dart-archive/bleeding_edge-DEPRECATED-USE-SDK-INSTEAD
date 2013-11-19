@@ -3086,7 +3086,7 @@ public class Parser {
       }
     } else {
       body = parseFunctionBody(true, ParserErrorCode.MISSING_FUNCTION_BODY, false);
-      if (constKeyword != null && factoryKeyword != null) {
+      if (constKeyword != null && factoryKeyword != null && externalKeyword == null) {
         reportError(ParserErrorCode.CONST_FACTORY, factoryKeyword);
       } else if (body instanceof EmptyFunctionBody) {
         if (factoryKeyword != null && externalKeyword == null) {
