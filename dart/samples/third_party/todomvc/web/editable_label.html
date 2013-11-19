@@ -1,0 +1,19 @@
+<!--
+Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+for details. All rights reserved. Use of this source code is governed by a
+BSD-style license that can be found in the LICENSE file.
+-->
+<polymer-element name="editable-label">
+  <template>
+    <template if="{{!editing}}">
+      <label class='edit-label' on-doubleclick="{{edit}}">{{value}}</label>
+    </template>
+    <template if="{{editing}}">
+      <form on-submit="{{update}}">
+        <input id="edit" class="edit editing"
+               on-blur="{{update}}" on-keyup="{{maybeCancel}}">
+      </form>
+    </template>
+  </template>
+  <script type="application/dart" src="editable_label.dart"></script>
+</polymer-element>

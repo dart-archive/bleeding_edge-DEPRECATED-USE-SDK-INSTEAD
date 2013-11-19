@@ -4,18 +4,17 @@
 
 library todomvc.test.mainpage_test;
 
-import 'dart:async';
 import 'dart:html';
 import 'package:polymer/polymer.dart';
 import 'package:unittest/html_config.dart';
 import 'package:unittest/unittest.dart';
-import '../web/elements/td_model.dart';
-import '../web/elements/td_todos.dart';
-import 'utils.dart';
+import '../web/app.dart';
+import '../web/model.dart';
 
 /**
  * This test runs the TodoMVC app and checks the state of the initial page.
  */
+// TODO(jmesserly): verify some styles (colors, fonts, relative size) as well.
 main() {
   initPolymer();
   useHtmlConfiguration();
@@ -23,30 +22,21 @@ main() {
   setUp(() => Polymer.onReady);
 
   test('initial state', () {
-    final model = querySelector('td-model');
-    expect(model is TodoModel, true, reason: 'TodoModel should be created');
+    final todoApp = querySelector('todo-app');
+    expect(appModel.todos.length, 0);
+    expect(todoApp.xtag is TodoApp, true, reason: 'TodoApp should be created');
 
-    final app = querySelector('td-todos');
-    expect(app is TodoList, true, reason: 'TodoList should be created');
-
-    final root = app.shadowRoot;
+    final root = todoApp.shadowRoot;
     final newTodo = root.querySelector('#new-todo');
     expect(newTodo.placeholder, "What needs to be done?");
 
-    expect(app.modelId, 'model', reason: 'modelId is set via attribute');
-
-    // Validate the stylesheet was loaded
-    final style = root.querySelector('style');
-    expect(style, isNotNull, reason: '<link> was replaced with <style>');
-    expect(style.text, contains("@media screen and"));
-
-    // Validate a style got applied
-    var color = root.querySelector('#footer').getComputedStyle().color;
-    expect(color, 'rgb(119, 119, 119)');
-
-    return onPropertyInit(model, 'items').then((_) {
-      expect(model.items, [], reason: 'no items yet');
-      expect(app.model, model, reason: 'model should be data-bound');
-    });
+    // TODO(jmesserly): re-enable this. It fails on Firefox with ShadowDOM.
+    // The issue appears to be that
+    // Wait for setTimeout 0 for focus to activate.
+    /*Timer.run(expectAsync0(() {
+      expect(document.activeElement, todoApp, reason: 'app should have focus');
+      expect(root.activeElement, newTodo, reason: 'New todo should have focus');
+      expect(root.querySelectorAll('[is=todo-row]').length, 0, reason: 'no items yet');
+    }));*/
   });
 }

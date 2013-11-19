@@ -1,4 +1,4 @@
-<!doctype html>
+<!DOCTYPE html>
 <!--
 Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 for details. All rights reserved. Use of this source code is governed by a
@@ -13,15 +13,13 @@ BSD-style license that can be found in the LICENSE file.
   // Force the ShadowDOM polyfill to run regardless of whether it is needed.
   window.__forceShadowDomPolyfill = true;
   </script>
-  <link rel="stylesheet" href="../web/app/app.css">
-  <link rel="import" href="../web/elements/td_model.html">
-  <link rel="import" href="../web/elements/td_todos.html">
+  <link rel="import" href="../web/app.html">
+  <link rel="stylesheet" href="../web/base.css">
   <script src="packages/unittest/test_controller.js"></script>
-  <title>Polymer.dart • TodoMVC</title>
+  <title>Dart • TodoMVC</title>
 </head>
 <body>
-  <td-model id="model"></td-model>
-  <td-todos modelId="model"></td-todos>
+  <todo-app></todo-app>
   <script type="application/dart" src="markdone_shadow_test.dart"></script>
 </body>
 </html>

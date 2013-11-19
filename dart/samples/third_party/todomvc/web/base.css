@@ -1,10 +1,7 @@
-/* base.css overrides */
-
-@host {
-  * {
-    display: block;
-    position: relative;
-  }
+html,
+body {
+  margin: 0;
+  padding: 0;
 }
 
 button {
@@ -17,31 +14,36 @@ button {
   font-family: inherit;
   color: inherit;
   -webkit-appearance: none;
-  /*-moz-appearance: none;*/
+  -moz-appearance: none;
   -ms-appearance: none;
   -o-appearance: none;
-  appearance: none;
+  /*appearance: none; */
 }
 
-input::-webkit-input-placeholder {
-  font-style: italic;
+body {
+  font: 14px 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  line-height: 1.4em;
+  background: #eaeaea url('bg.png');
+  color: #4d4d4d;
+  width: 550px;
+  margin: 0 auto;
+  -webkit-font-smoothing: antialiased;
+  -moz-font-smoothing: antialiased;
+  -ms-font-smoothing: antialiased;
+  -o-font-smoothing: antialiased;
+  /* font-smoothing: antialiased; */
 }
 
-input::-moz-placeholder {
-  font-style: italic;
-  color: #a9a9a9;
-}
-
-input:-ms-input-placeholder, #new-todo:-ms-input-placeholder {
-  font-style: italic;
-  color: #a9a9a9;
-}
+/*
+TODO(jmesserly): we should try to restore the original CSS file.
+Ours has diverged and some features aren't working anymore, mainly due to the
+extra nodes we introduce for items.
+*/
 
 #todoapp {
   background: #fff;
   background: rgba(255, 255, 255, 0.9);
-  /*margin: 130px 0 40px 0;*/
-  margin: 0 0 40px 0;
+  margin: 130px 0 40px 0;
   border: 1px solid #ccc;
   position: relative;
   border-top-left-radius: 2px;
@@ -59,6 +61,32 @@ input:-ms-input-placeholder, #new-todo:-ms-input-placeholder {
   top: 0;
   left: 40px;
   height: 100%;
+}
+
+input::-webkit-input-placeholder {
+  font-style: italic;
+}
+
+input:-moz-placeholder {
+  font-style: italic;
+  color: #a9a9a9;
+}
+
+.title {
+  position: absolute;
+  top: -120px;
+  width: 100%;
+  font-size: 70px;
+  font-weight: bold;
+  text-align: center;
+  color: #b3b3b3;
+  color: rgba(255, 255, 255, 0.3);
+  text-shadow: -1px -1px rgba(0, 0, 0, 0.2);
+  /*-webkit-text-rendering: optimizeLegibility;*/
+  -moz-text-rendering: optimizeLegibility;
+  -ms-text-rendering: optimizeLegibility;
+  -o-text-rendering: optimizeLegibility;
+  text-rendering: optimizeLegibility;
 }
 
 #header {
@@ -110,7 +138,7 @@ input:-ms-input-placeholder, #new-todo:-ms-input-placeholder {
   -moz-font-smoothing: antialiased;
   -ms-font-smoothing: antialiased;
   -o-font-smoothing: antialiased;
-  /* font-smoothing: antialiased; */
+  /*font-smoothing: antialiased;*/
 }
 
 #new-todo {
@@ -157,19 +185,40 @@ label[for='toggle-all'] {
   list-style: none;
 }
 
-#todo-list li {
-  position: relative;
-  font-size: 24px;
-  border-bottom: 1px dotted #ccc;
-}
+/*
+TODO(jmesserly): fix this. It's broken in our sample.
 
-#todo-list li:last-child {
+#todo-list todo-row:last-child .todo-item {
   border-bottom: none;
 }
+*/
 
-#todo-list li.editing {
-  border-bottom: none;
-  padding: 0;
+/*
+TODO(jmesserly): it seems to be impossible to have selectors that span a
+ShadowRoot transition, even with allow-author-styles set. Various workarounds
+are included in the code below.
+*/
+.edit.editing {
+  display: block;
+  width: 506px;
+  padding: 13px 17px 12px 17px;
+  margin: 0 0 0 43px;
+}
+
+.edit-label {
+  word-break: break-word;
+  margin: 15px 15px 15px 60px;
+  display: inline-block;
+  line-height: 1.2;
+  -webkit-transition: color 0.4s;
+  -moz-transition: color 0.4s;
+  -ms-transition: color 0.4s;
+  -o-transition: color 0.4s;
+  transition: color 0.4s;
+}
+
+.edit-label {
+  text-decoration: inherit;
 }
 
 #footer {
@@ -179,7 +228,6 @@ label[for='toggle-all'] {
   right: 0;
   bottom: -31px;
   left: 0;
-  height: 20px;
   z-index: 1;
   text-align: center;
 }
@@ -190,13 +238,13 @@ label[for='toggle-all'] {
   right: 0;
   bottom: 31px;
   left: 0;
-  height: 50px;
+  height: 100px;
   z-index: -1;
   box-shadow: 0 1px 1px rgba(0, 0, 0, 0.3),
         0 6px 0 -3px rgba(255, 255, 255, 0.8),
         0 7px 1px -3px rgba(0, 0, 0, 0.3),
-        0 43px 0 -6px rgba(255, 255, 255, 0.8),
-        0 44px 2px -6px rgba(0, 0, 0, 0.2);
+        0 42px 0 -6px rgba(255, 255, 255, 0.8),
+        0 43px 2px -6px rgba(0, 0, 0, 0.2);
 }
 
 #todo-count {
@@ -223,18 +271,18 @@ label[for='toggle-all'] {
   text-decoration: none;
 }
 
-#filters li.polymer-selected a {
+#filters li a.selected {
   font-weight: bold;
 }
 
 #clear-completed {
   float: right;
-  position: relative;
   line-height: 20px;
   text-decoration: none;
   background: rgba(0, 0, 0, 0.1);
   font-size: 11px;
   padding: 0 10px;
+  position: relative;
   border-radius: 3px;
   box-shadow: 0 -1px 0 0 rgba(0, 0, 0, 0.2);
 }
@@ -244,14 +292,25 @@ label[for='toggle-all'] {
   box-shadow: 0 -1px 0 0 rgba(0, 0, 0, 0.3);
 }
 
+#info {
+  margin: 65px auto 0;
+  color: #a6a6a6;
+  font-size: 12px;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.7);
+  text-align: center;
+}
+
+#info a {
+  color: inherit;
+}
+
+/*
+  Hack to remove background from Mobile Safari.
+  Can't use it globally since it destroys checkboxes in Firefox and Opera
+*/
 @media screen and (-webkit-min-device-pixel-ratio:0) {
   #toggle-all {
     background: none;
-    /*
-      ShadowDOM Polyfill work around for webkit/blink bug
-      https://code.google.com/p/chromium/issues/detail?id=251510
-    */
-    background-color: transparent;
   }
 
   #toggle-all {
@@ -262,6 +321,9 @@ label[for='toggle-all'] {
     -webkit-transform: rotate(90deg);
     transform: rotate(90deg);
     -webkit-appearance: none;
-    appearance: none;
+    -moz-appearance: none;
+    -ms-appearance: none;
+    -o-appearance: none;
+    /*appearance: none; */
   }
 }

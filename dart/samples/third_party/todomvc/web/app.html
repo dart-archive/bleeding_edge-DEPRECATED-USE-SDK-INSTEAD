@@ -1,0 +1,57 @@
+<!--
+Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+for details. All rights reserved. Use of this source code is governed by a
+BSD-style license that can be found in the LICENSE file.
+-->
+<link rel="import" href="router_options.html">
+<link rel="import" href="todo_row.html">
+<polymer-element name="todo-app">
+<template>
+  <section id="todoapp">
+    <header id="header">
+      <h1 class='title'>todos</h1>
+      <form on-submit="{{addTodo}}">
+        <input id="new-todo" placeholder="What needs to be done?" autofocus
+               on-change="{{addTodo}}">
+      </form>
+    </header>
+    <section id="main">
+      <input id="toggle-all" type="checkbox" checked="{{app.allChecked}}">
+      <label for="toggle-all"></label>
+      <ul id="todo-list">
+        <template repeat="{{app.visibleTodos}}">
+          <li is="todo-row" todo="{{}}"></li>
+        </template>
+      </ul>
+    </section>
+    <template if="{{app.todos.length > 0}}">
+      <footer id="footer">
+        <span id="todo-count"><strong>{{app.remaining}}</strong></span>
+        <ul is="router-options" id="filters">
+          <li> <a href="#/">All</a> </li>
+          <li> <a href="#/active">Active</a> </li>
+          <li> <a href="#/completed">Completed</a> </li>
+        </ul>
+        <template if="{{app.hasCompleteTodos}}">
+          <button id="clear-completed" on-click="{{clear}}">
+            Clear completed ({{app.doneCount}})
+          </button>
+        </template>
+      </footer>
+    </template>
+  </section>
+  <footer id="info">
+    <p>Double-click to edit a todo.</p>
+    <p>Credits: the <a href="http://www.dartlang.org">Dart</a> team.</p>
+    <p>
+      This example was built using a pre-1.0 version of Polymer.dart.
+      Learn more about
+      <a href="https://www.dartlang.org/polymer-dart/">Polymer.dart</a>
+      or
+      <a href="https://code.google.com/p/dart/source/browse/branches/bleeding_edge/dart/samples/third_party/todomvc/">view the source</a>.
+    </p>
+    <p>Part of <a href="http://todomvc.com">TodoMVC</a>.</p>
+  </footer>
+</template>
+<script type="application/dart" src="app.dart"></script>
+</polymer-element>
