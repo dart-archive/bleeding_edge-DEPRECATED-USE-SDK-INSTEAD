@@ -9,7 +9,8 @@ import 'dart:html';
 import 'package:polymer/polymer.dart';
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
-import '../web/model.dart';
+import '../web/elements/td_model.dart';
+import 'utils.dart';
 
 Node findWithText(Node node, String text) {
   if (node.text == text) return node;
@@ -27,22 +28,6 @@ Node findWithText(Node node, String text) {
   return null;
 }
 
-Node findShadowHost(Node node, ShadowRoot root) {
-  if (node is Element) {
-    var shadowRoot = (node as Element).shadowRoot;
-    if (shadowRoot == root) return node;
-    if (shadowRoot != null) {
-      var r = findShadowHost(shadowRoot, root);
-      if (r != null) return r;
-    }
-  }
-  for (var n in node.nodes) {
-    var r = findShadowHost(n, root);
-    if (r != null) return r;
-  }
-  return null;
-}
-
 /**
  * This test runs the TodoMVC app, adds a few todos, marks some as done
  * programatically, and clicks on a checkbox to mark others via the UI.
@@ -51,13 +36,19 @@ main() {
   initPolymer();
   useHtmlConfiguration();
 
-  setUp(() => Polymer.onReady);
+  TodoModel model;
+
+  setUp(() => Polymer.onReady.then((_) {
+    model = querySelector('td-model');
+    return onPropertyInit(model, 'items');
+  }));
 
   test('mark done', () {
-    appModel.todos.add(new Todo('one (unchecked)'));
-    appModel.todos.add(new Todo('two (unchecked)'));
-    appModel.todos.add(new Todo('three (checked)')..done = true);
-    appModel.todos.add(new Todo('four (checked)'));
+    model.items
+        ..add(new Todo('one (unchecked)'))
+        ..add(new Todo('two (unchecked)'))
+        ..add(new Todo('three (checked)')..completed = true)
+        ..add(new Todo('four (checked)'));
 
     return new Future(() {
       var body = querySelector('body');
@@ -65,8 +56,8 @@ main() {
       var label = findWithText(body, 'four (checked)');
       expect(label is LabelElement, true, reason: 'text is in a label: $label');
 
-      var host = findShadowHost(body, label.parentNode);
-      var node = host.parent.querySelector('input');
+      ShadowRoot host = label.parentNode.parentNode;
+      var node = host.querySelector('input');
       expect(node is InputElement, true, reason: 'node is a checkbox');
       expect(node.type, 'checkbox', reason: 'node type is checkbox');
       expect(node.checked, isFalse, reason: 'element is unchecked');
