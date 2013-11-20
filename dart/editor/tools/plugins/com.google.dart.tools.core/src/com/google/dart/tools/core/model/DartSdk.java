@@ -233,6 +233,7 @@ public class DartSdk {
       ensureExecutable(getVmExecutable());
       ensureExecutable(getDart2JsExecutable());
       ensureExecutable(getDartDocExecutable());
+      ensureExecutable(getPubExecutable());
     }
   }
 
