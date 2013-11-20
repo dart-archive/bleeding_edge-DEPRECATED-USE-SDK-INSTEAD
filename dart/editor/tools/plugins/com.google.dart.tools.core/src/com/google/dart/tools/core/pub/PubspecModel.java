@@ -15,7 +15,6 @@ package com.google.dart.tools.core.pub;
 
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.pub.DependencyObject.Type;
-import com.google.dart.tools.core.utilities.yaml.PubYamlObject;
 import com.google.dart.tools.core.utilities.yaml.PubYamlUtils;
 
 import org.eclipse.core.resources.IFile;
@@ -27,9 +26,11 @@ import org.yaml.snakeyaml.scanner.ScannerException;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -44,6 +45,36 @@ public class PubspecModel {
   public static final String PUBSPEC_MARKER = DartCore.PLUGIN_ID + ".pubspecIssue";
 
   private static String EMPTY_STRING = "";
+
+  private static final Comparator<String> fieldComparator = new Comparator<String>() {
+
+    Random random = new Random();
+
+    List<String> fieldNames = Arrays.asList(
+        "name",
+        "author",
+        "authors",
+        "version",
+        "homepage",
+        "sdk",
+        "description",
+        "documentation",
+        "environment",
+        "dependencies",
+        "dev_dependencies",
+        "dependency_overrides",
+        "transformers");
+
+    @Override
+    public int compare(String o1, String o2) {
+      // make sure unknown fields are written at the end
+      // TODO(keertip): sort unknowns
+      int index1 = fieldNames.indexOf(o1) != -1 ? fieldNames.indexOf(o1) : random.nextInt(50) + 11;
+      int index2 = fieldNames.indexOf(o2) != -1 ? fieldNames.indexOf(o2) : random.nextInt(50) + 11;
+      return index1 - index2;
+    }
+
+  };
 
   private ArrayList<IModelListener> modelListeners;
 
@@ -67,6 +98,8 @@ public class PubspecModel {
   private boolean isDirty = false;
 
   private IFile file;
+
+  private Map<String, Object> yamlMap;
 
   public PubspecModel(IFile file, String contents) {
     this.file = file;
@@ -108,7 +141,10 @@ public class PubspecModel {
    */
   public String getContents() {
     // append comments at end of pubspec
-    return PubYamlUtils.buildYamlString(convertModelToObject()) + comments;
+    updateMapValues();
+    TreeMap<String, Object> map = new TreeMap<String, Object>(fieldComparator);
+    map.putAll(yamlMap);
+    return PubYamlUtils.buildYamlString(map) + comments;
   }
 
   public Object[] getDependecies() {
@@ -203,7 +239,8 @@ public class PubspecModel {
         try {
           clearMarkers();
           errorOnParse = false;
-          setValuesFromMap(PubYamlUtils.parsePubspecYamlToMap(yamlString));
+          yamlMap = PubYamlUtils.parsePubspecYamlToMap(yamlString);
+          setValuesFromMap(yamlMap);
         } catch (ScannerException exception) {
           errorOnParse = true;
           createMarker(exception);
@@ -230,93 +267,6 @@ public class PubspecModel {
     isDirty = false;
     name = version = description = homepage = author = sdkVersion = comments = documentation = EMPTY_STRING;
     dependencies.clear();
-  }
-
-  /**
-   * Convert the model contents to {@link PubYamlObject}
-   */
-  private PubYamlObject convertModelToObject() {
-    PubYamlObject pubYamlObject = new PubYamlObject();
-
-    pubYamlObject.name = name;
-    if (!version.isEmpty()) {
-      pubYamlObject.version = version;
-    }
-    if (!description.isEmpty()) {
-      pubYamlObject.description = description;
-    }
-    if (!author.isEmpty()) {
-      if (author.indexOf(',') != -1) { // comma separated list
-        String[] strings = author.split(",");
-        for (int i = 0; i < strings.length; i++) {
-          strings[i] = strings[i].trim();
-        }
-        pubYamlObject.authors = Arrays.asList(strings);
-      } else {
-        pubYamlObject.author = author;
-      }
-    }
-    if (!homepage.isEmpty()) {
-      pubYamlObject.homepage = homepage;
-    }
-    if (!documentation.isEmpty()) {
-      pubYamlObject.documentation = documentation;
-    }
-    if (!sdkVersion.isEmpty()) {
-      Map<String, Object> map = new HashMap<String, Object>();
-      map.put(PubspecConstants.SDK_VERSION, sdkVersion);
-      pubYamlObject.environment = map;
-    }
-    Map<String, Object> dependenciesMap = new HashMap<String, Object>();
-    Map<String, Object> devDependenciesMap = new HashMap<String, Object>();
-    for (DependencyObject dep : dependencies) {
-      if (dep.getType().equals(Type.HOSTED)) {
-        if (dep.getVersion().isEmpty()) {
-          if (dep.isForDevelopment()) {
-            devDependenciesMap.put(dep.getName(), PubspecConstants.ANY);
-          } else {
-            dependenciesMap.put(dep.getName(), PubspecConstants.ANY);
-          }
-        } else {
-          if (dep.isForDevelopment()) {
-            devDependenciesMap.put(dep.getName(), dep.getVersion());
-          } else {
-            dependenciesMap.put(dep.getName(), dep.getVersion());
-          }
-        }
-      } else if (dep.getType().equals(Type.GIT)) {
-        Map<String, Object> gitMap = new HashMap<String, Object>();
-        if (dep.getGitRef() != null && !dep.getGitRef().isEmpty()) {
-          Map<String, String> map = new HashMap<String, String>();
-          map.put(PubspecConstants.REF, dep.getGitRef());
-          map.put(PubspecConstants.URL, dep.getPath());
-          gitMap.put(PubspecConstants.GIT, map);
-        } else {
-          gitMap.put(PubspecConstants.GIT, dep.getPath());
-        }
-        if (!dep.getVersion().equals(PubspecConstants.ANY) && !dep.getVersion().isEmpty()) {
-          gitMap.put(PubspecConstants.VERSION, dep.getVersion());
-        }
-        if (dep.isForDevelopment()) {
-          devDependenciesMap.put(dep.getName(), gitMap);
-        } else {
-          dependenciesMap.put(dep.getName(), gitMap);
-        }
-      } else {
-        Map<String, Object> pathMap = new HashMap<String, Object>();
-        pathMap.put(PubspecConstants.PATH, dep.getPath());
-        if (dep.isForDevelopment()) {
-          devDependenciesMap.put(dep.getName(), pathMap);
-        } else {
-          dependenciesMap.put(dep.getName(), pathMap);
-        }
-      }
-    }
-
-    pubYamlObject.dependencies = new TreeMap<String, Object>(dependenciesMap);
-    pubYamlObject.dev_dependencies = new TreeMap<String, Object>(devDependenciesMap);
-    pubYamlObject.transformers = new ArrayList<Object>(transformers);
-    return pubYamlObject;
   }
 
   private void createMarker(ScannerException exception) {
@@ -450,6 +400,106 @@ public class PubspecModel {
       errorOnParse = false;
     } else {
       errorOnParse = true;
+    }
+  }
+
+  // update the map of the original contents with the values from the model
+  private void updateMapValues() {
+    if (yamlMap != null) {
+      yamlMap.put(PubspecConstants.NAME, name);
+      yamlMap.remove(PubspecConstants.VERSION);
+      if (!version.isEmpty()) {
+        yamlMap.put(PubspecConstants.VERSION, version);
+      }
+      yamlMap.remove(PubspecConstants.DESCRIPTION);
+      if (!description.isEmpty()) {
+        yamlMap.put(PubspecConstants.DESCRIPTION, description);
+      }
+      yamlMap.remove(PubspecConstants.AUTHOR);
+      yamlMap.remove(PubspecConstants.AUTHORS);
+      if (!author.isEmpty()) {
+        if (author.indexOf(',') != -1) { // comma separated list
+          String[] strings = author.split(",");
+          for (int i = 0; i < strings.length; i++) {
+            strings[i] = strings[i].trim();
+          }
+          yamlMap.put(PubspecConstants.AUTHORS, Arrays.asList(strings));
+        } else {
+          yamlMap.put(PubspecConstants.AUTHOR, author);
+        }
+      }
+      yamlMap.remove(PubspecConstants.HOMEPAGE);
+      if (!homepage.isEmpty()) {
+        yamlMap.put(PubspecConstants.HOMEPAGE, homepage);
+      }
+      yamlMap.remove(PubspecConstants.DOCUMENTATION);
+      if (!documentation.isEmpty()) {
+        yamlMap.put(PubspecConstants.DOCUMENTATION, documentation);
+      }
+      yamlMap.remove(PubspecConstants.SDK_VERSION);
+      if (!sdkVersion.isEmpty()) {
+        Map<String, Object> map = new HashMap<String, Object>();
+        map.put(PubspecConstants.SDK_VERSION, sdkVersion);
+        yamlMap.put(PubspecConstants.SDK_VERSION, map);
+      }
+      Map<String, Object> dependenciesMap = new HashMap<String, Object>();
+      Map<String, Object> devDependenciesMap = new HashMap<String, Object>();
+      for (DependencyObject dep : dependencies) {
+        if (dep.getType().equals(Type.HOSTED)) {
+          if (dep.getVersion().isEmpty()) {
+            if (dep.isForDevelopment()) {
+              devDependenciesMap.put(dep.getName(), PubspecConstants.ANY);
+            } else {
+              dependenciesMap.put(dep.getName(), PubspecConstants.ANY);
+            }
+          } else {
+            if (dep.isForDevelopment()) {
+              devDependenciesMap.put(dep.getName(), dep.getVersion());
+            } else {
+              dependenciesMap.put(dep.getName(), dep.getVersion());
+            }
+          }
+        } else if (dep.getType().equals(Type.GIT)) {
+          Map<String, Object> gitMap = new HashMap<String, Object>();
+          if (dep.getGitRef() != null && !dep.getGitRef().isEmpty()) {
+            Map<String, String> map = new HashMap<String, String>();
+            map.put(PubspecConstants.REF, dep.getGitRef());
+            map.put(PubspecConstants.URL, dep.getPath());
+            gitMap.put(PubspecConstants.GIT, map);
+          } else {
+            gitMap.put(PubspecConstants.GIT, dep.getPath());
+          }
+          if (!dep.getVersion().equals(PubspecConstants.ANY) && !dep.getVersion().isEmpty()) {
+            gitMap.put(PubspecConstants.VERSION, dep.getVersion());
+          }
+          if (dep.isForDevelopment()) {
+            devDependenciesMap.put(dep.getName(), gitMap);
+          } else {
+            dependenciesMap.put(dep.getName(), gitMap);
+          }
+        } else {
+          Map<String, Object> pathMap = new HashMap<String, Object>();
+          pathMap.put(PubspecConstants.PATH, dep.getPath());
+          if (dep.isForDevelopment()) {
+            devDependenciesMap.put(dep.getName(), pathMap);
+          } else {
+            dependenciesMap.put(dep.getName(), pathMap);
+          }
+        }
+      }
+
+      if (!dependenciesMap.isEmpty()) {
+        yamlMap.put(PubspecConstants.DEPENDENCIES, new TreeMap<String, Object>(dependenciesMap));
+      }
+      yamlMap.remove(PubspecConstants.DEV_DEPENDENCIES);
+      if (!devDependenciesMap.isEmpty()) {
+        yamlMap.put(PubspecConstants.DEV_DEPENDENCIES, new TreeMap<String, Object>(
+            devDependenciesMap));
+      }
+      yamlMap.remove(PubspecConstants.TRANSFORMERS);
+      if (!transformers.isEmpty()) {
+        yamlMap.put(PubspecConstants.TRANSFORMERS, transformers);
+      }
     }
   }
 }

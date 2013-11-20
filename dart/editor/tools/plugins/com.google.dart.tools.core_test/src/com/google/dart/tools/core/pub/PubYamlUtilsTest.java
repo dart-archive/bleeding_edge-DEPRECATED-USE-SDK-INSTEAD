@@ -14,12 +14,10 @@
 package com.google.dart.tools.core.pub;
 
 import com.google.dart.tools.core.AbstractDartCoreTest;
-import com.google.dart.tools.core.utilities.yaml.PubYamlObject;
 import com.google.dart.tools.core.utilities.yaml.PubYamlUtils;
 
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -35,7 +33,9 @@ public class PubYamlUtilsTest extends AbstractDartCoreTest {
       + "    git: https://github.com/johnmccutchan/DartVectorMath.git\n" + "  unittest:\n"
       + "     path:../../unittest-0.1.1/lib\n" + "documentation: http://www.dartlang.org\n"
       + "homepage: http://pub.dartlang.org\n" + "dev_dependencies:\n  browser: any\n"
-      + "transformers:\n- polymer:\n    entry_points: web/index.html";
+      + "transformers:\n- polymer:\n    entry_points: web/index.html\n"
+      + "dependency_overrides:\n  html5lib: 0.9.0\n" + "test_field: testing an unknown field\n"
+      + "test_field2: yet another unknown";
 
   public static String pubspecYamlString2 = "name: web_components\n"
       + "description: an easy way to build web apps in Dart\n" + "authors: \n"
@@ -133,18 +133,6 @@ public class PubYamlUtilsTest extends AbstractDartCoreTest {
     versions = PubYamlUtils.sortVersionArray(versions);
     assertEquals("0.5.7", versions[0]);
     assertEquals("5.2.9-hotfix.issue", versions[3]);
-  }
-
-  private void checkPubSpecsEqual(PubYamlObject object1, PubYamlObject object2) {
-    assertEquals(object1.name, object2.name);
-    assertEquals(object1.author, object2.author);
-    assertEquals(object1.description, object2.description);
-    assertEquals(object1.homepage, object2.homepage);
-    assertEquals(object1.version, object2.version);
-    assertEquals(
-        new TreeMap<String, Object>(object1.dependencies).toString().hashCode(),
-        new TreeMap<String, Object>(object2.dependencies).toString().hashCode());
-
   }
 
 }

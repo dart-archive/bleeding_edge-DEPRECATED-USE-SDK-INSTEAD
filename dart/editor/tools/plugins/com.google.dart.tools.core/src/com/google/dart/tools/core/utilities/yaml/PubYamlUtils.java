@@ -283,6 +283,27 @@ public class PubYamlUtils {
   public static String VERSION_CONTSTRAINTS_EXPRESSION = "([=]{0,1}[<>]?)|([<>]?[=]{0,1})(\\d+\\.){2}\\d+([\\+-]([\\.a-zA-Z0-9-])*)?";
 
   /**
+   * Return a yaml string for the given Map
+   * 
+   * @param pubYamlObject bean for pubspec
+   * @return String
+   */
+  public static String buildYamlString(Map<String, Object> yamlMap) {
+
+    try {
+      SkipEmptyRepresenter repr = new SkipEmptyRepresenter();
+      repr.setPropertyUtils(new UnsortedPropertyUtils());
+      Yaml yaml = new Yaml(repr);
+      String yamlString = yaml.dumpAsMap(yamlMap);
+      return yamlString;
+    } catch (Exception e) {
+      DartCore.logError(e);
+      return null;
+    }
+
+  }
+
+  /**
    * Return a yaml string for the given {@link PubYamlObject}
    * 
    * @param pubYamlObject bean for pubspec

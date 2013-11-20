@@ -221,10 +221,6 @@ public class DependencyDetailsPage extends AbstractFormPart implements IDetailsP
       }
     });
 
-    Composite filler = new Composite(client, SWT.NONE);
-    gd = new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1);
-    filler.setLayoutData(gd);
-
     Link infoLink = new Link(client, SWT.WRAP);
     infoLink.setText("Packages with advanced requirements e.g. transformers, currently \n"
         + "require manual editing. <a href=\"" + "source" + "\">Switch to yaml editing mode</a>");
