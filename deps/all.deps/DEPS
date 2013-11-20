@@ -23,7 +23,7 @@ vars = {
   "clang_rev" : "@28450",
   "commons-io_rev" : "@19997",
   "commons-lang_rev" : "@19997",
-  "d8_rev" : "@29232",
+  "d8_rev" : "@30465",
   "eclipse_rev" : "@27489",
   "fest_rev" : "@19997",
   "firefox_jsshell_rev" : "@28444",
