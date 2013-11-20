@@ -401,7 +401,7 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
             "",
             "class B extends A {",
             "  forEach(int f(double p1, String p2)) {",
-            "    // TODO implement this method",
+            "    // TODO: implement forEach",
             "  }",
             "}"));
   }
@@ -418,7 +418,8 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
             "// filler filler filler filler filler filler filler filler filler filler",
             "import 'dart:collection';",
             "class Test extends IterableMixin<int> {",
-            "  Iterator<int> get iterator => null; // TODO implement this getter",
+            "  // TODO: implement iterator",
+            "  Iterator<int> get iterator => null;",
             "}"));
   }
 
@@ -442,9 +443,11 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
             "}",
             "",
             "class B extends A {",
-            "  get g1 => null; // TODO implement this getter",
+            "  // TODO: implement g1",
+            "  get g1 => null;",
             "",
-            "  int get g2 => null; // TODO implement this getter",
+            "  // TODO: implement g2",
+            "  int get g2 => null;",
             "}"));
   }
 
@@ -469,7 +472,7 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
             "",
             "class B extends A {",
             "  Map<aaa.Future, List<aaa.Future>> g(aaa.Future p) {",
-            "    // TODO implement this method",
+            "    // TODO: implement g",
             "  }",
             "}"));
   }
@@ -503,27 +506,27 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
             "",
             "class B extends A {",
             "  m1() {",
-            "    // TODO implement this method",
+            "    // TODO: implement m1",
             "  }",
             "",
             "  int m2() {",
-            "    // TODO implement this method",
+            "    // TODO: implement m2",
             "  }",
             "",
             "  String m3(int p1, double p2, Map<int, List<String>> p3) {",
-            "    // TODO implement this method",
+            "    // TODO: implement m3",
             "  }",
             "",
             "  String m4(p1, p2) {",
-            "    // TODO implement this method",
+            "    // TODO: implement m4",
             "  }",
             "",
             "  String m5(p1, [int p2 = 2, int p3, p4 = 4]) {",
-            "    // TODO implement this method",
+            "    // TODO: implement m5",
             "  }",
             "",
             "  String m6(p1, {int p2: 2, int p3, p4: 4}) {",
-            "    // TODO implement this method",
+            "    // TODO: implement m6",
             "  }",
             "}"));
   }
@@ -549,11 +552,11 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
             "",
             "class B extends A {",
             "  int operator [](int index) {",
-            "    // TODO implement this method",
+            "    // TODO: implement []",
             "  }",
             "",
             "  void operator []=(int index, String value) {",
-            "    // TODO implement this method",
+            "    // TODO: implement []=",
             "  }",
             "}"));
   }
@@ -581,15 +584,15 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
             "",
             "class B extends A {",
             "  set s1(x) {",
-            "    // TODO implement this setter",
+            "    // TODO: implement s1",
             "  }",
             "",
             "  set s2(int x) {",
-            "    // TODO implement this setter",
+            "    // TODO: implement s2",
             "  }",
             "",
             "  void set s3(String x) {",
-            "    // TODO implement this setter",
+            "    // TODO: implement s3",
             "  }",
             "}"));
   }

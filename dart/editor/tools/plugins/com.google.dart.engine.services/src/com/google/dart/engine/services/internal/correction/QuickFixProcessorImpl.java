@@ -761,15 +761,20 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
     if (!isFirst || !targetClass.getMembers().isEmpty()) {
       sb.append(eol);
     }
-    // return type
-    sb.append(prefix);
-    appendType(sb, missingOverride.getType().getReturnType());
     // may be property
     ElementKind elementKind = missingOverride.getKind();
     boolean isGetter = elementKind == ElementKind.GETTER;
     boolean isSetter = elementKind == ElementKind.SETTER;
     boolean isMethod = elementKind == ElementKind.METHOD;
     boolean isOperator = isMethod && ((MethodElement) missingOverride).isOperator();
+    sb.append(prefix);
+    if (isGetter) {
+      sb.append("// TODO: implement " + missingOverride.getDisplayName());
+      sb.append(eol);
+      sb.append(prefix);
+    }
+    // return type
+    appendType(sb, missingOverride.getType().getReturnType());
     if (isGetter) {
       sb.append("get ");
     } else if (isSetter) {
@@ -781,7 +786,7 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
     sb.append(missingOverride.getDisplayName());
     // parameters + body
     if (isGetter) {
-      sb.append(" => null; // TODO implement this getter");
+      sb.append(" => null;");
     } else if (isMethod || isSetter) {
       ParameterElement[] parameters = missingOverride.getParameters();
       appendParameters(sb, parameters);
@@ -790,9 +795,9 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
       sb.append(eol);
       sb.append(prefix2);
       if (isMethod) {
-        sb.append("// TODO implement this method");
+        sb.append("// TODO: implement " + missingOverride.getDisplayName());
       } else {
-        sb.append("// TODO implement this setter");
+        sb.append("// TODO: implement " + missingOverride.getDisplayName());
       }
       sb.append(eol);
       // close method
