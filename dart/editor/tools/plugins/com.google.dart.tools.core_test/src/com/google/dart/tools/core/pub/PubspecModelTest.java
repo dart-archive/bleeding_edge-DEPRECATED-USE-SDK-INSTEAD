@@ -109,7 +109,12 @@ public class PubspecModelTest extends TestCase {
     List<Object> list2 = Arrays.asList(pubspecModel2.getDependecies());
     assertEquals(list1.size(), list2.size());
     assertTrue(list1.containsAll(list2));
-    assertEquals(pubspecModel1.getContents(), pubspecModel2.getContents());
+    String string1 = pubspecModel1.getContents();
+    String string2 = pubspecModel2.getContents();
+    assertTrue(string1.contains("test_field: testing an unknown field"));
+    assertTrue(string2.contains("test_field: testing an unknown field"));
+    assertTrue(string1.contains("test_field2: yet another unknown"));
+    assertTrue(string2.contains("test_field2: yet another unknown"));
   }
 
   // Assert model can be initialized from pubspec yaml string
