@@ -26,6 +26,7 @@ import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.engine.source.UriKind;
 import com.google.dart.tools.core.DartCore;
 
+import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Platform;
@@ -36,14 +37,19 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -59,7 +65,12 @@ import java.util.zip.ZipInputStream;
  */
 public class DartSdkManager {
 
-  private static final String SDK_GS_PREFIX = "http://commondatastorage.googleapis.com/dart-archive/channels/dev/release/latest/sdk/dartsdk-";
+  /**
+   * Environment variable key for user-specified update URLs.
+   */
+  public static final String UPDATE_URL_ENV_VAR = "com.dart.tools.update.core.url";
+
+  private static final String DEFAULT_UPDATE_URL = "http://dartlang.org/editor/update/channels/dev/";
 
   /**
    * A special instance of {@link com.google.dart.engine.sdk.DartSdk} representing missing SDK.
@@ -332,8 +343,7 @@ public class DartSdkManager {
     File tempFile = File.createTempFile(SDK_DIR_NAME, ".zip");
     tempFile.deleteOnExit();
 
-    URI downloadURI = URI.create(SDK_GS_PREFIX + getPlatformCode() + "-" + getPlatformBititude()
-        + "-release.zip");
+    URI downloadURI = URI.create(getSdkUrl());
 
     URLConnection connection = downloadURI.toURL().openConnection();
 
@@ -352,6 +362,34 @@ public class DartSdkManager {
     }
 
     return tempFile;
+  }
+
+  private String getSdkUrl() {
+    String url = getUpdateChannelUrl();
+    if (url == null) {
+      url = DEFAULT_UPDATE_URL;
+    }
+    return url + "latest/sdk/dartsdk-" + getPlatformCode() + "-" + getPlatformBititude()
+        + "-release.zip";
+  }
+
+  private String getUpdateChannelUrl() {
+    try {
+      URL url = new URL("platform:/plugin/com.google.dart.tools.core/update.properties");
+      File file = new File(FileLocator.resolve(url).toURI());
+      if (file.exists()) {
+        Properties properties = new Properties();
+        properties.load(new FileReader(file));
+        return properties.getProperty(UPDATE_URL_ENV_VAR);
+      }
+    } catch (FileNotFoundException e) {
+      DartCore.logError(e);
+    } catch (IOException e) {
+      DartCore.logError(e);
+    } catch (URISyntaxException e) {
+      DartCore.logError(e);
+    }
+    return null;
   }
 
   private void initSdk() {

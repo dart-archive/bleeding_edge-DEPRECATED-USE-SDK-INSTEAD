@@ -15,6 +15,7 @@ package com.google.dart.tools.update.core;
 
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
+import com.google.dart.tools.core.model.DartSdkManager;
 
 import org.eclipse.core.filesystem.URIUtil;
 import org.eclipse.core.runtime.IPath;
@@ -66,7 +67,7 @@ public class UpdateCore extends Plugin {
   /**
    * Environment variable key for user-specified update URLs.
    */
-  private static final String UPDATE_URL_ENV_VAR = "com.dart.tools.update.core.url";
+  private static final String UPDATE_URL_ENV_VAR = DartSdkManager.UPDATE_URL_ENV_VAR;
 
   /**
    * The Update Core plugin id.
