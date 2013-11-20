@@ -1567,10 +1567,10 @@ public class Parser {
       // It is not always true, e.g. "^is T" where "^" is place the place for synthetic identifier.
       // By creating SyntheticStringToken we can distinguish a real identifier from synthetic.
       // In the code completion behavior will depend on a cursor position - before or on "is".
-      syntheticToken = new SyntheticStringToken(
+      syntheticToken = injectToken(new SyntheticStringToken(
           TokenType.IDENTIFIER,
           currentToken.getLexeme(),
-          currentToken.getOffset());
+          currentToken.getOffset()));
     } else {
       syntheticToken = createSyntheticToken(TokenType.IDENTIFIER);
     }
@@ -1592,7 +1592,7 @@ public class Parser {
    * @return the synthetic token that was created
    */
   private Token createSyntheticToken(Keyword keyword) {
-    return new SyntheticKeywordToken(keyword, currentToken.getOffset());
+    return injectToken(new SyntheticKeywordToken(keyword, currentToken.getOffset()));
   }
 
   /**
@@ -1601,7 +1601,7 @@ public class Parser {
    * @return the synthetic token that was created
    */
   private Token createSyntheticToken(TokenType type) {
-    return new StringToken(type, "", currentToken.getOffset());
+    return injectToken(new StringToken(type, "", currentToken.getOffset()));
   }
 
   /**
@@ -1766,6 +1766,19 @@ public class Parser {
       return false;
     }
     return matchesIdentifier(next);
+  }
+
+  /**
+   * Inject the given token into the token stream immediately before the current token.
+   * 
+   * @param token the token to be added to the token stream
+   * @return the token that was just added to the token stream
+   */
+  private Token injectToken(Token token) {
+    Token previous = currentToken.getPrevious();
+    token.setNext(currentToken);
+    previous.setNext(token);
+    return token;
   }
 
   /**

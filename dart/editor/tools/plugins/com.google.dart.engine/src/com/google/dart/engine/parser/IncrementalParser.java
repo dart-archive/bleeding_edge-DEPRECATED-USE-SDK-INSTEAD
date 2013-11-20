@@ -58,9 +58,9 @@ public class IncrementalParser {
   }
 
   /**
-   * Given a range of tokens that were re-scanned, re-parse the minimimum number of tokens to
-   * produce a consistent AST structure. The range is represented by the first and last tokens in
-   * the range. The tokens are assumed to be contained in the same token stream.
+   * Given a range of tokens that were re-scanned, re-parse the minimum number of tokens to produce
+   * a consistent AST structure. The range is represented by the first and last tokens in the range.
+   * The tokens are assumed to be contained in the same token stream.
    * 
    * @param leftToken the token in the new token stream immediately to the left of the range of
    *          tokens that were inserted
@@ -74,69 +74,77 @@ public class IncrementalParser {
       int originalStart, int originalEnd) {
     ASTNode oldNode = null;
     ASTNode newNode = null;
+    //
+    // Find the first token that needs to be re-parsed.
+    //
     Token firstToken = leftToken.getNext();
     if (firstToken == rightToken) {
+      // If there are no new tokens, then we need to include at least one copied node in the range.
       firstToken = leftToken;
     }
-    if (firstToken != null) {
-      //
-      // Find the smallest AST node that encompasses the range of re-scanned tokens.
-      //
-      if (originalEnd < originalStart) {
-        oldNode = new NodeLocator(originalStart).searchWithin(originalStructure);
-      } else {
-        oldNode = new NodeLocator(originalStart, originalEnd).searchWithin(originalStructure);
-      }
-      //
-      // Find the token at which parsing is to begin.
-      //
-      int originalOffset = oldNode.getOffset();
-      Token parseToken = findTokenAt(firstToken, originalOffset);
-      if (parseToken == null) {
-        return null;
-      }
-      //
-      // Parse the appropriate AST structure starting at the appropriate place.
-      //
-      Parser parser = new Parser(source, errorListener);
-      parser.setCurrentToken(parseToken);
-      while (newNode == null) {
-        ASTNode parent = oldNode.getParent();
-        if (parent == null) {
-          parseToken = findFirstToken(parseToken);
-          parser.setCurrentToken(parseToken);
-          return (E) parser.parseCompilationUnit();
-        }
-        try {
-          IncrementalParseDispatcher dispatcher = new IncrementalParseDispatcher(parser, oldNode);
-          newNode = parent.accept(dispatcher);
-        } catch (InsufficientContextException exception) {
-          oldNode = parent;
-          originalOffset = oldNode.getOffset();
-          parseToken = findTokenAt(parseToken, originalOffset);
-          parser.setCurrentToken(parseToken);
-        } catch (Exception exception) {
-          return null;
-        }
-      }
-      //
-      // Validate that the new node can replace the old node.
-      //
-      if (newNode.getOffset() != originalOffset) {
-        // TODO(brianwilkerson) Figure out how to test whether the new node covers all of and only the
-        // appropriate tokens. Note that this is made more difficult by the possibility of synthetic
-        // tokens, which are not added to the token stream.
-        return null;
-      }
-      //
-      // Replace the old node with the new node in a copy of the original AST structure.
-      //
-      if (oldNode == originalStructure) {
-        // We ended up re-parsing the whole structure, so there's no need for a copy.
-        return (E) newNode;
-      }
-      ResolutionCopier.copyResolutionData(oldNode, newNode);
+    //
+    // Find the smallest AST node that encompasses the range of re-scanned tokens.
+    //
+    if (originalEnd < originalStart) {
+      oldNode = new NodeLocator(originalStart).searchWithin(originalStructure);
+    } else {
+      oldNode = new NodeLocator(originalStart, originalEnd).searchWithin(originalStructure);
     }
+    //
+    // Find the token at which parsing is to begin.
+    //
+    int originalOffset = oldNode.getOffset();
+    Token parseToken = findTokenAt(firstToken, originalOffset);
+    if (parseToken == null) {
+      return null;
+    }
+    //
+    // Parse the appropriate AST structure starting at the appropriate place.
+    //
+    Parser parser = new Parser(source, errorListener);
+    parser.setCurrentToken(parseToken);
+    while (newNode == null) {
+      ASTNode parent = oldNode.getParent();
+      if (parent == null) {
+        parseToken = findFirstToken(parseToken);
+        parser.setCurrentToken(parseToken);
+        return (E) parser.parseCompilationUnit();
+      }
+      boolean advanceToParent = false;
+      try {
+        IncrementalParseDispatcher dispatcher = new IncrementalParseDispatcher(parser, oldNode);
+        newNode = parent.accept(dispatcher);
+        //
+        // Validate that the new node can replace the old node.
+        //
+        Token mappedToken = tokenMap.get(oldNode.getEndToken().getNext());
+        if (mappedToken == null
+            || mappedToken.getOffset() != newNode.getEndToken().getNext().getOffset()
+            || newNode.getOffset() != oldNode.getOffset()) {
+          advanceToParent = true;
+        }
+      } catch (InsufficientContextException exception) {
+        advanceToParent = true;
+      } catch (Exception exception) {
+        return null;
+      }
+      if (advanceToParent) {
+        newNode = null;
+        oldNode = parent;
+        originalOffset = oldNode.getOffset();
+        parseToken = findTokenAt(parseToken, originalOffset);
+        parser.setCurrentToken(parseToken);
+      }
+    }
+    //
+    // Replace the old node with the new node in a copy of the original AST structure.
+    //
+    if (oldNode == originalStructure) {
+      // We ended up re-parsing the whole structure, so there's no need for a copy.
+      ResolutionCopier.copyResolutionData(oldNode, newNode);
+      return (E) newNode;
+    }
+    ResolutionCopier.copyResolutionData(oldNode, newNode);
     IncrementalASTCloner cloner = new IncrementalASTCloner(oldNode, newNode, tokenMap);
     return (E) originalStructure.accept(cloner);
   }

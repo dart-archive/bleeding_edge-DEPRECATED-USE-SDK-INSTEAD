@@ -31,25 +31,6 @@ public class IncrementalParserTest extends EngineTestCase {
     assertParse("", "f() => a + b;", "", "");
   }
 
-  public void fail_insert_convertOneFunctionToTwo() {
-    // We are not currently able to handle the case where one node must be replaced by more than one
-    // node.
-    // "f() {}"
-    // "f() => 0; g() {}"
-    assertParse("f()", "", " => 0; g()", " {}");
-  }
-
-  public void fail_insert_period_betweenIdentifiers1() {
-    // The original text is not valid Dart code, so the parser inserts a semicolon between the 'a'
-    // and the 'b' and treats that 'b' as a separate top-level declaration. That doesn't happen for
-    // the modified source, but the incremental parser doesn't fail after consuming tokens that are
-    // outside the range of what's being re-parsed. I'm not sure why betweenIdentifiers2 and 3 pass.
-    //
-    // "f() => a b;"
-    // "f() => a. b;"
-    assertParse("f() => a", "", ".", " b;");
-  }
-
   public void test_delete_identifier_beginning() {
     // "f() => abs + b;"
     // "f() => s + b;"
@@ -98,6 +79,24 @@ public class IncrementalParserTest extends EngineTestCase {
     assertParse("f() => a + ", "", "x", "b;");
   }
 
+  public void test_insert_convertOneFunctionToTwo() {
+    // "f() {}"
+    // "f() => 0; g() {}"
+    assertParse("f()", "", " => 0; g()", " {}");
+  }
+
+  public void test_insert_end() {
+    // "class A {}"
+    // "class A {} class B {}"
+    assertParse("class A {}", "", " class B {}", "");
+  }
+
+  public void test_insert_insideIdentifier() {
+    // "f() => cob;"
+    // "f() => cow.b;"
+    assertParse("f() => co", "", "w.", "b;");
+  }
+
   public void test_insert_newIdentifier1() {
     // "f() => a; c;"
     // "f() => a; b c;"
@@ -114,6 +113,12 @@ public class IncrementalParserTest extends EngineTestCase {
     // "f() => a + b;"
     // "f() => a + b.;"
     assertParse("f() => a + b", "", ".", ";");
+  }
+
+  public void test_insert_period_betweenIdentifiers1() {
+    // "f() => a b;"
+    // "f() => a. b;"
+    assertParse("f() => a", "", ".", " b;");
   }
 
   public void test_insert_period_betweenIdentifiers2() {
