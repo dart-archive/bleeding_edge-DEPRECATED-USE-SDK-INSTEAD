@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.debug.ui.internal;
 
+import com.google.dart.tools.debug.ui.internal.objectinspector.InspectorActionFilter;
 import com.google.dart.tools.debug.ui.internal.presentation.DebugElementAdapterFactory;
 import com.google.dart.tools.debug.ui.internal.view.DebuggerViewManager;
 
@@ -112,6 +113,8 @@ public class DartDebugUIPlugin extends AbstractUIPlugin {
     super.start(context);
 
     DebugElementAdapterFactory.init();
+
+    InspectorActionFilter.registerAdapters();
 
     // Initialize the DebuggerViewManager.
     DebuggerViewManager.getDefault();
