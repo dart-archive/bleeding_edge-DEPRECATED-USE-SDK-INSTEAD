@@ -14,7 +14,6 @@
 package com.google.dart.tools.ui.feedback;
 
 import com.google.dart.engine.utilities.instrumentation.HealthUtils;
-import com.google.dart.tools.core.DartCore;
 
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.window.IShellProvider;
@@ -38,9 +37,6 @@ import org.eclipse.swt.widgets.Shell;
  * @see FeedbackSubmissionJob
  */
 public class OpenFeedbackDialogAction extends Action implements IShellProvider {
-
-  public static boolean SCREEN_CAPTURE_ENABLED = !DartCore.isMac();
-
   private IShellProvider shellProvider;
 
   //the dialog shell, cached in case we want to ensure there is only one
@@ -73,10 +69,7 @@ public class OpenFeedbackDialogAction extends Action implements IShellProvider {
   public void run() {
     HealthUtils.ReportHealth("FeedbackDialog.ctor");
 
-    Image screenshot = null;
-    if (SCREEN_CAPTURE_ENABLED) {
-      screenshot = captureScreen();
-    }
+    Image screenshot = captureScreen();
     new FeedbackDialog(getShell(), productName, screenshot) {
 
       @Override

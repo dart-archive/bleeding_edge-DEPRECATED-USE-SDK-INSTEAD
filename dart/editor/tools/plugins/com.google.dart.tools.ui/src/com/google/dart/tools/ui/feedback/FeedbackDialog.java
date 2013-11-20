@@ -207,16 +207,14 @@ public class FeedbackDialog extends Dialog implements IRunnableContext, DisposeL
     previewDataLink.setLayoutData(gd_1);
     previewDataLink.setText(FeedbackMessages.FeedbackDialog_link_text);
 
-    if (OpenFeedbackDialogAction.SCREEN_CAPTURE_ENABLED) {
-      sendScreenshotButton = new Button(logOptinComposite, SWT.CHECK);
-      sendScreenshotButton.setText(FeedbackMessages.FeedbackDialog_send_screenshot_optin_Text);
+    sendScreenshotButton = new Button(logOptinComposite, SWT.CHECK);
+    sendScreenshotButton.setText(FeedbackMessages.FeedbackDialog_send_screenshot_optin_Text);
 
-      previewScreenshotLink = new Link(logOptinComposite, SWT.NONE);
-      GridData gd_2 = new GridData(SWT.RIGHT, SWT.CENTER, true, false, 1, 1);
-      gd_2.verticalIndent = 2;
-      previewScreenshotLink.setLayoutData(gd_2);
-      previewScreenshotLink.setText(FeedbackMessages.FeedbackDialog_link_screenshot_text);
-    }
+    previewScreenshotLink = new Link(logOptinComposite, SWT.NONE);
+    GridData gd_2 = new GridData(SWT.RIGHT, SWT.CENTER, true, false, 1, 1);
+    gd_2.verticalIndent = 2;
+    previewScreenshotLink.setLayoutData(gd_2);
+    previewScreenshotLink.setText(FeedbackMessages.FeedbackDialog_link_screenshot_text);
 
     //spacer
     new Label(composite, SWT.NONE);
@@ -326,34 +324,32 @@ public class FeedbackDialog extends Dialog implements IRunnableContext, DisposeL
         updateEnablement();
       }
     });
-    if (OpenFeedbackDialogAction.SCREEN_CAPTURE_ENABLED) {
-      previewScreenshotLink.addSelectionListener(new SelectionAdapter() {
-        @Override
-        public void widgetSelected(SelectionEvent e) {
-          if (screenshot == null) {
-            MessageDialog.openError(
-                getParentShell(),
-                FeedbackMessages.FeedbackDialog_error_opening_screenshot_label,
-                FeedbackMessages.FeedbackDialog_error_opening_screenshot_detail);
-          }
-          try {
-            ScreenshotViewer screenshotViewer = new ScreenshotViewer(getShell(), screenshot);
-            screenshotViewer.open();
-          } catch (Throwable t) {
-            MessageDialog.openError(
-                getParentShell(),
-                FeedbackMessages.FeedbackDialog_error_opening_screenshot_label,
-                FeedbackMessages.FeedbackDialog_error_opening_screenshot_detail);
-          }
+    previewScreenshotLink.addSelectionListener(new SelectionAdapter() {
+      @Override
+      public void widgetSelected(SelectionEvent e) {
+        if (screenshot == null) {
+          MessageDialog.openError(
+              getParentShell(),
+              FeedbackMessages.FeedbackDialog_error_opening_screenshot_label,
+              FeedbackMessages.FeedbackDialog_error_opening_screenshot_detail);
         }
-      });
-      sendScreenshotButton.addSelectionListener(new SelectionAdapter() {
-        @Override
-        public void widgetSelected(SelectionEvent e) {
-          updateEnablement();
+        try {
+          ScreenshotViewer screenshotViewer = new ScreenshotViewer(getShell(), screenshot);
+          screenshotViewer.open();
+        } catch (Throwable t) {
+          MessageDialog.openError(
+              getParentShell(),
+              FeedbackMessages.FeedbackDialog_error_opening_screenshot_label,
+              FeedbackMessages.FeedbackDialog_error_opening_screenshot_detail);
         }
-      });
-    }
+      }
+    });
+    sendScreenshotButton.addSelectionListener(new SelectionAdapter() {
+      @Override
+      public void widgetSelected(SelectionEvent e) {
+        updateEnablement();
+      }
+    });
   }
 
   private void restoreSettings() {

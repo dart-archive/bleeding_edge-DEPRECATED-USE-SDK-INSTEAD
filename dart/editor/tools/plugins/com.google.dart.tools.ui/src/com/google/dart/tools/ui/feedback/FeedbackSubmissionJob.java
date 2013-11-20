@@ -153,10 +153,8 @@ public class FeedbackSubmissionJob extends InstrumentedJob {
   private void submitFeedback(URL serverURL, IProgressMonitor monitor,
       UIInstrumentationBuilder instrumentation) throws IOException {
     submitFeedback_text(serverURL, monitor, instrumentation);
-    if (OpenFeedbackDialogAction.SCREEN_CAPTURE_ENABLED) {
-      if (writer.sendScreenshotData()) {
-        submitFeedback_png(serverURL, monitor);
-      }
+    if (writer.sendScreenshotData()) {
+      submitFeedback_png(serverURL, monitor);
     }
   }
 
