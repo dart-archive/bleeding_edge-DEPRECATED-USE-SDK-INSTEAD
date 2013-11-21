@@ -11,15 +11,76 @@ import java.util.regex.PatternSyntaxException;
  */
 public class SearchUtils {
 
+  private static class CamelCaseBuilder extends RegExpBulder {
+
+    private boolean wordPrev = false;
+
+    @Override
+    public String asRegExp(char ch) {
+      String regExp = super.asRegExp(ch);
+      if (regExp != null) {
+        wordPrev = false;
+      } else {
+        boolean word = isWord(ch);
+        if (word && wordPrev) {
+          regExp = CAMEL_CASE_SKIP + ch;
+        }
+        wordPrev = word;
+      }
+      return regExp;
+    }
+
+    private boolean isWord(char ch) {
+      return ch == '_' || Character.isLetterOrDigit(ch);
+    }
+
+  }
+
+  private static class RegExpBulder {
+
+    public String asRegExp(char ch) {
+      switch (ch) {
+      // the backslash
+        case '\\':
+          return "\\\\"; //$NON-NLS-1$
+          // characters that need to be escaped in the regex.
+        case '(':
+        case ')':
+        case '{':
+        case '}':
+        case '.':
+        case '[':
+        case ']':
+        case '$':
+        case '^':
+        case '+':
+        case '|':
+        case '?':
+        case '*':
+          StringBuffer buffer = new StringBuffer();
+          buffer.append('\\');
+          buffer.append(ch);
+          return buffer.toString();
+        default:
+          return null;
+      }
+    }
+
+  }
+
+  private static final String CAMEL_CASE_SKIP = "\\w*";
+
   public static Pattern createPattern(String pattern, boolean caseSensitive, boolean regExSearch,
       boolean wordPrefix, boolean camelCase) {
-    if (pattern == null || pattern.length() == 0)
+    if (pattern == null || pattern.length() == 0) {
       return null;
+    }
 
     int patternFlags = 0;
 
-    if (!caseSensitive)
+    if (!caseSensitive) {
       patternFlags |= Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE;
+    }
 
     if (regExSearch) {
       patternFlags |= Pattern.MULTILINE;
@@ -33,6 +94,40 @@ public class SearchUtils {
     }
 
     return Pattern.compile(pattern, patternFlags);
+  }
+
+  /**
+   * Converts a non-regex string to a pattern that can be used with the regex search engine.
+   * 
+   * @param string the non-regex pattern
+   * @return the string converted to a regex pattern
+   */
+  private static String asRegPattern(String string, RegExpBulder builder) {
+    StringBuffer out = new StringBuffer(string.length());
+    boolean quoting = false;
+
+    for (int i = 0, length = string.length(); i < length; i++) {
+      char ch = string.charAt(i);
+      String re = builder.asRegExp(ch);
+      if (re != null) {
+        if (quoting) {
+          out.append("\\E"); //$NON-NLS-1$
+          quoting = false;
+        }
+        out.append(re);
+        continue;
+      }
+      if (!quoting) {
+        out.append("\\Q"); //$NON-NLS-1$
+        quoting = true;
+      }
+      out.append(ch);
+    }
+    if (quoting) {
+      out.append("\\E"); //$NON-NLS-1$
+    }
+
+    return out.toString();
   }
 
   /**
@@ -54,34 +149,39 @@ public class SearchUtils {
       switch (ch) {
         case '[':
           buf.append(ch);
-          if (!inQuote)
+          if (!inQuote) {
             inCharGroup++;
+          }
           break;
 
         case ']':
           buf.append(ch);
-          if (!inQuote)
+          if (!inQuote) {
             inCharGroup--;
+          }
           break;
 
         case '{':
           buf.append(ch);
-          if (!inQuote && inCharGroup == 0)
+          if (!inQuote && inCharGroup == 0) {
             inBraces++;
+          }
           break;
 
         case '}':
           buf.append(ch);
-          if (!inQuote && inCharGroup == 0)
+          if (!inQuote && inCharGroup == 0) {
             inBraces--;
+          }
           break;
 
         case '\\':
           if (i + 1 < length) {
             char ch1 = findString.charAt(i + 1);
             if (inQuote) {
-              if (ch1 == 'E')
+              if (ch1 == 'E') {
                 inQuote = false;
+              }
               buf.append(ch).append(ch1);
               i++;
 
@@ -112,76 +212,5 @@ public class SearchUtils {
     }
     return buf.toString();
   }
-
-  /**
-   * Converts a non-regex string to a pattern that can be used with the regex search engine.
-   * 
-   * @param string the non-regex pattern
-   * @return the string converted to a regex pattern
-   */
-  private static String asRegPattern(String string, RegExpBulder builder) {
-    StringBuffer out = new StringBuffer(string.length());
-    boolean quoting = false;
-
-    for (int i = 0, length = string.length(); i < length; i++) {
-      char ch = string.charAt(i);
-      String re = builder.asRegExp(ch);
-      if (re != null) {
-        if (quoting) {
-          out.append("\\E"); //$NON-NLS-1$
-          quoting = false;
-        }
-        out.append(re); 
-        continue;
-      }
-      if (!quoting) {
-        out.append("\\Q"); //$NON-NLS-1$
-        quoting = true;
-      }
-      out.append(ch);
-    }
-    if (quoting)
-      out.append("\\E"); //$NON-NLS-1$
-
-    return out.toString();
-  }
-
-  private static class RegExpBulder {
-
-    public String asRegExp(char ch) {
-      if (ch == '\\') {
-        return "\\\\";
-      }
-      return null;
-    }
-
-  }
-
-  private static class CamelCaseBuilder extends RegExpBulder {
-
-    @Override
-    public String asRegExp(char ch) {
-      String regExp = super.asRegExp(ch);
-      if (regExp != null) {
-        wordPrev = false;
-      } else {
-        boolean word = isWord(ch);
-        if (word && wordPrev) {
-          regExp = CAMEL_CASE_SKIP + ch;
-        }
-        wordPrev = word;
-      }
-      return regExp;
-    }
-
-    private boolean isWord(char ch) {
-      return ch == '_' || Character.isLetterOrDigit(ch);
-    }
-
-    private boolean wordPrev = false;
-
-  }
-
-  private static final String CAMEL_CASE_SKIP = "\\w*";
 
 }
