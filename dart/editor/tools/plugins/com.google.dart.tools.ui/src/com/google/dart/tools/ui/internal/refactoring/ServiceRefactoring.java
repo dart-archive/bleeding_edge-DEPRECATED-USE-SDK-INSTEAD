@@ -64,6 +64,7 @@ public class ServiceRefactoring extends org.eclipse.ltk.core.refactoring.Refacto
       RefactoringStatus status = refactoring.checkFinalConditions(spm);
       return toLTK(status);
     } catch (Throwable e) {
+      DartCore.logError("Exception in ServiceRefactoring.checkFinalConditions", e);
       return toLTK(e);
     }
   }
@@ -78,6 +79,7 @@ public class ServiceRefactoring extends org.eclipse.ltk.core.refactoring.Refacto
       checkUnsafeSources(ltkStatus);
       return ltkStatus;
     } catch (Throwable e) {
+      DartCore.logError("Exception in ServiceRefactoring.checkInitialConditions", e);
       return toLTK(e);
     }
   }
@@ -91,6 +93,7 @@ public class ServiceRefactoring extends org.eclipse.ltk.core.refactoring.Refacto
       change = removeChangesForUnsafeSources(change);
       return toLTK(change);
     } catch (Throwable e) {
+      DartCore.logError("Exception in ServiceRefactoring.createChange", e);
       throw createCoreException(e);
     }
   }
