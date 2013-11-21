@@ -50,13 +50,10 @@ deps.update({
   "src/dart/tests/co19/src": ((Var("googlecode_url") % "co19") +
       "/trunk/co19/tests/co19/src" + Var("co19_rev")),
 
-  "src/dart/runtime/bin/vmservice/client/bootstrap_css":
-    "/third_party/bootstrap_css" + Var("bootstrap_css_rev"),
-
   "src/dart/runtime/bin/vmservice/client/web/bootstrap_css":
     "/third_party/bootstrap_css" + Var("bootstrap_css_rev"),
 
-  "src/dart/runtime/bin/vmservice/client/out/web/bootstrap_css":
+  "src/dart/runtime/bin/vmservice/client/deployed/web/bootstrap_css":
     "/third_party/bootstrap_css" + Var("bootstrap_css_rev"),
 })
 
