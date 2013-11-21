@@ -332,6 +332,11 @@ public class ServerDebugStackFrame extends ServerDebugElement implements IStackF
     getThread().terminate();
   }
 
+  @Override
+  public String toString() {
+    return getShortName();
+  }
+
   protected void addException(VmValue exception) {
     isExceptionStackFrame = true;
 
