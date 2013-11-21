@@ -1094,8 +1094,8 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       int newLength) {
     synchronized (cacheLock) {
       String originalContents = sourceFactory.setContents(source, contents);
-      if (originalContents == null) {
-        if (contents != null) {
+      if (contents != null) {
+        if (!contents.equals(originalContents)) {
           incrementalAnalysisCache = IncrementalAnalysisCache.update(
               incrementalAnalysisCache,
               source,
@@ -1107,19 +1107,9 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
               getReadableSourceEntry(source));
           sourceChanged(source);
         }
-      } else if (!originalContents.equals(contents)) {
-        incrementalAnalysisCache = IncrementalAnalysisCache.update(
-            incrementalAnalysisCache,
-            source,
-            originalContents,
-            contents,
-            offset,
-            oldLength,
-            newLength,
-            getReadableSourceEntry(source));
-        sourceChanged(source);
-      } else if (contents == null) {
+      } else if (originalContents != null) {
         incrementalAnalysisCache = IncrementalAnalysisCache.clear(incrementalAnalysisCache, source);
+        sourceChanged(source);
       }
     }
   }
@@ -1128,14 +1118,17 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   public void setContents(Source source, String contents) {
     synchronized (cacheLock) {
       String originalContents = sourceFactory.setContents(source, contents);
-      if (originalContents == null) {
-        if (contents != null) {
+      if (contents != null) {
+        if (!contents.equals(originalContents)) {
+          incrementalAnalysisCache = IncrementalAnalysisCache.clear(
+              incrementalAnalysisCache,
+              source);
           sourceChanged(source);
         }
-      } else if (!originalContents.equals(contents)) {
+      } else if (originalContents != null) {
+        incrementalAnalysisCache = IncrementalAnalysisCache.clear(incrementalAnalysisCache, source);
         sourceChanged(source);
       }
-      incrementalAnalysisCache = IncrementalAnalysisCache.clear(incrementalAnalysisCache, source);
     }
   }
 

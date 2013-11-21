@@ -875,16 +875,40 @@ public class AnalysisContextImplTest extends EngineTestCase {
     Source partSource = addSource("/part.dart", createSource(//
         "part of lib;",
         "int b = a;"));
-    context.computeLibraryElement(librarySource);
+    LibraryElement element = context.computeLibraryElement(librarySource);
+    CompilationUnit unit = context.getResolvedCompilationUnit(librarySource, element);
+    assertNotNull(unit);
 
     int offset = oldCode.indexOf("int a") + 4;
     String newCode = createSource(//
         "library lib;",
         "part 'part.dart';",
         "int ya = 0;");
+    assertNull(getIncrementalAnalysisCache(context));
     context.setChangedContents(librarySource, newCode, offset, 0, 1);
-    assertNull(context.getResolvedCompilationUnit(partSource, librarySource));
     assertEquals(newCode, sourceFactory.getContentCache().getContents(librarySource));
+    IncrementalAnalysisCache incrementalCache = getIncrementalAnalysisCache(context);
+    assertEquals(librarySource, incrementalCache.getLibrarySource());
+    assertSame(unit, incrementalCache.getResolvedUnit());
+    assertNull(context.getResolvedCompilationUnit(partSource, librarySource));
+    assertEquals(newCode, incrementalCache.getNewContents());
+  }
+
+  public void test_setChangedContents_notResolved() throws Exception {
+    context = AnalysisContextFactory.contextWithCore();
+    sourceFactory = context.getSourceFactory();
+    String oldCode = createSource(//
+        "library lib;",
+        "int a = 0;");
+    Source librarySource = addSource("/lib.dart", oldCode);
+
+    int offset = oldCode.indexOf("int a") + 4;
+    String newCode = createSource(//
+        "library lib;",
+        "int ya = 0;");
+    context.setChangedContents(librarySource, newCode, offset, 0, 1);
+    assertEquals(newCode, sourceFactory.getContentCache().getContents(librarySource));
+    assertNull(getIncrementalAnalysisCache(context));
   }
 
   public void test_setContents_libraryWithPart() throws Exception {
@@ -899,11 +923,49 @@ public class AnalysisContextImplTest extends EngineTestCase {
         "int b = a;"));
     context.computeLibraryElement(librarySource);
 
+    IncrementalAnalysisCache incrementalCache = new IncrementalAnalysisCache(
+        librarySource,
+        librarySource,
+        null,
+        null,
+        null,
+        0,
+        0,
+        0);
+    setIncrementalAnalysisCache(context, incrementalCache);
+    assertSame(incrementalCache, getIncrementalAnalysisCache(context));
+
     context.setContents(librarySource, createSource(//
         "library lib;",
         "part 'part.dart';",
         "int aa = 0;"));
     assertNull(context.getResolvedCompilationUnit(partSource, librarySource));
+    assertNull(getIncrementalAnalysisCache(context));
+  }
+
+  public void test_setContents_null() throws Exception {
+    context = AnalysisContextFactory.contextWithCore();
+    sourceFactory = context.getSourceFactory();
+    Source librarySource = addSource("/lib.dart", createSource(//
+        "library lib;",
+        "int a = 0;"));
+    context.computeLibraryElement(librarySource);
+
+    IncrementalAnalysisCache incrementalCache = new IncrementalAnalysisCache(
+        librarySource,
+        librarySource,
+        null,
+        null,
+        null,
+        0,
+        0,
+        0);
+    setIncrementalAnalysisCache(context, incrementalCache);
+    assertSame(incrementalCache, getIncrementalAnalysisCache(context));
+
+    context.setContents(librarySource, null);
+    assertNull(context.getResolvedCompilationUnit(librarySource, librarySource));
+    assertNull(getIncrementalAnalysisCache(context));
   }
 
   public void test_setSourceFactory() {
@@ -994,9 +1056,23 @@ public class AnalysisContextImplTest extends EngineTestCase {
     return null;
   }
 
+  private IncrementalAnalysisCache getIncrementalAnalysisCache(AnalysisContextImpl context2)
+      throws Exception {
+    Field field = AnalysisContextImpl.class.getDeclaredField("incrementalAnalysisCache");
+    field.setAccessible(true);
+    return (IncrementalAnalysisCache) field.get(context2);
+  }
+
   private Source[] getPriorityOrder(AnalysisContextImpl context2) throws Exception {
     Field field = AnalysisContextImpl.class.getDeclaredField("priorityOrder");
     field.setAccessible(true);
     return (Source[]) field.get(context2);
+  }
+
+  private void setIncrementalAnalysisCache(AnalysisContextImpl context2,
+      IncrementalAnalysisCache incrementalCache) throws Exception {
+    Field field = AnalysisContextImpl.class.getDeclaredField("incrementalAnalysisCache");
+    field.setAccessible(true);
+    field.set(context2, incrementalCache);
   }
 }

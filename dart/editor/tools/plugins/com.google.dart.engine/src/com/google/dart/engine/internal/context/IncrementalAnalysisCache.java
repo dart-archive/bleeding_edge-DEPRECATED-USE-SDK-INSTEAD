@@ -72,7 +72,7 @@ public class IncrementalAnalysisCache {
    * 
    * @param cache the prior cache or {@code null} if none
    * @param source the source being updated (not {@code null})
-   * @param oldContents the original source contents prior to this update (not {@code null})
+   * @param oldContents the original source contents prior to this update (may be {@code null})
    * @param newContents the new contents after this incremental change (not {@code null})
    * @param offset the offset at which the change occurred
    * @param oldLength the length of the text being replaced
@@ -167,7 +167,7 @@ public class IncrementalAnalysisCache {
   private int oldLength;
   private int newLength;
 
-  private IncrementalAnalysisCache(Source librarySource, Source source,
+  public IncrementalAnalysisCache(Source librarySource, Source source,
       CompilationUnit resolvedUnit, String oldContents, String newContents, int offset,
       int oldLength, int newLength) {
     this.librarySource = librarySource;
