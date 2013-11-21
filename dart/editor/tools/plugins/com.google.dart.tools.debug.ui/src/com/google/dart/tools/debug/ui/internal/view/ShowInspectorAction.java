@@ -16,15 +16,23 @@ package com.google.dart.tools.debug.ui.internal.view;
 
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 import com.google.dart.tools.debug.ui.internal.DartUtil;
+import com.google.dart.tools.debug.ui.internal.objectinspector.ObjectInspectorView;
 
+import org.eclipse.debug.core.DebugException;
+import org.eclipse.debug.core.model.IValue;
+import org.eclipse.debug.core.model.IVariable;
+import org.eclipse.debug.internal.ui.views.variables.details.IDetailPaneContainer;
 import org.eclipse.jface.action.Action;
+import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 
 /**
  * An action to show the object inspector view.
  */
+@SuppressWarnings("restriction")
 public class ShowInspectorAction extends Action {
+  private IDetailPaneContainer selectionProvider;
 
   public ShowInspectorAction() {
     super("Show Object Inspector", DartDebugUIPlugin.getImageDescriptor("obj16/value_show.gif"));
@@ -33,6 +41,25 @@ public class ShowInspectorAction extends Action {
   @Override
   public synchronized void run() {
     try {
+      IStructuredSelection sel = selectionProvider.getCurrentSelection();
+
+      if (sel != null && !sel.isEmpty()) {
+        Object obj = sel.getFirstElement();
+
+        if (obj instanceof IVariable) {
+          try {
+            obj = ((IVariable) obj).getValue();
+          } catch (DebugException e) {
+
+          }
+        }
+
+        if (obj instanceof IValue) {
+          ObjectInspectorView.inspect((IValue) obj);
+          return;
+        }
+      }
+
       PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().showView(
           "com.google.dart.tools.debug.objectInspectorView");
     } catch (PartInitException e) {
@@ -40,4 +67,7 @@ public class ShowInspectorAction extends Action {
     }
   }
 
+  public void setSelectionProvider(IDetailPaneContainer selectionProvider) {
+    this.selectionProvider = selectionProvider;
+  }
 }

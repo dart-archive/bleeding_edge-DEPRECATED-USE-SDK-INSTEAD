@@ -121,6 +121,7 @@ public class DebuggerView extends LaunchView implements ILaunchesListener {
     }
 
     variablesView.becomesVisible();
+    showInspectorAction.setSelectionProvider(variablesView);
 
     restoreSashWeights(getMemento());
     updateSashOrientation(sashForm);
