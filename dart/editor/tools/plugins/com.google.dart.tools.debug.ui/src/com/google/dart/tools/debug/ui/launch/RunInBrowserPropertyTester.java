@@ -79,12 +79,15 @@ public class RunInBrowserPropertyTester extends PropertyTester {
     ProjectManager manager = DartCore.getProjectManager();
     PubFolder pubFolder = manager.getPubFolder(file);
     try {
-      List<Object> transformers = pubFolder.getPubspec().getTransformers();
-      for (Object transform : transformers) {
-        if (transform instanceof Map && ((Map) transform).containsKey("polymer")) {
-          IContainer parent = file.getParent();
-          if (parent.getName().equals("web") && DartCore.isApplicationDirectory(parent.getParent())) {
-            return true;
+      if (pubFolder != null && pubFolder.getPubspec() != null) {
+        List<Object> transformers = pubFolder.getPubspec().getTransformers();
+        for (Object transform : transformers) {
+          if (transform instanceof Map && ((Map) transform).containsKey("polymer")) {
+            IContainer parent = file.getParent();
+            if (parent.getName().equals("web")
+                && DartCore.isApplicationDirectory(parent.getParent())) {
+              return true;
+            }
           }
         }
       }
