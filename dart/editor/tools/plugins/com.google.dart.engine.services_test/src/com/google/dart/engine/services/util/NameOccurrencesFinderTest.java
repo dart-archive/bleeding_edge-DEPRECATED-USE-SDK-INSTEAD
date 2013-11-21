@@ -14,6 +14,7 @@
 package com.google.dart.engine.services.util;
 
 import com.google.common.base.Joiner;
+import com.google.dart.engine.ast.ASTFactory;
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.SimpleIdentifier;
@@ -25,12 +26,42 @@ import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.resolver.ResolverTestCase;
 import com.google.dart.engine.source.Source;
 
+import static org.fest.assertions.Assertions.assertThat;
+
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
 public class NameOccurrencesFinderTest extends ResolverTestCase {
+  public void test_fieldFormal_asMember() throws Exception {
+    test(//
+        compose(//
+            "class A<T> {",
+            "  T !1element;//",
+            "  A({this.element});",
+            "}",
+            "main() {",
+            "  new A<int>(!2element: 0);",
+            "}"),
+        "1+element;//",
+        "1+element}",
+        "1+element: 0",
+        "2+element;//",
+        "2+element}",
+        "2+element: 0");
+  }
+
+  public void test_findIn_nullElement() throws Exception {
+    SimpleIdentifier ident = ASTFactory.identifier("test");
+    Collection<ASTNode> matches = NameOccurrencesFinder.findIn(ident, null);
+    assertThat(matches).isEmpty();
+  }
+
+  public void test_findIn_nullIdentifier() throws Exception {
+    Collection<ASTNode> matches = NameOccurrencesFinder.findIn(null, null);
+    assertThat(matches).isEmpty();
+  }
 
   public void test1() throws Exception {
     test(

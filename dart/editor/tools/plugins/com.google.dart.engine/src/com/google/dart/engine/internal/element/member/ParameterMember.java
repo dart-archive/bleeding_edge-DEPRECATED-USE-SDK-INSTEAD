@@ -49,7 +49,8 @@ public class ParameterMember extends VariableMember implements ParameterElement 
     }
     // Check if parameter type depends on defining type type arguments.
     // It is possible that we did not resolve field formal parameter yet, so skip this check for it.
-    if (!(baseParameter instanceof FieldFormalParameterElement)) {
+    boolean isFieldFormal = baseParameter instanceof FieldFormalParameterElement;
+    if (!isFieldFormal) {
       Type baseType = baseParameter.getType();
       Type[] argumentTypes = definingType.getTypeArguments();
       Type[] parameterTypes = TypeParameterTypeImpl.getTypes(definingType.getTypeParameters());
@@ -60,6 +61,11 @@ public class ParameterMember extends VariableMember implements ParameterElement 
     }
     // TODO(brianwilkerson) Consider caching the substituted type in the instance. It would use more
     // memory but speed up some operations. We need to see how often the type is being re-computed.
+    if (isFieldFormal) {
+      return new FieldFormalParameterMember(
+          (FieldFormalParameterElement) baseParameter,
+          definingType);
+    }
     return new ParameterMember(baseParameter, definingType);
   }
 

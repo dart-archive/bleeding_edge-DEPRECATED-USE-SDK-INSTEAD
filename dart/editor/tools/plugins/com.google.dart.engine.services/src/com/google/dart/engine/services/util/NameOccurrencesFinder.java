@@ -62,11 +62,6 @@ public class NameOccurrencesFinder extends RecursiveASTVisitor<Void> {
         }
         break;
       case FIELD:
-        if (source instanceof Member) {
-          Member member = (Member) source;
-          this.target4 = member.getBaseElement();
-        }
-        // fall thru
       case TOP_LEVEL_VARIABLE:
         PropertyInducingElement propertyElem = (PropertyInducingElement) source;
         this.target2 = propertyElem.getGetter();
