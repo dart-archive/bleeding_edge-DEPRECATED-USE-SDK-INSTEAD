@@ -17,7 +17,7 @@ vars.update({
   "dartium_webkit_revision": "1613",
   "bootstrap_css_rev" : "@28387",
 
-  "co19_rev": "@651",
+  "co19_rev": "@667",
 })
 
 def massage_deps(deps):
