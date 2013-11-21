@@ -16,6 +16,9 @@ package com.google.dart.engine.internal.type;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.type.Type;
 
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * The abstract class {@code TypeImpl} implements the behavior common to objects representing the
  * declared type of elements in the element model.
@@ -23,6 +26,44 @@ import com.google.dart.engine.type.Type;
  * @coverage dart.engine.type
  */
 public abstract class TypeImpl implements Type {
+  public class TypePair {
+
+    private Type firstType;
+
+    private Type secondType;
+
+    TypePair(Type firstType, Type secondType) {
+      this.firstType = firstType;
+      this.secondType = secondType;
+    }
+
+    @Override
+    public boolean equals(Object object) {
+      if (object instanceof TypePair) {
+        TypePair typePair = (TypePair) object;
+        return firstType.equals(typePair.firstType) && secondType != null
+            && secondType.equals(typePair.secondType);
+      }
+      return false;
+    }
+
+    // TODO(jwren) Revisit the hashCode distribution.
+    // TODO(jwren) For equals() & hashCode() could we use the implementations in ObjectUtilities or
+    // Guava's Objects class?
+    @Override
+    public int hashCode() {
+      int firstHashCode = 0;
+      if (firstType != null) {
+        firstHashCode = firstType.getElement() == null ? 0 : firstType.getElement().hashCode();
+      }
+      int secondHashCode = 0;
+      if (secondType != null) {
+        secondHashCode = secondType.getElement() == null ? 0 : secondType.getElement().hashCode();
+      }
+      return firstHashCode + secondHashCode;
+    }
+  }
+
   /**
    * Return an array containing the results of using the given argument types and parameter types to
    * perform a substitution on all of the given types.
@@ -93,7 +134,12 @@ public abstract class TypeImpl implements Type {
 
   @Override
   public boolean isAssignableTo(Type type) {
-    return this.isSubtypeOf(type) || type.isSubtypeOf(this);
+    return isAssignableTo(type, new HashSet<TypePair>());
+  }
+
+  @Override
+  public boolean isAssignableTo(Type type, Set<TypePair> visitedTypePairs) {
+    return this.isSubtypeOf(type, visitedTypePairs) || type.isSubtypeOf(this, visitedTypePairs);
   }
 
   @Override
@@ -113,16 +159,42 @@ public abstract class TypeImpl implements Type {
 
   @Override
   public final boolean isMoreSpecificThan(Type type) {
-    return isMoreSpecificThan(type, false);
+    return isMoreSpecificThan(type, false, new HashSet<TypePair>());
   }
 
-  public boolean isMoreSpecificThan(Type type, boolean withDynamic) {
-    return false;
+  @Override
+  public final boolean isMoreSpecificThan(Type type, boolean withDynamic,
+      Set<TypePair> visitedTypePairs) {
+    // If the visitedTypePairs already has the pair (this, type), return false
+    TypePair typePair = new TypePair(this, type);
+    if (!visitedTypePairs.add(typePair)) {
+      return false;
+    }
+    boolean result = internalIsMoreSpecificThan(type, withDynamic, visitedTypePairs);
+    visitedTypePairs.remove(typePair);
+    return result;
   }
 
   @Override
   public boolean isObject() {
     return false;
+  }
+
+  @Override
+  public final boolean isSubtypeOf(Type type) {
+    return isSubtypeOf(type, new HashSet<TypePair>());
+  }
+
+  @Override
+  public final boolean isSubtypeOf(Type type, Set<TypePair> visitedTypePairs) {
+    // If the visitedTypePairs already has the pair (this, type), return false
+    TypePair typePair = new TypePair(this, type);
+    if (!visitedTypePairs.add(typePair)) {
+      return false;
+    }
+    boolean result = internalIsSubtypeOf(type, visitedTypePairs);
+    visitedTypePairs.remove(typePair);
+    return result;
   }
 
   @Override
@@ -154,4 +226,9 @@ public abstract class TypeImpl implements Type {
       builder.append(name);
     }
   }
+
+  protected abstract boolean internalIsMoreSpecificThan(Type type, boolean withDynamic,
+      Set<TypePair> visitedTypePairs);
+
+  protected abstract boolean internalIsSubtypeOf(Type type, Set<TypePair> visitedTypePairs);
 }

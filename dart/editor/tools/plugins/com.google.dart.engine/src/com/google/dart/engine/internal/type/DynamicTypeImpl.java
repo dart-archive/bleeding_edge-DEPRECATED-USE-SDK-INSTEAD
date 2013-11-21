@@ -17,6 +17,8 @@ import com.google.dart.engine.internal.element.DynamicElementImpl;
 import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.type.Type;
 
+import java.util.Set;
+
 /**
  * The unique instance of the class {@code DynamicTypeImpl} implements the type {@code dynamic}.
  * 
@@ -56,22 +58,6 @@ public class DynamicTypeImpl extends TypeImpl {
   }
 
   @Override
-  public boolean isMoreSpecificThan(Type type, boolean withDynamic) {
-    // T is S
-    if (this == type) {
-      return true;
-    }
-    // else
-    return withDynamic;
-  }
-
-  @Override
-  public boolean isSubtypeOf(Type type) {
-    // dynamic is a subtype of all types
-    return true;
-  }
-
-  @Override
   public boolean isSupertypeOf(Type type) {
     // dynamic is a supertype of all types
     return true;
@@ -86,5 +72,22 @@ public class DynamicTypeImpl extends TypeImpl {
       }
     }
     return this;
+  }
+
+  @Override
+  protected boolean internalIsMoreSpecificThan(Type type, boolean withDynamic,
+      Set<TypePair> visitedTypePairs) {
+    // T is S
+    if (this == type) {
+      return true;
+    }
+    // else
+    return withDynamic;
+  }
+
+  @Override
+  protected boolean internalIsSubtypeOf(Type type, Set<TypePair> visitedTypePairs) {
+    //dynamic is a subtype of all types
+    return true;
   }
 }

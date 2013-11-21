@@ -509,47 +509,8 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @Override
-  public boolean isMoreSpecificThan(Type type, boolean withDynamic) {
-    //
-    // S is dynamic.
-    // The test to determine whether S is dynamic is done here because dynamic is not an instance of
-    // InterfaceType.
-    //
-    if (type == DynamicTypeImpl.getInstance()) {
-      return true;
-    } else if (!(type instanceof InterfaceType)) {
-      return false;
-    }
-    return isMoreSpecificThan((InterfaceType) type, new HashSet<ClassElement>(), withDynamic);
-  }
-
-  @Override
   public boolean isObject() {
     return getElement().getSupertype() == null;
-  }
-
-  @Override
-  public boolean isSubtypeOf(Type type) {
-    //
-    // T is a subtype of S, written T <: S, iff [bottom/dynamic]T << S
-    //
-    if (type == DynamicTypeImpl.getInstance()) {
-      return true;
-    } else if (type instanceof TypeParameterType) {
-      return true;
-    } else if (type instanceof FunctionType) {
-      ClassElement element = getElement();
-      MethodElement callMethod = element.lookUpMethod("call", element.getLibrary());
-      if (callMethod != null) {
-        return callMethod.getType().isSubtypeOf(type);
-      }
-      return false;
-    } else if (!(type instanceof InterfaceType)) {
-      return false;
-    } else if (this.equals(type)) {
-      return true;
-    }
-    return isSubtypeOf((InterfaceType) type, new HashSet<ClassElement>());
   }
 
   @Override
@@ -731,8 +692,54 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }
   }
 
+  @Override
+  protected boolean internalIsMoreSpecificThan(Type type, boolean withDynamic,
+      Set<TypePair> visitedTypePairs) {
+    //
+    // S is dynamic.
+    // The test to determine whether S is dynamic is done here because dynamic is not an instance of
+    // InterfaceType.
+    //
+    if (type == DynamicTypeImpl.getInstance()) {
+      return true;
+    } else if (!(type instanceof InterfaceType)) {
+      return false;
+    }
+    return isMoreSpecificThan(
+        (InterfaceType) type,
+        new HashSet<ClassElement>(),
+        withDynamic,
+        visitedTypePairs);
+  }
+
+  @Override
+  protected boolean internalIsSubtypeOf(Type type, Set<TypePair> visitedTypePairs) {
+    //
+    // T is a subtype of S, written T <: S, iff [bottom/dynamic]T << S
+    //
+    if (type == DynamicTypeImpl.getInstance()) {
+      return true;
+    } else if (type instanceof TypeParameterType) {
+      return true;
+    } else if (type instanceof FunctionType) {
+      ClassElement element = getElement();
+      MethodElement callMethod = element.lookUpMethod("call", element.getLibrary());
+      if (callMethod != null) {
+        return callMethod.getType().isSubtypeOf(type);
+      }
+      return false;
+    } else if (!(type instanceof InterfaceType)) {
+      return false;
+    } else if (this.equals(type)) {
+      return true;
+    }
+    return isSubtypeOf((InterfaceType) type, new HashSet<ClassElement>(), visitedTypePairs);
+  }
+
+  // TODO(jwren) Remove "visitedClasses" parameter, as the logic for "visitedTypePairs" should
+  // prevent a larger set of infinite loops
   private boolean isMoreSpecificThan(InterfaceType s, HashSet<ClassElement> visitedClasses,
-      boolean withDynamic) {
+      boolean withDynamic, Set<TypePair> visitedTypePairs) {
     //
     // A type T is more specific than a type S, written T << S,  if one of the following conditions
     // is met:
@@ -764,7 +771,7 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
         return false;
       }
       for (int i = 0; i < tArguments.length; i++) {
-        if (!tArguments[i].isMoreSpecificThan(sArguments[i], withDynamic)) {
+        if (!tArguments[i].isMoreSpecificThan(sArguments[i], withDynamic, visitedTypePairs)) {
           return false;
         }
       }
@@ -784,23 +791,36 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     // supertypes of T and return true if any of them are more specific than S.
     InterfaceType supertype = getSuperclass();
     if (supertype != null
-        && ((InterfaceTypeImpl) supertype).isMoreSpecificThan(s, visitedClasses, withDynamic)) {
+        && ((InterfaceTypeImpl) supertype).isMoreSpecificThan(
+            s,
+            visitedClasses,
+            withDynamic,
+            visitedTypePairs)) {
       return true;
     }
     for (InterfaceType interfaceType : getInterfaces()) {
-      if (((InterfaceTypeImpl) interfaceType).isMoreSpecificThan(s, visitedClasses, withDynamic)) {
+      if (((InterfaceTypeImpl) interfaceType).isMoreSpecificThan(
+          s,
+          visitedClasses,
+          withDynamic,
+          visitedTypePairs)) {
         return true;
       }
     }
     for (InterfaceType mixinType : getMixins()) {
-      if (((InterfaceTypeImpl) mixinType).isMoreSpecificThan(s, visitedClasses, withDynamic)) {
+      if (((InterfaceTypeImpl) mixinType).isMoreSpecificThan(
+          s,
+          visitedClasses,
+          withDynamic,
+          visitedTypePairs)) {
         return true;
       }
     }
     return false;
   }
 
-  private boolean isSubtypeOf(InterfaceType type, HashSet<ClassElement> visitedClasses) {
+  private boolean isSubtypeOf(InterfaceType type, HashSet<ClassElement> visitedClasses,
+      Set<TypePair> visitedTypePairs) {
     InterfaceType typeT = this;
     InterfaceType typeS = type;
     ClassElement elementT = getElement();
@@ -824,7 +844,7 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       for (int i = 0; i < typeTArgs.length; i++) {
         // Recursively call isSubtypeOf the type arguments and return false if the T argument is not
         // a subtype of the S argument.
-        if (!typeTArgs[i].isSubtypeOf(typeSArgs[i])) {
+        if (!typeTArgs[i].isSubtypeOf(typeSArgs[i], visitedTypePairs)) {
           return false;
         }
       }
@@ -835,18 +855,19 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
     InterfaceType supertype = getSuperclass();
     // The type is Object, return false.
-    if (supertype != null && ((InterfaceTypeImpl) supertype).isSubtypeOf(typeS, visitedClasses)) {
+    if (supertype != null
+        && ((InterfaceTypeImpl) supertype).isSubtypeOf(typeS, visitedClasses, visitedTypePairs)) {
       return true;
     }
     InterfaceType[] interfaceTypes = getInterfaces();
     for (InterfaceType interfaceType : interfaceTypes) {
-      if (((InterfaceTypeImpl) interfaceType).isSubtypeOf(typeS, visitedClasses)) {
+      if (((InterfaceTypeImpl) interfaceType).isSubtypeOf(typeS, visitedClasses, visitedTypePairs)) {
         return true;
       }
     }
     InterfaceType[] mixinTypes = getMixins();
     for (InterfaceType mixinType : mixinTypes) {
-      if (((InterfaceTypeImpl) mixinType).isSubtypeOf(typeS, visitedClasses)) {
+      if (((InterfaceTypeImpl) mixinType).isSubtypeOf(typeS, visitedClasses, visitedTypePairs)) {
         return true;
       }
     }

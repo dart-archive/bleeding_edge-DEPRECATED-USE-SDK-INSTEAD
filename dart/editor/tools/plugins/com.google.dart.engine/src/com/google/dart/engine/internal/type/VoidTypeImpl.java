@@ -17,6 +17,8 @@ import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.type.Type;
 import com.google.dart.engine.type.VoidType;
 
+import java.util.Set;
+
 /**
  * The unique instance of the class {@code VoidTypeImpl} implements the type {@code void}.
  * 
@@ -50,20 +52,6 @@ public class VoidTypeImpl extends TypeImpl implements VoidType {
   }
 
   @Override
-  public boolean isMoreSpecificThan(Type type, boolean withDynamic) {
-    return isSubtypeOf(type);
-  }
-
-  @Override
-  public boolean isSubtypeOf(Type type) {
-    // The only subtype relations that pertain to void are therefore:
-    // void <: void (by reflexivity)
-    // bottom <: void (as bottom is a subtype of all types).
-    // void <: dynamic (as dynamic is a supertype of all types)
-    return type == this || type == DynamicTypeImpl.getInstance();
-  }
-
-  @Override
   public boolean isVoid() {
     return true;
   }
@@ -71,5 +59,20 @@ public class VoidTypeImpl extends TypeImpl implements VoidType {
   @Override
   public VoidTypeImpl substitute(Type[] argumentTypes, Type[] parameterTypes) {
     return this;
+  }
+
+  @Override
+  protected boolean internalIsMoreSpecificThan(Type type, boolean withDynamic,
+      Set<TypePair> visitedTypePairs) {
+    return isSubtypeOf(type);
+  }
+
+  @Override
+  protected boolean internalIsSubtypeOf(Type type, Set<TypePair> visitedTypePairs) {
+    // The only subtype relations that pertain to void are therefore:
+    // void <: void (by reflexivity)
+    // bottom <: void (as bottom is a subtype of all types).
+    // void <: dynamic (as dynamic is a supertype of all types)
+    return type == this || type == DynamicTypeImpl.getInstance();
   }
 }

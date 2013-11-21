@@ -80,7 +80,19 @@ public class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType
   }
 
   @Override
-  public boolean isMoreSpecificThan(Type s, boolean withDynamic) {
+  public Type substitute(Type[] argumentTypes, Type[] parameterTypes) {
+    int length = parameterTypes.length;
+    for (int i = 0; i < length; i++) {
+      if (parameterTypes[i].equals(this)) {
+        return argumentTypes[i];
+      }
+    }
+    return this;
+  }
+
+  @Override
+  protected boolean internalIsMoreSpecificThan(Type s, boolean withDynamic,
+      Set<TypePair> visitedTypePairs) {
     //
     // A type T is more specific than a type S, written T << S,  if one of the following conditions
     // is met:
@@ -103,26 +115,16 @@ public class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType
       return true;
     }
 
-    return isMoreSpecificThan(s, new HashSet<Type>(), withDynamic);
+    return isMoreSpecificThan(s, new HashSet<Type>(), withDynamic, visitedTypePairs);
   }
 
   @Override
-  public boolean isSubtypeOf(Type s) {
-    return isMoreSpecificThan(s, true);
+  protected boolean internalIsSubtypeOf(Type type, Set<TypePair> visitedTypePairs) {
+    return isMoreSpecificThan(type, true, new HashSet<TypePair>());
   }
 
-  @Override
-  public Type substitute(Type[] argumentTypes, Type[] parameterTypes) {
-    int length = parameterTypes.length;
-    for (int i = 0; i < length; i++) {
-      if (parameterTypes[i].equals(this)) {
-        return argumentTypes[i];
-      }
-    }
-    return this;
-  }
-
-  private boolean isMoreSpecificThan(Type s, Set<Type> visitedTypes, boolean withDynamic) {
+  private boolean isMoreSpecificThan(Type s, Set<Type> visitedTypes, boolean withDynamic,
+      Set<TypePair> visitedTypePairs) {
     // T is a type parameter and S is the upper bound of T.
     //
     Type bound = getElement().getBound();
@@ -152,10 +154,10 @@ public class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType
       }
       visitedTypes.add(bound);
       // Then check upper bound.
-      return boundTypeParameter.isMoreSpecificThan(s, visitedTypes, withDynamic);
+      return boundTypeParameter.isMoreSpecificThan(s, visitedTypes, withDynamic, visitedTypePairs);
     }
 
     // Check interface type.
-    return bound.isMoreSpecificThan(s, withDynamic);
+    return bound.isMoreSpecificThan(s, withDynamic, visitedTypePairs);
   }
 }

@@ -14,6 +14,9 @@
 package com.google.dart.engine.type;
 
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.internal.type.TypeImpl.TypePair;
+
+import java.util.Set;
 
 /**
  * The interface {@code Type} defines the behavior of objects representing the declared type of
@@ -67,6 +70,18 @@ public interface Type {
   public boolean isAssignableTo(Type type);
 
   /**
+   * Return {@code true} if this type is assignable to the given type. A type <i>T</i> may be
+   * assigned to a type <i>S</i>, written <i>T</i> &hArr; <i>S</i>, iff either <i>T</i> <: <i>S</i>
+   * or <i>S</i> <: <i>T</i>.
+   * 
+   * @param type the type being compared with this type
+   * @param visitedPairs a set of Type pairs (type1, type2) that indicates that the queries that
+   *          have been made, this prevents infinite loops
+   * @return {@code true} if this type is assignable to the given type
+   */
+  public boolean isAssignableTo(Type type, Set<TypePair> visitedPairs);
+
+  /**
    * Return {@code true} if this type represents the bottom type.
    * 
    * @return {@code true} if this type represents the bottom type
@@ -102,9 +117,11 @@ public interface Type {
    * 
    * @param type the type being compared with this type
    * @param withDynamic {@code true} if "dynamic" should be considered as a subtype of any type
+   * @param visitedPairs a set of Type pairs (type1, type2) that indicates that the queries that
+   *          have been made, this prevents infinite loops
    * @return {@code true} if this type is more specific than the given type
    */
-  public boolean isMoreSpecificThan(Type type, boolean withDynamic);
+  public boolean isMoreSpecificThan(Type type, boolean withDynamic, Set<TypePair> visitedPairs);
 
   /**
    * Return {@code true} if this type represents the type 'Object'.
@@ -120,6 +137,16 @@ public interface Type {
    * @return {@code true} if this type is a subtype of the given type
    */
   public boolean isSubtypeOf(Type type);
+
+  /**
+   * Return {@code true} if this type is a subtype of the given type.
+   * 
+   * @param type the type being compared with this type
+   * @param visitedPairs a set of Type pairs (type1, type2) that indicates that the queries that
+   *          have been made, this prevents infinite loops
+   * @return {@code true} if this type is a subtype of the given type
+   */
+  public boolean isSubtypeOf(Type type, Set<TypePair> visitedPairs);
 
   /**
    * Return {@code true} if this type is a supertype of the given type. A type <i>S</i> is a

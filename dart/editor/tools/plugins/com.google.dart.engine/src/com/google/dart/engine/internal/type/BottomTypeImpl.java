@@ -15,6 +15,8 @@ package com.google.dart.engine.internal.type;
 
 import com.google.dart.engine.type.Type;
 
+import java.util.Set;
+
 /**
  * The unique instance of the class {@code BottomTypeImpl} implements the type {@code bottom}.
  * 
@@ -53,17 +55,6 @@ public class BottomTypeImpl extends TypeImpl {
   }
 
   @Override
-  public boolean isMoreSpecificThan(Type type, boolean withDynamic) {
-    return true;
-  }
-
-  @Override
-  public boolean isSubtypeOf(Type type) {
-    // bottom is a subtype of all types
-    return true;
-  }
-
-  @Override
   public boolean isSupertypeOf(Type type) {
     // bottom is a subtype of all types
     return false;
@@ -72,5 +63,17 @@ public class BottomTypeImpl extends TypeImpl {
   @Override
   public BottomTypeImpl substitute(Type[] argumentTypes, Type[] parameterTypes) {
     return this;
+  }
+
+  @Override
+  protected boolean internalIsMoreSpecificThan(Type type, boolean withDynamic,
+      Set<TypePair> visitedTypePairs) {
+    return true;
+  }
+
+  @Override
+  protected boolean internalIsSubtypeOf(Type type, Set<TypePair> visitedTypePairs) {
+    // bottom is a subtype of all types
+    return true;
   }
 }

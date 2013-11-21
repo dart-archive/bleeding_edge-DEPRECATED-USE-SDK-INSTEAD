@@ -15,6 +15,7 @@ package com.google.dart.engine.resolver;
 
 import com.google.dart.engine.error.CompileTimeErrorCode;
 import com.google.dart.engine.error.HintCode;
+import com.google.dart.engine.error.StaticTypeWarningCode;
 import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.parser.ParserErrorCode;
 import com.google.dart.engine.source.Source;
@@ -3321,6 +3322,22 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(source, CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR);
+    verify(source);
+  }
+
+  public void test_typeAliasCannotReferenceItself_11987() throws Exception {
+    Source source = addSource(createSource(//
+        "typedef void F(List<G> l);",
+        "typedef void G(List<F> l);",
+        "main() {",
+        "  F foo(G g) => g;",
+        "}"));
+    resolve(source);
+    assertErrors(
+        source,
+        CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF,
+        CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF,
+        StaticTypeWarningCode.RETURN_OF_INVALID_TYPE);
     verify(source);
   }
 
