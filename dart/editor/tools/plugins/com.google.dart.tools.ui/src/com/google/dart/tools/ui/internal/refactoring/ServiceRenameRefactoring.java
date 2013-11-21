@@ -14,8 +14,10 @@
 
 package com.google.dart.tools.ui.internal.refactoring;
 
+import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.services.refactoring.RenameRefactoring;
 import com.google.dart.engine.services.status.RefactoringStatus;
+import com.google.dart.engine.source.Source;
 import com.google.dart.tools.internal.corext.refactoring.tagging.INameUpdating;
 
 import static com.google.dart.tools.ui.internal.refactoring.ServiceUtils.toLTK;
@@ -53,5 +55,14 @@ public class ServiceRenameRefactoring extends ServiceRefactoring implements INam
   @Override
   public void setNewElementName(String newName) {
     refactoring.setNewName(newName);
+  }
+
+  /**
+   * @return {@code true} if given {@link Source} may be affected by this refactoring, so we should
+   *         warn user about it.
+   */
+  @Override
+  protected boolean shouldReportUnsafeRefactoringSource(AnalysisContext context, Source source) {
+    return refactoring.shouldReportUnsafeRefactoringSource(context, source);
   }
 }

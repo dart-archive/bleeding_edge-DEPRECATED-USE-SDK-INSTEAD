@@ -77,6 +77,18 @@ public class RenameLibraryRefactoringImplTest extends RenameRefactoringImplTest 
             ""));
   }
 
+  public void test_shouldReportUnsafeRefactoringSource() throws Exception {
+    indexTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "library my.app;",
+        "");
+    createRenameRefactoring();
+    // check
+    assertTrue(refactoring.shouldReportUnsafeRefactoringSource(analysisContext, testSource));
+    assertTrue(refactoring.shouldReportUnsafeRefactoringSource(analysisContext, null));
+    assertTrue(refactoring.shouldReportUnsafeRefactoringSource(null, null));
+  }
+
   protected void createRenameRefactoring() {
     LibraryDirective node = findNode(findOffset("library "), LibraryDirective.class);
     createRenameRefactoring(node.getElement());

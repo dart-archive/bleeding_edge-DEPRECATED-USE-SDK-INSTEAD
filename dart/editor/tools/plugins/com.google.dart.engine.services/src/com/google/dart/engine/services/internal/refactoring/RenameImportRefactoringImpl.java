@@ -14,6 +14,7 @@
 
 package com.google.dart.engine.services.internal.refactoring;
 
+import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.search.SearchEngine;
@@ -135,6 +136,11 @@ public class RenameImportRefactoringImpl extends RenameRefactoringImpl {
   @Override
   public String getRefactoringName() {
     return "Rename Import Prefix";
+  }
+
+  @Override
+  public boolean shouldReportUnsafeRefactoringSource(AnalysisContext context, Source source) {
+    return isInTheSameLibrary(element, context, source);
   }
 
   private RefactoringStatus analyzePossibleConflicts(ProgressMonitor pm) {

@@ -18,7 +18,10 @@ import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.services.change.Change;
 import com.google.dart.engine.services.status.RefactoringStatusSeverity;
+import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
+
+import java.io.File;
 
 /**
  * Test for {@link RenameConstructorRefactoringImpl}.
@@ -258,5 +261,25 @@ public class RenameConstructorRefactoringImplTest extends RenameRefactoringImplT
         "main() {",
         "  new A.newName();",
         "}");
+  }
+
+  public void test_shouldReportUnsafeRefactoringSource() throws Exception {
+    indexTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  A.myPublic() {}",
+        "  A._myPrivate() {}",
+        "}");
+    Source externalSource = new FileBasedSource(sourceFactory.getContentCache(), new File(
+        "other.dart"));
+    // check public
+    createRenameRefactoring("myPublic() {}");
+    assertTrue(refactoring.shouldReportUnsafeRefactoringSource(analysisContext, testSource));
+    assertTrue(refactoring.shouldReportUnsafeRefactoringSource(analysisContext, externalSource));
+    assertFalse(refactoring.shouldReportUnsafeRefactoringSource(null, testSource));
+    // check private
+    createRenameRefactoring("_myPrivate() {}");
+    assertTrue(refactoring.shouldReportUnsafeRefactoringSource(analysisContext, testSource));
+    assertFalse(refactoring.shouldReportUnsafeRefactoringSource(analysisContext, externalSource));
   }
 }

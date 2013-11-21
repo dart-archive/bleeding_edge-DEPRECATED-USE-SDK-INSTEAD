@@ -17,6 +17,7 @@ package com.google.dart.engine.services.internal.refactoring;
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LocalElement;
@@ -29,10 +30,13 @@ import com.google.dart.engine.services.internal.correction.CorrectionUtils;
 import com.google.dart.engine.services.refactoring.ProgressMonitor;
 import com.google.dart.engine.services.refactoring.RenameRefactoring;
 import com.google.dart.engine.services.status.RefactoringStatus;
+import com.google.dart.engine.services.util.ElementUtils;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.source.SourceRange;
 
 import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeElementName;
+
+import org.apache.commons.lang3.ArrayUtils;
 
 import java.util.List;
 import java.util.Set;
@@ -76,6 +80,38 @@ public abstract class RenameRefactoringImpl extends RefactoringImpl implements R
     SourceRange localRange2 = localElement2.getVisibleRange();
     return Objects.equal(localSource2, localSource) && localRange != null && localRange2 != null
         && localRange2.intersects(localRange);
+  }
+
+  /**
+   * Check if the given {@link Element} is visible in the given {@link Source}.
+   */
+  protected static boolean isInTheSameLibrary(Element element, AnalysisContext context,
+      Source source) {
+    // should be the same AnalysisContext
+    if (element.getContext() != context) {
+      return false;
+    }
+    // private elements are visible only in their library
+    Source[] librarySourcesOfSource = context.getLibrariesContaining(source);
+    Source librarySourceOfElement = element.getLibrary().getSource();
+    return ArrayUtils.contains(librarySourcesOfSource, librarySourceOfElement);
+  }
+
+  /**
+   * Check if the given {@link Element} is visible in the given {@link Source}.
+   */
+  protected static boolean isPublicOrInTheSameLibrary(Element element, AnalysisContext context,
+      Source source) {
+    // should be the same AnalysisContext
+    if (element.getContext() != context) {
+      return false;
+    }
+    // public elements are always visible
+    if (ElementUtils.isPublic(element)) {
+      return true;
+    }
+    // private elements are visible only in their library
+    return isInTheSameLibrary(element, context, source);
   }
 
   /**
@@ -142,6 +178,11 @@ public abstract class RenameRefactoringImpl extends RefactoringImpl implements R
   @Override
   public void setNewName(String newName) {
     this.newName = newName;
+  }
+
+  @Override
+  public boolean shouldReportUnsafeRefactoringSource(AnalysisContext context, Source source) {
+    return isPublicOrInTheSameLibrary(element, context, source);
   }
 
   /**

@@ -16,7 +16,10 @@ package com.google.dart.engine.services.internal.refactoring;
 
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.services.status.RefactoringStatusSeverity;
+import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
+
+import java.io.File;
 
 /**
  * Test for {@link RenameLocalRefactoringImpl}.
@@ -457,5 +460,19 @@ public class RenameLocalRefactoringImplTest extends RenameRefactoringImplTest {
     // new name
     refactoring.setNewName("newName");
     assertEquals("newName", refactoring.getNewName());
+  }
+
+  public void test_shouldReportUnsafeRefactoringSource() throws Exception {
+    indexTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var test = 0;",
+        "}");
+    createRenameRefactoring("test = 0");
+    // check
+    assertTrue(refactoring.shouldReportUnsafeRefactoringSource(analysisContext, testSource));
+    assertFalse(refactoring.shouldReportUnsafeRefactoringSource(
+        analysisContext,
+        new FileBasedSource(sourceFactory.getContentCache(), new File("other.dart"))));
   }
 }

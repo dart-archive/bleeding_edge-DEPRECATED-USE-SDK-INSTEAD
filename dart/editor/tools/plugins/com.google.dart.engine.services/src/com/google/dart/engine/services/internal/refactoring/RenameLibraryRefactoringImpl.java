@@ -14,6 +14,7 @@
 
 package com.google.dart.engine.services.internal.refactoring;
 
+import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchMatch;
@@ -90,5 +91,10 @@ public class RenameLibraryRefactoringImpl extends RenameRefactoringImpl {
   @Override
   public String getRefactoringName() {
     return "Rename Library";
+  }
+
+  @Override
+  public boolean shouldReportUnsafeRefactoringSource(AnalysisContext context, Source source) {
+    return true;
   }
 }

@@ -14,8 +14,10 @@
 
 package com.google.dart.engine.services.refactoring;
 
+import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.services.status.RefactoringStatus;
+import com.google.dart.engine.source.Source;
 
 /**
  * Abstract {@link Refactoring} to rename some {@link Element}.
@@ -40,4 +42,10 @@ public interface RenameRefactoring extends Refactoring {
    * Sets the new name for the {@link Element}.
    */
   void setNewName(String newName);
+
+  /**
+   * @return {@code true} if given {@link Source} may be affected by this refactoring, so we should
+   *         warn user about it.
+   */
+  boolean shouldReportUnsafeRefactoringSource(AnalysisContext context, Source source);
 }

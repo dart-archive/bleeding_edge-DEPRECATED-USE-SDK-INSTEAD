@@ -14,6 +14,7 @@
 
 package com.google.dart.engine.services.internal.refactoring;
 
+import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.LocalElement;
@@ -29,6 +30,7 @@ import com.google.dart.engine.services.refactoring.Refactoring;
 import com.google.dart.engine.services.refactoring.SubProgressMonitor;
 import com.google.dart.engine.services.status.RefactoringStatus;
 import com.google.dart.engine.services.status.RefactoringStatusContext;
+import com.google.dart.engine.source.Source;
 
 import static com.google.dart.engine.services.internal.correction.CorrectionUtils.getElementKindName;
 import static com.google.dart.engine.services.internal.correction.CorrectionUtils.getElementQualifiedName;
@@ -103,6 +105,11 @@ public class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
       return "Rename Local Function";
     }
     return "Rename Local Variable";
+  }
+
+  @Override
+  public boolean shouldReportUnsafeRefactoringSource(AnalysisContext context, Source source) {
+    return element.getSource().equals(source);
   }
 
   private RefactoringStatus analyzePossibleConflicts(ProgressMonitor pm) {

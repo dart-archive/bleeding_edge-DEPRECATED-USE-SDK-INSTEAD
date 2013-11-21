@@ -109,6 +109,14 @@ public class ServiceRefactoring extends org.eclipse.ltk.core.refactoring.Refacto
   }
 
   /**
+   * @return {@code true} if given {@link Source} may be affected by this refactoring, so we should
+   *         warn user about it.
+   */
+  protected boolean shouldReportUnsafeRefactoringSource(AnalysisContext context, Source source) {
+    return true;
+  }
+
+  /**
    * Checks if all {@link AnalysisContext} are actually fully analyzed, so it is safe to perform
    * refactoring. Otherwise updates given LTK refactoring status.
    */
@@ -141,13 +149,22 @@ public class ServiceRefactoring extends org.eclipse.ltk.core.refactoring.Refacto
       // remember
       Collections.addAll(unsafeSources, sources);
       // append project and its sources
-      sb.append(project.toString() + "=[");
+      boolean firstSource = true;
       for (Source source : sources) {
+        if (!shouldReportUnsafeRefactoringSource(context, source)) {
+          continue;
+        }
+        if (firstSource) {
+          sb.append(project.toString() + "=[");
+          firstSource = false;
+        }
         sb.append(source.getFullName());
         sb.append(" ");
       }
-      sb.setLength(sb.length() - 1);
-      sb.append("]\n");
+      if (sb.length() != 0) {
+        sb.setLength(sb.length() - 1);
+        sb.append("]\n");
+      }
     }
     // show unsafe sources
     if (sb.length() != 0) {

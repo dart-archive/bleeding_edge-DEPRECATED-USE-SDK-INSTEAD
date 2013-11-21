@@ -16,6 +16,10 @@ package com.google.dart.engine.services.internal.refactoring;
 
 import com.google.dart.engine.ast.ImportDirective;
 import com.google.dart.engine.services.status.RefactoringStatusSeverity;
+import com.google.dart.engine.source.FileBasedSource;
+import com.google.dart.engine.source.Source;
+
+import java.io.File;
 
 /**
  * Test for {@link RenameImportRefactoringImpl}.
@@ -128,6 +132,17 @@ public class RenameImportRefactoringImplTest extends RenameRefactoringImplTest {
         "main() {",
         "  Future f;",
         "}");
+  }
+
+  public void test_shouldReportUnsafeRefactoringSource() throws Exception {
+    indexTestUnit("import 'dart:async' as test;");
+    Source externalSource = new FileBasedSource(sourceFactory.getContentCache(), new File(
+        "other.dart"));
+    // check public
+    createRenameImportRefactoring("import 'dart:async");
+    assertTrue(refactoring.shouldReportUnsafeRefactoringSource(analysisContext, testSource));
+    assertFalse(refactoring.shouldReportUnsafeRefactoringSource(analysisContext, externalSource));
+    assertFalse(refactoring.shouldReportUnsafeRefactoringSource(null, null));
   }
 
   private void createRenameImportRefactoring(String search) {
