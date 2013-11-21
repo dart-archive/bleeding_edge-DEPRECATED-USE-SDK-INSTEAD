@@ -43,11 +43,9 @@ deps = {
       Var("chromium_url") + "/trunk/src/net/third_party/nss" + Var("nss_rev"),
 
   # Stuff needed for VM service.
-  "dart/runtime/bin/vmservice/client/bootstrap_css":
-      "/third_party/bootstrap_css" + Var("bootstrap_css_rev"),
   "dart/runtime/bin/vmservice/client/web/bootstrap_css":
       "/third_party/bootstrap_css" + Var("bootstrap_css_rev"),
-  "dart/runtime/bin/vmservice/client/out/web/bootstrap_css":
+  "dart/runtime/bin/vmservice/client/deployed/web/bootstrap_css":
       "/third_party/bootstrap_css" + Var("bootstrap_css_rev"),
 
 }
