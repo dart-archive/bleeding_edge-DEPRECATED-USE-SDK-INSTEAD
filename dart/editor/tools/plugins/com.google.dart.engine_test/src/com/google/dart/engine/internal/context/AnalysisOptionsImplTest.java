@@ -22,11 +22,4 @@ public class AnalysisOptionsImplTest extends EngineTestCase {
     options.setHint(value);
     assertEquals(value, options.getHint());
   }
-
-  public void test_getStrictMode() {
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    boolean value = !options.getStrictMode();
-    options.setStrictMode(value);
-    assertEquals(value, options.getStrictMode());
-  }
 }

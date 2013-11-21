@@ -39,12 +39,4 @@ public interface AnalysisOptions {
    * @return {@code true} if analysis is to generate hint results
    */
   public boolean getHint();
-
-  /**
-   * Return {@code true} if analysis is to use strict mode. In strict mode, error reporting is based
-   * exclusively on the static type information.
-   * 
-   * @return {@code true} if analysis is to use strict mode
-   */
-  public boolean getStrictMode();
 }

@@ -321,12 +321,6 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
   private LibraryElement definingLibrary;
 
   /**
-   * A flag indicating whether we are running in strict mode. In strict mode, error reporting is
-   * based exclusively on the static type information.
-   */
-  private boolean strictMode;
-
-  /**
    * A flag indicating whether we should generate hints.
    */
   private boolean enableHints;
@@ -372,7 +366,6 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     this.resolver = resolver;
     this.definingLibrary = resolver.getDefiningLibrary();
     AnalysisOptions options = definingLibrary.getContext().getAnalysisOptions();
-    strictMode = options.getStrictMode();
     enableHints = options.getHint();
     dynamicType = resolver.getTypeProvider().getDynamicType();
     typeType = resolver.getTypeProvider().getTypeType();
@@ -400,18 +393,13 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
 
         boolean shouldReportMissingMember_static = shouldReportMissingMember(
             staticType,
-            staticMethod)
-            && (strictMode || shouldReportMissingMember(propagatedType, propagatedMethod));
+            staticMethod);
         boolean shouldReportMissingMember_propagated = !shouldReportMissingMember_static
             && enableHints ? shouldReportMissingMember(propagatedType, propagatedMethod) : false;
-
-        // TODO(jwren) If it becomes possible to have strictMode set to false, additional work will
-        // need to happen to possibly pass the propagated element into the
-        // reportErrorProxyConditionalErrorCode call below, or to always pass the static and
-        // propagated information to the ProxyConditionalErrorCode
-
+        //
         // If we are about to generate the hint (propagated version of this warning), then check
         // that the member is not in a subtype of the propagated type.
+        //
         if (shouldReportMissingMember_propagated) {
           if (memberFoundInSubclass(propagatedType.getElement(), methodName, true, false)) {
             shouldReportMissingMember_propagated = false;
@@ -453,23 +441,19 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
 
         boolean shouldReportMissingMember_static = shouldReportMissingMember(
             staticType,
-            staticMethod)
-            && (strictMode || shouldReportMissingMember(propagatedType, propagatedMethod));
+            staticMethod);
         boolean shouldReportMissingMember_propagated = !shouldReportMissingMember_static
             && enableHints ? shouldReportMissingMember(propagatedType, propagatedMethod) : false;
-
+        //
         // If we are about to generate the hint (propagated version of this warning), then check
         // that the member is not in a subtype of the propagated type.
+        //
         if (shouldReportMissingMember_propagated) {
           if (memberFoundInSubclass(propagatedType.getElement(), methodName, true, false)) {
             shouldReportMissingMember_propagated = false;
           }
         }
 
-        // TODO(jwren) If it becomes possible to have strictMode set to false, additional work will
-        // need to happen to possibly pass the propagated element into the
-        // reportErrorProxyConditionalErrorCode call below, or to always pass the static and
-        // propagated information to the ProxyConditionalErrorCode
         if (shouldReportMissingMember_static || shouldReportMissingMember_propagated) {
           ErrorCode errorCode = shouldReportMissingMember_static
               ? StaticTypeWarningCode.UNDEFINED_OPERATOR : HintCode.UNDEFINED_OPERATOR;
@@ -1127,23 +1111,19 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     MethodElement propagatedMethod = lookUpMethod(operand, propagatedType, methodName);
     node.setPropagatedElement(propagatedMethod);
 
-    boolean shouldReportMissingMember_static = shouldReportMissingMember(staticType, staticMethod)
-        && (strictMode || shouldReportMissingMember(propagatedType, propagatedMethod));
+    boolean shouldReportMissingMember_static = shouldReportMissingMember(staticType, staticMethod);
     boolean shouldReportMissingMember_propagated = !shouldReportMissingMember_static && enableHints
         ? shouldReportMissingMember(propagatedType, propagatedMethod) : false;
-
+    //
     // If we are about to generate the hint (propagated version of this warning), then check
     // that the member is not in a subtype of the propagated type.
+    //
     if (shouldReportMissingMember_propagated) {
       if (memberFoundInSubclass(propagatedType.getElement(), methodName, true, false)) {
         shouldReportMissingMember_propagated = false;
       }
     }
 
-    // TODO(jwren) If it becomes possible to have strictMode set to false, additional work will
-    // need to happen to possibly pass the propagated element into the
-    // reportErrorProxyConditionalErrorCode call below, or to always pass the static and
-    // propagated information to the ProxyConditionalErrorCode
     if (shouldReportMissingMember_static || shouldReportMissingMember_propagated) {
       ErrorCode errorCode = shouldReportMissingMember_static
           ? StaticTypeWarningCode.UNDEFINED_OPERATOR : HintCode.UNDEFINED_OPERATOR;
@@ -1245,23 +1225,19 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       MethodElement propagatedMethod = lookUpMethod(operand, propagatedType, methodName);
       node.setPropagatedElement(propagatedMethod);
 
-      boolean shouldReportMissingMember_static = shouldReportMissingMember(staticType, staticMethod)
-          && (strictMode || shouldReportMissingMember(propagatedType, propagatedMethod));
+      boolean shouldReportMissingMember_static = shouldReportMissingMember(staticType, staticMethod);
       boolean shouldReportMissingMember_propagated = !shouldReportMissingMember_static
           && enableHints ? shouldReportMissingMember(propagatedType, propagatedMethod) : false;
-
+      //
       // If we are about to generate the hint (propagated version of this warning), then check
       // that the member is not in a subtype of the propagated type.
+      //
       if (shouldReportMissingMember_propagated) {
         if (memberFoundInSubclass(propagatedType.getElement(), methodName, true, false)) {
           shouldReportMissingMember_propagated = false;
         }
       }
 
-      // TODO(jwren) If it becomes possible to have strictMode set to false, additional work will
-      // need to happen to possibly pass the propagated element into the
-      // reportErrorProxyConditionalErrorCode call below, or to always pass the static and
-      // propagated information to the ProxyConditionalErrorCode
       if (shouldReportMissingMember_static || shouldReportMissingMember_propagated) {
         ErrorCode errorCode = shouldReportMissingMember_static
             ? StaticTypeWarningCode.UNDEFINED_OPERATOR : HintCode.UNDEFINED_OPERATOR;
@@ -1580,23 +1556,19 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       String methodName, MethodElement staticMethod, MethodElement propagatedMethod,
       Type staticType, Type propagatedType) {
 
-    boolean shouldReportMissingMember_static = shouldReportMissingMember(staticType, staticMethod)
-        && (strictMode || shouldReportMissingMember(propagatedType, propagatedMethod));
+    boolean shouldReportMissingMember_static = shouldReportMissingMember(staticType, staticMethod);
     boolean shouldReportMissingMember_propagated = !shouldReportMissingMember_static && enableHints
         ? shouldReportMissingMember(propagatedType, propagatedMethod) : false;
-
+    //
     // If we are about to generate the hint (propagated version of this warning), then check
     // that the member is not in a subtype of the propagated type.
+    //
     if (shouldReportMissingMember_propagated) {
       if (memberFoundInSubclass(propagatedType.getElement(), methodName, true, false)) {
         shouldReportMissingMember_propagated = false;
       }
     }
 
-    // TODO(jwren) If it becomes possible to have strictMode set to false, additional work will
-    // need to happen to possibly pass the propagated element into the
-    // reportErrorProxyConditionalErrorCode calls below, or to always pass the static and
-    // propagated information to the ProxyConditionalErrorCode
     if (shouldReportMissingMember_static || shouldReportMissingMember_propagated) {
       Token leftBracket = node.getLeftBracket();
       Token rightBracket = node.getRightBracket();
@@ -2743,8 +2715,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     propertyName.setStaticElement(staticElement);
     propertyName.setPropagatedElement(propagatedElement);
 
-    boolean shouldReportMissingMember_static = shouldReportMissingMember(staticType, staticElement)
-        && (strictMode || shouldReportMissingMember(propagatedType, propagatedElement));
+    boolean shouldReportMissingMember_static = shouldReportMissingMember(staticType, staticElement);
     boolean shouldReportMissingMember_propagated = !shouldReportMissingMember_static && enableHints
         ? shouldReportMissingMember(propagatedType, propagatedElement) : false;
 
@@ -2757,10 +2728,6 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     }
 
     if (shouldReportMissingMember_static || shouldReportMissingMember_propagated) {
-      // TODO(jwren) If it becomes possible to have strictMode set to false, additional work will
-      // need to happen to possibly pass the propagated element into the
-      // reportErrorProxyConditionalErrorCode calls below, or to always pass the static and
-      // propagated information to the ProxyConditionalErrorCode
       Element staticOrPropagatedEnclosingElt = shouldReportMissingMember_static
           ? staticType.getElement() : propagatedType.getElement();
       boolean isStaticProperty = isStatic(staticOrPropagatedEnclosingElt);
@@ -2879,18 +2846,6 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       return bound;
     }
     return type;
-  }
-
-  /**
-   * Return the propagated element if it is not {@code null}, or the static element if it is.
-   * 
-   * @param staticElement the element computed using static type information
-   * @param propagatedElement the element computed using propagated type information
-   * @return the more specific of the two elements
-   */
-  private ExecutableElement select(ExecutableElement staticElement,
-      ExecutableElement propagatedElement) {
-    return propagatedElement != null ? propagatedElement : staticElement;
   }
 
   /**

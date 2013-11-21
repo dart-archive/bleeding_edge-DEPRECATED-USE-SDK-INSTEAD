@@ -22,6 +22,11 @@ import com.google.dart.engine.source.Source;
  * are reported when the analysis engine is run in strict mode.
  */
 public class StrictModeTest extends ResolverTestCase {
+  /*
+   * TODO(brianwilkerson) Move these tests to other test classes, or remove them if they are
+   * duplicates of existing tests.
+   */
+
   public void fail_for() throws Exception {
     Source source = addSource(createSource(//
         "int f(List<int> list) {",
@@ -38,7 +43,6 @@ public class StrictModeTest extends ResolverTestCase {
   public void setUp() {
     super.setUp();
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.setStrictMode(true);
     options.setHint(false);
     getAnalysisContext().setAnalysisOptions(options);
   }

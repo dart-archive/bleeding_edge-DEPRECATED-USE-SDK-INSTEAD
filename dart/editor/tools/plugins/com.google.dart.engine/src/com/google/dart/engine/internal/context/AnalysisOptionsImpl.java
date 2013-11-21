@@ -43,12 +43,6 @@ public class AnalysisOptionsImpl implements AnalysisOptions {
   private boolean hint = true;
 
   /**
-   * A flag indicating whether analysis is to use strict mode. In strict mode, error reporting is
-   * based exclusively on the static type information.
-   */
-  private boolean strictMode = true;
-
-  /**
    * Initialize a newly created set of analysis options to have their default values.
    */
   public AnalysisOptionsImpl() {
@@ -64,7 +58,6 @@ public class AnalysisOptionsImpl implements AnalysisOptions {
     cacheSize = options.getCacheSize();
     dart2jsHint = options.getDart2jsHint();
     hint = options.getHint();
-    strictMode = options.getStrictMode();
   }
 
   @Override
@@ -80,17 +73,6 @@ public class AnalysisOptionsImpl implements AnalysisOptions {
   @Override
   public boolean getHint() {
     return hint;
-  }
-
-  /**
-   * Return {@code true} if analysis is to use strict mode. In strict mode, error reporting is based
-   * exclusively on the static type information.
-   * 
-   * @return {@code true} if analysis is to use strict mode
-   */
-  @Override
-  public boolean getStrictMode() {
-    return strictMode;
   }
 
   /**
@@ -121,15 +103,5 @@ public class AnalysisOptionsImpl implements AnalysisOptions {
    */
   public void setHint(boolean hint) {
     this.hint = hint;
-  }
-
-  /**
-   * Set whether analysis is to use strict mode to the given value. In strict mode, error reporting
-   * is based exclusively on the static type information.
-   * 
-   * @param isStrict {@code true} if analysis is to use strict mode
-   */
-  public void setStrictMode(boolean isStrict) {
-    strictMode = isStrict;
   }
 }

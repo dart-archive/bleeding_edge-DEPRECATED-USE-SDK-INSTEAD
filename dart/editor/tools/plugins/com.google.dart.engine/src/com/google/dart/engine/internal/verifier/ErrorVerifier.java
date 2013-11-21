@@ -203,12 +203,6 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   private InheritanceManager inheritanceManager;
 
   /**
-   * A flag indicating whether we are running in strict mode. In strict mode, error reporting is
-   * based exclusively on the static type information.
-   */
-  private boolean strictMode;
-
-  /**
    * This is set to {@code true} iff the visitor is currently visiting children nodes of a
    * {@link ConstructorDeclaration} and the constructor is 'const'.
    * 
@@ -357,7 +351,6 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     this.isInSystemLibrary = currentLibrary.getSource().isInSystemLibrary();
     this.typeProvider = typeProvider;
     this.inheritanceManager = inheritanceManager;
-    strictMode = currentLibrary.getContext().getAnalysisOptions().getStrictMode();
     isEnclosingConstructorConst = false;
     isInCatchClause = false;
     isInStaticVariableDeclaration = false;
@@ -1859,44 +1852,43 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     if (actualStaticType == null || expectedStaticType == null) {
       return false;
     }
-    if (strictMode) {
-      if (actualStaticType.isAssignableTo(expectedStaticType)) {
-        return false;
-      }
-      errorReporter.reportError(
-          errorCode,
-          expression,
-          actualStaticType.getDisplayName(),
-          expectedStaticType.getDisplayName());
-      return true;
-    }
-    //
-    // Test propagated type information
-    //
-    if (actualPropagatedType == null || expectedPropagatedType == null) {
-      if (actualStaticType.isAssignableTo(expectedStaticType)) {
-        return false;
-      }
-      errorReporter.reportError(
-          errorCode,
-          expression,
-          actualStaticType.getDisplayName(),
-          expectedStaticType.getDisplayName());
-      return true;
-    }
-
-    if (actualStaticType.isAssignableTo(expectedStaticType)
-        || actualStaticType.isAssignableTo(expectedPropagatedType)
-        || actualPropagatedType.isAssignableTo(expectedStaticType)
-        || actualPropagatedType.isAssignableTo(expectedPropagatedType)) {
+    if (actualStaticType.isAssignableTo(expectedStaticType)) {
       return false;
     }
     errorReporter.reportError(
         errorCode,
         expression,
-        (actualPropagatedType == null ? actualStaticType : actualPropagatedType).getDisplayName(),
-        (expectedPropagatedType == null ? expectedStaticType : expectedPropagatedType).getDisplayName());
+        actualStaticType.getDisplayName(),
+        expectedStaticType.getDisplayName());
     return true;
+    //
+    // Test propagated type information
+    //
+    // TODO(brianwilkerson) Define a hint corresponding to the error and produce it when appropriate.
+//    if (actualPropagatedType == null || expectedPropagatedType == null) {
+//      if (actualStaticType.isAssignableTo(expectedStaticType)) {
+//        return false;
+//      }
+//      errorReporter.reportError(
+//          errorCode,
+//          expression,
+//          actualStaticType.getDisplayName(),
+//          expectedStaticType.getDisplayName());
+//      return true;
+//    }
+//
+//    if (actualStaticType.isAssignableTo(expectedStaticType)
+//        || actualStaticType.isAssignableTo(expectedPropagatedType)
+//        || actualPropagatedType.isAssignableTo(expectedStaticType)
+//        || actualPropagatedType.isAssignableTo(expectedPropagatedType)) {
+//      return false;
+//    }
+//    errorReporter.reportError(
+//        errorCode,
+//        expression,
+//        (actualPropagatedType == null ? actualStaticType : actualPropagatedType).getDisplayName(),
+//        (expectedPropagatedType == null ? expectedStaticType : expectedPropagatedType).getDisplayName());
+//    return true;
   }
 
   /**
@@ -3010,43 +3002,43 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     }
     if (staticType.isAssignableTo(fieldType)) {
       return false;
-    } else if (strictMode) {
-      // report problem
-      if (isEnclosingConstructorConst) {
-        errorReporter.reportError(
-            CompileTimeErrorCode.CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE,
-            expression,
-            staticType.getDisplayName(),
-            fieldType.getDisplayName());
-      } else {
-        errorReporter.reportError(
-            StaticWarningCode.FIELD_INITIALIZER_NOT_ASSIGNABLE,
-            expression,
-            staticType.getDisplayName(),
-            fieldType.getDisplayName());
-      }
-      return true;
-    }
-    // test the propagated type of the expression
-    Type propagatedType = expression.getPropagatedType();
-    if (propagatedType != null && propagatedType.isAssignableTo(fieldType)) {
-      return false;
     }
     // report problem
     if (isEnclosingConstructorConst) {
       errorReporter.reportError(
           CompileTimeErrorCode.CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE,
           expression,
-          (propagatedType == null ? staticType : propagatedType).getDisplayName(),
+          staticType.getDisplayName(),
           fieldType.getDisplayName());
     } else {
       errorReporter.reportError(
           StaticWarningCode.FIELD_INITIALIZER_NOT_ASSIGNABLE,
           expression,
-          (propagatedType == null ? staticType : propagatedType).getDisplayName(),
+          staticType.getDisplayName(),
           fieldType.getDisplayName());
     }
     return true;
+    // TODO(brianwilkerson) Define a hint corresponding to these errors and report it if appropriate.
+//    // test the propagated type of the expression
+//    Type propagatedType = expression.getPropagatedType();
+//    if (propagatedType != null && propagatedType.isAssignableTo(fieldType)) {
+//      return false;
+//    }
+//    // report problem
+//    if (isEnclosingConstructorConst) {
+//      errorReporter.reportError(
+//          CompileTimeErrorCode.CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE,
+//          expression,
+//          (propagatedType == null ? staticType : propagatedType).getDisplayName(),
+//          fieldType.getDisplayName());
+//    } else {
+//      errorReporter.reportError(
+//          StaticWarningCode.FIELD_INITIALIZER_NOT_ASSIGNABLE,
+//          expression,
+//          (propagatedType == null ? staticType : propagatedType).getDisplayName(),
+//          fieldType.getDisplayName());
+//    }
+//    return true;
   }
 
   /**
@@ -3486,27 +3478,25 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     Type leftType = (leftElement == null) ? getStaticType(lhs) : leftElement.getType();
     Type staticRightType = getStaticType(rhs);
     boolean isStaticAssignable = staticRightType.isAssignableTo(leftType);
-    Type propagatedRightType = rhs.getPropagatedType();
-    if (strictMode || propagatedRightType == null) {
-      if (!isStaticAssignable) {
-        errorReporter.reportError(
-            StaticTypeWarningCode.INVALID_ASSIGNMENT,
-            rhs,
-            staticRightType.getDisplayName(),
-            leftType.getDisplayName());
-        return true;
-      }
-    } else {
-      boolean isPropagatedAssignable = propagatedRightType.isAssignableTo(leftType);
-      if (!isStaticAssignable && !isPropagatedAssignable) {
-        errorReporter.reportError(
-            StaticTypeWarningCode.INVALID_ASSIGNMENT,
-            rhs,
-            staticRightType.getDisplayName(),
-            leftType.getDisplayName());
-        return true;
-      }
+    if (!isStaticAssignable) {
+      errorReporter.reportError(
+          StaticTypeWarningCode.INVALID_ASSIGNMENT,
+          rhs,
+          staticRightType.getDisplayName(),
+          leftType.getDisplayName());
+      return true;
     }
+    // TODO(brianwilkerson) Define a hint corresponding to the warning and report it if appropriate.
+//    Type propagatedRightType = rhs.getPropagatedType();
+//    boolean isPropagatedAssignable = propagatedRightType.isAssignableTo(leftType);
+//    if (!isStaticAssignable && !isPropagatedAssignable) {
+//      errorReporter.reportError(
+//          StaticTypeWarningCode.INVALID_ASSIGNMENT,
+//          rhs,
+//          staticRightType.getDisplayName(),
+//          leftType.getDisplayName());
+//      return true;
+//    }
     return false;
   }
 
@@ -4588,31 +4578,29 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       return true;
     }
     boolean isStaticAssignable = staticReturnType.isAssignableTo(expectedReturnType);
-    Type propagatedReturnType = returnExpression.getPropagatedType();
-    if (strictMode || propagatedReturnType == null) {
-      if (isStaticAssignable) {
-        return false;
-      }
-      errorReporter.reportError(
-          StaticTypeWarningCode.RETURN_OF_INVALID_TYPE,
-          returnExpression,
-          staticReturnType.getDisplayName(),
-          expectedReturnType.getDisplayName(),
-          enclosingFunction.getDisplayName());
-      return true;
-    } else {
-      boolean isPropagatedAssignable = propagatedReturnType.isAssignableTo(expectedReturnType);
-      if (isStaticAssignable || isPropagatedAssignable) {
-        return false;
-      }
-      errorReporter.reportError(
-          StaticTypeWarningCode.RETURN_OF_INVALID_TYPE,
-          returnExpression,
-          staticReturnType.getDisplayName(),
-          expectedReturnType.getDisplayName(),
-          enclosingFunction.getDisplayName());
-      return true;
+    if (isStaticAssignable) {
+      return false;
     }
+    errorReporter.reportError(
+        StaticTypeWarningCode.RETURN_OF_INVALID_TYPE,
+        returnExpression,
+        staticReturnType.getDisplayName(),
+        expectedReturnType.getDisplayName(),
+        enclosingFunction.getDisplayName());
+    return true;
+    // TODO(brianwilkerson) Define a hint corresponding to the warning and report it if appropriate.
+//    Type propagatedReturnType = returnExpression.getPropagatedType();
+//    boolean isPropagatedAssignable = propagatedReturnType.isAssignableTo(expectedReturnType);
+//    if (isStaticAssignable || isPropagatedAssignable) {
+//      return false;
+//    }
+//    errorReporter.reportError(
+//        StaticTypeWarningCode.RETURN_OF_INVALID_TYPE,
+//        returnExpression,
+//        staticReturnType.getDisplayName(),
+//        expectedReturnType.getDisplayName(),
+//        enclosingFunction.getDisplayName());
+//    return true;
   }
 
   /**

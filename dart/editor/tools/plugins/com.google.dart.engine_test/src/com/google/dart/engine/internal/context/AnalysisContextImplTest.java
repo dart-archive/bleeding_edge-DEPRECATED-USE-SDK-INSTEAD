@@ -824,13 +824,11 @@ public class AnalysisContextImplTest extends EngineTestCase {
     options.setCacheSize(42);
     options.setDart2jsHint(false);
     options.setHint(false);
-    options.setStrictMode(false);
     context.setAnalysisOptions(options);
     AnalysisOptions result = context.getAnalysisOptions();
     assertEquals(options.getCacheSize(), result.getCacheSize());
     assertEquals(options.getDart2jsHint(), result.getDart2jsHint());
     assertEquals(options.getHint(), result.getHint());
-    assertEquals(options.getStrictMode(), result.getStrictMode());
   }
 
   public void test_setAnalysisOptions_reduceAnalysisPriorityOrder() throws Exception {

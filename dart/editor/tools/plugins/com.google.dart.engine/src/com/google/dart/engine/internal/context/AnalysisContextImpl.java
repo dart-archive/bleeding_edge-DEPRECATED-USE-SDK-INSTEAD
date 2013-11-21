@@ -1056,7 +1056,6 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       }
       this.options.setDart2jsHint(options.getDart2jsHint());
       this.options.setHint(options.getHint());
-      this.options.setStrictMode(options.getStrictMode());
 
       if (needsRecompute) {
         invalidateAllResolutionInformation();
