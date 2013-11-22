@@ -30,6 +30,7 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.editors.text.TextEditor;
 import org.eclipse.ui.ide.FileStoreEditorInput;
 import org.eclipse.ui.ide.IDE;
+import org.eclipse.ui.part.FileEditorInput;
 import org.eclipse.ui.texteditor.ITextEditorActionConstants;
 
 import java.lang.reflect.InvocationTargetException;
@@ -141,6 +142,16 @@ public class SimpleTextEditor extends TextEditor {
 
   private void performSaveActions() {
     if (isRemoveTrailingWhitespaceEnabled()) {
+      IEditorInput input = getEditorInput();
+      if (input instanceof FileEditorInput) {
+        FileEditorInput fileInput = (FileEditorInput) input;
+        String name = fileInput.getName();
+        if (name.endsWith(".md")) {
+          // Markdown files do not have a custom model. Since trailing whitespace is significant
+          // in markdown do not remove it for a file that appears to be markdown.
+          return;
+        }
+      }
       try {
         removeTrailingWhitespaceAction.run();
       } catch (InvocationTargetException e) {
