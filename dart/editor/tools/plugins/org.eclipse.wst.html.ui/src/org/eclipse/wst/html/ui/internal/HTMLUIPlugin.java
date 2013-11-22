@@ -119,6 +119,7 @@ public class HTMLUIPlugin extends AbstractUIPlugin {
     node.putInt(HTMLCorePreferenceNames.ATTRIBUTE_UNDEFINED_NAME, ValidationMessage.IGNORE);
     node.putInt(HTMLCorePreferenceNames.ATTRIBUTE_UNDEFINED_VALUE, ValidationMessage.IGNORE);
     node.putInt(HTMLCorePreferenceNames.ATTRIBUTE_INVALID_NAME, ValidationMessage.IGNORE);
+    node.putInt(HTMLCorePreferenceNames.ELEM_INVALID_TEXT, ValidationMessage.IGNORE);
     node.putInt(HTMLCorePreferenceNames.ATTRIBUTE_NAME_MISMATCH, ValidationMessage.IGNORE);
     node.putInt(HTMLCorePreferenceNames.ELEM_UNKNOWN_NAME, ValidationMessage.IGNORE);
     node.putInt(HTMLCorePreferenceNames.ELEM_INVALID_NAME, ValidationMessage.IGNORE);
