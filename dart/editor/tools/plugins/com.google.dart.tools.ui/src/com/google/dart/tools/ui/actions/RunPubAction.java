@@ -47,11 +47,11 @@ import java.util.List;
 public class RunPubAction extends InstrumentedSelectionDispatchAction {
 
   public static RunPubAction createPubDeployAction(IWorkbenchWindow window) {
-    RunPubAction action = new RunPubAction(window, RunPubJob.DEPLOY_COMMAND);
+    RunPubAction action = new RunPubAction(window, RunPubJob.BUILD_COMMAND);
     action.setText(NLS.bind(ActionMessages.RunPubAction_commandText, "Build"));
     action.setDescription(NLS.bind(
         ActionMessages.RunPubAction_commandDesc,
-        RunPubJob.DEPLOY_COMMAND));
+        RunPubJob.BUILD_COMMAND));
     return action;
   }
 
