@@ -915,6 +915,31 @@ public class InlineMethodRefactoringImplTest extends RefactoringImplTest {
         "");
   }
 
+  public void test_reference_noStatement() throws Exception {
+    indexTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "test(a, b) {",
+        "  return a || b;",
+        "}",
+        "foo(p1, p2, p3) => p1 && test(p2, p3);",
+        "bar() => {",
+        "  'name' : baz(test)",
+        "};",
+        "baz(x) {}");
+    selection = findOffset("test(a, b)");
+    createRefactoring();
+    // do refactoring
+    assertSuccessfulRefactoring(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "foo(p1, p2, p3) => p1 && (p2 || p3);",
+        "bar() => {",
+        "  'name' : baz((a, b) {",
+        "    return a || b;",
+        "  })",
+        "};",
+        "baz(x) {}");
+  }
+
   public void test_reference_toClassMethod() throws Exception {
     indexTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -1004,6 +1029,7 @@ public class InlineMethodRefactoringImplTest extends RefactoringImplTest {
         "main(p) {",
         "  int localVar;",
         "  test(localVar, p, topLevelVar);",
+        "  test(this, null, null);",
         "}");
     selection = findOffset("test(a, ");
     createRefactoring();
@@ -1228,6 +1254,27 @@ public class InlineMethodRefactoringImplTest extends RefactoringImplTest {
         "// filler filler filler filler filler filler filler filler filler filler",
         "main() {",
         "  var res = 1 * (2 + 3);",
+        "}");
+  }
+
+  public void test_singleExpression_wrapIntoParenthesized3() throws Exception {
+    indexTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "test(bool a, bool b) {",
+        "  return a || b;",
+        "}",
+        "main(bool p, bool p2, bool p3) {",
+        "  var res1 = p && test(p2, p3);",
+        "  var res2 = p || test(p2, p3);",
+        "}");
+    selection = findOffset("test(bool a, bool b)");
+    createRefactoring();
+    // do refactoring
+    assertSuccessfulRefactoring(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main(bool p, bool p2, bool p3) {",
+        "  var res1 = p && (p2 || p3);",
+        "  var res2 = p || p2 || p3;",
         "}");
   }
 

@@ -23,6 +23,11 @@ import com.google.dart.engine.source.Source;
  */
 public final class SourceRange {
   /**
+   * An empty {@link SourceRange} with offset {@code 0} and length {@code 0}.
+   */
+  public static final SourceRange EMPTY = new SourceRange(0, 0);
+
+  /**
    * The 0-based index of the first character of the source code for this element, relative to the
    * source buffer in which this element is contained.
    */

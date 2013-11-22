@@ -82,6 +82,8 @@ import com.google.dart.engine.services.util.HierarchyUtils;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.source.SourceRange;
 
+import static com.google.dart.engine.services.internal.correction.CorrectionUtils.getExpressionParentPrecedence;
+import static com.google.dart.engine.services.internal.correction.CorrectionUtils.getExpressionPrecedence;
 import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeFromBase;
 import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeNode;
 import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeStartEnd;
@@ -131,8 +133,13 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
       // prepare node and environment
       node = refUtils.findNode(reference.getSourceRange().getOffset(), ASTNode.class);
       Statement refStatement = node.getAncestor(Statement.class);
-      refLineRange = refUtils.getLinesRange(ImmutableList.of(refStatement));
-      refPrefix = refUtils.getNodePrefix(refStatement);
+      if (refStatement != null) {
+        refLineRange = refUtils.getLinesRange(ImmutableList.of(refStatement));
+        refPrefix = refUtils.getNodePrefix(refStatement);
+      } else {
+        refLineRange = null;
+        refPrefix = refUtils.getLinePrefix(node.getOffset());
+      }
     }
 
     public void updateRequiresPreviewFlag() {
@@ -203,7 +210,7 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
             arguments.add(((AssignmentExpression) nodeParent.getParent()).getRightHandSide());
           }
           // inline body
-          inlineMethodInvocation(status, nodeParent, cascade, target, arguments);
+          inlineMethodInvocation(status, (Expression) nodeParent, cascade, target, arguments);
           return;
         }
         // not invocation, just reference to function
@@ -265,7 +272,7 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
       return false;
     }
 
-    private void inlineMethodInvocation(RefactoringStatus status, ASTNode methodUsage,
+    private void inlineMethodInvocation(RefactoringStatus status, Expression methodUsage,
         boolean cascaded, Expression target, List<Expression> arguments) {
       // prepare change
       SourceChange refChange;
@@ -306,6 +313,9 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
               methodUsage,
               target,
               arguments);
+          if (getExpressionPrecedence(methodExpression) < getExpressionParentPrecedence(methodUsage)) {
+            source = "(" + source + ")";
+          }
           // do replace
           SourceRange methodUsageRange = rangeNode(methodUsage);
           Edit edit = new Edit(methodUsageRange, source);
@@ -445,6 +455,7 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
   private FormalParameterList methodParameters;
   private FunctionBody methodBody;
 
+  private Expression methodExpression;
   private SourcePart methodExpressionPart;
 
   private SourcePart methodStatementsPart;
@@ -465,6 +476,8 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
     pm.beginTask("Checking final conditions", 5);
     RefactoringStatus result = new RefactoringStatus();
     try {
+      safeManager = new SourceChangeManager();
+      previewManager = new SourceChangeManager();
       // prepare changes
       for (ReferenceProcessor processor : referenceProcessors) {
         processor.process(result);
@@ -503,8 +516,6 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
       pm.worked(1);
       // process references
       {
-        safeManager = new SourceChangeManager();
-        previewManager = new SourceChangeManager();
         requiresPreview = false;
         // find references
         List<SearchMatch> references = context.getSearchEngine().searchReferences(
@@ -651,7 +662,7 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
         }
         // OK, add occurrence
         SourceRange nodeRange = rangeNode(node);
-        int parentPrecedence = CorrectionUtils.getExpressionParentPrecedence(node);
+        int parentPrecedence = getExpressionParentPrecedence(node);
         result.addParameterOccurrence(parameterElement, nodeRange, parentPrecedence);
       }
 
@@ -687,7 +698,7 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
       if (argument instanceof NamedExpression) {
         argument = ((NamedExpression) argument).getExpression();
       }
-      int argumentPrecedence = CorrectionUtils.getExpressionPrecedence(argument);
+      int argumentPrecedence = getExpressionPrecedence(argument);
       String argumentSource = utils.getText(argument);
       // replace all occurrences of this parameter
       for (ParameterOccurrence occurrence : entry.getValue()) {
@@ -742,21 +753,31 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
     return CorrectionUtils.applyReplaceEdits(part.source, edits);
   }
 
+  private SourceRange getNamesConflictingRange(ASTNode node) {
+    // may be Block
+    Block block = node.getAncestor(Block.class);
+    if (block != null) {
+      int offset = node.getOffset();
+      int endOffset = block.getEnd();
+      return rangeStartEnd(offset, endOffset);
+    }
+    // may be whole executable
+    ASTNode executableNode = CorrectionUtils.getEnclosingExecutableNode(node);
+    if (executableNode != null) {
+      return rangeNode(executableNode);
+    }
+    // not a part of declaration with locals
+    return SourceRange.EMPTY;
+  }
+
   /**
    * @return the names which will shadow or will be shadowed by any declaration at "node".
    */
   private Set<String> getNamesConflictingWithLocal(CompilationUnit unit, ASTNode node) {
     final Set<String> result = Sets.newHashSet();
-    // prepare offsets
-    int offset = node.getOffset();
-    final SourceRange offsetRange;
-    {
-      Block block = node.getAncestor(Block.class);
-      int endOffset = block.getEnd();
-      offsetRange = rangeStartEnd(offset, endOffset);
-    }
     // local variables and functions
     {
+      final SourceRange offsetRange = getNamesConflictingRange(node);
       ExecutableElement enclosingExecutable = CorrectionUtils.getEnclosingExecutableElement(node);
       if (enclosingExecutable != null) {
         enclosingExecutable.accept(new GeneralizingElementVisitor<Void>() {
@@ -799,6 +820,9 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
     if (e instanceof BooleanLiteral || e instanceof DoubleLiteral || e instanceof IntegerLiteral
         || e instanceof NullLiteral || e instanceof SimpleStringLiteral
         || e instanceof AdjacentStrings || e instanceof SymbolLiteral) {
+      return false;
+    }
+    if (e instanceof ThisExpression) {
       return false;
     }
     if (e instanceof NamedExpression) {
@@ -900,7 +924,7 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
     final RefactoringStatus result = new RefactoringStatus();
     if (methodBody instanceof ExpressionFunctionBody) {
       ExpressionFunctionBody body = (ExpressionFunctionBody) methodBody;
-      Expression methodExpression = body.getExpression();
+      methodExpression = body.getExpression();
       SourceRange methodExpressionRange = rangeNode(methodExpression);
       methodExpressionPart = createSourcePart(methodExpressionRange);
     } else if (methodBody instanceof BlockFunctionBody) {
@@ -910,7 +934,7 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
         Statement lastStatement = statements.get(statements.size() - 1);
         // "return" statement requires special handling
         if (lastStatement instanceof ReturnStatement) {
-          Expression methodExpression = ((ReturnStatement) lastStatement).getExpression();
+          methodExpression = ((ReturnStatement) lastStatement).getExpression();
           SourceRange methodExpressionRange = rangeNode(methodExpression);
           methodExpressionPart = createSourcePart(methodExpressionRange);
           // exclude "return" statement from statements
