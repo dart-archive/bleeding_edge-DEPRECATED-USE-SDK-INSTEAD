@@ -21,6 +21,8 @@ public class XMLDoubleClickStrategy extends DefaultTextDoubleClickStrategy {
   protected static final char DOUBLE_QUOTE = '\"';
   protected static final char SINGLE_QUOTE = '\'';
   protected static final char SPACE = ' ';
+  protected static final String RIGHT_MUSTACHE = "}}";
+  protected static final String LEFT_MUSTACHE = "{{";
   protected int fCaretPosition = -1;
   protected int fDoubleClickCount = 0;
   protected Node fNode = null;
@@ -30,6 +32,7 @@ public class XMLDoubleClickStrategy extends DefaultTextDoubleClickStrategy {
   protected ITextViewer fTextViewer;
   protected ITextRegion fTextRegion = null;
 
+  @Override
   public void doubleClicked(ITextViewer textViewer) {
     fTextViewer = textViewer;
     try {
@@ -64,6 +67,10 @@ public class XMLDoubleClickStrategy extends DefaultTextDoubleClickStrategy {
     }
   }
 
+  public void setModel(IStructuredModel structuredModel) {
+    fStructuredModel = structuredModel;
+  }
+
   protected Point getWord(String string, int cursor) {
     if (string == null) {
       return null;
@@ -71,12 +78,21 @@ public class XMLDoubleClickStrategy extends DefaultTextDoubleClickStrategy {
 
     int wordStart = 0;
     int wordEnd = string.length();
+    boolean isMustache = false; // if true, allow for spaces in expression
 
     wordStart = string.lastIndexOf(SPACE, cursor - 1);
     int temp = string.lastIndexOf(SINGLE_QUOTE, cursor - 1);
     wordStart = Math.max(wordStart, temp);
     temp = string.lastIndexOf(DOUBLE_QUOTE, cursor - 1);
     wordStart = Math.max(wordStart, temp);
+    temp = string.lastIndexOf(LEFT_MUSTACHE, cursor - 1);
+    if (temp >= 0) {
+      int newStart = Math.max(wordStart, temp + 1);
+      if (newStart > wordStart) {
+        wordStart = newStart;
+        isMustache = true;
+      }
+    }
     if (wordStart == -1) {
       wordStart = cursor;
     } else {
@@ -97,6 +113,12 @@ public class XMLDoubleClickStrategy extends DefaultTextDoubleClickStrategy {
       temp = string.length();
     }
     wordEnd = Math.min(wordEnd, temp);
+    temp = string.indexOf(RIGHT_MUSTACHE, cursor);
+    if (temp == -1) {
+      temp = string.length();
+    } else if (isMustache) {
+      wordEnd = temp;
+    }
     if (wordEnd == string.length()) {
       wordEnd = cursor;
     }
@@ -272,10 +294,6 @@ public class XMLDoubleClickStrategy extends DefaultTextDoubleClickStrategy {
         }
       }
     }
-  }
-
-  public void setModel(IStructuredModel structuredModel) {
-    fStructuredModel = structuredModel;
   }
 
   protected void updateDoubleClickCount(int caretPosition) {
