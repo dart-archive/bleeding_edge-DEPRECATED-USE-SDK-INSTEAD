@@ -158,6 +158,6 @@ public class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType
     }
 
     // Check interface type.
-    return bound.isMoreSpecificThan(s, withDynamic, visitedTypePairs);
+    return ((TypeImpl) bound).isMoreSpecificThan(s, withDynamic, visitedTypePairs);
   }
 }

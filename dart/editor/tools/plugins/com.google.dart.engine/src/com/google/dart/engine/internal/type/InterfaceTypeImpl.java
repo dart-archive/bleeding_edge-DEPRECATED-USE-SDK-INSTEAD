@@ -771,7 +771,10 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
         return false;
       }
       for (int i = 0; i < tArguments.length; i++) {
-        if (!tArguments[i].isMoreSpecificThan(sArguments[i], withDynamic, visitedTypePairs)) {
+        if (!((TypeImpl) tArguments[i]).isMoreSpecificThan(
+            sArguments[i],
+            withDynamic,
+            visitedTypePairs)) {
           return false;
         }
       }
@@ -844,7 +847,7 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       for (int i = 0; i < typeTArgs.length; i++) {
         // Recursively call isSubtypeOf the type arguments and return false if the T argument is not
         // a subtype of the S argument.
-        if (!typeTArgs[i].isSubtypeOf(typeSArgs[i], visitedTypePairs)) {
+        if (!((TypeImpl) typeTArgs[i]).isSubtypeOf(typeSArgs[i], visitedTypePairs)) {
           return false;
         }
       }

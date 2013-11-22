@@ -317,7 +317,7 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
         return false;
       } else if (t.getNormalParameterTypes().length > 0) {
         for (int i = 0; i < tTypes.length; i++) {
-          if (!tTypes[i].isMoreSpecificThan(sTypes[i], withDynamic, visitedTypePairs)) {
+          if (!((TypeImpl) tTypes[i]).isMoreSpecificThan(sTypes[i], withDynamic, visitedTypePairs)) {
             return false;
           }
         }
@@ -337,7 +337,7 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
         if (typeT == null) {
           return false;
         }
-        if (!typeT.isMoreSpecificThan(entryS.getValue(), withDynamic, visitedTypePairs)) {
+        if (!((TypeImpl) typeT).isMoreSpecificThan(entryS.getValue(), withDynamic, visitedTypePairs)) {
           return false;
         }
       }
@@ -356,7 +356,7 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
       if (tOpTypes.length == 0 && sOpTypes.length == 0) {
         // No positional arguments, don't copy contents to new array
         for (int i = 0; i < sTypes.length; i++) {
-          if (!tTypes[i].isMoreSpecificThan(sTypes[i], withDynamic, visitedTypePairs)) {
+          if (!((TypeImpl) tTypes[i]).isMoreSpecificThan(sTypes[i], withDynamic, visitedTypePairs)) {
             return false;
           }
         }
@@ -378,7 +378,10 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
           sAllTypes[i] = sOpTypes[j];
         }
         for (int i = 0; i < sAllTypes.length; i++) {
-          if (!tAllTypes[i].isMoreSpecificThan(sAllTypes[i], withDynamic, visitedTypePairs)) {
+          if (!((TypeImpl) tAllTypes[i]).isMoreSpecificThan(
+              sAllTypes[i],
+              withDynamic,
+              visitedTypePairs)) {
             return false;
           }
         }
@@ -387,12 +390,12 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
     Type tRetType = t.getReturnType();
     Type sRetType = s.getReturnType();
     return sRetType.isVoid()
-        || tRetType.isMoreSpecificThan(sRetType, withDynamic, visitedTypePairs);
+        || ((TypeImpl) tRetType).isMoreSpecificThan(sRetType, withDynamic, visitedTypePairs);
   }
 
   @Override
   public boolean isAssignableTo(Type type) {
-    return this.isSubtypeOf(type, new HashSet<TypePair>());
+    return isSubtypeOf(type, new HashSet<TypePair>());
   }
 
   /**
@@ -533,7 +536,7 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
         return false;
       } else if (t.getNormalParameterTypes().length > 0) {
         for (int i = 0; i < tTypes.length; i++) {
-          if (!tTypes[i].isAssignableTo(sTypes[i], visitedTypePairs)) {
+          if (!((TypeImpl) tTypes[i]).isAssignableTo(sTypes[i], visitedTypePairs)) {
             return false;
           }
         }
@@ -553,7 +556,7 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
         if (typeT == null) {
           return false;
         }
-        if (!typeT.isAssignableTo(entryS.getValue(), visitedTypePairs)) {
+        if (!((TypeImpl) typeT).isAssignableTo(entryS.getValue(), visitedTypePairs)) {
           return false;
         }
       }
@@ -572,7 +575,7 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
       if (tOpTypes.length == 0 && sOpTypes.length == 0) {
         // No positional arguments, don't copy contents to new array
         for (int i = 0; i < sTypes.length; i++) {
-          if (!tTypes[i].isAssignableTo(sTypes[i], visitedTypePairs)) {
+          if (!((TypeImpl) tTypes[i]).isAssignableTo(sTypes[i], visitedTypePairs)) {
             return false;
           }
         }
@@ -594,7 +597,7 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
           sAllTypes[i] = sOpTypes[j];
         }
         for (int i = 0; i < sAllTypes.length; i++) {
-          if (!tAllTypes[i].isAssignableTo(sAllTypes[i], visitedTypePairs)) {
+          if (!((TypeImpl) tAllTypes[i]).isAssignableTo(sAllTypes[i], visitedTypePairs)) {
             return false;
           }
         }
@@ -602,7 +605,7 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
     }
     Type tRetType = t.getReturnType();
     Type sRetType = s.getReturnType();
-    return sRetType.isVoid() || tRetType.isAssignableTo(sRetType, visitedTypePairs);
+    return sRetType.isVoid() || ((TypeImpl) tRetType).isAssignableTo(sRetType, visitedTypePairs);
   }
 
   /**

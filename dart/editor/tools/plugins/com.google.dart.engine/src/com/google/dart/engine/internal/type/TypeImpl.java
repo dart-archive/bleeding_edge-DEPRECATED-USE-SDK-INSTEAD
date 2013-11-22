@@ -137,9 +137,22 @@ public abstract class TypeImpl implements Type {
     return isAssignableTo(type, new HashSet<TypePair>());
   }
 
-  @Override
-  public boolean isAssignableTo(Type type, Set<TypePair> visitedTypePairs) {
-    return this.isSubtypeOf(type, visitedTypePairs) || type.isSubtypeOf(this, visitedTypePairs);
+  /**
+   * Return {@code true} if this type is assignable to the given type. A type <i>T</i> may be
+   * assigned to a type <i>S</i>, written <i>T</i> &hArr; <i>S</i>, iff either <i>T</i> <: <i>S</i>
+   * or <i>S</i> <: <i>T</i>.
+   * <p>
+   * The given set of pairs of types (T1, T2), where each pair indicates that we invoked this method
+   * because we are in the process of answering the question of whether T1 is a subtype of T2, is
+   * used to prevent infinite loops.
+   * 
+   * @param type the type being compared with this type
+   * @param visitedPairs the set of pairs of types used to prevent infinite loops
+   * @return {@code true} if this type is assignable to the given type
+   */
+  public final boolean isAssignableTo(Type type, Set<TypePair> visitedTypePairs) {
+    return isSubtypeOf(type, visitedTypePairs)
+        || ((TypeImpl) type).isSubtypeOf(this, visitedTypePairs);
   }
 
   @Override
@@ -162,7 +175,18 @@ public abstract class TypeImpl implements Type {
     return isMoreSpecificThan(type, false, new HashSet<TypePair>());
   }
 
-  @Override
+  /**
+   * Return {@code true} if this type is more specific than the given type.
+   * <p>
+   * The given set of pairs of types (T1, T2), where each pair indicates that we invoked this method
+   * because we are in the process of answering the question of whether T1 is a subtype of T2, is
+   * used to prevent infinite loops.
+   * 
+   * @param type the type being compared with this type
+   * @param withDynamic {@code true} if "dynamic" should be considered as a subtype of any type
+   * @param visitedPairs the set of pairs of types used to prevent infinite loops
+   * @return {@code true} if this type is more specific than the given type
+   */
   public final boolean isMoreSpecificThan(Type type, boolean withDynamic,
       Set<TypePair> visitedTypePairs) {
     // If the visitedTypePairs already has the pair (this, type), return false
@@ -185,7 +209,17 @@ public abstract class TypeImpl implements Type {
     return isSubtypeOf(type, new HashSet<TypePair>());
   }
 
-  @Override
+  /**
+   * Return {@code true} if this type is a subtype of the given type.
+   * <p>
+   * The given set of pairs of types (T1, T2), where each pair indicates that we invoked this method
+   * because we are in the process of answering the question of whether T1 is a subtype of T2, is
+   * used to prevent infinite loops.
+   * 
+   * @param type the type being compared with this type
+   * @param visitedPairs the set of pairs of types used to prevent infinite loops
+   * @return {@code true} if this type is a subtype of the given type
+   */
   public final boolean isSubtypeOf(Type type, Set<TypePair> visitedTypePairs) {
     // If the visitedTypePairs already has the pair (this, type), return false
     TypePair typePair = new TypePair(this, type);
