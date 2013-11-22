@@ -404,6 +404,13 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
             }
             break;
 
+          case '{':
+            if (prevToken == Symbols.TokenIDENT && previous.equals("$")) {
+              // does not support defining functions within interpolation
+              break;
+            } else {
+              return;
+            }
           default:
             return;
         }
