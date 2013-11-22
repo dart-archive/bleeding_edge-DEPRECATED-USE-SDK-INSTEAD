@@ -21,6 +21,7 @@ import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.ConstructorName;
 import com.google.dart.engine.ast.ExportDirective;
 import com.google.dart.engine.ast.Expression;
+import com.google.dart.engine.ast.HideCombinator;
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.ast.ImportDirective;
 import com.google.dart.engine.ast.IndexExpression;
@@ -313,9 +314,13 @@ public class BestPracticesVerifier extends RecursiveASTVisitor<Void> {
    * @see HintCode#DEPRECATED_MEMBER_USE
    */
   private boolean checkForDeprecatedMemberUse(SimpleIdentifier identifier) {
-    if (identifier.inDeclarationContext()
-        || (identifier.getParent() instanceof ConstructorName && identifier == ((ConstructorName) identifier.getParent()).getName())
-        || (identifier.getParent() instanceof SuperConstructorInvocation && identifier == ((SuperConstructorInvocation) identifier.getParent()).getConstructorName())) {
+    if (identifier.inDeclarationContext()) {
+      return false;
+    }
+    ASTNode parent = identifier.getParent();
+    if ((parent instanceof ConstructorName && identifier == ((ConstructorName) parent).getName())
+        || (parent instanceof SuperConstructorInvocation && identifier == ((SuperConstructorInvocation) parent).getConstructorName())
+        || parent instanceof HideCombinator) {
       return false;
     }
     return checkForDeprecatedMemberUse(identifier.getBestElement(), identifier);

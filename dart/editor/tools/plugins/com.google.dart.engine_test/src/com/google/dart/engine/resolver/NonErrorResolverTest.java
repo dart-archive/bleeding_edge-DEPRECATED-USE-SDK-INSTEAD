@@ -656,6 +656,21 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_deprecatedMemberUse_hide() throws Exception {
+    Source source = addSource(createSource(//
+        "library lib;",
+        "import 'lib1.dart' hide B;",
+        "A a = new A();"));
+    addSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "class A {}",
+        "@deprecated",
+        "class B {}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
   public void test_duplicateDefinition_emptyName() throws Exception {
     // Note: This code has two FunctionElements '() {}' with an empty name, this tests that the
     // empty string is not put into the scope (more than once).
