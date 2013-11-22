@@ -8,7 +8,9 @@
 package org.eclipse.wst.sse.ui;
 
 import com.google.dart.tools.internal.corext.refactoring.util.ReflectionUtils;
+import com.google.dart.tools.ui.PreferenceConstants;
 import com.google.dart.tools.ui.actions.RefactorActionGroup;
+import com.google.dart.tools.ui.internal.text.editor.saveactions.RemoveTrailingWhitespaceAction;
 
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
@@ -216,6 +218,7 @@ import org.eclipse.wst.sse.ui.views.contentoutline.ContentOutlineConfiguration;
 import org.eclipse.wst.sse.ui.views.properties.PropertySheetConfiguration;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -1185,6 +1188,8 @@ public class StructuredTextEditor extends TextEditor {
 
   private CharacterPairListener fPairInserter = new CharacterPairListener();
 
+  private RemoveTrailingWhitespaceAction removeTrailingWhitespaceAction;
+
   /**
    * Creates a new Structured Text Editor.
    */
@@ -2123,6 +2128,7 @@ public class StructuredTextEditor extends TextEditor {
 
     fShowPropertiesAction = new ShowPropertiesAction(getEditorPart(), getSelectionProvider());
     fFoldingGroup = new FoldingActionGroup(this, getSourceViewer());
+    removeTrailingWhitespaceAction = new RemoveTrailingWhitespaceAction(getSourceViewer());
   }
 
   @Override
@@ -2642,6 +2648,12 @@ public class StructuredTextEditor extends TextEditor {
     } finally {
       projectionViewer.setRedraw(true);
     }
+  }
+
+  @Override
+  protected void performSave(boolean overwrite, IProgressMonitor progressMonitor) {
+    performSaveActions();
+    super.performSave(overwrite, progressMonitor);
   }
 
   /*
@@ -3574,6 +3586,11 @@ public class StructuredTextEditor extends TextEditor {
     return (store.getBoolean(AbstractStructuredFoldingStrategy.FOLDING_ENABLED));
   }
 
+  private boolean isRemoveTrailingWhitespaceEnabled() {
+    return PreferenceConstants.getPreferenceStore().getBoolean(
+        PreferenceConstants.EDITOR_REMOVE_TRAILING_WS);
+  }
+
   /**
    * Determine if the user preference for as you type validation is enabled or not
    */
@@ -3610,6 +3627,16 @@ public class StructuredTextEditor extends TextEditor {
         Logger.WARNING,
         "        Unexpected IDocumentProvider implementation: " + getDocumentProvider().getClass().getName()); //$NON-NLS-1$
     Logger.log(Logger.WARNING, "        Unexpected IDocument implementation: " + implClass); //$NON-NLS-1$
+  }
+
+  private void performSaveActions() {
+    if (isRemoveTrailingWhitespaceEnabled()) {
+      try {
+        removeTrailingWhitespaceAction.run();
+      } catch (InvocationTargetException e) {
+        Logger.logException(e);
+      }
+    }
   }
 
   private void removeReconcilingListeners(SourceViewerConfiguration config, StructuredTextViewer stv) {
