@@ -9,7 +9,7 @@ execfile(os.path.join(path, 'dartium.deps', 'DEPS.chromium')) # Include proper C
 vars.update({
   "chromium_url": "http://src.chromium.org/svn",
   "dartium_chromium_url": "http://src.chromium.org/multivm/branches/1650/chrome",
-  "dartium_chromium_revision": "1614",
+  "dartium_chromium_revision": "1617",
   # The Dart repository URL is pulled out here so that it can be easily
   # updated to "https" for committers.
   "dart_branch": "/branches/bleeding_edge",
