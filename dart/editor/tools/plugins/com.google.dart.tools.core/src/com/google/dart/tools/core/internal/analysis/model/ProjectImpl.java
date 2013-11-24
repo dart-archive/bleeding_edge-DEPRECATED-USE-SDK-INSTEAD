@@ -650,6 +650,8 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
       sourceFactory = new SourceFactory(dartResolver, fileResolver);
     }
 
+    sourceFactory.setLocalSourcePredicate(new WorkspaceLocalSourcePredicate(container));
+
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.setHint(DartCore.getPlugin().isHintsEnabled());
     options.setDart2jsHint(DartCore.getPlugin().isHintsDart2JSEnabled());

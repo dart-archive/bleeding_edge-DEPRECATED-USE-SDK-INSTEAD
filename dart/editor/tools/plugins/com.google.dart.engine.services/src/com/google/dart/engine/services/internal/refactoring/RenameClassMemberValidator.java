@@ -17,6 +17,7 @@ package com.google.dart.engine.services.internal.refactoring;
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementKind;
@@ -28,6 +29,7 @@ import com.google.dart.engine.services.status.RefactoringStatus;
 import com.google.dart.engine.services.status.RefactoringStatusContext;
 import com.google.dart.engine.services.util.HierarchyUtils;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.source.SourceFactory;
 
 import static com.google.dart.engine.services.internal.correction.CorrectionUtils.getChildren;
 import static com.google.dart.engine.services.internal.correction.CorrectionUtils.getElementKindName;
@@ -42,6 +44,7 @@ import java.util.Set;
  */
 class RenameClassMemberValidator {
   private final SearchEngine searchEngine;
+  private final AnalysisContext activeContext;
   private final ElementKind elementKind;
   private final ClassElement elementClass;
   private final String oldName;
@@ -56,6 +59,7 @@ class RenameClassMemberValidator {
   public RenameClassMemberValidator(SearchEngine searchEngine, ElementKind elementKind,
       ClassElement elementClass, String oldName, String newName) {
     this.searchEngine = searchEngine;
+    this.activeContext = elementClass.getContext();
     this.elementKind = elementKind;
     this.elementClass = elementClass;
     this.oldName = oldName;
@@ -164,7 +168,8 @@ class RenameClassMemberValidator {
         }
         // ignore if Source cannot be updated
         Source source = child.getSource();
-        if (!RefactoringImpl.canUpdateSource(source)) {
+        SourceFactory activeSourceFactory = activeContext.getSourceFactory();
+        if (!activeSourceFactory.isLocalSource(source)) {
           hasIgnoredElements = true;
           continue;
         }

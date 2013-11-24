@@ -33,14 +33,19 @@ public class SourceFactory {
   private AnalysisContext context;
 
   /**
+   * A cache of content used to override the default content of a source.
+   */
+  private ContentCache contentCache;
+
+  /**
    * The resolvers used to resolve absolute URI's.
    */
   private UriResolver[] resolvers;
 
   /**
-   * A cache of content used to override the default content of a source.
+   * The predicate to determine is {@link Source} is local.
    */
-  private ContentCache contentCache;
+  private LocalSourcePredicate localSourcePredicate;
 
   /**
    * Initialize a newly created source factory.
@@ -51,6 +56,7 @@ public class SourceFactory {
   public SourceFactory(ContentCache contentCache, UriResolver... resolvers) {
     this.contentCache = contentCache;
     this.resolvers = resolvers;
+    this.localSourcePredicate = LocalSourcePredicate.NOT_SDK;
   }
 
   /**
@@ -147,6 +153,16 @@ public class SourceFactory {
   }
 
   /**
+   * Determines if the given {@link Source} is local.
+   * 
+   * @param source the {@link Source} to analyze
+   * @return {@code true} if the given {@link Source} is local
+   */
+  public boolean isLocalSource(Source source) {
+    return localSourcePredicate.isLocal(source);
+  }
+
+  /**
    * Return a source object representing the URI that results from resolving the given (possibly
    * relative) contained URI against the URI associated with an existing source object, or
    * {@code null} if either the contained URI is invalid or if it cannot be resolved against the
@@ -208,6 +224,15 @@ public class SourceFactory {
    */
   public void setContext(AnalysisContext context) {
     this.context = context;
+  }
+
+  /**
+   * Sets the {@link LocalSourcePredicate}.
+   * 
+   * @param localSourcePredicate the predicate to determine is {@link Source} is local
+   */
+  public void setLocalSourcePredicate(LocalSourcePredicate localSourcePredicate) {
+    this.localSourcePredicate = localSourcePredicate;
   }
 
   /**

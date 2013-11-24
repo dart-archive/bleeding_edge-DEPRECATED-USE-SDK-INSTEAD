@@ -38,6 +38,7 @@ import com.google.dart.engine.services.refactoring.SubProgressMonitor;
 import com.google.dart.engine.services.status.RefactoringStatus;
 import com.google.dart.engine.services.util.ElementUtils;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.source.SourceFactory;
 
 import java.util.Iterator;
 import java.util.List;
@@ -197,10 +198,11 @@ public class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
   }
 
   private void removeReferencesIfCannotUpdateSource(List<SearchMatch> references) {
+    SourceFactory sourceFactory = element.getContext().getSourceFactory();
     for (Iterator<SearchMatch> iter = references.iterator(); iter.hasNext();) {
       SearchMatch reference = iter.next();
       Source refSource = reference.getElement().getSource();
-      if (!canUpdateSource(refSource)) {
+      if (!sourceFactory.isLocalSource(refSource)) {
         iter.remove();
         hasIgnoredElements = true;
       }
