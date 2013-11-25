@@ -38,13 +38,24 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
   private HtmlUnit parsedUnit;
 
   /**
+   * The state of the cached parse errors.
+   */
+  private CacheState parseErrorsState = CacheState.INVALID;
+
+  /**
+   * The errors produced while scanning and parsing the HTML, or {@code null} if the errors are not
+   * currently cached.
+   */
+  private AnalysisError[] parseErrors = AnalysisError.NO_ERRORS;
+
+  /**
    * The state of the cached resolution errors.
    */
   private CacheState resolutionErrorsState = CacheState.INVALID;
 
   /**
-   * The errors produced while resolving the compilation unit, or {@code null} if the errors are not
-   * currently cached.
+   * The errors produced while resolving the HTML, or {@code null} if the errors are not currently
+   * cached.
    */
   private AnalysisError[] resolutionErrors = AnalysisError.NO_ERRORS;
 
@@ -90,9 +101,9 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
   @Override
   public AnalysisError[] getAllErrors() {
     ArrayList<AnalysisError> errors = new ArrayList<AnalysisError>();
-//    for (AnalysisError error : parseErrors) {
-//      errors.add(error);
-//    }
+    for (AnalysisError error : parseErrors) {
+      errors.add(error);
+    }
     for (AnalysisError error : resolutionErrors) {
       errors.add(error);
     }
@@ -114,6 +125,8 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
   public CacheState getState(DataDescriptor<?> descriptor) {
     if (descriptor == ELEMENT) {
       return elementState;
+    } else if (descriptor == PARSE_ERRORS) {
+      return parseErrorsState;
     } else if (descriptor == PARSED_UNIT) {
       return parsedUnitState;
     } else if (descriptor == REFERENCED_LIBRARIES) {
@@ -131,6 +144,8 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
   public <E> E getValue(DataDescriptor<E> descriptor) {
     if (descriptor == ELEMENT) {
       return (E) element;
+    } else if (descriptor == PARSE_ERRORS) {
+      return (E) parseErrors;
     } else if (descriptor == PARSED_UNIT) {
       return (E) parsedUnit;
     } else if (descriptor == REFERENCED_LIBRARIES) {
@@ -156,6 +171,8 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
   public void invalidateAllInformation() {
     setState(LINE_INFO, CacheState.INVALID);
 
+    parseErrors = AnalysisError.NO_ERRORS;
+    parseErrorsState = CacheState.INVALID;
     parsedUnit = null;
     parsedUnitState = CacheState.INVALID;
 
@@ -185,6 +202,7 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
    */
   public void recordParseError() {
     setState(SourceEntry.LINE_INFO, CacheState.ERROR);
+    setState(HtmlEntry.PARSE_ERRORS, CacheState.ERROR);
     setState(HtmlEntry.PARSED_UNIT, CacheState.ERROR);
     setState(HtmlEntry.REFERENCED_LIBRARIES, CacheState.ERROR);
     recordResolutionError();
@@ -205,6 +223,9 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
     if (descriptor == ELEMENT) {
       element = updatedValue(state, element, null);
       elementState = state;
+    } else if (descriptor == PARSE_ERRORS) {
+      parseErrors = updatedValue(state, parseErrors, null);
+      parseErrorsState = state;
     } else if (descriptor == PARSED_UNIT) {
       parsedUnit = updatedValue(state, parsedUnit, null);
       parsedUnitState = state;
@@ -227,6 +248,9 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
     if (descriptor == ELEMENT) {
       element = (HtmlElement) value;
       elementState = CacheState.VALID;
+    } else if (descriptor == PARSE_ERRORS) {
+      parseErrors = (AnalysisError[]) value;
+      parseErrorsState = CacheState.VALID;
     } else if (descriptor == PARSED_UNIT) {
       parsedUnit = (HtmlUnit) value;
       parsedUnitState = CacheState.VALID;
@@ -248,6 +272,8 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
   protected void copyFrom(SourceEntryImpl entry) {
     super.copyFrom(entry);
     HtmlEntryImpl other = (HtmlEntryImpl) entry;
+    parseErrorsState = other.parseErrorsState;
+    parseErrors = other.parseErrors;
     parsedUnitState = other.parsedUnitState;
     parsedUnit = other.parsedUnit;
     referencedLibrariesState = other.referencedLibrariesState;
@@ -264,6 +290,8 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
   protected void writeOn(StringBuilder builder) {
     builder.append("Html: ");
     super.writeOn(builder);
+    builder.append("; parseErrors = ");
+    builder.append(parseErrorsState);
     builder.append("; parsedUnit = ");
     builder.append(parsedUnitState);
     builder.append("; resolutionErrors = ");

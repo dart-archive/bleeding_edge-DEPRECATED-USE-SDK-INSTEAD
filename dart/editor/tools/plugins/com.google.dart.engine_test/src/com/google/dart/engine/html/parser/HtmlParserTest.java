@@ -14,7 +14,12 @@
 package com.google.dart.engine.html.parser;
 
 import com.google.dart.engine.EngineTestCase;
+import com.google.dart.engine.ast.Expression;
+import com.google.dart.engine.ast.SimpleIdentifier;
+import com.google.dart.engine.error.GatheringErrorListener;
+import com.google.dart.engine.html.ast.EmbeddedExpression;
 import com.google.dart.engine.html.ast.HtmlUnit;
+import com.google.dart.engine.html.ast.XmlAttributeNode;
 import com.google.dart.engine.html.ast.XmlTagNode;
 import com.google.dart.engine.html.parser.XmlValidator.Attributes;
 import com.google.dart.engine.html.parser.XmlValidator.Tag;
@@ -85,6 +90,19 @@ public class HtmlParserTest extends EngineTestCase {
     assertEquals("sdfsdf", bodyNode.getAttributes().get(0).getText());
   }
 
+  public void test_parse_attribute_withEmbeddedExpression() throws Exception {
+    // TODO(brianwilkerson) Add a test with a missing "}}".
+    HtmlUnit htmlUnit = parse("<html><body foo='{{bar}}'></body></html>").getHtmlUnit();
+    XmlTagNode htmlNode = htmlUnit.getTagNodes().get(0);
+    XmlTagNode bodyNode = htmlNode.getTagNodes().get(0);
+    XmlAttributeNode attribute = bodyNode.getAttributes().get(0);
+    EmbeddedExpression[] expressions = attribute.getExpressions();
+    assertLength(1, expressions);
+    Expression expression = expressions[0].getExpression();
+    assertInstanceOf(SimpleIdentifier.class, expression);
+    assertEquals("bar", ((SimpleIdentifier) expression).getName());
+  }
+
   public void test_parse_comment_embedded() throws Exception {
     HtmlUnit htmlUnit = parse(//
         "<html <!-- comment -->></html>").getHtmlUnit();
@@ -114,6 +132,19 @@ public class HtmlParserTest extends EngineTestCase {
     HtmlUnit htmlUnit = parse(//
         "<html><p/>blat<p/></html>").getHtmlUnit();
     validate(htmlUnit, t("html", "<p/>blat<p/>", t("p", ""), t("p", "")));
+  }
+
+  public void test_parse_content_withEmbeddedExpression() throws Exception {
+    // TODO(brianwilkerson) Add a test with a missing "}}".
+    HtmlUnit htmlUnit = parse("<html><body><p>abc {{elipsis}} xyz</p></body></html>").getHtmlUnit();
+    XmlTagNode htmlNode = htmlUnit.getTagNodes().get(0);
+    XmlTagNode bodyNode = htmlNode.getTagNodes().get(0);
+    XmlTagNode pNode = bodyNode.getTagNodes().get(0);
+    EmbeddedExpression[] expressions = pNode.getExpressions();
+    assertLength(1, expressions);
+    Expression expression = expressions[0].getExpression();
+    assertInstanceOf(SimpleIdentifier.class, expression);
+    assertEquals("elipsis", ((SimpleIdentifier) expression).getName());
   }
 
   public void test_parse_declaration() throws Exception {
@@ -195,7 +226,9 @@ public class HtmlParserTest extends EngineTestCase {
     HtmlScanner scanner = new HtmlScanner(source);
     source.getContents(scanner);
     HtmlScanResult scanResult = scanner.getResult();
-    HtmlParseResult result = new HtmlParser(source).parse(scanResult);
+    GatheringErrorListener errorListener = new GatheringErrorListener();
+    HtmlParseResult result = new HtmlParser(source, errorListener).parse(scanResult);
+    errorListener.assertNoErrors();
     return result;
   }
 

@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.internal.html;
 
+import com.google.dart.engine.html.ast.HtmlScriptTagNode;
 import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.html.ast.XmlAttributeNode;
 import com.google.dart.engine.html.ast.XmlTagNode;
@@ -73,6 +74,11 @@ public class HtmlTagInfoBuilder implements XmlVisitor<Void> {
       classToTagsMap.put(entry.getKey(), tags.toArray(new String[tags.size()]));
     }
     return new HtmlTagInfo(allTags, idMap, classToTagsMap);
+  }
+
+  @Override
+  public Void visitHtmlScriptTagNode(HtmlScriptTagNode node) {
+    return visitXmlTagNode(node);
   }
 
   @Override

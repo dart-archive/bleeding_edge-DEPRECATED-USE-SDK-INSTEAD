@@ -19,6 +19,7 @@ import com.google.dart.engine.error.HintCode;
 import com.google.dart.engine.error.HtmlWarningCode;
 import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.internal.element.HtmlElementImpl;
+import com.google.dart.engine.parser.ParserErrorCode;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.TestSource;
 import com.google.dart.engine.utilities.source.LineInfo;
@@ -33,6 +34,10 @@ public class HtmlEntryImplTest extends EngineTestCase {
     Source source = new TestSource();
     HtmlEntryImpl entry = new HtmlEntryImpl();
     assertLength(0, entry.getAllErrors());
+    entry.setValue(HtmlEntry.PARSE_ERRORS, new AnalysisError[] {new AnalysisError(
+        source,
+        ParserErrorCode.EXPECTED_TOKEN,
+        ";")});
     entry.setValue(HtmlEntry.RESOLUTION_ERRORS, new AnalysisError[] {new AnalysisError(
         source,
         HtmlWarningCode.INVALID_URI,
@@ -40,7 +45,7 @@ public class HtmlEntryImplTest extends EngineTestCase {
     entry.setValue(HtmlEntry.HINTS, new AnalysisError[] {new AnalysisError(
         source,
         HintCode.DEAD_CODE)});
-    assertLength(2, entry.getAllErrors());
+    assertLength(3, entry.getAllErrors());
   }
 
   public void test_getWritableCopy() {
@@ -56,6 +61,7 @@ public class HtmlEntryImplTest extends EngineTestCase {
     assertSame(CacheState.INVALID, entry.getState(HtmlEntry.ELEMENT));
     assertSame(CacheState.INVALID, entry.getState(HtmlEntry.HINTS));
     assertSame(CacheState.VALID, entry.getState(SourceEntry.LINE_INFO));
+    assertSame(CacheState.VALID, entry.getState(HtmlEntry.PARSE_ERRORS));
     assertSame(CacheState.VALID, entry.getState(HtmlEntry.PARSED_UNIT));
     assertSame(CacheState.VALID, entry.getState(HtmlEntry.REFERENCED_LIBRARIES));
     assertSame(CacheState.INVALID, entry.getState(HtmlEntry.RESOLUTION_ERRORS));
@@ -75,6 +81,10 @@ public class HtmlEntryImplTest extends EngineTestCase {
 
   public void test_setState_parsedUnit() {
     setState(HtmlEntry.PARSED_UNIT);
+  }
+
+  public void test_setState_parseErrors() {
+    setState(HtmlEntry.PARSE_ERRORS);
   }
 
   public void test_setState_referencedLibraries() {
@@ -111,6 +121,13 @@ public class HtmlEntryImplTest extends EngineTestCase {
     setValue(HtmlEntry.PARSED_UNIT, new HtmlUnit(null, null, null));
   }
 
+  public void test_setValue_parseErrors() {
+    setValue(HtmlEntry.PARSE_ERRORS, new AnalysisError[] {new AnalysisError(
+        null,
+        HtmlWarningCode.INVALID_URI,
+        "-")});
+  }
+
   public void test_setValue_referencedLibraries() {
     setValue(HtmlEntry.REFERENCED_LIBRARIES, new Source[] {new TestSource()});
   }
@@ -127,6 +144,7 @@ public class HtmlEntryImplTest extends EngineTestCase {
     entry.setValue(HtmlEntry.ELEMENT, null);
     entry.setValue(HtmlEntry.HINTS, null);
     entry.setValue(SourceEntry.LINE_INFO, null);
+    entry.setValue(HtmlEntry.PARSE_ERRORS, null);
     entry.setValue(HtmlEntry.PARSED_UNIT, null);
     entry.setValue(HtmlEntry.REFERENCED_LIBRARIES, null);
     entry.setValue(HtmlEntry.RESOLUTION_ERRORS, null);
@@ -134,6 +152,7 @@ public class HtmlEntryImplTest extends EngineTestCase {
     assertSame(CacheState.VALID, entry.getState(HtmlEntry.ELEMENT));
     assertSame(CacheState.VALID, entry.getState(HtmlEntry.HINTS));
     assertSame(CacheState.VALID, entry.getState(SourceEntry.LINE_INFO));
+    assertSame(CacheState.VALID, entry.getState(HtmlEntry.PARSE_ERRORS));
     assertSame(CacheState.VALID, entry.getState(HtmlEntry.PARSED_UNIT));
     assertSame(CacheState.VALID, entry.getState(HtmlEntry.REFERENCED_LIBRARIES));
     assertSame(CacheState.VALID, entry.getState(HtmlEntry.RESOLUTION_ERRORS));

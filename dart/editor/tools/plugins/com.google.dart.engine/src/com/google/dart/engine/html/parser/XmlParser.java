@@ -68,6 +68,45 @@ public class XmlParser {
   }
 
   /**
+   * Create a node representing an attribute.
+   * 
+   * @param name the name of the attribute
+   * @param equals the equals sign, or {@code null} if there is no value
+   * @param value the value of the attribute
+   * @return the node that was created
+   */
+  protected XmlAttributeNode createAttributeNode(Token name, Token equals, Token value) {
+    return new XmlAttributeNode(name, equals, value);
+  }
+
+  /**
+   * Create a node representing a tag.
+   * 
+   * @param nodeStart the token marking the beginning of the tag
+   * @param tag the name of the tag
+   * @param attributes the attributes in the tag
+   * @param attributeEnd the token terminating the region where attributes can be
+   * @param tagNodes the children of the tag
+   * @param contentEnd the token that starts the closing tag
+   * @param closingTag the name of the tag that occurs in the closing tag
+   * @param nodeEnd the last token in the tag
+   * @return the node that was created
+   */
+  protected XmlTagNode createTagNode(Token nodeStart, Token tag, List<XmlAttributeNode> attributes,
+      Token attributeEnd, List<XmlTagNode> tagNodes, Token contentEnd, Token closingTag,
+      Token nodeEnd) {
+    return new XmlTagNode(
+        nodeStart,
+        tag,
+        attributes,
+        attributeEnd,
+        tagNodes,
+        contentEnd,
+        closingTag,
+        nodeEnd);
+  }
+
+  /**
    * Answer {@code true} if the specified tag is self closing and thus should never have content or
    * child tag nodes.
    * 
@@ -166,7 +205,7 @@ public class XmlParser {
       value = insertSyntheticToken(STRING);
     }
 
-    return new XmlAttributeNode(name, equals, value);
+    return createAttributeNode(name, equals, value);
   }
 
   /**
@@ -274,7 +313,7 @@ public class XmlParser {
 
     // If the node has no children, then return the node
     if (attributeEnd.getType() == SLASH_GT || isSelfClosing(tag)) {
-      return new XmlTagNode(
+      return createTagNode(
           nodeStart,
           tag,
           attributes,
@@ -320,7 +359,7 @@ public class XmlParser {
       nodeEnd = insertSyntheticToken(GT);
     }
 
-    return new XmlTagNode(
+    return createTagNode(
         nodeStart,
         tag,
         attributes,

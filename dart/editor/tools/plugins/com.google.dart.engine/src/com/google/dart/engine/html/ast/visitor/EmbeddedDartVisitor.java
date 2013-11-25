@@ -13,27 +13,41 @@
  */
 package com.google.dart.engine.html.ast.visitor;
 
+import com.google.dart.engine.ast.ASTVisitor;
+import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.html.ast.EmbeddedExpression;
 import com.google.dart.engine.html.ast.HtmlScriptTagNode;
 import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.html.ast.XmlAttributeNode;
 import com.google.dart.engine.html.ast.XmlTagNode;
 
 /**
- * Instances of the class {@code RecursiveXmlVisitor} implement an XML visitor that will recursively
- * visit all of the nodes in an XML structure. For example, using an instance of this class to visit
- * a {@link XmlTagNode} will also cause all of the contained {@link XmlAttributeNode}s and
- * {@link XmlTagNode}s to be visited.
- * <p>
- * Subclasses that override a visit method must either invoke the overridden visit method or must
- * explicitly ask the visited node to visit its children. Failure to do so will cause the children
- * of the visited node to not be visited.
- * 
- * @coverage dart.engine.html
+ * Instances of the class {@code EmbeddedDartVisitor} implement a recursive visitor for HTML files
+ * that will invoke another visitor on all embedded dart scripts and expressions.
  */
-public class RecursiveXmlVisitor<R> implements XmlVisitor<R> {
+public class EmbeddedDartVisitor<R> implements XmlVisitor<R> {
+  /**
+   * The visitor used to visit embedded Dart code.
+   */
+  private ASTVisitor<R> dartVisitor;
+
+  /**
+   * Initialize a newly created visitor to visit all of the nodes in an HTML structure and to use
+   * the given visitor to visit all of the nodes representing any embedded scripts or expressions.
+   * 
+   * @param dartVisitor the visitor used to visit embedded Dart code
+   */
+  public EmbeddedDartVisitor(ASTVisitor<R> dartVisitor) {
+    this.dartVisitor = dartVisitor;
+  }
+
   @Override
   public R visitHtmlScriptTagNode(HtmlScriptTagNode node) {
     node.visitChildren(this);
+    CompilationUnit script = node.getScript();
+    if (script != null) {
+      script.accept(dartVisitor);
+    }
     return null;
   }
 
@@ -46,12 +60,18 @@ public class RecursiveXmlVisitor<R> implements XmlVisitor<R> {
   @Override
   public R visitXmlAttributeNode(XmlAttributeNode node) {
     node.visitChildren(this);
+    for (EmbeddedExpression expression : node.getExpressions()) {
+      expression.getExpression().accept(dartVisitor);
+    }
     return null;
   }
 
   @Override
   public R visitXmlTagNode(XmlTagNode node) {
     node.visitChildren(this);
+    for (EmbeddedExpression expression : node.getExpressions()) {
+      expression.getExpression().accept(dartVisitor);
+    }
     return null;
   }
 }

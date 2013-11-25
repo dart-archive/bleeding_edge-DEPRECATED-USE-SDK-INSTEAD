@@ -2470,6 +2470,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
           HtmlUnit unit = task.getHtmlUnit();
           htmlCopy.setValue(SourceEntry.LINE_INFO, lineInfo);
           htmlCopy.setValue(HtmlEntry.PARSED_UNIT, unit);
+          htmlCopy.setValue(HtmlEntry.PARSE_ERRORS, task.getErrors());
           htmlCopy.setValue(HtmlEntry.REFERENCED_LIBRARIES, task.getReferencedLibraries());
 
           ChangeNoticeImpl notice = getNotice(source);

@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.html.ast.visitor;
 
+import com.google.dart.engine.html.ast.HtmlScriptTagNode;
 import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.html.ast.XmlAttributeNode;
 import com.google.dart.engine.html.ast.XmlNode;
@@ -41,6 +42,11 @@ public class ToSourceVisitor implements XmlVisitor<Void> {
    */
   public ToSourceVisitor(PrintWriter writer) {
     this.writer = writer;
+  }
+
+  @Override
+  public Void visitHtmlScriptTagNode(HtmlScriptTagNode node) {
+    return visitXmlTagNode(node);
   }
 
   @Override

@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.html.ast.visitor;
 
+import com.google.dart.engine.html.ast.HtmlScriptTagNode;
 import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.html.ast.XmlAttributeNode;
 import com.google.dart.engine.html.ast.XmlTagNode;
@@ -24,6 +25,10 @@ import com.google.dart.engine.html.ast.XmlTagNode;
  * structure) and that only need to visit a small number of node types.
  */
 public class SimpleXmlVisitor<R> implements XmlVisitor<R> {
+  @Override
+  public R visitHtmlScriptTagNode(HtmlScriptTagNode node) {
+    return null;
+  }
 
   @Override
   public R visitHtmlUnit(HtmlUnit htmlUnit) {

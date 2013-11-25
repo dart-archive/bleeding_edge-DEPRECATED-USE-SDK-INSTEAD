@@ -28,7 +28,6 @@ import java.util.List;
  * @coverage dart.engine.html
  */
 public class XmlTagNode extends XmlNode {
-
   /**
    * Constant representing empty list of attributes.
    */
@@ -262,6 +261,15 @@ public class XmlTagNode extends XmlNode {
       return attributes.get(attributes.size() - 1).getEndToken();
     }
     return tag;
+  }
+
+  /**
+   * Return the expressions that are embedded in the tag's content.
+   * 
+   * @return the expressions that are embedded in the tag's content
+   */
+  public EmbeddedExpression[] getExpressions() {
+    return EmbeddedExpression.EMPTY_ARRAY;
   }
 
   /**

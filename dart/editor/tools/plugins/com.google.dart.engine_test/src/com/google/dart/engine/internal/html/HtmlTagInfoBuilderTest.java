@@ -14,6 +14,7 @@
 package com.google.dart.engine.internal.html;
 
 import com.google.dart.engine.EngineTestCase;
+import com.google.dart.engine.error.GatheringErrorListener;
 import com.google.dart.engine.html.parser.HtmlParseResult;
 import com.google.dart.engine.html.parser.HtmlParser;
 import com.google.dart.engine.html.scanner.HtmlScanResult;
@@ -53,7 +54,9 @@ public class HtmlTagInfoBuilderTest extends EngineTestCase {
     HtmlScanner scanner = new HtmlScanner(source);
     source.getContents(scanner);
     HtmlScanResult scanResult = scanner.getResult();
-    HtmlParseResult result = new HtmlParser(source).parse(scanResult);
+    GatheringErrorListener errorListener = new GatheringErrorListener();
+    HtmlParseResult result = new HtmlParser(source, errorListener).parse(scanResult);
+    errorListener.assertNoErrors();
     return result;
   }
 }

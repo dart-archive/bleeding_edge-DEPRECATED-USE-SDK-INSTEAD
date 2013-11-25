@@ -15,17 +15,18 @@ package com.google.dart.engine.internal.builder;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.dart.engine.AnalysisEngine;
-import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.HtmlScriptElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.error.HtmlWarningCode;
+import com.google.dart.engine.html.ast.EmbeddedExpression;
+import com.google.dart.engine.html.ast.HtmlScriptTagNode;
 import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.html.ast.XmlAttributeNode;
 import com.google.dart.engine.html.ast.XmlTagNode;
 import com.google.dart.engine.html.ast.visitor.XmlVisitor;
-import com.google.dart.engine.html.scanner.Token;
 import com.google.dart.engine.html.scanner.TokenType;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
 import com.google.dart.engine.internal.context.RecordingErrorListener;
@@ -35,13 +36,9 @@ import com.google.dart.engine.internal.element.HtmlElementImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
 import com.google.dart.engine.internal.resolver.Library;
 import com.google.dart.engine.internal.resolver.LibraryResolver;
-import com.google.dart.engine.parser.Parser;
-import com.google.dart.engine.scanner.Scanner;
-import com.google.dart.engine.scanner.SubSequenceReader;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.io.UriUtilities;
 import com.google.dart.engine.utilities.source.LineInfo;
-import com.google.dart.engine.utilities.source.LineInfo.Location;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -53,11 +50,7 @@ import java.util.Set;
  * Instances of the class {@code HtmlUnitBuilder} build an element model for a single HTML unit.
  */
 public class HtmlUnitBuilder implements XmlVisitor<Void> {
-  private static final String APPLICATION_DART_IN_DOUBLE_QUOTES = "\"application/dart\"";
-  private static final String APPLICATION_DART_IN_SINGLE_QUOTES = "'application/dart'";
-  private static final String SCRIPT = "script";
   private static final String SRC = "src";
-  private static final String TYPE = "type";
 
   /**
    * The analysis context in which the element model will be built.
@@ -163,6 +156,65 @@ public class HtmlUnitBuilder implements XmlVisitor<Void> {
   }
 
   @Override
+  public Void visitHtmlScriptTagNode(HtmlScriptTagNode node) {
+    if (parentNodes.contains(node)) {
+      return reportCircularity(node);
+    }
+    parentNodes.add(node);
+    try {
+      Source htmlSource = htmlElement.getSource();
+      XmlAttributeNode scriptAttribute = getScriptSourcePath(node);
+      String scriptSourcePath = scriptAttribute == null ? null : scriptAttribute.getText();
+      if (node.getAttributeEnd().getType() == TokenType.GT && scriptSourcePath == null) {
+        EmbeddedHtmlScriptElementImpl script = new EmbeddedHtmlScriptElementImpl(node);
+        try {
+          LibraryResolver resolver = new LibraryResolver(context);
+          LibraryElementImpl library = (LibraryElementImpl) resolver.resolveEmbeddedLibrary(
+              htmlSource,
+              modificationStamp,
+              node.getScript(),
+              true);
+          script.setScriptLibrary(library);
+          resolvedLibraries.addAll(resolver.getResolvedLibraries());
+          errorListener.addAll(resolver.getErrorListener());
+        } catch (AnalysisException exception) {
+          //TODO (danrubel): Handle or forward the exception
+          AnalysisEngine.getInstance().getLogger().logError(exception);
+        }
+        node.setScriptElement(script);
+        scripts.add(script);
+      } else {
+        ExternalHtmlScriptElementImpl script = new ExternalHtmlScriptElementImpl(node);
+        if (scriptSourcePath != null) {
+          try {
+            scriptSourcePath = UriUtilities.encode(scriptSourcePath);
+            // Force an exception to be thrown if the URI is invalid so that we can report the
+            // problem.
+            new URI(scriptSourcePath);
+            Source scriptSource = context.getSourceFactory().resolveUri(
+                htmlSource,
+                scriptSourcePath);
+            script.setScriptSource(scriptSource);
+            if (scriptSource == null || !scriptSource.exists()) {
+              reportValueError(
+                  HtmlWarningCode.URI_DOES_NOT_EXIST,
+                  scriptAttribute,
+                  scriptSourcePath);
+            }
+          } catch (URISyntaxException exception) {
+            reportValueError(HtmlWarningCode.INVALID_URI, scriptAttribute, scriptSourcePath);
+          }
+        }
+        node.setScriptElement(script);
+        scripts.add(script);
+      }
+    } finally {
+      parentNodes.remove(node);
+    }
+    return null;
+  }
+
+  @Override
   public Void visitHtmlUnit(HtmlUnit node) {
     parentNodes = new ArrayList<XmlTagNode>();
     scripts = new ArrayList<HtmlScriptElement>();
@@ -178,108 +230,23 @@ public class HtmlUnitBuilder implements XmlVisitor<Void> {
 
   @Override
   public Void visitXmlAttributeNode(XmlAttributeNode node) {
+    for (EmbeddedExpression expression : node.getExpressions()) {
+      resolveExpression(expression.getExpression());
+    }
     return null;
   }
 
   @Override
   public Void visitXmlTagNode(XmlTagNode node) {
     if (parentNodes.contains(node)) {
-      //
-      // This should not be possible, but we have an error report that suggests that it happened at
-      // least once. This code will guard against infinite recursion and might help us identify the
-      // cause of the issue.
-      //
-      StringBuilder builder = new StringBuilder();
-      builder.append("Found circularity in XML nodes: ");
-      boolean first = true;
-      for (XmlTagNode pathNode : parentNodes) {
-        if (first) {
-          first = false;
-        } else {
-          builder.append(", ");
-        }
-        String tagName = pathNode.getTag().getLexeme();
-        if (pathNode == node) {
-          builder.append("*");
-          builder.append(tagName);
-          builder.append("*");
-        } else {
-          builder.append(tagName);
-        }
-      }
-      AnalysisEngine.getInstance().getLogger().logError(builder.toString());
-      return null;
+      return reportCircularity(node);
     }
     parentNodes.add(node);
     try {
-      if (isScriptNode(node)) {
-        Source htmlSource = htmlElement.getSource();
-        XmlAttributeNode scriptAttribute = getScriptSourcePath(node);
-        String scriptSourcePath = scriptAttribute == null ? null : scriptAttribute.getText();
-        if (node.getAttributeEnd().getType() == TokenType.GT && scriptSourcePath == null) {
-          EmbeddedHtmlScriptElementImpl script = new EmbeddedHtmlScriptElementImpl(node);
-          String contents = node.getContent();
-
-          //TODO (danrubel): Move scanning embedded scripts into AnalysisContextImpl
-          // so that clients such as builder can scan, parse, and get errors without resolving
-          int attributeEnd = node.getAttributeEnd().getEnd();
-          Location location = lineInfo.getLocation(attributeEnd);
-          Scanner scanner = new Scanner(
-              htmlSource,
-              new SubSequenceReader(contents, attributeEnd),
-              errorListener);
-          scanner.setSourceStart(location.getLineNumber(), location.getColumnNumber());
-          com.google.dart.engine.scanner.Token firstToken = scanner.tokenize();
-          int[] lineStarts = scanner.getLineStarts();
-
-          //TODO (danrubel): Move parsing embedded scripts into AnalysisContextImpl
-          // so that clients such as builder can scan, parse, and get errors without resolving
-          Parser parser = new Parser(htmlSource, errorListener);
-          CompilationUnit unit = parser.parseCompilationUnit(firstToken);
-//          unit.setLineInfo(new LineInfo(lineStarts));
-
-          try {
-            LibraryResolver resolver = new LibraryResolver(context);
-            LibraryElementImpl library = (LibraryElementImpl) resolver.resolveEmbeddedLibrary(
-                htmlSource,
-                modificationStamp,
-                unit,
-                true);
-            script.setScriptLibrary(library);
-            resolvedLibraries.addAll(resolver.getResolvedLibraries());
-            errorListener.addAll(resolver.getErrorListener());
-          } catch (AnalysisException exception) {
-            //TODO (danrubel): Handle or forward the exception
-            AnalysisEngine.getInstance().getLogger().logError(exception);
-          }
-          scripts.add(script);
-        } else {
-          ExternalHtmlScriptElementImpl script = new ExternalHtmlScriptElementImpl(node);
-          if (scriptSourcePath != null) {
-            try {
-              scriptSourcePath = UriUtilities.encode(scriptSourcePath);
-              // Force an exception to be thrown if the URI is invalid so that we can report the
-              // problem.
-              new URI(scriptSourcePath);
-              Source scriptSource = context.getSourceFactory().resolveUri(
-                  htmlSource,
-                  scriptSourcePath);
-              script.setScriptSource(scriptSource);
-              if (scriptSource == null || !scriptSource.exists()) {
-                reportValueError(
-                    HtmlWarningCode.URI_DOES_NOT_EXIST,
-                    scriptAttribute,
-                    scriptSourcePath);
-              }
-            } catch (URISyntaxException exception) {
-              reportValueError(HtmlWarningCode.INVALID_URI, scriptAttribute, scriptSourcePath);
-            }
-          }
-          scripts.add(script);
-        }
-      } else {
-        node.visitChildren(this);
+      for (EmbeddedExpression expression : node.getExpressions()) {
+        resolveExpression(expression.getExpression());
       }
+      node.visitChildren(this);
     } finally {
       parentNodes.remove(node);
     }
@@ -301,29 +268,32 @@ public class HtmlUnitBuilder implements XmlVisitor<Void> {
     return null;
   }
 
-  /**
-   * Determine if the specified node is a Dart script.
-   * 
-   * @param node the node to be tested (not {@code null})
-   * @return {@code true} if the node is a Dart script
-   */
-  private boolean isScriptNode(XmlTagNode node) {
-    if (node.getTagNodes().size() != 0 || !node.getTag().getLexeme().equals(SCRIPT)) {
-      return false;
-    }
-    for (XmlAttributeNode attribute : node.getAttributes()) {
-      if (attribute.getName().getLexeme().equals(TYPE)) {
-        Token valueToken = attribute.getValue();
-        if (valueToken != null) {
-          String value = valueToken.getLexeme();
-          if (value.equals(APPLICATION_DART_IN_DOUBLE_QUOTES)
-              || value.equals(APPLICATION_DART_IN_SINGLE_QUOTES)) {
-            return true;
-          }
-        }
+  private Void reportCircularity(XmlTagNode node) {
+    //
+    // This should not be possible, but we have an error report that suggests that it happened at
+    // least once. This code will guard against infinite recursion and might help us identify the
+    // cause of the issue.
+    //
+    StringBuilder builder = new StringBuilder();
+    builder.append("Found circularity in XML nodes: ");
+    boolean first = true;
+    for (XmlTagNode pathNode : parentNodes) {
+      if (first) {
+        first = false;
+      } else {
+        builder.append(", ");
+      }
+      String tagName = pathNode.getTag().getLexeme();
+      if (pathNode == node) {
+        builder.append("*");
+        builder.append(tagName);
+        builder.append("*");
+      } else {
+        builder.append(tagName);
       }
     }
-    return false;
+    AnalysisEngine.getInstance().getLogger().logError(builder.toString());
+    return null;
   }
 
   /**
@@ -358,5 +328,10 @@ public class HtmlUnitBuilder implements XmlVisitor<Void> {
     int offset = attribute.getValue().getOffset() + 1;
     int length = attribute.getValue().getLength() - 2;
     reportError(errorCode, offset, length, arguments);
+  }
+
+  private void resolveExpression(Expression expression) {
+    // TODO(brianwilkerson) Implement this. We need to figure out the right context in which to
+    // resolve the expression.
   }
 }

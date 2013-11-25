@@ -67,6 +67,15 @@ public class XmlAttributeNode extends XmlNode {
   }
 
   /**
+   * Return the expressions that are embedded in the attribute's value.
+   * 
+   * @return the expressions that are embedded in the attribute's value
+   */
+  public EmbeddedExpression[] getExpressions() {
+    return EmbeddedExpression.EMPTY_ARRAY;
+  }
+
+  /**
    * Answer the attribute name. This may be a zero length token if the attribute is badly formed.
    * 
    * @return the name (not {@code null})

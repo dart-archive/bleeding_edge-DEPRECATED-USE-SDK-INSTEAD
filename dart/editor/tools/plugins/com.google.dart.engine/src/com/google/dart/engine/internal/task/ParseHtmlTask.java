@@ -14,15 +14,17 @@
 package com.google.dart.engine.internal.task;
 
 import com.google.dart.engine.context.AnalysisException;
+import com.google.dart.engine.error.AnalysisError;
+import com.google.dart.engine.html.ast.HtmlScriptTagNode;
 import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.html.ast.XmlAttributeNode;
-import com.google.dart.engine.html.ast.XmlTagNode;
 import com.google.dart.engine.html.ast.visitor.RecursiveXmlVisitor;
 import com.google.dart.engine.html.parser.HtmlParseResult;
 import com.google.dart.engine.html.parser.HtmlParser;
 import com.google.dart.engine.html.scanner.HtmlScanResult;
 import com.google.dart.engine.html.scanner.HtmlScanner;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
+import com.google.dart.engine.internal.context.RecordingErrorListener;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.source.LineInfo;
 
@@ -53,6 +55,11 @@ public class ParseHtmlTask extends AnalysisTask {
    * The HTML unit that was produced by parsing the source.
    */
   private HtmlUnit unit;
+
+  /**
+   * The errors that were produced by scanning and parsing the source.
+   */
+  private AnalysisError[] errors = AnalysisError.NO_ERRORS;
 
   /**
    * An array containing the sources of the libraries that are referenced within the HTML.
@@ -94,6 +101,16 @@ public class ParseHtmlTask extends AnalysisTask {
   @Override
   public <E> E accept(AnalysisTaskVisitor<E> visitor) throws AnalysisException {
     return visitor.visitParseHtmlTask(this);
+  }
+
+  /**
+   * Return the errors that were produced by scanning and parsing the source, or {@code null} if the
+   * task has not yet been performed or if an exception occurred.
+   * 
+   * @return the errors that were produced by scanning and parsing the source
+   */
+  public AnalysisError[] getErrors() {
+    return errors;
   }
 
   /**
@@ -162,8 +179,10 @@ public class ParseHtmlTask extends AnalysisTask {
     HtmlScanResult scannerResult = scanner.getResult();
     modificationTime = scannerResult.getModificationTime();
     lineInfo = new LineInfo(scannerResult.getLineStarts());
-    HtmlParseResult result = new HtmlParser(source).parse(scannerResult);
+    final RecordingErrorListener errorListener = new RecordingErrorListener();
+    HtmlParseResult result = new HtmlParser(source, errorListener).parse(scannerResult);
     unit = result.getHtmlUnit();
+    errors = errorListener.getErrors(source);
     referencedLibraries = getLibrarySources();
   }
 
@@ -176,33 +195,26 @@ public class ParseHtmlTask extends AnalysisTask {
     final ArrayList<Source> libraries = new ArrayList<Source>();
     unit.accept(new RecursiveXmlVisitor<Void>() {
       @Override
-      public Void visitXmlTagNode(XmlTagNode node) {
-        if (node.getTag().getLexeme().equalsIgnoreCase(TAG_SCRIPT)) {
-          boolean isDartScript = false;
-          XmlAttributeNode scriptAttribute = null;
-          for (XmlAttributeNode attribute : node.getAttributes()) {
-            if (attribute.getName().getLexeme().equalsIgnoreCase(ATTRIBUTE_SRC)) {
-              scriptAttribute = attribute;
-            } else if (attribute.getName().getLexeme().equalsIgnoreCase(ATTRIBUTE_TYPE)) {
-              if (attribute.getText().equalsIgnoreCase(TYPE_DART)) {
-                isDartScript = true;
-              }
-            }
-          }
-          if (isDartScript && scriptAttribute != null) {
-            try {
-              URI uri = new URI(null, null, scriptAttribute.getText(), null);
-              String fileName = uri.getPath();
-              Source librarySource = getContext().getSourceFactory().resolveUri(source, fileName);
-              if (librarySource != null && librarySource.exists()) {
-                libraries.add(librarySource);
-              }
-            } catch (URISyntaxException e) {
-              // ignored - invalid URI reported during resolution phase
-            }
+      public Void visitHtmlScriptTagNode(HtmlScriptTagNode node) {
+        XmlAttributeNode scriptAttribute = null;
+        for (XmlAttributeNode attribute : node.getAttributes()) {
+          if (attribute.getName().getLexeme().equalsIgnoreCase(ATTRIBUTE_SRC)) {
+            scriptAttribute = attribute;
           }
         }
-        return super.visitXmlTagNode(node);
+        if (scriptAttribute != null) {
+          try {
+            URI uri = new URI(null, null, scriptAttribute.getText(), null);
+            String fileName = uri.getPath();
+            Source librarySource = getContext().getSourceFactory().resolveUri(source, fileName);
+            if (librarySource != null && librarySource.exists()) {
+              libraries.add(librarySource);
+            }
+          } catch (URISyntaxException e) {
+            // ignored - invalid URI reported during resolution phase
+          }
+        }
+        return super.visitHtmlScriptTagNode(node);
       }
     });
     if (libraries.isEmpty()) {

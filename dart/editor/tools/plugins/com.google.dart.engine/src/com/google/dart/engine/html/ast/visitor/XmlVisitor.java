@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.html.ast.visitor;
 
+import com.google.dart.engine.html.ast.HtmlScriptTagNode;
 import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.html.ast.XmlAttributeNode;
 import com.google.dart.engine.html.ast.XmlNode;
@@ -25,10 +26,11 @@ import com.google.dart.engine.html.ast.XmlTagNode;
  * @coverage dart.engine.html
  */
 public interface XmlVisitor<R> {
+  public R visitHtmlScriptTagNode(HtmlScriptTagNode node);
 
-  R visitHtmlUnit(HtmlUnit htmlUnit);
+  public R visitHtmlUnit(HtmlUnit htmlUnit);
 
-  R visitXmlAttributeNode(XmlAttributeNode xmlAttributeNode);
+  public R visitXmlAttributeNode(XmlAttributeNode xmlAttributeNode);
 
-  R visitXmlTagNode(XmlTagNode xmlTagNode);
+  public R visitXmlTagNode(XmlTagNode xmlTagNode);
 }
