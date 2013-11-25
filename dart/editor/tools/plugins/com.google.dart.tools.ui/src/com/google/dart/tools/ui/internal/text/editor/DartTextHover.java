@@ -14,7 +14,11 @@
 
 package com.google.dart.tools.ui.internal.text.editor;
 
+import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.Expression;
+import com.google.dart.engine.ast.visitor.ElementLocator;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.type.Type;
 import com.google.dart.tools.core.utilities.dartdoc.DartDocUtilities;
 import com.google.dart.tools.ui.internal.actions.NewSelectionConverter;
 import com.google.dart.tools.ui.text.DartSourceViewerConfiguration;
@@ -51,9 +55,9 @@ public class DartTextHover extends DefaultTextHover implements ITextHoverExtensi
     hoverContributors.add(hoverContributor);
   }
 
-  public static String getElementDocumentationHtml(Element element) {
+  public static String getElementDocumentationHtml(Type type, Element element) {
     if (element != null) {
-      String textSummary = DartDocUtilities.getTextSummaryAsHtml(element);
+      String textSummary = DartDocUtilities.getTextSummaryAsHtml(type, element);
 
       if (textSummary != null) {
 
@@ -189,8 +193,10 @@ public class DartTextHover extends DefaultTextHover implements ITextHoverExtensi
    */
   private String getDartDocHover(IRegion region) {
     if (editor != null) {
-      Element element = NewSelectionConverter.getElementAtOffset(editor, region.getOffset());
-      return getElementDocumentationHtml(element);
+      ASTNode node = NewSelectionConverter.getNodeAtOffset(editor, region.getOffset());
+      Type type = node instanceof Expression ? ((Expression) node).getBestType() : null;
+      Element element = ElementLocator.locate(node);
+      return getElementDocumentationHtml(type, element);
     }
 
     return null;

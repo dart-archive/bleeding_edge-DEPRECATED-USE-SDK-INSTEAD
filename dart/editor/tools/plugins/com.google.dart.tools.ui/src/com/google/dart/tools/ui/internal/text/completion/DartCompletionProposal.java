@@ -171,7 +171,7 @@ public class DartCompletionProposal extends AbstractDartCompletionProposal {
 
   @Override
   protected ProposalInfo getProposalInfo() {
-    String html = DartTextHover.getElementDocumentationHtml(element);
+    String html = DartTextHover.getElementDocumentationHtml(null, element);
     return new ProposalInfo(null, html);
   }
 

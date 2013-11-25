@@ -15,12 +15,14 @@ package com.google.dart.tools.core.utilities.dartdoc;
 
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.visitor.ElementLocator;
 import com.google.dart.engine.ast.visitor.NodeLocator;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.resolver.ResolverTestCase;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.type.Type;
 
 public class DartDocUtilitiesTest extends ResolverTestCase {
   public void test_class_doc() throws Exception {
@@ -50,13 +52,13 @@ public class DartDocUtilitiesTest extends ResolverTestCase {
   public void test_class_param__bound_text_summary() throws Exception {
     ASTNode id = findNodeIn("A", "class Z<A extends List> { }");
     Element element = ElementLocator.locate(id);
-    assertEquals("<A extends List>", DartDocUtilities.getTextSummary(element));
+    assertEquals("<A extends List>", DartDocUtilities.getTextSummary(null, element));
   }
 
   public void test_class_param_text_summary() throws Exception {
     ASTNode id = findNodeIn("A", "class Z<A> { }");
     Element element = ElementLocator.locate(id);
-    assertEquals("<A>", DartDocUtilities.getTextSummary(element));
+    assertEquals("<A>", DartDocUtilities.getTextSummary(null, element));
   }
 
   public void test_class_param_text_summary_2() throws Exception {
@@ -64,13 +66,13 @@ public class DartDocUtilitiesTest extends ResolverTestCase {
         "x(String s){}",
         "main() { x('foo'); }"));
     Element element = ElementLocator.locate(id);
-    assertEquals(null, DartDocUtilities.getTextSummary(element));
+    assertEquals(null, DartDocUtilities.getTextSummary(null, element));
   }
 
   public void test_class_text_summary() throws Exception {
     ASTNode id = findNodeIn("A", "class A { }");
     Element element = ElementLocator.locate(id);
-    assertEquals("A", DartDocUtilities.getTextSummary(element));
+    assertEquals("A", DartDocUtilities.getTextSummary(null, element));
   }
 
   public void test_codeBlock() throws Exception {
@@ -96,7 +98,7 @@ public class DartDocUtilitiesTest extends ResolverTestCase {
         "  A.named(String x){}",
         "}"));
     Element element = ElementLocator.locate(id);
-    assertEquals("A.named(String x)", DartDocUtilities.getTextSummary(element));
+    assertEquals("A.named(String x)", DartDocUtilities.getTextSummary(null, element));
   }
 
   public void test_cons_text_summary() throws Exception {
@@ -105,7 +107,7 @@ public class DartDocUtilitiesTest extends ResolverTestCase {
         "  A(String x){}",
         "}"));
     Element element = ElementLocator.locate(id);
-    assertEquals("A(String x)", DartDocUtilities.getTextSummary(element));
+    assertEquals("A(String x)", DartDocUtilities.getTextSummary(null, element));
   }
 
   public void test_formal_params_text_summary() throws Exception {
@@ -115,7 +117,7 @@ public class DartDocUtilitiesTest extends ResolverTestCase {
         "  int index;",
         "}"));
     Element element = ElementLocator.locate(id);
-    assertEquals("int index", DartDocUtilities.getTextSummary(element));
+    assertEquals("int index", DartDocUtilities.getTextSummary(null, element));
   }
 
   public void test_method_doc() throws Exception {
@@ -129,20 +131,22 @@ public class DartDocUtilitiesTest extends ResolverTestCase {
   public void test_method_named_doc() throws Exception {
     ASTNode id = findNodeIn("x", "void x({String named}) {}");
     Element element = ElementLocator.locate(id);
-    assertEquals("void x({String named})", DartDocUtilities.getTextSummary(element));
+    assertEquals("void x({String named})", DartDocUtilities.getTextSummary(null, element));
   }
 
   public void test_method_named_doc_2() throws Exception {
     ASTNode id = findNodeIn("x", "void x(int unnamed, {String named}) {}");
     Element element = ElementLocator.locate(id);
-    assertEquals("void x(int unnamed, {String named})", DartDocUtilities.getTextSummary(element));
+    assertEquals(
+        "void x(int unnamed, {String named})",
+        DartDocUtilities.getTextSummary(null, element));
   }
 
   public void test_method_null_body() throws Exception {
     ASTNode id = findNodeIn("null", createSource(//
         "List<String> x()=> null;"));
     Element element = ElementLocator.locate(id);
-    assertEquals(null, DartDocUtilities.getTextSummary(element));
+    assertEquals(null, DartDocUtilities.getTextSummary(null, element));
   }
 
   public void test_method_optional_doc() throws Exception {
@@ -150,14 +154,14 @@ public class DartDocUtilitiesTest extends ResolverTestCase {
     Element element = ElementLocator.locate(id);
     assertEquals(
         "void x([bool opt: false, bool opt2: true])",
-        DartDocUtilities.getTextSummary(element));
+        DartDocUtilities.getTextSummary(null, element));
   }
 
   public void test_method_paramed_text() throws Exception {
     ASTNode id = findNodeIn("x", createSource(//
         "List<String> x()=> null;"));
     Element element = ElementLocator.locate(id);
-    assertEquals("List<String> x()", DartDocUtilities.getTextSummary(element));
+    assertEquals("List<String> x()", DartDocUtilities.getTextSummary(null, element));
   }
 
   public void test_orderedList() throws Exception {
@@ -184,7 +188,7 @@ public class DartDocUtilitiesTest extends ResolverTestCase {
         "  void foo({bool x: false}){}",
         "}"));
     Element element = ElementLocator.locate(id);
-    assertEquals("void foo({bool x: false})", DartDocUtilities.getTextSummary(element));
+    assertEquals("void foo({bool x: false})", DartDocUtilities.getTextSummary(null, element));
   }
 
   public void test_param_text_summary() throws Exception {
@@ -193,7 +197,7 @@ public class DartDocUtilitiesTest extends ResolverTestCase {
         "  A(String x){}",
         "}"));
     Element element = ElementLocator.locate(id);
-    assertEquals("String x", DartDocUtilities.getTextSummary(element));
+    assertEquals("String x", DartDocUtilities.getTextSummary(null, element));
   }
 
   public void test_unorderedList() throws Exception {
@@ -217,7 +221,14 @@ public class DartDocUtilitiesTest extends ResolverTestCase {
   public void test_var_text() throws Exception {
     ASTNode id = findNodeIn("x", "int x;\n");
     Element element = ElementLocator.locate(id);
-    assertEquals("int x", DartDocUtilities.getTextSummary(element));
+    assertEquals("int x", DartDocUtilities.getTextSummary(null, element));
+  }
+
+  public void test_var_text_withType() throws Exception {
+    ASTNode id = findNodeIn("x", "var x = 42;\n");
+    Type type = ((Expression) id).getBestType();
+    Element element = ElementLocator.locate(id);
+    assertEquals("int x", DartDocUtilities.getTextSummary(type, element));
   }
 
   private ASTNode findNodeIn(String nodePattern, String... lines) throws Exception {

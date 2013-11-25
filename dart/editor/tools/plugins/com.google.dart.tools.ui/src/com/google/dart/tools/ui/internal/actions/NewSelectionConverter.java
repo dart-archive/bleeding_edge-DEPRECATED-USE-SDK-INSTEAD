@@ -58,13 +58,7 @@ public class NewSelectionConverter {
    * @return the associated element
    */
   public static Element getElementAtOffset(DartEditor editor, int caret) {
-
-    CompilationUnit cu = editor.getInputUnit();
-    if (cu == null) {
-      return null;
-    }
-
-    ASTNode node = new NodeLocator(caret).searchWithin(cu);
+    ASTNode node = getNodeAtOffset(editor, caret);
     if (node == null) {
       return null;
     }
@@ -171,5 +165,20 @@ public class NewSelectionConverter {
       }
     });
     return result[0];
+  }
+
+  /**
+   * Get the {@link ASTNode} associated with the selected portion of the given editor.
+   * 
+   * @param editor the editor
+   * @param caret the caret position in the editor
+   * @return the associated {@link ASTNode}
+   */
+  public static ASTNode getNodeAtOffset(DartEditor editor, int caret) {
+    CompilationUnit cu = editor.getInputUnit();
+    if (cu == null) {
+      return null;
+    }
+    return new NodeLocator(caret).searchWithin(cu);
   }
 }

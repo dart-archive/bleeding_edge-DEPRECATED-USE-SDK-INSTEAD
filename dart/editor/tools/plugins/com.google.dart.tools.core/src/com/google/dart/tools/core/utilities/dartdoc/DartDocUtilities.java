@@ -22,6 +22,7 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.FieldFormalParameterElement;
+import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.element.MethodElement;
@@ -33,6 +34,7 @@ import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.element.visitor.SimpleElementVisitor;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.Source.ContentReceiver;
+import com.google.dart.engine.type.Type;
 import com.google.dart.engine.utilities.dart.ParameterKind;
 import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.DartCore;
@@ -50,6 +52,12 @@ import java.nio.CharBuffer;
 public final class DartDocUtilities {
 
   private static class DocumentingVisitor extends SimpleElementVisitor<String> {
+    private Type elementType;
+
+    public DocumentingVisitor(Type type) {
+      this.elementType = type;
+    }
+
     @Override
     public String visitClassElement(ClassElement element) {
 
@@ -87,7 +95,7 @@ public final class DartDocUtilities {
     }
 
     @Override
-    public String visitFunctionElement(com.google.dart.engine.element.FunctionElement element) {
+    public String visitFunctionElement(FunctionElement element) {
       return getDescription(element);
     }
 
@@ -274,7 +282,11 @@ public final class DartDocUtilities {
     }
 
     private String getTypeName(VariableElement element) {
-      return getName(element.getType());
+      Type type = element.getType();
+      if (elementType != null) {
+        type = elementType;
+      }
+      return getName(type);
     }
 
   }
@@ -373,27 +385,26 @@ public final class DartDocUtilities {
   /**
    * Return a one-line description of the given Element.
    * 
-   * @param the element to document
+   * @param type the best known {@link Type} of the given {@link Element}
+   * @param element the {@link Element} to document
    * @return a String summarizing this element, or {@code null} if there is no suitable
    *         documentation
    */
-  public static String getTextSummary(Element element) {
-
+  public static String getTextSummary(Type type, Element element) {
     if (element != null) {
-      String description = element.accept(new DocumentingVisitor());
+      String description = element.accept(new DocumentingVisitor(type));
       if (description != null) {
         return description;
       }
     }
-
     return null;
   }
 
   /**
    * Return a one-line description of the given Element as html
    */
-  public static String getTextSummaryAsHtml(Element element) {
-    String summary = getTextSummary(element);
+  public static String getTextSummaryAsHtml(Type type, Element element) {
+    String summary = getTextSummary(type, element);
     if (summary == null) {
       return null;
     }

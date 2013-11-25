@@ -401,7 +401,7 @@ public class LazyDartCompletionProposal extends AbstractDartCompletionProposal {
 
   protected ProposalInfo computeProposalInfo() {
     Element element = fProposal.getElement();
-    String html = DartTextHover.getElementDocumentationHtml(element);
+    String html = DartTextHover.getElementDocumentationHtml(null, element);
     return new ProposalInfo(fProposal, html);
   }
 
