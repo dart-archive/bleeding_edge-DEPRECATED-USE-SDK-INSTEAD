@@ -86,6 +86,16 @@ public class DartTextHover extends DefaultTextHover implements ITextHoverExtensi
     hoverContributors.remove(hoverContributor);
   }
 
+  private static StringBuilder append(StringBuilder buffer, String s) {
+    if (buffer.length() != 0) {
+      buffer.append("<br><br>");
+    }
+    if (s != null) {
+      buffer.append(s);
+    }
+    return buffer;
+  }
+
   private CompilationUnitEditor editor;
 
   private DartSourceViewerConfiguration sourceViewerConfiguration;
@@ -143,12 +153,11 @@ public class DartTextHover extends DefaultTextHover implements ITextHoverExtensi
     // means trying to call getHoverInfo2() on any contributors, and falling back on getHoverInfo().
     lastReturnedHover = null;
 
-    // Return any annotation info - i.e. errors and warnings.
-    String annotationHover = super.getHoverInfo(textViewer, region);
+    StringBuilder buffer = new StringBuilder();
 
-    if (annotationHover != null) {
-      return escapeHtmlEntities(annotationHover);
-    }
+    // Append any annotation info - i.e. errors and warnings.
+    String annotationHover = super.getHoverInfo(textViewer, region);
+    append(buffer, escapeHtmlEntities(annotationHover));
 
     // Check through the contributed hover providers.
     for (ITextHover hoverContributer : hoverContributors) {
@@ -159,7 +168,6 @@ public class DartTextHover extends DefaultTextHover implements ITextHoverExtensi
 
         if (hoverInfo != null) {
           lastReturnedHover = hoverContributer;
-
           return hoverInfo;
         }
       } else {
@@ -167,14 +175,14 @@ public class DartTextHover extends DefaultTextHover implements ITextHoverExtensi
 
         if (hoverText != null) {
           lastReturnedHover = hoverContributer;
-
           return hoverText;
         }
       }
     }
 
     // Check for a dartdoc contribution.
-    return getDartDocHover(region);
+    String dartDocHover = getDartDocHover(region);
+    return append(buffer, dartDocHover).toString();
   }
 
   @Override
