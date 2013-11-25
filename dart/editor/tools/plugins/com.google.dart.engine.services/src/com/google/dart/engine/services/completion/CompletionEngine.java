@@ -2153,6 +2153,7 @@ public class CompletionEngine {
   private CompletionProposal createProposal(Element element, String completion) {
     ProposalKind kind = proposalKindOf(element);
     CompletionProposal prop = createProposal(kind);
+    prop.setElement(element);
     prop.setCompletion(completion);
     prop.setDeprecated(isDeprecated(element));
     if (isPrivate(element)) {
@@ -2421,7 +2422,6 @@ public class CompletionEngine {
 
     setParameterInfo(element, prop);
     prop.setCompletion(name).setReturnType(element.getType().getReturnType().getDisplayName());
-    prop.setElement(element);
 
     // If there is already argument list, then update only method name.
     if (identifier.getParent() instanceof MethodInvocation
@@ -2444,7 +2444,6 @@ public class CompletionEngine {
       return; // Simple constructors are not handled here
     }
     CompletionProposal prop = createProposal(element);
-    prop.setElement(element);
     if (element.getType() != null) {
       prop.setReturnType(element.getType().getName());
     }
@@ -2468,7 +2467,6 @@ public class CompletionEngine {
       return;
     }
     CompletionProposal prop = createProposal(element);
-    prop.setElement(element);
     Element container = element.getEnclosingElement();
     prop.setDeclaringType(container.getDisplayName());
     requestor.accept(prop);
