@@ -210,6 +210,7 @@ class AntWrapper(object):
     if extra_args:
       args.extend(extra_args)
     args.append('-Dbuild.local.build=false')
+    args.append('-Dbuild.channel=' + CHANNEL)
 
     extra_args = os.environ.get('ANT_EXTRA_ARGS')
     if extra_args is not None:

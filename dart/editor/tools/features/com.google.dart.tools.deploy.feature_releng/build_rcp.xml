@@ -155,6 +155,7 @@ build system.  The PDE build system has to run under Eclipse.
         <property name="build.dart.sdk" value="true"/>
 
         <echoProperty propertyname="build.revision" />
+        <echoProperty propertyname="build.channel" />
         <echoProperty propertyname="build.builder" />
         <echoProperty propertyname="build.root" />
         <echoProperty propertyname="build.out" />
@@ -374,6 +375,12 @@ build system.  The PDE build system has to run under Eclipse.
             <include name="**/DartCore.java" />
             <replacefilter token="@BUILDDATE@" value="${build.date.ymd}" />
             <replacefilter token="@REVISION@" value="${build.revision}" />
+        </replace>
+
+        <echo message="replacing @CHANNEL@ in ${build.stage.plugins}/com.google.dart.tools.core/update.properties" />
+        <replace dir="${build.stage.plugins}/com.google.dart.tools.core" >
+            <include name="update.properties" />
+            <replacefilter token="@CHANNEL@" value="${build.channel}" />
         </replace>
 
         <echo message="replacing @BUILDYEAR@ in ${build.stage.plugins}/com.google.dart.tools.ui/src/com/google/dart/tools/ui/dialogs/DialogsMessages.properties" />
