@@ -147,6 +147,12 @@
         
     	  <xmlproperty file="${build.dir}/features/com.google.dart.eclipse.feature/feature.xml" collapseAttributes="true"/>
     	
+        <echo message="replacing @CHANNEL@ in ${build.stage.plugins}/com.google.dart.tools.core/update.properties" />
+        <replace dir="${build.dir}/plugins/com.google.dart.tools.core" >
+            <include name="update.properties" />
+            <replacefilter token="@CHANNEL@" value="${build.channel}" />
+        </replace>
+
         <echo message="Dart Editor for Eclipse version ${feature.version}"/>
         <echo message="Building for Eclipse 3.7+"/>
     </target>
