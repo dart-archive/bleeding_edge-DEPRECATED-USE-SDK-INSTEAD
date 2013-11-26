@@ -120,6 +120,14 @@ public class DartDocUtilitiesTest extends ResolverTestCase {
     assertEquals("int index", DartDocUtilities.getTextSummary(null, element));
   }
 
+  public void test_functionTypeAlias_summary() throws Exception {
+    ASTNode id = findNodeIn("FFF", createSource(//
+        "/// My function type",
+        "typedef int FFF(int a, double b);"));
+    Element element = ElementLocator.locate(id);
+    assertEquals("int FFF(int a, double b)", DartDocUtilities.getTextSummary(null, element));
+  }
+
   public void test_method_doc() throws Exception {
     ASTNode id = findNodeIn("x", createSource(//
         "/// My method",

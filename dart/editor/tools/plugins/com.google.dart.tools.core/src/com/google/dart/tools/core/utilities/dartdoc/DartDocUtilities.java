@@ -23,6 +23,7 @@ import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.FieldFormalParameterElement;
 import com.google.dart.engine.element.FunctionElement;
+import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.element.MethodElement;
@@ -52,10 +53,12 @@ import java.nio.CharBuffer;
 public final class DartDocUtilities {
 
   private static class DocumentingVisitor extends SimpleElementVisitor<String> {
-    private Type elementType;
+    private Element targetElement;
+    private Type targetType;
 
-    public DocumentingVisitor(Type type) {
-      this.elementType = type;
+    public DocumentingVisitor(Element targetElement, Type targetType) {
+      this.targetElement = targetElement;
+      this.targetType = targetType;
     }
 
     @Override
@@ -96,6 +99,11 @@ public final class DartDocUtilities {
 
     @Override
     public String visitFunctionElement(FunctionElement element) {
+      return getDescription(element);
+    }
+
+    @Override
+    public String visitFunctionTypeAliasElement(FunctionTypeAliasElement element) {
       return getDescription(element);
     }
 
@@ -204,6 +212,18 @@ public final class DartDocUtilities {
       }
     }
 
+    private String getDescription(FunctionTypeAliasElement element) {
+
+      StringBuilder params = describeParams(element.getParameters());
+      String returnTypeName = getName(element.getType().getReturnType());
+
+      if (returnTypeName != null) {
+        return returnTypeName + " " + element.getDisplayName() + "(" + params + ")";
+      } else {
+        return element.getDisplayName() + "(" + params + ")";
+      }
+    }
+
     private String getDescription(ParameterElement param) {
 
       StringBuilder buf = new StringBuilder();
@@ -283,8 +303,8 @@ public final class DartDocUtilities {
 
     private String getTypeName(VariableElement element) {
       Type type = element.getType();
-      if (elementType != null) {
-        type = elementType;
+      if (targetType != null && targetElement != null && targetElement.equals(element)) {
+        type = targetType;
       }
       return getName(type);
     }
@@ -392,7 +412,7 @@ public final class DartDocUtilities {
    */
   public static String getTextSummary(Type type, Element element) {
     if (element != null) {
-      String description = element.accept(new DocumentingVisitor(type));
+      String description = element.accept(new DocumentingVisitor(element, type));
       if (description != null) {
         return description;
       }
