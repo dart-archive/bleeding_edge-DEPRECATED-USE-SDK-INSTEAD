@@ -31,7 +31,7 @@ import com.google.dart.tools.ui.internal.text.dart.SmartSemicolonAutoEditStrateg
 import com.google.dart.tools.ui.internal.text.dartdoc.DartDocAutoIndentStrategy;
 import com.google.dart.tools.ui.internal.text.dartdoc.DartDocScanner;
 import com.google.dart.tools.ui.internal.text.dartdoc.LineDocAutoIndentStrategy;
-import com.google.dart.tools.ui.internal.text.editor.DartTextHover;
+import com.google.dart.tools.ui.internal.text.editor.DartHover;
 import com.google.dart.tools.ui.internal.text.functions.AbstractDartScanner;
 import com.google.dart.tools.ui.internal.text.functions.ContentAssistPreference;
 import com.google.dart.tools.ui.internal.text.functions.DartCommentScanner;
@@ -618,7 +618,7 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
 
   @Override
   public ITextHover getTextHover(ISourceViewer sourceViewer, String contentType, int stateMask) {
-    return new DartTextHover(fTextEditor, sourceViewer, this);
+    return new DartHover(fTextEditor, sourceViewer, this);
     // JavaEditorTextHoverDescriptor[] hoverDescs =
     // DartToolsPlugin.getDefault().getJavaEditorTextHoverDescriptors();
     // int i = 0;
