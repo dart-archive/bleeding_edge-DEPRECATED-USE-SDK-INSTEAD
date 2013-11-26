@@ -157,7 +157,9 @@ public class DartTextHover extends DefaultTextHover implements ITextHoverExtensi
 
     // Append any annotation info - i.e. errors and warnings.
     String annotationHover = super.getHoverInfo(textViewer, region);
-    append(buffer, escapeHtmlEntities(annotationHover));
+    if (annotationHover != null) {
+      append(buffer, escapeHtmlEntities(annotationHover));
+    }
 
     // Check through the contributed hover providers.
     for (ITextHover hoverContributer : hoverContributors) {

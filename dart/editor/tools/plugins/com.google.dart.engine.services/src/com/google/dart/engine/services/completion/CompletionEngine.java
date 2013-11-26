@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.services.completion;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.dart.engine.ast.ASTNode;
@@ -823,7 +824,9 @@ public class CompletionEngine {
           int offset = methodName.getOffset();
           int len = node.getRightParenthesis().getEnd() - offset;
           for (CompletionProposal proposal : proposalRequestor.getProposals()) {
-            pArgumentList(proposal, offset, len);
+            if (Objects.equal(proposal.getElement(), invokeNode.getStaticElement())) {
+              pArgumentList(proposal, offset, len);
+            }
           }
         }
         analyzeLocalName(new Ident(node));
@@ -2372,9 +2375,16 @@ public class CompletionEngine {
   }
 
   private void pArgumentList(CompletionProposal proposal, int offset, int len) {
+    // prepare parameters
+    String[] parameterNames = proposal.getParameterNames();
+    if (parameterNames.length == 0) {
+      return;
+    }
+    // fill arguments proposal
     CompletionProposal prop = createProposal(ProposalKind.ARGUMENT_LIST);
+    prop.setElement(proposal.getElement());
     prop.setCompletion(proposal.getCompletion()).setReturnType(proposal.getReturnType());
-    prop.setParameterNames(proposal.getParameterNames());
+    prop.setParameterNames(parameterNames);
     prop.setParameterTypes(proposal.getParameterTypes());
     prop.setParameterStyle(
         proposal.getPositionalParameterCount(),

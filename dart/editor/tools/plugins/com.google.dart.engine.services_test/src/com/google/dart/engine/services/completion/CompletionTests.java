@@ -1481,6 +1481,16 @@ public class CompletionTests extends CompletionTestCase {
     test("typedef int fnint(int k); fn!1int x;", "1+fnint");
   }
 
+  public void testCompletion_arguments_ignoreEmpty() throws Exception {
+    test(src(//
+        "class A {",
+        "  test() {}",
+        "}",
+        "main(A a) {",
+        "  a.test(!1);",
+        "}"), "1-test");
+  }
+
   public void testCompletion_as_asIdentifierPrefix() throws Exception {
     test(src(//
         "main(p) {",
@@ -1535,6 +1545,17 @@ public class CompletionTests extends CompletionTestCase {
 
   public void testCompletion_constructor_field() throws Exception {
     test("class X { X(this.field); int f!1ield;}", "1+field");
+  }
+
+  public void testCompletion_constructorArguments_showOnlyCurrent() throws Exception {
+    test(src(//
+        "class A {",
+        "  A.first(int p);",
+        "  A.second(double p);",
+        "}",
+        "main() {",
+        "  new A.first(!1);",
+        "}"), "1+A.first", "1-A.second");
   }
 
   public void testCompletion_double_inFractionPart() throws Exception {
