@@ -68,6 +68,7 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PrefixElement;
@@ -838,6 +839,17 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
   public Void visitMethodInvocation(MethodInvocation node) {
     SimpleIdentifier methodNameNode = node.getMethodName();
     Element staticMethodElement = methodNameNode.getStaticElement();
+
+    // Record types of the local variable invoked as a function.
+    if (staticMethodElement instanceof LocalVariableElement) {
+      LocalVariableElement variable = (LocalVariableElement) staticMethodElement;
+      Type staticType = variable.getType();
+      recordStaticType(methodNameNode, staticType);
+      Type propagatedType = overrideManager.getType(variable);
+      if (propagatedType != null && propagatedType.isMoreSpecificThan(staticType)) {
+        recordPropagatedType(methodNameNode, propagatedType);
+      }
+    }
 
     // Record static return type of the static element.
     Type staticStaticType = computeStaticReturnType(staticMethodElement);

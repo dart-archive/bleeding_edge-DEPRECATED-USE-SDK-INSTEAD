@@ -22,6 +22,8 @@ import com.google.dart.engine.ast.ExpressionStatement;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.NodeList;
+import com.google.dart.engine.ast.SimpleIdentifier;
+import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ElementAnnotation;
@@ -32,6 +34,8 @@ import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.error.StaticTypeWarningCode;
 import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.type.FunctionType;
+import com.google.dart.engine.type.Type;
 
 public class SimpleResolverTest extends ResolverTestCase {
   public void fail_staticInvocation() throws Exception {
@@ -501,6 +505,37 @@ public class SimpleResolverTest extends ResolverTestCase {
     assertNotNull(library);
     assertNoErrors(source);
     verify(source);
+  }
+
+  public void test_localVariable_types_invoked() throws Exception {
+    Source source = addSource(createSource(//
+        "const A = null;",
+        "main() {",
+        "  var myVar = (int p) => 'foo';",
+        "  myVar(42);",
+        "}"));
+    LibraryElement library = resolve(source);
+    assertNotNull(library);
+    CompilationUnit unit = getAnalysisContext().getResolvedCompilationUnit(source, library);
+    assertNotNull(unit);
+    final boolean found[] = {false};
+    unit.accept(new RecursiveASTVisitor<Void>() {
+      @Override
+      public Void visitSimpleIdentifier(SimpleIdentifier node) {
+        if (node.getName().equals("myVar") && node.getParent() instanceof MethodInvocation) {
+          found[0] = true;
+          // check static type
+          Type staticType = node.getStaticType();
+          assertSame(getTypeProvider().getDynamicType(), staticType);
+          // check propagated type
+          Type propagatedType = node.getPropagatedType();
+          assertTrue(propagatedType instanceof FunctionType);
+          assertEquals("(int) -> String", propagatedType.getDisplayName());
+        }
+        return null;
+      }
+    });
+    assertTrue(found[0]);
   }
 
   public void test_metadata_class() throws Exception {
