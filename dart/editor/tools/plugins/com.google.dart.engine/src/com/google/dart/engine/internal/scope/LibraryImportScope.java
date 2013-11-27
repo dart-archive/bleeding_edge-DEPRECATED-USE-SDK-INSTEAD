@@ -23,8 +23,6 @@ import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.internal.element.MultiplyDefinedElementImpl;
 
-import java.util.ArrayList;
-
 /**
  * Instances of the class {@code LibraryImportScope} represent the scope containing all of the names
  * available from imported libraries.
@@ -46,7 +44,7 @@ public class LibraryImportScope extends Scope {
    * A list of the namespaces representing the names that are available in this scope from imported
    * libraries.
    */
-  private ArrayList<Namespace> importedNamespaces = new ArrayList<Namespace>();
+  private Namespace[] importedNamespaces;
 
   /**
    * Initialize a newly created scope representing the names imported into the given library.
@@ -127,8 +125,11 @@ public class LibraryImportScope extends Scope {
    */
   private final void createImportedNamespaces(LibraryElement definingLibrary) {
     NamespaceBuilder builder = new NamespaceBuilder();
-    for (ImportElement element : definingLibrary.getImports()) {
-      importedNamespaces.add(builder.createImportNamespace(element));
+    ImportElement[] imports = definingLibrary.getImports();
+    int count = imports.length;
+    importedNamespaces = new Namespace[count];
+    for (int i = 0; i < count; i++) {
+      importedNamespaces[i] = builder.createImportNamespace(imports[i]);
     }
   }
 

@@ -632,10 +632,11 @@ public class Parser {
           if (partOfDirectiveFound) {
             reportError(ParserErrorCode.MULTIPLE_PART_OF_DIRECTIVES);
           } else {
-            for (Directive precedingDirective : directives) {
+            int directiveCount = directives.size();
+            for (int i = 0; i < directiveCount; i++) {
               reportError(
                   ParserErrorCode.NON_PART_OF_DIRECTIVE_IN_PART,
-                  precedingDirective.getKeyword());
+                  directives.get(i).getKeyword());
             }
             partOfDirectiveFound = true;
           }
@@ -1673,7 +1674,9 @@ public class Parser {
    * @return the range that was found
    */
   private int[] findRange(List<int[]> ranges, int index) {
-    for (int[] range : ranges) {
+    int rangeCount = ranges.size();
+    for (int i = 0; i < rangeCount; i++) {
+      int[] range = ranges.get(i);
       if (range[0] <= index && index <= range[1]) {
         return range;
       } else if (index < range[0]) {

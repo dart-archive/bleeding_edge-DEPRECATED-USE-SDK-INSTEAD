@@ -46,7 +46,6 @@ import com.google.dart.engine.ast.VariableDeclarationStatement;
 import com.google.dart.engine.ast.WhileStatement;
 import com.google.dart.engine.ast.visitor.UnifyingASTVisitor;
 import com.google.dart.engine.element.CompilationUnitElement;
-import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.LabelElement;
 import com.google.dart.engine.element.LibraryElement;
@@ -632,18 +631,20 @@ public abstract class ScopedVisitor extends UnifyingASTVisitor<Void> {
    * its declaration statement.
    */
   private void hideNamesDefinedInBlock(EnclosedScope scope, Block block) {
-    for (Statement statement : block.getStatements()) {
+    NodeList<Statement> statements = block.getStatements();
+    int statementCount = statements.size();
+    for (int i = 0; i < statementCount; i++) {
+      Statement statement = statements.get(i);
       if (statement instanceof VariableDeclarationStatement) {
         VariableDeclarationStatement vds = (VariableDeclarationStatement) statement;
-        for (VariableDeclaration variableDeclaration : vds.getVariables().getVariables()) {
-          Element element = variableDeclaration.getElement();
-          scope.hide(element);
+        NodeList<VariableDeclaration> variables = vds.getVariables().getVariables();
+        int variableCount = variables.size();
+        for (int j = 0; j < variableCount; j++) {
+          scope.hide(variables.get(j).getElement());
         }
-      }
-      if (statement instanceof FunctionDeclarationStatement) {
+      } else if (statement instanceof FunctionDeclarationStatement) {
         FunctionDeclarationStatement fds = (FunctionDeclarationStatement) statement;
-        Element element = fds.getFunctionDeclaration().getElement();
-        scope.hide(element);
+        scope.hide(fds.getFunctionDeclaration().getElement());
       }
     }
   }

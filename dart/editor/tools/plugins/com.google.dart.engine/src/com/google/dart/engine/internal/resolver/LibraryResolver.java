@@ -22,7 +22,6 @@ import com.google.dart.engine.ast.HideCombinator;
 import com.google.dart.engine.ast.ImportDirective;
 import com.google.dart.engine.ast.NamespaceDirective;
 import com.google.dart.engine.ast.NodeList;
-import com.google.dart.engine.ast.PartOfDirective;
 import com.google.dart.engine.ast.ShowCombinator;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.StringInterpolation;
@@ -48,6 +47,7 @@ import com.google.dart.engine.internal.element.PrefixElementImpl;
 import com.google.dart.engine.internal.element.ShowElementCombinatorImpl;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.source.SourceKind;
 import com.google.dart.engine.utilities.general.TimeCounter.TimeCounterHandle;
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
@@ -249,7 +249,10 @@ public class LibraryResolver {
       coreLibrary = libraryMap.get(coreLibrarySource);
       if (coreLibrary == null) {
         // This will be true unless the library being analyzed is the core library.
-        coreLibrary = createLibrary(coreLibrarySource);
+        coreLibrary = createLibraryOrNull(coreLibrarySource);
+        if (coreLibrary == null) {
+          throw new AnalysisException("Core library does not exist");
+        }
       }
       instrumentation.metric("createLibrary", "complete");
       //
@@ -446,7 +449,7 @@ public class LibraryResolver {
               directive.setElement(importElement);
               imports.add(importElement);
 
-              if (doesCompilationUnitHavePartOfDirective(importedLibrary.getAST(importedSource))) {
+              if (analysisContext.computeKindOf(importedSource) != SourceKind.LIBRARY) {
                 errorListener.onError(new AnalysisError(
                     library.getLibrarySource(),
                     uriLiteral.getOffset(),
@@ -473,7 +476,7 @@ public class LibraryResolver {
               directive.setElement(exportElement);
               exports.add(exportElement);
 
-              if (doesCompilationUnitHavePartOfDirective(exportedLibrary.getAST(exportedSource))) {
+              if (analysisContext.computeKindOf(exportedSource) != SourceKind.LIBRARY) {
                 StringLiteral uriLiteral = exportDirective.getUri();
                 errorListener.onError(new AnalysisError(
                     library.getLibrarySource(),
@@ -716,22 +719,6 @@ public class LibraryResolver {
     Library library = new Library(analysisContext, errorListener, librarySource);
     libraryMap.put(librarySource, library);
     return library;
-  }
-
-  /**
-   * Return {@code true} if and only if the passed {@link CompilationUnit} has a part-of directive.
-   * 
-   * @param node the {@link CompilationUnit} to test
-   * @return {@code true} if and only if the passed {@link CompilationUnit} has a part-of directive
-   */
-  private boolean doesCompilationUnitHavePartOfDirective(CompilationUnit node) {
-    NodeList<Directive> directives = node.getDirectives();
-    for (Directive directive : directives) {
-      if (directive instanceof PartOfDirective) {
-        return true;
-      }
-    }
-    return false;
   }
 
   /**

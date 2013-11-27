@@ -187,8 +187,9 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
     element.setTypeParameters(typeParameters);
     element.setValidMixin(isValidMixin);
 
-    for (FunctionTypeImpl functionType : functionTypesToFix) {
-      functionType.setTypeArguments(typeArguments);
+    int functionTypeCount = functionTypesToFix.size();
+    for (int i = 0; i < functionTypeCount; i++) {
+      functionTypesToFix.get(i).setTypeArguments(typeArguments);
     }
     functionTypesToFix = null;
     currentHolder.addType(element);

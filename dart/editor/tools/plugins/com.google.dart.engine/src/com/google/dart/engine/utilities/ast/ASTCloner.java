@@ -895,9 +895,10 @@ public class ASTCloner implements ASTVisitor<ASTNode> {
 
   @SuppressWarnings("unchecked")
   private <E extends ASTNode> List<E> clone(NodeList<E> nodes) {
-    ArrayList<E> clonedNodes = new ArrayList<E>();
-    for (E node : nodes) {
-      clonedNodes.add((E) node.accept(this));
+    int count = nodes.size();
+    ArrayList<E> clonedNodes = new ArrayList<E>(count);
+    for (int i = 0; i < count; i++) {
+      clonedNodes.add((E) (nodes.get(i)).accept(this));
     }
     return clonedNodes;
   }

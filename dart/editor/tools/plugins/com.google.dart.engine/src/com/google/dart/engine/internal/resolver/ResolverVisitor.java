@@ -329,19 +329,24 @@ public class ResolverVisitor extends ScopedVisitor {
     //
     try {
       overrideManager.enterScope();
-      for (Directive directive : node.getDirectives()) {
-        directive.accept(this);
+      NodeList<Directive> directives = node.getDirectives();
+      int directiveCount = directives.size();
+      for (int i = 0; i < directiveCount; i++) {
+        directives.get(i).accept(this);
       }
-      ArrayList<CompilationUnitMember> classes = new ArrayList<CompilationUnitMember>();
-      for (CompilationUnitMember declaration : node.getDeclarations()) {
-        if (declaration instanceof ClassDeclaration) {
-          classes.add(declaration);
-        } else {
+      NodeList<CompilationUnitMember> declarations = node.getDeclarations();
+      int declarationCount = declarations.size();
+      for (int i = 0; i < declarationCount; i++) {
+        CompilationUnitMember declaration = declarations.get(i);
+        if (!(declaration instanceof ClassDeclaration)) {
           declaration.accept(this);
         }
       }
-      for (CompilationUnitMember declaration : classes) {
-        declaration.accept(this);
+      for (int i = 0; i < declarationCount; i++) {
+        CompilationUnitMember declaration = declarations.get(i);
+        if (declaration instanceof ClassDeclaration) {
+          declaration.accept(this);
+        }
       }
     } finally {
       overrideManager.exitScope();

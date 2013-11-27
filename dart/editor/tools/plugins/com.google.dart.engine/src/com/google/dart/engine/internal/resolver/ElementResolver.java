@@ -1449,8 +1449,9 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
    */
   private void addAnnotations(ArrayList<ElementAnnotationImpl> annotationList,
       NodeList<Annotation> annotations) {
-    for (Annotation annotationNode : annotations) {
-      Element resolvedElement = annotationNode.getElement();
+    int annotationCount = annotations.size();
+    for (int i = 0; i < annotationCount; i++) {
+      Element resolvedElement = annotations.get(i).getElement();
       if (resolvedElement != null) {
         annotationList.add(new ElementAnnotationImpl(resolvedElement));
       }
