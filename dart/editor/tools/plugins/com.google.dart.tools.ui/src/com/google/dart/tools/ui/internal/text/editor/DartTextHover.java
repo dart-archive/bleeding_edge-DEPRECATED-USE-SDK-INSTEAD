@@ -204,6 +204,9 @@ public class DartTextHover extends DefaultTextHover implements ITextHoverExtensi
   private String getDartDocHover(IRegion region) {
     if (editor != null) {
       ASTNode node = NewSelectionConverter.getNodeAtOffset(editor, region.getOffset());
+      if (node == null) {
+        return null;
+      }
       Type type = node instanceof Expression ? ((Expression) node).getBestType() : null;
       Element element = ElementLocator.locate(node);
       return getElementDocumentationHtml(type, element);
