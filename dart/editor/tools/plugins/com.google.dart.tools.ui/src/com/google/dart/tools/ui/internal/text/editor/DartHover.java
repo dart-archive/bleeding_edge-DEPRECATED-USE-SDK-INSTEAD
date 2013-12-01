@@ -17,9 +17,12 @@ package com.google.dart.tools.ui.internal.text.editor;
 import com.google.common.collect.Lists;
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.Expression;
+import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.visitor.ElementLocator;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.ParameterElement;
+import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.type.Type;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.utilities.dartdoc.DartDocUtilities;
@@ -41,8 +44,12 @@ import org.eclipse.jface.text.ITextHover;
 import org.eclipse.jface.text.ITextHoverExtension;
 import org.eclipse.jface.text.ITextHoverExtension2;
 import org.eclipse.jface.text.ITextViewer;
+import org.eclipse.jface.text.Position;
 import org.eclipse.jface.text.Region;
+import org.eclipse.jface.text.source.Annotation;
+import org.eclipse.jface.text.source.IAnnotationModel;
 import org.eclipse.jface.text.source.ISourceViewer;
+import org.eclipse.jface.text.source.ISourceViewerExtension2;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.graphics.Point;
@@ -56,6 +63,7 @@ import org.eclipse.ui.forms.widgets.ScrolledForm;
 import org.eclipse.ui.forms.widgets.Section;
 import org.eclipse.ui.texteditor.ITextEditor;
 
+import java.util.Iterator;
 import java.util.List;
 
 public class DartHover implements ITextHover, ITextHoverExtension, ITextHoverExtension2 {
@@ -79,7 +87,7 @@ public class DartHover implements ITextHover, ITextHoverExtension, ITextHoverExt
 
     private ScrolledForm form;
     private HtmlSection docSection;
-    private TextSection elementSection;
+    private TextSection problemsSection;
     private TextSection staticTypeSection;
     private TextSection propagatedTypeSection;
     private TextSection parameterSection;
@@ -115,7 +123,7 @@ public class DartHover implements ITextHover, ITextHoverExtension, ITextHoverExt
       hoverInfo = null;
       // Hide all sections.
       setGridVisible(docSection, false);
-      setGridVisible(elementSection, false);
+      setGridVisible(problemsSection, false);
       setGridVisible(staticTypeSection, false);
       setGridVisible(propagatedTypeSection, false);
       setGridVisible(parameterSection, false);
@@ -128,10 +136,19 @@ public class DartHover implements ITextHover, ITextHoverExtension, ITextHoverExt
       Element element = hoverInfo.element;
       // Element
       if (element != null) {
-        form.setText(element.getDisplayName());
-        // element
-        setGridVisible(elementSection, true);
-        elementSection.setText(DartDocUtilities.getTextSummary(null, element));
+        // show variable, if synthetic accessor
+        if (element instanceof PropertyAccessorElement) {
+          PropertyAccessorElement accessor = (PropertyAccessorElement) element;
+          if (accessor.isSynthetic()) {
+            element = accessor.getVariable();
+          }
+        }
+        // use the Element as a title
+        {
+          String title = element.toString();
+          title = StringUtils.abbreviateMiddle(title, " ... ", 80);
+          form.setText(title);
+        }
         // Dart Doc
         {
           String dartDoc = DartDocUtilities.getDartDocAsHtml(element);
@@ -144,9 +161,11 @@ public class DartHover implements ITextHover, ITextHoverExtension, ITextHoverExt
       // types
       if (node instanceof Expression) {
         Expression expression = (Expression) node;
-        // not element, show node
+        // show node if no Element
         if (element == null) {
-          form.setText(node.toSource());
+          String nodeTitle = node.toSource();
+          nodeTitle = StringUtils.abbreviate(nodeTitle, 80);
+          form.setText(nodeTitle);
         }
         // parameter
         {
@@ -165,19 +184,47 @@ public class DartHover implements ITextHover, ITextHoverExtension, ITextHoverExt
         }
         // static type
         Type staticType = expression.getStaticType();
-        if (staticType != null) {
+        if (staticType != null && element == null) {
           setGridVisible(staticTypeSection, true);
           staticTypeSection.setText(staticType.getDisplayName());
         }
         // propagated type
-        Type propagatedType = expression.getPropagatedType();
-        if (propagatedType != null) {
-          setGridVisible(propagatedTypeSection, true);
-          propagatedTypeSection.setText(propagatedType.getDisplayName());
+        if (!(element instanceof ExecutableElement)) {
+          Type propagatedType = expression.getPropagatedType();
+          if (propagatedType != null && !propagatedType.equals(staticType)) {
+            setGridVisible(propagatedTypeSection, true);
+            propagatedTypeSection.setText(propagatedType.getDisplayName());
+          }
+        }
+      }
+      // Annotations.
+      {
+        List<Annotation> annotations = hoverInfo.annotations;
+        int size = annotations.size();
+        if (size != 0) {
+          // prepare annotations text
+          StringBuilder buffer = new StringBuilder();
+          if (size > 1) {
+            buffer.append("Multiple annotations at this position:");
+          }
+          for (Annotation annotation : annotations) {
+            if (buffer.length() != 0) {
+              buffer.append("\n");
+            }
+            if (size > 1) {
+              buffer.append("\t- ");
+            }
+            buffer.append(annotation.getText());
+          }
+          // show annotations as text
+          setGridVisible(problemsSection, true);
+          problemsSection.setText(buffer.toString());
         }
       }
       // Layout and pack.
       Shell shell = getShell();
+      shell.layout(true, true);
+      shell.pack();
       shell.layout(true, true);
       shell.pack();
     }
@@ -190,8 +237,7 @@ public class DartHover implements ITextHover, ITextHoverExtension, ITextHoverExt
       Composite body = form.getBody();
       GridLayoutFactory.create(body);
 
-      elementSection = new TextSection(body, "Element");
-
+      problemsSection = new TextSection(body, "Problems");
       docSection = new HtmlSection(body, "Documentation");
       staticTypeSection = new TextSection(body, "Static type");
       propagatedTypeSection = new TextSection(body, "Propagated type");
@@ -210,10 +256,12 @@ public class DartHover implements ITextHover, ITextHoverExtension, ITextHoverExt
   private static class HoverInfo {
     ASTNode node;
     Element element;
+    List<Annotation> annotations;
 
-    public HoverInfo(ASTNode node, Element element) {
+    public HoverInfo(ASTNode node, Element element, List<Annotation> annotations) {
       this.node = node;
       this.element = element;
+      this.annotations = annotations;
     }
   }
 
@@ -244,11 +292,12 @@ public class DartHover implements ITextHover, ITextHoverExtension, ITextHoverExt
         browser.setText(html);
       }
       // tweak Browser size
-      int numLines = estimateNumLines(html, 85);
+      int lineLength = Math.min(html.length(), 85);
+      int numLines = estimateNumLines(html, lineLength);
       numLines += 3; // header
       numLines += 1; // footer
       numLines = Math.min(numLines, 15);
-      GridDataFactory.create(section).hintChars(85 + 5, numLines).grab().fill();
+      GridDataFactory.create(section).hintChars(lineLength + 5, numLines).grab().fill();
     }
   }
 
@@ -288,12 +337,16 @@ public class DartHover implements ITextHover, ITextHoverExtension, ITextHoverExt
     return num;
   }
 
+  private final ISourceViewer viewer;
+  private final DartSourceViewerConfiguration viewerConfiguration;
   private CompilationUnitEditor editor;
   private IInformationControlCreator informationControlCreator;
   private ITextHover lastReturnedHover;
 
-  public DartHover(ITextEditor editor, ISourceViewer sourceViewer,
-      DartSourceViewerConfiguration sourceViewerConfiguration) {
+  public DartHover(ITextEditor editor, ISourceViewer viewer,
+      DartSourceViewerConfiguration viewerConfiguration) {
+    this.viewer = viewer;
+    this.viewerConfiguration = viewerConfiguration;
     if (editor instanceof CompilationUnitEditor) {
       this.editor = (CompilationUnitEditor) editor;
     }
@@ -334,8 +387,15 @@ public class DartHover implements ITextHover, ITextHoverExtension, ITextHoverExt
     // Editor based hover.
     if (editor != null) {
       ASTNode node = NewSelectionConverter.getNodeAtOffset(editor, hoverRegion.getOffset());
-      Element element = node != null ? ElementLocator.locate(node) : null;
-      return new HoverInfo(node, element);
+      if (node instanceof MethodDeclaration) {
+        MethodDeclaration method = (MethodDeclaration) node;
+        node = method.getName();
+      }
+      if (node instanceof Expression) {
+        Element element = ElementLocator.locate(node);
+        List<Annotation> annotations = getAnnotations(hoverRegion);
+        return new HoverInfo(node, element, annotations);
+      }
     }
     return null;
   }
@@ -391,6 +451,36 @@ public class DartHover implements ITextHover, ITextHoverExtension, ITextHoverExt
     }
 
     return null;
+  }
+
+  private IAnnotationModel getAnnotationModel() {
+    if (viewer instanceof ISourceViewerExtension2) {
+      ISourceViewerExtension2 extension = (ISourceViewerExtension2) viewer;
+      return extension.getVisualAnnotationModel();
+    }
+    return viewer.getAnnotationModel();
+  }
+
+  private List<Annotation> getAnnotations(IRegion region) {
+    List<Annotation> annotations = Lists.newArrayList();
+    IAnnotationModel model = getAnnotationModel();
+    if (model != null) {
+      @SuppressWarnings("unchecked")
+      Iterator<Annotation> iter = model.getAnnotationIterator();
+      while (iter.hasNext()) {
+        Annotation annotation = iter.next();
+        if (viewerConfiguration.isShownInText(annotation)) {
+          Position p = model.getPosition(annotation);
+          if (p != null && p.overlapsWith(region.getOffset(), region.getLength())) {
+            String msg = annotation.getText();
+            if (msg != null && msg.trim().length() > 0) {
+              annotations.add(annotation);
+            }
+          }
+        }
+      }
+    }
+    return annotations;
   }
 
 }
