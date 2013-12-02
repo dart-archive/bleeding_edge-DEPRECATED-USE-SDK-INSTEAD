@@ -32,6 +32,7 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubMonitor;
+import org.osgi.framework.Bundle;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -375,7 +376,8 @@ public class DartSdkManager {
 
   private String getUpdateChannelUrl() {
     try {
-      URL url = new URL("platform:/plugin/com.google.dart.tools.core/update.properties");
+      Bundle bundle = Platform.getBundle(DartCore.PLUGIN_ID);
+      URL url = bundle.getEntry("update.properties");
       File file = new File(FileLocator.resolve(url).toURI());
       if (file.exists()) {
         Properties properties = new Properties();
