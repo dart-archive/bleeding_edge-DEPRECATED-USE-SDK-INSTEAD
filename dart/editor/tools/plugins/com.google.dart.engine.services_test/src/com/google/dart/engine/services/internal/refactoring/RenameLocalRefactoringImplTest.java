@@ -446,6 +446,58 @@ public class RenameLocalRefactoringImplTest extends RenameRefactoringImplTest {
         "}");
   }
 
+  public void test_createChange_sharedBetweenTwoLibraries() throws Exception {
+    Source libSourceA = addSource(
+        "/libA.dart",
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "library lib;",
+            "part 'test.dart';",
+            ""));
+    Source libSourceB = addSource(
+        "/libB.dart",
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "library lib;",
+            "part 'test.dart';",
+            ""));
+    testCode = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "part of lib;",
+        "main() {",
+        "  int test = 0;",
+        "  test = 1;",
+        "  test += 2;",
+        "  print(test);",
+        "}");
+    testSource = addSource("/test.dart", testCode);
+    // index unit in libraries A and B
+    analysisContext.computeLibraryElement(libSourceA);
+    analysisContext.computeLibraryElement(libSourceB);
+    CompilationUnit unitA = analysisContext.getResolvedCompilationUnit(testSource, libSourceA);
+    CompilationUnit unitB = analysisContext.getResolvedCompilationUnit(testSource, libSourceB);
+    index.indexUnit(analysisContext, unitA);
+    index.indexUnit(analysisContext, unitB);
+    // Set "testUnit" to "unitA", which was indexed before "unitB" with the same Source.
+    // So, if index does not support separate information for the same Source in different
+    // libraries, then information about "testSource" in "A" was removed, and this test will fail.
+    testUnit = unitA;
+    // configure refactoring
+    createRenameRefactoring("test = 0");
+    assertEquals("Rename Local Variable", refactoring.getRefactoringName());
+    refactoring.setNewName("newName");
+    // validate change
+    assertSuccessfulRename(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "part of lib;",
+        "main() {",
+        "  int newName = 0;",
+        "  newName = 1;",
+        "  newName += 2;",
+        "  print(newName);",
+        "}");
+  }
+
   public void test_RenameRefactoringImpl_getName() throws Exception {
     indexTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",

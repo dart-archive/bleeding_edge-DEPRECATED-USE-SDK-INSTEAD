@@ -18,6 +18,7 @@ import com.google.common.base.Objects;
 import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.index.IndexStore;
 import com.google.dart.engine.internal.index.IndexContributor;
 import com.google.dart.engine.source.Source;
@@ -32,7 +33,7 @@ public class IndexUnitOperation implements IndexOperation {
   /**
    * The index store against which this operation is being run.
    */
-  private IndexStore indexStore;
+  private final IndexStore indexStore;
 
   /**
    * The context in which compilation unit was resolved.
@@ -42,12 +43,17 @@ public class IndexUnitOperation implements IndexOperation {
   /**
    * The compilation unit being indexed.
    */
-  private CompilationUnit unit;
+  private final CompilationUnit unit;
+
+  /**
+   * The element of the compilation unit being indexed.
+   */
+  private final CompilationUnitElement unitElement;
 
   /**
    * The source being indexed.
    */
-  private Source source;
+  private final Source source;
 
   /**
    * Initialize a newly created operation that will index the specified unit.
@@ -60,7 +66,8 @@ public class IndexUnitOperation implements IndexOperation {
     this.indexStore = indexStore;
     this.context = context;
     this.unit = unit;
-    this.source = unit.getElement().getSource();
+    this.unitElement = unit.getElement();
+    this.source = unitElement.getSource();
   }
 
   /**
@@ -86,8 +93,11 @@ public class IndexUnitOperation implements IndexOperation {
   @Override
   public void performOperation() {
     synchronized (indexStore) {
-      indexStore.clearSource(context, source);
       try {
+        boolean mayIndex = indexStore.aboutToIndex(context, unitElement);
+        if (!mayIndex) {
+          return;
+        }
         IndexContributor contributor = new IndexContributor(indexStore);
         unit.accept(contributor);
       } catch (Throwable exception) {

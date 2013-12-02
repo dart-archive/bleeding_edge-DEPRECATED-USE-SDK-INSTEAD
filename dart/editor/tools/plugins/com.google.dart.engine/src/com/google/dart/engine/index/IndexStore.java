@@ -15,6 +15,7 @@
 package com.google.dart.engine.index;
 
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceContainer;
@@ -26,14 +27,18 @@ import com.google.dart.engine.source.SourceContainer;
  */
 public interface IndexStore {
   /**
-   * Remove from the index locations within the given source.
+   * Notifies the index store that we are going to index the unit with the given element.
    * <p>
-   * This method should be invoked when a source was updated and new locations will be added.
+   * If the unit is a part of a library, then all its locations are removed. If it is a defining
+   * compilation unit of a library, then index store also checks if some previously indexed parts of
+   * the library are not parts of the library anymore, and clears their information.
    * 
-   * @param the {@link AnalysisContext} in which {@link Source} being cleared
-   * @param source the source being cleared
+   * @param the {@link AnalysisContext} in which unit being indexed
+   * @param unitElement the element of the unit being indexed
+   * @return {@code true} the given {@link AnalysisContext} is active, or {@code false} if it was
+   *         removed before, so no any unit may be indexed with it
    */
-  void clearSource(AnalysisContext context, Source source);
+  boolean aboutToIndex(AnalysisContext context, CompilationUnitElement unitElement);
 
   /**
    * Return the locations of the elements that have the given relationship with the given element.

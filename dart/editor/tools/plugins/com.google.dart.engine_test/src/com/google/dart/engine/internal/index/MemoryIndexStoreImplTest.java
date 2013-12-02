@@ -21,6 +21,7 @@ import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementLocation;
+import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.index.Location;
 import com.google.dart.engine.index.Relationship;
 import com.google.dart.engine.internal.context.InstrumentedAnalysisContextImpl;
@@ -132,21 +133,117 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
   private Element elementB = mock(Element.class);
   private Element elementC = mock(Element.class);
   private Element elementD = mock(Element.class);
+  private Source librarySource = mock(Source.class);
   private Source sourceA = mock(Source.class);
   private Source sourceB = mock(Source.class);
   private Source sourceC = mock(Source.class);
   private Source sourceD = mock(Source.class);
+  private LibraryElement libraryElement = mock(LibraryElement.class);
+  private CompilationUnitElement libraryUnitElement = mock(CompilationUnitElement.class);
   private CompilationUnitElement unitElementA = mock(CompilationUnitElement.class);
-
   private CompilationUnitElement unitElementB = mock(CompilationUnitElement.class);
-
   private CompilationUnitElement unitElementC = mock(CompilationUnitElement.class);
-
   private CompilationUnitElement unitElementD = mock(CompilationUnitElement.class);
-
   private Relationship relationship = Relationship.getRelationship("test-relationship");
-
   private Location location = mockLocation(elementC);
+
+  public void test_aboutToIndex_removedContext() throws Exception {
+    store.removeContext(contextA);
+    boolean mayIndex = store.aboutToIndex(contextA, unitElementA);
+    assertFalse(mayIndex);
+  }
+
+  public void test_aboutToIndex_sharedSource_inTwoLibraries() throws Exception {
+    Source librarySourceA = mock(Source.class);
+    Source librarySourceB = mock(Source.class);
+    LibraryElement libraryA = mock(LibraryElement.class);
+    LibraryElement libraryB = mock(LibraryElement.class);
+    CompilationUnitElement libraryAUnit = mock(CompilationUnitElement.class);
+    CompilationUnitElement libraryBUnit = mock(CompilationUnitElement.class);
+    when(libraryA.getDefiningCompilationUnit()).thenReturn(libraryAUnit);
+    when(libraryB.getDefiningCompilationUnit()).thenReturn(libraryBUnit);
+    when(libraryA.getSource()).thenReturn(librarySourceA);
+    when(libraryB.getSource()).thenReturn(librarySourceB);
+    when(libraryAUnit.getSource()).thenReturn(librarySourceA);
+    when(libraryBUnit.getSource()).thenReturn(librarySourceB);
+    when(libraryAUnit.getLibrary()).thenReturn(libraryA);
+    when(libraryBUnit.getLibrary()).thenReturn(libraryB);
+    // build 2 units in different libraries
+    CompilationUnitElement unitA = mock(CompilationUnitElement.class);
+    CompilationUnitElement unitB = mock(CompilationUnitElement.class);
+    when(unitA.getContext()).thenReturn(contextA);
+    when(unitB.getContext()).thenReturn(contextA);
+    when(unitA.getSource()).thenReturn(sourceA);
+    when(unitB.getSource()).thenReturn(sourceA);
+    when(unitA.getLibrary()).thenReturn(libraryA);
+    when(unitB.getLibrary()).thenReturn(libraryB);
+    when(libraryA.getParts()).thenReturn(new CompilationUnitElement[] {unitA});
+    when(libraryB.getParts()).thenReturn(new CompilationUnitElement[] {unitB});
+    // record relationships in both A and B
+    Location locationA = mockLocation(unitA);
+    Location locationB = mockLocation(unitB);
+    store.aboutToIndex(contextA, libraryAUnit);
+    store.aboutToIndex(contextA, libraryBUnit);
+    store.aboutToIndex(contextA, unitA);
+    store.aboutToIndex(contextA, unitB);
+    store.recordRelationship(elementA, relationship, locationA);
+    store.recordRelationship(elementA, relationship, locationB);
+    {
+      Location[] locations = store.getRelationships(elementA, relationship);
+      assertLocations(locations, locationA, locationB);
+    }
+  }
+
+  public void test_aboutToIndex_unitExcluded() throws Exception {
+    // build library with defining unit
+    Source librarySource = mock(Source.class);
+    LibraryElement library = mock(LibraryElement.class);
+    CompilationUnitElement libraryUnit = mock(CompilationUnitElement.class);
+    when(library.getContext()).thenReturn(contextA);
+    when(library.getDefiningCompilationUnit()).thenReturn(libraryUnit);
+    when(library.getSource()).thenReturn(librarySource);
+    when(libraryUnit.getContext()).thenReturn(contextA);
+    when(libraryUnit.getSource()).thenReturn(librarySource);
+    when(libraryUnit.getLibrary()).thenReturn(library);
+    // build 2 library units
+    CompilationUnitElement unitA = mock(CompilationUnitElement.class);
+    CompilationUnitElement unitB = mock(CompilationUnitElement.class);
+    when(unitA.getContext()).thenReturn(contextA);
+    when(unitB.getContext()).thenReturn(contextA);
+    when(unitA.getSource()).thenReturn(sourceA);
+    when(unitB.getSource()).thenReturn(sourceB);
+    when(unitA.getLibrary()).thenReturn(library);
+    when(unitB.getLibrary()).thenReturn(library);
+    // prepare locations
+    Location locationA = mockLocation(unitA);
+    Location locationB = mockLocation(unitB);
+    // initially A and B in library
+    when(library.getParts()).thenReturn(new CompilationUnitElement[] {unitA, unitB});
+    store.aboutToIndex(contextA, libraryUnit);
+    store.aboutToIndex(contextA, unitA);
+    store.aboutToIndex(contextA, unitB);
+    store.recordRelationship(elementA, relationship, locationA);
+    store.recordRelationship(elementA, relationship, locationB);
+    {
+      Location[] locations = store.getRelationships(elementA, relationship);
+      assertLocations(locations, locationA, locationB);
+    }
+    // exclude A from library
+    when(library.getParts()).thenReturn(new CompilationUnitElement[] {unitA});
+    boolean mayIndex = store.aboutToIndex(contextA, libraryUnit);
+    assertTrue(mayIndex);
+    {
+      Location[] locations = store.getRelationships(elementA, relationship);
+      assertLocations(locations, locationA);
+    }
+    // exclude B from library, empty now
+    when(library.getParts()).thenReturn(new CompilationUnitElement[] {});
+    store.aboutToIndex(contextA, libraryUnit);
+    {
+      Location[] locations = store.getRelationships(elementA, relationship);
+      assertLocations(locations);
+    }
+  }
 
   public void test_clearSource_instrumented() throws Exception {
     Location locationB = mockLocation(elementB);
@@ -162,7 +259,7 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
     // clear B, 1 relation and 1 location left
     InstrumentedAnalysisContextImpl iContextA = mock(InstrumentedAnalysisContextImpl.class);
     when(iContextA.getBasis()).thenReturn(contextA);
-    store.clearSource(iContextA, sourceB);
+    store.aboutToIndex(iContextA, unitElementB);
     assertEquals(1, store.internalGetLocationCount());
     assertEquals(1, store.internalGetLocationCount(contextA));
     Location[] locations = store.getRelationships(elementA, relationship);
@@ -211,6 +308,16 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
       Location[] locations = store.getRelationships(elementB, relationship);
       assertLocations(locations, locationB);
     }
+  }
+
+  public void test_getStatistics() throws Exception {
+    // empty initially
+    assertEquals("0 relationships in 0 keys in 0 sources", store.getStatistics());
+    // record relationship
+    store.recordRelationship(elementA, relationship, mockLocation(elementA));
+    store.recordRelationship(elementA, relationship, mockLocation(elementB));
+    store.recordRelationship(elementB, relationship, mockLocation(elementC));
+    assertEquals("3 relationships in 2 keys in 2 sources", store.getStatistics());
   }
 
   public void test_recordRelationship() throws Exception {
@@ -294,6 +401,10 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
     assertEquals(0, store.internalGetKeyCount());
   }
 
+  public void test_removeContext_null() throws Exception {
+    store.removeContext(null);
+  }
+
   public void test_removeContext_withDeclaration() throws Exception {
     when(elementB.getContext()).thenReturn(contextB);
     when(elementC.getContext()).thenReturn(contextC);
@@ -334,6 +445,8 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
     Location locationC = mockLocation(elementC);
     // record: [B -> A] and [C -> A]
     {
+      store.aboutToIndex(contextB, unitElementB);
+      store.aboutToIndex(contextC, unitElementC);
       store.recordRelationship(elementA, relationship, locationB);
       store.recordRelationship(elementA, relationship, locationC);
       assertEquals(2, store.internalGetLocationCount());
@@ -363,6 +476,10 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
       Location[] locations = store.getRelationships(elementA, relationship);
       assertThat(locations).isEmpty();
     }
+  }
+
+  public void test_removeSource_null() throws Exception {
+    store.removeSource(null, null);
   }
 
   public void test_removeSource_withDeclaration() throws Exception {
@@ -422,14 +539,17 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
   }
 
   public void test_removeSource_withRelationship_twoContexts_oneSource() throws Exception {
-    when(elementC.getSource()).thenReturn(sourceB);
     when(elementB.getContext()).thenReturn(contextB);
     when(elementC.getContext()).thenReturn(contextC);
+    when(elementC.getSource()).thenReturn(sourceB);
+    when(unitElementC.getSource()).thenReturn(sourceB);
     // configure B and C
     Location locationB = mockLocation(elementB);
     Location locationC = mockLocation(elementC);
     // record: [B -> A] and [C -> A]
     {
+      store.aboutToIndex(contextB, unitElementB);
+      store.aboutToIndex(contextC, unitElementC);
       store.recordRelationship(elementA, relationship, locationB);
       store.recordRelationship(elementA, relationship, locationC);
       assertEquals(2, store.internalGetLocationCount());
@@ -541,6 +661,8 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
     // fill store
     Location locationA = new Location(elementA, 0, 0);
     Location locationB = new Location(elementB, 0, 0);
+    store.aboutToIndex(contextA, unitElementA);
+    store.aboutToIndex(contextB, unitElementB);
     store.recordRelationship(elementA, relationship, locationA);
     store.recordRelationship(elementB, relationship, locationB);
     assertEquals(2, store.internalGetKeyCount());
@@ -600,6 +722,9 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
+    when(contextA.toString()).thenReturn("contextA");
+    when(contextB.toString()).thenReturn("contextB");
+    when(contextC.toString()).thenReturn("contextC");
     when(sourceA.toString()).thenReturn("sourceA");
     when(sourceB.toString()).thenReturn("sourceB");
     when(sourceC.toString()).thenReturn("sourceC");
@@ -624,9 +749,27 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
     when(elementB.getSource()).thenReturn(sourceB);
     when(elementC.getSource()).thenReturn(sourceC);
     when(elementD.getSource()).thenReturn(sourceD);
+    when(elementA.getLibrary()).thenReturn(libraryElement);
+    when(elementB.getLibrary()).thenReturn(libraryElement);
+    when(elementC.getLibrary()).thenReturn(libraryElement);
+    when(elementD.getLibrary()).thenReturn(libraryElement);
     when(unitElementA.getSource()).thenReturn(sourceA);
     when(unitElementB.getSource()).thenReturn(sourceB);
     when(unitElementC.getSource()).thenReturn(sourceC);
     when(unitElementD.getSource()).thenReturn(sourceD);
+    when(unitElementA.getLibrary()).thenReturn(libraryElement);
+    when(unitElementB.getLibrary()).thenReturn(libraryElement);
+    when(unitElementC.getLibrary()).thenReturn(libraryElement);
+    when(unitElementD.getLibrary()).thenReturn(libraryElement);
+    // library
+    when(librarySource.toString()).thenReturn("libSource");
+    when(libraryUnitElement.getSource()).thenReturn(librarySource);
+    when(libraryElement.getSource()).thenReturn(librarySource);
+    when(libraryElement.getDefiningCompilationUnit()).thenReturn(libraryUnitElement);
+    // by default index all units
+    store.aboutToIndex(contextA, unitElementA);
+    store.aboutToIndex(contextA, unitElementB);
+    store.aboutToIndex(contextA, unitElementC);
+    store.aboutToIndex(contextA, unitElementD);
   }
 }
