@@ -90,6 +90,7 @@ public class PubYamlUtilsTest extends AbstractDartCoreTest {
     assertTrue("1.1.12+build.1".matches(PubYamlUtils.PACKAGE_VERSION_EXPRESSION));
     assertTrue("1.34.78+0.3.7".matches(PubYamlUtils.PACKAGE_VERSION_EXPRESSION));
     assertTrue("1.3.7+build.11.e0f985a".matches(PubYamlUtils.PACKAGE_VERSION_EXPRESSION));
+    assertTrue("0.9.0-dev+1".matches(PubYamlUtils.PACKAGE_VERSION_EXPRESSION));
     assertFalse("1.3.a-x.0.0".matches(PubYamlUtils.PACKAGE_VERSION_EXPRESSION));
 
   }
