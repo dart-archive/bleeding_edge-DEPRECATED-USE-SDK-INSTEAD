@@ -196,9 +196,10 @@ public class SearchEngineImpl implements SearchEngine {
   @Override
   public Set<Type> searchAssignedTypes(PropertyInducingElement variable, SearchScope scope) {
     PropertyAccessorElement setter = variable.getSetter();
+    int numRequests = (setter != null ? 2 : 0) + 2;
     // find locations
     final List<Location> locations = Lists.newArrayList();
-    final CountDownLatch latch = new CountDownLatch(4);
+    final CountDownLatch latch = new CountDownLatch(numRequests);
     class Callback implements RelationshipCallback {
       @Override
       public void hasRelationships(Element element, Relationship relationship, Location[] locs) {
@@ -206,8 +207,10 @@ public class SearchEngineImpl implements SearchEngine {
         latch.countDown();
       }
     }
-    index.getRelationships(setter, IndexConstants.IS_REFERENCED_BY_QUALIFIED, new Callback());
-    index.getRelationships(setter, IndexConstants.IS_REFERENCED_BY_UNQUALIFIED, new Callback());
+    if (setter != null) {
+      index.getRelationships(setter, IndexConstants.IS_REFERENCED_BY_QUALIFIED, new Callback());
+      index.getRelationships(setter, IndexConstants.IS_REFERENCED_BY_UNQUALIFIED, new Callback());
+    }
     index.getRelationships(variable, IndexConstants.IS_REFERENCED_BY, new Callback());
     index.getRelationships(variable, IndexConstants.IS_DEFINED_BY, new Callback());
     Uninterruptibles.awaitUninterruptibly(latch);
@@ -640,49 +643,39 @@ public class SearchEngineImpl implements SearchEngine {
   private void searchReferences(PropertyInducingElement field, SearchScope scope,
       SearchFilter filter, SearchListener listener) {
     assert listener != null;
+    PropertyAccessorElement getter = field.getGetter();
+    PropertyAccessorElement setter = field.getSetter();
+    int numRequests = (getter != null ? 2 : 0) + (setter != null ? 2 : 0) + 2;
     listener = applyFilter(filter, listener);
-    // TODO(scheglov) use "7" when add matches by name
-    listener = new CountingSearchListener(6, listener);
-    // exact matches
-    {
+    listener = new CountingSearchListener(numRequests, listener);
+    if (getter != null) {
       index.getRelationships(
-          field.getGetter(),
+          getter,
           IndexConstants.IS_REFERENCED_BY_QUALIFIED,
           newCallback(MatchKind.FIELD_READ, scope, listener));
       index.getRelationships(
-          field.getGetter(),
+          getter,
           IndexConstants.IS_REFERENCED_BY_UNQUALIFIED,
           newCallback(MatchKind.FIELD_READ, scope, listener));
-      index.getRelationships(
-          field.getSetter(),
-          IndexConstants.IS_REFERENCED_BY_QUALIFIED,
-          newCallback(MatchKind.FIELD_WRITE, scope, listener));
-      index.getRelationships(
-          field.getSetter(),
-          IndexConstants.IS_REFERENCED_BY_UNQUALIFIED,
-          newCallback(MatchKind.FIELD_WRITE, scope, listener));
-      index.getRelationships(
-          field,
-          IndexConstants.IS_REFERENCED_BY,
-          newCallback(MatchKind.FIELD_REFERENCE, scope, listener));
-      index.getRelationships(
-          field,
-          IndexConstants.IS_REFERENCED_BY_QUALIFIED,
-          newCallback(MatchKind.FIELD_REFERENCE, scope, listener));
     }
-    // TODO(scheglov)
-    // inexact matches by name
-//    {
-//      Element inexactElement = new Element(IndexConstants.DYNAMIC, field.getElementName());
-//      index.getRelationships(
-//          inexactElement,
-//          IndexConstants.IS_ACCESSED_BY_QUALIFIED,
-//          newCallback(MatchKind.FIELD_READ, listener));
-//      index.getRelationships(
-//          inexactElement,
-//          IndexConstants.IS_MODIFIED_BY_QUALIFIED,
-//          newCallback(MatchKind.FIELD_WRITE, listener));
-//    }
+    if (setter != null) {
+      index.getRelationships(
+          setter,
+          IndexConstants.IS_REFERENCED_BY_QUALIFIED,
+          newCallback(MatchKind.FIELD_WRITE, scope, listener));
+      index.getRelationships(
+          setter,
+          IndexConstants.IS_REFERENCED_BY_UNQUALIFIED,
+          newCallback(MatchKind.FIELD_WRITE, scope, listener));
+    }
+    index.getRelationships(
+        field,
+        IndexConstants.IS_REFERENCED_BY,
+        newCallback(MatchKind.FIELD_REFERENCE, scope, listener));
+    index.getRelationships(
+        field,
+        IndexConstants.IS_REFERENCED_BY_QUALIFIED,
+        newCallback(MatchKind.FIELD_REFERENCE, scope, listener));
   }
 
   private void searchReferences(TypeParameterElement typeParameter, SearchScope scope,

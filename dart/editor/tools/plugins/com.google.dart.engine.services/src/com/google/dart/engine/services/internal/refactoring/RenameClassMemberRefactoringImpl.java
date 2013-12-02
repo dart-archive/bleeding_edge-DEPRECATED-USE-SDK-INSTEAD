@@ -126,24 +126,27 @@ public class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
         }
       }
       // update references
-      List<SearchMatch> uniqueElementsRefs = getUniqueMatches(validator.renameElementsReferences);
-      for (SearchMatch reference : uniqueElementsRefs) {
-        Source refSource = reference.getElement().getSource();
-        SourceChange refChange = exactManager.get(refSource);
+      List<SourceReference> elementRefs = getSourceReferences(validator.renameElementsReferences);
+      for (SourceReference reference : elementRefs) {
+        SourceChange refChange = exactManager.get(reference.source);
         addReferenceEdit(refChange, reference);
       }
       // potential matches
       SourceChangeManager previewManager = new SourceChangeManager();
-      List<SearchMatch> uniqueNameRefs = getUniqueMatches(nameReferences);
-      for (SearchMatch reference : uniqueNameRefs) {
-        Element refElement = reference.getElement();
-        if (!ElementUtils.isAccessible(element, refElement)) {
+      List<SourceReference> nameSourceReferences = getSourceReferences(nameReferences);
+      for (SourceReference reference : nameSourceReferences) {
+        // check that element is accessible
+        boolean accessible = false;
+        for (Element refElement : reference.elements) {
+          accessible |= ElementUtils.isAccessible(element, refElement);
+        }
+        if (!accessible) {
           continue;
         }
-        Source refSource = refElement.getSource();
-        SourceChange refChange = previewManager.get(refSource);
+        // add edit
+        SourceChange refChange = previewManager.get(reference.source);
         Edit edit = createReferenceEdit(reference, newName);
-        addEdit(refChange, "Update reference @" + reference.getSourceRange().getOffset(), edit);
+        addEdit(refChange, "Update reference @" + reference.range.getOffset(), edit);
       }
       // return CompositeChange
       SourceChange[] exactChanges = exactManager.getChanges();

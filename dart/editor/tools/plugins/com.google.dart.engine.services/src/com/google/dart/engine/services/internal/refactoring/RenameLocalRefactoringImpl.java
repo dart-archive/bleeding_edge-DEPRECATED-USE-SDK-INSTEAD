@@ -88,9 +88,9 @@ public class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
     // update declaration
     addDeclarationEdit(change, element);
     // update references
-    List<SearchMatch> references = searchEngine.searchReferences(element, null, null);
-    references = getUniqueMatches(references);
-    for (SearchMatch reference : references) {
+    List<SearchMatch> refMatches = searchEngine.searchReferences(element, null, null);
+    List<SourceReference> references = getSourceReferences(refMatches);
+    for (SourceReference reference : references) {
       addReferenceEdit(change, reference);
     }
     return change;

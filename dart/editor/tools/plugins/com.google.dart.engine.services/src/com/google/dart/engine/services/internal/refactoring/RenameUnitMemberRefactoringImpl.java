@@ -116,11 +116,10 @@ public class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
           addDeclarationEdit(elementChange, element);
         }
         // update references
-        List<SearchMatch> references = searchEngine.searchReferences(element, null, null);
-        references = getUniqueMatches(references);
-        for (SearchMatch reference : references) {
-          Source refSource = reference.getElement().getSource();
-          SourceChange refChange = changeManager.get(refSource);
+        List<SearchMatch> matches = searchEngine.searchReferences(element, null, null);
+        List<SourceReference> references = getSourceReferences(matches);
+        for (SourceReference reference : references) {
+          SourceChange refChange = changeManager.get(reference.source);
           addReferenceEdit(refChange, reference);
         }
       }

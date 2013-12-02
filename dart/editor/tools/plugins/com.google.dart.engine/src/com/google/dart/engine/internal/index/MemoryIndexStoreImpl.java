@@ -60,12 +60,22 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
     @Override
     public boolean equals(Object obj) {
       ElementRelationKey other = (ElementRelationKey) obj;
-      return other.relationship == relationship && Objects.equal(other.element, element);
+      Element otherElement = other.element;
+      return other.relationship == relationship
+          && otherElement.getNameOffset() == element.getNameOffset()
+          && otherElement.getKind() == element.getKind()
+          && Objects.equal(otherElement.getDisplayName(), element.getDisplayName())
+          && Objects.equal(otherElement.getSource(), element.getSource());
     }
 
     @Override
     public int hashCode() {
-      return Objects.hashCode(element, relationship);
+      return Objects.hashCode(
+          element.getSource(),
+          element.getNameOffset(),
+          element.getKind(),
+          element.getDisplayName(),
+          relationship);
     }
 
     @Override

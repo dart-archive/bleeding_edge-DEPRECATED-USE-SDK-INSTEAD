@@ -34,7 +34,6 @@ import com.google.dart.engine.services.refactoring.Refactoring;
 import com.google.dart.engine.services.refactoring.SubProgressMonitor;
 import com.google.dart.engine.services.status.RefactoringStatus;
 import com.google.dart.engine.services.status.RefactoringStatusContext;
-import com.google.dart.engine.source.Source;
 
 import static com.google.dart.engine.services.internal.correction.CorrectionUtils.getChildren;
 import static com.google.dart.engine.services.internal.correction.CorrectionUtils.getElementKindName;
@@ -81,23 +80,22 @@ public class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
       SourceChangeManager changeManager = new SourceChangeManager();
       String replacement = newName.isEmpty() ? "" : "." + newName;
       String oldContent = oldName.isEmpty() ? "" : "." + oldName;
-      List<SearchMatch> references = searchEngine.searchReferences(element, null, null);
+      List<SearchMatch> matches = searchEngine.searchReferences(element, null, null);
+      List<SourceReference> references = getSourceReferences(matches);
       // update declaration
       if (!element.isSynthetic()) {
-        for (SearchMatch reference : references) {
-          if (reference.getKind() == MatchKind.CONSTRUCTOR_DECLARATION) {
-            Source refSource = reference.getElement().getSource();
-            SourceChange refChange = changeManager.get(refSource);
+        for (SourceReference reference : references) {
+          if (reference.kind == MatchKind.CONSTRUCTOR_DECLARATION) {
+            SourceChange refChange = changeManager.get(reference.source);
             Edit refEdit = createReferenceEdit(reference, replacement);
             CorrectionUtils.addEdit(refChange, "Update declaration", oldContent, refEdit);
           }
         }
       }
       // update references
-      for (SearchMatch reference : references) {
-        if (reference.getKind() == MatchKind.CONSTRUCTOR_REFERENCE) {
-          Source refSource = reference.getElement().getSource();
-          SourceChange refChange = changeManager.get(refSource);
+      for (SourceReference reference : references) {
+        if (reference.kind == MatchKind.CONSTRUCTOR_REFERENCE) {
+          SourceChange refChange = changeManager.get(reference.source);
           Edit refEdit = createReferenceEdit(reference, replacement);
           CorrectionUtils.addEdit(refChange, "Update reference", oldContent, refEdit);
         }

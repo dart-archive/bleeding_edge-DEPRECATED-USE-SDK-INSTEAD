@@ -16,12 +16,13 @@ package com.google.dart.engine.services.internal.refactoring;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import com.google.common.collect.Maps;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LocalElement;
 import com.google.dart.engine.element.PrefixElement;
+import com.google.dart.engine.search.MatchKind;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchMatch;
 import com.google.dart.engine.services.change.Edit;
@@ -39,7 +40,7 @@ import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeEl
 import org.apache.commons.lang3.ArrayUtils;
 
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 
 /**
  * Abstract implementation of {@link RenameRefactoring}.
@@ -48,8 +49,8 @@ public abstract class RenameRefactoringImpl extends RefactoringImpl implements R
   /**
    * @return the {@link Edit} to replace the given {@link SearchMatch} reference.
    */
-  protected static Edit createReferenceEdit(SearchMatch reference, String newText) {
-    return new Edit(reference.getSourceRange(), newText);
+  protected static Edit createReferenceEdit(SourceReference reference, String newText) {
+    return new Edit(reference.range, newText);
   }
 
   /**
@@ -57,12 +58,22 @@ public abstract class RenameRefactoringImpl extends RefactoringImpl implements R
    * return separate {@link SearchMatch} for each context. But in rename refactoring we want to
    * update {@link Source} only once.
    */
-  protected static List<SearchMatch> getUniqueMatches(List<SearchMatch> matches) {
-    Set<SearchMatch> uniqueMatches = Sets.newHashSet();
+  protected static List<SourceReference> getSourceReferences(List<SearchMatch> matches) {
+    Map<SourceReference, SourceReference> uniqueReferences = Maps.newHashMap();
     for (SearchMatch match : matches) {
-      uniqueMatches.add(match);
+      Element element = match.getElement();
+      MatchKind kind = match.getKind();
+      Source source = element.getSource();
+      SourceRange range = match.getSourceRange();
+      SourceReference newReference = new SourceReference(kind, source, range);
+      SourceReference oldReference = uniqueReferences.get(newReference);
+      if (oldReference == null) {
+        uniqueReferences.put(newReference, newReference);
+        oldReference = newReference;
+      }
+      oldReference.elements.add(element);
     }
-    return Lists.newArrayList(uniqueMatches);
+    return Lists.newArrayList(uniqueReferences.keySet());
   }
 
   /**
@@ -204,7 +215,7 @@ public abstract class RenameRefactoringImpl extends RefactoringImpl implements R
   /**
    * Adds the "Update reference" {@link Edit} to the {@link SourceChange}.
    */
-  protected final void addReferenceEdit(SourceChange change, SearchMatch reference)
+  protected final void addReferenceEdit(SourceChange change, SourceReference reference)
       throws Exception {
     Edit edit = createReferenceEdit(reference, newName);
     addEdit(change, "Update reference", edit);
