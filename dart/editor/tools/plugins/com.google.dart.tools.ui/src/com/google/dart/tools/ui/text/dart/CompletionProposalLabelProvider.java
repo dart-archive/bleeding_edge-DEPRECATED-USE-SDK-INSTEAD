@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.text.dart;
 
+import com.google.dart.engine.element.Element;
 import com.google.dart.tools.core.completion.CompletionContext;
 import com.google.dart.tools.core.completion.CompletionProposal;
 import com.google.dart.tools.ui.DartElementImageDescriptor;
@@ -37,8 +38,6 @@ import java.util.Arrays;
  * {@link CompletionProposal}s.
  */
 public class CompletionProposalLabelProvider {
-
-  private static final String RIGHT_ARROW = " -> "; //$NON-NLS-1$
   private static final String VOID_INDICATOR = "  void"; //$NON-NLS-1$
   private static final String DYNAMIC_INDICATOR = "  dynamic"; //$NON-NLS-1$
 
@@ -323,7 +322,7 @@ public class CompletionProposalLabelProvider {
       if (isDynamic(typeName)) {
         buf.append(DYNAMIC_INDICATOR, StyledString.QUALIFIER_STYLER);
       } else {
-        buf.append(RIGHT_ARROW, StyledString.QUALIFIER_STYLER);
+        buf.append(Element.RIGHT_ARROW, StyledString.QUALIFIER_STYLER);
         TypeLabelUtil.insertTypeLabel(typeName, buf);
       }
     }
@@ -425,7 +424,7 @@ public class CompletionProposalLabelProvider {
         } else if (isDynamic(returnType)) {
           buffer.append(DYNAMIC_INDICATOR, StyledString.QUALIFIER_STYLER);
         } else {
-          buffer.append(RIGHT_ARROW, StyledString.QUALIFIER_STYLER);
+          buffer.append(Element.RIGHT_ARROW, StyledString.QUALIFIER_STYLER);
           TypeLabelUtil.insertTypeLabel(returnType, buffer);
         }
       }
@@ -471,7 +470,7 @@ public class CompletionProposalLabelProvider {
     char[] typeName = Signature.getSignatureSimpleName(proposal.getSignature());
 
     if (typeName.length > 0) {
-      buf.append(RIGHT_ARROW);
+      buf.append(Element.RIGHT_ARROW);
       TypeLabelUtil.insertTypeLabel(typeName, buf);
     }
     return buf.toString();

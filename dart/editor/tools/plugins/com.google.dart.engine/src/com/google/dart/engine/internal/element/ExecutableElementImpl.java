@@ -14,6 +14,7 @@
 package com.google.dart.engine.internal.element;
 
 import com.google.dart.engine.ast.Identifier;
+import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementVisitor;
 import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.FunctionElement;
@@ -233,7 +234,7 @@ public abstract class ExecutableElementImpl extends ElementImpl implements Execu
     }
     builder.append(")");
     if (type != null) {
-      builder.append(" -> ");
+      builder.append(Element.RIGHT_ARROW);
       builder.append(type.getReturnType());
     }
   }

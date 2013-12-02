@@ -14,6 +14,7 @@
 package com.google.dart.engine.internal.element.member;
 
 import com.google.dart.engine.element.ClassElement;
+import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementVisitor;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
@@ -102,7 +103,7 @@ public class MethodMember extends ExecutableMember implements MethodElement {
     }
     builder.append(")");
     if (type != null) {
-      builder.append(" -> ");
+      builder.append(Element.RIGHT_ARROW);
       builder.append(type.getReturnType());
     }
     return builder.toString();

@@ -31,6 +31,7 @@ import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.TopLevelVariableDeclaration;
 import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.VariableDeclaration;
+import com.google.dart.engine.element.Element;
 import com.google.dart.tools.ui.DartElementImageDescriptor;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
@@ -77,6 +78,7 @@ public class LightNodeElements {
       return name1.compareTo(name2);
     }
   }
+
   /**
    * {@link ViewerComparator} for {@link LightNodeElement} positions.
    */
@@ -94,7 +96,6 @@ public class LightNodeElements {
       return offset1 - offset2;
     }
   }
-
   /**
    * {@link ITreeContentProvider} for {@link LightNodeElement}s in {@link CompilationUnit}.
    */
@@ -273,7 +274,9 @@ public class LightNodeElements {
         styledString.append(parameters.toSource(), StyledString.DECORATIONS_STYLER);
       }
       if (returnType != null) {
-        styledString.append(" : " + returnType.toSource(), StyledString.QUALIFIER_STYLER);
+        styledString.append(
+            Element.RIGHT_ARROW + returnType.toSource(),
+            StyledString.QUALIFIER_STYLER);
       }
       // done
       return styledString;

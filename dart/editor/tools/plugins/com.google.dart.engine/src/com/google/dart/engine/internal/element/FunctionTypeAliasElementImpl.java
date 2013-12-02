@@ -15,6 +15,7 @@ package com.google.dart.engine.internal.element;
 
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.element.CompilationUnitElement;
+import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.ElementVisitor;
 import com.google.dart.engine.element.FunctionTypeAliasElement;
@@ -214,7 +215,7 @@ public class FunctionTypeAliasElementImpl extends ElementImpl implements Functio
     }
     builder.append(")");
     if (type != null) {
-      builder.append(" -> ");
+      builder.append(Element.RIGHT_ARROW);
       builder.append(type.getReturnType());
     }
   }

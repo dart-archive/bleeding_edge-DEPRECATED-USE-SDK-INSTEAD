@@ -528,9 +528,8 @@ public class SimpleResolverTest extends ResolverTestCase {
           Type staticType = node.getStaticType();
           assertSame(getTypeProvider().getDynamicType(), staticType);
           // check propagated type
-          Type propagatedType = node.getPropagatedType();
-          assertTrue(propagatedType instanceof FunctionType);
-          assertEquals("(int) -> String", propagatedType.getDisplayName());
+          FunctionType propagatedType = (FunctionType) node.getPropagatedType();
+          assertEquals(getTypeProvider().getStringType(), propagatedType.getReturnType());
         }
         return null;
       }

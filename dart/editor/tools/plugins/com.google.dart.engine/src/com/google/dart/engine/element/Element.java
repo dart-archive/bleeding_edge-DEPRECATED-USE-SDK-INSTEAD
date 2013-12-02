@@ -43,6 +43,11 @@ import java.util.Comparator;
  */
 public interface Element {
   /**
+   * An Unicode right arrow.
+   */
+  public static final String RIGHT_ARROW = " \u279D "; //$NON-NLS-1$
+
+  /**
    * A comparator that can be used to sort elements by their name offset. Elements with a smaller
    * offset will be sorted to be before elements with a larger name offset.
    */

@@ -140,7 +140,7 @@ public class PropertyAccessorMember extends ExecutableMember implements Property
     }
     builder.append(")");
     if (type != null) {
-      builder.append(" -> ");
+      builder.append(Element.RIGHT_ARROW);
       builder.append(type.getReturnType());
     }
     return builder.toString();

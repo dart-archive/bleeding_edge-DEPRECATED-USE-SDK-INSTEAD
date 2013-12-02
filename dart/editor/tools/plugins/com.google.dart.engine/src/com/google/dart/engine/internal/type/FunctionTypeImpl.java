@@ -165,7 +165,8 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
         builder.append("}");
         needsComma = true;
       }
-      builder.append(") -> ");
+      builder.append(")");
+      builder.append(Element.RIGHT_ARROW);
       if (returnType == null) {
         builder.append("null");
       } else {
@@ -482,7 +483,8 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
       builder.append("}");
       needsComma = true;
     }
-    builder.append(") -> ");
+    builder.append(")");
+    builder.append(Element.RIGHT_ARROW);
     if (returnType == null) {
       builder.append("null");
     } else {
