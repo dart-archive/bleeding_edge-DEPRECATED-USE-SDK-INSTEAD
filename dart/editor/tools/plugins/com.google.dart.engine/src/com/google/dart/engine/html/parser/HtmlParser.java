@@ -239,11 +239,12 @@ public class HtmlParser extends XmlParser {
       if (endIndex < 0) {
         // TODO(brianwilkerson) Should we report this error or will it be reported by something else?
         return;
+      } else if (startIndex + 2 < endIndex) {
+        int offset = token.getOffset();
+        expressions.add(new EmbeddedExpression(startIndex, parseEmbeddedExpression(
+            lexeme.substring(startIndex + 2, endIndex),
+            offset + startIndex), endIndex));
       }
-      int offset = token.getOffset();
-      expressions.add(new EmbeddedExpression(startIndex, parseEmbeddedExpression(
-          lexeme.substring(startIndex + 2, endIndex),
-          offset + startIndex), endIndex));
       startIndex = lexeme.indexOf(OPENING_DELIMITER, endIndex + 2);
     }
   }
