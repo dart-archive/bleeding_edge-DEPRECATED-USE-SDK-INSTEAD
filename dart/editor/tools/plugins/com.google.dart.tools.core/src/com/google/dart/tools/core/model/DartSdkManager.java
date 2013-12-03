@@ -376,9 +376,7 @@ public class DartSdkManager {
 
   private String getUpdateChannelUrl() {
     try {
-      Bundle bundle = Platform.getBundle(DartCore.PLUGIN_ID);
-      URL url = bundle.getEntry("update.properties");
-      File file = new File(FileLocator.resolve(url).toURI());
+      File file = getUpdatePropertiesFile();
       if (file.exists()) {
         Properties properties = new Properties();
         properties.load(new FileReader(file));
@@ -392,6 +390,16 @@ public class DartSdkManager {
       DartCore.logError(e);
     }
     return null;
+  }
+
+  private File getUpdatePropertiesFile() throws IOException, URISyntaxException {
+    Bundle bundle = Platform.getBundle(DartCore.PLUGIN_ID);
+    URL url = bundle.getEntry("update.properties");
+    URL resolvedUrl = FileLocator.resolve(url);
+    // Ensure file system chars are properly escaped
+    // (https://bugs.eclipse.org/bugs/show_bug.cgi?id=145096)
+    URI fileUri = new URI(resolvedUrl.getProtocol(), resolvedUrl.getPath(), null);
+    return new File(fileUri);
   }
 
   private void initSdk() {
