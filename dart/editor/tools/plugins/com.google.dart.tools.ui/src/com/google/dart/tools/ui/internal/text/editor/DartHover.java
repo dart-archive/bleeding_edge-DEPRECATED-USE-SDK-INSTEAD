@@ -69,6 +69,8 @@ import java.util.List;
 public class DartHover implements ITextHover, ITextHoverExtension, ITextHoverExtension2 {
   private static class DartInformationControl extends AbstractInformationControl implements
       IInformationControlExtension2 {
+    private static final Point SIZE_CONSTRAINTS = new Point(10000, 10000);
+
     private static void setGridVisible(Control control, boolean visible) {
       GridDataFactory.modify(control).exclude(!visible);
       control.setVisible(visible);
@@ -99,7 +101,7 @@ public class DartHover implements ITextHover, ITextHoverExtension, ITextHoverExt
 
     @Override
     public Point computeSizeConstraints(int widthInChars, int heightInChars) {
-      return new Point(Integer.MAX_VALUE, Integer.MAX_VALUE);
+      return SIZE_CONSTRAINTS;
     }
 
     @Override
@@ -279,8 +281,16 @@ public class DartHover implements ITextHover, ITextHoverExtension, ITextHoverExt
         formToolkit.adapt(textWidget, false, false);
         section.setClient(textWidget);
       } else {
-        browser = new Browser(section, SWT.BORDER);
-        section.setClient(browser);
+        // create Composite to draw flat border
+        Composite body = formToolkit.createComposite(section);
+        GridLayoutFactory.create(body).margins(2);
+        section.setClient(body);
+        // create Browser
+        browser = new Browser(body, SWT.NONE);
+        GridDataFactory.create(browser).grab().fill();
+        // configure flat border
+        browser.setData(FormToolkit.KEY_DRAW_BORDER, FormToolkit.TEXT_BORDER);
+        formToolkit.paintBordersFor(body);
       }
     }
 

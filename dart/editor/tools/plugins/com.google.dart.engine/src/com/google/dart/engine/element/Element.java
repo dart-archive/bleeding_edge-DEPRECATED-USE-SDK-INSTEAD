@@ -45,7 +45,7 @@ public interface Element {
   /**
    * An Unicode right arrow.
    */
-  public static final String RIGHT_ARROW = " \u279D "; //$NON-NLS-1$
+  public static final String RIGHT_ARROW = " \u2192 "; //$NON-NLS-1$
 
   /**
    * A comparator that can be used to sort elements by their name offset. Elements with a smaller
