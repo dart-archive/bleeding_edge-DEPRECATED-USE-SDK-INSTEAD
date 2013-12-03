@@ -1,7 +1,7 @@
 part of game;
 
 class _Audio {
-  static const List<String> _audioNames =
+  static const List<String> _AUDIO_NAMES =
       const ['Pop0', 'Pop1', 'Pop2', 'Pop3', 'Pop4', 'Pop5', 'Pop6', 'Pop7', 'Pop8',
              'Bomb0', 'Bomb1', 'Bomb2', 'Bomb3', 'Bomb4',
              GameAudio.THROW_DART, GameAudio.FLAG, GameAudio.UNFLAG, GameAudio.CLICK, GameAudio.WIN];
@@ -14,7 +14,7 @@ class _Audio {
     if(_audioFormat != null) {
       try {
         final audioContext = new AudioContext();
-        final loader = new AudioLoader(audioContext, _getAudioPaths(_audioNames));
+        final loader = new AudioLoader(audioContext, _getAudioPaths(_AUDIO_NAMES));
         return new _Audio._internal(loader);
       } catch (e) {
         print("Error creating AudioContext: ${e}");
@@ -69,7 +69,7 @@ class _Audio {
 
   void _onLoad(args) {
     assert(_buffers.length == 0);
-    for(final name in _audioNames) {
+    for(final name in _AUDIO_NAMES) {
       final path = _getAudioPath(name);
       _buffers[name] = _audioLoader.getResource(path);
     }

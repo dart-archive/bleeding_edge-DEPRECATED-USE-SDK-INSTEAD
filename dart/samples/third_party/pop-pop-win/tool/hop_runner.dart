@@ -38,7 +38,7 @@ void main(List<String> args) {
   //
   // gh_pages
   //
-  addAsyncTask('pages', (ctx) =>
+  addTask('pages', (ctx) =>
       branchForDir(ctx, 'master', 'web', 'gh-pages'));
 
   runHop(args);

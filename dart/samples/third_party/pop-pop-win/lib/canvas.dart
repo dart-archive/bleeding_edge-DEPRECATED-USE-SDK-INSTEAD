@@ -20,7 +20,7 @@ part 'src/canvas/square_element.dart';
 part 'src/canvas/title_element.dart';
 part 'src/canvas/game_audio.dart';
 
-EventHandle _titleClickedEventHandle = new EventHandle<EventArgs>();
+final EventHandle _titleClickedEventHandle = new EventHandle<EventArgs>();
 
-Stream titleClickedEvent = _titleClickedEventHandle.stream;
+Stream get titleClickedEvent => _titleClickedEventHandle.stream;
 
