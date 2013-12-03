@@ -28,6 +28,7 @@ import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchMatch;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.engine.utilities.source.SourceRangeFactory;
 import com.google.dart.tools.core.DartCore;
@@ -61,6 +62,7 @@ import org.eclipse.text.edits.TextEdit;
 import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.CharBuffer;
 import java.util.List;
 
 /**
@@ -69,6 +71,24 @@ import java.util.List;
  * @coverage dart.editor.ui.refactoring.core
  */
 public class MoveResourceParticipant extends MoveParticipant {
+  /**
+   * @return the {@link String} content of the given {@link Source}.
+   */
+  private static String getSourceContent(Source source) throws Exception {
+    final String result[] = {null};
+    source.getContents(new Source.ContentReceiver() {
+      @Override
+      public void accept(CharBuffer contents, long modificationTime) {
+        result[0] = contents.toString();
+      }
+
+      @Override
+      public void accept(String contents, long modificationTime) {
+        result[0] = contents;
+      }
+    });
+    return result[0];
+  }
 
   /**
    * @return the Java {@link File} which corresponds to the given {@link Source}, may be
@@ -80,6 +100,13 @@ public class MoveResourceParticipant extends MoveParticipant {
       return new File(fileBasedSource.getFullName()).getAbsoluteFile();
     }
     return null;
+  }
+
+  private static boolean isPackageReference(SearchMatch match) throws Exception {
+    Source source = match.getElement().getSource();
+    int offset = match.getSourceRange().getOffset() + "'".length();
+    String content = getSourceContent(source);
+    return content.startsWith("package:", offset);
   }
 
   /**
@@ -143,29 +170,45 @@ public class MoveResourceParticipant extends MoveParticipant {
     return false;
   }
 
-  private void addReferenceUpdate(SearchMatch match, URI destUri) throws Exception {
+  private void addReferenceUpdate(SearchMatch match, IContainer destContainer) throws Exception {
     Source source = match.getElement().getSource();
-    //
-    File sourceFile = getSourceFile(source);
-    if (sourceFile == null) {
-      return;
-    }
-    // prepare name prefix
-    String namePrefix;
-    {
-      URI sourceUri = sourceFile.getParentFile().toURI();
-      URI relative = URIUtilities.relativize(sourceUri, destUri);
-      namePrefix = FilenameUtils.separatorsToUnix(relative.getPath());
-      if (namePrefix.length() != 0 && !namePrefix.endsWith("/")) {
-        namePrefix += "/";
+    String newUri = null;
+    // try to keep package: URI
+    if (isPackageReference(match)) {
+      File destDir = destContainer.getLocation().toFile();
+      File destFile = new File(destDir, file.getName());
+      SourceFactory sourceFactory = match.getElement().getContext().getSourceFactory();
+      FileBasedSource destSource = new FileBasedSource(sourceFactory.getContentCache(), destFile);
+      URI destUri = sourceFactory.restoreUri(destSource);
+      if (destUri != null) {
+        newUri = destUri.toString();
       }
+    }
+    // if no package: URI, prepare relative
+    if (newUri == null) {
+      // prepare source File
+      File sourceFile = getSourceFile(source);
+      if (sourceFile == null) {
+        return;
+      }
+      // prepare relative directory
+      URI sourceUri = sourceFile.getParentFile().toURI();
+      URI destUri = destContainer.getLocationURI();
+      URI relative = URIUtilities.relativize(sourceUri, destUri);
+      newUri = relative.getPath();
+      if (newUri.length() != 0 && !newUri.endsWith("/")) {
+        newUri += "/";
+      }
+      // append file name
+      newUri += file.getName();
     }
     // prepare "old name" range
     SourceRange matchRange = match.getSourceRange();
     int begin = matchRange.getOffset() + "'".length();
-    int end = SourceRangeUtils.getEnd(matchRange) - "'".length() - file.getName().length();
-    // add TextEdit to rename "old name" with "new name"
-    TextEdit edit = new ReplaceEdit(begin, end - begin, namePrefix);
+    int end = SourceRangeUtils.getEnd(matchRange) - "'".length();
+    // add TextEdit to replace "old URI" with "new URI"
+    newUri = FilenameUtils.separatorsToUnix(newUri);
+    TextEdit edit = new ReplaceEdit(begin, end - begin, newUri);
     addTextEdit(source, RefactoringCoreMessages.RenameProcessor_update_reference, edit);
   }
 
@@ -223,13 +266,12 @@ public class MoveResourceParticipant extends MoveParticipant {
     Object destination = arguments.getDestination();
     if (arguments.getUpdateReferences() && destination instanceof IContainer) {
       IContainer destContainer = (IContainer) destination;
-      URI destURI = ((IContainer) destination).getLocationURI();
       // prepare references
       SearchEngine searchEngine = DartCore.getProjectManager().newSearchEngine();
       List<SearchMatch> references = searchEngine.searchReferences(fileElement, null, null);
       // update references
       for (SearchMatch match : references) {
-        addReferenceUpdate(match, destURI);
+        addReferenceUpdate(match, destContainer);
       }
       // if moved Unit is defining library, updates references from it to its components
       {
