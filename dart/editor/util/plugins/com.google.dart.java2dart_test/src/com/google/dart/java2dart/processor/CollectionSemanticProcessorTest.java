@@ -585,7 +585,7 @@ public class CollectionSemanticProcessorTest extends SemanticProcessorTest {
     assertFormattedSource(
         "class Test {",
         "  void main(Map<String, int> target, Map<String, int> source) {",
-        "    javaMapPutAll(target, source);",
+        "    target.addAll(source);",
         "  }",
         "}");
   }
@@ -642,7 +642,7 @@ public class CollectionSemanticProcessorTest extends SemanticProcessorTest {
     assertFormattedSource(//
         "class Test {",
         "  void foo(Set<int> items) {",
-        "    javaSetAdd(items, 42);",
+        "    items.add(42);",
         "  }",
         "}");
   }

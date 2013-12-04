@@ -309,8 +309,6 @@ public class MainEngine {
     {
       CompilationUnit library = buildParserLibrary();
       String source = getFormattedSource(library);
-      String line = "_errorListener.onError(new AnalysisError.con2(_source, offset, length, TodoCode.TODO, [matcher.group(2)]));";
-      source = replaceSourceFragment(source, line, "// " + line);
       Files.write(source, new File(targetFolder + "/parser.dart"), Charsets.UTF_8);
     }
     {
@@ -634,6 +632,7 @@ public class MainEngine {
                 "HtmlScanResult",
                 "HtmlParser",
                 "HtmlParseResult",
+                "HtmlScriptTagNode",
                 "HtmlUnit")));
     for (CompilationUnitMember member : dartUnit.getDeclarations()) {
       File file = context.getMemberToFile().get(member);
@@ -671,7 +670,23 @@ public class MainEngine {
     unit.getDirectives().add(importDirective("java_engine.dart", null));
     unit.getDirectives().add(importDirective("source.dart", null));
     unit.getDirectives().add(
-        importDirective("element.dart", null, importShowCombinator("HtmlElementImpl")));
+        importDirective("error.dart", null, importShowCombinator("AnalysisErrorListener")));
+    unit.getDirectives().add(
+        importDirective(
+            "scanner.dart",
+            "sc",
+            importShowCombinator("Scanner", "SubSequenceReader", "Token")));
+    unit.getDirectives().add(importDirective("parser.dart", null, importShowCombinator("Parser")));
+    unit.getDirectives().add(
+        importDirective(
+            "ast.dart",
+            null,
+            importShowCombinator("ASTVisitor", "CompilationUnit", "Expression")));
+    unit.getDirectives().add(
+        importDirective(
+            "element.dart",
+            null,
+            importShowCombinator("HtmlElementImpl", "HtmlScriptElement")));
     unit.getDirectives().add(
         importDirective("engine.dart", null, importShowCombinator("AnalysisEngine")));
     for (Entry<File, List<CompilationUnitMember>> entry : context.getFileToMembers().entrySet()) {
@@ -681,6 +696,11 @@ public class MainEngine {
         addNotRemovedCompiationUnitEntries(unit, entry.getValue());
       }
     }
+    EngineSemanticProcessor.useImportPrefix(
+        context,
+        unit,
+        "sc",
+        new String[] {"com.google.dart.engine.scanner."});
     return unit;
   }
 
@@ -999,6 +1019,7 @@ public class MainEngine {
       if (isEnginePath(file, "source/Source.java")
           || isEnginePath(file, "source/ContentCache.java")
           || isEnginePath(file, "source/DartUriResolver.java")
+          || isEnginePath(file, "source/LocalSourcePredicate.java")
           || isEnginePath(file, "source/SourceFactory.java")
           || isEnginePath(file, "source/SourceContainer.java")
           || isEnginePath(file, "source/SourceKind.java")

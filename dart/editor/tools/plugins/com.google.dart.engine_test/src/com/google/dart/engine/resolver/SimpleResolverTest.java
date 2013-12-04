@@ -518,7 +518,7 @@ public class SimpleResolverTest extends ResolverTestCase {
     assertNotNull(library);
     CompilationUnit unit = getAnalysisContext().getResolvedCompilationUnit(source, library);
     assertNotNull(unit);
-    final boolean found[] = {false};
+    final boolean[] found = {false};
     unit.accept(new RecursiveASTVisitor<Void>() {
       @Override
       public Void visitSimpleIdentifier(SimpleIdentifier node) {

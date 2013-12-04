@@ -39,6 +39,9 @@ public abstract class TypeImpl implements Type {
 
     @Override
     public boolean equals(Object object) {
+      if (object == this) {
+        return true;
+      }
       if (object instanceof TypePair) {
         TypePair typePair = (TypePair) object;
         return firstType.equals(typePair.firstType) && secondType != null
