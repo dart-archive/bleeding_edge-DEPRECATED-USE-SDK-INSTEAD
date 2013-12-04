@@ -788,10 +788,11 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
             }
           });
         } catch (Exception e) {
+          //TODO (pquitslund): parse failures shouldn't be logged but should be communicated         
           DartToolsPlugin.log(e);
           console.clear();
           //TODO (pquitslund): remove console logging
-          console.println("Formatting cancelled");
+          console.println("Unable to format " + file.getName() + ": " + e.getMessage());
           return Status.CANCEL_STATUS;
         }
 

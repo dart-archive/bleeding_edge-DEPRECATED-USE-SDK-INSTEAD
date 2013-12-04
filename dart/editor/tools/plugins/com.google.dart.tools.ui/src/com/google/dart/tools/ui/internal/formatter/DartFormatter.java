@@ -153,7 +153,8 @@ public class DartFormatter {
 
     //TODO (pquitslund): better error handling
     if (runner.getExitCode() != 0) {
-      throw new IOException(runner.getStdErr());
+      sb.append(runner.getStdErr());
+      throw new IOException(sb.toString());
     }
 
     String formattedSource = sb.toString();
