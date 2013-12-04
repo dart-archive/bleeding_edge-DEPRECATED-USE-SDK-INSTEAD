@@ -90,7 +90,16 @@ public class HtmlParserTest extends EngineTestCase {
     assertEquals("sdfsdf", bodyNode.getAttributes().get(0).getText());
   }
 
-  public void test_parse_attribute_withEmbeddedExpression() throws Exception {
+  public void test_parse_attribute_withEmbeddedExpression_empty() throws Exception {
+    HtmlUnit htmlUnit = parse("<html><body foo='{{}}'></body></html>").getHtmlUnit();
+    XmlTagNode htmlNode = htmlUnit.getTagNodes().get(0);
+    XmlTagNode bodyNode = htmlNode.getTagNodes().get(0);
+    XmlAttributeNode attribute = bodyNode.getAttributes().get(0);
+    EmbeddedExpression[] expressions = attribute.getExpressions();
+    assertLength(0, expressions);
+  }
+
+  public void test_parse_attribute_withEmbeddedExpression_normal() throws Exception {
     // TODO(brianwilkerson) Add a test with a missing "}}".
     HtmlUnit htmlUnit = parse("<html><body foo='{{bar}}'></body></html>").getHtmlUnit();
     XmlTagNode htmlNode = htmlUnit.getTagNodes().get(0);
