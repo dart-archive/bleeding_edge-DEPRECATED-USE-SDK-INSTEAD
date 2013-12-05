@@ -1649,6 +1649,14 @@ public class CompletionTests extends CompletionTestCase {
         "1-dart:_collection.dev");
   }
 
+  public void testCompletion_incompleteClassMember() throws Exception {
+    test(src(//
+        "class A {",
+        "  Str!1",
+        "  final f = null;",
+        "}"), "1+String", "1-bool");
+  }
+
   // TODO(scheglov)
 //  public void testCompletion_import_lib() throws Exception {
 //    addSource("/my_lib.dart", "");

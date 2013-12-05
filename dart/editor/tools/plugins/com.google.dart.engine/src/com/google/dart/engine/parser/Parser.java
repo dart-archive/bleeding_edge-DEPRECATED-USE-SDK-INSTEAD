@@ -83,6 +83,11 @@ public class Parser {
   private AnalysisErrorListener errorListener;
 
   /**
+   * An {@link #errorListener} lock, if more than {@code 0}, then errors are not reported.
+   */
+  private int errorListenerLock = 0;
+
+  /**
    * The next token to be parsed.
    */
   private Token currentToken;
@@ -522,8 +527,22 @@ public class Parser {
         validateModifiersForOperator(modifiers);
         return parseOperator(commentAndMetadata, modifiers.getExternalKeyword(), type);
       }
+      //
+      // We appear to have found an incomplete declaration before another declaration.
+      // At this point it consists of a type name, so we'll treat it as a field declaration
+      // with a missing field name and semicolon.
+      //
       reportError(ParserErrorCode.EXPECTED_CLASS_MEMBER, currentToken);
-      return null;
+      try {
+        lockErrorListener();
+        return parseInitializedIdentifierList(
+            commentAndMetadata,
+            modifiers.getStaticKeyword(),
+            validateModifiersForField(modifiers),
+            type);
+      } finally {
+        unlockErrorListener();
+      }
     } else if (matches(peek(), TokenType.OPEN_PAREN)) {
       SimpleIdentifier methodName = parseSimpleIdentifier();
       FormalParameterList parameters = parseFormalParameterList();
@@ -785,6 +804,22 @@ public class Parser {
     return expression;
   }
 
+  /**
+   * Parse a class extends clause.
+   * 
+   * <pre>
+   * classExtendsClause ::=
+   *     'extends' type
+   * </pre>
+   * 
+   * @return the class extends clause that was parsed
+   */
+  protected ExtendsClause parseExtendsClause() {
+    Token keyword = expect(Keyword.EXTENDS);
+    TypeName superclass = parseTypeName();
+    return new ExtendsClause(keyword, superclass);
+  }
+
 //  /**
 //   * If the current token is an identifier matching the given identifier, return it after advancing
 //   * to the next token. Otherwise report an error and return the current token without advancing.
@@ -801,22 +836,6 @@ public class Parser {
 //    reportError(ParserErrorCode.EXPECTED_TOKEN, identifier);
 //    return currentToken;
 //  }
-
-  /**
-   * Parse a class extends clause.
-   * 
-   * <pre>
-   * classExtendsClause ::=
-   *     'extends' type
-   * </pre>
-   * 
-   * @return the class extends clause that was parsed
-   */
-  protected ExtendsClause parseExtendsClause() {
-    Token keyword = expect(Keyword.EXTENDS);
-    TypeName superclass = parseTypeName();
-    return new ExtendsClause(keyword, superclass);
-  }
 
   /**
    * Parse a list of formal parameters.
@@ -1289,18 +1308,18 @@ public class Parser {
   }
 
 /**
-   * Parse a list of type arguments.
-   * 
-   * <pre>
-   * typeArguments ::=
-   *     '<' typeList '>'
-   * 
-   * typeList ::=
-   *     type (',' type)*
-   * </pre>
-   * 
-   * @return the type argument list that was parsed
-   */
+     * Parse a list of type arguments.
+     * 
+     * <pre>
+     * typeArguments ::=
+     *     '<' typeList '>'
+     * 
+     * typeList ::=
+     *     type (',' type)*
+     * </pre>
+     * 
+     * @return the type argument list that was parsed
+     */
   protected TypeArgumentList parseTypeArgumentList() {
     Token leftBracket = expect(TokenType.LT);
     List<TypeName> arguments = new ArrayList<TypeName>();
@@ -1316,9 +1335,9 @@ public class Parser {
    * Parse a type name.
    * 
    * <pre>
-   * type ::=
-   *     qualified typeArguments?
-   * </pre>
+ * type ::=
+ *     qualified typeArguments?
+ * </pre>
    * 
    * @return the type name that was parsed
    */
@@ -1372,15 +1391,15 @@ public class Parser {
   }
 
 /**
-   * Parse a list of type parameters.
-   * 
-   * <pre>
-   * typeParameterList ::=
-   *     '<' typeParameter (',' typeParameter)* '>'
-   * </pre>
-   * 
-   * @return the list of type parameters that were parsed
-   */
+     * Parse a list of type parameters.
+     * 
+     * <pre>
+     * typeParameterList ::=
+     *     '<' typeParameter (',' typeParameter)* '>'
+     * </pre>
+     * 
+     * @return the list of type parameters that were parsed
+     */
   protected TypeParameterList parseTypeParameterList() {
     Token leftBracket = expect(TokenType.LT);
     List<TypeParameter> typeParameters = new ArrayList<TypeParameter>();
@@ -1396,9 +1415,9 @@ public class Parser {
    * Parse a with clause.
    * 
    * <pre>
-   * withClause ::=
-   *     'with' typeName (',' typeName)*
-   * </pre>
+ * withClause ::=
+ *     'with' typeName (',' typeName)*
+ * </pre>
    * 
    * @return the with clause that was parsed
    */
@@ -2021,6 +2040,14 @@ public class Parser {
       }
     }
     return first;
+  }
+
+  /**
+   * Increments the error reporting lock level. If level is more than {@code 0}, then
+   * {@link #reportError(AnalysisError)} wont report any error.
+   */
+  private void lockErrorListener() {
+    errorListenerLock++;
   }
 
   /**
@@ -4833,6 +4860,28 @@ public class Parser {
     }
   }
 
+  /**
+   * Parse a redirecting constructor invocation.
+   * 
+   * <pre>
+   * redirectingConstructorInvocation ::=
+   *     'this' ('.' identifier)? arguments
+   * </pre>
+   * 
+   * @return the redirecting constructor invocation that was parsed
+   */
+  private RedirectingConstructorInvocation parseRedirectingConstructorInvocation() {
+    Token keyword = expect(Keyword.THIS);
+    Token period = null;
+    SimpleIdentifier constructorName = null;
+    if (matches(TokenType.PERIOD)) {
+      period = getAndAdvance();
+      constructorName = parseSimpleIdentifier();
+    }
+    ArgumentList argumentList = parseArgumentList();
+    return new RedirectingConstructorInvocation(keyword, period, constructorName, argumentList);
+  }
+
 //  /**
 //   * Parse a simple identifier.
 //   * 
@@ -4856,28 +4905,6 @@ public class Parser {
 //    }
 //    return createSyntheticIdentifier();
 //  }
-
-  /**
-   * Parse a redirecting constructor invocation.
-   * 
-   * <pre>
-   * redirectingConstructorInvocation ::=
-   *     'this' ('.' identifier)? arguments
-   * </pre>
-   * 
-   * @return the redirecting constructor invocation that was parsed
-   */
-  private RedirectingConstructorInvocation parseRedirectingConstructorInvocation() {
-    Token keyword = expect(Keyword.THIS);
-    Token period = null;
-    SimpleIdentifier constructorName = null;
-    if (matches(TokenType.PERIOD)) {
-      period = getAndAdvance();
-      constructorName = parseSimpleIdentifier();
-    }
-    ArgumentList argumentList = parseArgumentList();
-    return new RedirectingConstructorInvocation(keyword, period, constructorName, argumentList);
-  }
 
   /**
    * Parse a relational expression.
@@ -5626,6 +5653,18 @@ public class Parser {
   }
 
   /**
+   * Report the given {@link AnalysisError}.
+   * 
+   * @param error the error to be reported
+   */
+  private void reportError(AnalysisError error) {
+    if (errorListenerLock != 0) {
+      return;
+    }
+    errorListener.onError(error);
+  }
+
+  /**
    * Report an error with the given error code and arguments.
    * 
    * @param errorCode the error code of the error to be reported
@@ -5633,12 +5672,7 @@ public class Parser {
    * @param arguments the arguments to the error, used to compose the error message
    */
   private void reportError(ParserErrorCode errorCode, ASTNode node, Object... arguments) {
-    errorListener.onError(new AnalysisError(
-        source,
-        node.getOffset(),
-        node.getLength(),
-        errorCode,
-        arguments));
+    reportError(new AnalysisError(source, node.getOffset(), node.getLength(), errorCode, arguments));
   }
 
   /**
@@ -5659,7 +5693,7 @@ public class Parser {
    * @param arguments the arguments to the error, used to compose the error message
    */
   private void reportError(ParserErrorCode errorCode, Token token, Object... arguments) {
-    errorListener.onError(new AnalysisError(
+    reportError(new AnalysisError(
         source,
         token.getOffset(),
         token.getLength(),
@@ -5980,23 +6014,23 @@ public class Parser {
   }
 
 /**
-   * Parse a list of type arguments, starting at the given token, without actually creating a type argument list
-   * or changing the current token. Return the token following the type argument list that was parsed,
-   * or {@code null} if the given token is not the first token in a valid type argument list.
-   * <p>
-   * This method must be kept in sync with {@link #parseTypeArgumentList()}.
-   * 
-   * <pre>
-   * typeArguments ::=
-   *     '<' typeList '>'
-   * 
-   * typeList ::=
-   *     type (',' type)*
-   * </pre>
-   * 
-   * @param startToken the token at which parsing is to begin
-   * @return the token following the type argument list that was parsed
-   */
+     * Parse a list of type arguments, starting at the given token, without actually creating a type argument list
+     * or changing the current token. Return the token following the type argument list that was parsed,
+     * or {@code null} if the given token is not the first token in a valid type argument list.
+     * <p>
+     * This method must be kept in sync with {@link #parseTypeArgumentList()}.
+     * 
+     * <pre>
+     * typeArguments ::=
+     *     '<' typeList '>'
+     * 
+     * typeList ::=
+     *     type (',' type)*
+     * </pre>
+     * 
+     * @param startToken the token at which parsing is to begin
+     * @return the token following the type argument list that was parsed
+     */
   private Token skipTypeArgumentList(Token startToken) {
     Token token = startToken;
     if (!matches(token, TokenType.LT)) {
@@ -6030,9 +6064,9 @@ public class Parser {
    * This method must be kept in sync with {@link #parseTypeName()}.
    * 
    * <pre>
-   * type ::=
-   *     qualified typeArguments?
-   * </pre>
+ * type ::=
+ *     qualified typeArguments?
+ * </pre>
    * 
    * @param startToken the token at which parsing is to begin
    * @return the token following the type name that was parsed
@@ -6049,21 +6083,21 @@ public class Parser {
   }
 
 /**
-   * Parse a list of type parameters, starting at the given token, without actually creating a type
-   * parameter list or changing the current token. Return the token following the type parameter
-   * list that was parsed, or {@code null} if the given token is not the first token in a valid type
-   * parameter list.
-   * <p>
-   * This method must be kept in sync with {@link #parseTypeParameterList()}.
-   * 
-   * <pre>
-   * typeParameterList ::=
-   *     '<' typeParameter (',' typeParameter)* '>'
-   * </pre>
-   * 
-   * @param startToken the token at which parsing is to begin
-   * @return the token following the type parameter list that was parsed
-   */
+     * Parse a list of type parameters, starting at the given token, without actually creating a type
+     * parameter list or changing the current token. Return the token following the type parameter
+     * list that was parsed, or {@code null} if the given token is not the first token in a valid type
+     * parameter list.
+     * <p>
+     * This method must be kept in sync with {@link #parseTypeParameterList()}.
+     * 
+     * <pre>
+     * typeParameterList ::=
+     *     '<' typeParameter (',' typeParameter)* '>'
+     * </pre>
+     * 
+     * @param startToken the token at which parsing is to begin
+     * @return the token following the type parameter list that was parsed
+     */
   private Token skipTypeParameterList(Token startToken) {
     if (!matches(startToken, TokenType.LT)) {
       return null;
@@ -6243,6 +6277,17 @@ public class Parser {
       builder.append(currentChar);
     }
     return currentIndex + 1;
+  }
+
+  /**
+   * Decrements the error reporting lock level. If level is more than {@code 0}, then
+   * {@link #reportError(AnalysisError)} wont report any error.
+   */
+  private void unlockErrorListener() {
+    if (errorListenerLock == 0) {
+      throw new IllegalStateException("Attempt to unlock not locked error listener.");
+    }
+    errorListenerLock--;
   }
 
   /**
