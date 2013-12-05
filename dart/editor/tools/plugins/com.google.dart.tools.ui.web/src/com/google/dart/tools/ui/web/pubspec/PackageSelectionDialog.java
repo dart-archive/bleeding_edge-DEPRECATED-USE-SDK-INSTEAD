@@ -118,20 +118,25 @@ public class PackageSelectionDialog extends ElementListSelectionDialog {
       if (fFilteredList.isEmpty()) {
         status = new Status(IStatus.ERROR, PlatformUI.PLUGIN_ID, IStatus.ERROR, "", null);
       } else {
-
-        if (isValidDartIdentifier(getFilter())) {
-          status = new Status(
-              IStatus.WARNING,
-              PlatformUI.PLUGIN_ID,
-              IStatus.ERROR,
-              "Selection not in the list",
-              null);
+        String string = getFilter();
+        if (!string.isEmpty()) {
+          if (isValidDartIdentifier(string)) {
+            status = new Status(
+                IStatus.WARNING,
+                PlatformUI.PLUGIN_ID,
+                IStatus.ERROR,
+                "Selection not in the list",
+                null);
+          } else {
+            status = new Status(
+                IStatus.ERROR,
+                PlatformUI.PLUGIN_ID,
+                IStatus.ERROR,
+                "Not a valid identifier",
+                null);
+          }
         } else {
-          status = new Status(
-              IStatus.ERROR,
-              PlatformUI.PLUGIN_ID,
-              IStatus.ERROR,
-              "Not a valid package identifier",
+          status = new Status(IStatus.OK, PlatformUI.PLUGIN_ID, IStatus.OK, "", //$NON-NLS-1$
               null);
         }
       }
@@ -142,7 +147,7 @@ public class PackageSelectionDialog extends ElementListSelectionDialog {
   }
 
   private boolean isValidDartIdentifier(String string) {
-    if (DartIdentifierUtil.validateIdentifier(getFilter()) == Status.OK_STATUS) {
+    if (DartIdentifierUtil.validateIdentifier(string) == Status.OK_STATUS) {
       return true;
     }
     return false;
