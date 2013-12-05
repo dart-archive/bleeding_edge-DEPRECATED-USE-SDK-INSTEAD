@@ -29,13 +29,13 @@
         </fail>
 
         <!-- parse the tools/VERSION file into an ant property -->
-        <!-- the format is "MAJOR x\nMINOR x\nPATCH n" -->
+        <!-- the format is "MAJOR x\nMINOR x\nBUILD x\nPATCH n" -->
         <loadproperties srcFile="${source.dir}/../../tools/VERSION">
             <filterchain>
                 <replaceregex pattern=" " replace="="/>
              </filterchain>
         </loadproperties>
-        <property name="dart.version" value="${MAJOR}.${MINOR}.${PATCH}" />
+        <property name="dart.version" value="${MAJOR}.${MINOR}.${BUILD}" />
         <property name="dart.version_revision" value="${dart.version}_${build.revision}" />
         <echo message="Dart version is ${dart.version} (${dart.version_revision})"></echo>
     </target>
@@ -151,12 +151,6 @@
         <replace dir="${build.dir}/plugins/com.google.dart.tools.core" >
             <include name="update.properties" />
             <replacefilter token="@CHANNEL@" value="${build.channel}" />
-        </replace>
-
-        <echo message="replacing @VERSION_QUALIFIER@ in ${build.stage.features}/com.google.dart.eclipse.feature_releng/build.properties" />
-        <replace dir="${build.dir}/features/com.google.dart.eclipse.feature_releng">
-            <include name="build.properties" />
-            <replacefilter token="@VERSION_QUALIFIER@" value="${build.version.qualifier}" />
         </replace>
 
         <echo message="Dart Editor for Eclipse version ${feature.version}"/>

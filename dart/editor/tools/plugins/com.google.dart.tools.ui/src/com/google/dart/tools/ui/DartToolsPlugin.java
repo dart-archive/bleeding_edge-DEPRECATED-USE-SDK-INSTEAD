@@ -290,7 +290,11 @@ public class DartToolsPlugin extends AbstractUIPlugin {
       return null;
     }
 
-    return bundle.getHeaders().get(Constants.BUNDLE_VERSION);
+    String version = bundle.getHeaders().get(Constants.BUNDLE_VERSION);
+
+    version = version.replace(".r", "_r").replace(".qual", "_qual");
+
+    return version;
   }
 
   public static IWorkspace getWorkspace() {
