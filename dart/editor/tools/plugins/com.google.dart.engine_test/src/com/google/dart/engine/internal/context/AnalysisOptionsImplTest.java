@@ -22,4 +22,11 @@ public class AnalysisOptionsImplTest extends EngineTestCase {
     options.setHint(value);
     assertEquals(value, options.getHint());
   }
+
+  public void test_getIncremental() {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    boolean value = !options.getIncremental();
+    options.setIncremental(value);
+    assertEquals(value, options.getIncremental());
+  }
 }

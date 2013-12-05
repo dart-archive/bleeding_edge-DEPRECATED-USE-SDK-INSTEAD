@@ -31,6 +31,7 @@ import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.engine.source.UriResolver;
 import com.google.dart.tools.core.CmdLineOptions;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.analysis.model.FileInfo;
 import com.google.dart.tools.core.analysis.model.IFileInfo;
 import com.google.dart.tools.core.analysis.model.Project;
@@ -655,6 +656,7 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.setHint(DartCore.getPlugin().isHintsEnabled());
     options.setDart2jsHint(DartCore.getPlugin().isHintsDart2JSEnabled());
+    options.setIncremental(DartCoreDebug.EXPERIMENTAL);
 
     context.setSourceFactory(sourceFactory);
     context.setAnalysisOptions(options);

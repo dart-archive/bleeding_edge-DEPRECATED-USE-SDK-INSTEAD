@@ -1056,6 +1056,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       }
       this.options.setDart2jsHint(options.getDart2jsHint());
       this.options.setHint(options.getHint());
+      this.options.setIncremental(options.getIncremental());
 
       if (needsRecompute) {
         invalidateAllResolutionInformation();
@@ -1692,8 +1693,9 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       if (incrementalAnalysisCache != null && incrementalAnalysisCache.hasWork()) {
         AnalysisTask task = new IncrementalAnalysisTask(this, incrementalAnalysisCache);
         incrementalAnalysisCache = null;
-        //TODO (danrubel): implement task and uncomment to return it
-        //return task;
+        if (options.getIncremental()) {
+          return task;
+        }
       }
       //
       // Look for a priority source that needs to be analyzed.

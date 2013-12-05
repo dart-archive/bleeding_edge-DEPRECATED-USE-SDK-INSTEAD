@@ -43,6 +43,11 @@ public class AnalysisOptionsImpl implements AnalysisOptions {
   private boolean hint = true;
 
   /**
+   * A flag indicating whether incremental analysis should be used.
+   */
+  private boolean incremental = false;
+
+  /**
    * Initialize a newly created set of analysis options to have their default values.
    */
   public AnalysisOptionsImpl() {
@@ -58,6 +63,7 @@ public class AnalysisOptionsImpl implements AnalysisOptions {
     cacheSize = options.getCacheSize();
     dart2jsHint = options.getDart2jsHint();
     hint = options.getHint();
+    incremental = options.getIncremental();
   }
 
   @Override
@@ -73,6 +79,11 @@ public class AnalysisOptionsImpl implements AnalysisOptions {
   @Override
   public boolean getHint() {
     return hint;
+  }
+
+  @Override
+  public boolean getIncremental() {
+    return incremental;
   }
 
   /**
@@ -103,5 +114,14 @@ public class AnalysisOptionsImpl implements AnalysisOptions {
    */
   public void setHint(boolean hint) {
     this.hint = hint;
+  }
+
+  /**
+   * Set whether incremental analysis should be used.
+   * 
+   * @param incremental {@code true} if incremental analysis should be used
+   */
+  public void setIncremental(boolean incremental) {
+    this.incremental = incremental;
   }
 }

@@ -39,4 +39,11 @@ public interface AnalysisOptions {
    * @return {@code true} if analysis is to generate hint results
    */
   public boolean getHint();
+
+  /**
+   * Return {@code true} if incremental analysis should be used.
+   * 
+   * @return {@code true} if incremental analysis should be used
+   */
+  public boolean getIncremental();
 }

@@ -15,8 +15,15 @@ package com.google.dart.engine.internal.task;
 
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisException;
+import com.google.dart.engine.error.AnalysisErrorListener;
+import com.google.dart.engine.error.BooleanErrorListener;
 import com.google.dart.engine.internal.context.IncrementalAnalysisCache;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
+import com.google.dart.engine.parser.IncrementalParser;
+import com.google.dart.engine.scanner.CharSequenceReader;
+import com.google.dart.engine.scanner.CharacterReader;
+import com.google.dart.engine.scanner.IncrementalScanner;
+import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.source.Source;
 
 /**
@@ -89,7 +96,36 @@ public class IncrementalAnalysisTask extends AnalysisTask {
     if (cache == null) {
       return;
     }
-    //TODO (danrubel): replace the following with updated AST
-    updatedUnit = cache.getResolvedUnit();
+
+    // Only handle small changes
+    if (cache.getOldLength() > 0 || cache.getNewLength() > 30) {
+      return;
+    }
+
+    // Produce an updated token stream
+    CharacterReader reader = new CharSequenceReader(cache.getNewContents());
+    BooleanErrorListener errorListener = new BooleanErrorListener();
+    IncrementalScanner scanner = new IncrementalScanner(cache.getSource(), reader, errorListener);
+    Token oldTokens = cache.getResolvedUnit().getBeginToken();
+    Token newTokens = scanner.rescan(
+        oldTokens,
+        cache.getOffset(),
+        cache.getOldLength(),
+        cache.getNewLength());
+    if (errorListener.getErrorReported()) {
+      return;
+    }
+
+    // Produce an updated AST
+    IncrementalParser parser = new IncrementalParser(
+        cache.getSource(),
+        scanner.getTokenMap(),
+        AnalysisErrorListener.NULL_LISTENER);
+    updatedUnit = parser.reparse(
+        cache.getResolvedUnit(),
+        scanner.getLeftToken(),
+        scanner.getRightToken(),
+        cache.getOffset(),
+        cache.getOffset() + cache.getOldLength());
   }
 }

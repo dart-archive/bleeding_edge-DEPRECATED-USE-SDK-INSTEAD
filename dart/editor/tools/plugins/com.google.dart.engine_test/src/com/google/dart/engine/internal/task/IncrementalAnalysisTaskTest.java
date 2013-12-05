@@ -14,24 +14,29 @@
 package com.google.dart.engine.internal.task;
 
 import com.google.dart.engine.EngineTestCase;
+import com.google.dart.engine.ast.BlockFunctionBody;
 import com.google.dart.engine.ast.CompilationUnit;
-import com.google.dart.engine.ast.MethodDeclaration;
+import com.google.dart.engine.ast.CompilationUnitMember;
+import com.google.dart.engine.ast.FunctionDeclaration;
+import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.SimpleIdentifier;
-import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
+import com.google.dart.engine.ast.Statement;
+import com.google.dart.engine.ast.TopLevelVariableDeclaration;
 import com.google.dart.engine.context.AnalysisContextFactory;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.internal.cache.DartEntry;
 import com.google.dart.engine.internal.cache.DartEntryImpl;
 import com.google.dart.engine.internal.context.IncrementalAnalysisCache;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
+import com.google.dart.engine.source.ContentCache;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.TestSource;
 
 import static com.google.dart.engine.internal.context.IncrementalAnalysisCache.update;
 
+import java.io.File;
+
 public class IncrementalAnalysisTaskTest extends EngineTestCase {
-  private final Source source = new TestSource();
-  private DartEntryImpl entry = new DartEntryImpl();
 
   public void test_accept() throws AnalysisException {
     IncrementalAnalysisTask task = new IncrementalAnalysisTask(null, null);
@@ -45,22 +50,49 @@ public class IncrementalAnalysisTaskTest extends EngineTestCase {
   }
 
   public void test_perform() throws Exception {
-    String oldCode = createSource(//
-        "main() {",
-        "  ",
-        "}");
-    String newCode = createSource(//
-        "main() {",
-        "  S",
-        "}");
+    // main() {}
+    // main() {S}
+    CompilationUnit newUnit = assertTask("main() {", "", "S", "} String foo;");
+
+    NodeList<CompilationUnitMember> declarations = newUnit.getDeclarations();
+
+    FunctionDeclaration main = (FunctionDeclaration) declarations.get(0);
+    assertEquals("main", main.getName().getName());
+
+    BlockFunctionBody body = (BlockFunctionBody) main.getFunctionExpression().getBody();
+    Statement statement = body.getBlock().getStatements().get(0);
+    assertEquals("S;", statement.toSource()); // ';' is a synthetic node added by parser
+
+    TopLevelVariableDeclaration fooDecl = (TopLevelVariableDeclaration) declarations.get(1);
+    SimpleIdentifier fooName = fooDecl.getVariables().getVariables().get(0).getName();
+    assertEquals("foo", fooName.getName());
+    assertNotNull(fooName.getStaticElement()); // assert element reference is preserved
+  }
+
+  private CompilationUnit assertTask(String prefix, String removed, String added, String suffix)
+      throws AnalysisException {
+    String oldCode = createSource(prefix + removed + suffix);
+    String newCode = createSource(prefix + added + suffix);
 
     InternalAnalysisContext context = AnalysisContextFactory.contextWithCore();
+
+    ContentCache contentCache = context.getSourceFactory().getContentCache();
+    Source source = new TestSource(contentCache, new File("/test.dart"), oldCode);
+
+    DartEntryImpl entry = new DartEntryImpl();
     CompilationUnit oldUnit = context.resolveCompilationUnit(source, source);
     assertNotNull(oldUnit);
     entry.setValue(DartEntry.RESOLVED_UNIT, source, oldUnit);
 
-    int offset = newCode.indexOf('S');
-    IncrementalAnalysisCache cache = update(null, source, oldCode, newCode, offset, 0, 1, entry);
+    IncrementalAnalysisCache cache = update(
+        null,
+        source,
+        oldCode,
+        newCode,
+        prefix.length(),
+        removed.length(),
+        added.length(),
+        entry);
     assertNotNull(cache);
 
     final IncrementalAnalysisTask task = new IncrementalAnalysisTask(context, cache);
@@ -72,23 +104,6 @@ public class IncrementalAnalysisTaskTest extends EngineTestCase {
       }
     });
     assertNotNull(newUnit);
-
-    final boolean[] found = new boolean[1];
-    newUnit.accept(new RecursiveASTVisitor<Void>() {
-      @Override
-      public Void visitMethodDeclaration(MethodDeclaration node) {
-        assertEquals("main", node.getName().getName());
-        return super.visitMethodDeclaration(node);
-      }
-
-      @Override
-      public Void visitSimpleIdentifier(SimpleIdentifier node) {
-        if ("S".equals(node.getName())) {
-          found[0] = true;
-        }
-        return super.visitSimpleIdentifier(node);
-      }
-    });
-//    assertTrue(found[0]);
+    return newUnit;
   }
 }
