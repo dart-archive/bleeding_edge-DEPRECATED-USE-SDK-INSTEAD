@@ -287,13 +287,6 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
   @Override
   public Void visitDefaultFormalParameter(DefaultFormalParameter node) {
     ElementHolder holder = new ElementHolder();
-    visit(holder, node.getDefaultValue());
-
-    FunctionElementImpl initializer = new FunctionElementImpl();
-    initializer.setFunctions(holder.getFunctions());
-    initializer.setLabels(holder.getLabels());
-    initializer.setLocalVariables(holder.getLocalVariables());
-    initializer.setParameters(holder.getParameters());
 
     SimpleIdentifier parameterName = node.getParameter().getIdentifier();
     ParameterElementImpl parameter;
@@ -304,12 +297,22 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
     }
     parameter.setConst(node.isConst());
     parameter.setFinal(node.isFinal());
-    parameter.setInitializer(initializer);
     parameter.setParameterKind(node.getKind());
 
-    // default value range
+    // set initializer, default value range
     Expression defaultValue = node.getDefaultValue();
     if (defaultValue != null) {
+      visit(holder, defaultValue);
+
+      FunctionElementImpl initializer = new FunctionElementImpl(
+          defaultValue.getBeginToken().getOffset());
+      initializer.setFunctions(holder.getFunctions());
+      initializer.setLabels(holder.getLabels());
+      initializer.setLocalVariables(holder.getLocalVariables());
+      initializer.setParameters(holder.getParameters());
+      initializer.setSynthetic(true);
+
+      parameter.setInitializer(initializer);
       parameter.setDefaultValueRange(defaultValue.getOffset(), defaultValue.getLength());
     }
 
@@ -737,7 +740,8 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
       } finally {
         inFieldContext = wasInFieldContext;
       }
-      FunctionElementImpl initializer = new FunctionElementImpl();
+      FunctionElementImpl initializer = new FunctionElementImpl(
+          node.getInitializer().getBeginToken().getOffset());
       initializer.setFunctions(holder.getFunctions());
       initializer.setLabels(holder.getLabels());
       initializer.setLocalVariables(holder.getLocalVariables());

@@ -15,13 +15,9 @@ package com.google.dart.engine.internal.element;
 
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.element.CompilationUnitElement;
-import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.ElementVisitor;
 import com.google.dart.engine.element.FunctionElement;
-import com.google.dart.engine.element.LabelElement;
-import com.google.dart.engine.element.LocalVariableElement;
-import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.utilities.source.SourceRange;
 
 /**
@@ -47,14 +43,6 @@ public class FunctionElementImpl extends ExecutableElementImpl implements Functi
   public static final FunctionElement[] EMPTY_ARRAY = new FunctionElement[0];
 
   /**
-   * Initialize a newly created synthetic function element.
-   */
-  public FunctionElementImpl() {
-    super("", -1);
-    setSynthetic(true);
-  }
-
-  /**
    * Initialize a newly created function element to have the given name.
    * 
    * @param name the name of this element
@@ -77,46 +65,6 @@ public class FunctionElementImpl extends ExecutableElementImpl implements Functi
   @Override
   public <R> R accept(ElementVisitor<R> visitor) {
     return visitor.visitFunctionElement(this);
-  }
-
-  /**
-   * Treating the set of arrays defined in {@link ExecutableElementImpl} as one long array, this
-   * returns the index position of the passed child in this {@link FunctionElement}. This gives a
-   * unique integer for each element, this is provided primarily for function elements that do not
-   * have a name (closures), which cannot use {@link Element#getNameOffset()}. If there is no such
-   * element, {@code -1} is returned.
-   * 
-   * @param element the element to find and return an integer for, if there is no such element,
-   *          {@code -1} is returned
-   */
-  public int getIndexPosition(Element element) {
-    FunctionElement[] functions = getFunctions();
-    LabelElement[] labels = getLabels();
-    LocalVariableElement[] localVariables = getLocalVariables();
-    ParameterElement[] parameters = getParameters();
-
-    int count = 0;
-    for (int i = 0; i < functions.length; i++, count++) {
-      if (element == functions[i]) {
-        return count;
-      }
-    }
-    for (int i = 0; i < labels.length; i++, count++) {
-      if (element == labels[i]) {
-        return count;
-      }
-    }
-    for (int i = 0; i < localVariables.length; i++, count++) {
-      if (element == localVariables[i]) {
-        return count;
-      }
-    }
-    for (int i = 0; i < parameters.length; i++, count++) {
-      if (element == parameters[i]) {
-        return count;
-      }
-    }
-    return -1;
   }
 
   @Override
