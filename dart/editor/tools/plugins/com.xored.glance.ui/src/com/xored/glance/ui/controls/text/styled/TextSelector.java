@@ -6,12 +6,12 @@
  ******************************************************************************/
 package com.xored.glance.ui.controls.text.styled;
 
+import com.xored.glance.ui.sources.Match;
+
 import org.eclipse.jface.text.Region;
 import org.eclipse.swt.events.FocusEvent;
 import org.eclipse.swt.events.FocusListener;
 import org.eclipse.swt.widgets.Control;
-
-import com.xored.glance.ui.sources.Match;
 
 /**
  * For all rich text components we remove native selection (make it empty) to draw our own colorful
@@ -22,15 +22,15 @@ import com.xored.glance.ui.sources.Match;
  */
 public abstract class TextSelector implements FocusListener {
 
-  public void setMatch(Match match) {
-    this.match = match;
-    if (match != null) {
-      reveal(match.getOffset(), match.getLength());
-    }
-  }
+  private Match match;
 
   public void dispose() {
     getControl().removeFocusListener(this);
+    showSelection();
+  }
+
+  @Override
+  public void focusGained(FocusEvent e) {
     showSelection();
   }
 
@@ -39,15 +39,25 @@ public abstract class TextSelector implements FocusListener {
     hideSelection();
   }
 
-  @Override
-  public void focusGained(FocusEvent e) {
-    showSelection();
+  public void setMatch(Match match) {
+    this.match = match;
+    if (match != null) {
+      reveal(match.getOffset(), match.getLength());
+    }
   }
+
+  protected abstract Control getControl();
+
+  protected abstract Region getSelection();
 
   protected void init() {
     getControl().addFocusListener(this);
     hideSelection();
   }
+
+  protected abstract void reveal(int offset, int length);
+
+  protected abstract void setSelection(int offset, int length);
 
   private void hideSelection() {
     Region region = getSelection();
@@ -59,15 +69,5 @@ public abstract class TextSelector implements FocusListener {
       setSelection(match.getOffset(), match.getLength());
     }
   }
-
-  protected abstract Control getControl();
-
-  protected abstract Region getSelection();
-
-  protected abstract void setSelection(int offset, int length);
-
-  protected abstract void reveal(int offset, int length);
-
-  private Match match;
 
 }

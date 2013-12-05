@@ -6,11 +6,13 @@
  ******************************************************************************/
 package com.xored.glance.internal.ui.viewers;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import com.xored.glance.ui.controls.text.styled.TextSelector;
+import com.xored.glance.ui.sources.BaseTextSource;
+import com.xored.glance.ui.sources.ColorManager;
+import com.xored.glance.ui.sources.ITextBlock;
+import com.xored.glance.ui.sources.ITextSourceListener;
+import com.xored.glance.ui.sources.Match;
+import com.xored.glance.ui.sources.SourceSelection;
 
 import org.eclipse.core.runtime.ListenerList;
 import org.eclipse.jface.text.Position;
@@ -24,13 +26,11 @@ import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.swt.graphics.Point;
 
-import com.xored.glance.ui.controls.text.styled.TextSelector;
-import com.xored.glance.ui.sources.BaseTextSource;
-import com.xored.glance.ui.sources.ColorManager;
-import com.xored.glance.ui.sources.ITextBlock;
-import com.xored.glance.ui.sources.ITextSourceListener;
-import com.xored.glance.ui.sources.Match;
-import com.xored.glance.ui.sources.SourceSelection;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Yuri Strot
@@ -40,6 +40,16 @@ public class SourceViewerControl extends BaseTextSource implements ISelectionCha
   public static String ANNOTATION_TYPE = ColorManager.ANNOTATION_ID;
 
   public static String SELECTED_ANNOTATION_TYPE = ColorManager.ANNOTATION_SELECTED_ID;
+
+  private TextSelector selector;
+
+  private final ListenerList listeners;
+
+  private boolean disposed;
+
+  private final TextViewerBlock[] blocks;
+
+  private final SourceViewer viewer;
 
   public SourceViewerControl(final SourceViewer viewer) {
     this.viewer = viewer;
@@ -53,42 +63,13 @@ public class SourceViewerControl extends BaseTextSource implements ISelectionCha
   }
 
   @Override
-  public void removeTextSourceListener(final ITextSourceListener listener) {
-    listeners.add(listener);
-  }
-
-  @Override
   public void dispose() {
     if (!disposed) {
-      selector.dispose();
-      select(null);
       viewer.removeSelectionChangedListener(this);
       replaceMatches(Match.EMPTY);
       getBlock().dispose();
       disposed = true;
     }
-  }
-
-  @Override
-  public void selectionChanged(final SelectionChangedEvent event) {
-    final ISelection selection = event.getSelection();
-    if (selection instanceof TextSelection) {
-      final TextSelection tSelection = (TextSelection) selection;
-      final SourceSelection sSelection = new SourceSelection(
-          getBlock(),
-          tSelection.getOffset(),
-          tSelection.getLength());
-      final Object[] objects = listeners.getListeners();
-      for (final Object object : objects) {
-        final ITextSourceListener listener = (ITextSourceListener) object;
-        listener.selectionChanged(sSelection);
-      }
-    }
-  }
-
-  @Override
-  public boolean isDisposed() {
-    return disposed;
   }
 
   public TextViewerBlock getBlock() {
@@ -104,6 +85,26 @@ public class SourceViewerControl extends BaseTextSource implements ISelectionCha
   public SourceSelection getSelection() {
     final Point selection = viewer.getSelectedRange();
     return new SourceSelection(getBlock(), selection.x, selection.y);
+  }
+
+  @Override
+  public void init() {
+    if (selector != null) {
+      selector.dispose();
+      select(null);
+    }
+    selector = new ViewerSelector(viewer);
+    viewer.addSelectionChangedListener(this);
+  }
+
+  @Override
+  public boolean isDisposed() {
+    return disposed;
+  }
+
+  @Override
+  public void removeTextSourceListener(final ITextSourceListener listener) {
+    listeners.remove(listener);
   }
 
   @Override
@@ -129,25 +130,25 @@ public class SourceViewerControl extends BaseTextSource implements ISelectionCha
   }
 
   @Override
-  public void show(final Match[] matches) {
-    replaceMatches(matches);
-  }
-
-  private void replaceMatches(final Match[] matches) {
-    final Annotation[] remove = getAnnotations(false);
-    final Map<Annotation, Position> add = createAnnotations(matches, false);
-    final IAnnotationModel model = viewer.getAnnotationModel();
-    if (model instanceof IAnnotationModelExtension) {
-      final IAnnotationModelExtension eModel = (IAnnotationModelExtension) model;
-      eModel.replaceAnnotations(remove, add);
-    } else {
-      for (final Annotation annotation : remove) {
-        model.removeAnnotation(annotation);
-      }
-      for (final Annotation annotation : add.keySet()) {
-        model.addAnnotation(annotation, add.get(annotation));
+  public void selectionChanged(final SelectionChangedEvent event) {
+    final ISelection selection = event.getSelection();
+    if (selection instanceof TextSelection) {
+      final TextSelection tSelection = (TextSelection) selection;
+      final SourceSelection sSelection = new SourceSelection(
+          getBlock(),
+          tSelection.getOffset(),
+          tSelection.getLength());
+      final Object[] objects = listeners.getListeners();
+      for (final Object object : objects) {
+        final ITextSourceListener listener = (ITextSourceListener) object;
+        listener.selectionChanged(sSelection);
       }
     }
+  }
+
+  @Override
+  public void show(final Match[] matches) {
+    replaceMatches(matches);
   }
 
   private Map<Annotation, Position> createAnnotations(final Match[] matches, final boolean selected) {
@@ -177,15 +178,20 @@ public class SourceViewerControl extends BaseTextSource implements ISelectionCha
     return annotations.toArray(new Annotation[annotations.size()]);
   }
 
-  @Override
-  public void init() {
-    selector = new ViewerSelector(viewer);
-    viewer.addSelectionChangedListener(this);
+  private void replaceMatches(final Match[] matches) {
+    final Annotation[] remove = getAnnotations(false);
+    final Map<Annotation, Position> add = createAnnotations(matches, false);
+    final IAnnotationModel model = viewer.getAnnotationModel();
+    if (model instanceof IAnnotationModelExtension) {
+      final IAnnotationModelExtension eModel = (IAnnotationModelExtension) model;
+      eModel.replaceAnnotations(remove, add);
+    } else {
+      for (final Annotation annotation : remove) {
+        model.removeAnnotation(annotation);
+      }
+      for (final Annotation annotation : add.keySet()) {
+        model.addAnnotation(annotation, add.get(annotation));
+      }
+    }
   }
-
-  private TextSelector selector;
-  private final ListenerList listeners;
-  private boolean disposed;
-  private final TextViewerBlock[] blocks;
-  private final SourceViewer viewer;
 }

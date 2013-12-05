@@ -6,12 +6,12 @@
  ******************************************************************************/
 package com.xored.glance.internal.ui.viewers;
 
+import com.xored.glance.ui.controls.text.styled.TextSelector;
+
 import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.TextSelection;
 import org.eclipse.jface.text.TextViewer;
 import org.eclipse.swt.custom.StyledText;
-
-import com.xored.glance.ui.controls.text.styled.TextSelector;
 
 public class ViewerSelector extends TextSelector {
 
@@ -30,11 +30,6 @@ public class ViewerSelector extends TextSelector {
   }
 
   @Override
-  protected void setSelection(int offset, int length) {
-    viewer.setSelection(new TextSelection(offset, length));
-  }
-
-  @Override
   protected Region getSelection() {
     TextSelection selection = (TextSelection) viewer.getSelection();
     return new Region(selection.getOffset(), selection.getLength());
@@ -43,6 +38,11 @@ public class ViewerSelector extends TextSelector {
   @Override
   protected void reveal(int offset, int length) {
     viewer.revealRange(offset, length);
+  }
+
+  @Override
+  protected void setSelection(int offset, int length) {
+    viewer.setSelection(new TextSelection(offset, length));
   }
 
 }
