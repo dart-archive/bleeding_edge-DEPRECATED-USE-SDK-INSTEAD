@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.ui.internal.formatter;
 
-import com.google.dart.tools.core.MessageConsole;
 import com.google.dart.tools.core.dart2js.ProcessRunner;
 import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.ui.DartToolsPlugin;
@@ -109,13 +108,12 @@ public class DartFormatter {
    * @param source the source to pass to the formatter
    * @param selection the selection info to pass into the formatter
    * @param monitor the monitor for displaying progress
-   * @param console the console to which output should be directed
    * @throws IOException if an exception was thrown during execution
    * @throws CoreException if an exception occurs in file refresh
    * @return the formatted source (or null in case formatting could not be executed)
    */
   public static FormattedSource format(final String source, final Point selection,
-      IProgressMonitor monitor, MessageConsole console) throws IOException, CoreException {
+      IProgressMonitor monitor) throws IOException, CoreException {
 
     File dartfmt = DartSdkManager.getManager().getSdk().getDartFmtExecutable();
     if (!dartfmt.canExecute()) {

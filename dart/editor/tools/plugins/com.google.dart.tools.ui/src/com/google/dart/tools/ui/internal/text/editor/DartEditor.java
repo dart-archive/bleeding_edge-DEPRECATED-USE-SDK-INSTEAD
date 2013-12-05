@@ -209,6 +209,7 @@ import org.eclipse.ui.texteditor.AbstractDecoratedTextEditorPreferenceConstants;
 import org.eclipse.ui.texteditor.AnnotationPreference;
 import org.eclipse.ui.texteditor.ChainedPreferenceStore;
 import org.eclipse.ui.texteditor.IDocumentProvider;
+import org.eclipse.ui.texteditor.IEditorStatusLine;
 import org.eclipse.ui.texteditor.ITextEditorActionConstants;
 import org.eclipse.ui.texteditor.ITextEditorActionDefinitionIds;
 import org.eclipse.ui.texteditor.IUpdate;
@@ -744,6 +745,9 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
 
     private class FormatElementJob extends Job {
 
+      // For debugging.
+      private final boolean PRINT_TO_CONSOLE = false;
+
       private final IFile file;
 
       FormatElementJob(IFile file) {
@@ -755,8 +759,11 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       protected IStatus run(IProgressMonitor monitor) {
 
         MessageConsole console = DartCore.getConsole();
-        console.clear();
-        console.println("Formatting " + file.getName() + " ...");
+
+        if (PRINT_TO_CONSOLE) {
+          console.clear();
+          console.println("Formatting " + file.getName() + " ...");
+        }
 
         final IDocument document = getSourceViewer().getDocument();
 
@@ -774,8 +781,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
           final FormattedSource formattedSource = DartFormatter.format(
               unformattedSource,
               selection[0],
-              monitor,
-              console);
+              monitor);
           Display.getDefault().syncExec(new Runnable() {
             @Override
             public void run() {
@@ -788,19 +794,37 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
             }
           });
         } catch (Exception e) {
-          //TODO (pquitslund): parse failures shouldn't be logged but should be communicated         
-          DartToolsPlugin.log(e);
-          console.clear();
-          //TODO (pquitslund): remove console logging
-          console.println("Unable to format " + file.getName() + ": " + e.getMessage());
+
+          String msg = null;
+
+          if (isParseFailure(e)) {
+            msg = "fix parse errors and try again.";
+          } else {
+            msg = e.getMessage();
+            DartToolsPlugin.log(e);
+          }
+
+          if (PRINT_TO_CONSOLE) {
+            console.clear();
+            console.println("Unable to format " + file.getName() + ": " + msg);
+          } else {
+            showMessage("Unable to format " + file.getName() + ": " + msg);
+          }
+
           return Status.CANCEL_STATUS;
         }
 
-        console.clear();
+        if (PRINT_TO_CONSOLE) {
+          console.clear();
+        }
 
         return Status.OK_STATUS;
       }
 
+      private boolean isParseFailure(Exception e) {
+        //TODO (pquitslund): use a return code or something better to signal parse failures
+        return e.getMessage().startsWith("Uncaught Error: An error occured while parsing");
+      }
     };
 
     FormatElementAction() {
@@ -822,6 +846,20 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     @Override
     public void update() {
       setEnabled(isEditorInputModifiable());
+    }
+
+    private void showMessage(final String msg) {
+      final Display display = getSite().getShell().getDisplay();
+      display.syncExec(new Runnable() {
+        @Override
+        public void run() {
+          IEditorStatusLine statusLine = (IEditorStatusLine) getAdapter(IEditorStatusLine.class);
+          if (statusLine != null) {
+            statusLine.setMessage(true, msg, null);
+          }
+          display.beep();
+        }
+      });
     }
 
   }
