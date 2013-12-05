@@ -101,21 +101,19 @@ build system.  The PDE build system has to run under Eclipse.
         </fail>
 
         <!-- parse the tools/VERSION file into an ant property -->
-        <!-- the format is "MAJOR x\nMINOR x\nBUILD x\nPATCH n" -->
+        <!-- the format is "MAJOR x\nMINOR x\nPATCH n" -->
         <loadproperties srcFile="${build.source}/../tools/VERSION">
             <filterchain>
                 <replaceregex pattern=" " replace="="/>
             </filterchain>
         </loadproperties>
-        <property name="dart.version" value="${MAJOR}.${MINOR}.${BUILD}" />
+        <property name="dart.version" value="${MAJOR}.${MINOR}.${PATCH}" />
 
         <condition property="build.revision" value="${env.BUILDBOT_GOT_REVISION}">
             <isset property="env.BUILDBOT_GOT_REVISION" />
         </condition>
         <property name="build.revision" value="000" />
         <property name="dart.version_revision" value="${dart.version}_${build.revision}" />
-        <!-- TODO(devoncarew): we should pull this info from tools/version.dart -->
-        <property name="dart.version.full" value="${MAJOR}.${MINOR}.${BUILD}.${PATCH}_r${build.revision}" />
 
         <dirname file="${build.source}" property="build.source.root"/>
 
@@ -365,10 +363,17 @@ build system.  The PDE build system has to run under Eclipse.
             <replacefilter token="@REVISION@" value="${build.revision}" />
             <replacefilter token="@BUILDYEAR@" value="${build.year}" />
         </replace>
+
         <echo message="replacing @BUILDCONFIGS@ in ${build.stage.features}/com.google.dart.tools.deploy.feature_releng/build.properties" />
         <replace dir="${build.stage.features}/com.google.dart.tools.deploy.feature_releng">
             <include name="build.properties" />
             <replacefilter token="@BUILDCONFIGS@" value="${build.configs}" />
+        </replace>
+
+        <echo message="replacing @VERSION_QUALIFIER@ in ${build.stage.features}/com.google.dart.tools.deploy.feature_releng/build.properties" />
+        <replace dir="${build.stage.features}/com.google.dart.tools.deploy.feature_releng">
+            <include name="build.properties" />
+            <replacefilter token="@VERSION_QUALIFIER@" value="${build.version.qualifier}" />
         </replace>
 
         <replace dir="${build.stage.plugins}/com.google.dart.tools.core" >
