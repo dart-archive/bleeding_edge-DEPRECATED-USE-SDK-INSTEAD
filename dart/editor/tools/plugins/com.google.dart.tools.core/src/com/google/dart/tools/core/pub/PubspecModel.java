@@ -436,11 +436,11 @@ public class PubspecModel {
       if (!documentation.isEmpty()) {
         yamlMap.put(PubspecConstants.DOCUMENTATION, documentation);
       }
-      yamlMap.remove(PubspecConstants.SDK_VERSION);
+      yamlMap.remove(PubspecConstants.ENVIRONMENT);
       if (!sdkVersion.isEmpty()) {
         Map<String, Object> map = new HashMap<String, Object>();
         map.put(PubspecConstants.SDK_VERSION, sdkVersion);
-        yamlMap.put(PubspecConstants.SDK_VERSION, map);
+        yamlMap.put(PubspecConstants.ENVIRONMENT, map);
       }
       Map<String, Object> dependenciesMap = new HashMap<String, Object>();
       Map<String, Object> devDependenciesMap = new HashMap<String, Object>();
