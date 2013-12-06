@@ -24,6 +24,7 @@ import com.google.dart.tools.core.pub.PubManager;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.ProblemsLabelDecorator;
+import com.google.dart.tools.ui.actions.CleanFoldersAction;
 import com.google.dart.tools.ui.actions.CopyFilePathAction;
 import com.google.dart.tools.ui.actions.DeleteAction;
 import com.google.dart.tools.ui.actions.NewAppFromPackageAction;
@@ -124,7 +125,7 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
 
     @Override
     public void run() {
-        try {
+      try {
         getSite().getPage().showView("com.google.dart.tools.ui.view.packages");
       } catch (PartInitException e) {
         DartToolsPlugin.log(e);
@@ -265,6 +266,7 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
   private RunPubAction pubDeployAction;
 
   private NewAppFromPackageAction copyPackageAction;
+  private CleanFoldersAction cleanFoldersAction;
   private IPreferenceStore preferences;
 
   private IPropertyChangeListener propertyChangeListener = new IPropertyChangeListener() {
@@ -527,6 +529,10 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
 
       manager.add(new Separator());
       manager.add(refreshAction);
+      // reanalyze
+      if (!selection.isEmpty() && allElementsAreProjects(selection)) {
+        manager.add(cleanFoldersAction);
+      }
 
       // REFACTOR GROUP
 
@@ -847,6 +853,9 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
 
     hideContainerAction = new HideProjectAction(getSite());
     treeViewer.addSelectionChangedListener(hideContainerAction);
+
+    cleanFoldersAction = new CleanFoldersAction(getSite());
+    treeViewer.addSelectionChangedListener(cleanFoldersAction);
 
     copyFilePathAction = new CopyFilePathAction(getSite());
     treeViewer.addSelectionChangedListener(copyFilePathAction);

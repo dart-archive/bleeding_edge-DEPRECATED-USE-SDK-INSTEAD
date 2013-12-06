@@ -29,6 +29,9 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.core.runtime.jobs.Job;
 
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * Clean all workspace projects and rebuild the index.
  * 
@@ -36,9 +39,16 @@ import org.eclipse.core.runtime.jobs.Job;
  */
 public class CleanLibrariesJob extends Job {
 
+  private List<IProject> projects = null;
+
   public CleanLibrariesJob() {
     super("Reanalyzing...");
+    setRule(ResourcesPlugin.getWorkspace().getRoot());
+  }
 
+  public CleanLibrariesJob(List<IProject> projects) {
+    super("Reanalyzing...");
+    this.projects = projects;
     setRule(ResourcesPlugin.getWorkspace().getRoot());
   }
 
@@ -60,7 +70,11 @@ public class CleanLibrariesJob extends Job {
       // Refresh the workspace.
       root.refreshLocal(IResource.DEPTH_INFINITE, subMonitor.newChild(50));
 
-      for (IProject project : root.getProjects()) {
+      if (projects == null) {
+        projects = Arrays.asList(root.getProjects());
+      }
+
+      for (IProject project : projects) {
         if (project.isOpen()) {
           project.build(IncrementalProjectBuilder.CLEAN_BUILD, subMonitor.newChild(1));
         }
