@@ -1035,8 +1035,10 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   @Override
   public void setAnalysisOptions(AnalysisOptions options) {
     synchronized (cacheLock) {
-      boolean needsRecompute = this.options.getDart2jsHint() != options.getDart2jsHint()
-          || (this.options.getHint() && !options.getHint());
+      boolean needsRecompute = this.options.getAnalyzeFunctionBodies() != options.getAnalyzeFunctionBodies()
+          || this.options.getDart2jsHint() != options.getDart2jsHint()
+          || (this.options.getHint() && !options.getHint())
+          || this.options.getPreserveComments() != options.getPreserveComments();
 
       int cacheSize = options.getCacheSize();
       if (this.options.getCacheSize() != cacheSize) {
@@ -1054,9 +1056,11 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
           priorityOrder = newPriorityOrder;
         }
       }
+      this.options.setAnalyzeFunctionBodies(options.getAnalyzeFunctionBodies());
       this.options.setDart2jsHint(options.getDart2jsHint());
       this.options.setHint(options.getHint());
       this.options.setIncremental(options.getIncremental());
+      this.options.setPreserveComments(options.getPreserveComments());
 
       if (needsRecompute) {
         invalidateAllResolutionInformation();

@@ -51,6 +51,11 @@ public class Scanner {
   private AnalysisErrorListener errorListener;
 
   /**
+   * The flag specifying if documentation comments should be parsed.
+   */
+  private boolean preserveComments = true;
+
+  /**
    * The token pointing to the head of the linked list of tokens.
    */
   private final Token tokens;
@@ -130,6 +135,15 @@ public class Scanner {
    */
   public boolean hasUnmatchedGroups() {
     return hasUnmatchedGroups;
+  }
+
+  /**
+   * Set whether documentation tokens should be scanned.
+   * 
+   * @param preserveComments {@code true} if documentation tokens should be scanned
+   */
+  public void setPreserveComments(boolean preserveComments) {
+    this.preserveComments = preserveComments;
   }
 
   /**
@@ -405,6 +419,11 @@ public class Scanner {
   }
 
   private void appendCommentToken(TokenType type, String value) {
+    // Ignore comment tokens if client specified that it doesn't need them.
+    if (!preserveComments) {
+      return;
+    }
+    // OK, remember comment tokens.
     if (firstComment == null) {
       firstComment = new StringToken(type, value, tokenStart);
       lastComment = firstComment;

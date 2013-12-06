@@ -19,6 +19,13 @@ package com.google.dart.engine.context;
  */
 public interface AnalysisOptions {
   /**
+   * Return {@code true} if analysis is to parse and analyze function bodies.
+   * 
+   * @return {@code true} if analysis is to parse and analyzer function bodies
+   */
+  public boolean getAnalyzeFunctionBodies();
+
+  /**
    * Return the maximum number of sources for which AST structures should be kept in the cache.
    * 
    * @return the maximum number of sources for which AST structures should be kept in the cache
@@ -46,4 +53,11 @@ public interface AnalysisOptions {
    * @return {@code true} if incremental analysis should be used
    */
   public boolean getIncremental();
+
+  /**
+   * Return {@code true} if analysis is to parse comments.
+   * 
+   * @return {@code true} if analysis is to parse comments
+   */
+  public boolean getPreserveComments();
 }

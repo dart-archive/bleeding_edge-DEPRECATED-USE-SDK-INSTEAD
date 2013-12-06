@@ -32,6 +32,11 @@ public class AnalysisOptionsImpl implements AnalysisOptions {
   private int cacheSize = DEFAULT_CACHE_SIZE;
 
   /**
+   * A flag indicating whether analysis is to parse and analyze function bodies.
+   */
+  private boolean analyzeFunctionBodies = true;
+
+  /**
    * A flag indicating whether analysis is to generate dart2js related hint results.
    */
   private boolean dart2jsHint = true;
@@ -43,9 +48,15 @@ public class AnalysisOptionsImpl implements AnalysisOptions {
   private boolean hint = true;
 
   /**
-   * A flag indicating whether incremental analysis should be used.
+   * <<<<<<< HEAD A flag indicating whether incremental analysis should be used.
    */
   private boolean incremental = false;
+
+  /**
+   * A flag indicating whether analysis is to parse references in documentation comments. ======= A
+   * flag indicating whether analysis is to parse comments. >>>>>>> Java changes.
+   */
+  private boolean preserveComments = true;
 
   /**
    * Initialize a newly created set of analysis options to have their default values.
@@ -67,6 +78,11 @@ public class AnalysisOptionsImpl implements AnalysisOptions {
   }
 
   @Override
+  public boolean getAnalyzeFunctionBodies() {
+    return analyzeFunctionBodies;
+  }
+
+  @Override
   public int getCacheSize() {
     return cacheSize;
   }
@@ -84,6 +100,20 @@ public class AnalysisOptionsImpl implements AnalysisOptions {
   @Override
   public boolean getIncremental() {
     return incremental;
+  }
+
+  @Override
+  public boolean getPreserveComments() {
+    return preserveComments;
+  }
+
+  /**
+   * Set whether analysis is to parse and analyze function bodies.
+   * 
+   * @param analyzeFunctionBodies {@code true} if analysis is to parse and analyze function bodies
+   */
+  public void setAnalyzeFunctionBodies(boolean analyzeFunctionBodies) {
+    this.analyzeFunctionBodies = analyzeFunctionBodies;
   }
 
   /**
@@ -123,5 +153,14 @@ public class AnalysisOptionsImpl implements AnalysisOptions {
    */
   public void setIncremental(boolean incremental) {
     this.incremental = incremental;
+  }
+
+  /**
+   * Set whether analysis is to parse comments.
+   * 
+   * @param preserveComments {@code true} if analysis is to parse comments
+   */
+  public void setPreserveComments(boolean preserveComments) {
+    this.preserveComments = preserveComments;
   }
 }

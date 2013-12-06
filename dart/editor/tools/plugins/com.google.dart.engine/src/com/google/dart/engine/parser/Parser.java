@@ -88,6 +88,11 @@ public class Parser {
   private int errorListenerLock = 0;
 
   /**
+   * A flag indicating whether parser is to parse function bodies.
+   */
+  private boolean parseFunctionBodies = true;
+
+  /**
    * The next token to be parsed.
    */
   private Token currentToken;
@@ -185,6 +190,15 @@ public class Parser {
     } finally {
       instrumentation.log();
     }
+  }
+
+  /**
+   * Set whether parser is to parse function bodies.
+   * 
+   * @param parseFunctionBodies {@code true} if parser is to parse function bodies
+   */
+  public void setParseFunctionBodies(boolean parseFunctionBodies) {
+    this.parseFunctionBodies = parseFunctionBodies;
   }
 
   /**
@@ -772,6 +786,23 @@ public class Parser {
     return expression;
   }
 
+//  /**
+//   * If the current token is an identifier matching the given identifier, return it after advancing
+//   * to the next token. Otherwise report an error and return the current token without advancing.
+//   * 
+//   * @param identifier the identifier that is expected
+//   * @return the token that matched the given type
+//   */
+//  private Token expect(String identifier) {
+//    if (matches(identifier)) {
+//      return getAndAdvance();
+//    }
+//    // Remove uses of this method in favor of matches?
+//    // Pass in the error code to use to report the error?
+//    reportError(ParserErrorCode.EXPECTED_TOKEN, identifier);
+//    return currentToken;
+//  }
+
   /**
    * Parse an expression that does not contain any cascades.
    * 
@@ -1276,10 +1307,10 @@ public class Parser {
    * Parse a string literal.
    * 
    * <pre>
-   * stringLiteral ::=
-   *     MULTI_LINE_STRING+
-   *   | SINGLE_LINE_STRING+
-   * </pre>
+ * stringLiteral ::=
+ *     MULTI_LINE_STRING+
+ *   | SINGLE_LINE_STRING+
+ * </pre>
    * 
    * @return the string literal that was parsed
    */
@@ -1363,9 +1394,9 @@ public class Parser {
    * Parse a type parameter.
    * 
    * <pre>
-   * typeParameter ::=
-   *     metadata name ('extends' bound)?
-   * </pre>
+ * typeParameter ::=
+ *     metadata name ('extends' bound)?
+ * </pre>
    * 
    * @return the type parameter that was parsed
    */
@@ -3631,7 +3662,7 @@ public class Parser {
    * </pre>
    * 
    * @param mayBeEmpty {@code true} if the function body is allowed to be empty
-   * @param emptyErrorCode the error code to report if function body expecte, but not found
+   * @param emptyErrorCode the error code to report if function body expected, but not found
    * @param inExpression {@code true} if the function body is being parsed as part of an expression
    *          and therefore does not have a terminating semicolon
    * @return the function body that was parsed
@@ -3655,8 +3686,15 @@ public class Parser {
         if (!inExpression) {
           semicolon = expect(TokenType.SEMICOLON);
         }
+        if (!parseFunctionBodies) {
+          return new EmptyFunctionBody(createSyntheticToken(TokenType.SEMICOLON));
+        }
         return new ExpressionFunctionBody(functionDefinition, expression, semicolon);
       } else if (matches(TokenType.OPEN_CURLY_BRACKET)) {
+        if (!parseFunctionBodies) {
+          skipBlock();
+          return new EmptyFunctionBody(createSyntheticToken(TokenType.SEMICOLON));
+        }
         return new BlockFunctionBody(parseBlock());
       } else if (matches(NATIVE)) {
         Token nativeToken = getAndAdvance();
@@ -5702,6 +5740,13 @@ public class Parser {
   }
 
   /**
+   * Skips a block with all containing blocks.
+   */
+  private void skipBlock() {
+    currentToken = ((BeginToken) currentToken).getEndToken().getNext();
+  }
+
+  /**
    * Parse the 'final', 'const', 'var' or type preceding a variable declaration, starting at the
    * given token, without actually creating a type or changing the current token. Return the token
    * following the type that was parsed, or {@code null} if the given token is not the first token
@@ -5989,10 +6034,10 @@ public class Parser {
    * This method must be kept in sync with {@link #parseStringLiteral()}.
    * 
    * <pre>
-   * stringLiteral ::=
-   *     MULTI_LINE_STRING+
-   *   | SINGLE_LINE_STRING+
-   * </pre>
+ * stringLiteral ::=
+ *     MULTI_LINE_STRING+
+ *   | SINGLE_LINE_STRING+
+ * </pre>
    * 
    * @param startToken the token at which parsing is to begin
    * @return the token following the string literal that was parsed

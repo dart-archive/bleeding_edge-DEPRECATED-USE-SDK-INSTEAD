@@ -14,6 +14,7 @@
 package com.google.dart.engine.scanner;
 
 import com.google.dart.engine.error.AnalysisError;
+import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.error.GatheringErrorListener;
 import com.google.dart.engine.source.TestSource;
 import com.google.dart.engine.utilities.os.OSUtilities;
@@ -108,6 +109,17 @@ public class ScannerTest extends TestCase {
 
   public void test_comma() throws Exception {
     assertToken(TokenType.COMMA, ",");
+  }
+
+  public void test_comment_disabled_multi() throws Exception {
+    Scanner scanner = new Scanner(
+        null,
+        new CharSequenceReader("/* comment */ "),
+        AnalysisErrorListener.NULL_LISTENER);
+    scanner.setPreserveComments(false);
+    Token token = scanner.tokenize();
+    assertNotNull(token);
+    assertNull(token.getPrecedingComments());
   }
 
   public void test_comment_multi() throws Exception {

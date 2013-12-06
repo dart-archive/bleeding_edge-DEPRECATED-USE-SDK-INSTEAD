@@ -1621,6 +1621,13 @@ public class SimpleParserTest extends ParserTestCase {
     assertSize(0, unit.getDeclarations());
   }
 
+  public void test_parseCompilationUnit_skipFunctionBody_withInterpolation() throws Exception {
+    ParserTestCase.parseFunctionBodies = false;
+    CompilationUnit unit = parse("parseCompilationUnit", "f() { '${n}'; }");
+    assertNull(unit.getScriptTag());
+    assertSize(1, unit.getDeclarations());
+  }
+
   public void test_parseCompilationUnit_topLevelDeclaration() throws Exception {
     CompilationUnit unit = parse("parseCompilationUnit", "class A {}");
     assertNull(unit.getScriptTag());
@@ -2801,6 +2808,30 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(functionBody.getNativeToken());
     assertNotNull(functionBody.getStringLiteral());
     assertNotNull(functionBody.getSemicolon());
+  }
+
+  public void test_parseFunctionBody_skip_block() throws Exception {
+    ParserTestCase.parseFunctionBodies = false;
+    FunctionBody functionBody = parse("parseFunctionBody", new Object[] {false, null, false}, "{}");
+    assertInstanceOf(EmptyFunctionBody.class, functionBody);
+  }
+
+  public void test_parseFunctionBody_skip_blocks() throws Exception {
+    ParserTestCase.parseFunctionBodies = false;
+    FunctionBody functionBody = parse(
+        "parseFunctionBody",
+        new Object[] {false, null, false},
+        "{ {} }");
+    assertInstanceOf(EmptyFunctionBody.class, functionBody);
+  }
+
+  public void test_parseFunctionBody_skip_expression() throws Exception {
+    ParserTestCase.parseFunctionBodies = false;
+    FunctionBody functionBody = parse(
+        "parseFunctionBody",
+        new Object[] {false, null, false},
+        "=> y;");
+    assertInstanceOf(EmptyFunctionBody.class, functionBody);
   }
 
   public void test_parseFunctionDeclaration_function() throws Exception {

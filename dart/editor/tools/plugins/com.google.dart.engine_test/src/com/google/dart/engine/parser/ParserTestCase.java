@@ -42,6 +42,11 @@ public class ParserTestCase extends EngineTestCase {
   private static final Object[] EMPTY_ARGUMENTS = new Object[0];
 
   /**
+   * A flag indicating whether parser is to parse function bodies.
+   */
+  protected static boolean parseFunctionBodies = true;
+
+  /**
    * Invoke a parse method in {@link Parser}. The method is assumed to have the given number and
    * type of parameters and will be invoked with the given arguments.
    * <p>
@@ -247,6 +252,7 @@ public class ParserTestCase extends EngineTestCase {
     // Parse the source.
     //
     Parser parser = new Parser(null, listener);
+    parser.setParseFunctionBodies(parseFunctionBodies);
     Object result = invokeParserMethodImpl(parser, methodName, objects, tokenStream);
     //
     // Partially test the results.
@@ -327,5 +333,11 @@ public class ParserTestCase extends EngineTestCase {
    */
   protected CommentAndMetadata emptyCommentAndMetadata() {
     return new CommentAndMetadata(null, new ArrayList<Annotation>());
+  }
+
+  @Override
+  protected void setUp() throws Exception {
+    super.setUp();
+    parseFunctionBodies = true;
   }
 }

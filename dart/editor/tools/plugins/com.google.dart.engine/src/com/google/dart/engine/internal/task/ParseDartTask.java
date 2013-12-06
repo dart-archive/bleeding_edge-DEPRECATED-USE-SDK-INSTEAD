@@ -231,16 +231,18 @@ public class ParseDartTask extends AnalysisTask {
       Source.ContentReceiver receiver = new Source.ContentReceiver() {
         @Override
         public void accept(CharBuffer contents, long modificationTime) {
-          ParseDartTask.this.modificationTime = modificationTime;
-          Scanner scanner = new Scanner(source, new CharSequenceReader(contents), errorListener);
-          token[0] = scanner.tokenize();
-          lineInfo = new LineInfo(scanner.getLineStarts());
+          doScan(contents, modificationTime);
         }
 
         @Override
         public void accept(String contents, long modificationTime) {
+          doScan(contents, modificationTime);
+        }
+
+        private void doScan(CharSequence contents, long modificationTime) {
           ParseDartTask.this.modificationTime = modificationTime;
           Scanner scanner = new Scanner(source, new CharSequenceReader(contents), errorListener);
+          scanner.setPreserveComments(getContext().getAnalysisOptions().getPreserveComments());
           token[0] = scanner.tokenize();
           lineInfo = new LineInfo(scanner.getLineStarts());
         }
@@ -260,6 +262,7 @@ public class ParseDartTask extends AnalysisTask {
     TimeCounterHandle timeCounterParse = PerformanceStatistics.parse.start();
     try {
       Parser parser = new Parser(source, errorListener);
+      parser.setParseFunctionBodies(getContext().getAnalysisOptions().getAnalyzeFunctionBodies());
       unit = parser.parseCompilationUnit(token[0]);
       errors = errorListener.getErrors(source);
       for (Directive directive : unit.getDirectives()) {
