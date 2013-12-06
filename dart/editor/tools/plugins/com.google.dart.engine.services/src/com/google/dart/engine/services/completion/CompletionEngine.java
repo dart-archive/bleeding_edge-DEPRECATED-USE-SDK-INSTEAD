@@ -352,10 +352,12 @@ public class CompletionEngine {
     }
 
     Filter(SimpleIdentifier ident, int loc) {
-      int pos = ident.getOffset();
+      this(ident.getName(), ident.getOffset(), loc);
+    }
+
+    Filter(String name, int pos, int loc) {
       int len = loc - pos;
       if (len > 0) {
-        String name = ident.getName();
         if (len <= name.length()) {
           prefix = name.substring(0, len);
         } else {
@@ -366,6 +368,13 @@ public class CompletionEngine {
       }
       originalPrefix = prefix;
       prefix = prefix.toLowerCase();
+    }
+
+    /**
+     * @return {@code true} if the given name starts with the same prefix as used for filter.
+     */
+    boolean isSameCasePrefix(String name) {
+      return name.startsWith(originalPrefix);
     }
 
     String makePattern() {
@@ -1580,7 +1589,7 @@ public class CompletionEngine {
     VariableDeclarationList varList = (VariableDeclarationList) varDecl.getParent();
     TypeName type = varList.getType();
     if (identifier.getLength() > 0) {
-      pName(identifier);
+      pName(identifier.getName(), ProposalKind.VARIABLE);
     }
     if (type == null) {
       if (varList.getKeyword() == null) {
@@ -1709,7 +1718,7 @@ public class CompletionEngine {
       prop.setParameterType(parameterElement.getType().getDisplayName());
       prop.setLocation(identifier.getOffset());
       prop.setReplacementLength(identifier.getLength());
-      prop.setRelevance(10);
+      prop.setRelevance(CompletionProposal.RELEVANCE_HIGH);
       requestor.accept(prop);
     }
   }
@@ -1970,7 +1979,7 @@ public class CompletionEngine {
       prop.setCompletion(lib);
       // pub "lib" before "lib/src"
       if (!lib.contains("/src/")) {
-        prop.setRelevance(10);
+        prop.setRelevance(CompletionProposal.RELEVANCE_HIGH);
       }
       // done
       requestor.accept(prop);
@@ -2160,13 +2169,16 @@ public class CompletionEngine {
     prop.setCompletion(completion);
     prop.setDeprecated(isDeprecated(element));
     if (isPrivate(element)) {
-      prop.setRelevance(0);
+      prop.setRelevance(CompletionProposal.RELEVANCE_LOW);
+    }
+    if (filter.isSameCasePrefix(element.getName())) {
+      prop.incRelevance();
     }
     return prop;
   }
 
   private CompletionProposal createProposal(ProposalKind kind) {
-    return factory.createCompletionProposal(kind, completionLocation() - filter.prefix.length());
+    return factory.createCompletionProposal(kind, completionTokenOffset());
   }
 
   private LibraryElement[] currentLibraryList() {
@@ -2391,7 +2403,7 @@ public class CompletionEngine {
         proposal.hasNamed(),
         proposal.hasPositional());
     prop.setReplacementLength(0).setLocation(completionLocation());
-    prop.setRelevance(10);
+    prop.setRelevance(CompletionProposal.RELEVANCE_HIGH);
     requestor.accept(prop);
   }
 
@@ -2418,7 +2430,7 @@ public class CompletionEngine {
       Type parameterType = state.targetParameter.getType();
       if (parameterType instanceof FunctionType) {
         if (element.getType().isAssignableTo(parameterType)) {
-          pName(name, element, 2, ProposalKind.METHOD_NAME);
+          pName(name, element, CompletionProposal.RELEVANCE_HIGH, ProposalKind.METHOD_NAME);
         }
       }
     }
@@ -2427,7 +2439,7 @@ public class CompletionEngine {
 
     prop.setPotentialMatch(isPotentialMatch);
     if (isPotentialMatch) {
-      prop.setRelevance(0);
+      prop.setRelevance(CompletionProposal.RELEVANCE_LOW);
     }
 
     setParameterInfo(element, prop);
@@ -2483,11 +2495,11 @@ public class CompletionEngine {
   }
 
   private void pKeyword(Token keyword) {
+    filter = new Filter(keyword.getLexeme(), keyword.getOffset(), completionLocation());
     // This isn't as useful as it might seem. It only works in the case that completion
     // is requested on an existing recognizable keyword.
-    CompletionProposal prop = factory.createCompletionProposal( // TODO: Add keyword proposal kind
-        ProposalKind.LIBRARY_PREFIX,
-        keyword.getOffset());
+    // TODO: Add keyword proposal kind
+    CompletionProposal prop = createProposal(ProposalKind.LIBRARY_PREFIX);
     prop.setCompletion(keyword.getLexeme());
     requestor.accept(prop);
   }
@@ -2510,10 +2522,6 @@ public class CompletionEngine {
       prop.setReplacementLengthIdentifier(identifier.getLength());
     }
     requestor.accept(prop);
-  }
-
-  private void pName(SimpleIdentifier identifier) {
-    pName(identifier.getName(), ProposalKind.VARIABLE);
   }
 
   private void pName(String name, Element element, int relevance, ProposalKind kind) {
@@ -2563,9 +2571,7 @@ public class CompletionEngine {
     if (filterDisallows(name)) {
       return;
     }
-    CompletionProposal prop = factory.createCompletionProposal(
-        ProposalKind.PARAMETER,
-        completionTokenOffset());
+    CompletionProposal prop = createProposal(ProposalKind.PARAMETER);
     prop.setCompletion(name);
     requestor.accept(prop);
   }
@@ -2689,7 +2695,7 @@ public class CompletionEngine {
     if (filterDisallows(word)) {
       return;
     }
-    CompletionProposal prop = factory.createCompletionProposal(kind, completionTokenOffset());
+    CompletionProposal prop = createProposal(kind);
     prop.setCompletion(word);
     requestor.accept(prop);
   }

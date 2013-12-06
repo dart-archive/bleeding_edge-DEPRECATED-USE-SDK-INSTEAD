@@ -1565,6 +1565,24 @@ public class CompletionTests extends CompletionTestCase {
         "}"), "1-abs", "1-main");
   }
 
+  public void testCompletion_exactPrefix_hasHigherRelevance() throws Exception {
+    test(src(//
+        "var STR;",
+        "main(p) {",
+        "  var str;",
+        "  str!1;",
+        "  STR!2;",
+        "  Str!3;",
+        "}"),//
+        "1+str,rel=" + (CompletionProposal.RELEVANCE_DEFAULT + 1),
+        "1+STR,rel=" + (CompletionProposal.RELEVANCE_DEFAULT + 0),
+        "2+STR,rel=" + (CompletionProposal.RELEVANCE_DEFAULT + 1),
+        "2+str,rel=" + (CompletionProposal.RELEVANCE_DEFAULT + 0),
+        "3+String,rel=" + (CompletionProposal.RELEVANCE_DEFAULT + 1),
+        "3+STR,rel=" + (CompletionProposal.RELEVANCE_DEFAULT + 0),
+        "3+str,rel=" + (CompletionProposal.RELEVANCE_DEFAULT + 0));
+  }
+
   public void testCompletion_export_dart() throws Exception {
     test(
         src(//

@@ -16,6 +16,9 @@ package com.google.dart.engine.services.completion;
 import com.google.dart.engine.element.Element;
 
 public interface CompletionProposal {
+  int RELEVANCE_LOW = 0;
+  int RELEVANCE_DEFAULT = 10;
+  int RELEVANCE_HIGH = 20;
 
   void applyPartitionOffset(int partitionOffset);
 
@@ -50,6 +53,8 @@ public interface CompletionProposal {
   boolean hasNamed();
 
   boolean hasPositional();
+
+  CompletionProposal incRelevance();
 
   boolean isDeprecated();
 
