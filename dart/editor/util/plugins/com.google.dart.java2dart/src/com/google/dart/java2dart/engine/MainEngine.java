@@ -614,9 +614,15 @@ public class MainEngine {
         importDirective(
             "scanner.dart",
             null,
-            importShowCombinator("Token", "Scanner", "CharSequenceReader")));
+            importShowCombinator(
+                "Token",
+                "Scanner",
+                "CharSequenceReader",
+                "CharacterReader",
+                "IncrementalScanner")));
     unit.getDirectives().add(importDirective("ast.dart", null));
-    unit.getDirectives().add(importDirective("parser.dart", null, importShowCombinator("Parser")));
+    unit.getDirectives().add(
+        importDirective("parser.dart", null, importShowCombinator("Parser", "IncrementalParser")));
     unit.getDirectives().add(importDirective("sdk.dart", null, importShowCombinator("DartSdk")));
     unit.getDirectives().add(importDirective("element.dart", null));
     unit.getDirectives().add(importDirective("resolver.dart", null));

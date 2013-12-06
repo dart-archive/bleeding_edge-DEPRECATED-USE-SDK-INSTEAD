@@ -769,12 +769,13 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
 
   @Override
   public boolean visit(org.eclipse.jdt.core.dom.FieldDeclaration node) {
-    boolean isNotPublic = !org.eclipse.jdt.core.dom.Modifier.isPublic(node.getModifiers());
+    boolean isPublic = org.eclipse.jdt.core.dom.Modifier.isPublic(node.getModifiers());
     boolean isStatic = org.eclipse.jdt.core.dom.Modifier.isStatic(node.getModifiers());
     boolean isFinal = false;
     // interface field
     org.eclipse.jdt.core.dom.ASTNode parent = node.getParent();
     if (parent instanceof TypeDeclaration && ((TypeDeclaration) parent).isInterface()) {
+      isPublic = true;
       isStatic = true;
       isFinal = true;
     }
@@ -783,7 +784,7 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
         translateJavadoc(node),
         isStatic,
         translateVariableDeclarationList(isFinal, node.getType(), node.fragments()));
-    if (isNotPublic) {
+    if (!isPublic) {
       context.putPrivateClassMember(fieldDeclaration);
     }
     return done(fieldDeclaration);

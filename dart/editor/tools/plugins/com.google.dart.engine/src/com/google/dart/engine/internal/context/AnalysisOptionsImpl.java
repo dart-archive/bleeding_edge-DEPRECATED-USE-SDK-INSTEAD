@@ -48,13 +48,12 @@ public class AnalysisOptionsImpl implements AnalysisOptions {
   private boolean hint = true;
 
   /**
-   * <<<<<<< HEAD A flag indicating whether incremental analysis should be used.
+   * A flag indicating whether incremental analysis should be used.
    */
   private boolean incremental = false;
 
   /**
-   * A flag indicating whether analysis is to parse references in documentation comments. ======= A
-   * flag indicating whether analysis is to parse comments. >>>>>>> Java changes.
+   * flag indicating whether analysis is to parse comments.
    */
   private boolean preserveComments = true;
 
