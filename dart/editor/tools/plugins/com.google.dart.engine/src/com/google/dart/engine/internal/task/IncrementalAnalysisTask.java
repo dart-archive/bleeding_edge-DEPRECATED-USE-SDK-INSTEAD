@@ -14,16 +14,22 @@
 package com.google.dart.engine.internal.task;
 
 import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisException;
+import com.google.dart.engine.element.CompilationUnitElement;
+import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.error.BooleanErrorListener;
 import com.google.dart.engine.internal.context.IncrementalAnalysisCache;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
+import com.google.dart.engine.internal.resolver.IncrementalResolver;
+import com.google.dart.engine.internal.resolver.TypeProvider;
+import com.google.dart.engine.internal.resolver.TypeProviderImpl;
 import com.google.dart.engine.parser.IncrementalParser;
 import com.google.dart.engine.scanner.CharSequenceReader;
 import com.google.dart.engine.scanner.CharacterReader;
 import com.google.dart.engine.scanner.IncrementalScanner;
-import com.google.dart.engine.scanner.Token;
+import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.source.Source;
 
 /**
@@ -106,9 +112,8 @@ public class IncrementalAnalysisTask extends AnalysisTask {
     CharacterReader reader = new CharSequenceReader(cache.getNewContents());
     BooleanErrorListener errorListener = new BooleanErrorListener();
     IncrementalScanner scanner = new IncrementalScanner(cache.getSource(), reader, errorListener);
-    Token oldTokens = cache.getResolvedUnit().getBeginToken();
-    Token newTokens = scanner.rescan(
-        oldTokens,
+    scanner.rescan(
+        cache.getResolvedUnit().getBeginToken(),
         cache.getOffset(),
         cache.getOldLength(),
         cache.getNewLength());
@@ -127,5 +132,38 @@ public class IncrementalAnalysisTask extends AnalysisTask {
         scanner.getRightToken(),
         cache.getOffset(),
         cache.getOffset() + cache.getOldLength());
+
+    // Update the resolution 
+    TypeProvider typeProvider = getTypeProvider();
+    if (updatedUnit != null && typeProvider != null) {
+      CompilationUnitElement element = updatedUnit.getElement();
+      if (element != null) {
+        LibraryElement library = element.getLibrary();
+        if (library != null) {
+          IncrementalResolver resolver = new IncrementalResolver(
+              library,
+              cache.getSource(),
+              typeProvider,
+              errorListener);
+          resolver.resolve(parser.getUpdatedNode());
+        }
+      }
+    }
+  }
+
+  /**
+   * Return the type provider used for incremental resolution.
+   * 
+   * @return the type provider (or {@code null} if an exception occurs)
+   */
+  private TypeProvider getTypeProvider() {
+    AnalysisContext context = getContext();
+    Source coreSource = context.getSourceFactory().forUri(DartSdk.DART_CORE);
+    try {
+      return new TypeProviderImpl(context.computeLibraryElement(coreSource));
+    } catch (AnalysisException exception) {
+      // TODO(brianwilkerson) Figure out the right thing to do if the core cannot be resolved.
+      return null;
+    }
   }
 }

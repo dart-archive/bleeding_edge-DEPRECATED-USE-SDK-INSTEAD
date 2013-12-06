@@ -43,6 +43,11 @@ public class IncrementalParser {
   private AnalysisErrorListener errorListener;
 
   /**
+   * The node in the AST structure that contains the revised content.
+   */
+  private ASTNode updatedNode;
+
+  /**
    * Initialize a newly created incremental parser to parse a portion of the content of the given
    * source.
    * 
@@ -55,6 +60,15 @@ public class IncrementalParser {
     this.source = source;
     this.tokenMap = tokenMap;
     this.errorListener = errorListener;
+  }
+
+  /**
+   * Return the node in the AST structure that contains the revised content.
+   * 
+   * @return the updated node
+   */
+  public ASTNode getUpdatedNode() {
+    return updatedNode;
   }
 
   /**
@@ -136,6 +150,7 @@ public class IncrementalParser {
         parser.setCurrentToken(parseToken);
       }
     }
+    updatedNode = newNode;
     //
     // Replace the old node with the new node in a copy of the original AST structure.
     //

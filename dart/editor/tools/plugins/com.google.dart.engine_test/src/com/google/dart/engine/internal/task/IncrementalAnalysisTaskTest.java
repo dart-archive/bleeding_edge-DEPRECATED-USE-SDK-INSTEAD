@@ -17,10 +17,10 @@ import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.ast.BlockFunctionBody;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.CompilationUnitMember;
+import com.google.dart.engine.ast.ExpressionStatement;
 import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.SimpleIdentifier;
-import com.google.dart.engine.ast.Statement;
 import com.google.dart.engine.ast.TopLevelVariableDeclaration;
 import com.google.dart.engine.context.AnalysisContextFactory;
 import com.google.dart.engine.context.AnalysisException;
@@ -50,9 +50,9 @@ public class IncrementalAnalysisTaskTest extends EngineTestCase {
   }
 
   public void test_perform() throws Exception {
-    // main() {}
-    // main() {S}
-    CompilationUnit newUnit = assertTask("main() {", "", "S", "} String foo;");
+    // main() {} String foo;
+    // main() {String} String foo;
+    CompilationUnit newUnit = assertTask("main() {", "", "String", "} String foo;");
 
     NodeList<CompilationUnitMember> declarations = newUnit.getDeclarations();
 
@@ -60,8 +60,12 @@ public class IncrementalAnalysisTaskTest extends EngineTestCase {
     assertEquals("main", main.getName().getName());
 
     BlockFunctionBody body = (BlockFunctionBody) main.getFunctionExpression().getBody();
-    Statement statement = body.getBlock().getStatements().get(0);
-    assertEquals("S;", statement.toSource()); // ';' is a synthetic node added by parser
+    ExpressionStatement statement = (ExpressionStatement) body.getBlock().getStatements().get(0);
+    assertEquals("String;", statement.toSource()); // ';' is a synthetic node added by parser
+
+    SimpleIdentifier identifier = (SimpleIdentifier) statement.getExpression();
+    assertEquals("String", identifier.getName());
+    assertNotNull(identifier.getStaticElement()); // assert element reference is added
 
     TopLevelVariableDeclaration fooDecl = (TopLevelVariableDeclaration) declarations.get(1);
     SimpleIdentifier fooName = fooDecl.getVariables().getVariables().get(0).getName();
