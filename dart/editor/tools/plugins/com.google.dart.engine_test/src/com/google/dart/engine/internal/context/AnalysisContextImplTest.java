@@ -866,6 +866,9 @@ public class AnalysisContextImplTest extends EngineTestCase {
 
   public void test_setChangedContents_libraryWithPart() throws Exception {
     context = AnalysisContextFactory.contextWithCore();
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl(context.getAnalysisOptions());
+    options.setIncremental(true);
+    context.setAnalysisOptions(options);
     sourceFactory = context.getSourceFactory();
     String oldCode = createSource(//
         "library lib;",
@@ -896,6 +899,9 @@ public class AnalysisContextImplTest extends EngineTestCase {
 
   public void test_setChangedContents_notResolved() throws Exception {
     context = AnalysisContextFactory.contextWithCore();
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl(context.getAnalysisOptions());
+    options.setIncremental(true);
+    context.setAnalysisOptions(options);
     sourceFactory = context.getSourceFactory();
     String oldCode = createSource(//
         "library lib;",

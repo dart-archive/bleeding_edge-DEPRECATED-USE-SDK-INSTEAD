@@ -1101,15 +1101,17 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       String originalContents = sourceFactory.setContents(source, contents);
       if (contents != null) {
         if (!contents.equals(originalContents)) {
-          incrementalAnalysisCache = IncrementalAnalysisCache.update(
-              incrementalAnalysisCache,
-              source,
-              originalContents,
-              contents,
-              offset,
-              oldLength,
-              newLength,
-              getReadableSourceEntry(source));
+          if (options.getIncremental()) {
+            incrementalAnalysisCache = IncrementalAnalysisCache.update(
+                incrementalAnalysisCache,
+                source,
+                originalContents,
+                contents,
+                offset,
+                oldLength,
+                newLength,
+                getReadableSourceEntry(source));
+          }
           sourceChanged(source);
         }
       } else if (originalContents != null) {
@@ -1697,9 +1699,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       if (incrementalAnalysisCache != null && incrementalAnalysisCache.hasWork()) {
         AnalysisTask task = new IncrementalAnalysisTask(this, incrementalAnalysisCache);
         incrementalAnalysisCache = null;
-        if (options.getIncremental()) {
-          return task;
-        }
+        return task;
       }
       //
       // Look for a priority source that needs to be analyzed.
