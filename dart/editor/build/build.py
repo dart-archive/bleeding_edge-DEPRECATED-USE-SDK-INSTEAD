@@ -211,6 +211,9 @@ class AntWrapper(object):
       args.extend(extra_args)
     args.append('-Dbuild.local.build=false')
     args.append('-Dbuild.channel=' + CHANNEL)
+    args.append('-Ddart.version.full=' + utils.GetVersion())
+    args.append('-Dbuild.version.qualifier=' +
+        utils.GetEclipseVersionQualifier())
 
     extra_args = os.environ.get('ANT_EXTRA_ARGS')
     if extra_args is not None:
