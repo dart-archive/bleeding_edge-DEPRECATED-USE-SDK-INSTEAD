@@ -42,6 +42,11 @@ public class EnclosedScope extends Scope {
   private HashMap<String, Element> hiddenElements = new HashMap<String, Element>();
 
   /**
+   * A flag indicating whether there are any names defined in this scope.
+   */
+  private boolean hasHiddenName = false;
+
+  /**
    * Initialize a newly created scope enclosed within another scope.
    * 
    * @param enclosingScope the scope in which this scope is lexically enclosed
@@ -72,6 +77,7 @@ public class EnclosedScope extends Scope {
       String name = element.getName();
       if (name != null && !name.isEmpty()) {
         hiddenElements.put(name, element);
+        hasHiddenName = true;
       }
     }
   }
@@ -83,15 +89,17 @@ public class EnclosedScope extends Scope {
       return element;
     }
     // May be there is a hidden Element.
-    Element hiddenElement = hiddenElements.get(name);
-    if (hiddenElement != null) {
-      getErrorListener().onError(
-          new AnalysisError(
-              getSource(identifier),
-              identifier.getOffset(),
-              identifier.getLength(),
-              CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION));
-      return hiddenElement;
+    if (hasHiddenName) {
+      Element hiddenElement = hiddenElements.get(name);
+      if (hiddenElement != null) {
+        getErrorListener().onError(
+            new AnalysisError(
+                getSource(identifier),
+                identifier.getOffset(),
+                identifier.getLength(),
+                CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION));
+        return hiddenElement;
+      }
     }
     // Check enclosing scope.
     return enclosingScope.lookup(identifier, name, referencingLibrary);

@@ -68,6 +68,11 @@ public abstract class Scope {
   private HashMap<String, Element> definedNames = new HashMap<String, Element>();
 
   /**
+   * A flag indicating whether there are any names defined in this scope.
+   */
+  private boolean hasName = false;
+
+  /**
    * Initialize a newly created scope to be empty.
    */
   public Scope() {
@@ -89,6 +94,7 @@ public abstract class Scope {
         getErrorListener().onError(getErrorForDuplicate(definedNames.get(name), element));
       } else {
         definedNames.put(name, element);
+        hasName = true;
       }
     }
   }
@@ -122,6 +128,7 @@ public abstract class Scope {
    */
   protected void defineWithoutChecking(Element element) {
     definedNames.put(getName(element), element);
+    hasName = true;
   }
 
   /**
@@ -132,6 +139,7 @@ public abstract class Scope {
    */
   protected void defineWithoutChecking(String name, Element element) {
     definedNames.put(name, element);
+    hasName = true;
   }
 
   /**
@@ -191,7 +199,10 @@ public abstract class Scope {
    * @return the element with which the given name is associated
    */
   protected Element localLookup(String name, LibraryElement referencingLibrary) {
-    return definedNames.get(name);
+    if (hasName) {
+      return definedNames.get(name);
+    }
+    return null;
   }
 
   /**
