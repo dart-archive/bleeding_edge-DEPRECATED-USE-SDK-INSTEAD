@@ -54,6 +54,16 @@ public final class AnalysisContextFactory {
    * @return the analysis context that was created
    */
   public static AnalysisContextImpl contextWithCore() {
+    return initContextWithCore(new DelegatingAnalysisContextImpl());
+  }
+
+  /**
+   * Initialize the given analysis context with a fake core library already resolved.
+   * 
+   * @param context the context to be initialized (not {@code null})
+   * @return the analysis context that was created
+   */
+  public static AnalysisContextImpl initContextWithCore(AnalysisContextImpl context) {
     AnalysisContext sdkContext = DirectoryBasedDartSdk.getDefaultSdk().getContext();
     SourceFactory sourceFactory = sdkContext.getSourceFactory();
     //
@@ -140,7 +150,6 @@ public final class AnalysisContextFactory {
     elementMap.put(htmlSource, htmlLibrary);
     ((AnalysisContextImpl) sdkContext).recordLibraryElements(elementMap);
 
-    AnalysisContextImpl context = new DelegatingAnalysisContextImpl();
     sourceFactory = new SourceFactory(new DartUriResolver(
         sdkContext.getSourceFactory().getDartSdk()), new FileUriResolver());
     context.setSourceFactory(sourceFactory);

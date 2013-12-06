@@ -31,7 +31,9 @@ import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.html.ast.HtmlUnit;
+import com.google.dart.engine.internal.cache.DartEntry;
 import com.google.dart.engine.internal.scope.Namespace;
+import com.google.dart.engine.internal.task.ResolveDartLibraryTask;
 import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
 import com.google.dart.engine.source.DartUriResolver;
 import com.google.dart.engine.source.FileBasedSource;
@@ -811,6 +813,25 @@ public class AnalysisContextImplTest extends EngineTestCase {
     Source source = addSource("/lib.dart", "library lib;");
     CompilationUnit compilationUnit = context.resolveCompilationUnit(source, source);
     assertNotNull(compilationUnit);
+  }
+
+  public void test_resolveCompilationUnit_sourceChangeDuringResolution() throws Exception {
+    context = new DelegatingAnalysisContextImpl() {
+      @Override
+      protected DartEntry recordResolveDartLibraryTaskResults(ResolveDartLibraryTask task)
+          throws AnalysisException {
+        ChangeSet changeSet = new ChangeSet();
+        changeSet.changed(task.getLibrarySource());
+        applyChanges(changeSet);
+        return super.recordResolveDartLibraryTaskResults(task);
+      }
+    };
+    AnalysisContextFactory.initContextWithCore(context);
+    sourceFactory = context.getSourceFactory();
+    Source source = addSource("/lib.dart", "library lib;");
+    CompilationUnit compilationUnit = context.resolveCompilationUnit(source, source);
+    assertNotNull(compilationUnit);
+    assertNotNull(context.getLineInfo(source));
   }
 
   public void test_resolveHtmlUnit() throws Exception {

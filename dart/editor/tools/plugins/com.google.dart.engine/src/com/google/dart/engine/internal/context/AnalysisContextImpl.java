@@ -1169,6 +1169,133 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
+   * Record the results produced by performing a {@link ResolveDartLibraryTask}. If the results were
+   * computed from data that is now out-of-date, then the results will not be recorded.
+   * 
+   * @param task the task that was performed
+   * @return an entry containing the computed results
+   * @throws AnalysisException if the results could not be recorded
+   */
+  protected DartEntry recordResolveDartLibraryTaskResults(ResolveDartLibraryTask task)
+      throws AnalysisException {
+    LibraryResolver resolver = task.getLibraryResolver();
+    AnalysisException thrownException = task.getException();
+    DartEntry unitEntry = null;
+    Source unitSource = task.getUnitSource();
+    if (resolver != null) {
+      //
+      // The resolver should only be null if an exception was thrown before (or while) it was
+      // being created.
+      //
+      Set<Library> resolvedLibraries = resolver.getResolvedLibraries();
+      if (resolvedLibraries == null) {
+        //
+        // The resolved libraries should only be null if an exception was thrown during resolution.
+        //
+        unitEntry = getReadableDartEntry(unitSource);
+        if (unitEntry == null) {
+          throw new AnalysisException("A Dart file became a non-Dart file: "
+              + unitSource.getFullName());
+        }
+        DartEntryImpl dartCopy = unitEntry.getWritableCopy();
+        dartCopy.recordResolutionError();
+        dartCopy.setException(thrownException);
+        cache.put(unitSource, dartCopy);
+        if (thrownException != null) {
+          throw thrownException;
+        }
+        return dartCopy;
+      }
+      synchronized (cacheLock) {
+        if (allModificationTimesMatch(resolvedLibraries)) {
+          Source htmlSource = getSourceFactory().forUri(DartSdk.DART_HTML);
+          RecordingErrorListener errorListener = resolver.getErrorListener();
+          for (Library library : resolvedLibraries) {
+            Source librarySource = library.getLibrarySource();
+            for (Source source : library.getCompilationUnitSources()) {
+              CompilationUnit unit = library.getAST(source);
+              AnalysisError[] errors = errorListener.getErrors(source);
+              LineInfo lineInfo = getLineInfo(source);
+              DartEntry dartEntry = (DartEntry) cache.get(source);
+              long sourceTime = source.getModificationStamp();
+              if (dartEntry.getModificationTime() != sourceTime) {
+                // The source has changed without the context being notified. Simulate notification.
+                sourceChanged(source);
+                dartEntry = getReadableDartEntry(source);
+                if (dartEntry == null) {
+                  throw new AnalysisException("A Dart file became a non-Dart file: "
+                      + source.getFullName());
+                }
+              }
+              DartEntryImpl dartCopy = dartEntry.getWritableCopy();
+              if (thrownException == null) {
+                dartCopy.setValue(SourceEntry.LINE_INFO, lineInfo);
+                dartCopy.setState(DartEntry.PARSED_UNIT, CacheState.FLUSHED);
+                dartCopy.setValue(DartEntry.RESOLVED_UNIT, librarySource, unit);
+                dartCopy.setValue(DartEntry.RESOLUTION_ERRORS, librarySource, errors);
+                if (source == librarySource) {
+                  recordElementData(dartCopy, library.getLibraryElement(), htmlSource);
+                }
+              } else {
+                dartCopy.recordResolutionError();
+              }
+              dartCopy.setException(thrownException);
+              cache.put(source, dartCopy);
+              if (source.equals(unitSource)) {
+                unitEntry = dartCopy;
+              }
+
+              ChangeNoticeImpl notice = getNotice(source);
+              notice.setCompilationUnit(unit);
+              notice.setErrors(dartCopy.getAllErrors(), lineInfo);
+            }
+          }
+        } else {
+          for (Library library : resolvedLibraries) {
+            for (Source source : library.getCompilationUnitSources()) {
+              DartEntry dartEntry = getReadableDartEntry(source);
+              if (dartEntry != null) {
+                long resultTime = library.getModificationTime(source);
+                DartEntryImpl dartCopy = dartEntry.getWritableCopy();
+                if (thrownException == null || resultTime >= 0L) {
+                  //
+                  // The analysis was performed on out-of-date sources. Mark the cache so that the
+                  // sources will be re-analyzed using the up-to-date sources.
+                  //
+                  dartCopy.recordResolutionNotInProcess();
+                } else {
+                  //
+                  // We could not determine whether the sources were up-to-date or out-of-date. Mark
+                  // the cache so that we won't attempt to re-analyze the sources until there's a
+                  // good chance that we'll be able to do so without error.
+                  //
+                  dartCopy.recordResolutionError();
+                }
+                dartCopy.setException(thrownException);
+                cache.put(source, dartCopy);
+                if (source.equals(unitSource)) {
+                  unitEntry = dartCopy;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    if (thrownException != null) {
+      throw thrownException;
+    }
+    if (unitEntry == null) {
+      unitEntry = getReadableDartEntry(unitSource);
+      if (unitEntry == null) {
+        throw new AnalysisException("A Dart file became a non-Dart file: "
+            + unitSource.getFullName());
+      }
+    }
+    return unitEntry;
+  }
+
+  /**
    * Add all of the sources contained in the given source container to the given list of sources.
    * <p>
    * Note: This method must only be invoked while we are synchronized on {@link #cacheLock}.
@@ -2525,133 +2652,6 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
-   * Record the results produced by performing a {@link ResolveDartLibraryTask}. If the results were
-   * computed from data that is now out-of-date, then the results will not be recorded.
-   * 
-   * @param task the task that was performed
-   * @return an entry containing the computed results
-   * @throws AnalysisException if the results could not be recorded
-   */
-  private DartEntry recordResolveDartLibraryTaskResults(ResolveDartLibraryTask task)
-      throws AnalysisException {
-    LibraryResolver resolver = task.getLibraryResolver();
-    AnalysisException thrownException = task.getException();
-    DartEntry unitEntry = null;
-    Source unitSource = task.getUnitSource();
-    if (resolver != null) {
-      //
-      // The resolver should only be null if an exception was thrown before (or while) it was
-      // being created.
-      //
-      Set<Library> resolvedLibraries = resolver.getResolvedLibraries();
-      if (resolvedLibraries == null) {
-        //
-        // The resolved libraries should only be null if an exception was thrown during resolution.
-        //
-        unitEntry = getReadableDartEntry(unitSource);
-        if (unitEntry == null) {
-          throw new AnalysisException("A Dart file became a non-Dart file: "
-              + unitSource.getFullName());
-        }
-        DartEntryImpl dartCopy = unitEntry.getWritableCopy();
-        dartCopy.recordResolutionError();
-        dartCopy.setException(thrownException);
-        cache.put(unitSource, dartCopy);
-        if (thrownException != null) {
-          throw thrownException;
-        }
-        return dartCopy;
-      }
-      synchronized (cacheLock) {
-        if (allModificationTimesMatch(resolvedLibraries)) {
-          Source htmlSource = getSourceFactory().forUri(DartSdk.DART_HTML);
-          RecordingErrorListener errorListener = resolver.getErrorListener();
-          for (Library library : resolvedLibraries) {
-            Source librarySource = library.getLibrarySource();
-            for (Source source : library.getCompilationUnitSources()) {
-              CompilationUnit unit = library.getAST(source);
-              AnalysisError[] errors = errorListener.getErrors(source);
-              LineInfo lineInfo = getLineInfo(source);
-              DartEntry dartEntry = (DartEntry) cache.get(source);
-              long sourceTime = source.getModificationStamp();
-              if (dartEntry.getModificationTime() != sourceTime) {
-                // The source has changed without the context being notified. Simulate notification.
-                sourceChanged(source);
-                dartEntry = getReadableDartEntry(source);
-                if (dartEntry == null) {
-                  throw new AnalysisException("A Dart file became a non-Dart file: "
-                      + source.getFullName());
-                }
-              }
-              DartEntryImpl dartCopy = dartEntry.getWritableCopy();
-              if (thrownException == null) {
-                dartCopy.setValue(SourceEntry.LINE_INFO, lineInfo);
-                dartCopy.setState(DartEntry.PARSED_UNIT, CacheState.FLUSHED);
-                dartCopy.setValue(DartEntry.RESOLVED_UNIT, librarySource, unit);
-                dartCopy.setValue(DartEntry.RESOLUTION_ERRORS, librarySource, errors);
-                if (source == librarySource) {
-                  recordElementData(dartCopy, library.getLibraryElement(), htmlSource);
-                }
-              } else {
-                dartCopy.recordResolutionError();
-              }
-              dartCopy.setException(thrownException);
-              cache.put(source, dartCopy);
-              if (source.equals(unitSource)) {
-                unitEntry = dartCopy;
-              }
-
-              ChangeNoticeImpl notice = getNotice(source);
-              notice.setCompilationUnit(unit);
-              notice.setErrors(dartCopy.getAllErrors(), lineInfo);
-            }
-          }
-        } else {
-          for (Library library : resolvedLibraries) {
-            for (Source source : library.getCompilationUnitSources()) {
-              DartEntry dartEntry = getReadableDartEntry(source);
-              if (dartEntry != null) {
-                long resultTime = library.getModificationTime(source);
-                DartEntryImpl dartCopy = dartEntry.getWritableCopy();
-                if (thrownException == null || resultTime >= 0L) {
-                  //
-                  // The analysis was performed on out-of-date sources. Mark the cache so that the
-                  // sources will be re-analyzed using the up-to-date sources.
-                  //
-                  dartCopy.recordResolutionNotInProcess();
-                } else {
-                  //
-                  // We could not determine whether the sources were up-to-date or out-of-date. Mark
-                  // the cache so that we won't attempt to re-analyze the sources until there's a
-                  // good chance that we'll be able to do so without error.
-                  //
-                  dartCopy.recordResolutionError();
-                }
-                dartCopy.setException(thrownException);
-                cache.put(source, dartCopy);
-                if (source.equals(unitSource)) {
-                  unitEntry = dartCopy;
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-    if (thrownException != null) {
-      throw thrownException;
-    }
-    if (unitEntry == null) {
-      unitEntry = getReadableDartEntry(unitSource);
-      if (unitEntry == null) {
-        throw new AnalysisException("A Dart file became a non-Dart file: "
-            + unitSource.getFullName());
-      }
-    }
-    return unitEntry;
-  }
-
-  /**
    * Record the results produced by performing a {@link ResolveDartUnitTask}. If the results were
    * computed from data that is now out-of-date, then the results will not be recorded.
    * 
@@ -2833,6 +2833,11 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
    */
   private void sourceChanged(Source source) {
     SourceEntry sourceEntry = cache.get(source);
+    if (sourceEntry == null || sourceEntry.getModificationTime() == source.getModificationStamp()) {
+      // Either we have removed this source, in which case we don't care that it is changed, or we
+      // have already invalidated the cache and don't need to invalidate it again.
+      return;
+    }
     if (sourceEntry instanceof HtmlEntry) {
       HtmlEntryImpl htmlCopy = ((HtmlEntry) sourceEntry).getWritableCopy();
       htmlCopy.setModificationTime(source.getModificationStamp());

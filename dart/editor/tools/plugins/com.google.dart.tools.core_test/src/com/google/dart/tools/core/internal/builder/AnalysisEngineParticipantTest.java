@@ -178,6 +178,7 @@ public class AnalysisEngineParticipantTest extends AbstractDartCoreTest {
     fileRes.assertMarkersDeleted();
 
     // file in project changed
+    project.getDefaultContext().getSourceFactory().setContents(fileSource, "library a;##");
     delta = new MockDelta(projectRes);
     delta.add(fileRes);
     participant.build(new BuildEvent(projectRes, delta, MONITOR), MONITOR);

@@ -83,7 +83,13 @@ public class ContentCache {
       stampMap.remove(source);
       return contentMap.remove(source);
     } else {
-      stampMap.put(source, Long.valueOf(System.currentTimeMillis()));
+      Long newStamp = Long.valueOf(System.currentTimeMillis());
+      Long oldStamp = stampMap.put(source, newStamp);
+      // Occasionally, if this method is called in rapid succession, the timestamps are equal.
+      // Guard against this by artificially incrementing the new timestamp
+      if (newStamp.equals(oldStamp)) {
+        stampMap.put(source, newStamp + 1);
+      }
       return contentMap.put(source, contents);
     }
   }
