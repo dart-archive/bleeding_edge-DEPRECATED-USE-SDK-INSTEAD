@@ -2441,7 +2441,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       if (initializer instanceof SuperConstructorInvocation) {
         SuperConstructorInvocation superInvocation = (SuperConstructorInvocation) initializer;
         ConstructorElement element = superInvocation.getStaticElement();
-        if (element.isConst()) {
+        if (element == null || element.isConst()) {
           return false;
         }
         errorReporter.reportError(

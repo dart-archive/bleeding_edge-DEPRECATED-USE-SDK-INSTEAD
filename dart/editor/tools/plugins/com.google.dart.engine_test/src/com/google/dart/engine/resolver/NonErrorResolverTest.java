@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.resolver;
 
+import com.google.dart.engine.error.CompileTimeErrorCode;
 import com.google.dart.engine.error.HintCode;
 import com.google.dart.engine.parser.ParserErrorCode;
 import com.google.dart.engine.source.Source;
@@ -386,6 +387,19 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_constConstructorWithNonConstSuper_explicit() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  const A();",
+        "}",
+        "class B extends A {",
+        "  const B(): super();",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
   public void test_constConstructorWithNonConstSuper_redirectingFactory() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
@@ -399,6 +413,19 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_constConstructorWithNonConstSuper_unresolved() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  A.a();",
+        "}",
+        "class B extends A {",
+        "  const B(): super();",
+        "}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT);
     verify(source);
   }
 
