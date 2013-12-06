@@ -3753,6 +3753,30 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_uriDoesNotExist_dll() throws Exception {
+    addSource("/lib.dll", "");
+    Source source = addSource(createSource(//
+    "import 'dart-ext:lib';"));
+    resolve(source);
+    assertNoErrors(source);
+  }
+
+  public void test_uriDoesNotExist_dylib() throws Exception {
+    addSource("/lib.dylib", "");
+    Source source = addSource(createSource(//
+    "import 'dart-ext:lib';"));
+    resolve(source);
+    assertNoErrors(source);
+  }
+
+  public void test_uriDoesNotExist_so() throws Exception {
+    addSource("/lib.so", "");
+    Source source = addSource(createSource(//
+    "import 'dart-ext:lib';"));
+    resolve(source);
+    assertNoErrors(source);
+  }
+
   public void test_wrongNumberOfParametersForOperator_index() throws Exception {
     Source source = addSource(createSource(//
         "class A {",

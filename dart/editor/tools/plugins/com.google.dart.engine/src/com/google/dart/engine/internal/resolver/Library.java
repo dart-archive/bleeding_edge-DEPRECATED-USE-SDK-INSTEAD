@@ -15,6 +15,7 @@ package com.google.dart.engine.internal.resolver;
 
 import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.ast.ImportDirective;
 import com.google.dart.engine.ast.StringInterpolation;
 import com.google.dart.engine.ast.StringLiteral;
 import com.google.dart.engine.ast.UriBasedDirective;
@@ -104,6 +105,11 @@ public class Library {
    * An empty array that can be used to initialize lists of libraries.
    */
   private static final Library[] EMPTY_ARRAY = new Library[0];
+
+  /**
+   * The prefix of a URI using the dart-ext scheme to reference a native code library.
+   */
+  private static final String DART_EXT_SCHEME = "dart-ext:";
 
   /**
    * Initialize a newly created data holder that can maintain the data associated with a library.
@@ -308,6 +314,25 @@ public class Library {
     String uriContent = uriLiteral.getStringValue().trim();
     directiveUris.put(directive, uriContent);
     uriContent = UriUtilities.encode(uriContent);
+    if (directive instanceof ImportDirective && uriContent.startsWith(DART_EXT_SCHEME)) {
+      String uriBase = uriContent.substring(DART_EXT_SCHEME.length());
+      Source source = analysisContext.getSourceFactory().resolveUri(librarySource, uriBase + ".dll");
+      if (source == null || !source.exists()) {
+        source = analysisContext.getSourceFactory().resolveUri(librarySource, uriBase + ".so");
+        if (source == null || !source.exists()) {
+          source = analysisContext.getSourceFactory().resolveUri(librarySource, uriBase + ".dylib");
+          if (source == null || !source.exists()) {
+            errorListener.onError(new AnalysisError(
+                librarySource,
+                uriLiteral.getOffset(),
+                uriLiteral.getLength(),
+                CompileTimeErrorCode.URI_DOES_NOT_EXIST,
+                uriContent));
+          }
+        }
+      }
+      return null;
+    }
     try {
       new URI(uriContent);
       Source source = analysisContext.getSourceFactory().resolveUri(librarySource, uriContent);

@@ -3550,6 +3550,13 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     assertErrors(source, CompileTimeErrorCode.URI_DOES_NOT_EXIST);
   }
 
+  public void test_uriDoesNotExist_nativeLibrary() throws Exception {
+    Source source = addSource(createSource(//
+    "import 'dart-ext:lib';"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.URI_DOES_NOT_EXIST);
+  }
+
   public void test_uriDoesNotExist_part() throws Exception {
     Source source = addSource(createSource(//
     "part 'unknown.dart';"));
