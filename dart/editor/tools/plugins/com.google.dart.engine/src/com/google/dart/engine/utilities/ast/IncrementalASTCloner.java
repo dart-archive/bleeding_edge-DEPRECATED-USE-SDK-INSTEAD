@@ -887,7 +887,15 @@ public class IncrementalASTCloner implements ASTVisitor<ASTNode> {
 
   @Override
   public SimpleIdentifier visitSimpleIdentifier(SimpleIdentifier node) {
-    SimpleIdentifier copy = new SimpleIdentifier(map(node.getToken()));
+    Token mappedToken = map(node.getToken());
+    if (mappedToken == null) {
+      // This only happens for SimpleIdentifiers created by the parser as part of scanning
+      // documentation comments (the tokens for those identifiers are not in the original token
+      // stream and hence do not get copied). This extra check can be removed if the scanner is
+      // changed to scan documentation comments for the parser.
+      mappedToken = node.getToken();
+    }
+    SimpleIdentifier copy = new SimpleIdentifier(mappedToken);
     copy.setAuxiliaryElements(node.getAuxiliaryElements());
     copy.setPropagatedElement(node.getPropagatedElement());
     copy.setPropagatedType(node.getPropagatedType());

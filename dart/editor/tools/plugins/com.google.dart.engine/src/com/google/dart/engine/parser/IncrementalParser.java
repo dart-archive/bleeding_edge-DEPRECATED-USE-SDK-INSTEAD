@@ -189,9 +189,6 @@ public class IncrementalParser {
     while (firstToken.getOffset() > offset && firstToken.getType() != TokenType.EOF) {
       firstToken = firstToken.getPrevious();
     }
-    if (firstToken.getOffset() == offset) {
-      return firstToken;
-    }
-    return null;
+    return firstToken;
   }
 }

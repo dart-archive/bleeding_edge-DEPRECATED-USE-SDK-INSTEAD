@@ -25,7 +25,7 @@ import com.google.dart.engine.source.TestSource;
 import com.google.dart.engine.utilities.ast.ASTComparator;
 
 public class IncrementalParserTest extends EngineTestCase {
-  public void fail_delete_everything() {
+  public void test_delete_everything() {
     // "f() => a + b;"
     // ""
     assertParse("", "f() => a + b;", "", "");
@@ -109,6 +109,18 @@ public class IncrementalParserTest extends EngineTestCase {
     assertParse("f() => a;", "", "b", "  c;");
   }
 
+  public void test_insert_newIdentifier3() {
+    // "/** A simple function. */ f() => a; c;"
+    // "/** A simple function. */ f() => a; b c;"
+    assertParse("/** A simple function. */ f() => a;", "", " b", " c;");
+  }
+
+  public void test_insert_newIdentifier4() {
+    // "/** An [A]. */ class A {} class B { m() { return 1; } }"
+    // "/** An [A]. */ class A {} class B { m() { return 1 + 2; } }"
+    assertParse("/** An [A]. */ class A {} class B { m() { return 1", "", " + 2", "; } }");
+  }
+
   public void test_insert_period() {
     // "f() => a + b;"
     // "f() => a + b.;"
@@ -143,6 +155,12 @@ public class IncrementalParserTest extends EngineTestCase {
     // "f() => a + b;"
     // "f() => a + b.x;"
     assertParse("f() => a + b", "", ".x", ";");
+  }
+
+  public void test_insert_simpleToComplexExression() {
+    // "/** An [A]. */ class A {} class B { m() => 1; }"
+    // "/** An [A]. */ class A {} class B { m() => 1 + 2; }"
+    assertParse("/** An [A]. */ class A {} class B { m() => 1", "", " + 2", "; }");
   }
 
   public void test_insert_whitespace_end() {
