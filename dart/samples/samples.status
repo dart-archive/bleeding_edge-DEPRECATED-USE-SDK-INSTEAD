@@ -43,6 +43,7 @@ spirodraw: Skip
 sunflower: Skip
 swarm: Skip
 swipe: Skip
+polymer_intl: Skip
 
 [ $runtime == vm || $runtime == d8 || $runtime == jsshell ]
 third_party/todomvc: Skip # uses dart:html
