@@ -242,7 +242,7 @@ public class StructuredAutoEditStrategyHTML implements IAutoEditStrategy {
               && !isClosedByParent) {
             return;
           }
-          String rightBrace = "}"; //$NON-NLS-1$
+          String rightBrace = ">"; //$NON-NLS-1$
           region = node.getStartStructuredDocumentRegion();
           if (region != null) {
             ITextRegion textRegion = region.getRegionAtCharacterOffset(command.offset - 1);
