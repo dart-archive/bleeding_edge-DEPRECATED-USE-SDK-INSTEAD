@@ -1,0 +1,11 @@
+name: polymer_intl
+description: An example of using Polymer with localized Intl messages
+environment:
+  sdk: '>=1.0.0 <2.0.0'
+dependencies:
+  intl: '>= 0.9.0 <0.10.0'
+  polymer: '>= 0.9.0 <0.10.0'
+  unittest: any
+transformers:
+- polymer:
+    entry_points: web/polymer_intl.html
