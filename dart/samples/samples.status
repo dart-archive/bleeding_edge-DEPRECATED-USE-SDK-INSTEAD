@@ -18,6 +18,7 @@ dromaeo_smoke_test: Crash # Issue 14218
 swarm/test/swarm_ui_lib/layout/layout_test: Fail # http://dartbug.com/5132
 third_party/todomvc: Pass, Fail, Timeout # Flaky? Issue 12865
 searchable_list/test/demo_app_test: Pass, Timeout # Issue 15047
+polymer_intl: Pass, Timeout # 15047
 
 [ $runtime == safari ]
 promise_based_test: Skip
