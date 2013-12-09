@@ -30,8 +30,6 @@ import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
 import com.google.dart.engine.internal.resolver.ResolutionVerifier;
 import com.google.dart.engine.internal.resolver.TypeProvider;
-import com.google.dart.engine.internal.resolver.TypeProviderImpl;
-import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceFactory;
@@ -180,11 +178,10 @@ public class ResolverTestCase extends EngineTestCase {
    * Return a type provider that can be used to test the results of resolution.
    * 
    * @return a type provider
+   * @throws AnalysisException if dart:core cannot be resolved
    */
-  protected TypeProvider getTypeProvider() {
-    Source coreSource = analysisContext.getSourceFactory().forUri(DartSdk.DART_CORE);
-    LibraryElement coreElement = analysisContext.getLibraryElement(coreSource);
-    return new TypeProviderImpl(coreElement);
+  protected TypeProvider getTypeProvider() throws AnalysisException {
+    return analysisContext.getTypeProvider();
   }
 
   /**

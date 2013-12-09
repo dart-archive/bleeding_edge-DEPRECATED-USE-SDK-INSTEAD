@@ -106,11 +106,10 @@ import com.google.dart.engine.element.PropertyInducingElement;
 import com.google.dart.engine.element.TypeParameterElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.error.AnalysisError;
+import com.google.dart.engine.internal.context.InternalAnalysisContext;
 import com.google.dart.engine.internal.resolver.TypeProvider;
-import com.google.dart.engine.internal.resolver.TypeProviderImpl;
 import com.google.dart.engine.internal.type.DynamicTypeImpl;
 import com.google.dart.engine.scanner.Token;
-import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchFilter;
 import com.google.dart.engine.search.SearchMatch;
@@ -2290,17 +2289,13 @@ public class CompletionEngine {
   }
 
   private TypeProvider getTypeProvider() {
-    AnalysisContext ctxt = context.getCompilationUnit().getElement().getContext();
-    Source coreSource = ctxt.getSourceFactory().forUri(DartSdk.DART_CORE);
-    LibraryElement coreLibrary;
+    AnalysisContext analysisContext = context.getCompilationUnit().getElement().getContext();
     try {
-      coreLibrary = ctxt.computeLibraryElement(coreSource);
+      return ((InternalAnalysisContext) analysisContext).getTypeProvider();
     } catch (AnalysisException exception) {
       // TODO(brianwilkerson) Figure out the right thing to do if the core cannot be resolved.
       return null;
     }
-    TypeProvider provider = new TypeProviderImpl(coreLibrary);
-    return provider;
   }
 
   private boolean hasErrorBeforeCompletionLocation() {

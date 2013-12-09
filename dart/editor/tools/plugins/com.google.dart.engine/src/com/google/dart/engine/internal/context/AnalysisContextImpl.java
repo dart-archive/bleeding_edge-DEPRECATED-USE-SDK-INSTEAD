@@ -50,6 +50,8 @@ import com.google.dart.engine.internal.element.ElementImpl;
 import com.google.dart.engine.internal.element.ElementLocationImpl;
 import com.google.dart.engine.internal.resolver.Library;
 import com.google.dart.engine.internal.resolver.LibraryResolver;
+import com.google.dart.engine.internal.resolver.TypeProvider;
+import com.google.dart.engine.internal.resolver.TypeProviderImpl;
 import com.google.dart.engine.internal.scope.Namespace;
 import com.google.dart.engine.internal.scope.NamespaceBuilder;
 import com.google.dart.engine.internal.task.AnalysisTask;
@@ -888,6 +890,12 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       }
     }
     return statistics;
+  }
+
+  @Override
+  public TypeProvider getTypeProvider() throws AnalysisException {
+    Source coreSource = getSourceFactory().forUri(DartSdk.DART_CORE);
+    return new TypeProviderImpl(computeLibraryElement(coreSource));
   }
 
   @Override

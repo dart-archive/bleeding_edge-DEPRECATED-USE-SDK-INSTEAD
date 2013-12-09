@@ -24,10 +24,8 @@ import com.google.dart.engine.internal.context.TimestampedData;
 import com.google.dart.engine.internal.error.ErrorReporter;
 import com.google.dart.engine.internal.resolver.InheritanceManager;
 import com.google.dart.engine.internal.resolver.TypeProvider;
-import com.google.dart.engine.internal.resolver.TypeProviderImpl;
 import com.google.dart.engine.internal.verifier.ConstantVerifier;
 import com.google.dart.engine.internal.verifier.ErrorVerifier;
-import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.general.TimeCounter.TimeCounterHandle;
 
@@ -130,9 +128,7 @@ public class GenerateDartErrorsTask extends AnalysisTask {
       CompilationUnit unit = data.getData();
       RecordingErrorListener errorListener = new RecordingErrorListener();
       ErrorReporter errorReporter = new ErrorReporter(errorListener, source);
-      Source coreSource = context.getSourceFactory().forUri(DartSdk.DART_CORE);
-      LibraryElement coreLibrary = context.getLibraryElement(coreSource);
-      TypeProvider typeProvider = new TypeProviderImpl(coreLibrary);
+      TypeProvider typeProvider = context.getTypeProvider();
       //
       // Use the ConstantVerifier to verify the use of constants. This needs to happen before using
       // the ErrorVerifier because some error codes need the computed constant values.

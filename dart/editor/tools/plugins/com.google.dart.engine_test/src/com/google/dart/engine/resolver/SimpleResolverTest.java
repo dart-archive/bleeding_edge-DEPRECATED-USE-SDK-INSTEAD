@@ -24,6 +24,7 @@ import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
+import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ElementAnnotation;
@@ -519,21 +520,29 @@ public class SimpleResolverTest extends ResolverTestCase {
     CompilationUnit unit = getAnalysisContext().getResolvedCompilationUnit(source, library);
     assertNotNull(unit);
     final boolean[] found = {false};
+    final AnalysisException[] thrownException = new AnalysisException[1];
     unit.accept(new RecursiveASTVisitor<Void>() {
       @Override
       public Void visitSimpleIdentifier(SimpleIdentifier node) {
         if (node.getName().equals("myVar") && node.getParent() instanceof MethodInvocation) {
-          found[0] = true;
-          // check static type
-          Type staticType = node.getStaticType();
-          assertSame(getTypeProvider().getDynamicType(), staticType);
-          // check propagated type
-          FunctionType propagatedType = (FunctionType) node.getPropagatedType();
-          assertEquals(getTypeProvider().getStringType(), propagatedType.getReturnType());
+          try {
+            found[0] = true;
+            // check static type
+            Type staticType = node.getStaticType();
+            assertSame(getTypeProvider().getDynamicType(), staticType);
+            // check propagated type
+            FunctionType propagatedType = (FunctionType) node.getPropagatedType();
+            assertEquals(getTypeProvider().getStringType(), propagatedType.getReturnType());
+          } catch (AnalysisException e) {
+            thrownException[0] = e;
+          }
         }
         return null;
       }
     });
+    if (thrownException[0] != null) {
+      throw new AnalysisException(thrownException[0]);
+    }
     assertTrue(found[0]);
   }
 

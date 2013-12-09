@@ -19,6 +19,7 @@ import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.internal.cache.SourceEntry;
+import com.google.dart.engine.internal.resolver.TypeProvider;
 import com.google.dart.engine.internal.scope.Namespace;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceContainer;
@@ -117,6 +118,15 @@ public interface InternalAnalysisContext extends AnalysisContext {
    * Returns a statistics about this context.
    */
   public AnalysisContentStatistics getStatistics();
+
+  /**
+   * Returns a type provider for this context or throws an exception if dart:core cannot be
+   * resolved.
+   * 
+   * @return the type provider (not {@code null})
+   * @throws AnalysisException if dart:core cannot be resolved
+   */
+  public TypeProvider getTypeProvider() throws AnalysisException;
 
   /**
    * Return a time-stamped fully-resolved compilation unit for the given source in the given

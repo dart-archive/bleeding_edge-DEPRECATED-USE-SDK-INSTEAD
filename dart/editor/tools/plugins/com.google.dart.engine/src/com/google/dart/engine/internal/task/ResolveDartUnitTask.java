@@ -27,11 +27,9 @@ import com.google.dart.engine.internal.resolver.InheritanceManager;
 import com.google.dart.engine.internal.resolver.ProxyConditionalAnalysisError;
 import com.google.dart.engine.internal.resolver.ResolverVisitor;
 import com.google.dart.engine.internal.resolver.TypeProvider;
-import com.google.dart.engine.internal.resolver.TypeProviderImpl;
 import com.google.dart.engine.internal.resolver.TypeResolverVisitor;
 import com.google.dart.engine.internal.verifier.ConstantVerifier;
 import com.google.dart.engine.internal.verifier.ErrorVerifier;
-import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.general.TimeCounter.TimeCounterHandle;
 
@@ -127,10 +125,7 @@ public class ResolveDartUnitTask extends AnalysisTask {
 
   @Override
   protected void internalPerform() throws AnalysisException {
-    Source coreLibrarySource = libraryElement.getContext().getSourceFactory().forUri(
-        DartSdk.DART_CORE);
-    LibraryElement coreElement = getContext().computeLibraryElement(coreLibrarySource);
-    TypeProvider typeProvider = new TypeProviderImpl(coreElement);
+    TypeProvider typeProvider = ((InternalAnalysisContext) libraryElement.getContext()).getTypeProvider();
     ResolvableCompilationUnit resolvableUnit = getContext().computeResolvableCompilationUnit(source);
     modificationTime = resolvableUnit.getModificationTime();
     CompilationUnit unit = resolvableUnit.getCompilationUnit();

@@ -14,7 +14,6 @@
 package com.google.dart.engine.internal.task;
 
 import com.google.dart.engine.ast.CompilationUnit;
-import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.LibraryElement;
@@ -24,12 +23,10 @@ import com.google.dart.engine.internal.context.IncrementalAnalysisCache;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
 import com.google.dart.engine.internal.resolver.IncrementalResolver;
 import com.google.dart.engine.internal.resolver.TypeProvider;
-import com.google.dart.engine.internal.resolver.TypeProviderImpl;
 import com.google.dart.engine.parser.IncrementalParser;
 import com.google.dart.engine.scanner.CharSequenceReader;
 import com.google.dart.engine.scanner.CharacterReader;
 import com.google.dart.engine.scanner.IncrementalScanner;
-import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.source.Source;
 
 /**
@@ -157,12 +154,9 @@ public class IncrementalAnalysisTask extends AnalysisTask {
    * @return the type provider (or {@code null} if an exception occurs)
    */
   private TypeProvider getTypeProvider() {
-    AnalysisContext context = getContext();
-    Source coreSource = context.getSourceFactory().forUri(DartSdk.DART_CORE);
     try {
-      return new TypeProviderImpl(context.computeLibraryElement(coreSource));
+      return getContext().getTypeProvider();
     } catch (AnalysisException exception) {
-      // TODO(brianwilkerson) Figure out the right thing to do if the core cannot be resolved.
       return null;
     }
   }
