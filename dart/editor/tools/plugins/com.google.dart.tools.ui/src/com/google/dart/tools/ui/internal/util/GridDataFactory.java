@@ -175,6 +175,26 @@ public final class GridDataFactory {
     return alignVertical(GridData.BEGINNING);
   }
 
+  /**
+   * Returns the number of pixels corresponding to the height of the given number of characters.
+   * 
+   * @param chars the number of characters
+   * @return the number of pixels
+   */
+  public int convertHeightInCharsToPixels(int chars) {
+    return pixelConverter.convertHeightInCharsToPixels(chars);
+  }
+
+  /**
+   * Returns the number of pixels corresponding to the width of the given number of characters.
+   * 
+   * @param chars the number of characters
+   * @return the number of pixels
+   */
+  public int convertWidthInCharsToPixels(int chars) {
+    return pixelConverter.convertWidthInCharsToPixels(chars);
+  }
+
   ////////////////////////////////////////////////////////////////////////////
   //
   // Exclude
@@ -313,7 +333,7 @@ public final class GridDataFactory {
    * @return this
    */
   public GridDataFactory hintHeightChars(int hintInChars) {
-    return hintHeight(pixelConverter.convertHeightInCharsToPixels(hintInChars));
+    return hintHeight(convertHeightInCharsToPixels(hintInChars));
   }
 
   /**
@@ -341,7 +361,7 @@ public final class GridDataFactory {
    * @return this
    */
   public GridDataFactory hintWidthChars(int hintInChars) {
-    return hintWidth(pixelConverter.convertWidthInCharsToPixels(hintInChars));
+    return hintWidth(convertWidthInCharsToPixels(hintInChars));
   }
 
   /**
@@ -380,7 +400,7 @@ public final class GridDataFactory {
    * Sets the indent of the control within the cell in characters.
    */
   public GridDataFactory indentHorizontalChars(int hIndent) {
-    data.horizontalIndent = pixelConverter.convertWidthInCharsToPixels(hIndent);
+    data.horizontalIndent = convertWidthInCharsToPixels(hIndent);
     return this;
   }
 
@@ -390,7 +410,7 @@ public final class GridDataFactory {
   }
 
   public GridDataFactory minHeightChars(int heightInChars) {
-    return minHeight(pixelConverter.convertHeightInCharsToPixels(heightInChars));
+    return minHeight(convertHeightInCharsToPixels(heightInChars));
   }
 
   ////////////////////////////////////////////////////////////////////////////
@@ -404,7 +424,7 @@ public final class GridDataFactory {
   }
 
   public GridDataFactory minWidthChars(int widthInChars) {
-    return minWidth(pixelConverter.convertWidthInCharsToPixels(widthInChars));
+    return minWidth(convertWidthInCharsToPixels(widthInChars));
   }
 
   ////////////////////////////////////////////////////////////////////////////

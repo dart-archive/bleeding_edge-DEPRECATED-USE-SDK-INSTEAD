@@ -32,6 +32,7 @@ import com.google.dart.tools.ui.internal.util.GridLayoutFactory;
 import com.google.dart.tools.ui.text.DartSourceViewerConfiguration;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.text.WordUtils;
 import org.eclipse.jface.text.AbstractInformationControl;
 import org.eclipse.jface.text.AbstractReusableInformationControlCreator;
 import org.eclipse.jface.text.BadLocationException;
@@ -59,7 +60,6 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.forms.widgets.FormToolkit;
-import org.eclipse.ui.forms.widgets.ScrolledForm;
 import org.eclipse.ui.forms.widgets.Section;
 import org.eclipse.ui.texteditor.ITextEditor;
 
@@ -87,9 +87,10 @@ public class DartHover implements ITextHover, ITextHoverExtension, ITextHoverExt
 
     private HoverInfo hoverInfo;
 
-    private ScrolledForm form;
-    private HtmlSection docSection;
+    private Composite container;
+    private TextSection elementSection;
     private TextSection problemsSection;
+    private HtmlSection docSection;
     private TextSection staticTypeSection;
     private TextSection propagatedTypeSection;
     private TextSection parameterSection;
@@ -124,8 +125,9 @@ public class DartHover implements ITextHover, ITextHoverExtension, ITextHoverExt
     public void setInput(Object input) {
       hoverInfo = null;
       // Hide all sections.
-      setGridVisible(docSection, false);
+      setGridVisible(elementSection, false);
       setGridVisible(problemsSection, false);
+      setGridVisible(docSection, false);
       setGridVisible(staticTypeSection, false);
       setGridVisible(propagatedTypeSection, false);
       setGridVisible(parameterSection, false);
@@ -145,11 +147,12 @@ public class DartHover implements ITextHover, ITextHoverExtension, ITextHoverExt
             element = accessor.getVariable();
           }
         }
-        // use the Element as a title
+        // show Element
         {
-          String title = element.toString();
-          title = StringUtils.abbreviateMiddle(title, " ... ", 80);
-          form.setText(title);
+          String text = element.toString();
+          text = WordUtils.wrap(text, 100);
+          setGridVisible(elementSection, true);
+          elementSection.setText(text);
         }
         // Dart Doc
         {
@@ -165,9 +168,10 @@ public class DartHover implements ITextHover, ITextHoverExtension, ITextHoverExt
         Expression expression = (Expression) node;
         // show node if no Element
         if (element == null) {
-          String nodeTitle = node.toSource();
-          nodeTitle = StringUtils.abbreviate(nodeTitle, 80);
-          form.setText(nodeTitle);
+          String text = node.toSource();
+          text = WordUtils.wrap(text, 100);
+          setGridVisible(elementSection, true);
+          elementSection.setText(text);
         }
         // parameter
         {
@@ -233,17 +237,14 @@ public class DartHover implements ITextHover, ITextHoverExtension, ITextHoverExt
 
     @Override
     protected void createContent(Composite parent) {
-      form = formToolkit.createScrolledForm(parent);
-      formToolkit.decorateFormHeading(form.getForm());
-
-      Composite body = form.getBody();
-      GridLayoutFactory.create(body);
-
-      problemsSection = new TextSection(body, "Problems");
-      docSection = new HtmlSection(body, "Documentation");
-      staticTypeSection = new TextSection(body, "Static type");
-      propagatedTypeSection = new TextSection(body, "Propagated type");
-      parameterSection = new TextSection(body, "Parameter");
+      container = formToolkit.createComposite(parent);
+      GridLayoutFactory.create(container);
+      elementSection = new TextSection(container, "Element");
+      problemsSection = new TextSection(container, "Problems");
+      docSection = new HtmlSection(container, "Documentation");
+      staticTypeSection = new TextSection(container, "Static type");
+      propagatedTypeSection = new TextSection(container, "Propagated type");
+      parameterSection = new TextSection(container, "Parameter");
     }
   }
 
@@ -319,7 +320,7 @@ public class DartHover implements ITextHover, ITextHoverExtension, ITextHoverExt
       this.section = formToolkit.createSection(parent, Section.TITLE_BAR);
       GridDataFactory.create(section).grabHorizontal().fill();
       section.setText(title);
-      textWidget = new Text(section, SWT.NONE);
+      textWidget = new Text(section, SWT.MULTI | SWT.READ_ONLY | SWT.WRAP);
       formToolkit.adapt(textWidget, false, false);
       section.setClient(textWidget);
     }
