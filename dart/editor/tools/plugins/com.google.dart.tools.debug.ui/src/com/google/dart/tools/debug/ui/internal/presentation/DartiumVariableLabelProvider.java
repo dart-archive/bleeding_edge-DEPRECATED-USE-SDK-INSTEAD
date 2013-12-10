@@ -82,6 +82,10 @@ public class DartiumVariableLabelProvider extends VariableLabelProvider {
 
       String str = dartiumValue.getDisplayString();
 
+      if (str == null) {
+        str = "";
+      }
+
       if (str.length() > 0 && dartiumValue.getId() != null) {
         str += " [id=" + dartiumValue.getId() + "]";
       }
