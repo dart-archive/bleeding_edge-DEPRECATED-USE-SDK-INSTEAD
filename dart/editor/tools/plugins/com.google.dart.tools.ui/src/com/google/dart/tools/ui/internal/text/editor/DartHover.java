@@ -27,12 +27,14 @@ import com.google.dart.engine.type.Type;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.utilities.dartdoc.DartDocUtilities;
 import com.google.dart.tools.ui.internal.actions.NewSelectionConverter;
+import com.google.dart.tools.ui.internal.problemsview.ProblemsView;
 import com.google.dart.tools.ui.internal.util.GridDataFactory;
 import com.google.dart.tools.ui.internal.util.GridLayoutFactory;
 import com.google.dart.tools.ui.text.DartSourceViewerConfiguration;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.text.WordUtils;
+import org.eclipse.core.resources.IMarker;
 import org.eclipse.jface.text.AbstractInformationControl;
 import org.eclipse.jface.text.AbstractReusableInformationControlCreator;
 import org.eclipse.jface.text.BadLocationException;
@@ -57,19 +59,56 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.eclipse.ui.forms.widgets.Section;
 import org.eclipse.ui.texteditor.ITextEditor;
+import org.eclipse.ui.texteditor.MarkerAnnotation;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 
 public class DartHover implements ITextHover, ITextHoverExtension, ITextHoverExtension2 {
+  private static class AnnotationsSection {
+    private final Section section;
+    private final Composite container;
+
+    public AnnotationsSection(Composite parent, String title) {
+      this.section = formToolkit.createSection(parent, Section.TITLE_BAR);
+      GridDataFactory.create(section).grabHorizontal().fill();
+      section.setText(title);
+      container = formToolkit.createComposite(section);
+      GridLayoutFactory.create(container).columns(2).spacingHorizontal(0);
+      section.setClient(container);
+    }
+
+    public void setAnnotations(List<Annotation> annotations) {
+      for (Control child : container.getChildren()) {
+        child.dispose();
+      }
+      annotations = getSortedAnnotations(annotations);
+      for (Annotation annotation : annotations) {
+        Label imageLabel = new Label(container, SWT.NONE);
+        if (annotation instanceof MarkerAnnotation) {
+          IMarker marker = ((MarkerAnnotation) annotation).getMarker();
+          imageLabel.setImage(ProblemsView.LABEL_PROVIDER.getImage(marker));
+        }
+        formToolkit.createLabel(container, annotation.getText());
+      }
+    }
+  }
+
   private static class DartInformationControl extends AbstractInformationControl implements
       IInformationControlExtension2 {
     private static final Point SIZE_CONSTRAINTS = new Point(10000, 10000);
+
+    private static void setGridVisible(AnnotationsSection section, boolean visible) {
+      setGridVisible(section.section, visible);
+    }
 
     private static void setGridVisible(Control control, boolean visible) {
       GridDataFactory.modify(control).exclude(!visible);
@@ -89,7 +128,7 @@ public class DartHover implements ITextHover, ITextHoverExtension, ITextHoverExt
 
     private Composite container;
     private TextSection elementSection;
-    private TextSection problemsSection;
+    private AnnotationsSection problemsSection;
     private HtmlSection docSection;
     private TextSection staticTypeSection;
     private TextSection propagatedTypeSection;
@@ -208,23 +247,8 @@ public class DartHover implements ITextHover, ITextHoverExtension, ITextHoverExt
         List<Annotation> annotations = hoverInfo.annotations;
         int size = annotations.size();
         if (size != 0) {
-          // prepare annotations text
-          StringBuilder buffer = new StringBuilder();
-          if (size > 1) {
-            buffer.append("Multiple annotations at this position:");
-          }
-          for (Annotation annotation : annotations) {
-            if (buffer.length() != 0) {
-              buffer.append("\n");
-            }
-            if (size > 1) {
-              buffer.append("\t- ");
-            }
-            buffer.append(annotation.getText());
-          }
-          // show annotations as text
           setGridVisible(problemsSection, true);
-          problemsSection.setText(buffer.toString());
+          problemsSection.setAnnotations(annotations);
         }
       }
       // Layout and pack.
@@ -240,7 +264,7 @@ public class DartHover implements ITextHover, ITextHoverExtension, ITextHoverExt
       container = formToolkit.createComposite(parent);
       GridLayoutFactory.create(container);
       elementSection = new TextSection(container, "Element");
-      problemsSection = new TextSection(container, "Problems");
+      problemsSection = new AnnotationsSection(container, "Problems");
       docSection = new HtmlSection(container, "Documentation");
       staticTypeSection = new TextSection(container, "Static type");
       propagatedTypeSection = new TextSection(container, "Propagated type");
@@ -348,10 +372,48 @@ public class DartHover implements ITextHover, ITextHoverExtension, ITextHoverExt
     return num;
   }
 
+  /**
+   * Sorts given {@link Annotation}s by severity and location.
+   */
+  private static List<Annotation> getSortedAnnotations(List<Annotation> annotations) {
+    annotations = Lists.newArrayList(annotations);
+    Collections.sort(annotations, new Comparator<Annotation>() {
+      @Override
+      public int compare(Annotation o1, Annotation o2) {
+        IMarker m1 = getMarker(o1);
+        IMarker m2 = getMarker(o2);
+        // no marker(s)
+        if (m1 != null && m2 == null) {
+          return 1;
+        }
+        if (m1 == null && m2 != null) {
+          return -1;
+        }
+        if (m1 == null && m2 == null) {
+          return 0;
+        }
+        // compare severity
+        int val = m2.getAttribute(IMarker.SEVERITY, 0) - m1.getAttribute(IMarker.SEVERITY, 0);
+        if (val != 0) {
+          return val;
+        }
+        // compare offset
+        return m2.getAttribute(IMarker.CHAR_START, 0) - m1.getAttribute(IMarker.CHAR_START, 0);
+      }
+
+      private IMarker getMarker(Annotation annotation) {
+        return (annotation instanceof MarkerAnnotation)
+            ? ((MarkerAnnotation) annotation).getMarker() : null;
+      }
+    });
+    return annotations;
+  }
+
   private final ISourceViewer viewer;
   private final DartSourceViewerConfiguration viewerConfiguration;
   private CompilationUnitEditor editor;
   private IInformationControlCreator informationControlCreator;
+
   private ITextHover lastReturnedHover;
 
   public DartHover(ITextEditor editor, ISourceViewer viewer,

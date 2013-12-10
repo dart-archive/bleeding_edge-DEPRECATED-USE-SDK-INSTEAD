@@ -51,7 +51,6 @@ import org.eclipse.jface.resource.ResourceManager;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
-import org.eclipse.jface.viewers.ColumnViewer;
 import org.eclipse.jface.viewers.DecorationOverlayIcon;
 import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider;
 import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider.IStyledLabelProvider;
@@ -69,7 +68,6 @@ import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.jface.viewers.Viewer;
-import org.eclipse.jface.viewers.ViewerColumn;
 import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.jface.viewers.ViewerSorter;
 import org.eclipse.swt.SWT;
@@ -79,8 +77,6 @@ import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.Font;
-import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
@@ -204,17 +200,6 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
   }
 
   private static class DescriptionLabelProvider extends ColumnLabelProvider {
-    private Font boldFont;
-
-    @Override
-    public void dispose(ColumnViewer viewer, ViewerColumn column) {
-      if (boldFont != null) {
-        boldFont.dispose();
-      }
-
-      super.dispose(viewer, column);
-    }
-
     @Override
     public Image getImage(Object element) {
       if (element instanceof IMarker) {
@@ -253,19 +238,6 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
         return marker.getAttribute(IMarker.MESSAGE, null);
       } else {
         return super.getText(element);
-      }
-    }
-
-    @Override
-    protected void initialize(ColumnViewer viewer, ViewerColumn column) {
-      super.initialize(viewer, column);
-
-      Font font = viewer.getControl().getFont();
-
-      if (font != null) {
-        FontData data = font.getFontData()[0];
-
-        boldFont = new Font(font.getDevice(), data.getName(), data.getHeight(), SWT.BOLD);
       }
     }
 
@@ -800,6 +772,8 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
       this.exists = marker.exists();
     }
   }
+
+  public static final ColumnLabelProvider LABEL_PROVIDER = new DescriptionLabelProvider();
 
   private final PageSelectionListener pageSelectionListener = new PageSelectionListener();
 
