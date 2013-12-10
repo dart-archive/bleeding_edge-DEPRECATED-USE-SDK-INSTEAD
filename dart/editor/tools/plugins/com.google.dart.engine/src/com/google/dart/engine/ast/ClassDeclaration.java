@@ -166,6 +166,28 @@ public class ClassDeclaration extends CompilationUnitMember {
   }
 
   /**
+   * Return the field declared in the class with the given name.
+   * 
+   * @param name the name of the field to find
+   * @return the found field or {@code null} if not found
+   */
+  public VariableDeclaration getField(String name) {
+    for (ClassMember classMember : members) {
+      if (classMember instanceof FieldDeclaration) {
+        FieldDeclaration fieldDeclaration = (FieldDeclaration) classMember;
+        NodeList<VariableDeclaration> fields = fieldDeclaration.getFields().getVariables();
+        for (VariableDeclaration field : fields) {
+          SimpleIdentifier fieldName = field.getName();
+          if (fieldName != null && name.equals(fieldName.getName())) {
+            return field;
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  /**
    * Return the implements clause for the class, or {@code null} if the class does not implement any
    * interfaces.
    * 
