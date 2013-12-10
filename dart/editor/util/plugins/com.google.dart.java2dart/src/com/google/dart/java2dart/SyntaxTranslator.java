@@ -203,6 +203,14 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
         return;
       }
     }
+    if (parent instanceof FormalParameterList) {
+      List<FormalParameter> parameters = ((FormalParameterList) parent).getParameters();
+      int index = parameters.indexOf(node);
+      if (index != -1) {
+        parameters.set(index, (FormalParameter) replacement);
+        return;
+      }
+    }
     if (parent instanceof TypeArgumentList) {
       List<TypeName> arguments = ((TypeArgumentList) parent).getArguments();
       int index = arguments.indexOf(node);

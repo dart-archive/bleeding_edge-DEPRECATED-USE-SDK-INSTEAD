@@ -455,7 +455,6 @@ public class MainEngine {
         unit.getDeclarations().add(member);
       }
     }
-    EngineSemanticProcessor.generateConstructorWithNamedParametersInAST(context, unit);
     return unit;
   }
 

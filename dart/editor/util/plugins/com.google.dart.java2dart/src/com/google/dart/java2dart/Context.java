@@ -44,6 +44,7 @@ import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationList;
 import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
 import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
+import com.google.dart.engine.ast.visitor.UnifyingASTVisitor;
 import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.KeywordToken;
 import com.google.dart.engine.scanner.TokenType;
@@ -212,6 +213,21 @@ public class Context {
     IBinding binding = getNodeBinding(identifier);
     String signature = JavaUtils.getJdtSignature(binding);
     return !notPropertySet.contains(signature);
+  }
+
+  /**
+   * Clears information about the given {@link ASTNode} and its children.
+   */
+  public void clearNodes(ASTNode node) {
+    if (node != null) {
+      node.accept(new UnifyingASTVisitor<Void>() {
+        @Override
+        public Void visitNode(ASTNode node) {
+          clearNode(node);
+          return super.visitNode(node);
+        }
+      });
+    }
   }
 
   public void ensureUniqueClassMemberNames(CompilationUnit unit) {
@@ -492,6 +508,17 @@ public class Context {
     usedNames.add(identifier.getName());
   }
 
+  /**
+   * Removes recorded identifier reference.
+   */
+  public void removeReference(SimpleIdentifier identifier) {
+    IBinding binding = getNodeBinding(identifier);
+    List<SimpleIdentifier> identifiers = bindingToIdentifiers.get(binding);
+    if (identifiers != null) {
+      identifiers.remove(identifier);
+    }
+  }
+
   public void renameConstructor(ConstructorDeclaration node, String name) {
     IMethodBinding binding = constructorToBinding.get(node);
     //
@@ -642,6 +669,17 @@ public class Context {
    */
   void putPrivateClassMember(ClassMember member) {
     privateClassMembers.add(member);
+  }
+
+  /**
+   * Clears information about the given {@link ASTNode}.
+   */
+  private void clearNode(ASTNode node) {
+    if (node instanceof SimpleIdentifier) {
+      removeReference((SimpleIdentifier) node);
+    }
+    nodeToBinding.remove(node);
+    nodeToTypeBinding.remove(node);
   }
 
   private void dontUseThisInFieldInitializers(CompilationUnit unit) {
