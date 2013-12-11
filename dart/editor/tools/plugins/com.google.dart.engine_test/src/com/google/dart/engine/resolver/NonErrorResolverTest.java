@@ -13,6 +13,10 @@
  */
 package com.google.dart.engine.resolver;
 
+import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.ast.SimpleIdentifier;
+import com.google.dart.engine.element.MethodElement;
+import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.error.CompileTimeErrorCode;
 import com.google.dart.engine.error.HintCode;
 import com.google.dart.engine.parser.ParserErrorCode;
@@ -340,6 +344,71 @@ public class NonErrorResolverTest extends ResolverTestCase {
     resolve(source);
     assertNoErrors(source);
     verify(source);
+  }
+
+  public void test_commentReference_beforeFunction_blockBody() throws Exception {
+    String code = createSource(//
+        "/// [p]",
+        "foo(int p) {",
+        "}");
+    Source source = addSource(code);
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+    CompilationUnit unit = getAnalysisContext().parseCompilationUnit(source);
+    SimpleIdentifier ref = findNode(unit, code, "p]", SimpleIdentifier.class);
+    assertInstanceOf(ParameterElement.class, ref.getStaticElement());
+  }
+
+  public void test_commentReference_beforeFunction_expressionBody() throws Exception {
+    String code = createSource(//
+        "/// [p]",
+        "foo(int p) => null;");
+    Source source = addSource(code);
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+    CompilationUnit unit = getAnalysisContext().parseCompilationUnit(source);
+    SimpleIdentifier ref = findNode(unit, code, "p]", SimpleIdentifier.class);
+    assertInstanceOf(ParameterElement.class, ref.getStaticElement());
+  }
+
+  public void test_commentReference_beforeMethod() throws Exception {
+    String code = createSource(//
+        "abstract class A {",
+        "  /// [p1]",
+        "  ma(int p1) {}",
+        "  /// [p2]",
+        "  mb(int p2);",
+        "}");
+    Source source = addSource(code);
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+    CompilationUnit unit = getAnalysisContext().parseCompilationUnit(source);
+    {
+      SimpleIdentifier ref = findNode(unit, code, "p1]", SimpleIdentifier.class);
+      assertInstanceOf(ParameterElement.class, ref.getStaticElement());
+    }
+    {
+      SimpleIdentifier ref = findNode(unit, code, "p2]", SimpleIdentifier.class);
+      assertInstanceOf(ParameterElement.class, ref.getStaticElement());
+    }
+  }
+
+  public void test_commentReference_class() throws Exception {
+    String code = createSource(//
+        "/// [foo]",
+        "class A {",
+        "  foo() {}",
+        "}");
+    Source source = addSource(code);
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+    CompilationUnit unit = getAnalysisContext().parseCompilationUnit(source);
+    SimpleIdentifier ref = findNode(unit, code, "foo]", SimpleIdentifier.class);
+    assertInstanceOf(MethodElement.class, ref.getStaticElement());
   }
 
   public void test_concreteClassWithAbstractMember() throws Exception {

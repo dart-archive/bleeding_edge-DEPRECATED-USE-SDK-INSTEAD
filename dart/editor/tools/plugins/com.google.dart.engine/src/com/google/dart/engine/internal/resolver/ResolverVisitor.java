@@ -22,6 +22,7 @@ import com.google.dart.engine.ast.Block;
 import com.google.dart.engine.ast.BlockFunctionBody;
 import com.google.dart.engine.ast.BreakStatement;
 import com.google.dart.engine.ast.ClassDeclaration;
+import com.google.dart.engine.ast.Comment;
 import com.google.dart.engine.ast.CommentReference;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.CompilationUnitMember;
@@ -33,6 +34,7 @@ import com.google.dart.engine.ast.ContinueStatement;
 import com.google.dart.engine.ast.DeclaredIdentifier;
 import com.google.dart.engine.ast.Directive;
 import com.google.dart.engine.ast.DoStatement;
+import com.google.dart.engine.ast.EmptyFunctionBody;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.ExpressionFunctionBody;
 import com.google.dart.engine.ast.ExpressionStatement;
@@ -126,6 +128,12 @@ public class ResolverVisitor extends ScopedVisitor {
    * current node is not contained in a function.
    */
   private ExecutableElement enclosingFunction = null;
+
+  /**
+   * The {@link Comment} before a {@link FunctionDeclaration} or a {@link MethodDeclaration} that
+   * cannot be resolved where we visited it, because it should be resolved in the scope of the body.
+   */
+  private Comment commentBeforeFunction = null;
 
   /**
    * The object keeping track of which elements have had their types overridden.
@@ -274,6 +282,7 @@ public class ResolverVisitor extends ScopedVisitor {
 
   @Override
   public Void visitBlockFunctionBody(BlockFunctionBody node) {
+    safelyVisit(commentBeforeFunction);
     try {
       overrideManager.enterScope();
       super.visitBlockFunctionBody(node);
@@ -304,6 +313,20 @@ public class ResolverVisitor extends ScopedVisitor {
       typeAnalyzer.setThisType(outerType == null ? null : outerType.getType());
       enclosingClass = outerType;
     }
+    return null;
+  }
+
+  @Override
+  public Void visitComment(Comment node) {
+    if (node.getParent() instanceof FunctionDeclaration
+        || node.getParent() instanceof MethodDeclaration) {
+      if (node != commentBeforeFunction) {
+        commentBeforeFunction = node;
+        return null;
+      }
+    }
+    super.visitComment(node);
+    commentBeforeFunction = null;
     return null;
   }
 
@@ -460,6 +483,12 @@ public class ResolverVisitor extends ScopedVisitor {
     return null;
   }
 
+  @Override
+  public Void visitEmptyFunctionBody(EmptyFunctionBody node) {
+    safelyVisit(commentBeforeFunction);
+    return super.visitEmptyFunctionBody(node);
+  }
+
 //  @Override
 //  public Void visitEmptyFunctionBody(EmptyFunctionBody node) {
 //    try {
@@ -473,6 +502,7 @@ public class ResolverVisitor extends ScopedVisitor {
 
   @Override
   public Void visitExpressionFunctionBody(ExpressionFunctionBody node) {
+    safelyVisit(commentBeforeFunction);
     try {
       overrideManager.enterScope();
       super.visitExpressionFunctionBody(node);
