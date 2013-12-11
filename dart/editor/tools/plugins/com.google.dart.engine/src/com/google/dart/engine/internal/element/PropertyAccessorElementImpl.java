@@ -18,6 +18,7 @@ import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.ElementVisitor;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.PropertyInducingElement;
+import com.google.dart.engine.utilities.general.ObjectUtilities;
 
 /**
  * Instances of the class {@code PropertyAccessorElementImpl} implement a
@@ -103,6 +104,11 @@ public class PropertyAccessorElementImpl extends ExecutableElementImpl implement
   @Override
   public PropertyInducingElement getVariable() {
     return variable;
+  }
+
+  @Override
+  public int hashCode() {
+    return ObjectUtilities.combineHashCodes(super.hashCode(), isGetter() ? 1 : 2);
   }
 
   @Override

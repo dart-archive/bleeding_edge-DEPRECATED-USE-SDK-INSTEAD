@@ -49,7 +49,12 @@ public class DynamicTypeImpl extends TypeImpl {
 
   @Override
   public boolean equals(Object object) {
-    return object instanceof DynamicTypeImpl;
+    return object == this;
+  }
+
+  @Override
+  public int hashCode() {
+    return 1;
   }
 
   @Override

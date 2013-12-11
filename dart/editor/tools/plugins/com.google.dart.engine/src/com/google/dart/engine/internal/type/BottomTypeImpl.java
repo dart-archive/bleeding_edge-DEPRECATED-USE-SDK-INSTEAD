@@ -50,6 +50,11 @@ public class BottomTypeImpl extends TypeImpl {
   }
 
   @Override
+  public int hashCode() {
+    return 0;
+  }
+
+  @Override
   public boolean isBottom() {
     return true;
   }

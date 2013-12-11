@@ -52,6 +52,11 @@ public class VoidTypeImpl extends TypeImpl implements VoidType {
   }
 
   @Override
+  public int hashCode() {
+    return 2;
+  }
+
+  @Override
   public boolean isVoid() {
     return true;
   }
