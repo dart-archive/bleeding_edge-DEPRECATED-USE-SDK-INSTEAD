@@ -29,6 +29,7 @@ import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
 import com.google.dart.engine.type.TypeParameterType;
+import com.google.dart.engine.utilities.collection.ElementPair;
 import com.google.dart.engine.utilities.general.ObjectUtilities;
 
 import java.util.Arrays;
@@ -246,12 +247,7 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   @Override
   public boolean equals(Object object) {
-    if (!(object instanceof InterfaceTypeImpl)) {
-      return false;
-    }
-    InterfaceTypeImpl otherType = (InterfaceTypeImpl) object;
-    return ObjectUtilities.equals(getElement(), otherType.getElement())
-        && Arrays.equals(typeArguments, otherType.typeArguments);
+    return internalEquals(object, new HashSet<ElementPair>());
   }
 
   @Override
@@ -690,6 +686,16 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       }
       builder.append(">");
     }
+  }
+
+  @Override
+  protected boolean internalEquals(Object object, Set<ElementPair> visitedElementPairs) {
+    if (!(object instanceof InterfaceTypeImpl)) {
+      return false;
+    }
+    InterfaceTypeImpl otherType = (InterfaceTypeImpl) object;
+    return ObjectUtilities.equals(getElement(), otherType.getElement())
+        && TypeImpl.equalArrays(typeArguments, otherType.typeArguments, visitedElementPairs);
   }
 
   @Override

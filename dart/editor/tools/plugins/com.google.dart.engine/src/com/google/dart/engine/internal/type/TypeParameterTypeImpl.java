@@ -16,6 +16,7 @@ package com.google.dart.engine.internal.type;
 import com.google.dart.engine.element.TypeParameterElement;
 import com.google.dart.engine.type.Type;
 import com.google.dart.engine.type.TypeParameterType;
+import com.google.dart.engine.utilities.collection.ElementPair;
 import com.google.dart.engine.utilities.general.ObjectUtilities;
 
 import java.util.HashSet;
@@ -88,6 +89,11 @@ public class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType
       }
     }
     return this;
+  }
+
+  @Override
+  protected boolean internalEquals(Object object, Set<ElementPair> visitedElementPairs) {
+    return equals(object);
   }
 
   @Override

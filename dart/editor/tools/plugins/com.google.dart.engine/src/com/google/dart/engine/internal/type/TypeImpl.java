@@ -15,6 +15,7 @@ package com.google.dart.engine.internal.type;
 
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.type.Type;
+import com.google.dart.engine.utilities.collection.ElementPair;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -26,8 +27,8 @@ import java.util.Set;
  * @coverage dart.engine.type
  */
 public abstract class TypeImpl implements Type {
+  // TODO (jwren) Move this class to "com.google.dart.engine.utilities.collection"
   public class TypePair {
-
     private Type firstType;
 
     private Type secondType;
@@ -65,6 +66,19 @@ public abstract class TypeImpl implements Type {
       }
       return firstHashCode + secondHashCode;
     }
+  }
+
+  protected static boolean equalArrays(Type[] typeArgs1, Type[] typeArgs2,
+      Set<ElementPair> visitedElementPairs) {
+    if (typeArgs1.length != typeArgs2.length) {
+      return false;
+    }
+    for (int i = 0; i < typeArgs1.length; i++) {
+      if (!((TypeImpl) typeArgs1[i]).internalEquals(typeArgs2[i], visitedElementPairs)) {
+        return false;
+      }
+    }
+    return true;
   }
 
   /**
@@ -263,6 +277,8 @@ public abstract class TypeImpl implements Type {
       builder.append(name);
     }
   }
+
+  protected abstract boolean internalEquals(Object object, Set<ElementPair> visitedElementPairs);
 
   protected abstract boolean internalIsMoreSpecificThan(Type type, boolean withDynamic,
       Set<TypePair> visitedTypePairs);

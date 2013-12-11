@@ -23,11 +23,11 @@ import com.google.dart.engine.internal.element.TypeParameterElementImpl;
 import com.google.dart.engine.internal.element.member.ParameterMember;
 import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.Type;
+import com.google.dart.engine.utilities.collection.ElementPair;
 import com.google.dart.engine.utilities.dart.ParameterKind;
-import com.google.dart.engine.utilities.general.ObjectUtilities;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -49,10 +49,12 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
    * 
    * @param firstTypes the first map of name/type pairs being compared
    * @param secondTypes the second map of name/type pairs being compared
+   * @param visitedElementPairs a set of visited element pairs
    * @return {@code true} if all of the name/type pairs in the first map are equal to the
    *         corresponding name/type pairs in the second map
    */
-  private static boolean equals(Map<String, Type> firstTypes, Map<String, Type> secondTypes) {
+  private static boolean equals(Map<String, Type> firstTypes, Map<String, Type> secondTypes,
+      Set<ElementPair> visitedElementPairs) {
     if (secondTypes.size() != firstTypes.size()) {
       return false;
     }
@@ -62,7 +64,9 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
       Map.Entry<String, Type> firstEntry = firstIterator.next();
       Map.Entry<String, Type> secondEntry = secondIterator.next();
       if (!firstEntry.getKey().equals(secondEntry.getKey())
-          || !firstEntry.getValue().equals(secondEntry.getValue())) {
+          || !((TypeImpl) firstEntry.getValue()).internalEquals(
+              secondEntry.getValue(),
+              visitedElementPairs)) {
         return false;
       }
     }
@@ -96,15 +100,7 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
 
   @Override
   public boolean equals(Object object) {
-    if (!(object instanceof FunctionTypeImpl)) {
-      return false;
-    }
-    FunctionTypeImpl otherType = (FunctionTypeImpl) object;
-    return ObjectUtilities.equals(getElement(), otherType.getElement())
-        && Arrays.equals(getNormalParameterTypes(), otherType.getNormalParameterTypes())
-        && Arrays.equals(getOptionalParameterTypes(), otherType.getOptionalParameterTypes())
-        && equals(getNamedParameterTypes(), otherType.getNamedParameterTypes())
-        && ObjectUtilities.equals(getReturnType(), otherType.getReturnType());
+    return internalEquals(object, new HashSet<ElementPair>());
   }
 
   @Override
@@ -276,11 +272,27 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
 
   @Override
   public int hashCode() {
-    Element element = getElement();
-    if (element == null) {
+    if (getElement() == null) {
       return 0;
     }
-    return element.hashCode();
+
+    // Reference the arrays of parameters
+    Type[] normalParameterTypes = getNormalParameterTypes();
+    Type[] optionalParameterTypes = getOptionalParameterTypes();
+    Collection<Type> namedParameterTypes = getNamedParameterTypes().values();
+
+    // Generate the hashCode
+    int hashCode = getReturnType().hashCode();
+    for (int i = 0; i < normalParameterTypes.length; i++) {
+      hashCode = (hashCode << 1) + normalParameterTypes[i].hashCode();
+    }
+    for (int i = 0; i < optionalParameterTypes.length; i++) {
+      hashCode = (hashCode << 1) + optionalParameterTypes[i].hashCode();
+    }
+    for (Type type : namedParameterTypes) {
+      hashCode = (hashCode << 1) + type.hashCode();
+    }
+    return hashCode;
   }
 
   @Override
@@ -502,6 +514,40 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
     } else {
       return ((FunctionTypeAliasElement) element).getParameters();
     }
+  }
+
+  @Override
+  protected boolean internalEquals(Object object, Set<ElementPair> visitedElementPairs) {
+    if (!(object instanceof FunctionTypeImpl)) {
+      return false;
+    }
+    FunctionTypeImpl otherType = (FunctionTypeImpl) object;
+
+    // If the visitedTypePairs already has the pair (this, type), use the elements to determine equality
+    ElementPair elementPair = new ElementPair(getElement(), otherType.getElement());
+    if (!visitedElementPairs.add(elementPair)) {
+      return elementPair.getFirstElt().equals(elementPair.getSecondElt());
+    }
+
+    // Compute the result
+    boolean result = TypeImpl.equalArrays(
+        getNormalParameterTypes(),
+        otherType.getNormalParameterTypes(),
+        visitedElementPairs)
+        && TypeImpl.equalArrays(
+            getOptionalParameterTypes(),
+            otherType.getOptionalParameterTypes(),
+            visitedElementPairs)
+        && equals(getNamedParameterTypes(), otherType.getNamedParameterTypes(), visitedElementPairs)
+        && ((TypeImpl) getReturnType()).internalEquals(
+            otherType.getReturnType(),
+            visitedElementPairs);
+
+    // Remove the pair from our visited pairs list
+    visitedElementPairs.remove(elementPair);
+
+    // Return the result
+    return result;
   }
 
   @Override
