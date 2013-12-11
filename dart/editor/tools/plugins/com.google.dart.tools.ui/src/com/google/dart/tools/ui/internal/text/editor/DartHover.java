@@ -24,6 +24,7 @@ import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.type.Type;
+import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.utilities.dartdoc.DartDocUtilities;
 import com.google.dart.tools.ui.internal.actions.NewSelectionConverter;
@@ -55,6 +56,8 @@ import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.jface.text.source.ISourceViewerExtension2;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
@@ -415,6 +418,7 @@ public class DartHover implements ITextHover, ITextHoverExtension, ITextHoverExt
   private IInformationControlCreator informationControlCreator;
 
   private ITextHover lastReturnedHover;
+  private int lastClickOffset;
 
   public DartHover(ITextEditor editor, ISourceViewer viewer,
       DartSourceViewerConfiguration viewerConfiguration) {
@@ -422,6 +426,13 @@ public class DartHover implements ITextHover, ITextHoverExtension, ITextHoverExt
     this.viewerConfiguration = viewerConfiguration;
     if (editor instanceof CompilationUnitEditor) {
       this.editor = (CompilationUnitEditor) editor;
+      this.editor.getViewer().getTextWidget().addMouseListener(new MouseAdapter() {
+        @Override
+        public void mouseDown(MouseEvent e) {
+          SourceRange range = DartHover.this.editor.getTextSelectionRange();
+          lastClickOffset = range != null ? range.getOffset() : -1;
+        }
+      });
     }
   }
 
@@ -481,7 +492,17 @@ public class DartHover implements ITextHover, ITextHoverExtension, ITextHoverExt
 
   @Override
   public IRegion getHoverRegion(ITextViewer textViewer, int offset) {
-    return findWord(textViewer.getDocument(), offset);
+    IRegion wordRange = findWord(textViewer.getDocument(), offset);
+    // ignore word if it was clicked
+    {
+      int wordOffset = wordRange.getOffset();
+      int wordEnd = wordOffset + wordRange.getLength();
+      if (wordOffset <= lastClickOffset && lastClickOffset <= wordEnd) {
+        return null;
+      }
+    }
+    // OK
+    return wordRange;
   }
 
   private IRegion findWord(IDocument document, int offset) {
