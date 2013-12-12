@@ -102,7 +102,7 @@ public class CreateFolderWizard extends BasicNewFolderResourceWizard {
         || isLibDirectory(folder)) {
       IContainer pubspecDir = getPubWorkingDir(folder);
       if (pubspecDir != null) {
-        RunPubJob job = new RunPubJob(pubspecDir, RunPubJob.INSTALL_COMMAND);
+        RunPubJob job = new RunPubJob(pubspecDir, RunPubJob.INSTALL_COMMAND, true);
         job.schedule();
       }
     }

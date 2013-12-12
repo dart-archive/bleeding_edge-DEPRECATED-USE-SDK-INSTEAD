@@ -179,7 +179,7 @@ public class PubPackageUtils {
   public static void runPubInstall(IContainer container) throws CoreException {
     for (IResource resource : container.members()) {
       if (resource instanceof IFile && resource.getName().equals(DartCore.PUBSPEC_FILE_NAME)) {
-        RunPubJob job = new RunPubJob(container, RunPubJob.INSTALL_COMMAND);
+        RunPubJob job = new RunPubJob(container, RunPubJob.INSTALL_COMMAND, true);
         job.schedule();
         // Do we support Pub folder in another Pub folder?
         return;

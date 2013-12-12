@@ -43,7 +43,7 @@ public class DeployPolymerAppHandler extends AbstractHandler {
         if (selectedObject instanceof IResource) {
           PubFolder folder = DartCore.getProjectManager().getPubFolder((IResource) selectedObject);
           if (folder != null) {
-            RunPubJob job = new RunPubJob(folder.getResource(), RunPubJob.BUILD_COMMAND);
+            RunPubJob job = new RunPubJob(folder.getResource(), RunPubJob.BUILD_COMMAND, false);
             job.schedule(0);
             return null;
           }

@@ -457,7 +457,7 @@ public class OverviewFormPage extends FormPage implements IModelListener {
     if (input instanceof IFileEditorInput) {
       IFile file = ((IFileEditorInput) input).getFile();
       if (file != null) {
-        new RunPubJob(file.getParent(), RunPubJob.INSTALL_COMMAND).schedule();
+        new RunPubJob(file.getParent(), RunPubJob.INSTALL_COMMAND, false).schedule();
       }
     }
   }

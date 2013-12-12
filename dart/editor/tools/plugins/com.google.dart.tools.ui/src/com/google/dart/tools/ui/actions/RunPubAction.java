@@ -190,7 +190,7 @@ public class RunPubAction extends InstrumentedSelectionDispatchAction {
 
   protected void runPubJob(IContainer container) {
     if (container.findMember(DartCore.PUBSPEC_FILE_NAME) != null) {
-      RunPubJob runPubJob = new RunPubJob(container, command);
+      RunPubJob runPubJob = new RunPubJob(container, command, false);
       runPubJob.schedule();
     } else {
       MessageDialog.openError(

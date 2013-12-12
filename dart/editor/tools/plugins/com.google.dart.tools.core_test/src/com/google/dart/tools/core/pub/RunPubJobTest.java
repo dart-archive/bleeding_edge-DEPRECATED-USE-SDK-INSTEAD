@@ -34,7 +34,7 @@ public class RunPubJobTest extends TestCase {
 
   // Assert normal operation
   public void test_runSilent() {
-    RunPubJob target = new RunPubJob(PROJECT, RunPubJob.INSTALL_COMMAND) {
+    RunPubJob target = new RunPubJob(PROJECT, RunPubJob.INSTALL_COMMAND, false) {
       @Override
       protected ProcessRunner newProcessRunner(ProcessBuilder builder) {
         ProcessRunner processRunner = new ProcessRunner(builder) {
@@ -52,7 +52,7 @@ public class RunPubJobTest extends TestCase {
 
   // Assert a process IOException is gracefully handled correctly
   public void test_runSilent_ioException() {
-    RunPubJob target = new RunPubJob(PROJECT, RunPubJob.INSTALL_COMMAND) {
+    RunPubJob target = new RunPubJob(PROJECT, RunPubJob.INSTALL_COMMAND, false) {
       @Override
       protected ProcessRunner newProcessRunner(ProcessBuilder builder) {
 
@@ -77,7 +77,7 @@ public class RunPubJobTest extends TestCase {
   // Assert a non-zero exit code generates an error status
   public void test_runSilent_nonZeroExitCode() {
     final int exitCode = 3452;
-    RunPubJob target = new RunPubJob(PROJECT, RunPubJob.INSTALL_COMMAND) {
+    RunPubJob target = new RunPubJob(PROJECT, RunPubJob.INSTALL_COMMAND, false) {
       @Override
       protected ProcessRunner newProcessRunner(ProcessBuilder builder) {
         ProcessRunner processRunner = new ProcessRunner(builder) {

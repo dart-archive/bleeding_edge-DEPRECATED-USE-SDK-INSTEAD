@@ -27,7 +27,7 @@ import java.util.Map;
 public class PubJobRunner extends RunPubJob {
 
   public PubJobRunner(IContainer container, String command) {
-    super(container, command);
+    super(container, command, false);
 
   }
 

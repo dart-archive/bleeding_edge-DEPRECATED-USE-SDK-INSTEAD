@@ -49,16 +49,24 @@ public class RunPubJob extends Job {
   private final IContainer container;
 
   /**
+   * Indicates whether this pub job was triggered by the builder, or packages view etc. instead of
+   * by a menu option.
+   */
+  private final boolean autorun;
+
+  /**
    * Construct a new job for running a pub command
    * 
    * @param container the directory in which the cmd will be run (not {@code null})
    * @param command the command to be run... either {@link #INSTALL_COMMAND} or
    *          {@link #UPDATE_COMMAND}
+   * @param autorun indicate whether pub was run by editor without user interaction
    */
-  public RunPubJob(IContainer container, String command) {
+  public RunPubJob(IContainer container, String command, boolean autorun) {
     super(NLS.bind(PubMessages.RunPubJob_name, command));
     this.command = command;
     this.container = container;
+    this.autorun = autorun;
     // TODO(keertip): comment out for now, on windows pub install takes long time and blocks builder
     //   setRule(container);
   }
@@ -71,12 +79,13 @@ public class RunPubJob extends Job {
   @Override
   public IStatus run(IProgressMonitor monitor) {
     IStatus status = runSilent(monitor);
-
-    if (!status.isOK()) {
-      MessageConsole console = DartCore.getConsole();
+    MessageConsole console = DartCore.getConsole();
+    if (autorun) {
+      console.printSeparator(NLS.bind(PubMessages.RunPubJob_auto_running, command));
+    } else {
       console.printSeparator(NLS.bind(PubMessages.RunPubJob_running, command));
-      console.println(status.getMessage());
     }
+    console.println(status.getMessage());
 
     return status;
   }

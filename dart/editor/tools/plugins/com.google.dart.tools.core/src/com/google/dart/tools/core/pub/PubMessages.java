@@ -30,6 +30,7 @@ public class PubMessages extends NLS {
 
   public static String RunPubJob_name;
   public static String RunPubJob_running;
+  public static String RunPubJob_auto_running;
   public static String RunPubJob_canceled;
   public static String RunPubJob_failed;
 
