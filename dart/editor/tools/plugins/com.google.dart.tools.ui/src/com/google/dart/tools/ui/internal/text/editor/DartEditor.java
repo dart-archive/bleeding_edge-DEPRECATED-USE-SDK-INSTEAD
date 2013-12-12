@@ -778,18 +778,18 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
           });
 
           final String unformattedSource = document.get();
-          final FormattedSource formattedSource = DartFormatter.format(
+          final FormattedSource formatResult = DartFormatter.format(
               unformattedSource,
               selection[0],
               monitor);
           Display.getDefault().syncExec(new Runnable() {
             @Override
             public void run() {
-              if (!formattedSource.equals(unformattedSource)) {
-                document.set(formattedSource.source);
+              if (!formatResult.source.equals(unformattedSource)) {
+                document.set(formatResult.source);
                 getSourceViewer().setSelectedRange(
-                    formattedSource.selectionOffset,
-                    formattedSource.selectionLength);
+                    formatResult.selectionOffset,
+                    formatResult.selectionLength);
               }
             }
           });
