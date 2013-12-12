@@ -115,6 +115,9 @@ public class PubspecEditor extends FormEditor {
     }
     if (getActivePage() == 1 || yamlEditor.isDirty()) {
       model.setValuesFromString(yamlEditor.getDocument().get());
+      if (model.getName().equals("null")) {
+        updateDocumentContents();
+      }
     }
     yamlEditor.doSave(monitor);
     editorDirtyStateChanged();

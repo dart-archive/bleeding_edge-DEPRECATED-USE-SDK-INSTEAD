@@ -356,6 +356,9 @@ public class PubspecModel {
     if (pubspecMap != null) {
       clearModelFields();
       name = (String) pubspecMap.get(PubspecConstants.NAME);
+      if (name == null) {
+        name = "null";
+      }
       version = (String) ((pubspecMap.get(PubspecConstants.VERSION) != null)
           ? pubspecMap.get(PubspecConstants.VERSION) : EMPTY_STRING);
       author = (String) ((pubspecMap.get(PubspecConstants.AUTHOR) != null)
