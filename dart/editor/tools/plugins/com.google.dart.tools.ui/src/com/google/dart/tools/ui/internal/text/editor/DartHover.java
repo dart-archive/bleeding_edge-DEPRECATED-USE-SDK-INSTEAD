@@ -25,7 +25,6 @@ import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.type.Type;
 import com.google.dart.engine.utilities.source.SourceRange;
-import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.utilities.dartdoc.DartDocUtilities;
 import com.google.dart.tools.ui.internal.actions.NewSelectionConverter;
 import com.google.dart.tools.ui.internal.problemsview.ProblemsView;
@@ -33,7 +32,6 @@ import com.google.dart.tools.ui.internal.util.GridDataFactory;
 import com.google.dart.tools.ui.internal.util.GridLayoutFactory;
 import com.google.dart.tools.ui.text.DartSourceViewerConfiguration;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.text.WordUtils;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.jface.text.AbstractInformationControl;
@@ -55,7 +53,7 @@ import org.eclipse.jface.text.source.IAnnotationModel;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.jface.text.source.ISourceViewerExtension2;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.browser.Browser;
+import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.graphics.Point;
@@ -119,7 +117,7 @@ public class DartHover implements ITextHover, ITextHoverExtension, ITextHoverExt
       control.getParent().layout();
     }
 
-    private static void setGridVisible(HtmlSection section, boolean visible) {
+    private static void setGridVisible(DocSection section, boolean visible) {
       setGridVisible(section.section, visible);
     }
 
@@ -132,7 +130,7 @@ public class DartHover implements ITextHover, ITextHoverExtension, ITextHoverExt
     private Composite container;
     private TextSection elementSection;
     private AnnotationsSection problemsSection;
-    private HtmlSection docSection;
+    private DocSection docSection;
     private TextSection staticTypeSection;
     private TextSection propagatedTypeSection;
     private TextSection parameterSection;
@@ -197,12 +195,14 @@ public class DartHover implements ITextHover, ITextHoverExtension, ITextHoverExt
           elementSection.setText(text);
         }
         // Dart Doc
-        {
-          String dartDoc = DartDocUtilities.getDartDocAsHtml(element);
+        try {
+          String dartDoc = element.computeDocumentationComment();
           if (dartDoc != null) {
+            dartDoc = DartDocUtilities.cleanDartDoc(dartDoc);
             setGridVisible(docSection, true);
-            docSection.setHtml(dartDoc);
+            docSection.setDoc(dartDoc);
           }
+        } catch (Throwable e) {
         }
       }
       // types
@@ -268,7 +268,7 @@ public class DartHover implements ITextHover, ITextHoverExtension, ITextHoverExt
       GridLayoutFactory.create(container);
       elementSection = new TextSection(container, "Element");
       problemsSection = new AnnotationsSection(container, "Problems");
-      docSection = new HtmlSection(container, "Documentation");
+      docSection = new DocSection(container, "Documentation");
       staticTypeSection = new TextSection(container, "Static type");
       propagatedTypeSection = new TextSection(container, "Propagated type");
       parameterSection = new TextSection(container, "Parameter");
@@ -283,6 +283,40 @@ public class DartHover implements ITextHover, ITextHoverExtension, ITextHoverExt
     }
   }
 
+  private static class DocSection {
+    private final Section section;
+    private final StyledText textWidget;
+
+    public DocSection(Composite parent, String title) {
+      this.section = formToolkit.createSection(parent, Section.TITLE_BAR);
+      GridDataFactory.create(section).grab().fill();
+      section.setText(title);
+      // create Composite to draw flat border
+      Composite body = formToolkit.createComposite(section);
+      GridLayoutFactory.create(body).margins(2);
+      section.setClient(body);
+      // create StyledText widget
+      textWidget = new StyledText(body, SWT.H_SCROLL | SWT.V_SCROLL);
+      textWidget.setMargins(5, 5, 5, 5);
+      // configure flat border
+      textWidget.setData(FormToolkit.KEY_DRAW_BORDER, FormToolkit.TEXT_BORDER);
+      formToolkit.paintBordersFor(body);
+    }
+
+    public void setDoc(String doc) {
+      textWidget.setText(doc);
+      textWidget.setSelection(0);
+      // apply size
+      Point requiredSize = textWidget.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+      GridDataFactory gdf = GridDataFactory.create(textWidget);
+      int maxWidth = gdf.convertWidthInCharsToPixels(85);
+      int maxHeight = gdf.convertHeightInCharsToPixels(15);
+      int width = Math.min(requiredSize.x, maxWidth);
+      int height = Math.min(requiredSize.y, maxHeight);
+      gdf.hint(width, height).grab().fill();
+    }
+  }
+
   private static class HoverInfo {
     ASTNode node;
     Element element;
@@ -292,50 +326,6 @@ public class DartHover implements ITextHover, ITextHoverExtension, ITextHoverExt
       this.node = node;
       this.element = element;
       this.annotations = annotations;
-    }
-  }
-
-  private static class HtmlSection {
-    private final Section section;
-    private Browser browser;
-    private Text textWidget;
-
-    public HtmlSection(Composite parent, String title) {
-      this.section = formToolkit.createSection(parent, Section.TITLE_BAR);
-      GridDataFactory.create(section).grab().fill();
-      section.setText(title);
-      if (DartCore.isLinux()) {
-        textWidget = new Text(section, SWT.BORDER | SWT.V_SCROLL);
-        formToolkit.adapt(textWidget, false, false);
-        section.setClient(textWidget);
-      } else {
-        // create Composite to draw flat border
-        Composite body = formToolkit.createComposite(section);
-        GridLayoutFactory.create(body).margins(2);
-        section.setClient(body);
-        // create Browser
-        browser = new Browser(body, SWT.NONE);
-        GridDataFactory.create(browser).grab().fill();
-        // configure flat border
-        browser.setData(FormToolkit.KEY_DRAW_BORDER, FormToolkit.TEXT_BORDER);
-        formToolkit.paintBordersFor(body);
-      }
-    }
-
-    public void setHtml(String html) {
-      if (DartCore.isLinux()) {
-        textWidget.setText(html);
-        textWidget.setSelection(0);
-      } else {
-        browser.setText(html);
-      }
-      // tweak Browser size
-      int lineLength = Math.min(html.length(), 85);
-      int numLines = estimateNumLines(html, lineLength);
-      numLines += 3; // header
-      numLines += 1; // footer
-      numLines = Math.min(numLines, 15);
-      GridDataFactory.create(section).hintChars(lineLength + 5, numLines).grab().fill();
     }
   }
 
@@ -367,12 +357,6 @@ public class DartHover implements ITextHover, ITextHoverExtension, ITextHoverExt
    */
   public static void addContributer(ITextHover hoverContributor) {
     hoverContributors.add(hoverContributor);
-  }
-
-  private static int estimateNumLines(String text, int width) {
-    int num = text.length() / width;
-    num += StringUtils.countMatches(text, "<br");
-    return num;
   }
 
   /**
