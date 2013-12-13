@@ -6,6 +6,9 @@
  ******************************************************************************/
 package com.xored.glance.internal.ui.viewers;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+
 import com.xored.glance.ui.controls.text.styled.TextSelector;
 import com.xored.glance.ui.sources.BaseTextSource;
 import com.xored.glance.ui.sources.ColorManager;
@@ -27,6 +30,7 @@ import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.swt.graphics.Point;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -41,10 +45,13 @@ public class SourceViewerControl extends BaseTextSource implements ISelectionCha
 
   public static String SELECTED_ANNOTATION_TYPE = ColorManager.ANNOTATION_SELECTED_ID;
 
+  private static final Map<Annotation, Position> NO_ANNOTAIONS = Maps.newHashMap();
+
   private TextSelector selector;
 
   private final ListenerList listeners;
 
+  private boolean inited;
   private boolean disposed;
 
   private final TextViewerBlock[] blocks;
@@ -65,11 +72,13 @@ public class SourceViewerControl extends BaseTextSource implements ISelectionCha
   @Override
   public void dispose() {
     if (!disposed) {
+      selector.dispose();
       viewer.removeSelectionChangedListener(this);
-      replaceMatches(Match.EMPTY);
+      replaceAnnotations(getAnnotations(), NO_ANNOTAIONS);
       getBlock().dispose();
       disposed = true;
     }
+    inited = false;
   }
 
   public TextViewerBlock getBlock() {
@@ -89,6 +98,10 @@ public class SourceViewerControl extends BaseTextSource implements ISelectionCha
 
   @Override
   public void init() {
+    if (inited) {
+      return;
+    }
+    inited = true;
     if (selector != null) {
       selector.dispose();
       select(null);
@@ -113,18 +126,7 @@ public class SourceViewerControl extends BaseTextSource implements ISelectionCha
     final Map<Annotation, Position> add = match != null ? createAnnotations(
         new Match[] {match},
         true) : new HashMap<Annotation, Position>();
-    final IAnnotationModel model = viewer.getAnnotationModel();
-    if (model instanceof IAnnotationModelExtension) {
-      final IAnnotationModelExtension eModel = (IAnnotationModelExtension) model;
-      eModel.replaceAnnotations(remove, add);
-    } else {
-      for (final Annotation annotation : remove) {
-        model.removeAnnotation(annotation);
-      }
-      for (final Annotation annotation : add.keySet()) {
-        model.addAnnotation(annotation, add.get(annotation));
-      }
-    }
+    replaceAnnotations(remove, add);
 
     selector.setMatch(match);
   }
@@ -162,6 +164,16 @@ public class SourceViewerControl extends BaseTextSource implements ISelectionCha
     return map;
   }
 
+  /**
+   * @return all selected and unselected annotations.
+   */
+  private Annotation[] getAnnotations() {
+    List<Annotation> allAnnotations = Lists.newArrayList();
+    Collections.addAll(allAnnotations, getAnnotations(true));
+    Collections.addAll(allAnnotations, getAnnotations(false));
+    return allAnnotations.toArray(new Annotation[allAnnotations.size()]);
+  }
+
   private Annotation[] getAnnotations(final boolean selected) {
     final String type = selected ? SELECTED_ANNOTATION_TYPE : ANNOTATION_TYPE;
     final IAnnotationModel model = viewer.getAnnotationModel();
@@ -178,9 +190,7 @@ public class SourceViewerControl extends BaseTextSource implements ISelectionCha
     return annotations.toArray(new Annotation[annotations.size()]);
   }
 
-  private void replaceMatches(final Match[] matches) {
-    final Annotation[] remove = getAnnotations(false);
-    final Map<Annotation, Position> add = createAnnotations(matches, false);
+  private void replaceAnnotations(Annotation[] remove, Map<Annotation, Position> add) {
     final IAnnotationModel model = viewer.getAnnotationModel();
     if (model instanceof IAnnotationModelExtension) {
       final IAnnotationModelExtension eModel = (IAnnotationModelExtension) model;
@@ -193,5 +203,11 @@ public class SourceViewerControl extends BaseTextSource implements ISelectionCha
         model.addAnnotation(annotation, add.get(annotation));
       }
     }
+  }
+
+  private void replaceMatches(final Match[] matches) {
+    final Annotation[] remove = getAnnotations(false);
+    final Map<Annotation, Position> add = createAnnotations(matches, false);
+    replaceAnnotations(remove, add);
   }
 }

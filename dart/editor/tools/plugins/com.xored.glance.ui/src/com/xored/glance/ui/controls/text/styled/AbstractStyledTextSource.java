@@ -6,22 +6,36 @@
  ******************************************************************************/
 package com.xored.glance.ui.controls.text.styled;
 
-import org.eclipse.core.runtime.ListenerList;
-import org.eclipse.swt.custom.StyledText;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
-import org.eclipse.swt.graphics.Point;
-
 import com.xored.glance.ui.sources.BaseTextSource;
 import com.xored.glance.ui.sources.ITextBlock;
 import com.xored.glance.ui.sources.ITextSourceListener;
 import com.xored.glance.ui.sources.Match;
 import com.xored.glance.ui.sources.SourceSelection;
 
+import org.eclipse.core.runtime.ListenerList;
+import org.eclipse.swt.custom.StyledText;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.graphics.Point;
+
 /**
  * @author Yuri Strot
  */
 public abstract class AbstractStyledTextSource extends BaseTextSource implements SelectionListener {
+
+  private StyledTextSelector focusKeeper;
+
+  private final StyledText text;
+
+  private boolean inited;
+
+  private boolean disposed;
+
+  private final ListenerList list;
+
+  private final StyledTextBlock[] blocks;
+
+  protected Match selected;
 
   public AbstractStyledTextSource(final StyledText text) {
     this.text = text;
@@ -29,8 +43,9 @@ public abstract class AbstractStyledTextSource extends BaseTextSource implements
     list = new ListenerList();
   }
 
-  protected StyledTextBlock createTextBlock() {
-    return new StyledTextBlock(text);
+  @Override
+  public void addTextSourceListener(final ITextSourceListener listener) {
+    list.add(listener);
   }
 
   @Override
@@ -41,9 +56,26 @@ public abstract class AbstractStyledTextSource extends BaseTextSource implements
     disposed = true;
   }
 
-  protected void doDispose() {
-    focusKeeper.dispose();
-    text.removeSelectionListener(this);
+  @Override
+  public ITextBlock[] getBlocks() {
+    return blocks;
+  }
+
+  @Override
+  public SourceSelection getSelection() {
+    final Point point = text.getSelection();
+    final SourceSelection selection = new SourceSelection(blocks[0], point.x, point.y - point.x);
+    return selection;
+  }
+
+  @Override
+  public void init() {
+    if (inited) {
+      return;
+    }
+    inited = true;
+    focusKeeper = new StyledTextSelector(text);
+    text.addSelectionListener(this);
   }
 
   @Override
@@ -52,18 +84,14 @@ public abstract class AbstractStyledTextSource extends BaseTextSource implements
   }
 
   @Override
-  public ITextBlock[] getBlocks() {
-    return blocks;
-  }
-
-  @Override
-  public void addTextSourceListener(final ITextSourceListener listener) {
-    list.add(listener);
-  }
-
-  @Override
   public void removeTextSourceListener(final ITextSourceListener listener) {
     list.remove(listener);
+  }
+
+  @Override
+  public void select(final Match match) {
+    this.selected = match;
+    focusKeeper.setMatch(match);
   }
 
   @Override
@@ -76,6 +104,19 @@ public abstract class AbstractStyledTextSource extends BaseTextSource implements
     fireSelectionChanged();
   }
 
+  protected StyledTextBlock createTextBlock() {
+    return new StyledTextBlock(text);
+  }
+
+  protected void doDispose() {
+    focusKeeper.dispose();
+    text.removeSelectionListener(this);
+  }
+
+  protected StyledText getText() {
+    return text;
+  }
+
   private void fireSelectionChanged() {
     final SourceSelection selection = getSelection();
     final Object[] objects = list.getListeners();
@@ -84,35 +125,4 @@ public abstract class AbstractStyledTextSource extends BaseTextSource implements
       listener.selectionChanged(selection);
     }
   }
-
-  @Override
-  public SourceSelection getSelection() {
-    final Point point = text.getSelection();
-    final SourceSelection selection = new SourceSelection(blocks[0], point.x, point.y - point.x);
-    return selection;
-  }
-
-  @Override
-  public void select(final Match match) {
-    this.selected = match;
-    focusKeeper.setMatch(match);
-  }
-
-  protected StyledText getText() {
-    return text;
-  }
-
-  @Override
-  public void init() {
-    focusKeeper = new StyledTextSelector(text);
-    text.addSelectionListener(this);
-  }
-
-  private StyledTextSelector focusKeeper;
-  private final StyledText text;
-
-  private boolean disposed;
-  private final ListenerList list;
-  private final StyledTextBlock[] blocks;
-  protected Match selected;
 }

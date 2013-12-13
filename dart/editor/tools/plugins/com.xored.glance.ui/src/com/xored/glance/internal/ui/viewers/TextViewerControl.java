@@ -6,6 +6,13 @@
  ******************************************************************************/
 package com.xored.glance.internal.ui.viewers;
 
+import com.xored.glance.ui.controls.text.styled.TextSelector;
+import com.xored.glance.ui.sources.BaseTextSource;
+import com.xored.glance.ui.sources.ITextBlock;
+import com.xored.glance.ui.sources.ITextSourceListener;
+import com.xored.glance.ui.sources.Match;
+import com.xored.glance.ui.sources.SourceSelection;
+
 import org.eclipse.core.runtime.ListenerList;
 import org.eclipse.jface.text.TextSelection;
 import org.eclipse.jface.text.TextViewer;
@@ -14,17 +21,20 @@ import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.swt.graphics.Point;
 
-import com.xored.glance.ui.controls.text.styled.TextSelector;
-import com.xored.glance.ui.sources.BaseTextSource;
-import com.xored.glance.ui.sources.ITextBlock;
-import com.xored.glance.ui.sources.ITextSourceListener;
-import com.xored.glance.ui.sources.Match;
-import com.xored.glance.ui.sources.SourceSelection;
-
 /**
  * @author Yuri Strot
  */
 public class TextViewerControl extends BaseTextSource implements ISelectionChangedListener {
+
+  private TextSelector selector;
+
+  private final ListenerList listeners;
+
+  private boolean disposed;
+
+  private final ColoredTextViewerBlock[] blocks;
+
+  private final TextViewer viewer;
 
   public TextViewerControl(final TextViewer viewer) {
     this.viewer = viewer;
@@ -38,11 +48,6 @@ public class TextViewerControl extends BaseTextSource implements ISelectionChang
   }
 
   @Override
-  public void removeTextSourceListener(final ITextSourceListener listener) {
-    listeners.remove(listener);
-  }
-
-  @Override
   public void dispose() {
     if (!disposed) {
       selector.dispose();
@@ -50,6 +55,43 @@ public class TextViewerControl extends BaseTextSource implements ISelectionChang
       getBlock().dispose();
       disposed = true;
     }
+  }
+
+  public ColoredTextViewerBlock getBlock() {
+    return blocks[0];
+  }
+
+  @Override
+  public ITextBlock[] getBlocks() {
+    return blocks;
+  }
+
+  @Override
+  public SourceSelection getSelection() {
+    final Point selection = viewer.getSelectedRange();
+    return new SourceSelection(getBlock(), selection.x, selection.y);
+  }
+
+  @Override
+  public void init() {
+    selector = new ViewerSelector(viewer);
+    viewer.addSelectionChangedListener(this);
+  }
+
+  @Override
+  public boolean isDisposed() {
+    return disposed;
+  }
+
+  @Override
+  public void removeTextSourceListener(final ITextSourceListener listener) {
+    listeners.remove(listener);
+  }
+
+  @Override
+  public void select(final Match match) {
+    getBlock().setSelected(match);
+    selector.setMatch(match);
   }
 
   @Override
@@ -70,46 +112,8 @@ public class TextViewerControl extends BaseTextSource implements ISelectionChang
   }
 
   @Override
-  public boolean isDisposed() {
-    return disposed;
-  }
-
-  public ColoredTextViewerBlock getBlock() {
-    return blocks[0];
-  }
-
-  @Override
-  public ITextBlock[] getBlocks() {
-    return blocks;
-  }
-
-  @Override
-  public SourceSelection getSelection() {
-    final Point selection = viewer.getSelectedRange();
-    return new SourceSelection(getBlock(), selection.x, selection.y);
-  }
-
-  @Override
-  public void select(final Match match) {
-    getBlock().setSelected(match);
-    selector.setMatch(match);
-  }
-
-  @Override
   public void show(final Match[] matches) {
     getBlock().setMatches(matches);
   }
-
-  @Override
-  public void init() {
-    selector = new ViewerSelector(viewer);
-    viewer.addSelectionChangedListener(this);
-  }
-
-  private TextSelector selector;
-  private final ListenerList listeners;
-  private boolean disposed;
-  private final ColoredTextViewerBlock[] blocks;
-  private final TextViewer viewer;
 
 }
