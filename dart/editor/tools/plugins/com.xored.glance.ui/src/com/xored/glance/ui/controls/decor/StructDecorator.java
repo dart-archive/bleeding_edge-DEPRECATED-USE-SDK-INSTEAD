@@ -6,7 +6,7 @@
  ******************************************************************************/
 package com.xored.glance.ui.controls.decor;
 
-import java.lang.reflect.Field;
+import com.xored.glance.ui.sources.ColorManager;
 
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.swt.SWT;
@@ -22,7 +22,7 @@ import org.eclipse.swt.widgets.Item;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Tree;
 
-import com.xored.glance.ui.sources.ColorManager;
+import java.lang.reflect.Field;
 
 public class StructDecorator implements Listener {
 
@@ -31,10 +31,73 @@ public class StructDecorator implements Listener {
 
   private TextLayout textLayout;
 
+  private Listener[] eraseListeners;
+
+  private Listener[] paintListeners;
+
+  private boolean disposed;
+
   public StructDecorator(Composite composite, IStructProvider provider) {
     this.composite = composite;
     this.provider = provider;
     init();
+  }
+
+  public void dispose() {
+    if (!disposed) {
+      disposed = true;
+      if (!composite.isDisposed()) {
+        composite.removeListener(SWT.EraseItem, StructDecorator.this);
+        for (Listener listener : eraseListeners) {
+          composite.addListener(SWT.EraseItem, listener);
+        }
+
+        composite.removeListener(SWT.PaintItem, StructDecorator.this);
+        for (Listener listener : paintListeners) {
+          composite.addListener(SWT.PaintItem, listener);
+        }
+
+        if ("gtk".equalsIgnoreCase(Platform.getWS()) && composite instanceof Tree) {
+          try {
+            Field field = composite.getClass().getDeclaredField("drawForeground");
+            field.setAccessible(true);
+            if (field.get(composite) != null) {
+              // System.out.println("Fixed tree drawForeground bug");
+              field.set(composite, null);
+            }
+          } catch (Exception e) {
+            // ignore if no such field
+          }
+        }
+
+        redraw();
+      }
+    }
+  }
+
+  public void erase(Event event) {
+    int style = SWT.BACKGROUND | SWT.FOREGROUND;
+    if (!ColorManager.getInstance().isUseNative()) {
+      style |= SWT.SELECTED | SWT.HOT;
+    }
+
+    event.detail &= ~style;
+  }
+
+  @Override
+  public void handleEvent(Event event) {
+    switch (event.type) {
+      case SWT.PaintItem:
+        paint(event);
+        break;
+      case SWT.EraseItem:
+        erase(event);
+        break;
+    }
+  }
+
+  public boolean isDisposed() {
+    return disposed;
   }
 
   public void redraw() {
@@ -58,16 +121,10 @@ public class StructDecorator implements Listener {
     return textLayout;
   }
 
-  @Override
-  public void handleEvent(Event event) {
-    switch (event.type) {
-      case SWT.PaintItem:
-        paint(event);
-        break;
-      case SWT.EraseItem:
-        erase(event);
-        break;
-    }
+  protected void init() {
+    eraseListeners = addListener(SWT.EraseItem);
+    paintListeners = addListener(SWT.PaintItem);
+    redraw();
   }
 
   protected void paint(Event event) {
@@ -132,21 +189,6 @@ public class StructDecorator implements Listener {
     gc.setBackground(oldBackground);
   }
 
-  public void erase(Event event) {
-    int style = SWT.BACKGROUND | SWT.FOREGROUND;
-    if (!ColorManager.getInstance().isUseNative()) {
-      style |= SWT.SELECTED | SWT.HOT;
-    }
-
-    event.detail &= ~style;
-  }
-
-  protected void init() {
-    eraseListeners = addListener(SWT.EraseItem);
-    paintListeners = addListener(SWT.PaintItem);
-    redraw();
-  }
-
   private Listener[] addListener(int event) {
     Listener[] listeners = composite.getListeners(event);
     // should never happen, but just in case
@@ -159,46 +201,5 @@ public class StructDecorator implements Listener {
     composite.addListener(event, this);
     return listeners;
   }
-
-  public void dispose() {
-    if (!disposed) {
-      disposed = true;
-      if (!composite.isDisposed()) {
-        composite.removeListener(SWT.EraseItem, StructDecorator.this);
-        for (Listener listener : eraseListeners) {
-          composite.addListener(SWT.EraseItem, listener);
-        }
-
-        composite.removeListener(SWT.PaintItem, StructDecorator.this);
-        for (Listener listener : paintListeners) {
-          composite.addListener(SWT.PaintItem, listener);
-        }
-
-        if ("gtk".equalsIgnoreCase(Platform.getWS()) && composite instanceof Tree) {
-          try {
-            Field field = composite.getClass().getDeclaredField("drawForeground");
-            field.setAccessible(true);
-            if (field.get(composite) != null) {
-              // System.out.println("Fixed tree drawForeground bug");
-              field.set(composite, null);
-            }
-          } catch (Exception e) {
-            // ignore if no such field
-          }
-        }
-
-        redraw();
-      }
-    }
-  }
-
-  private Listener[] eraseListeners;
-  private Listener[] paintListeners;
-
-  public boolean isDisposed() {
-    return disposed;
-  }
-
-  private boolean disposed;
 
 }
