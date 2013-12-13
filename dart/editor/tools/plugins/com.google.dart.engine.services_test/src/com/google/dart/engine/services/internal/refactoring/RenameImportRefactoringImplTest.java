@@ -48,20 +48,26 @@ public class RenameImportRefactoringImplTest extends RenameRefactoringImplTest {
     indexTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
         "import 'dart:async';",
+        "import 'dart:math';",
         "main() {",
         "  Future f;",
+        "  Random r;",
+        "  min(1, 2);",
         "}");
     // configure refactoring
-    createRenameImportRefactoring("import 'dart:async");
+    createRenameImportRefactoring("import 'dart:math");
     assertEquals("Rename Import Prefix", refactoring.getRefactoringName());
     assertEquals("", refactoring.getCurrentName());
     refactoring.setNewName("newName");
     // validate change
     assertSuccessfulRename(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "import 'dart:async' as newName;",
+        "import 'dart:async';",
+        "import 'dart:math' as newName;",
         "main() {",
-        "  newName.Future f;",
+        "  Future f;",
+        "  newName.Random r;",
+        "  newName.min(1, 2);",
         "}");
   }
 

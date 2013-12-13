@@ -352,7 +352,7 @@ public class ResolutionCopierTest extends EngineTestCase {
 
   public void test_visitImportDirective() {
     ImportDirective fromNode = importDirective("dart:uri", null);
-    ImportElement element = new ImportElementImpl();
+    ImportElement element = new ImportElementImpl(0);
     fromNode.setElement(element);
     ImportDirective toNode = importDirective("dart:uri", null);
 

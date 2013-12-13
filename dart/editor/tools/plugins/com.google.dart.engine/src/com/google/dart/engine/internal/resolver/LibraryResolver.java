@@ -422,8 +422,7 @@ public class LibraryResolver {
             // The imported source will be null if the URI in the import directive was invalid.
             Library importedLibrary = libraryMap.get(importedSource);
             if (importedLibrary != null) {
-              ImportElementImpl importElement = new ImportElementImpl();
-              importElement.setOffset(directive.getOffset());
+              ImportElementImpl importElement = new ImportElementImpl(directive.getOffset());
               StringLiteral uriLiteral = importDirective.getUri();
               if (uriLiteral != null) {
                 importElement.setUriEnd(uriLiteral.getEnd());
@@ -491,7 +490,7 @@ public class LibraryResolver {
       }
       Source librarySource = library.getLibrarySource();
       if (!library.getExplicitlyImportsCore() && !coreLibrarySource.equals(librarySource)) {
-        ImportElementImpl importElement = new ImportElementImpl();
+        ImportElementImpl importElement = new ImportElementImpl(-1);
         importElement.setImportedLibrary(coreLibrary.getLibraryElement());
         importElement.setSynthetic(true);
         imports.add(importElement);

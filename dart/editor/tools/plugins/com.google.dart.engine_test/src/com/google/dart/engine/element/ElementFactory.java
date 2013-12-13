@@ -282,7 +282,7 @@ public final class ElementFactory {
 
   public static ImportElementImpl importFor(LibraryElement importedLibrary, PrefixElement prefix,
       NamespaceCombinator... combinators) {
-    ImportElementImpl spec = new ImportElementImpl();
+    ImportElementImpl spec = new ImportElementImpl(0);
     spec.setImportedLibrary(importedLibrary);
     spec.setPrefix(prefix);
     spec.setCombinators(combinators);

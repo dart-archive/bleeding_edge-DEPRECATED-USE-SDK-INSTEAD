@@ -110,7 +110,7 @@ public class LibraryImportScopeTest extends ResolverTestCase {
     LibraryElement importedLibrary = createTestLibrary(context, "imported");
     ((CompilationUnitElementImpl) importedLibrary.getDefiningCompilationUnit()).setTypes(new ClassElement[] {importedType});
     LibraryElementImpl definingLibrary = createTestLibrary(context, "importing");
-    ImportElementImpl importElement = new ImportElementImpl();
+    ImportElementImpl importElement = new ImportElementImpl(0);
     importElement.setImportedLibrary(importedLibrary);
     definingLibrary.setImports(new ImportElement[] {importElement});
     GatheringErrorListener errorListener = new GatheringErrorListener();

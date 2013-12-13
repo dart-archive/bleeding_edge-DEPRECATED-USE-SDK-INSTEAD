@@ -623,6 +623,7 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
       Location location = createLocation(name);
       recordRelationship(element, IndexConstants.IS_INVOKED_BY, location);
     }
+    recordImportElementReferenceWithoutPrefix(name);
     return super.visitMethodInvocation(node);
   }
 

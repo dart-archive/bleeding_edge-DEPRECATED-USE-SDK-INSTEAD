@@ -1062,12 +1062,15 @@ public class IndexContributorTest extends AbstractDartTest {
         makeSource(
             "// filler filler filler filler filler filler filler filler filler filler",
             "library lib;",
-            "var myVar;"));
+            "var myVar;",
+            "myFunction() {}"));
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
         "import 'Lib.dart';",
         "main() {",
         "  myVar = 1;",
+        "  myFunction();",
+        "  print(0);",
         "}",
         "");
     // set elements
@@ -1082,6 +1085,16 @@ public class IndexContributorTest extends AbstractDartTest {
         importElement,
         IndexConstants.IS_REFERENCED_BY,
         new ExpectedLocation(mainElement, findOffset("myVar = 1"), ""));
+    assertRecordedRelation(
+        relations,
+        importElement,
+        IndexConstants.IS_REFERENCED_BY,
+        new ExpectedLocation(mainElement, findOffset("myFunction();"), ""));
+    assertNoRecordedRelation(
+        relations,
+        importElement,
+        IndexConstants.IS_REFERENCED_BY,
+        new ExpectedLocation(mainElement, findOffset("print(0);"), ""));
   }
 
   public void test_isReferencedBy_ImportElement_withPrefix() throws Exception {

@@ -27,11 +27,6 @@ import com.google.dart.engine.element.PrefixElement;
  */
 public class ImportElementImpl extends ElementImpl implements ImportElement {
   /**
-   * The offset of this directive, may be {@code -1} if synthetic.
-   */
-  private int offset = -1;
-
-  /**
    * The offset of the character immediately following the last character of this node's URI, may be
    * {@code -1} if synthetic.
    */
@@ -67,9 +62,11 @@ public class ImportElementImpl extends ElementImpl implements ImportElement {
 
   /**
    * Initialize a newly created import element.
+   * 
+   * @param offset the directive offset, may be {@code -1} if synthetic.
    */
-  public ImportElementImpl() {
-    super(null);
+  public ImportElementImpl(int offset) {
+    super(null, offset);
   }
 
   @Override
@@ -133,13 +130,6 @@ public class ImportElementImpl extends ElementImpl implements ImportElement {
   }
 
   /**
-   * Set the offset of this directive.
-   */
-  public void setOffset(int offset) {
-    this.offset = offset;
-  }
-
-  /**
    * Set the prefix that was specified as part of the import directive to the given prefix.
    * 
    * @param prefix the prefix that was specified as part of the import directive
@@ -187,6 +177,6 @@ public class ImportElementImpl extends ElementImpl implements ImportElement {
 
   @Override
   protected String getIdentifier() {
-    return ((LibraryElementImpl) importedLibrary).getIdentifier() + "@" + offset;
+    return ((LibraryElementImpl) importedLibrary).getIdentifier() + "@" + getNameOffset();
   }
 }
