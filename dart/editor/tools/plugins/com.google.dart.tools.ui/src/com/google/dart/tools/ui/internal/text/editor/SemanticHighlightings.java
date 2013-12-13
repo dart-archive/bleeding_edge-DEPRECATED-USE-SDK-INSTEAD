@@ -522,7 +522,9 @@ public class SemanticHighlightings {
       }
       if (node instanceof PartOfDirective) {
         PartOfDirective directive = (PartOfDirective) node;
-        result = addPosition(result, rangeStartEnd(directive, directive.getOfToken()));
+        result = addPosition(
+            result,
+            rangeStartEnd(directive.getPartToken(), directive.getOfToken()));
       }
       return result;
     }

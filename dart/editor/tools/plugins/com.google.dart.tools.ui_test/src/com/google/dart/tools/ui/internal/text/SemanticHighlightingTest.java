@@ -555,6 +555,9 @@ public class SemanticHighlightingTest extends
         "Test.dart",
         makeSource(
             "// filler filler filler filler filler filler filler filler filler filler",
+            "/**",
+            " * Some DartDoc",
+            " */",
             "part of app;",
             ""));
     parseTestUnits(libSource, unitSource);
