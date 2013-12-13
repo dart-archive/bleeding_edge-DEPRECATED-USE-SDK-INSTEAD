@@ -8,8 +8,8 @@ execfile(os.path.join(path, 'clank.deps', 'DEPS.chromium')) # Include proper Chr
 
 vars.update({
   "chromium_url": "http://src.chromium.org/svn",
-  "dartium_chromium_url": "http://src.chromium.org/multivm/branches/1650/chrome",
-  "dartium_chromium_revision": "1632",
+  "dartium_chromium_url": "http://src.chromium.org/chrome/branches/dart/1650/src",
+  "dartium_chromium_revision": "240209",
   "clank_url": "https://chrome-internal.googlesource.com/clank/",
   # This revision number should be kept in sync with the version of clank that
   # uses a similar chromium revision to that mentioned just above in
@@ -20,8 +20,8 @@ vars.update({
   # The Dart repository URL is pulled out here so that it can be easily
   # updated to "https" for committers.
   "dart_branch": "/branches/bleeding_edge",
-  "dartium_webkit_trunk": "http://src.chromium.org/multivm/branches/1650/blink",
-  "dartium_webkit_revision": "1634",
+  "dartium_webkit_trunk": "http://src.chromium.org/blink/branches/dart/1650",
+  "dartium_webkit_revision": "163828",
   "bootstrap_css_rev" : "@28387",
 
   "co19_rev": "@672",
@@ -60,13 +60,10 @@ deps.update({
   "src/dart/tests/co19/src": ((Var("googlecode_url") % "co19") +
       "/trunk/co19/tests/co19/src" + Var("co19_rev")),
 
-  "src/dart/runtime/bin/vmservice/client/bootstrap_css":
-    "/third_party/bootstrap_css" + Var("bootstrap_css_rev"),
-
   "src/dart/runtime/bin/vmservice/client/web/bootstrap_css":
     "/third_party/bootstrap_css" + Var("bootstrap_css_rev"),
 
-  "src/dart/runtime/bin/vmservice/client/out/web/bootstrap_css":
+  "src/dart/runtime/bin/vmservice/client/deployed/web/bootstrap_css":
     "/third_party/bootstrap_css" + Var("bootstrap_css_rev"),
 })
 
