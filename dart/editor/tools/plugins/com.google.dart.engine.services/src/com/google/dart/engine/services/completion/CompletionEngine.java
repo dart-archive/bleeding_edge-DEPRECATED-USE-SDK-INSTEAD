@@ -63,6 +63,7 @@ import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.NamedExpression;
 import com.google.dart.engine.ast.NamespaceDirective;
 import com.google.dart.engine.ast.NodeList;
+import com.google.dart.engine.ast.ParenthesizedExpression;
 import com.google.dart.engine.ast.PartOfDirective;
 import com.google.dart.engine.ast.PrefixedIdentifier;
 import com.google.dart.engine.ast.PropertyAccess;
@@ -659,6 +660,19 @@ public class CompletionEngine {
         }
       }
       return null;
+    }
+
+    @Override
+    public Void visitParenthesizedExpression(ParenthesizedExpression node) {
+      // Incomplete closure: foo((Str!)); We check if "()" is argument for function typed parameter.
+      if (node.getParent() instanceof ArgumentList) {
+        ParameterElement parameterElement = node.getBestParameterElement();
+        if (parameterElement != null && parameterElement.getType() instanceof FunctionType) {
+          Ident ident = new Ident(completionNode);
+          analyzeTypeName(completionNode, ident);
+        }
+      }
+      return super.visitParenthesizedExpression(node);
     }
 
     @Override

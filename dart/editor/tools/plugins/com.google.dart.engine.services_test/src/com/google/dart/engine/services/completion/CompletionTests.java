@@ -1675,6 +1675,16 @@ public class CompletionTests extends CompletionTestCase {
         "}"), "1+String", "1-bool");
   }
 
+  public void testCompletion_incompleteClosure_parameterType() throws Exception {
+    test(src(//
+        "f1(cb(String s)) {}",
+        "f2(String s) {}",
+        "main() {",
+        "  f1((Str!1));",
+        "  f2((Str!2));",
+        "}"), "1+String", "1-bool", "2-String");
+  }
+
   // TODO(scheglov)
 //  public void testCompletion_import_lib() throws Exception {
 //    addSource("/my_lib.dart", "");
