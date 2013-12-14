@@ -17,15 +17,16 @@ import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.formatter.DefaultCodeFormatterConstants;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.ui.DartToolsPlugin;
-import com.google.dart.tools.ui.text.editor.tmp.JavaScriptCore;
 
 import org.eclipse.core.runtime.Assert;
+import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.BadPositionCategoryException;
 import org.eclipse.jface.text.DefaultPositionUpdater;
 import org.eclipse.jface.text.Document;
 import org.eclipse.jface.text.Position;
 import org.eclipse.text.edits.TextEdit;
+import org.eclipse.ui.texteditor.AbstractDecoratedTextEditorPreferenceConstants;
 
 public class CodeFormatterUtil {
 
@@ -99,20 +100,28 @@ public class CodeFormatterUtil {
    * @return The tab width
    */
   public static int getTabWidth(DartProject project) {
-    /*
-     * If the tab-char is SPACE, FORMATTER_INDENTATION_SIZE is not used by the core formatter. We
-     * piggy back the visual tab length setting in that preference in that case.
-     */
-    String key;
-    if (JavaScriptCore.SPACE.equals(getCoreOption(
-        project,
-        DefaultCodeFormatterConstants.FORMATTER_TAB_CHAR))) {
-      key = DefaultCodeFormatterConstants.FORMATTER_INDENTATION_SIZE;
-    } else {
-      key = DefaultCodeFormatterConstants.FORMATTER_TAB_SIZE;
+    IPreferenceStore preferenceStore = DartToolsPlugin.getDefault().getPreferenceStore();
+    if (preferenceStore != null) {
+      int width = preferenceStore.getInt(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_TAB_WIDTH);
+      if (width != 0) {
+        return width;
+      }
     }
-
-    return getCoreOption(project, key, 2);
+    return 2;
+//    /*
+//     * If the tab-char is SPACE, FORMATTER_INDENTATION_SIZE is not used by the core formatter. We
+//     * piggy back the visual tab length setting in that preference in that case.
+//     */
+//    String key;
+//    if (JavaScriptCore.SPACE.equals(getCoreOption(
+//        project,
+//        DefaultCodeFormatterConstants.FORMATTER_TAB_CHAR))) {
+//      key = DefaultCodeFormatterConstants.FORMATTER_INDENTATION_SIZE;
+//    } else {
+//      key = DefaultCodeFormatterConstants.FORMATTER_TAB_SIZE;
+//    }
+//
+//    return getCoreOption(project, key, 2);
   }
 
   private static Document createDocument(String string, Position[] positions)

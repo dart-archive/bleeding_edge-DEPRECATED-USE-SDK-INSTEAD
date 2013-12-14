@@ -44,6 +44,7 @@ import com.google.dart.tools.ui.internal.text.functions.HTMLAnnotationHover;
 import com.google.dart.tools.ui.internal.text.functions.PreferencesAdapter;
 import com.google.dart.tools.ui.internal.text.functions.SingleTokenDartScanner;
 import com.google.dart.tools.ui.internal.typehierarchy.HierarchyInformationControl;
+import com.google.dart.tools.ui.internal.util.CodeFormatterUtil;
 import com.google.dart.tools.ui.text.editor.tmp.JavaScriptCore;
 
 import org.eclipse.core.runtime.Assert;
@@ -103,8 +104,6 @@ import java.util.Map;
 @SuppressWarnings("restriction")
 public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration {
 
-  private static final int TAB_WIDTH_IN_SPACES = 2;
-
   /**
    * Creates and returns a preference store which combines the preference stores from the text tools
    * and which is read-only.
@@ -148,11 +147,11 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
    * The Dart source code scanner.
    */
   private AbstractDartScanner fCodeScanner;
+
   /**
    * The Dart multi-line comment scanner.
    */
   private AbstractDartScanner fMultilineCommentScanner;
-
   /**
    * The Dart single-line comment scanner.
    */
@@ -165,6 +164,7 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
    * The Dart multi-line scanner
    */
   private AbstractDartScanner fMultilineStringScanner;
+
   /**
    * The Doc scanner.
    */
@@ -607,8 +607,7 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
 
   @Override
   public int getTabWidth(ISourceViewer sourceViewer) {
-    return TAB_WIDTH_IN_SPACES;
-    // return CodeFormatterUtil.getTabWidth(getProject());
+    return CodeFormatterUtil.getTabWidth(null);
   }
 
   @Override

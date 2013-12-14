@@ -75,8 +75,8 @@ public class DartIndenter {
       fProject = project;
       if (isStandalone()) {
         prefUseTabs = false;
-        prefTabSize = 2;
-        prefIndentationSize = 2;
+        prefTabSize = CodeFormatterUtil.getTabWidth(project);
+        prefIndentationSize = CodeFormatterUtil.getTabWidth(project);
         prefArrayDimensionsDeepIndent = true;
         prefContinuationIndent = 2;
         prefBlockIndent = 1;
