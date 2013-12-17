@@ -1057,7 +1057,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
 
   public void test_functionDeclaration_scope_returnType() throws Exception {
     Source source = addSource(createSource(//
-    "int f(int) {}"));
+    "int f(int) { return 0; }"));
     resolve(source);
     assertNoErrors(source);
     verify(source);
@@ -1607,7 +1607,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "class byte {",
         "  int _value;",
         "  byte(this._value);",
-        "  byte operator +(int val) {}",
+        "  byte operator +(int val) { return this; }",
         "}",
         "",
         "void main() {",
@@ -1878,7 +1878,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  void m() {}",
         "}",
         "class B extends A {",
-        "  int m() {}",
+        "  int m() { return 0; }",
         "}"));
     resolve(source);
     assertNoErrors(source);

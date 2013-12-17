@@ -175,7 +175,7 @@ public class NonHintCodeTest extends ResolverTestCase {
   public void test_divisionOptimization_supressIfDivisionOverridden() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
-        "  num operator /(x) {}",
+        "  num operator /(x) { return x; }",
         "}",
         "f(A x, A y) {",
         "  var v = (x / y).toInt();",
@@ -232,6 +232,40 @@ public class NonHintCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_missingReturn_emptyFunctionBody() throws Exception {
+    Source source = addSource(createSource(//
+        "abstract class A {",
+        "  int m();",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_missingReturn_expressionFunctionBody() throws Exception {
+    Source source = addSource(createSource(//
+    "int f() => 0;"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_missingReturn_noReturnType() throws Exception {
+    Source source = addSource(createSource(//
+    "f() {}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_missingReturn_voidReturnType() throws Exception {
+    Source source = addSource(createSource(//
+    "void f() {}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
   public void test_overriddingPrivateMember_sameLibrary() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
@@ -248,7 +282,7 @@ public class NonHintCodeTest extends ResolverTestCase {
   public void test_overrideEqualsButNotHashCode() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
-        "  bool operator ==(x) {}",
+        "  bool operator ==(x) { return x; }",
         "  get hashCode => 0;",
         "}"));
     resolve(source);

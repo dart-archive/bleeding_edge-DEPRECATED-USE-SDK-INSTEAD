@@ -169,7 +169,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "class byte {",
         "  int _value;",
         "  byte(this._value);",
-        "  int operator +(int val) {}",
+        "  int operator +(int val) { return 0; }",
         "}",
         "",
         "void main() {",
@@ -439,6 +439,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "class A {",
         "  String m() {",
         "    int f() => '0';",
+        "    return '0';",
         "  }",
         "}"));
     resolve(source);
@@ -485,6 +486,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "class A {",
         "  String m() {",
         "    int f() { return '0'; }",
+        "    return '0';",
         "  }",
         "}"));
     resolve(source);
@@ -552,7 +554,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "class A {}",
         "class B {}",
         "class G<E extends A> {}",
-        "G<B> f() {}"));
+        "G<B> f() { return null; }"));
     resolve(source);
     assertErrors(source, StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS);
     verify(source);
@@ -608,7 +610,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "class B {}",
         "class G<E extends A> {}",
         "class C {",
-        "  G<B> m() {}",
+        "  G<B> m() { return null; }",
         "}"));
     resolve(source);
     assertErrors(source, StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS);

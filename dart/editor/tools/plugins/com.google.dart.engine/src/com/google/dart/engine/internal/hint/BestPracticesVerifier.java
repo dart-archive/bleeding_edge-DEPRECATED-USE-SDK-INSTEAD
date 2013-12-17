@@ -17,10 +17,13 @@ import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.AsExpression;
 import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.BinaryExpression;
+import com.google.dart.engine.ast.BlockFunctionBody;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.ConstructorName;
 import com.google.dart.engine.ast.ExportDirective;
 import com.google.dart.engine.ast.Expression;
+import com.google.dart.engine.ast.FunctionBody;
+import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.HideCombinator;
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.ast.ImportDirective;
@@ -154,6 +157,12 @@ public class BestPracticesVerifier extends RecursiveASTVisitor<Void> {
   }
 
   @Override
+  public Void visitFunctionDeclaration(FunctionDeclaration node) {
+    checkForMissingReturn(node.getReturnType(), node.getFunctionExpression().getBody());
+    return super.visitFunctionDeclaration(node);
+  }
+
+  @Override
   public Void visitImportDirective(ImportDirective node) {
     checkForDeprecatedMemberUse(node.getUriElement(), node);
     return super.visitImportDirective(node);
@@ -180,6 +189,7 @@ public class BestPracticesVerifier extends RecursiveASTVisitor<Void> {
   @Override
   public Void visitMethodDeclaration(MethodDeclaration node) {
     checkForOverridingPrivateMember(node);
+    checkForMissingReturn(node.getReturnType(), node.getBody());
     return super.visitMethodDeclaration(node);
   }
 
@@ -363,6 +373,45 @@ public class BestPracticesVerifier extends RecursiveASTVisitor<Void> {
   }
 
   /**
+   * Generate a hint for functions or methods that have a return type, but do not have a return
+   * statement on all branches. At the end of blocks with no return, Dart implicitly returns
+   * {@code null}, avoiding these implicit returns is considered a best practice.
+   * 
+   * @param node the binary expression to check
+   * @param body the function body
+   * @return {@code true} if and only if a hint code is generated on the passed node
+   * @see HintCode#MISSING_RETURN
+   */
+  private boolean checkForMissingReturn(TypeName returnType, FunctionBody body) {
+    // Check that the method or function has a return type, and a function body
+    if (returnType == null || body == null) {
+      return false;
+    }
+
+    // Check that the body is a BlockFunctionBody
+    if (!(body instanceof BlockFunctionBody)) {
+      return false;
+    }
+
+    // Check that the type is resolvable, and is not "void"
+    Type returnTypeType = returnType.getType();
+    if (returnTypeType == null || returnTypeType.isVoid()) {
+      return false;
+    }
+
+    // Check the block for a return statement, if not, create the hint
+    BlockFunctionBody blockFunctionBody = (BlockFunctionBody) body;
+    if (!blockFunctionBody.accept(new ReturnDetector())) {
+      errorReporter.reportError(
+          HintCode.MISSING_RETURN,
+          returnType,
+          returnTypeType.getDisplayName());
+      return true;
+    }
+    return false;
+  }
+
+  /**
    * Check for the passed class declaration for the
    * {@link HintCode#OVERRIDE_EQUALS_BUT_NOT_HASH_CODE} hint code.
    * 
@@ -391,10 +440,10 @@ public class BestPracticesVerifier extends RecursiveASTVisitor<Void> {
   }
 
   /**
-   * Check for the passed class declaration for the
-   * {@link HintCode#OVERRIDE_EQUALS_BUT_NOT_HASH_CODE} hint code.
+   * Checks that if the passed method declaration is private, it does not override a private member
+   * in a superclass.
    * 
-   * @param node the class declaration to check
+   * @param node the method declaration to check
    * @return {@code true} if and only if a hint code is generated on the passed node
    * @see HintCode#OVERRIDDING_PRIVATE_MEMBER
    */

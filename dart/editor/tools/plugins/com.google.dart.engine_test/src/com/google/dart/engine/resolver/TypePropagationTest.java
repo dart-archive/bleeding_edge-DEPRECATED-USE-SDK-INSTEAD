@@ -510,6 +510,7 @@ public class TypePropagationTest extends ResolverTestCase {
         "  if (p is B) {",
         "    return p.m();",
         "  }",
+        "  return p;",
         "}"));
     LibraryElement library = resolve(source);
     assertNoErrors(source);
@@ -530,6 +531,7 @@ public class TypePropagationTest extends ResolverTestCase {
         "  while (p is A) {",
         "    return p;",
         "  }",
+        "  return p;",
         "}"));
     LibraryElement library = resolve(source);
     assertNoErrors(source);

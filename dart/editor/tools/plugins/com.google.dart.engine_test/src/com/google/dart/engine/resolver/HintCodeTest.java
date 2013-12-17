@@ -330,7 +330,7 @@ public class HintCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
         "class A {",
         "  @deprecated",
-        "  A operator+(A a) {}",
+        "  A operator+(A a) { return a; }",
         "}",
         "f(A a) {",
         "  A b;",
@@ -603,6 +603,24 @@ public class HintCodeTest extends ResolverTestCase {
     "var v = 1 is! double;"));
     resolve(source);
     assertErrors(source, HintCode.IS_NOT_DOUBLE);
+    verify(source);
+  }
+
+  public void test_missingReturn_function() throws Exception {
+    Source source = addSource(createSource(//
+    "int f() {}"));
+    resolve(source);
+    assertErrors(source, HintCode.MISSING_RETURN);
+    verify(source);
+  }
+
+  public void test_missingReturn_method() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  int m() {}",
+        "}"));
+    resolve(source);
+    assertErrors(source, HintCode.MISSING_RETURN);
     verify(source);
   }
 

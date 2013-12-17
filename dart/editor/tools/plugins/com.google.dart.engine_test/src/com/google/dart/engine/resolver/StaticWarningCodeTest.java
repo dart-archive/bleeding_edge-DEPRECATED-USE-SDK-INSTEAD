@@ -175,9 +175,10 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "typedef N FT(N p);",
         "N f(N p) {",
         "  N v;",
+        "  return null;",
         "}",
         "class A {",
-        "  N m() {}",
+        "  N m() { return null; }",
         "}",
         "class B<T extends N> {}"));
     addSource("/lib1.dart", createSource(//
@@ -203,7 +204,7 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "import 'lib1.dart';",
         "import 'lib2.dart';",
         "class A<T> {}",
-        "A<N> f() {}"));
+        "A<N> f() { return null; }"));
     addSource("/lib1.dart", createSource(//
         "library lib1;",
         "class N {}"));
@@ -300,11 +301,11 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_argumentTypeNotAssignable_cascadeSEcond() throws Exception {
+  public void test_argumentTypeNotAssignable_cascadeSecond() throws Exception {
     Source source = addSource(createSource(//
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
-        "  B ma() {}",
+        "  B ma() { return new B(); }",
         "}",
         "class B {",
         "  mb(String p) {}",
@@ -1417,7 +1418,7 @@ public class StaticWarningCodeTest extends ResolverTestCase {
   public void test_invalidMethodOverrideReturnType_void() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
-        "  int m() {}",
+        "  int m() { return 0; }",
         "}",
         "class B extends A {",
         "  void m() {}",
@@ -1952,7 +1953,7 @@ public class StaticWarningCodeTest extends ResolverTestCase {
   public void test_nonVoidReturnForOperator() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
-        "  int operator []=(a, b) {}",
+        "  int operator []=(a, b) { return a; }",
         "}"));
     resolve(source);
     assertErrors(source, StaticWarningCode.NON_VOID_RETURN_FOR_OPERATOR);
@@ -2225,7 +2226,7 @@ public class StaticWarningCodeTest extends ResolverTestCase {
   public void test_typeParameterReferencedByStatic_methodReturn() throws Exception {
     Source source = addSource(createSource(//
         "class A<K> {",
-        "  static K m() {}",
+        "  static K m() { return null; }",
         "}"));
     resolve(source);
     assertErrors(source, StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC);

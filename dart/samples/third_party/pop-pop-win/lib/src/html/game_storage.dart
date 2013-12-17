@@ -44,7 +44,7 @@ class GameStorage {
 
   Future reset() {
     _cache.clear();
-    targetPlatform.clearValues();
+    return targetPlatform.clearValues();
   }
 
   Future<int> _getIntValue(String key, [int defaultValue = 0]) {

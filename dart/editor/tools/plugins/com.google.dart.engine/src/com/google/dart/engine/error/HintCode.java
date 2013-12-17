@@ -81,6 +81,17 @@ public enum HintCode implements ErrorCode {
       "When compiled to JS, this test might return false when the left hand side is a double"),
 
   /**
+   * Generate a hint for methods or functions that have a return type, but do not have a non-void
+   * return statement on all branches. At the end of methods or functions with no return, Dart
+   * implicitly returns {@code null}, avoiding these implicit returns is considered a best practice.
+   * 
+   * @param returnType the name of the declared return type
+   */
+  MISSING_RETURN(
+      "This function declares a return type of '%s', but does not end with a return statement.",
+      "Either add a return statement or change the return type to 'void'."),
+
+  /**
    * It is not in best practice to declare a private method that happens to override the method in a
    * superclass- depending on where the superclass is (either in the same library, or out of the
    * same library), behavior can be different.
