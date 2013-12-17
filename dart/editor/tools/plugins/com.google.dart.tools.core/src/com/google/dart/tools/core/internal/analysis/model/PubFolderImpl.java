@@ -71,7 +71,7 @@ public class PubFolderImpl extends PubResourceMapImpl implements PubFolder {
     if (pubspec == null) {
       IFile file = container.getFile(new Path(PUBSPEC_FILE_NAME));
       Reader reader = new InputStreamReader(file.getContents(), file.getCharset());
-      pubspec = new PubspecModel(getContents(reader));
+      pubspec = new PubspecModel(file, getContents(reader));
       setSelfPackageName(pubspec.getName());
     }
     return pubspec;

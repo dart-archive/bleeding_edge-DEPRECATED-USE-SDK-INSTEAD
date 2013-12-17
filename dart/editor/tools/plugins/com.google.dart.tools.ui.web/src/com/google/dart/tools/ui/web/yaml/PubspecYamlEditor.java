@@ -13,11 +13,16 @@
  */
 package com.google.dart.tools.ui.web.yaml;
 
+import com.google.common.collect.Lists;
+import com.google.dart.tools.core.pub.PubspecException;
 import com.google.dart.tools.ui.PreferenceConstants;
 
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.text.ITextViewerExtension;
+import org.eclipse.jface.text.Position;
+import org.eclipse.jface.text.source.Annotation;
+import org.eclipse.jface.text.source.IAnnotationModel;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.jface.text.source.IVerticalRulerExtension;
 import org.eclipse.jface.util.IPropertyChangeListener;
@@ -40,11 +45,12 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.texteditor.ITextEditorActionConstants;
 
+import java.util.List;
+
 /**
  * An editor used for the source tab in Pubspec forms editor
  */
 public class PubspecYamlEditor extends YamlEditor {
-
   class FontPropertyChangeListener implements IPropertyChangeListener {
 
     @Override
@@ -63,6 +69,8 @@ public class PubspecYamlEditor extends YamlEditor {
     }
   }
 
+  private static final String ANNOTATION_TYPE = "com.google.dart.tools.ui.pubspecIssue";
+
   private IPropertyChangeListener fontPropertyChangeListener = new FontPropertyChangeListener();
 
   private static final int WIDE_CARET_WIDTH = 2;
@@ -73,6 +81,8 @@ public class PubspecYamlEditor extends YamlEditor {
   private Image nonDefaultCaretImage;
 
   private Caret initialCaret;
+
+  private final List<Annotation> lastAnnotations = Lists.newArrayList();
 
   @Override
   public void createPartControl(Composite parent) {
@@ -91,6 +101,20 @@ public class PubspecYamlEditor extends YamlEditor {
     }
     fontPropertyChangeListener = null;
     initialCaret = null;
+  }
+
+  public void updateExceptionAnnotations(List<PubspecException> exceptions) {
+    IAnnotationModel annotationModel = getSourceViewer().getAnnotationModel();
+    for (Annotation annotation : lastAnnotations) {
+      annotationModel.removeAnnotation(annotation);
+    }
+    for (PubspecException exception : exceptions) {
+      Annotation annotation = new Annotation(ANNOTATION_TYPE, false, exception.getMessage());
+      lastAnnotations.add(annotation);
+      int offset = exception.getCharStart();
+      int length = exception.getCharEnd() - offset;
+      annotationModel.addAnnotation(annotation, new Position(offset, length));
+    }
   }
 
   @Override

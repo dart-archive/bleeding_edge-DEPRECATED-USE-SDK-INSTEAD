@@ -39,7 +39,7 @@ public interface PubFolder extends ResourceMap {
   /**
    * The pubspec model representing the pubspec.yaml file
    * 
-   * @return the pubspec model (not {@code null}
+   * @return the pubspec model, not {@code null}
    */
   PubspecModel getPubspec() throws CoreException, IOException;
 

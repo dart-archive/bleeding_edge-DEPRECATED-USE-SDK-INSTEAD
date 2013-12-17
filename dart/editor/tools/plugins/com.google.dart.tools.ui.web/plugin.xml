@@ -122,5 +122,39 @@
             targetId="com.google.dart.tools.ui.web.json.hyperlinkTarget">
       </hyperlinkDetector>
    </extension>
+
+  
+      <extension point="org.eclipse.ui.editors.annotationTypes">
+            <type name="com.google.dart.tools.ui.pubspecIssue"/>
+      </extension>
+      <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+            <specification
+                  annotationType="com.google.dart.tools.ui.pubspecIssue"
+                  textPreferenceKey="pubspecIssue"
+                  textPreferenceValue="true"
+                  presentationLayer="6"
+                  showInNextPrevDropdownToolbarAction="true"
+                  label="%errors.label"
+                  colorPreferenceKey="errorIndicationColor"
+                  showInNextPrevDropdownToolbarActionKey="showErrorInNextPrevDropdownToolbarAction"
+                  symbolicIcon="error"
+                  quickFixIcon="$nl$/icons/full/obj16/quick_fix_error_obj.gif"
+                  isGoToNextNavigationTargetKey="isErrorGoToNextNavigationTarget"
+                  isGoToNextNavigationTarget="true"
+                  isGoToPreviousNavigationTargetKey="isErrorGoToPreviousNavigationTarget"
+                  isGoToPreviousNavigationTarget="true"
+                  highlightPreferenceKey="errorIndicationHighlighting"
+                  highlightPreferenceValue="false"
+                  textStylePreferenceKey="errorTextStyle"
+                  textStylePreferenceValue="PROBLEM_UNDERLINE"             
+                  verticalRulerPreferenceKey="errorIndicationInVerticalRuler"
+                  verticalRulerPreferenceValue="true"
+                  overviewRulerPreferenceKey="errorIndicationInOverviewRuler"
+                  overviewRulerPreferenceValue="true"
+                  contributesToHeader="true"
+                  colorPreferenceValue="255,0,128">
+            </specification>
+      </extension>
+
    
 </plugin>
