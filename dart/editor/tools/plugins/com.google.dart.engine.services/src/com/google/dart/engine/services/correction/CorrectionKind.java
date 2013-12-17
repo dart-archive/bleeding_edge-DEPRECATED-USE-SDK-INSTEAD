@@ -45,6 +45,7 @@ public enum CorrectionKind {
   QA_SURROUND_WITH_TRY_CATCH(30, "Surround with 'try-catch'"),
   QA_SURROUND_WITH_TRY_FINALLY(30, "Surround with 'try-finally'"),
   QA_SURROUND_WITH_WHILE(30, "Surround with 'while'"),
+  QF_ADD_PACKAGE_DEPENDENCY(50, "Add dependency on package '%s'"),
   QF_ADD_SUPER_CONSTRUCTOR_INVOCATION(50, "Add super constructor %s invocation"),
   QF_CHANGE_TO(51, "Change to '%s'"),
   QF_CHANGE_TO_STATIC_ACCESS(50, "Change access to static using '%s'"),

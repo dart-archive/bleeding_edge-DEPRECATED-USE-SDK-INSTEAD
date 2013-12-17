@@ -23,6 +23,7 @@ import com.google.dart.engine.services.change.CreateFileChange;
 import com.google.dart.engine.services.change.Edit;
 import com.google.dart.engine.services.change.MergeCompositeChange;
 import com.google.dart.engine.services.change.SourceChange;
+import com.google.dart.engine.services.correction.AddDependencyCorrectionProposal;
 import com.google.dart.engine.services.correction.ChangeCorrectionProposal;
 import com.google.dart.engine.services.correction.CorrectionImage;
 import com.google.dart.engine.services.correction.CorrectionKind;
@@ -243,6 +244,17 @@ public class ServiceUtils {
   }
 
   /**
+   * @return the {@link IDartCompletionProposal} for the given {@link CreateFileCorrectionProposal}.
+   */
+  public static IDartCompletionProposal toUI(AddDependencyCorrectionProposal proposal) {
+    return new com.google.dart.tools.ui.internal.text.correction.proposals.AddDependencyCorrectionProposal(
+        proposal.getKind().getRelevance(),
+        proposal.getName(),
+        proposal.getFile(),
+        proposal.getPackageName());
+  }
+
+  /**
    * @return the Eclipse {@link ICompletionProposal} for the given {@link CorrectionProposal}.
    */
   public static ICompletionProposal toUI(CorrectionProposal serviceProposal) {
@@ -258,6 +270,10 @@ public class ServiceUtils {
     if (serviceProposal instanceof CreateFileCorrectionProposal) {
       CreateFileCorrectionProposal fileProposal = (CreateFileCorrectionProposal) serviceProposal;
       return toUI(fileProposal);
+    }
+    if (serviceProposal instanceof AddDependencyCorrectionProposal) {
+      AddDependencyCorrectionProposal proposal = (AddDependencyCorrectionProposal) serviceProposal;
+      return toUI(proposal);
     }
     if (serviceProposal instanceof SourceCorrectionProposal) {
       SourceCorrectionProposal sourceProposal = (SourceCorrectionProposal) serviceProposal;

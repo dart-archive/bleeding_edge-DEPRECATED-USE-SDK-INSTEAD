@@ -38,6 +38,7 @@ import com.google.dart.engine.ast.IsExpression;
 import com.google.dart.engine.ast.LibraryDirective;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.MethodInvocation;
+import com.google.dart.engine.ast.NamespaceDirective;
 import com.google.dart.engine.ast.ParenthesizedExpression;
 import com.google.dart.engine.ast.PartDirective;
 import com.google.dart.engine.ast.PrefixedIdentifier;
@@ -78,6 +79,7 @@ import com.google.dart.engine.sdk.SdkLibrary;
 import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.engine.services.change.Edit;
 import com.google.dart.engine.services.change.SourceChange;
+import com.google.dart.engine.services.correction.AddDependencyCorrectionProposal;
 import com.google.dart.engine.services.correction.CorrectionImage;
 import com.google.dart.engine.services.correction.CorrectionKind;
 import com.google.dart.engine.services.correction.CorrectionProposal;
@@ -248,6 +250,7 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
   private Source source;
   private CompilationUnit unit;
   private LibraryElement unitLibraryElement;
+  private File unitFile;
   private File unitLibraryFile;
   private File unitLibraryFolder;
 
@@ -354,6 +357,7 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
     selectionOffset = problem.getOffset();
     selectionLength = problem.getLength();
     source = context.getSource();
+    unitFile = getSourceFile(source);
     unit = context.getCompilationUnit();
     // prepare elements
     {
@@ -395,6 +399,7 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
       }
       if (errorCode == CompileTimeErrorCode.URI_DOES_NOT_EXIST) {
         addFix_createPart();
+        addFix_addPackageDependency();
       }
       if (errorCode == HintCode.DIVISION_OPTIMIZATION) {
         addFix_useEffectiveIntegerDivision();
@@ -501,6 +506,26 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
         || errorCode == StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION
         || errorCode == StaticTypeWarningCode.UNDEFINED_GETTER
         || errorCode == StaticTypeWarningCode.UNDEFINED_METHOD;
+  }
+
+  private void addFix_addPackageDependency() throws Exception {
+    if (node instanceof SimpleStringLiteral && node.getParent() instanceof NamespaceDirective) {
+      SimpleStringLiteral uriLiteral = (SimpleStringLiteral) node;
+      String uriString = uriLiteral.getValue();
+      // we need package: import
+      if (!uriString.startsWith("package:")) {
+        return;
+      }
+      // prepare package name
+      String packageName = StringUtils.removeStart(uriString, "package:");
+      packageName = StringUtils.substringBefore(packageName, "/");
+      // add proposal
+      proposals.add(new AddDependencyCorrectionProposal(
+          unitFile,
+          packageName,
+          CorrectionKind.QF_ADD_PACKAGE_DEPENDENCY,
+          packageName));
+    }
   }
 
   private void addFix_boolInsteadOfBoolean() {

@@ -30,6 +30,7 @@ import com.google.dart.engine.resolver.ResolverErrorCode;
 import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.engine.services.change.Edit;
 import com.google.dart.engine.services.change.SourceChange;
+import com.google.dart.engine.services.correction.AddDependencyCorrectionProposal;
 import com.google.dart.engine.services.correction.CorrectionKind;
 import com.google.dart.engine.services.correction.CorrectionProcessors;
 import com.google.dart.engine.services.correction.CorrectionProposal;
@@ -92,6 +93,24 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
             "  myTopLevelVariable = null;",
             "}",
             ""));
+  }
+
+  public void test_addPackageDependency() throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "import 'package:path/path.dart';",
+        "");
+    AddDependencyCorrectionProposal proposal = (AddDependencyCorrectionProposal) findProposal(CorrectionKind.QF_ADD_PACKAGE_DEPENDENCY);
+    assertEquals("path", proposal.getPackageName());
+  }
+
+  public void test_addPackageDependency_notPackedImport() throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "import 'dart:no_such_library';",
+        "");
+    CorrectionProposal proposal = findProposal(CorrectionKind.QF_ADD_PACKAGE_DEPENDENCY);
+    assertNull(proposal);
   }
 
   public void test_boolean() throws Exception {
@@ -782,19 +801,6 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
   public void test_getSourceFile_notFileBasedSource() throws Exception {
     Source source = mock(Source.class);
     assertNull(QuickFixProcessorImpl.getSourceFile(source));
-  }
-
-  // TODO(scheglov) waiting https://code.google.com/p/dart/issues/detail?id=10116
-  public void test_importLibrary_fromSDK_notType() throws Exception {
-//    ensureSdkLibraryAsync();
-//    prepareProblemWithFix(
-//        "// filler filler filler filler filler filler filler filler filler filler",
-//        "main() {",
-//        "  print v = null;",
-//        "}",
-//        "");
-//    // "print" is used as type, but it isn't
-//    assertNoFix();
   }
 
   public void test_importLibrary_privateName() throws Exception {
