@@ -1,0 +1,14 @@
+Run util's init
+set TestList to ("sunflower","pop", "todoPolymer","todoAngular")
+repeat with each testScript of TestList
+	RunWithNewResults testScript
+	put the result into Outcome
+	put testScript & ":" && status of Outcome && Return after currentReport
+	if the status of Outcome is "Failure" then
+		run "clean up"
+	end if
+end repeat
+Log "Final Results"
+repeat with each line of currentReport
+	log it
+end Repeat

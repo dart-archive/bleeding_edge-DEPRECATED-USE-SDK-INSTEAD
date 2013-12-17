@@ -1,0 +1,22 @@
+Click(Text:"Tools",CaseSensitive:"Yes")
+Click(Text:"Welcome Page",CaseSensitive:"Yes")
+Click "angularMVC icon"
+WaitFor 60, "pubspec lock"
+Wait 5 (* let analysis finish *)
+Click "run button"
+WaitFor 6, "browser right arrow button"
+Click "browser right arrow button"
+WaitFor 20, (Text:"Things To Do",CaseSensitive:"Yes")
+Click (Text:"Things To Do",CaseSensitive:"Yes")
+Click (Text:"Write Dart",CaseSensitive:"yes")
+WaitFor 2, "two checks"
+Click "text field"
+TypeText "something"
+Wait 0.5
+TypeText enter
+Wait 0.5
+WaitFor 2, "some check"
+Run util's exitChromium
+Run util's checkProblems
+Run util's deleteProject "angular project"
+Run util's deleteOutput

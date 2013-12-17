@@ -1,0 +1,13 @@
+Click(Text:"Tools",CaseSensitive:"Yes")
+Click(Text:"Welcome Page",CaseSensitive:"Yes")
+Click "sunflower icon"
+Wait 5
+Click "run button"
+WaitFor 2, "browser right arrow button"
+Click "browser right arrow button"
+WaitFor 20,"sunflower slider"
+Click "sunflower slider"
+Run util's exitChromium
+Run util's checkProblems
+Run util's deleteProject "sunflower project"
+Run util's deleteOutput

@@ -1,0 +1,31 @@
+(* if the debugger is running, stop it *)
+Put ImageFound("stop debug button") into res
+if res then
+	Click "stop debug button"
+end if
+(* close the project folder, discarding changes *)
+put ImageFound("project icon") into proj
+if proj then
+	put ImageLocation("project icon") into loc
+	Click loc
+	Wait 0.2
+	RightClick loc (* select project and show context menu *)
+	Wait 0.2
+	Click(Text:"Delete",CaseSensitive:"Yes") (* delete it *)
+	Wait 0.5
+	put ImageFound("info icon") into res
+	if res then
+		TypeText enter
+	end if
+	put ImageFound("continue button") into cont
+	if cont then (* yes, delete resources *)
+		Click "continue button"
+	end if
+end if
+(* close debugger, if open *)
+put ImageFound("debugger tab") into bug
+if bug
+	Click "debugger tab"
+end if
+(* close output tab, if any *)
+Run util's deleteOutput

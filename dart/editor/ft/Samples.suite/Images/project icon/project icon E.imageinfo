@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CaptureDate</key>
+	<date>2013-12-13T17:51:49Z</date>
+	<key>CaptureHost</key>
+	<string>kyodai.pdx.corp.google.com:0.0</string>
+	<key>CaptureScreenSize</key>
+	<array>
+		<integer>1920</integer>
+		<integer>1200</integer>
+	</array>
+	<key>HasAlpha</key>
+	<true/>
+	<key>HonorAlpha</key>
+	<true/>
+	<key>HotSpotX</key>
+	<real>11</real>
+	<key>HotSpotY</key>
+	<real>8</real>
+	<key>LastKnownLocationX</key>
+	<integer>0</integer>
+	<key>LastKnownLocationY</key>
+	<integer>0</integer>
+	<key>OriginalLocationX</key>
+	<integer>18</integer>
+	<key>OriginalLocationY</key>
+	<integer>149</integer>
+	<key>Pulsing</key>
+	<false/>
+	<key>Scale</key>
+	<real>1</real>
+</dict>
+</plist>

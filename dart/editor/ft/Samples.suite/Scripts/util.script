@@ -1,0 +1,146 @@
+universal platform
+
+to init
+	(* TODO: Set this by trying to match Apple icon or Gnome/Ubuntu/Cinnamon icon in upper-left  *)
+	put "linux" into universal platform
+end init
+
+to isLinux
+	put (@universal platform is "linux") into result
+	return @result
+end isLinux
+
+to isMacOSX
+	put (@universal platform is "macosx") into result
+	return @result
+	return platform is "MacOS"
+end isMacOSX
+
+to isWindows
+	put (@universal platform is "windows") into result
+	return @result
+	return platform is "Windows"
+end isWindows
+
+to checkProblems
+	Wait 2
+	ClIck (600,500)
+	Wait 1
+	Click "problems tab"
+	WaitFor 1,"empty problems"
+end checkProblems
+
+(* Assumes Chromium is the active proecss. *)
+to exitChromium
+	if isMacOSX()
+		Click (Text:"Chromium",CaseSensitive:"yes")
+		Click (Text:"Quit Chromium",CaseSensitive:"yes")
+	else
+		TypeText altKey,F4
+	end if
+end exitChromium
+
+(* Delete the output tab. Only valid if all projects have been deleted. *)
+to deleteOutput
+	put ImageLocation("problems tab") + (100,0) into outLoc
+	Click outLoc
+	Wait 0.2
+	RightClick outLoc
+	Wait 0.2
+	put ImageFound(Text:"Close",CaseSensitive:"yes") into out
+	if out
+		Click (Text:"Close",CaseSensitive:"yes")
+	end if
+end deleteOutput
+
+(* Delete the project identified by the given image. *)
+to deleteProject project
+	Click "dart sdk"
+	Wait 0.2
+	put ImageLocation(project) into loc
+	Click loc
+	Wait 0.2
+	RightClick loc (* select project and show context menu *)
+	Wait 0.2
+	Click(Text:"Delete",CaseSensitive:"Yes") (* delete it *)
+	WaitFor 0.5, "info icon" (* wait for the Delete Resources confirmation *)
+	Click(Text:"Delete project contents") (* select the option to clear disk *)
+	Wait 0.2
+	TypeText enter
+end deleteProject
+
+to doKeyCmd key
+	if isMacOSX()
+		TypeText commandKey,key
+	else
+		TypeText controlKey,key
+	end if
+end doKeyCmd
+
+to doShiftKeyCmd key
+	if isMacOSX()
+		TypeText commandKey,shiftKey,key
+	else
+		TypeText controlKey,shiftKey,key
+	end if
+end doShiftKeyCmd
+
+to closeTab
+	doKeyCmd("w")
+end closeTab
+
+to closeAllTabs
+	doShiftKeyCmd("w")
+	end closeAllTabs
+
+to saveFile
+	doKeyCmd("s")
+	end saveFile
+
+to openFileDialog
+	doKeyCmd("o")
+end openFileDialog
+
+to openFind
+	doKeyCmd("f")
+end openFind
+
+to runApp
+	doKeyCmd("r")
+end runApp
+
+to selectAll
+	doKeyCmd("a")
+	end selectAll
+
+to copyText
+	doKeyCmd("c")
+end copyText
+
+to pasteText
+	doKeyCmd("v")
+end pasteText
+
+to cutText
+	doKeyCmd("x")
+end cutText
+
+to undo
+	doKeyCmd("z")
+end undo
+
+to newTab
+	doKeyCmd("t")
+end newTab
+
+to searchBox
+	doKeyCmd("3")
+end searchBox
+
+to saveFile
+	doKeyCmd("s")
+end saveFile
+
+to expandTreeNode
+	TypeText enter
+end expandTreeNode

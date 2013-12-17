@@ -1,0 +1,37 @@
+{
+    EPVersionNumber = 1311131500;
+    Schedules =     (
+    );
+    ScriptMetaData =     {
+        Untitled =         {
+        };
+        "check problems" =         {
+        };
+        "clean up" =         {
+        };
+        clock =         {
+        };
+        "do it" =         {
+        };
+        pop =         {
+        };
+        solar =         {
+        };
+        sunflower =         {
+        };
+        swipe =         {
+        };
+        "time server" =         {
+        };
+        todo =         {
+        };
+        todoAngular =         {
+        };
+        todoPolymer =         {
+        };
+        util =         {
+        };
+    };
+    helperSuitesInfo =     (
+    );
+}
