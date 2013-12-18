@@ -1,0 +1,7 @@
+Click(Text:"web", CaseSensitive:"Yes") (* select parent folder *)
+Wait 0.5
+Run util's selectMenuItem "File", "New File" (* menu File>New File *)
+Wait 0.5
+TypeText "other" (* enter file name *)
+TypeText enter
+wait 1

@@ -1,0 +1,8 @@
+Run util's nextEditor 1 (* assume only two editors open *)
+TypeText upArrow
+TypeText upArrow
+TypeText upArrow (* now at top of file *)
+TypeText "part of lib;" (* add part-of directive *)
+TypeText enter
+Run util's saveFile
+Run "check problems"

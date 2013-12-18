@@ -1,0 +1,22 @@
+Click "search icon"
+SetOption KeyDownDelay, 0.002
+TypeText "sunflower"
+SetOption KeyDownDelay, 0.001
+Wait 1
+TypeText downArrow
+TypeText enter
+WaitFor 5, (Text:"(4 matches)",CaseSensitive:"yes",ValidCharacters:"(4matches)",dpi:94)
+Run util's searchBox
+Wait 0.4
+SetOption KeyDownDelay, 0.002
+TypeText "str"
+SetOption KeyDownDelay, 0.001
+Wait 0.4
+Click "Stream async"
+Wait 1
+WaitFor 3, "stream tab"
+Run util's closeAllTabs
+Run util's openWelcomePage
+DoubleClick "dart sdk"
+TypeText downArrow
+Run util's deleteOutput (* delete search *)

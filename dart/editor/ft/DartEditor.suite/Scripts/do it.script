@@ -1,0 +1,12 @@
+Run util's init
+Run "create sample"
+Run "completion"
+Run "do file edit"
+Run "rename reverseText"
+Run "reopen"
+Run "create sunflower"
+Run "launch sunflower"
+Run "search box"
+Run util's deleteProject "sunflower project"
+Run util's deleteProject "sample project"
+Run util's closeDebugger

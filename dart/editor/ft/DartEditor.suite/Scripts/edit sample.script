@@ -1,0 +1,10 @@
+DoubleClick(Text:"sample.dart") (* activate editor *)
+Wait 2
+DoubleClick(Text:"import")
+TypeText leftArrow (* now at top of file *)
+TypeText "library lib;" (* define library and part *)
+TypeText enter
+TypeText downArrow
+TypeText "part 'other.dart';"
+TypeText enter
+Run util's saveFile

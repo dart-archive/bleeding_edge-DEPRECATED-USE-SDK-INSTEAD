@@ -1,0 +1,58 @@
+{
+    EPVersionNumber = 1311131500;
+    Schedules =     (
+    );
+    ScriptMetaData =     {
+        "OPEN WELCOM" =         {
+        };
+        Untitled =         {
+        };
+        completion =         {
+        };
+        "create clock" =         {
+        };
+        "create other" =         {
+        };
+        "create sample" =         {
+        };
+        "create sunflower" =         {
+        };
+        "delete clock" =         {
+        };
+        "delete sample" =         {
+        };
+        "do completion" =         {
+        };
+        "do file edit" =         {
+        };
+        "do it" =         {
+        };
+        "edit other" =         {
+        };
+        "edit other 2" =         {
+        };
+        "edit sample" =         {
+        };
+        "launch clock" =         {
+        };
+        "launch editor" =         {
+        };
+        "launch sunflower" =         {
+        };
+        "open welcome" =         {
+        };
+        "rename reverseText" =         {
+        };
+        reopen =         {
+        };
+        "search box" =         {
+        };
+        "terminate editor" =         {
+        };
+    };
+    helperSuitesInfo =     (
+                {
+            filePath = "/Users/messick/src/dart/dart/editor/ft/Samples.suite";
+        }
+    );
+}

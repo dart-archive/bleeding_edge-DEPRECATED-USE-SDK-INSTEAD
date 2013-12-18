@@ -1,0 +1,5 @@
+(* Perform a series of file edits, checking that problems are reported and cleared *)
+Run "create other"
+Run "edit other"
+Run "edit sample"
+Run "edit other 2"

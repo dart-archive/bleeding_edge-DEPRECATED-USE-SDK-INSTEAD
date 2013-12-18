@@ -1,0 +1,8 @@
+TypeText enter
+TypeText "t() {"
+TypeText enter
+TypeText "reverseText(null);" (* add ref to function in sample.dart *)
+Run util's saveFile (* save *)
+Wait 5
+Click "problems tab"
+WaitFor 1, (Text:"is not") (* confirm warning *)

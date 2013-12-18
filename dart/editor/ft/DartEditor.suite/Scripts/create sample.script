@@ -1,0 +1,8 @@
+Run util's selectMenuItem "File", "New Application" (* menu File>New Application *)
+TypeText "sample" (* enter project name *)
+TypeText return (* fire off creation and analysis *)
+Run util's isLinux
+If the result is true
+	TypeText enter
+end if
+WaitFor 5.0, "pubspec lock" (* confirm file creation *)
