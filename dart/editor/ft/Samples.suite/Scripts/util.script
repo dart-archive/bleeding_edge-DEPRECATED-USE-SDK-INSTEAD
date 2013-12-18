@@ -1,8 +1,14 @@
 universal platform
 
 to init
-	(* TODO: Set this by trying to match Apple icon or Gnome/Ubuntu/Cinnamon icon in upper-left  *)
-	put "linux" into universal platform
+	if ImageFound("linux menu icon") then
+		put "linux" into universal platform
+	else if ImageFound("mac menu icon") then
+		put "macosx" into universal platform
+	else
+		put "windows" into universal platform
+	end if
+	Set the ImageDoctor to Auto
 end init
 
 to isLinux
@@ -13,14 +19,28 @@ end isLinux
 to isMacOSX
 	put (@universal platform is "macosx") into result
 	return @result
-	return platform is "MacOS"
 end isMacOSX
 
 to isWindows
 	put (@universal platform is "windows") into result
 	return @result
-	return platform is "Windows"
 end isWindows
+
+to activateEditor
+	selectMenuItem "Navigate", "Activate Editor"
+end activateEditor
+
+to openWelcomePage
+selectMenuItem "Tools", "Welcome Page"
+end openWelcomePage
+
+to nextEditor count
+	repeat count times
+		doKeyCmd F6
+		TypeText return
+		Wait 2
+	end repeat
+end NextEditor
 
 to checkProblems
 	Wait 2
@@ -35,7 +55,7 @@ to exitChromium
 	if isMacOSX()
 		Click (Text:"Chromium",CaseSensitive:"yes")
 		Click (Text:"Quit Chromium",CaseSensitive:"yes")
-	else
+		else
 		TypeText altKey,F4
 	end if
 end exitChromium
@@ -69,6 +89,29 @@ to deleteProject project
 	TypeText enter
 end deleteProject
 
+to selectMenuItem with menuName, menuItem
+	put the SearchRectangle into origRect
+	set the SearchRectangle to ((0,0),(1920,200))
+	Click(Text:menuName,CaseSensitive:"yes",ValidCharacters:"*",IgnoreSpaces:"yes",dpi:94)
+	put mouselocation() - (15,0) into UL
+	put UL + (500,500) into BR
+	set the SearchRectangle to (UL,BR)
+	Wait 0.1
+	Click(Text:menuItem,CaseSensitive:"yes",ValidCharacters:"*",IgnoreSpaces:"yes",dpi:94)
+	set the SearchRectangle to origRect
+end selectMenuItem
+
+to closeDebugger
+	put ImageFound("debugger tab") into bug
+	if bug
+		Put ImageFound("stop debug button") into res
+		if res then
+			Click "stop debug button"
+		end if
+		Click "debugger tab"
+	end if
+end closeDebugger
+
 to doKeyCmd key
 	if isMacOSX()
 		TypeText commandKey,key
@@ -91,11 +134,11 @@ end closeTab
 
 to closeAllTabs
 	doShiftKeyCmd("w")
-	end closeAllTabs
+end closeAllTabs
 
 to saveFile
 	doKeyCmd("s")
-	end saveFile
+end saveFile
 
 to openFileDialog
 	doKeyCmd("o")
@@ -111,7 +154,7 @@ end runApp
 
 to selectAll
 	doKeyCmd("a")
-	end selectAll
+end selectAll
 
 to copyText
 	doKeyCmd("c")

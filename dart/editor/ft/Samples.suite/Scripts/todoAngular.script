@@ -1,5 +1,4 @@
-Click(Text:"Tools",CaseSensitive:"Yes")
-Click(Text:"Welcome Page",CaseSensitive:"Yes")
+Run util's openWelcomePage
 Click "angularMVC icon"
 WaitFor 60, "pubspec lock"
 Wait 5 (* let analysis finish *)

@@ -1,5 +1,4 @@
-Click(Text:"Tools",CaseSensitive:"Yes")
-Click(Text:"Welcome Page",CaseSensitive:"Yes")
+Run util's openWelcomePage
 Click "sunflower icon"
 Wait 5
 Click "run button"

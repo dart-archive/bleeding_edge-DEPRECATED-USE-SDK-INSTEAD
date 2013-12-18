@@ -1,5 +1,4 @@
-Click(Text:"Tools",CaseSensitive:"Yes")
-Click(Text:"Welcome Page",CaseSensitive:"Yes")
+Run util's openWelcomePage
 Click "todoMVC icon"
 WaitFor 60, "pubspec lock"
 Wait 5 (* let analysis finish *)
@@ -20,3 +19,4 @@ Run util's exitChromium
 Run util's checkProblems
 Run util's deleteProject "todo project"
 Run util's deleteOutput
+

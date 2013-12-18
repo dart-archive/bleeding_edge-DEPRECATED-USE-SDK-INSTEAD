@@ -1,8 +1,5 @@
-(* if the debugger is running, stop it *)
-Put ImageFound("stop debug button") into res
-if res then
-	Click "stop debug button"
-end if
+(* if the debugger is open, close it after stopping it*)
+Run util's closeDebugger
 (* close the project folder, discarding changes *)
 put ImageFound("project icon") into proj
 if proj then
@@ -21,11 +18,6 @@ if proj then
 	if cont then (* yes, delete resources *)
 		Click "continue button"
 	end if
-end if
-(* close debugger, if open *)
-put ImageFound("debugger tab") into bug
-if bug
-	Click "debugger tab"
 end if
 (* close output tab, if any *)
 Run util's deleteOutput
