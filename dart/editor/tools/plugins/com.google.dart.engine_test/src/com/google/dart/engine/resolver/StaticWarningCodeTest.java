@@ -1786,6 +1786,52 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_nonAbstractClassInheritsAbstractMemberOne_abstractOverridesConcrete_accessor()
+      throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  int get g => 0;",
+        "}",
+        "abstract class B extends A {",
+        "  int get g;",
+        "}",
+        "class C extends B {}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE);
+    verify(source);
+  }
+
+  public void test_nonAbstractClassInheritsAbstractMemberOne_abstractOverridesConcrete_method()
+      throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  m(p) {}",
+        "}",
+        "abstract class B extends A {",
+        "  m(p);",
+        "}",
+        "class C extends B {}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE);
+    verify(source);
+  }
+
+  public void test_nonAbstractClassInheritsAbstractMemberOne_ensureCorrectFunctionSubtypeIsUsedInImplementation()
+      throws Exception {
+    // bug 15028
+    Source source = addSource(createSource(//
+        "class C {",
+        "  foo(int x) => x;",
+        "}",
+        "abstract class D {",
+        "  foo(x, [y]);",
+        "}",
+        "class E extends C implements D {}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE);
+    verify(source);
+  }
+
   public void test_nonAbstractClassInheritsAbstractMemberOne_getter_fromInterface()
       throws Exception {
     Source source = addSource(createSource(//

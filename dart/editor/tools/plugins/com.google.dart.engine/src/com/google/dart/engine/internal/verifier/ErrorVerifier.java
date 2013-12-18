@@ -3982,7 +3982,9 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
 
     HashSet<ExecutableElement> missingOverrides = new HashSet<ExecutableElement>();
 
+    //
     // Loop through the set of all executable elements declared in the implicit interface.
+    //
     MemberMap membersInheritedFromInterfaces = inheritanceManager.getMapOfMembersInheritedFromInterfaces(enclosingClass);
     MemberMap membersInheritedFromSuperclasses = inheritanceManager.getMapOfMembersInheritedFromClasses(enclosingClass);
     for (int i = 0; i < membersInheritedFromInterfaces.getSize(); i++) {
@@ -3992,43 +3994,56 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
         break;
       }
 
+      // If the element is defined in Object, skip it.
+      if (((ClassElement) executableElt.getEnclosingElement()).getType().isObject()) {
+        continue;
+      }
+
+      // Reference the type of the enclosing class
+      InterfaceType enclosingType = enclosingClass.getType();
+
+      // Check to see if some element is in local enclosing class that matches the name of the
+      // required member.
+      if (isMemberInClassOrMixin(executableElt, enclosingClass)) {
+        // We do not have to verify that this implementation of the found method matches the
+        // required function type: the set of StaticWarningCode.INVALID_METHOD_OVERRIDE_* warnings
+        // break out the different specific situations.
+        continue;
+      }
+
       // First check to see if this element was declared in the superclass chain, in which case
       // there is already a concrete implementation.
       ExecutableElement elt = membersInheritedFromSuperclasses.get(executableElt.getName());
+
+      // Check to see if an element was found in the superclass chain with the correct name.
       if (elt != null) {
-        if (elt instanceof MethodElement && !((MethodElement) elt).isAbstract()) {
-          continue;
-        } else if (elt instanceof PropertyAccessorElement
-            && !((PropertyAccessorElement) elt).isAbstract()) {
-          continue;
+        // Some element was found in the superclass chain that matches the name of the required
+        // member.
+        // If it is not abstract and it is the correct one (types match- the version of this method
+        // that we have has the correct number of parameters, etc), then this class has a valid
+        // implementation of this method, so skip it.
+        if ((elt instanceof MethodElement && !((MethodElement) elt).isAbstract())
+            || (elt instanceof PropertyAccessorElement && !((PropertyAccessorElement) elt).isAbstract())) {
+          // Since we are comparing two function types, we need to do the appropriate type
+          // substitutions first ().
+          FunctionType foundConcreteFT = inheritanceManager.substituteTypeArgumentsInMemberFromInheritance(
+              elt.getType(),
+              executableElt.getName(),
+              enclosingType);
+          FunctionType requiredMemberFT = inheritanceManager.substituteTypeArgumentsInMemberFromInheritance(
+              executableElt.getType(),
+              executableElt.getName(),
+              enclosingType);
+          if (foundConcreteFT.isSubtypeOf(requiredMemberFT)) {
+            continue;
+          }
         }
       }
 
-      if (executableElt instanceof MethodElement) {
-        // Verify that this class has a method which overrides the method from the interface.
-        // If a method was inherited from an interface, but is not implemented by either the class
-        // or one of its superclasses, then add the inherited method to the missingOverides set.
-        if (!methodsInEnclosingClass.contains(memberName)
-            && !memberHasConcreteMethodImplementationInSuperclassChain(
-                enclosingClass,
-                memberName,
-                new ArrayList<ClassElement>())) {
-          missingOverrides.add(executableElt);
-        }
-      } else if (executableElt instanceof PropertyAccessorElement) {
-        // Verify that this class has a member which overrides the method from the interface.
-        // If an accessor was inherited from an interface, but is not implemented by either the
-        // class or one of its superclasses, then add the inherited accessor to the missingOverides
-        // set.
-        if (!accessorsInEnclosingClass.contains(memberName)
-            && !memberHasConcreteAccessorImplementationInSuperclassChain(
-                enclosingClass,
-                memberName,
-                new ArrayList<ClassElement>())) {
-          missingOverrides.add(executableElt);
-        }
-      }
+      // The not qualifying concrete executable element was found, add it to the list.
+      missingOverrides.add(executableElt);
     }
+    // Now that we have the set of missing overrides, generate a warning on this class
     int missingOverridesSize = missingOverrides.size();
     if (missingOverridesSize == 0) {
       return false;
@@ -5297,6 +5312,56 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   }
 
   /**
+   * Return {@code true} iff the passed {@link ClassElement} has a method, getter or setter that
+   * matches the name of the passed {@link ExecutableElement} in either the class itself, or one of
+   * its' mixins.
+   * <p>
+   * By "match", only the name of the member is tested to match, it does not have to equal or be a
+   * subtype of the passed executable element, this is due to the specific use where this method is
+   * used in {@link #checkForNonAbstractClassInheritsAbstractMember(ClassDeclaration)}.
+   * 
+   * @param executableElt the executable to search for in the passed class element
+   * @param classElt the class method to search through the members of
+   * @return {@code true} iff the passed member is found in the passed class element
+   */
+  private boolean isMemberInClassOrMixin(ExecutableElement executableElt, ClassElement classElt) {
+    ExecutableElement foundElt;
+    String executableName = executableElt.getName();
+    if (executableElt instanceof MethodElement) {
+      foundElt = classElt.getMethod(executableName);
+      if (foundElt != null) {
+        return true;
+      }
+      InterfaceType[] mixins = classElt.getMixins();
+      for (int i = 0; i < mixins.length && foundElt == null; i++) {
+        foundElt = mixins[i].getMethod(executableName);
+      }
+      if (foundElt != null) {
+        return true;
+      }
+    } else if (executableElt instanceof PropertyAccessorElement) {
+      foundElt = classElt.getGetter(executableElt.getName());
+      if (foundElt == null) {
+        foundElt = classElt.getSetter(executableName);
+      }
+      if (foundElt != null) {
+        return true;
+      }
+      InterfaceType[] mixins = classElt.getMixins();
+      for (int i = 0; i < mixins.length && foundElt == null; i++) {
+        foundElt = mixins[i].getGetter(executableName);
+        if (foundElt == null) {
+          foundElt = mixins[i].getSetter(executableName);
+        }
+      }
+      if (foundElt != null) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
    * @param node the 'this' expression to analyze
    * @return {@code true} if the given 'this' expression is in the valid context
    */
@@ -5348,96 +5413,6 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       CommentReference commentReference = (CommentReference) parent;
       if (commentReference.getNewKeyword() != null) {
         return true;
-      }
-    }
-    return false;
-  }
-
-  /**
-   * Return {@code true} iff the passed {@link ClassElement} has a concrete implementation of the
-   * passed accessor name in the superclass chain.
-   */
-  private boolean memberHasConcreteAccessorImplementationInSuperclassChain(
-      ClassElement classElement, String accessorName, ArrayList<ClassElement> superclassChain) {
-    if (superclassChain.contains(classElement)) {
-      return false;
-    } else {
-      superclassChain.add(classElement);
-    }
-    for (PropertyAccessorElement accessor : classElement.getAccessors()) {
-      if (accessor.getName().equals(accessorName)) {
-        if (!accessor.isAbstract()) {
-          return true;
-        }
-      }
-    }
-    for (InterfaceType mixinType : classElement.getMixins()) {
-      if (mixinType != null) {
-        ClassElement mixinElement = mixinType.getElement();
-        if (mixinElement != null) {
-          for (PropertyAccessorElement accessor : mixinElement.getAccessors()) {
-            if (accessor.getName().equals(accessorName)) {
-              if (!accessor.isAbstract()) {
-                return true;
-              }
-            }
-          }
-        }
-      }
-    }
-    InterfaceType superType = classElement.getSupertype();
-    if (superType != null) {
-      ClassElement superClassElt = superType.getElement();
-      if (superClassElt != null) {
-        return memberHasConcreteAccessorImplementationInSuperclassChain(
-            superClassElt,
-            accessorName,
-            superclassChain);
-      }
-    }
-    return false;
-  }
-
-  /**
-   * Return {@code true} iff the passed {@link ClassElement} has a concrete implementation of the
-   * passed method name in the superclass chain.
-   */
-  private boolean memberHasConcreteMethodImplementationInSuperclassChain(ClassElement classElement,
-      String methodName, ArrayList<ClassElement> superclassChain) {
-    if (superclassChain.contains(classElement)) {
-      return false;
-    } else {
-      superclassChain.add(classElement);
-    }
-    for (MethodElement method : classElement.getMethods()) {
-      if (method.getName().equals(methodName)) {
-        if (!method.isAbstract()) {
-          return true;
-        }
-      }
-    }
-    for (InterfaceType mixinType : classElement.getMixins()) {
-      if (mixinType != null) {
-        ClassElement mixinElement = mixinType.getElement();
-        if (mixinElement != null) {
-          for (MethodElement method : mixinElement.getMethods()) {
-            if (method.getName().equals(methodName)) {
-              if (!method.isAbstract()) {
-                return true;
-              }
-            }
-          }
-        }
-      }
-    }
-    InterfaceType superType = classElement.getSupertype();
-    if (superType != null) {
-      ClassElement superClassElt = superType.getElement();
-      if (superClassElt != null) {
-        return memberHasConcreteMethodImplementationInSuperclassChain(
-            superClassElt,
-            methodName,
-            superclassChain);
       }
     }
     return false;

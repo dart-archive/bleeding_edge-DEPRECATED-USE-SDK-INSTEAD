@@ -1335,8 +1335,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "class B<E> {",
         "  E get x {return 1;}",
         "}",
-        "class C<E> extends A<E> implements B<E> {",
-        "}"));
+        "class C<E> extends A<E> implements B<E> {}"));
     resolve(source);
     assertNoErrors(source);
     verify(source);
@@ -2276,38 +2275,6 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "}",
         "f() {",
         "  new A();",
-        "}"));
-    resolve(source);
-    assertNoErrors(source);
-    verify(source);
-  }
-
-  public void test_nonAbstractClassInheritsAbstractMemberOne_abstractOverridesConcrete_accessor()
-      throws Exception {
-    Source source = addSource(createSource(//
-        "class A {",
-        "  int get g => 0;",
-        "}",
-        "abstract class B extends A {",
-        "  int get g;",
-        "}",
-        "class C extends B {",
-        "}"));
-    resolve(source);
-    assertNoErrors(source);
-    verify(source);
-  }
-
-  public void test_nonAbstractClassInheritsAbstractMemberOne_abstractOverridesConcrete_method()
-      throws Exception {
-    Source source = addSource(createSource(//
-        "class A {",
-        "  m(p) {}",
-        "}",
-        "abstract class B extends A {",
-        "  m(p);",
-        "}",
-        "class C extends B {",
         "}"));
     resolve(source);
     assertNoErrors(source);
