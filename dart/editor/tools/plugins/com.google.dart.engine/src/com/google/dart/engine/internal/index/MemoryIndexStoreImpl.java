@@ -233,6 +233,14 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
     libraries.add(library);
     // remove locations
     removeLocations(context, library, unit);
+    // remove keys
+    {
+      Map<Source2, Set<ElementRelationKey>> sourceToKeys = contextToSourceToKeys.get(context);
+      if (sourceToKeys != null) {
+        Source2 source2 = new Source2(library, unit);
+        sourceToKeys.remove(source2);
+      }
+    }
     // OK, we can index
     return true;
   }
@@ -275,6 +283,18 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
         if (location.getElement().getContext() == context) {
           count++;
         }
+      }
+    }
+    return count;
+  }
+
+  @VisibleForTesting
+  public int internalGetSourceKeyCount(AnalysisContext context) {
+    int count = 0;
+    Map<Source2, Set<ElementRelationKey>> sourceToKeys = contextToSourceToKeys.get(context);
+    if (sourceToKeys != null) {
+      for (Set<ElementRelationKey> keys : sourceToKeys.values()) {
+        count += keys.size();
       }
     }
     return count;
@@ -483,9 +503,6 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
    */
   private void removeLocations(AnalysisContext context, Source library, Source unit) {
     Source2 source2 = new Source2(library, unit);
-    Map<Source2, Set<ElementRelationKey>> sourceToKeys = contextToSourceToKeys.get(context);
-    Set<ElementRelationKey> keys = sourceToKeys != null ? sourceToKeys.get(source2) : null;
-    // remove locations within given Source
     Map<Source2, List<Location>> sourceToLocations = contextToSourceToLocations.get(context);
     if (sourceToLocations != null) {
       List<Location> sourceLocations = sourceToLocations.remove(source2);
@@ -501,19 +518,10 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
               canonicalKeys.remove(key);
               keyToLocations.remove(key);
               keyCount--;
-              // remove key
-              if (keys != null) {
-                keys.remove(key);
-              }
             }
           }
         }
       }
-    }
-    // if no keys, remove from sourceToKeys
-    if (keys != null && keys.isEmpty()) {
-      sourceToKeys.remove(unit);
-      sourceCount--;
     }
   }
 }

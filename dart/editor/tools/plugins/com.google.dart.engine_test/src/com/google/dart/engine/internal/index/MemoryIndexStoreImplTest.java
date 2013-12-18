@@ -194,6 +194,14 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
     }
   }
 
+  public void test_aboutToIndex_shouldRemoveSourceKeys() throws Exception {
+    store.recordRelationship(elementA, relationship, location);
+    // notify that we are going to re-index "A"
+    store.aboutToIndex(contextA, unitElementA);
+    // all keys in "A" should be removed (and we don't have any other sources)
+    assertEquals(0, store.internalGetSourceKeyCount(contextA));
+  }
+
   public void test_aboutToIndex_unitExcluded() throws Exception {
     // build library with defining unit
     Source librarySource = mock(Source.class);
