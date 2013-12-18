@@ -17,7 +17,6 @@ import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.AsExpression;
 import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.BinaryExpression;
-import com.google.dart.engine.ast.BlockFunctionBody;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.ConstructorName;
 import com.google.dart.engine.ast.ExportDirective;
@@ -384,30 +383,30 @@ public class BestPracticesVerifier extends RecursiveASTVisitor<Void> {
    */
   private boolean checkForMissingReturn(TypeName returnType, FunctionBody body) {
     // Check that the method or function has a return type, and a function body
-    if (returnType == null || body == null) {
-      return false;
-    }
-
-    // Check that the body is a BlockFunctionBody
-    if (!(body instanceof BlockFunctionBody)) {
-      return false;
-    }
-
-    // Check that the type is resolvable, and is not "void"
-    Type returnTypeType = returnType.getType();
-    if (returnTypeType == null || returnTypeType.isVoid()) {
-      return false;
-    }
-
-    // Check the block for a return statement, if not, create the hint
-    BlockFunctionBody blockFunctionBody = (BlockFunctionBody) body;
-    if (!blockFunctionBody.accept(new ReturnDetector())) {
-      errorReporter.reportError(
-          HintCode.MISSING_RETURN,
-          returnType,
-          returnTypeType.getDisplayName());
-      return true;
-    }
+//    if (returnType == null || body == null) {
+//      return false;
+//    }
+//
+//    // Check that the body is a BlockFunctionBody
+//    if (!(body instanceof BlockFunctionBody)) {
+//      return false;
+//    }
+//
+//    // Check that the type is resolvable, and is not "void"
+//    Type returnTypeType = returnType.getType();
+//    if (returnTypeType == null || returnTypeType.isVoid()) {
+//      return false;
+//    }
+//
+//    // Check the block for a return statement, if not, create the hint
+//    BlockFunctionBody blockFunctionBody = (BlockFunctionBody) body;
+//    if (!blockFunctionBody.accept(new ReturnDetector())) {
+//      errorReporter.reportError(
+//          HintCode.MISSING_RETURN,
+//          returnType,
+//          returnTypeType.getDisplayName());
+//      return true;
+//    }
     return false;
   }
 

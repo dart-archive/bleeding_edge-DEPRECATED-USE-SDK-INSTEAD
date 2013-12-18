@@ -36,6 +36,24 @@ public class HintCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void fail_missingReturn_function() throws Exception {
+    Source source = addSource(createSource(//
+    "int f() {}"));
+    resolve(source);
+    assertErrors(source, HintCode.MISSING_RETURN);
+    verify(source);
+  }
+
+  public void fail_missingReturn_method() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  int m() {}",
+        "}"));
+    resolve(source);
+    assertErrors(source, HintCode.MISSING_RETURN);
+    verify(source);
+  }
+
   public void fail_overrideEqualsButNotHashCode() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
@@ -603,24 +621,6 @@ public class HintCodeTest extends ResolverTestCase {
     "var v = 1 is! double;"));
     resolve(source);
     assertErrors(source, HintCode.IS_NOT_DOUBLE);
-    verify(source);
-  }
-
-  public void test_missingReturn_function() throws Exception {
-    Source source = addSource(createSource(//
-    "int f() {}"));
-    resolve(source);
-    assertErrors(source, HintCode.MISSING_RETURN);
-    verify(source);
-  }
-
-  public void test_missingReturn_method() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {",
-        "  int m() {}",
-        "}"));
-    resolve(source);
-    assertErrors(source, HintCode.MISSING_RETURN);
     verify(source);
   }
 
