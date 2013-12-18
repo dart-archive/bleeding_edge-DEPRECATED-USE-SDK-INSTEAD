@@ -144,9 +144,7 @@ public class PubServeManager {
       @Override
       public void run() {
         try {
-          // for now, don't show output due to colors being used in stdio 
-          // from pub
-          copyStream(process.getInputStream(), stdOut, false);
+          copyStream(process.getInputStream(), stdOut, true);
         } catch (IOException e) {
 
         }
@@ -158,7 +156,7 @@ public class PubServeManager {
       @Override
       public void run() {
         try {
-          copyStream(process.getErrorStream(), stdError, false);
+          copyStream(process.getErrorStream(), stdError, true);
         } catch (IOException e) {
 
         }
@@ -166,10 +164,13 @@ public class PubServeManager {
     });
     stderrThread.start();
 
-    try {
-      Thread.sleep(500);
-    } catch (Exception exception) {
+    while (!isTerminated()
+        && !stdOut.toString().contains("http://localhost:" + PubServeManager.PORT_NUMBER)) {
+      try {
+        Thread.sleep(200);
+      } catch (Exception exception) {
 
+      }
     }
     if (isTerminated()) {
       return false;

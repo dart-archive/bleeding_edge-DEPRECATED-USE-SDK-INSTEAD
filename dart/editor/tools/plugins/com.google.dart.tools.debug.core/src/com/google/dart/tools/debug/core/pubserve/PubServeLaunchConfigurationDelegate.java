@@ -15,7 +15,6 @@
 package com.google.dart.tools.debug.core.pubserve;
 
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
-import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.dart2js.ProcessRunner;
 import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
@@ -104,7 +103,6 @@ public class PubServeLaunchConfigurationDelegate extends DartLaunchConfiguration
     }
 
     String url = "http://localhost:" + PubServeManager.PORT_NUMBER;
-    DartCore.getConsole().println("Serving " + resource.getProject().getName() + " on " + url);
 
     launchInDartium(url + "/" + resource.getName(), launchConfig);
 
