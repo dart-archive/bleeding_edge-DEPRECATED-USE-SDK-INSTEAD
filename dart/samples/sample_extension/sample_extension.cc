@@ -7,7 +7,9 @@
 #include "include/dart_api.h"
 #include "include/dart_native_api.h"
 
-Dart_NativeFunction ResolveName(Dart_Handle name, int argc);
+Dart_NativeFunction ResolveName(Dart_Handle name,
+                                int argc,
+                                bool* auto_setup_scope);
 
 DART_EXPORT Dart_Handle sample_extension_Init(Dart_Handle parent_library) {
   if (Dart_IsError(parent_library)) { return parent_library; }
@@ -119,9 +121,13 @@ FunctionLookup function_list[] = {
     {"RandomArray_ServicePort", randomArrayServicePort},
     {NULL, NULL}};
 
-Dart_NativeFunction ResolveName(Dart_Handle name, int argc) {
+Dart_NativeFunction ResolveName(Dart_Handle name,
+                                int argc,
+                                bool* auto_setup_scope) {
   if (!Dart_IsString(name)) return NULL;
   Dart_NativeFunction result = NULL;
+  if (auto_setup_scope == NULL) return NULL;
+  *auto_setup_scope = true;
   Dart_EnterScope();
   const char* cname;
   HandleError(Dart_StringToCString(name, &cname));
