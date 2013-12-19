@@ -8,7 +8,7 @@ if proj then
 	Wait 0.2
 	RightClick loc (* select project and show context menu *)
 	Wait 0.2
-	Click(Text:"Delete",CaseSensitive:"Yes") (* delete it *)
+	Click(Text:"Delete",CaseSensitive:"Yes",ValidCharacters:"*") (* delete it *)
 	Wait 0.5
 	put ImageFound("info icon") into res
 	if res then

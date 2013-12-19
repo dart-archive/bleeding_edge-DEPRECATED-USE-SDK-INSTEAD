@@ -31,7 +31,7 @@ to activateEditor
 end activateEditor
 
 to openWelcomePage
-selectMenuItem "Tools", "Welcome Page"
+	selectMenuItem "Tools", "Welcome Page"
 end openWelcomePage
 
 to nextEditor count
@@ -43,34 +43,43 @@ to nextEditor count
 end NextEditor
 
 to checkProblems
+	put the SearchRectangle into origRect
+	set the SearchRectangle to ((0,800),(1920,1200))
 	Wait 2
 	ClIck (600,500)
 	Wait 1
 	Click "problems tab"
 	WaitFor 1,"empty problems"
+	set the SearchRectangle to origRect
 end checkProblems
 
 (* Assumes Chromium is the active proecss. *)
 to exitChromium
 	if isMacOSX()
-		Click (Text:"Chromium",CaseSensitive:"yes")
-		Click (Text:"Quit Chromium",CaseSensitive:"yes")
-		else
+		selectMenuItem "Chromium", "Quit Chromium"
+	else
 		TypeText altKey,F4
 	end if
 end exitChromium
 
 (* Delete the output tab. Only valid if all projects have been deleted. *)
 to deleteOutput
-	put ImageLocation("problems tab") + (100,0) into outLoc
+	put the SearchRectangle into origRect
+	set the SearchRectangle to ((0,800),(1920,1200))
+	put ImageLocation("problems tab") + (105,0) into outLoc
 	Click outLoc
 	Wait 0.2
 	RightClick outLoc
 	Wait 0.2
-	put ImageFound(Text:"Close",CaseSensitive:"yes") into out
-	if out
-		Click (Text:"Close",CaseSensitive:"yes")
+	if ImageFound("problems tab") then
+		put ImageFound(Text:"Close",CaseSensitive:"yes",ValidCharacters:"*") into out
+		if out
+			Click (Text:"Close",CaseSensitive:"yes",ValidCharacters:"*")
+		end if
+	else
+		Click outLoc - (10,10)
 	end if
+	set the SearchRectangle to origRect
 end deleteOutput
 
 (* Delete the project identified by the given image. *)
@@ -82,9 +91,9 @@ to deleteProject project
 	Wait 0.2
 	RightClick loc (* select project and show context menu *)
 	Wait 0.2
-	Click(Text:"Delete",CaseSensitive:"Yes") (* delete it *)
+	Click(Text:"Delete",CaseSensitive:"Yes",ValidCharacters:"*") (* delete it *)
 	WaitFor 0.5, "info icon" (* wait for the Delete Resources confirmation *)
-	Click(Text:"Delete project contents") (* select the option to clear disk *)
+	Click(Text:"Delete project contents",ValidCharacters:"*") (* select the option to clear disk *)
 	Wait 0.2
 	TypeText enter
 end deleteProject
@@ -92,10 +101,16 @@ end deleteProject
 to selectMenuItem with menuName, menuItem
 	put the SearchRectangle into origRect
 	set the SearchRectangle to ((0,0),(1920,200))
-	Click(Text:menuName,CaseSensitive:"yes",ValidCharacters:"*",IgnoreSpaces:"yes",dpi:94)
-	put mouselocation() - (15,0) into UL
+	put ImageRectangle(Text:menuName,CaseSensitive:"yes",ValidCharacters:"*",IgnoreSpaces:"yes",dpi:94) into labelRect
+	Click center(labelRect)
+	(*Click(Text:menuName,CaseSensitive:"yes",ValidCharacters:"*",IgnoreSpaces:"yes",dpi:94)*)
+	put topLeft(labelRect)-(10,0) into UL
 	put UL + (500,500) into BR
 	set the SearchRectangle to (UL,BR)
+	Wait 0.1
+	moveTo topLeft(labelRect) (* encourage mac vnc to update *)
+	Wait 0.1
+	moveTo bottomRight(labelRect)
 	Wait 0.1
 	Click(Text:menuItem,CaseSensitive:"yes",ValidCharacters:"*",IgnoreSpaces:"yes",dpi:94)
 	set the SearchRectangle to origRect

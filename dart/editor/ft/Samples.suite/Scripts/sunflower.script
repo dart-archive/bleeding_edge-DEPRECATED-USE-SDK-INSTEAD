@@ -2,7 +2,7 @@ Run util's openWelcomePage
 Click "sunflower icon"
 Wait 5
 Click "run button"
-WaitFor 2, "browser right arrow button"
+WaitFor 5, "browser right arrow button"
 Click "browser right arrow button"
 WaitFor 20,"sunflower slider"
 Click "sunflower slider"

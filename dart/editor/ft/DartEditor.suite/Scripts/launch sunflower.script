@@ -15,8 +15,10 @@ Wait 0.5
 Run util's saveFile
 Wait 5
 Run util's runApp
-WaitFor 2, (Text:"Breaking on exception",CaseSensitive:"yes")
-DoubleClick (Text:"Breaking on exception",CaseSensitive:"yes")
+put the SearchRectangle into origRect
+set the SearchRectangle to ((0,800),(1920,1200))
+WaitFor 2, (Text:"Breaking",CaseSensitive:"yes",ValidCharacters:"*",IgnoreSpaces:"yes",dpi:94)
+set the SearchRectangle to origRect
 Run util's deleteOutput
 Click "stop debug button"
 Run util's activateEditor

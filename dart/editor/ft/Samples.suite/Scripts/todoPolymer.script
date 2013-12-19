@@ -7,16 +7,16 @@ WaitFor 6, "browser right arrow button"
 Click "browser right arrow button"
 WaitFor 20,"todo title"
 Click "todo title"
-Click (Text:"needs to",CaseSensitive:"yes")
+Click (Text:"needs to",CaseSensitive:"yes",ValidCharacters:"*")
 Wait 0.5
 TypeText "something"
 Wait 0.5
 TypeText enter
 Wait 0.5
 Click "check mark"
-Click (Text:"Clear completed",CaseSensitive:"yes",dpi:94)
+WaitFor 5, (Text:"Clear",CaseSensitive:"yes",ValidCharacters:"*",dpi:94)
+Click (Text:"Clear",CaseSensitive:"yes",ValidCharacters:"*",dpi:94)
 Run util's exitChromium
 Run util's checkProblems
 Run util's deleteProject "todo project"
 Run util's deleteOutput
-
