@@ -190,8 +190,19 @@ public class HtmlParser extends XmlParser {
         closingTag,
         nodeEnd);
     ArrayList<EmbeddedExpression> expressions = new ArrayList<EmbeddedExpression>();
+    boolean inChild = false;
     while (token != endToken) {
-      if (token.getType() == TokenType.TEXT) {
+      for (XmlTagNode child : tagNodes) {
+        if (token == child.getBeginToken()) {
+          inChild = true;
+          break;
+        }
+        if (token == child.getEndToken()) {
+          inChild = false;
+          break;
+        }
+      }
+      if (!inChild && token.getType() == TokenType.TEXT) {
         addEmbeddedExpressions(expressions, token);
       }
       token = token.getNext();
@@ -243,7 +254,7 @@ public class HtmlParser extends XmlParser {
         int offset = token.getOffset();
         expressions.add(new EmbeddedExpression(startIndex, parseEmbeddedExpression(
             lexeme.substring(startIndex + 2, endIndex),
-            offset + startIndex), endIndex));
+            offset + startIndex + 2), endIndex));
       }
       startIndex = lexeme.indexOf(OPENING_DELIMITER, endIndex + 2);
     }

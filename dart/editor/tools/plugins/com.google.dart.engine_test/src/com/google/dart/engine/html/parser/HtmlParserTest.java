@@ -145,7 +145,8 @@ public class HtmlParserTest extends EngineTestCase {
 
   public void test_parse_content_withEmbeddedExpression() throws Exception {
     // TODO(brianwilkerson) Add a test with a missing "}}".
-    HtmlUnit htmlUnit = parse("<html><body><p>abc {{elipsis}} xyz</p></body></html>").getHtmlUnit();
+    String contents = "<html><body><p>abc {{elipsis}} xyz</p></body></html>";
+    HtmlUnit htmlUnit = parse(contents).getHtmlUnit();
     XmlTagNode htmlNode = htmlUnit.getTagNodes().get(0);
     XmlTagNode bodyNode = htmlNode.getTagNodes().get(0);
     XmlTagNode pNode = bodyNode.getTagNodes().get(0);
@@ -154,6 +155,10 @@ public class HtmlParserTest extends EngineTestCase {
     Expression expression = expressions[0].getExpression();
     assertInstanceOf(SimpleIdentifier.class, expression);
     assertEquals("elipsis", ((SimpleIdentifier) expression).getName());
+    assertEquals(contents.indexOf("elipsis}}"), expression.getOffset());
+    // only "p" node should have embedded expression
+    assertLength(0, htmlNode.getExpressions());
+    assertLength(0, bodyNode.getExpressions());
   }
 
   public void test_parse_declaration() throws Exception {
