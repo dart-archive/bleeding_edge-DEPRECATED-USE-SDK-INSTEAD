@@ -527,6 +527,12 @@
 			name="%hyperlinkDetector.anchor.name"
 			targetId="org.eclipse.core.runtime.xml">
 		</hyperlinkDetector>
+		<hyperlinkDetector
+			class="org.eclipse.wst.html.ui.internal.hyperlink.ElementHyperlinkDetector"
+			id="org.eclipse.wst.html.ui.internal.hyperlink.ElementHyperlinkDetector"
+			name="%hyperlinkDetector.angular.name"
+			targetId="org.eclipse.wst.html.core.htmlsource">
+		</hyperlinkDetector>
 		
    </extension>
 

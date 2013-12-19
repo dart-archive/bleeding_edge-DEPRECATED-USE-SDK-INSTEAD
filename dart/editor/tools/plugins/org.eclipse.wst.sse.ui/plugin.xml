@@ -335,6 +335,11 @@
 			commandId="org.eclipse.wst.sse.ui.open.file.from.source"
 			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration">
 		</key>
+      <key
+            sequence="F3"
+            contextId="org.eclipse.wst.sse.ui.structuredTextEditorScope"
+            commandId="org.eclipse.wst.sse.ui.open.file.from.source"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
 		<key
             sequence="M1+M2+P"
 			contextId="org.eclipse.wst.sse.ui.structuredTextEditorScope"
