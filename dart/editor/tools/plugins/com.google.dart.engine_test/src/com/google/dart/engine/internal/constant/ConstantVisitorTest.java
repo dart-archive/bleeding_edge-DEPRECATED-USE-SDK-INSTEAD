@@ -16,13 +16,14 @@ package com.google.dart.engine.internal.constant;
 import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.ast.ConditionalExpression;
 import com.google.dart.engine.ast.Expression;
+import com.google.dart.engine.internal.object.DartObjectImpl;
+import com.google.dart.engine.internal.resolver.TestTypeProvider;
 
 import static com.google.dart.engine.ast.ASTFactory.booleanLiteral;
 import static com.google.dart.engine.ast.ASTFactory.conditionalExpression;
 import static com.google.dart.engine.ast.ASTFactory.identifier;
 import static com.google.dart.engine.ast.ASTFactory.integer;
-
-import java.math.BigInteger;
+import static com.google.dart.engine.ast.ASTFactory.nullLiteral;
 
 public class ConstantVisitorTest extends EngineTestCase {
   public void test_visitConditionalExpression_false() {
@@ -32,21 +33,17 @@ public class ConstantVisitorTest extends EngineTestCase {
         booleanLiteral(false),
         thenExpression,
         elseExpression);
-    EvaluationResultImpl result = expression.accept(new ConstantVisitor());
-    assertInstanceOf(ValidResult.class, result);
-    Object value = ((ValidResult) result).getValue();
-    assertInstanceOf(BigInteger.class, value);
-    assertEquals(0L, ((BigInteger) value).longValue());
+    assertValue(0L, expression.accept(new ConstantVisitor(new TestTypeProvider())));
   }
 
   public void test_visitConditionalExpression_nonBooleanCondition() {
     Expression thenExpression = integer(1L);
     Expression elseExpression = integer(0L);
     ConditionalExpression expression = conditionalExpression(
-        integer(0L),
+        nullLiteral(),
         thenExpression,
         elseExpression);
-    EvaluationResultImpl result = expression.accept(new ConstantVisitor());
+    EvaluationResultImpl result = expression.accept(new ConstantVisitor(new TestTypeProvider()));
     assertInstanceOf(ErrorResult.class, result);
   }
 
@@ -57,7 +54,7 @@ public class ConstantVisitorTest extends EngineTestCase {
         booleanLiteral(true),
         thenExpression,
         elseExpression);
-    EvaluationResultImpl result = expression.accept(new ConstantVisitor());
+    EvaluationResultImpl result = expression.accept(new ConstantVisitor(new TestTypeProvider()));
     assertInstanceOf(ErrorResult.class, result);
   }
 
@@ -68,7 +65,7 @@ public class ConstantVisitorTest extends EngineTestCase {
         booleanLiteral(true),
         thenExpression,
         elseExpression);
-    EvaluationResultImpl result = expression.accept(new ConstantVisitor());
+    EvaluationResultImpl result = expression.accept(new ConstantVisitor(new TestTypeProvider()));
     assertInstanceOf(ErrorResult.class, result);
   }
 
@@ -79,10 +76,13 @@ public class ConstantVisitorTest extends EngineTestCase {
         booleanLiteral(true),
         thenExpression,
         elseExpression);
-    EvaluationResultImpl result = expression.accept(new ConstantVisitor());
+    assertValue(1L, expression.accept(new ConstantVisitor(new TestTypeProvider())));
+  }
+
+  private void assertValue(long expectedValue, EvaluationResultImpl result) {
     assertInstanceOf(ValidResult.class, result);
-    Object value = ((ValidResult) result).getValue();
-    assertInstanceOf(BigInteger.class, value);
-    assertEquals(1L, ((BigInteger) value).longValue());
+    DartObjectImpl value = ((ValidResult) result).getValue();
+    assertEquals("int", value.getType().getName());
+    assertEquals(expectedValue, value.getIntValue().longValue());
   }
 }

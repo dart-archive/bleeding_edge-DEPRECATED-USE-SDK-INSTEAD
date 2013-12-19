@@ -36,6 +36,7 @@ import com.google.dart.engine.ast.SuperConstructorInvocation;
 import com.google.dart.engine.ast.SwitchCase;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
+import com.google.dart.engine.constant.DartObject;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ParameterElement;
@@ -48,6 +49,15 @@ import com.google.dart.engine.internal.constant.EvaluationResultImpl;
 import com.google.dart.engine.internal.constant.ValidResult;
 import com.google.dart.engine.internal.element.VariableElementImpl;
 import com.google.dart.engine.internal.error.ErrorReporter;
+import com.google.dart.engine.internal.object.BoolState;
+import com.google.dart.engine.internal.object.DartObjectImpl;
+import com.google.dart.engine.internal.object.DoubleState;
+import com.google.dart.engine.internal.object.DynamicState;
+import com.google.dart.engine.internal.object.GenericState;
+import com.google.dart.engine.internal.object.InstanceState;
+import com.google.dart.engine.internal.object.IntState;
+import com.google.dart.engine.internal.object.NumState;
+import com.google.dart.engine.internal.object.StringState;
 import com.google.dart.engine.internal.resolver.TypeProvider;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
@@ -67,6 +77,11 @@ public class ConstantVerifier extends RecursiveASTVisitor<Void> {
    * The error reporter by which errors will be reported.
    */
   private ErrorReporter errorReporter;
+
+  /**
+   * The type provider used to access the known types.
+   */
+  private TypeProvider typeProvider;
 
   /**
    * The type representing the type 'bool'.
@@ -95,6 +110,7 @@ public class ConstantVerifier extends RecursiveASTVisitor<Void> {
    */
   public ConstantVerifier(ErrorReporter errorReporter, TypeProvider typeProvider) {
     this.errorReporter = errorReporter;
+    this.typeProvider = typeProvider;
     this.boolType = typeProvider.getBoolType();
     this.intType = typeProvider.getIntType();
     this.numType = typeProvider.getNumType();
@@ -163,7 +179,7 @@ public class ConstantVerifier extends RecursiveASTVisitor<Void> {
     super.visitMapLiteral(node);
     boolean isConst = node.getConstKeyword() != null;
     boolean reportEqualKeys = true;
-    HashSet<Object> keys = new HashSet<Object>();
+    HashSet<DartObject> keys = new HashSet<DartObject>();
     ArrayList<Expression> invalidKeys = new ArrayList<Expression>();
     for (MapLiteralEntry entry : node.getEntries()) {
       Expression key = entry.getKey();
@@ -171,7 +187,7 @@ public class ConstantVerifier extends RecursiveASTVisitor<Void> {
         EvaluationResultImpl result = validate(key, CompileTimeErrorCode.NON_CONSTANT_MAP_KEY);
         validate(entry.getValue(), CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE);
         if (result instanceof ValidResult) {
-          Object value = ((ValidResult) result).getValue();
+          DartObject value = ((ValidResult) result).getValue();
           if (keys.contains(value)) {
             invalidKeys.add(key);
           } else {
@@ -179,9 +195,9 @@ public class ConstantVerifier extends RecursiveASTVisitor<Void> {
           }
         }
       } else {
-        EvaluationResultImpl result = key.accept(new ConstantVisitor());
+        EvaluationResultImpl result = key.accept(new ConstantVisitor(typeProvider));
         if (result instanceof ValidResult) {
-          Object value = ((ValidResult) result).getValue();
+          DartObject value = ((ValidResult) result).getValue();
           if (keys.contains(value)) {
             invalidKeys.add(key);
           } else {
@@ -263,6 +279,10 @@ public class ConstantVerifier extends RecursiveASTVisitor<Void> {
     }
   }
 
+  private ValidResult valid(InterfaceType type, InstanceState state) {
+    return new ValidResult(new DartObjectImpl(type, state));
+  }
+
   /**
    * Validate that the given expression is a compile time constant. Return the value of the compile
    * time constant, or {@code null} if the expression is not a compile time constant.
@@ -272,7 +292,7 @@ public class ConstantVerifier extends RecursiveASTVisitor<Void> {
    * @return the value of the compile time constant
    */
   private EvaluationResultImpl validate(Expression expression, ErrorCode errorCode) {
-    EvaluationResultImpl result = expression.accept(new ConstantVisitor());
+    EvaluationResultImpl result = expression.accept(new ConstantVisitor(typeProvider));
     reportErrors(result, errorCode);
     return result;
   }
@@ -342,7 +362,7 @@ public class ConstantVerifier extends RecursiveASTVisitor<Void> {
    */
   private void validateInitializerExpression(final ParameterElement[] parameterElements,
       Expression expression) {
-    EvaluationResultImpl result = expression.accept(new ConstantVisitor() {
+    EvaluationResultImpl result = expression.accept(new ConstantVisitor(typeProvider) {
       @Override
       public EvaluationResultImpl visitSimpleIdentifier(SimpleIdentifier node) {
         Element element = node.getStaticElement();
@@ -351,22 +371,28 @@ public class ConstantVerifier extends RecursiveASTVisitor<Void> {
             Type type = parameterElement.getType();
             if (type != null) {
               if (type.isDynamic()) {
-                return ValidResult.RESULT_DYNAMIC;
+                return valid(typeProvider.getObjectType(), DynamicState.DYNAMIC_STATE);
+              } else if (type.isSubtypeOf(boolType)) {
+                return valid(typeProvider.getBoolType(), BoolState.UNKNOWN_VALUE);
+              } else if (type.isSubtypeOf(typeProvider.getDoubleType())) {
+                return valid(typeProvider.getDoubleType(), DoubleState.UNKNOWN_VALUE);
+              } else if (type.isSubtypeOf(intType)) {
+                return valid(typeProvider.getIntType(), IntState.UNKNOWN_VALUE);
+              } else if (type.isSubtypeOf(numType)) {
+                return valid(typeProvider.getNumType(), NumState.UNKNOWN_VALUE);
+              } else if (type.isSubtypeOf(stringType)) {
+                return valid(typeProvider.getStringType(), StringState.UNKNOWN_VALUE);
               }
-              if (type.isSubtypeOf(boolType)) {
-                return ValidResult.RESULT_BOOL;
-              }
-              if (type.isSubtypeOf(intType)) {
-                return ValidResult.RESULT_INT;
-              }
-              if (type.isSubtypeOf(numType)) {
-                return ValidResult.RESULT_NUM;
-              }
-              if (type.isSubtypeOf(stringType)) {
-                return ValidResult.RESULT_STRING;
-              }
+              //
+              // We don't test for other types of objects (such as List, Map, Function or Type)
+              // because there are no operations allowed on such types other than '==' and '!=',
+              // which means that we don't need to know the type when there is no specific data
+              // about the state of such objects.
+              //
             }
-            return ValidResult.RESULT_OBJECT;
+            return valid(
+                type instanceof InterfaceType ? (InterfaceType) type : typeProvider.getObjectType(),
+                GenericState.UNKNOWN_VALUE);
           }
         }
         return super.visitSimpleIdentifier(node);

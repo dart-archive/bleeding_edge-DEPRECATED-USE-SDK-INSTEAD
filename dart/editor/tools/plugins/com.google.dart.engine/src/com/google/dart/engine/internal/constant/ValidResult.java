@@ -16,10 +16,10 @@ package com.google.dart.engine.internal.constant;
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.Expression;
-import com.google.dart.engine.error.CompileTimeErrorCode;
 import com.google.dart.engine.error.ErrorCode;
-
-import java.math.BigInteger;
+import com.google.dart.engine.internal.object.DartObjectImpl;
+import com.google.dart.engine.internal.object.EvaluationException;
+import com.google.dart.engine.internal.resolver.TypeProvider;
 
 /**
  * Instances of the class {@code ValidResult} represent the result of attempting to evaluate a valid
@@ -27,79 +27,23 @@ import java.math.BigInteger;
  */
 public class ValidResult extends EvaluationResultImpl {
   /**
-   * A result object representing the value 'false'.
-   */
-  public static final ValidResult RESULT_FALSE = new ValidResult(Boolean.FALSE);
-
-  /**
-   * A result object representing the an object without specific type on which no further operations
-   * can be performed.
-   */
-  public static final ValidResult RESULT_DYNAMIC = new ValidResult(null);
-
-  /**
-   * A result object representing the an arbitrary integer on which no further operations can be
-   * performed.
-   */
-  public static final ValidResult RESULT_INT = new ValidResult(0);
-
-  /**
-   * A result object representing the {@code null} value.
-   */
-  public static final ValidResult RESULT_NULL = new ValidResult(null);
-
-  /**
-   * A result object representing the an arbitrary numeric on which no further operations can be
-   * performed.
-   */
-  public static final ValidResult RESULT_NUM = new ValidResult(null);
-
-  /**
-   * A result object representing the an arbitrary boolean on which no further operations can be
-   * performed.
-   */
-  public static final ValidResult RESULT_BOOL = new ValidResult(null);
-
-  /**
-   * A result object representing the an arbitrary object on which no further operations can be
-   * performed.
-   */
-  public static final ValidResult RESULT_OBJECT = new ValidResult(new Object());
-
-  /**
-   * A result object representing the an arbitrary symbol on which no further operations can be
-   * performed.
-   */
-  public static final ValidResult RESULT_SYMBOL = new ValidResult(new Object());
-
-  /**
-   * A result object representing the an arbitrary string on which no further operations can be
-   * performed.
-   */
-  public static final ValidResult RESULT_STRING = new ValidResult("<string>");
-
-  /**
-   * A result object representing the value 'true'.
-   */
-  public static final ValidResult RESULT_TRUE = new ValidResult(Boolean.TRUE);
-
-  /**
    * The value of the expression.
    */
-  private final Object value;
+  private final DartObjectImpl value;
 
   /**
    * Initialize a newly created result to represent the given value.
    * 
    * @param value the value of the expression
    */
-  public ValidResult(Object value) {
+  public ValidResult(DartObjectImpl value) {
     this.value = value;
   }
 
   @Override
-  public EvaluationResultImpl add(BinaryExpression node, EvaluationResultImpl rightOperand) {
-    return rightOperand.addToValid(node, this);
+  public EvaluationResultImpl add(TypeProvider typeProvider, BinaryExpression node,
+      EvaluationResultImpl rightOperand) {
+    return rightOperand.addToValid(typeProvider, node, this);
   }
 
   /**
@@ -109,177 +53,229 @@ public class ValidResult extends EvaluationResultImpl {
    * @return the result of applying boolean conversion to the given value
    */
   @Override
-  public EvaluationResultImpl applyBooleanConversion(ASTNode node) {
-    return booleanConversion(node, value);
-  }
-
-  @Override
-  public EvaluationResultImpl bitAnd(BinaryExpression node, EvaluationResultImpl rightOperand) {
-    return rightOperand.bitAndValid(node, this);
-  }
-
-  @Override
-  public EvaluationResultImpl bitNot(Expression node) {
-    if (isSomeInt()) {
-      return RESULT_INT;
+  public EvaluationResultImpl applyBooleanConversion(TypeProvider typeProvider, ASTNode node) {
+    try {
+      return valueOf(value.convertToBool(typeProvider));
+    } catch (EvaluationException exception) {
+      return error(node, exception.getErrorCode());
     }
-    if (value == null) {
-      return error(node);
-    } else if (value instanceof BigInteger) {
-      return valueOf(((BigInteger) value).not());
+  }
+
+  @Override
+  public EvaluationResultImpl bitAnd(TypeProvider typeProvider, BinaryExpression node,
+      EvaluationResultImpl rightOperand) {
+    return rightOperand.bitAndValid(typeProvider, node, this);
+  }
+
+  @Override
+  public EvaluationResultImpl bitNot(TypeProvider typeProvider, Expression node) {
+    try {
+      return valueOf(value.bitNot(typeProvider));
+    } catch (EvaluationException exception) {
+      return error(node, exception.getErrorCode());
     }
-    return error(node);
   }
 
   @Override
-  public EvaluationResultImpl bitOr(BinaryExpression node, EvaluationResultImpl rightOperand) {
-    return rightOperand.bitOrValid(node, this);
+  public EvaluationResultImpl bitOr(TypeProvider typeProvider, BinaryExpression node,
+      EvaluationResultImpl rightOperand) {
+    return rightOperand.bitOrValid(typeProvider, node, this);
   }
 
   @Override
-  public EvaluationResultImpl bitXor(BinaryExpression node, EvaluationResultImpl rightOperand) {
-    return rightOperand.bitXorValid(node, this);
+  public EvaluationResultImpl bitXor(TypeProvider typeProvider, BinaryExpression node,
+      EvaluationResultImpl rightOperand) {
+    return rightOperand.bitXorValid(typeProvider, node, this);
   }
 
   @Override
-  public EvaluationResultImpl concatenate(Expression node, EvaluationResultImpl rightOperand) {
-    return rightOperand.concatenateValid(node, this);
+  public EvaluationResultImpl concatenate(TypeProvider typeProvider, Expression node,
+      EvaluationResultImpl rightOperand) {
+    return rightOperand.concatenateValid(typeProvider, node, this);
   }
 
   @Override
-  public EvaluationResultImpl divide(BinaryExpression node, EvaluationResultImpl rightOperand) {
-    return rightOperand.divideValid(node, this);
+  public EvaluationResultImpl divide(TypeProvider typeProvider, BinaryExpression node,
+      EvaluationResultImpl rightOperand) {
+    return rightOperand.divideValid(typeProvider, node, this);
   }
 
   @Override
-  public EvaluationResultImpl equalEqual(Expression node, EvaluationResultImpl rightOperand) {
-    return rightOperand.equalEqualValid(node, this);
+  public EvaluationResultImpl equalEqual(TypeProvider typeProvider, Expression node,
+      EvaluationResultImpl rightOperand) {
+    return rightOperand.equalEqualValid(typeProvider, node, this);
   }
 
   @Override
-  public boolean equalValues(EvaluationResultImpl result) {
-    return equalEqual(null, result) == RESULT_TRUE;
+  public boolean equalValues(TypeProvider typeProvider, EvaluationResultImpl result) {
+    if (!(result instanceof ValidResult)) {
+      return false;
+    }
+    return value.equals(((ValidResult) result).value);
   }
 
-  public Object getValue() {
+  public DartObjectImpl getValue() {
     return value;
   }
 
   @Override
-  public EvaluationResultImpl greaterThan(BinaryExpression node, EvaluationResultImpl rightOperand) {
-    return rightOperand.greaterThanValid(node, this);
-  }
-
-  @Override
-  public EvaluationResultImpl greaterThanOrEqual(BinaryExpression node,
+  public EvaluationResultImpl greaterThan(TypeProvider typeProvider, BinaryExpression node,
       EvaluationResultImpl rightOperand) {
-    return rightOperand.greaterThanOrEqualValid(node, this);
+    return rightOperand.greaterThanValid(typeProvider, node, this);
   }
 
   @Override
-  public EvaluationResultImpl integerDivide(BinaryExpression node, EvaluationResultImpl rightOperand) {
-    return rightOperand.integerDivideValid(node, this);
-  }
-
-  @Override
-  public EvaluationResultImpl lessThan(BinaryExpression node, EvaluationResultImpl rightOperand) {
-    return rightOperand.lessThanValid(node, this);
-  }
-
-  @Override
-  public EvaluationResultImpl lessThanOrEqual(BinaryExpression node,
+  public EvaluationResultImpl greaterThanOrEqual(TypeProvider typeProvider, BinaryExpression node,
       EvaluationResultImpl rightOperand) {
-    return rightOperand.lessThanOrEqualValid(node, this);
+    return rightOperand.greaterThanOrEqualValid(typeProvider, node, this);
   }
 
   @Override
-  public EvaluationResultImpl logicalAnd(BinaryExpression node, EvaluationResultImpl rightOperand) {
-    return rightOperand.logicalAndValid(node, this);
+  public EvaluationResultImpl integerDivide(TypeProvider typeProvider, BinaryExpression node,
+      EvaluationResultImpl rightOperand) {
+    return rightOperand.integerDivideValid(typeProvider, node, this);
+  }
+
+  /**
+   * Return {@code true} if this object represents an object whose type is 'bool'.
+   * 
+   * @return {@code true} if this object represents a boolean value
+   */
+  public boolean isBool() {
+    return value.isBool();
+  }
+
+  /**
+   * Return {@code true} if this object represents an object whose type is either 'bool', 'num',
+   * 'String', or 'Null'.
+   * 
+   * @return {@code true} if this object represents either a boolean, numeric, string or null value
+   */
+  public boolean isBoolNumStringOrNull() {
+    return value.isBoolNumStringOrNull();
+  }
+
+  /**
+   * Return {@code true} if this result represents the value 'false'.
+   * 
+   * @return {@code true} if this result represents the value 'false'
+   */
+  public boolean isFalse() {
+    return value.isFalse();
+  }
+
+  /**
+   * Return {@code true} if this result represents the value 'null'.
+   * 
+   * @return {@code true} if this result represents the value 'null'
+   */
+  public boolean isNull() {
+    return value.isNull();
+  }
+
+  /**
+   * Return {@code true} if this result represents the value 'true'.
+   * 
+   * @return {@code true} if this result represents the value 'true'
+   */
+  public boolean isTrue() {
+    return value.isTrue();
+  }
+
+  /**
+   * Return {@code true} if this object represents an instance of a user-defined class.
+   * 
+   * @return {@code true} if this object represents an instance of a user-defined class
+   */
+  public boolean isUserDefinedObject() {
+    return value.isUserDefinedObject();
   }
 
   @Override
-  public EvaluationResultImpl logicalNot(Expression node) {
-    if (isSomeBool()) {
-      return RESULT_BOOL;
+  public EvaluationResultImpl lessThan(TypeProvider typeProvider, BinaryExpression node,
+      EvaluationResultImpl rightOperand) {
+    return rightOperand.lessThanValid(typeProvider, node, this);
+  }
+
+  @Override
+  public EvaluationResultImpl lessThanOrEqual(TypeProvider typeProvider, BinaryExpression node,
+      EvaluationResultImpl rightOperand) {
+    return rightOperand.lessThanOrEqualValid(typeProvider, node, this);
+  }
+
+  @Override
+  public EvaluationResultImpl logicalAnd(TypeProvider typeProvider, BinaryExpression node,
+      EvaluationResultImpl rightOperand) {
+    return rightOperand.logicalAndValid(typeProvider, node, this);
+  }
+
+  @Override
+  public EvaluationResultImpl logicalNot(TypeProvider typeProvider, Expression node) {
+    try {
+      return valueOf(value.logicalNot(typeProvider));
+    } catch (EvaluationException exception) {
+      return error(node, exception.getErrorCode());
     }
-    if (value == null) {
-      return RESULT_TRUE;
-    } else if (value instanceof Boolean) {
-      return ((Boolean) value) ? RESULT_FALSE : RESULT_TRUE;
+  }
+
+  @Override
+  public EvaluationResultImpl logicalOr(TypeProvider typeProvider, BinaryExpression node,
+      EvaluationResultImpl rightOperand) {
+    return rightOperand.logicalOrValid(typeProvider, node, this);
+  }
+
+  @Override
+  public EvaluationResultImpl minus(TypeProvider typeProvider, BinaryExpression node,
+      EvaluationResultImpl rightOperand) {
+    return rightOperand.minusValid(typeProvider, node, this);
+  }
+
+  @Override
+  public EvaluationResultImpl negated(TypeProvider typeProvider, Expression node) {
+    try {
+      return valueOf(value.negated(typeProvider));
+    } catch (EvaluationException exception) {
+      return error(node, exception.getErrorCode());
     }
-    return error(node);
   }
 
   @Override
-  public EvaluationResultImpl logicalOr(BinaryExpression node, EvaluationResultImpl rightOperand) {
-    return rightOperand.logicalOrValid(node, this);
+  public EvaluationResultImpl notEqual(TypeProvider typeProvider, BinaryExpression node,
+      EvaluationResultImpl rightOperand) {
+    return rightOperand.notEqualValid(typeProvider, node, this);
   }
 
   @Override
-  public EvaluationResultImpl minus(BinaryExpression node, EvaluationResultImpl rightOperand) {
-    return rightOperand.minusValid(node, this);
-  }
-
-  @Override
-  public EvaluationResultImpl negated(Expression node) {
-    if (isSomeNum()) {
-      return RESULT_INT;
+  public EvaluationResultImpl performToString(TypeProvider typeProvider, ASTNode node) {
+    try {
+      return valueOf(value.performToString(typeProvider));
+    } catch (EvaluationException exception) {
+      return error(node, exception.getErrorCode());
     }
-    if (value == null) {
-      return error(node);
-    } else if (value instanceof BigInteger) {
-      return valueOf(((BigInteger) value).negate());
-    } else if (value instanceof Double) {
-      return valueOf(-((Double) value).doubleValue());
-    }
-    return error(node);
   }
 
   @Override
-  public EvaluationResultImpl notEqual(BinaryExpression node, EvaluationResultImpl rightOperand) {
-    return rightOperand.notEqualValid(node, this);
+  public EvaluationResultImpl remainder(TypeProvider typeProvider, BinaryExpression node,
+      EvaluationResultImpl rightOperand) {
+    return rightOperand.remainderValid(typeProvider, node, this);
   }
 
   @Override
-  public EvaluationResultImpl performToString(ASTNode node) {
-    if (value == null) {
-      return valueOf("null");
-    } else if (value instanceof Boolean) {
-      return valueOf(((Boolean) value).toString());
-    } else if (value instanceof BigInteger) {
-      return valueOf(((BigInteger) value).toString());
-    } else if (value instanceof Double) {
-      return valueOf(((Double) value).toString());
-    } else if (value instanceof String) {
-      return this;
-    } else if (isSomeBool()) {
-      return valueOf("<some bool>");
-    } else if (isSomeInt()) {
-      return valueOf("<some int>");
-    } else if (isSomeNum()) {
-      return valueOf("<some num>");
-    }
-    return error(node);
+  public EvaluationResultImpl shiftLeft(TypeProvider typeProvider, BinaryExpression node,
+      EvaluationResultImpl rightOperand) {
+    return rightOperand.shiftLeftValid(typeProvider, node, this);
   }
 
   @Override
-  public EvaluationResultImpl remainder(BinaryExpression node, EvaluationResultImpl rightOperand) {
-    return rightOperand.remainderValid(node, this);
+  public EvaluationResultImpl shiftRight(TypeProvider typeProvider, BinaryExpression node,
+      EvaluationResultImpl rightOperand) {
+    return rightOperand.shiftRightValid(typeProvider, node, this);
   }
 
   @Override
-  public EvaluationResultImpl shiftLeft(BinaryExpression node, EvaluationResultImpl rightOperand) {
-    return rightOperand.shiftLeftValid(node, this);
-  }
-
-  @Override
-  public EvaluationResultImpl shiftRight(BinaryExpression node, EvaluationResultImpl rightOperand) {
-    return rightOperand.shiftRightValid(node, this);
-  }
-
-  @Override
-  public EvaluationResultImpl times(BinaryExpression node, EvaluationResultImpl rightOperand) {
-    return rightOperand.timesValid(node, this);
+  public EvaluationResultImpl times(TypeProvider typeProvider, BinaryExpression node,
+      EvaluationResultImpl rightOperand) {
+    return rightOperand.timesValid(typeProvider, node, this);
   }
 
   @Override
@@ -296,38 +292,13 @@ public class ValidResult extends EvaluationResultImpl {
   }
 
   @Override
-  protected EvaluationResultImpl addToValid(BinaryExpression node, ValidResult leftOperand) {
-    if (!isAnyNum() || !leftOperand.isAnyNum()) {
-      return error(node, CompileTimeErrorCode.CONST_EVAL_TYPE_NUM);
+  protected EvaluationResultImpl addToValid(TypeProvider typeProvider, BinaryExpression node,
+      ValidResult leftOperand) {
+    try {
+      return valueOf(leftOperand.getValue().add(typeProvider, value));
+    } catch (EvaluationException exception) {
+      return error(node, exception.getErrorCode());
     }
-    if (isSomeInt() || leftOperand.isSomeInt()) {
-      return RESULT_INT;
-    } else if (isSomeNum() || leftOperand.isSomeNum()) {
-      return RESULT_NUM;
-    }
-    Object leftValue = leftOperand.getValue();
-    if (leftValue == null) {
-      return error(node.getLeftOperand());
-    } else if (value == null) {
-      return error(node.getRightOperand());
-    } else if (leftValue instanceof BigInteger) {
-      if (value instanceof BigInteger) {
-        return valueOf(((BigInteger) leftValue).add((BigInteger) value));
-      } else if (value instanceof Double) {
-        return valueOf(((BigInteger) leftValue).doubleValue() + ((Double) value).doubleValue());
-      }
-    } else if (leftValue instanceof Double) {
-      if (value instanceof BigInteger) {
-        return valueOf(((Double) leftValue).doubleValue() + ((BigInteger) value).doubleValue());
-      } else if (value instanceof Double) {
-        return valueOf(((Double) leftValue).doubleValue() + ((Double) value).doubleValue());
-      }
-    } else if (leftValue instanceof String) {
-      if (value instanceof String) {
-        return valueOf(((String) leftValue) + ((String) value));
-      }
-    }
-    return error(node);
   }
 
   @Override
@@ -336,28 +307,13 @@ public class ValidResult extends EvaluationResultImpl {
   }
 
   @Override
-  protected EvaluationResultImpl bitAndValid(BinaryExpression node, ValidResult leftOperand) {
-    if (!isAnyInt() || !leftOperand.isAnyInt()) {
-      return error(node, CompileTimeErrorCode.CONST_EVAL_TYPE_INT);
+  protected EvaluationResultImpl bitAndValid(TypeProvider typeProvider, BinaryExpression node,
+      ValidResult leftOperand) {
+    try {
+      return valueOf(leftOperand.getValue().bitAnd(typeProvider, value));
+    } catch (EvaluationException exception) {
+      return error(node, exception.getErrorCode());
     }
-    if (isSomeInt() || leftOperand.isSomeInt()) {
-      return RESULT_INT;
-    }
-    Object leftValue = leftOperand.getValue();
-    if (leftValue == null) {
-      return error(node.getLeftOperand());
-    } else if (value == null) {
-      return error(node.getRightOperand());
-    } else if (leftValue instanceof BigInteger) {
-      if (value instanceof BigInteger) {
-        return valueOf(((BigInteger) leftValue).and((BigInteger) value));
-      }
-      return error(node.getLeftOperand());
-    }
-    if (value instanceof BigInteger) {
-      return error(node.getRightOperand());
-    }
-    return union(error(node.getLeftOperand()), error(node.getRightOperand()));
   }
 
   @Override
@@ -366,28 +322,13 @@ public class ValidResult extends EvaluationResultImpl {
   }
 
   @Override
-  protected EvaluationResultImpl bitOrValid(BinaryExpression node, ValidResult leftOperand) {
-    if (!isAnyInt() || !leftOperand.isAnyInt()) {
-      return error(node, CompileTimeErrorCode.CONST_EVAL_TYPE_INT);
+  protected EvaluationResultImpl bitOrValid(TypeProvider typeProvider, BinaryExpression node,
+      ValidResult leftOperand) {
+    try {
+      return valueOf(leftOperand.getValue().bitOr(typeProvider, value));
+    } catch (EvaluationException exception) {
+      return error(node, exception.getErrorCode());
     }
-    if (isSomeInt() || leftOperand.isSomeInt()) {
-      return RESULT_INT;
-    }
-    Object leftValue = leftOperand.getValue();
-    if (leftValue == null) {
-      return error(node.getLeftOperand());
-    } else if (value == null) {
-      return error(node.getRightOperand());
-    } else if (leftValue instanceof BigInteger) {
-      if (value instanceof BigInteger) {
-        return valueOf(((BigInteger) leftValue).or((BigInteger) value));
-      }
-      return error(node.getLeftOperand());
-    }
-    if (value instanceof BigInteger) {
-      return error(node.getRightOperand());
-    }
-    return union(error(node.getLeftOperand()), error(node.getRightOperand()));
   }
 
   @Override
@@ -396,28 +337,13 @@ public class ValidResult extends EvaluationResultImpl {
   }
 
   @Override
-  protected EvaluationResultImpl bitXorValid(BinaryExpression node, ValidResult leftOperand) {
-    if (!isAnyInt() || !leftOperand.isAnyInt()) {
-      return error(node, CompileTimeErrorCode.CONST_EVAL_TYPE_INT);
+  protected EvaluationResultImpl bitXorValid(TypeProvider typeProvider, BinaryExpression node,
+      ValidResult leftOperand) {
+    try {
+      return valueOf(leftOperand.getValue().bitXor(typeProvider, value));
+    } catch (EvaluationException exception) {
+      return error(node, exception.getErrorCode());
     }
-    if (isSomeInt() || leftOperand.isSomeInt()) {
-      return RESULT_INT;
-    }
-    Object leftValue = leftOperand.getValue();
-    if (leftValue == null) {
-      return error(node.getLeftOperand());
-    } else if (value == null) {
-      return error(node.getRightOperand());
-    } else if (leftValue instanceof BigInteger) {
-      if (value instanceof BigInteger) {
-        return valueOf(((BigInteger) leftValue).xor((BigInteger) value));
-      }
-      return error(node.getLeftOperand());
-    }
-    if (value instanceof BigInteger) {
-      return error(node.getRightOperand());
-    }
-    return union(error(node.getLeftOperand()), error(node.getRightOperand()));
   }
 
   @Override
@@ -426,12 +352,13 @@ public class ValidResult extends EvaluationResultImpl {
   }
 
   @Override
-  protected EvaluationResultImpl concatenateValid(Expression node, ValidResult leftOperand) {
-    Object leftValue = leftOperand.getValue();
-    if (leftValue instanceof String && value instanceof String) {
-      return valueOf(((String) leftValue) + ((String) value));
+  protected EvaluationResultImpl concatenateValid(TypeProvider typeProvider, Expression node,
+      ValidResult leftOperand) {
+    try {
+      return valueOf(leftOperand.getValue().concatenate(typeProvider, value));
+    } catch (EvaluationException exception) {
+      return error(node, exception.getErrorCode());
     }
-    return error(node);
   }
 
   @Override
@@ -440,36 +367,13 @@ public class ValidResult extends EvaluationResultImpl {
   }
 
   @Override
-  protected EvaluationResultImpl divideValid(BinaryExpression node, ValidResult leftOperand) {
-    if (!isAnyNum() || !leftOperand.isAnyNum()) {
-      return error(node, CompileTimeErrorCode.CONST_EVAL_TYPE_NUM);
+  protected EvaluationResultImpl divideValid(TypeProvider typeProvider, BinaryExpression node,
+      ValidResult leftOperand) {
+    try {
+      return valueOf(leftOperand.getValue().divide(typeProvider, value));
+    } catch (EvaluationException exception) {
+      return error(node, exception.getErrorCode());
     }
-    if (isSomeNum() || leftOperand.isSomeNum()) {
-      return RESULT_NUM;
-    }
-    Object leftValue = leftOperand.getValue();
-    if (leftValue == null) {
-      return error(node.getLeftOperand());
-    } else if (value == null) {
-      return error(node.getRightOperand());
-    } else if (leftValue instanceof BigInteger) {
-      if (value instanceof BigInteger) {
-        if (((BigInteger) value).equals(BigInteger.ZERO)) {
-          return valueOf(Double.valueOf(((BigInteger) leftValue).doubleValue()
-              / ((BigInteger) value).doubleValue()));
-        }
-        return valueOf(((BigInteger) leftValue).divide((BigInteger) value));
-      } else if (value instanceof Double) {
-        return valueOf(((BigInteger) leftValue).doubleValue() / ((Double) value).doubleValue());
-      }
-    } else if (leftValue instanceof Double) {
-      if (value instanceof BigInteger) {
-        return valueOf(((Double) leftValue).doubleValue() / ((BigInteger) value).doubleValue());
-      } else if (value instanceof Double) {
-        return valueOf(((Double) leftValue).doubleValue() / ((Double) value).doubleValue());
-      }
-    }
-    return error(node);
   }
 
   @Override
@@ -478,31 +382,12 @@ public class ValidResult extends EvaluationResultImpl {
   }
 
   @Override
-  protected EvaluationResultImpl equalEqualValid(Expression node, ValidResult leftOperand) {
-    if (node instanceof BinaryExpression) {
-      if (!isAnyNullBoolNumString() || !leftOperand.isAnyNullBoolNumString()) {
-        return error(node, CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING);
-      }
-    }
-    Object leftValue = leftOperand.getValue();
-    if (leftValue == null) {
-      return valueOf(value == null);
-    } else if (leftValue instanceof BigInteger) {
-      if (value instanceof BigInteger) {
-        return valueOf(((BigInteger) leftValue).equals(value));
-      } else if (value instanceof Double) {
-        return valueOf(toDouble((BigInteger) leftValue).equals(value));
-      }
-      return RESULT_FALSE;
-    } else if (leftValue instanceof Double) {
-      if (value instanceof BigInteger) {
-        return valueOf(((Double) leftValue).equals(toDouble((BigInteger) value)));
-      } else if (value instanceof Double) {
-        return valueOf(((Double) leftValue).equals(value));
-      }
-      return RESULT_FALSE;
-    } else {
-      return valueOf(leftValue.equals(value));
+  protected EvaluationResultImpl equalEqualValid(TypeProvider typeProvider, Expression node,
+      ValidResult leftOperand) {
+    try {
+      return valueOf(leftOperand.getValue().equalEqual(typeProvider, value));
+    } catch (EvaluationException exception) {
+      return error(node, exception.getErrorCode());
     }
   }
 
@@ -518,62 +403,23 @@ public class ValidResult extends EvaluationResultImpl {
   }
 
   @Override
-  protected EvaluationResultImpl greaterThanOrEqualValid(BinaryExpression node,
-      ValidResult leftOperand) {
-    if (!isAnyNum() || !leftOperand.isAnyNum()) {
-      return error(node, CompileTimeErrorCode.CONST_EVAL_TYPE_NUM);
+  protected EvaluationResultImpl greaterThanOrEqualValid(TypeProvider typeProvider,
+      BinaryExpression node, ValidResult leftOperand) {
+    try {
+      return valueOf(leftOperand.getValue().greaterThanOrEqual(typeProvider, value));
+    } catch (EvaluationException exception) {
+      return error(node, exception.getErrorCode());
     }
-    if (isSomeNum() || leftOperand.isSomeNum()) {
-      return RESULT_BOOL;
-    }
-    Object leftValue = leftOperand.getValue();
-    if (leftValue == null) {
-      return error(node.getLeftOperand());
-    } else if (value == null) {
-      return error(node.getRightOperand());
-    } else if (leftValue instanceof BigInteger) {
-      if (value instanceof BigInteger) {
-        return valueOf(((BigInteger) leftValue).compareTo((BigInteger) value) >= 0);
-      } else if (value instanceof Double) {
-        return valueOf(((BigInteger) leftValue).doubleValue() >= ((Double) value).doubleValue());
-      }
-    } else if (leftValue instanceof Double) {
-      if (value instanceof BigInteger) {
-        return valueOf(((Double) leftValue).doubleValue() >= ((BigInteger) value).doubleValue());
-      } else if (value instanceof Double) {
-        return valueOf(((Double) leftValue).doubleValue() >= ((Double) value).doubleValue());
-      }
-    }
-    return error(node);
   }
 
   @Override
-  protected EvaluationResultImpl greaterThanValid(BinaryExpression node, ValidResult leftOperand) {
-    if (!isAnyNum() || !leftOperand.isAnyNum()) {
-      return error(node, CompileTimeErrorCode.CONST_EVAL_TYPE_NUM);
+  protected EvaluationResultImpl greaterThanValid(TypeProvider typeProvider, BinaryExpression node,
+      ValidResult leftOperand) {
+    try {
+      return valueOf(leftOperand.getValue().greaterThan(typeProvider, value));
+    } catch (EvaluationException exception) {
+      return error(node, exception.getErrorCode());
     }
-    if (isSomeNum() || leftOperand.isSomeNum()) {
-      return RESULT_BOOL;
-    }
-    Object leftValue = leftOperand.getValue();
-    if (leftValue == null) {
-      return error(node.getLeftOperand());
-    } else if (value == null) {
-      return error(node.getRightOperand());
-    } else if (leftValue instanceof BigInteger) {
-      if (value instanceof BigInteger) {
-        return valueOf(((BigInteger) leftValue).compareTo((BigInteger) value) > 0);
-      } else if (value instanceof Double) {
-        return valueOf(((BigInteger) leftValue).doubleValue() > ((Double) value).doubleValue());
-      }
-    } else if (leftValue instanceof Double) {
-      if (value instanceof BigInteger) {
-        return valueOf(((Double) leftValue).doubleValue() > ((BigInteger) value).doubleValue());
-      } else if (value instanceof Double) {
-        return valueOf(((Double) leftValue).doubleValue() > ((Double) value).doubleValue());
-      }
-    }
-    return error(node);
   }
 
   @Override
@@ -582,38 +428,13 @@ public class ValidResult extends EvaluationResultImpl {
   }
 
   @Override
-  protected EvaluationResultImpl integerDivideValid(BinaryExpression node, ValidResult leftOperand) {
-    if (!isAnyNum() || !leftOperand.isAnyNum()) {
-      return error(node, CompileTimeErrorCode.CONST_EVAL_TYPE_NUM);
+  protected EvaluationResultImpl integerDivideValid(TypeProvider typeProvider,
+      BinaryExpression node, ValidResult leftOperand) {
+    try {
+      return valueOf(leftOperand.getValue().integerDivide(typeProvider, value));
+    } catch (EvaluationException exception) {
+      return error(node, exception.getErrorCode());
     }
-    if (isSomeNum() || leftOperand.isSomeNum()) {
-      return RESULT_INT;
-    }
-    Object leftValue = leftOperand.getValue();
-    if (leftValue == null) {
-      return error(node.getLeftOperand());
-    } else if (value == null) {
-      return error(node.getRightOperand());
-    } else if (leftValue instanceof BigInteger) {
-      if (value instanceof BigInteger) {
-        if (((BigInteger) value).equals(BigInteger.ZERO)) {
-          return error(node, CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE);
-        }
-        return valueOf(((BigInteger) leftValue).divide((BigInteger) value));
-      } else if (value instanceof Double) {
-        double result = ((BigInteger) leftValue).doubleValue() / ((Double) value).doubleValue();
-        return valueOf(BigInteger.valueOf((long) result));
-      }
-    } else if (leftValue instanceof Double) {
-      if (value instanceof BigInteger) {
-        double result = ((Double) leftValue).doubleValue() / ((BigInteger) value).doubleValue();
-        return valueOf(BigInteger.valueOf((long) result));
-      } else if (value instanceof Double) {
-        double result = ((Double) leftValue).doubleValue() / ((Double) value).doubleValue();
-        return valueOf(BigInteger.valueOf((long) result));
-      }
-    }
-    return error(node);
   }
 
   @Override
@@ -627,61 +448,23 @@ public class ValidResult extends EvaluationResultImpl {
   }
 
   @Override
-  protected EvaluationResultImpl lessThanOrEqualValid(BinaryExpression node, ValidResult leftOperand) {
-    if (!isAnyNum() || !leftOperand.isAnyNum()) {
-      return error(node, CompileTimeErrorCode.CONST_EVAL_TYPE_NUM);
+  protected EvaluationResultImpl lessThanOrEqualValid(TypeProvider typeProvider,
+      BinaryExpression node, ValidResult leftOperand) {
+    try {
+      return valueOf(leftOperand.getValue().lessThanOrEqual(typeProvider, value));
+    } catch (EvaluationException exception) {
+      return error(node, exception.getErrorCode());
     }
-    if (isSomeNum() || leftOperand.isSomeNum()) {
-      return RESULT_BOOL;
-    }
-    Object leftValue = leftOperand.getValue();
-    if (leftValue == null) {
-      return error(node.getLeftOperand());
-    } else if (value == null) {
-      return error(node.getRightOperand());
-    } else if (leftValue instanceof BigInteger) {
-      if (value instanceof BigInteger) {
-        return valueOf(((BigInteger) leftValue).compareTo((BigInteger) value) <= 0);
-      } else if (value instanceof Double) {
-        return valueOf(((BigInteger) leftValue).doubleValue() <= ((Double) value).doubleValue());
-      }
-    } else if (leftValue instanceof Double) {
-      if (value instanceof BigInteger) {
-        return valueOf(((Double) leftValue).doubleValue() <= ((BigInteger) value).doubleValue());
-      } else if (value instanceof Double) {
-        return valueOf(((Double) leftValue).doubleValue() <= ((Double) value).doubleValue());
-      }
-    }
-    return error(node);
   }
 
   @Override
-  protected EvaluationResultImpl lessThanValid(BinaryExpression node, ValidResult leftOperand) {
-    if (!isAnyNum() || !leftOperand.isAnyNum()) {
-      return error(node, CompileTimeErrorCode.CONST_EVAL_TYPE_NUM);
+  protected EvaluationResultImpl lessThanValid(TypeProvider typeProvider, BinaryExpression node,
+      ValidResult leftOperand) {
+    try {
+      return valueOf(leftOperand.getValue().lessThan(typeProvider, value));
+    } catch (EvaluationException exception) {
+      return error(node, exception.getErrorCode());
     }
-    if (isSomeNum() || leftOperand.isSomeNum()) {
-      return RESULT_BOOL;
-    }
-    Object leftValue = leftOperand.getValue();
-    if (leftValue == null) {
-      return error(node.getLeftOperand());
-    } else if (value == null) {
-      return error(node.getRightOperand());
-    } else if (leftValue instanceof BigInteger) {
-      if (value instanceof BigInteger) {
-        return valueOf(((BigInteger) leftValue).compareTo((BigInteger) value) < 0);
-      } else if (value instanceof Double) {
-        return valueOf(((BigInteger) leftValue).doubleValue() < ((Double) value).doubleValue());
-      }
-    } else if (leftValue instanceof Double) {
-      if (value instanceof BigInteger) {
-        return valueOf(((Double) leftValue).doubleValue() < ((BigInteger) value).doubleValue());
-      } else if (value instanceof Double) {
-        return valueOf(((Double) leftValue).doubleValue() < ((Double) value).doubleValue());
-      }
-    }
-    return error(node);
   }
 
   @Override
@@ -690,21 +473,13 @@ public class ValidResult extends EvaluationResultImpl {
   }
 
   @Override
-  protected EvaluationResultImpl logicalAndValid(BinaryExpression node, ValidResult leftOperand) {
-    if (!isAnyBool() || !leftOperand.isAnyBool()) {
-      return error(node, CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL);
+  protected EvaluationResultImpl logicalAndValid(TypeProvider typeProvider, BinaryExpression node,
+      ValidResult leftOperand) {
+    try {
+      return valueOf(leftOperand.getValue().logicalAnd(typeProvider, value));
+    } catch (EvaluationException exception) {
+      return error(node, exception.getErrorCode());
     }
-    if (isSomeBool() || leftOperand.isSomeBool()) {
-      return RESULT_BOOL;
-    }
-    Object leftValue = leftOperand.getValue();
-    if (leftValue instanceof Boolean) {
-      if (((Boolean) leftValue).booleanValue()) {
-        return booleanConversion(node.getRightOperand(), value);
-      }
-      return RESULT_FALSE;
-    }
-    return error(node);
   }
 
   @Override
@@ -713,18 +488,13 @@ public class ValidResult extends EvaluationResultImpl {
   }
 
   @Override
-  protected EvaluationResultImpl logicalOrValid(BinaryExpression node, ValidResult leftOperand) {
-    if (!isAnyBool() || !leftOperand.isAnyBool()) {
-      return error(node, CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL);
+  protected EvaluationResultImpl logicalOrValid(TypeProvider typeProvider, BinaryExpression node,
+      ValidResult leftOperand) {
+    try {
+      return valueOf(leftOperand.getValue().logicalOr(typeProvider, value));
+    } catch (EvaluationException exception) {
+      return error(node, exception.getErrorCode());
     }
-    if (isSomeBool() || leftOperand.isSomeBool()) {
-      return RESULT_BOOL;
-    }
-    Object leftValue = leftOperand.getValue();
-    if (leftValue instanceof Boolean && ((Boolean) leftValue).booleanValue()) {
-      return RESULT_TRUE;
-    }
-    return booleanConversion(node.getRightOperand(), value);
   }
 
   @Override
@@ -733,34 +503,13 @@ public class ValidResult extends EvaluationResultImpl {
   }
 
   @Override
-  protected EvaluationResultImpl minusValid(BinaryExpression node, ValidResult leftOperand) {
-    if (!isAnyNum() || !leftOperand.isAnyNum()) {
-      return error(node, CompileTimeErrorCode.CONST_EVAL_TYPE_NUM);
+  protected EvaluationResultImpl minusValid(TypeProvider typeProvider, BinaryExpression node,
+      ValidResult leftOperand) {
+    try {
+      return valueOf(leftOperand.getValue().minus(typeProvider, value));
+    } catch (EvaluationException exception) {
+      return error(node, exception.getErrorCode());
     }
-    if (isSomeInt() || leftOperand.isSomeInt()) {
-      return RESULT_INT;
-    } else if (isSomeNum() || leftOperand.isSomeNum()) {
-      return RESULT_NUM;
-    }
-    Object leftValue = leftOperand.getValue();
-    if (leftValue == null) {
-      return error(node.getLeftOperand());
-    } else if (value == null) {
-      return error(node.getRightOperand());
-    } else if (leftValue instanceof BigInteger) {
-      if (value instanceof BigInteger) {
-        return valueOf(((BigInteger) leftValue).subtract((BigInteger) value));
-      } else if (value instanceof Double) {
-        return valueOf(((BigInteger) leftValue).doubleValue() - ((Double) value).doubleValue());
-      }
-    } else if (leftValue instanceof Double) {
-      if (value instanceof BigInteger) {
-        return valueOf(((Double) leftValue).doubleValue() - ((BigInteger) value).doubleValue());
-      } else if (value instanceof Double) {
-        return valueOf(((Double) leftValue).doubleValue() - ((Double) value).doubleValue());
-      }
-    }
-    return error(node);
   }
 
   @Override
@@ -769,39 +518,13 @@ public class ValidResult extends EvaluationResultImpl {
   }
 
   @Override
-  protected EvaluationResultImpl notEqualValid(BinaryExpression node, ValidResult leftOperand) {
-    if (!isAnyNullBoolNumString() || !leftOperand.isAnyNullBoolNumString()) {
-      return error(node, CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING);
+  protected EvaluationResultImpl notEqualValid(TypeProvider typeProvider, BinaryExpression node,
+      ValidResult leftOperand) {
+    try {
+      return valueOf(leftOperand.getValue().notEqual(typeProvider, value));
+    } catch (EvaluationException exception) {
+      return error(node, exception.getErrorCode());
     }
-    Object leftValue = leftOperand.getValue();
-    if (leftValue == null) {
-      return valueOf(value != null);
-    } else if (leftValue instanceof Boolean) {
-      if (value instanceof Boolean) {
-        return valueOf(((Boolean) leftValue).booleanValue() != ((Boolean) value).booleanValue());
-      }
-      return RESULT_TRUE;
-    } else if (leftValue instanceof BigInteger) {
-      if (value instanceof BigInteger) {
-        return valueOf(!((BigInteger) leftValue).equals(value));
-      } else if (value instanceof Double) {
-        return valueOf(!toDouble((BigInteger) leftValue).equals(value));
-      }
-      return RESULT_TRUE;
-    } else if (leftValue instanceof Double) {
-      if (value instanceof BigInteger) {
-        return valueOf(!((Double) leftValue).equals(toDouble((BigInteger) value)));
-      } else if (value instanceof Double) {
-        return valueOf(!((Double) leftValue).equals(value));
-      }
-      return RESULT_TRUE;
-    } else if (leftValue instanceof String) {
-      if (value instanceof String) {
-        return valueOf(!((String) leftValue).equals(value));
-      }
-      return RESULT_TRUE;
-    }
-    return RESULT_TRUE;
   }
 
   @Override
@@ -810,38 +533,13 @@ public class ValidResult extends EvaluationResultImpl {
   }
 
   @Override
-  protected EvaluationResultImpl remainderValid(BinaryExpression node, ValidResult leftOperand) {
-    if (!isAnyNum() || !leftOperand.isAnyNum()) {
-      return error(node, CompileTimeErrorCode.CONST_EVAL_TYPE_NUM);
+  protected EvaluationResultImpl remainderValid(TypeProvider typeProvider, BinaryExpression node,
+      ValidResult leftOperand) {
+    try {
+      return valueOf(leftOperand.getValue().remainder(typeProvider, value));
+    } catch (EvaluationException exception) {
+      return error(node, exception.getErrorCode());
     }
-    if (isSomeInt() || leftOperand.isSomeInt()) {
-      return RESULT_INT;
-    } else if (isSomeNum() || leftOperand.isSomeNum()) {
-      return RESULT_NUM;
-    }
-    Object leftValue = leftOperand.getValue();
-    if (leftValue == null) {
-      return error(node.getLeftOperand());
-    } else if (value == null) {
-      return error(node.getRightOperand());
-    } else if (leftValue instanceof BigInteger) {
-      if (value instanceof BigInteger) {
-        if (((BigInteger) value).equals(BigInteger.ZERO)) {
-          return valueOf(Double.valueOf(((BigInteger) leftValue).doubleValue()
-              % ((BigInteger) value).doubleValue()));
-        }
-        return valueOf(((BigInteger) leftValue).remainder((BigInteger) value));
-      } else if (value instanceof Double) {
-        return valueOf(((BigInteger) leftValue).doubleValue() % ((Double) value).doubleValue());
-      }
-    } else if (leftValue instanceof Double) {
-      if (value instanceof BigInteger) {
-        return valueOf(((Double) leftValue).doubleValue() % ((BigInteger) value).doubleValue());
-      } else if (value instanceof Double) {
-        return valueOf(((Double) leftValue).doubleValue() % ((Double) value).doubleValue());
-      }
-    }
-    return error(node);
   }
 
   @Override
@@ -850,29 +548,13 @@ public class ValidResult extends EvaluationResultImpl {
   }
 
   @Override
-  protected EvaluationResultImpl shiftLeftValid(BinaryExpression node, ValidResult leftOperand) {
-    if (!isAnyInt() || !leftOperand.isAnyInt()) {
-      return error(node, CompileTimeErrorCode.CONST_EVAL_TYPE_INT);
+  protected EvaluationResultImpl shiftLeftValid(TypeProvider typeProvider, BinaryExpression node,
+      ValidResult leftOperand) {
+    try {
+      return valueOf(leftOperand.getValue().shiftLeft(typeProvider, value));
+    } catch (EvaluationException exception) {
+      return error(node, exception.getErrorCode());
     }
-    if (isSomeInt() || leftOperand.isSomeInt()) {
-      return RESULT_INT;
-    }
-    Object leftValue = leftOperand.getValue();
-    if (leftValue == null) {
-      return error(node.getLeftOperand());
-    } else if (value == null) {
-      return error(node.getRightOperand());
-    } else if (leftValue instanceof BigInteger) {
-      if (value instanceof BigInteger) {
-        // we cannot always evaluate "shift left" because of possible overflow
-        return RESULT_INT;
-      }
-      return error(node.getRightOperand());
-    }
-    if (value instanceof BigInteger) {
-      return error(node.getLeftOperand());
-    }
-    return union(error(node.getLeftOperand()), error(node.getRightOperand()));
   }
 
   @Override
@@ -881,28 +563,13 @@ public class ValidResult extends EvaluationResultImpl {
   }
 
   @Override
-  protected EvaluationResultImpl shiftRightValid(BinaryExpression node, ValidResult leftOperand) {
-    if (!isAnyInt() || !leftOperand.isAnyInt()) {
-      return error(node, CompileTimeErrorCode.CONST_EVAL_TYPE_INT);
+  protected EvaluationResultImpl shiftRightValid(TypeProvider typeProvider, BinaryExpression node,
+      ValidResult leftOperand) {
+    try {
+      return valueOf(leftOperand.getValue().shiftRight(typeProvider, value));
+    } catch (EvaluationException exception) {
+      return error(node, exception.getErrorCode());
     }
-    if (isSomeInt() || leftOperand.isSomeInt()) {
-      return RESULT_INT;
-    }
-    Object leftValue = leftOperand.getValue();
-    if (leftValue == null) {
-      return error(node.getLeftOperand());
-    } else if (value == null) {
-      return error(node.getRightOperand());
-    } else if (leftValue instanceof BigInteger) {
-      if (value instanceof BigInteger) {
-        return valueOf(((BigInteger) leftValue).shiftRight(((BigInteger) value).intValue()));
-      }
-      return error(node.getRightOperand());
-    }
-    if (value instanceof BigInteger) {
-      return error(node.getLeftOperand());
-    }
-    return union(error(node.getLeftOperand()), error(node.getRightOperand()));
   }
 
   @Override
@@ -911,61 +578,13 @@ public class ValidResult extends EvaluationResultImpl {
   }
 
   @Override
-  protected EvaluationResultImpl timesValid(BinaryExpression node, ValidResult leftOperand) {
-    if (!isAnyNum() || !leftOperand.isAnyNum()) {
-      return error(node, CompileTimeErrorCode.CONST_EVAL_TYPE_NUM);
+  protected EvaluationResultImpl timesValid(TypeProvider typeProvider, BinaryExpression node,
+      ValidResult leftOperand) {
+    try {
+      return valueOf(leftOperand.getValue().times(typeProvider, value));
+    } catch (EvaluationException exception) {
+      return error(node, exception.getErrorCode());
     }
-    if (isSomeInt() || leftOperand.isSomeInt()) {
-      return RESULT_INT;
-    } else if (isSomeNum() || leftOperand.isSomeNum()) {
-      return RESULT_NUM;
-    }
-    Object leftValue = leftOperand.getValue();
-    if (leftValue == null) {
-      return error(node.getLeftOperand());
-    } else if (value == null) {
-      return error(node.getRightOperand());
-    } else if (leftValue instanceof BigInteger) {
-      if (value instanceof BigInteger) {
-        return valueOf(((BigInteger) leftValue).multiply((BigInteger) value));
-      } else if (value instanceof Double) {
-        return valueOf(((BigInteger) leftValue).doubleValue() * ((Double) value).doubleValue());
-      }
-    } else if (leftValue instanceof Double) {
-      if (value instanceof BigInteger) {
-        return valueOf(((Double) leftValue).doubleValue() * ((BigInteger) value).doubleValue());
-      } else if (value instanceof Double) {
-        return valueOf(((Double) leftValue).doubleValue() * ((Double) value).doubleValue());
-      }
-    }
-    return error(node);
-  }
-
-  boolean isNull() {
-    return this == RESULT_NULL;
-  }
-
-  /**
-   * Return the result of applying boolean conversion to the given value.
-   * 
-   * @param node the node against which errors should be reported
-   * @param value the value to be converted to a boolean
-   * @return the result of applying boolean conversion to the given value
-   */
-  private EvaluationResultImpl booleanConversion(ASTNode node, Object value) {
-    if (value instanceof Boolean) {
-      if (((Boolean) value).booleanValue()) {
-        return RESULT_TRUE;
-      } else {
-        return RESULT_FALSE;
-      }
-    }
-    return error(node);
-  }
-
-  private ErrorResult error(ASTNode node) {
-    // TODO(brianwilkerson) Remove this method
-    return error(node, CompileTimeErrorCode.INVALID_CONSTANT);
   }
 
   /**
@@ -980,106 +599,12 @@ public class ValidResult extends EvaluationResultImpl {
   }
 
   /**
-   * Checks if this result has type "bool", with known or unknown value.
-   */
-  private boolean isAnyBool() {
-    return isSomeBool() || this == RESULT_TRUE || this == RESULT_FALSE;
-  }
-
-  /**
-   * Checks if this result has type "int", with known or unknown value.
-   */
-  private boolean isAnyInt() {
-    return this == RESULT_INT || value instanceof BigInteger;
-  }
-
-  /**
-   * Checks if this result has one of the types - "bool", "num" or "string"; or may be {@code null}.
-   */
-  private boolean isAnyNullBoolNumString() {
-    return isNull() || isAnyBool() || isAnyNum() || value instanceof String;
-  }
-
-  /**
-   * Checks if this result has type "num", with known or unknown value.
-   */
-  private boolean isAnyNum() {
-    return isSomeNum() || value instanceof Number;
-  }
-
-  /**
-   * Checks if this result has type "bool", exact value of which we don't know.
-   */
-  private boolean isSomeBool() {
-    return this == RESULT_BOOL;
-  }
-
-  /**
-   * Checks if this result has type "int", exact value of which we don't know.
-   */
-  private boolean isSomeInt() {
-    return this == RESULT_INT;
-  }
-
-  /**
-   * Checks if this result has type "num" (or "int"), exact value of which we don't know.
-   */
-  private boolean isSomeNum() {
-    return this == RESULT_DYNAMIC || this == RESULT_INT || this == RESULT_NUM;
-  }
-
-  private Double toDouble(BigInteger value) {
-    return value.doubleValue();
-  }
-
-  /**
-   * Return an error result that is the union of the two given error results.
-   * 
-   * @param firstError the first error to be combined
-   * @param secondError the second error to be combined
-   * @return an error result that is the union of the two given error results
-   */
-  private ErrorResult union(ErrorResult firstError, ErrorResult secondError) {
-    return new ErrorResult(firstError, secondError);
-  }
-
-  /**
    * Return a result object representing the given value.
    * 
    * @param value the value to be represented as a result object
    * @return a result object representing the given value
    */
-  private ValidResult valueOf(BigInteger value) {
-    return new ValidResult(value);
-  }
-
-  /**
-   * Return a result object representing the given value.
-   * 
-   * @param value the value to be represented as a result object
-   * @return a result object representing the given value
-   */
-  private ValidResult valueOf(boolean value) {
-    return value ? RESULT_TRUE : RESULT_FALSE;
-  }
-
-  /**
-   * Return a result object representing the given value.
-   * 
-   * @param value the value to be represented as a result object
-   * @return a result object representing the given value
-   */
-  private ValidResult valueOf(Double value) {
-    return new ValidResult(value);
-  }
-
-  /**
-   * Return a result object representing the given value.
-   * 
-   * @param value the value to be represented as a result object
-   * @return a result object representing the given value
-   */
-  private ValidResult valueOf(String value) {
+  private ValidResult valueOf(DartObjectImpl value) {
     return new ValidResult(value);
   }
 }

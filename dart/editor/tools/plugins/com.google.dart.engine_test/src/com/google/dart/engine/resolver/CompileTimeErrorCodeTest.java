@@ -556,13 +556,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     check_constEvalTypeNum_withParameter_binary("p % ''");
   }
 
-  public void test_constEvalTypeNum_plus_String() throws Exception {
-    Source source = addSource("const C = 'a' + 'b';");
-    resolve(source);
-    assertErrors(source, CompileTimeErrorCode.CONST_EVAL_TYPE_NUM);
-    verify(source);
-  }
-
   public void test_constFormalParameter_fieldFormalParameter() throws Exception {
     Source source = addSource(createSource(//
         "class A {",

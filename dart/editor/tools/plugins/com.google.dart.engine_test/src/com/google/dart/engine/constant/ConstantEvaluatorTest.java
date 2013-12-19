@@ -19,100 +19,99 @@ import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.TopLevelVariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.internal.resolver.TestTypeProvider;
 import com.google.dart.engine.resolver.ResolverTestCase;
 import com.google.dart.engine.source.Source;
-
-import java.math.BigInteger;
 
 public class ConstantEvaluatorTest extends ResolverTestCase {
   public void fail_constructor() throws Exception {
     EvaluationResult result = getExpressionValue("?");
     assertTrue(result.isValid());
-    Object value = result.getValue();
+    DartObject value = result.getValue();
     assertEquals(null, value);
   }
 
   public void fail_identifier_class() throws Exception {
     EvaluationResult result = getExpressionValue("?");
     assertTrue(result.isValid());
-    Object value = result.getValue();
+    DartObject value = result.getValue();
     assertEquals(null, value);
   }
 
   public void fail_identifier_function() throws Exception {
     EvaluationResult result = getExpressionValue("?");
     assertTrue(result.isValid());
-    Object value = result.getValue();
+    DartObject value = result.getValue();
     assertEquals(null, value);
   }
 
   public void fail_identifier_static() throws Exception {
     EvaluationResult result = getExpressionValue("?");
     assertTrue(result.isValid());
-    Object value = result.getValue();
+    DartObject value = result.getValue();
     assertEquals(null, value);
   }
 
   public void fail_identifier_staticMethod() throws Exception {
     EvaluationResult result = getExpressionValue("?");
     assertTrue(result.isValid());
-    Object value = result.getValue();
+    DartObject value = result.getValue();
     assertEquals(null, value);
   }
 
   public void fail_identifier_topLevel() throws Exception {
     EvaluationResult result = getExpressionValue("?");
     assertTrue(result.isValid());
-    Object value = result.getValue();
+    DartObject value = result.getValue();
     assertEquals(null, value);
   }
 
   public void fail_identifier_typeParameter() throws Exception {
     EvaluationResult result = getExpressionValue("?");
     assertTrue(result.isValid());
-    Object value = result.getValue();
+    DartObject value = result.getValue();
     assertEquals(null, value);
   }
 
   public void fail_prefixedIdentifier_invalid() throws Exception {
     EvaluationResult result = getExpressionValue("?");
     assertTrue(result.isValid());
-    Object value = result.getValue();
+    DartObject value = result.getValue();
     assertEquals(null, value);
   }
 
   public void fail_prefixedIdentifier_valid() throws Exception {
     EvaluationResult result = getExpressionValue("?");
     assertTrue(result.isValid());
-    Object value = result.getValue();
+    DartObject value = result.getValue();
     assertEquals(null, value);
   }
 
   public void fail_propertyAccess_invalid() throws Exception {
     EvaluationResult result = getExpressionValue("?");
     assertTrue(result.isValid());
-    Object value = result.getValue();
+    DartObject value = result.getValue();
     assertEquals(null, value);
   }
 
   public void fail_propertyAccess_valid() throws Exception {
     EvaluationResult result = getExpressionValue("?");
     assertTrue(result.isValid());
-    Object value = result.getValue();
+    DartObject value = result.getValue();
     assertEquals(null, value);
   }
 
   public void fail_simpleIdentifier_invalid() throws Exception {
     EvaluationResult result = getExpressionValue("?");
     assertTrue(result.isValid());
-    Object value = result.getValue();
+    DartObject value = result.getValue();
     assertEquals(null, value);
   }
 
   public void fail_simpleIdentifier_valid() throws Exception {
     EvaluationResult result = getExpressionValue("?");
     assertTrue(result.isValid());
-    Object value = result.getValue();
+    DartObject value = result.getValue();
     assertEquals(null, value);
   }
 
@@ -139,9 +138,9 @@ public class ConstantEvaluatorTest extends ResolverTestCase {
   public void test_divide_double_double_byZero() throws Exception {
     EvaluationResult result = getExpressionValue("3.2 / 0.0");
     assertTrue(result.isValid());
-    Object value = result.getValue();
-    assertInstanceOf(Double.class, value);
-    assertTrue(((Double) value).isInfinite());
+    DartObject value = result.getValue();
+    assertEquals("double", value.getType().getName());
+    assertTrue(value.getDoubleValue().isInfinite());
   }
 
   public void test_divide_int_int() throws Exception {
@@ -184,10 +183,7 @@ public class ConstantEvaluatorTest extends ResolverTestCase {
   }
 
   public void test_leftShift_int_int() throws Exception {
-    EvaluationResult result = getExpressionValue("16 << 2");
-    assertTrue(result.isValid());
-    // we cannot always evaluate "shift left" because of possible overflow
-    assertEquals(0, result.getValue());
+    assertValue(64, "16 << 2");
   }
 
   public void test_lessThan_int_int() throws Exception {
@@ -219,8 +215,8 @@ public class ConstantEvaluatorTest extends ResolverTestCase {
   public void test_literal_null() throws Exception {
     EvaluationResult result = getExpressionValue("null");
     assertTrue(result.isValid());
-    Object value = result.getValue();
-    assertEquals(null, value);
+    DartObject value = result.getValue();
+    assertTrue(value.isNull());
   }
 
   public void test_literal_number_double() throws Exception {
@@ -347,30 +343,32 @@ public class ConstantEvaluatorTest extends ResolverTestCase {
 
   private void assertValue(boolean expectedValue, String contents) throws Exception {
     EvaluationResult result = getExpressionValue(contents);
-    Object value = result.getValue();
-    assertEquals(expectedValue ? Boolean.TRUE : Boolean.FALSE, value);
+    DartObject value = result.getValue();
+    assertEquals("bool", value.getType().getName());
+    assertEquals(expectedValue, value.getBoolValue());
   }
 
   private void assertValue(double expectedValue, String contents) throws Exception {
     EvaluationResult result = getExpressionValue(contents);
     assertTrue(result.isValid());
-    Object value = result.getValue();
-    assertInstanceOf(Double.class, value);
-    assertEquals(expectedValue, ((Double) value).doubleValue(), 0.0);
+    DartObject value = result.getValue();
+    assertEquals("double", value.getType().getName());
+    assertEquals(expectedValue, value.getDoubleValue().doubleValue(), 0.0);
   }
 
   private void assertValue(long expectedValue, String contents) throws Exception {
     EvaluationResult result = getExpressionValue(contents);
     assertTrue(result.isValid());
-    Object value = result.getValue();
-    assertInstanceOf(BigInteger.class, value);
-    assertEquals(expectedValue, ((BigInteger) value).longValue());
+    DartObject value = result.getValue();
+    assertEquals("int", value.getType().getName());
+    assertEquals(expectedValue, value.getIntValue().longValue());
   }
 
   private void assertValue(String expectedValue, String contents) throws Exception {
     EvaluationResult result = getExpressionValue(contents);
-    Object value = result.getValue();
-    assertEquals(expectedValue, value);
+    DartObject value = result.getValue();
+    assertEquals("String", value.getType().getName());
+    assertEquals(expectedValue, value.getStringValue());
   }
 
   private EvaluationResult getExpressionValue(String contents) throws Exception {
@@ -384,7 +382,7 @@ public class ConstantEvaluatorTest extends ResolverTestCase {
     assertInstanceOf(TopLevelVariableDeclaration.class, declaration);
     NodeList<VariableDeclaration> variables = ((TopLevelVariableDeclaration) declaration).getVariables().getVariables();
     assertSize(1, variables);
-    ConstantEvaluator evaluator = new ConstantEvaluator(source);
+    ConstantEvaluator evaluator = new ConstantEvaluator(source, new TestTypeProvider());
     return evaluator.evaluate(variables.get(0).getInitializer());
   }
 }

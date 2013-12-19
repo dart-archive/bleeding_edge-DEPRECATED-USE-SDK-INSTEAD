@@ -38,14 +38,14 @@ public class EvaluationResult {
    * @param value the value of the expression
    * @return the result of evaluating an expression that is a compile-time constant
    */
-  public static EvaluationResult forValue(Object value) {
+  public static EvaluationResult forValue(DartObject value) {
     return new EvaluationResult(value, null);
   }
 
   /**
    * The value of the expression.
    */
-  private Object value;
+  private DartObject value;
 
   /**
    * The errors that should be reported for the expression(s) that were evaluated.
@@ -59,7 +59,7 @@ public class EvaluationResult {
    * @param value the value of the expression
    * @param errors the errors that should be reported for the expression(s) that were evaluated
    */
-  private EvaluationResult(Object value, AnalysisError[] errors) {
+  private EvaluationResult(DartObject value, AnalysisError[] errors) {
     this.value = value;
     this.errors = errors;
   }
@@ -81,7 +81,7 @@ public class EvaluationResult {
    * 
    * @return the value of the expression
    */
-  public Object getValue() {
+  public DartObject getValue() {
     return value;
   }
 

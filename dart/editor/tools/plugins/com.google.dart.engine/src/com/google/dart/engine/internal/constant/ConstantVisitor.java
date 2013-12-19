@@ -47,15 +47,37 @@ import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
+import com.google.dart.engine.element.FieldFormalParameterElement;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.error.CompileTimeErrorCode;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.internal.element.VariableElementImpl;
+import com.google.dart.engine.internal.object.BoolState;
+import com.google.dart.engine.internal.object.DartObjectImpl;
+import com.google.dart.engine.internal.object.DoubleState;
+import com.google.dart.engine.internal.object.FunctionState;
+import com.google.dart.engine.internal.object.GenericState;
+import com.google.dart.engine.internal.object.InstanceState;
+import com.google.dart.engine.internal.object.IntState;
+import com.google.dart.engine.internal.object.ListState;
+import com.google.dart.engine.internal.object.MapState;
+import com.google.dart.engine.internal.object.NullState;
+import com.google.dart.engine.internal.object.StringState;
+import com.google.dart.engine.internal.object.SymbolState;
+import com.google.dart.engine.internal.object.TypeState;
+import com.google.dart.engine.internal.resolver.TypeProvider;
+import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
+import com.google.dart.engine.type.InterfaceType;
+import com.google.dart.engine.utilities.dart.ParameterKind;
+
+import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
  * Instances of the class {@code ConstantVisitor} evaluate constant expressions to produce their
@@ -65,37 +87,61 @@ import com.google.dart.engine.scanner.TokenType;
  * <li>A literal number.</li>
  * <li>A literal boolean.</li>
  * <li>A literal string where any interpolated expression is a compile-time constant that evaluates
- * to a numeric, string or boolean value or to {@code null}.</li>
- * <li>{@code null}.</li>
- * <li>A reference to a static constant variable.</li>
- * <li>An identifier expression that denotes a constant variable, a class or a type parameter.</li>
+ * to a numeric, string or boolean value or to <b>null</b>.</li>
+ * <li>A literal symbol.</li>
+ * <li><b>null</b>.</li>
+ * <li>A qualified reference to a static constant variable.</li>
+ * <li>An identifier expression that denotes a constant variable, class or type alias.</li>
  * <li>A constant constructor invocation.</li>
  * <li>A constant list literal.</li>
  * <li>A constant map literal.</li>
  * <li>A simple or qualified identifier denoting a top-level function or a static method.</li>
- * <li>A parenthesized expression {@code (e)} where {@code e} is a constant expression.</li>
- * <li>An expression of one of the forms {@code identical(e1, e2)}, {@code e1 == e2},
- * {@code e1 != e2} where {@code e1} and {@code e2} are constant expressions that evaluate to a
- * numeric, string or boolean value or to {@code null}.</li>
- * <li>An expression of one of the forms {@code !e}, {@code e1 && e2} or {@code e1 || e2}, where
- * {@code e}, {@code e1} and {@code e2} are constant expressions that evaluate to a boolean value or
- * to {@code null}.</li>
- * <li>An expression of one of the forms {@code ~e}, {@code e1 ^ e2}, {@code e1 & e2},
- * {@code e1 | e2}, {@code e1 >> e2} or {@code e1 << e2}, where {@code e}, {@code e1} and {@code e2}
- * are constant expressions that evaluate to an integer value or to {@code null}.</li>
- * <li>An expression of one of the forms {@code -e}, {@code e1 + e2}, {@code e1 - e2},
- * {@code e1 * e2}, {@code e1 / e2}, {@code e1 ~/ e2}, {@code e1 > e2}, {@code e1 < e2},
- * {@code e1 >= e2}, {@code e1 <= e2} or {@code e1 % e2}, where {@code e}, {@code e1} and {@code e2}
- * are constant expressions that evaluate to a numeric value or to {@code null}.</li>
+ * <li>A parenthesized expression <i>(e)</i> where <i>e</i> is a constant expression.</li>
+ * <li>An expression of the form <i>identical(e<sub>1</sub>, e<sub>2</sub>)</i> where
+ * <i>e<sub>1</sub></i> and <i>e<sub>2</sub></i> are constant expressions and <i>identical()</i> is
+ * statically bound to the predefined dart function <i>identical()</i> discussed above.</li>
+ * <li>An expression of one of the forms <i>e<sub>1</sub> == e<sub>2</sub></i> or <i>e<sub>1</sub>
+ * != e<sub>2</sub></i> where <i>e<sub>1</sub></i> and <i>e<sub>2</sub></i> are constant expressions
+ * that evaluate to a numeric, string or boolean value.</li>
+ * <li>An expression of one of the forms <i>!e</i>, <i>e<sub>1</sub> &amp;&amp; e<sub>2</sub></i> or
+ * <i>e<sub>1</sub> || e<sub>2</sub></i>, where <i>e</i>, <i>e1</sub></i> and <i>e2</sub></i> are
+ * constant expressions that evaluate to a boolean value.</li>
+ * <li>An expression of one of the forms <i>~e</i>, <i>e<sub>1</sub> ^ e<sub>2</sub></i>,
+ * <i>e<sub>1</sub> &amp; e<sub>2</sub></i>, <i>e<sub>1</sub> | e<sub>2</sub></i>, <i>e<sub>1</sub>
+ * &gt;&gt; e<sub>2</sub></i> or <i>e<sub>1</sub> &lt;&lt; e<sub>2</sub></i>, where <i>e</i>,
+ * <i>e<sub>1</sub></i> and <i>e<sub>2</sub></i> are constant expressions that evaluate to an
+ * integer value or to <b>null</b>.</li>
+ * <li>An expression of one of the forms <i>-e</i>, <i>e<sub>1</sub> + e<sub>2</sub></i>,
+ * <i>e<sub>1</sub> - e<sub>2</sub></i>, <i>e<sub>1</sub> * e<sub>2</sub></i>, <i>e<sub>1</sub> /
+ * e<sub>2</sub></i>, <i>e<sub>1</sub> ~/ e<sub>2</sub></i>, <i>e<sub>1</sub> &gt;
+ * e<sub>2</sub></i>, <i>e<sub>1</sub> &lt; e<sub>2</sub></i>, <i>e<sub>1</sub> &gt;=
+ * e<sub>2</sub></i>, <i>e<sub>1</sub> &lt;= e<sub>2</sub></i> or <i>e<sub>1</sub> %
+ * e<sub>2</sub></i>, where <i>e</i>, <i>e<sub>1</sub></i> and <i>e<sub>2</sub></i> are constant
+ * expressions that evaluate to a numeric value or to <b>null</b>.</li>
+ * <li>An expression of the form <i>e<sub>1</sub> ? e<sub>2</sub> : e<sub>3</sub></i> where
+ * <i>e<sub>1</sub></i>, <i>e<sub>2</sub></i> and <i>e<sub>3</sub></i> are constant expressions, and
+ * <i>e<sub>1</sub></i> evaluates to a boolean value.</li>
  * </ul>
  * </blockquote>
  */
 public class ConstantVisitor extends UnifyingASTVisitor<EvaluationResultImpl> {
   /**
-   * Initialize a newly created constant visitor.
+   * The type provider used to access the known types.
    */
-  public ConstantVisitor() {
-    super();
+  private TypeProvider typeProvider;
+
+  /**
+   * An shared object representing the value 'null'.
+   */
+  private DartObjectImpl nullObject;
+
+  /**
+   * Initialize a newly created constant visitor.
+   * 
+   * @param typeProvider the type provider used to access known types
+   */
+  public ConstantVisitor(TypeProvider typeProvider) {
+    this.typeProvider = typeProvider;
   }
 
   @Override
@@ -105,7 +151,7 @@ public class ConstantVisitor extends UnifyingASTVisitor<EvaluationResultImpl> {
       if (result == null) {
         result = string.accept(this);
       } else {
-        result = result.concatenate(node, string.accept(this));
+        result = result.concatenate(typeProvider, node, string.accept(this));
       }
     }
     return result;
@@ -126,43 +172,43 @@ public class ConstantVisitor extends UnifyingASTVisitor<EvaluationResultImpl> {
     // evaluate operator
     switch (operatorType) {
       case AMPERSAND:
-        return leftResult.bitAnd(node, rightResult);
+        return leftResult.bitAnd(typeProvider, node, rightResult);
       case AMPERSAND_AMPERSAND:
-        return leftResult.logicalAnd(node, rightResult);
+        return leftResult.logicalAnd(typeProvider, node, rightResult);
       case BANG_EQ:
-        return leftResult.notEqual(node, rightResult);
+        return leftResult.notEqual(typeProvider, node, rightResult);
       case BAR:
-        return leftResult.bitOr(node, rightResult);
+        return leftResult.bitOr(typeProvider, node, rightResult);
       case BAR_BAR:
-        return leftResult.logicalOr(node, rightResult);
+        return leftResult.logicalOr(typeProvider, node, rightResult);
       case CARET:
-        return leftResult.bitXor(node, rightResult);
+        return leftResult.bitXor(typeProvider, node, rightResult);
       case EQ_EQ:
-        return leftResult.equalEqual(node, rightResult);
+        return leftResult.equalEqual(typeProvider, node, rightResult);
       case GT:
-        return leftResult.greaterThan(node, rightResult);
+        return leftResult.greaterThan(typeProvider, node, rightResult);
       case GT_EQ:
-        return leftResult.greaterThanOrEqual(node, rightResult);
+        return leftResult.greaterThanOrEqual(typeProvider, node, rightResult);
       case GT_GT:
-        return leftResult.shiftRight(node, rightResult);
+        return leftResult.shiftRight(typeProvider, node, rightResult);
       case LT:
-        return leftResult.lessThan(node, rightResult);
+        return leftResult.lessThan(typeProvider, node, rightResult);
       case LT_EQ:
-        return leftResult.lessThanOrEqual(node, rightResult);
+        return leftResult.lessThanOrEqual(typeProvider, node, rightResult);
       case LT_LT:
-        return leftResult.shiftLeft(node, rightResult);
+        return leftResult.shiftLeft(typeProvider, node, rightResult);
       case MINUS:
-        return leftResult.minus(node, rightResult);
+        return leftResult.minus(typeProvider, node, rightResult);
       case PERCENT:
-        return leftResult.remainder(node, rightResult);
+        return leftResult.remainder(typeProvider, node, rightResult);
       case PLUS:
-        return leftResult.add(node, rightResult);
+        return leftResult.add(typeProvider, node, rightResult);
       case STAR:
-        return leftResult.times(node, rightResult);
+        return leftResult.times(typeProvider, node, rightResult);
       case SLASH:
-        return leftResult.divide(node, rightResult);
+        return leftResult.divide(typeProvider, node, rightResult);
       case TILDE_SLASH:
-        return leftResult.integerDivide(node, rightResult);
+        return leftResult.integerDivide(typeProvider, node, rightResult);
     }
     // TODO(brianwilkerson) Figure out which error to report.
     return error(node, null);
@@ -170,31 +216,42 @@ public class ConstantVisitor extends UnifyingASTVisitor<EvaluationResultImpl> {
 
   @Override
   public EvaluationResultImpl visitBooleanLiteral(BooleanLiteral node) {
-    return node.getValue() ? ValidResult.RESULT_TRUE : ValidResult.RESULT_FALSE;
+    return valid(typeProvider.getBoolType(), BoolState.from(node.getValue()));
   }
 
   @Override
   public EvaluationResultImpl visitConditionalExpression(ConditionalExpression node) {
     Expression condition = node.getCondition();
     EvaluationResultImpl conditionResult = condition.accept(this);
-    conditionResult = conditionResult.applyBooleanConversion(condition);
+    EvaluationResultImpl thenResult = node.getThenExpression().accept(this);
+    EvaluationResultImpl elseResult = node.getElseExpression().accept(this);
+    if (conditionResult instanceof ErrorResult) {
+      return union(union((ErrorResult) conditionResult, thenResult), elseResult);
+    } else if (!((ValidResult) conditionResult).isBool()) {
+      return new ErrorResult(condition, CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL);
+    } else if (thenResult instanceof ErrorResult) {
+      return union((ErrorResult) thenResult, elseResult);
+    } else if (elseResult instanceof ErrorResult) {
+      return elseResult;
+    }
+    conditionResult = conditionResult.applyBooleanConversion(typeProvider, condition);
     if (conditionResult instanceof ErrorResult) {
       return conditionResult;
     }
-    EvaluationResultImpl thenResult = node.getThenExpression().accept(this);
-    if (thenResult instanceof ErrorResult) {
+    ValidResult validResult = (ValidResult) conditionResult;
+    if (validResult.isTrue()) {
       return thenResult;
-    }
-    EvaluationResultImpl elseResult = node.getElseExpression().accept(this);
-    if (elseResult instanceof ErrorResult) {
+    } else if (validResult.isFalse()) {
       return elseResult;
     }
-    return (conditionResult == ValidResult.RESULT_TRUE) ? thenResult : elseResult;
+    InterfaceType thenType = ((ValidResult) thenResult).getValue().getType();
+    InterfaceType elseType = ((ValidResult) elseResult).getValue().getType();
+    return valid((InterfaceType) thenType.getLeastUpperBound(elseType));
   }
 
   @Override
   public EvaluationResultImpl visitDoubleLiteral(DoubleLiteral node) {
-    return new ValidResult(Double.valueOf(node.getValue()));
+    return valid(typeProvider.getDoubleType(), new DoubleState(node.getValue()));
   }
 
   @Override
@@ -205,8 +262,54 @@ public class ConstantVisitor extends UnifyingASTVisitor<EvaluationResultImpl> {
     }
     ConstructorElement constructor = node.getStaticElement();
     if (constructor != null && constructor.isConst()) {
-      node.getArgumentList().accept(this);
-      return ValidResult.RESULT_OBJECT;
+      NodeList<Expression> arguments = node.getArgumentList().getArguments();
+      int argumentCount = arguments.size();
+      DartObjectImpl[] argumentValues = new DartObjectImpl[argumentCount];
+      HashMap<String, DartObjectImpl> namedArgumentValues = new HashMap<String, DartObjectImpl>();
+      for (int i = 0; i < argumentCount; i++) {
+        Expression argument = arguments.get(i);
+        if (argument instanceof NamedExpression) {
+          NamedExpression namedExpression = (NamedExpression) argument;
+          String name = namedExpression.getName().getLabel().getName();
+          namedArgumentValues.put(name, valueOf(namedExpression.getExpression()));
+          argumentValues[i] = getNull();
+        } else {
+          argumentValues[i] = valueOf(argument);
+        }
+      }
+      InterfaceType definingClass = (InterfaceType) constructor.getReturnType();
+      if (definingClass.getElement().getLibrary().isDartCore()) {
+        String className = definingClass.getName();
+        if (className.equals("Symbol") && argumentCount == 1) {
+          String argumentValue = argumentValues[0].getStringValue();
+          if (argumentValue != null) {
+            return valid(definingClass, new SymbolState(argumentValue));
+          }
+        }
+      }
+      HashMap<String, DartObjectImpl> fieldMap = new HashMap<String, DartObjectImpl>();
+      ParameterElement[] parameters = constructor.getParameters();
+      int parameterCount = parameters.length;
+      for (int i = 0; i < parameterCount; i++) {
+        ParameterElement parameter = parameters[i];
+        if (parameter.isInitializingFormal()) {
+          String fieldName = ((FieldFormalParameterElement) parameter).getField().getName();
+          if (parameter.getParameterKind() == ParameterKind.NAMED) {
+            DartObjectImpl argumentValue = namedArgumentValues.get(parameter.getName());
+            if (argumentValue != null) {
+              fieldMap.put(fieldName, argumentValue);
+            }
+          } else if (i < argumentCount) {
+            fieldMap.put(fieldName, argumentValues[i]);
+            // Otherwise, the parameter is assumed to be an optional positional parameter for which
+            // no value was provided.
+          }
+        }
+      }
+      // TODO(brianwilkerson) This doesn't handle fields initialized in an initializer. We should be
+      // able to handle fields initialized by the superclass' constructor fairly easily, but other
+      // initializers will be harder.
+      return valid(definingClass, new GenericState(fieldMap));
     }
     // TODO(brianwilkerson) Figure out which error to report.
     return error(node, null);
@@ -214,18 +317,21 @@ public class ConstantVisitor extends UnifyingASTVisitor<EvaluationResultImpl> {
 
   @Override
   public EvaluationResultImpl visitIntegerLiteral(IntegerLiteral node) {
-    return new ValidResult(node.getValue());
+    return valid(typeProvider.getIntType(), new IntState(node.getValue()));
   }
 
   @Override
   public EvaluationResultImpl visitInterpolationExpression(InterpolationExpression node) {
     EvaluationResultImpl result = node.getExpression().accept(this);
-    return result.performToString(node);
+    if (result instanceof ValidResult && !((ValidResult) result).isBoolNumStringOrNull()) {
+      return error(node, CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING);
+    }
+    return result.performToString(typeProvider, node);
   }
 
   @Override
   public EvaluationResultImpl visitInterpolationString(InterpolationString node) {
-    return new ValidResult(node.getValue());
+    return valid(typeProvider.getStringType(), new StringState(node.getValue()));
   }
 
   @Override
@@ -234,13 +340,20 @@ public class ConstantVisitor extends UnifyingASTVisitor<EvaluationResultImpl> {
       return new ErrorResult(node, CompileTimeErrorCode.MISSING_CONST_IN_LIST_LITERAL);
     }
     ErrorResult result = null;
+    ArrayList<DartObjectImpl> elements = new ArrayList<DartObjectImpl>();
     for (Expression element : node.getElements()) {
-      result = union(result, element.accept(this));
+      EvaluationResultImpl elementResult = element.accept(this);
+      result = union(result, elementResult);
+      if (elementResult instanceof ValidResult) {
+        elements.add(((ValidResult) elementResult).getValue());
+      }
     }
     if (result != null) {
       return result;
     }
-    return ValidResult.RESULT_OBJECT;
+    return valid(
+        typeProvider.getListType(),
+        new ListState(elements.toArray(new DartObjectImpl[elements.size()])));
   }
 
   @Override
@@ -249,14 +362,20 @@ public class ConstantVisitor extends UnifyingASTVisitor<EvaluationResultImpl> {
       return new ErrorResult(node, CompileTimeErrorCode.MISSING_CONST_IN_MAP_LITERAL);
     }
     ErrorResult result = null;
+    HashMap<DartObjectImpl, DartObjectImpl> map = new HashMap<DartObjectImpl, DartObjectImpl>();
     for (MapLiteralEntry entry : node.getEntries()) {
-      result = union(result, entry.getKey().accept(this));
-      result = union(result, entry.getValue().accept(this));
+      EvaluationResultImpl keyResult = entry.getKey().accept(this);
+      EvaluationResultImpl valueResult = entry.getValue().accept(this);
+      result = union(result, keyResult);
+      result = union(result, valueResult);
+      if (keyResult instanceof ValidResult && valueResult instanceof ValidResult) {
+        map.put(((ValidResult) keyResult).getValue(), ((ValidResult) valueResult).getValue());
+      }
     }
     if (result != null) {
       return result;
     }
-    return ValidResult.RESULT_OBJECT;
+    return valid(typeProvider.getMapType(), new MapState(map));
   }
 
   @Override
@@ -273,7 +392,7 @@ public class ConstantVisitor extends UnifyingASTVisitor<EvaluationResultImpl> {
             if (library.isDartCore()) {
               EvaluationResultImpl leftArgument = arguments.get(0).accept(this);
               EvaluationResultImpl rightArgument = arguments.get(1).accept(this);
-              return leftArgument.equalEqual(node, rightArgument);
+              return leftArgument.equalEqual(typeProvider, node, rightArgument);
             }
           }
         }
@@ -296,7 +415,7 @@ public class ConstantVisitor extends UnifyingASTVisitor<EvaluationResultImpl> {
 
   @Override
   public EvaluationResultImpl visitNullLiteral(NullLiteral node) {
-    return ValidResult.RESULT_NULL;
+    return new ValidResult(getNull());
   }
 
   @Override
@@ -327,11 +446,11 @@ public class ConstantVisitor extends UnifyingASTVisitor<EvaluationResultImpl> {
     }
     switch (node.getOperator().getType()) {
       case BANG:
-        return operand.logicalNot(node);
+        return operand.logicalNot(typeProvider, node);
       case TILDE:
-        return operand.bitNot(node);
+        return operand.bitNot(typeProvider, node);
       case MINUS:
-        return operand.negated(node);
+        return operand.negated(typeProvider, node);
     }
     // TODO(brianwilkerson) Figure out which error to report.
     return error(node, null);
@@ -349,7 +468,7 @@ public class ConstantVisitor extends UnifyingASTVisitor<EvaluationResultImpl> {
 
   @Override
   public EvaluationResultImpl visitSimpleStringLiteral(SimpleStringLiteral node) {
-    return new ValidResult(node.getValue());
+    return valid(typeProvider.getStringType(), new StringState(node.getValue()));
   }
 
   @Override
@@ -359,7 +478,7 @@ public class ConstantVisitor extends UnifyingASTVisitor<EvaluationResultImpl> {
       if (result == null) {
         result = element.accept(this);
       } else {
-        result = result.concatenate(node, element.accept(this));
+        result = result.concatenate(typeProvider, node, element.accept(this));
       }
     }
     return result;
@@ -367,7 +486,15 @@ public class ConstantVisitor extends UnifyingASTVisitor<EvaluationResultImpl> {
 
   @Override
   public EvaluationResultImpl visitSymbolLiteral(SymbolLiteral node) {
-    return ValidResult.RESULT_SYMBOL;
+    StringBuilder builder = new StringBuilder();
+    Token[] components = node.getComponents();
+    for (int i = 0; i < components.length; i++) {
+      if (i > 0) {
+        builder.append('.');
+      }
+      builder.append(components[i].getLexeme());
+    }
+    return valid(typeProvider.getSymbolType(), new SymbolState(builder.toString()));
   }
 
   /**
@@ -399,14 +526,27 @@ public class ConstantVisitor extends UnifyingASTVisitor<EvaluationResultImpl> {
         return value;
       }
     } else if (element instanceof ExecutableElement) {
-      if (((ExecutableElement) element).isStatic()) {
-        return new ValidResult(element);
+      ExecutableElement function = (ExecutableElement) element;
+      if (function.isStatic()) {
+        return valid(typeProvider.getFunctionType(), new FunctionState(function));
       }
     } else if (element instanceof ClassElement || element instanceof FunctionTypeAliasElement) {
-      return ValidResult.RESULT_OBJECT;
+      return valid(typeProvider.getTypeType(), new TypeState(element));
     }
     // TODO(brianwilkerson) Figure out which error to report.
     return error(node, null);
+  }
+
+  /**
+   * Return an object representing the value 'null'.
+   * 
+   * @return an object representing the value 'null'
+   */
+  private DartObjectImpl getNull() {
+    if (nullObject == null) {
+      nullObject = new DartObjectImpl(typeProvider.getNullType(), NullState.NULL_STATE);
+    }
+    return nullObject;
   }
 
   /**
@@ -427,5 +567,40 @@ public class ConstantVisitor extends UnifyingASTVisitor<EvaluationResultImpl> {
       }
     }
     return leftResult;
+  }
+
+  private ValidResult valid(InterfaceType type) {
+    if (type.getElement().getLibrary().isDartCore()) {
+      String typeName = type.getName();
+      if (typeName.equals("bool")) {
+        return valid(type, BoolState.UNKNOWN_VALUE);
+      } else if (typeName.equals("double")) {
+        return valid(type, DoubleState.UNKNOWN_VALUE);
+      } else if (typeName.equals("int")) {
+        return valid(type, IntState.UNKNOWN_VALUE);
+      } else if (typeName.equals("String")) {
+        return valid(type, StringState.UNKNOWN_VALUE);
+      }
+    }
+    return valid(type, GenericState.UNKNOWN_VALUE);
+  }
+
+  private ValidResult valid(InterfaceType type, InstanceState state) {
+    return new ValidResult(new DartObjectImpl(type, state));
+  }
+
+  /**
+   * Return the value of the given expression, or a representation of 'null' if the expression
+   * cannot be evaluated.
+   * 
+   * @param expression the expression whose value is to be returned
+   * @return the value of the given expression
+   */
+  private DartObjectImpl valueOf(Expression expression) {
+    EvaluationResultImpl expressionValue = expression.accept(this);
+    if (expressionValue instanceof ValidResult) {
+      return ((ValidResult) expressionValue).getValue();
+    }
+    return getNull();
   }
 }

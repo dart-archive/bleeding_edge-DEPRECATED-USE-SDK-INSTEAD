@@ -22,6 +22,7 @@ import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationList;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.internal.element.VariableElementImpl;
+import com.google.dart.engine.internal.resolver.TestTypeProvider;
 import com.google.dart.engine.resolver.ResolverTestCase;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.logging.Logger;
@@ -45,7 +46,7 @@ public class ConstantValueComputerTest extends ResolverTestCase {
       getAnalysisContext().computeErrors(librarySource);
       assertNotNull(unit);
 
-      ConstantValueComputer computer = new ConstantValueComputer();
+      ConstantValueComputer computer = new ConstantValueComputer(new TestTypeProvider());
       computer.add(unit);
       computer.computeValues();
       NodeList<CompilationUnitMember> members = unit.getDeclarations();
@@ -69,7 +70,7 @@ public class ConstantValueComputerTest extends ResolverTestCase {
         libraryElement);
     assertNotNull(unit);
 
-    ConstantValueComputer computer = new ConstantValueComputer();
+    ConstantValueComputer computer = new ConstantValueComputer(new TestTypeProvider());
     computer.add(unit);
     computer.computeValues();
     NodeList<CompilationUnitMember> members = unit.getDeclarations();
@@ -79,7 +80,7 @@ public class ConstantValueComputerTest extends ResolverTestCase {
   }
 
   public void test_computeValues_empty() {
-    ConstantValueComputer computer = new ConstantValueComputer();
+    ConstantValueComputer computer = new ConstantValueComputer(new TestTypeProvider());
     computer.computeValues();
   }
 
@@ -103,7 +104,7 @@ public class ConstantValueComputerTest extends ResolverTestCase {
         libraryElement);
     assertNotNull(partUnit);
 
-    ConstantValueComputer computer = new ConstantValueComputer();
+    ConstantValueComputer computer = new ConstantValueComputer(new TestTypeProvider());
     computer.add(libraryUnit);
     computer.add(partUnit);
     computer.computeValues();
@@ -127,7 +128,7 @@ public class ConstantValueComputerTest extends ResolverTestCase {
         libraryElement);
     assertNotNull(unit);
 
-    ConstantValueComputer computer = new ConstantValueComputer();
+    ConstantValueComputer computer = new ConstantValueComputer(new TestTypeProvider());
     computer.add(unit);
     computer.computeValues();
     NodeList<CompilationUnitMember> members = unit.getDeclarations();

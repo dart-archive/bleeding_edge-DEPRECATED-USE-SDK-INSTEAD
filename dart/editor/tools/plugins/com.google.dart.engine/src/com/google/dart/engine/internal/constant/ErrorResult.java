@@ -17,6 +17,7 @@ import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.error.ErrorCode;
+import com.google.dart.engine.internal.resolver.TypeProvider;
 
 import java.util.ArrayList;
 
@@ -96,52 +97,59 @@ public class ErrorResult extends EvaluationResultImpl {
   }
 
   @Override
-  public EvaluationResultImpl add(BinaryExpression node, EvaluationResultImpl rightOperand) {
+  public EvaluationResultImpl add(TypeProvider typeProvider, BinaryExpression node,
+      EvaluationResultImpl rightOperand) {
     return rightOperand.addToError(node, this);
   }
 
   @Override
-  public EvaluationResultImpl applyBooleanConversion(ASTNode node) {
+  public EvaluationResultImpl applyBooleanConversion(TypeProvider typeProvider, ASTNode node) {
     return this;
   }
 
   @Override
-  public EvaluationResultImpl bitAnd(BinaryExpression node, EvaluationResultImpl rightOperand) {
+  public EvaluationResultImpl bitAnd(TypeProvider typeProvider, BinaryExpression node,
+      EvaluationResultImpl rightOperand) {
     return rightOperand.bitAndError(node, this);
   }
 
   @Override
-  public EvaluationResultImpl bitNot(Expression node) {
+  public EvaluationResultImpl bitNot(TypeProvider typeProvider, Expression node) {
     return this;
   }
 
   @Override
-  public EvaluationResultImpl bitOr(BinaryExpression node, EvaluationResultImpl rightOperand) {
+  public EvaluationResultImpl bitOr(TypeProvider typeProvider, BinaryExpression node,
+      EvaluationResultImpl rightOperand) {
     return rightOperand.bitOrError(node, this);
   }
 
   @Override
-  public EvaluationResultImpl bitXor(BinaryExpression node, EvaluationResultImpl rightOperand) {
+  public EvaluationResultImpl bitXor(TypeProvider typeProvider, BinaryExpression node,
+      EvaluationResultImpl rightOperand) {
     return rightOperand.bitXorError(node, this);
   }
 
   @Override
-  public EvaluationResultImpl concatenate(Expression node, EvaluationResultImpl rightOperand) {
+  public EvaluationResultImpl concatenate(TypeProvider typeProvider, Expression node,
+      EvaluationResultImpl rightOperand) {
     return rightOperand.concatenateError(node, this);
   }
 
   @Override
-  public EvaluationResultImpl divide(BinaryExpression node, EvaluationResultImpl rightOperand) {
+  public EvaluationResultImpl divide(TypeProvider typeProvider, BinaryExpression node,
+      EvaluationResultImpl rightOperand) {
     return rightOperand.divideError(node, this);
   }
 
   @Override
-  public EvaluationResultImpl equalEqual(Expression node, EvaluationResultImpl rightOperand) {
+  public EvaluationResultImpl equalEqual(TypeProvider typeProvider, Expression node,
+      EvaluationResultImpl rightOperand) {
     return rightOperand.equalEqualError(node, this);
   }
 
   @Override
-  public boolean equalValues(EvaluationResultImpl result) {
+  public boolean equalValues(TypeProvider typeProvider, EvaluationResultImpl result) {
     return false;
   }
 
@@ -150,89 +158,101 @@ public class ErrorResult extends EvaluationResultImpl {
   }
 
   @Override
-  public EvaluationResultImpl greaterThan(BinaryExpression node, EvaluationResultImpl rightOperand) {
+  public EvaluationResultImpl greaterThan(TypeProvider typeProvider, BinaryExpression node,
+      EvaluationResultImpl rightOperand) {
     return rightOperand.greaterThanError(node, this);
   }
 
   @Override
-  public EvaluationResultImpl greaterThanOrEqual(BinaryExpression node,
+  public EvaluationResultImpl greaterThanOrEqual(TypeProvider typeProvider, BinaryExpression node,
       EvaluationResultImpl rightOperand) {
     return rightOperand.greaterThanOrEqualError(node, this);
   }
 
   @Override
-  public EvaluationResultImpl integerDivide(BinaryExpression node, EvaluationResultImpl rightOperand) {
+  public EvaluationResultImpl integerDivide(TypeProvider typeProvider, BinaryExpression node,
+      EvaluationResultImpl rightOperand) {
     return rightOperand.integerDivideError(node, this);
   }
 
   @Override
-  public EvaluationResultImpl integerDivideValid(BinaryExpression node, ValidResult leftOperand) {
+  public EvaluationResultImpl integerDivideValid(TypeProvider typeProvider, BinaryExpression node,
+      ValidResult leftOperand) {
     return this;
   }
 
   @Override
-  public EvaluationResultImpl lessThan(BinaryExpression node, EvaluationResultImpl rightOperand) {
+  public EvaluationResultImpl lessThan(TypeProvider typeProvider, BinaryExpression node,
+      EvaluationResultImpl rightOperand) {
     return rightOperand.lessThanError(node, this);
   }
 
   @Override
-  public EvaluationResultImpl lessThanOrEqual(BinaryExpression node,
+  public EvaluationResultImpl lessThanOrEqual(TypeProvider typeProvider, BinaryExpression node,
       EvaluationResultImpl rightOperand) {
     return rightOperand.lessThanOrEqualError(node, this);
   }
 
   @Override
-  public EvaluationResultImpl logicalAnd(BinaryExpression node, EvaluationResultImpl rightOperand) {
+  public EvaluationResultImpl logicalAnd(TypeProvider typeProvider, BinaryExpression node,
+      EvaluationResultImpl rightOperand) {
     return rightOperand.logicalAndError(node, this);
   }
 
   @Override
-  public EvaluationResultImpl logicalNot(Expression node) {
+  public EvaluationResultImpl logicalNot(TypeProvider typeProvider, Expression node) {
     return this;
   }
 
   @Override
-  public EvaluationResultImpl logicalOr(BinaryExpression node, EvaluationResultImpl rightOperand) {
+  public EvaluationResultImpl logicalOr(TypeProvider typeProvider, BinaryExpression node,
+      EvaluationResultImpl rightOperand) {
     return rightOperand.logicalOrError(node, this);
   }
 
   @Override
-  public EvaluationResultImpl minus(BinaryExpression node, EvaluationResultImpl rightOperand) {
+  public EvaluationResultImpl minus(TypeProvider typeProvider, BinaryExpression node,
+      EvaluationResultImpl rightOperand) {
     return rightOperand.minusError(node, this);
   }
 
   @Override
-  public EvaluationResultImpl negated(Expression node) {
+  public EvaluationResultImpl negated(TypeProvider typeProvider, Expression node) {
     return this;
   }
 
   @Override
-  public EvaluationResultImpl notEqual(BinaryExpression node, EvaluationResultImpl rightOperand) {
+  public EvaluationResultImpl notEqual(TypeProvider typeProvider, BinaryExpression node,
+      EvaluationResultImpl rightOperand) {
     return rightOperand.notEqualError(node, this);
   }
 
   @Override
-  public EvaluationResultImpl performToString(ASTNode node) {
+  public EvaluationResultImpl performToString(TypeProvider typeProvider, ASTNode node) {
     return this;
   }
 
   @Override
-  public EvaluationResultImpl remainder(BinaryExpression node, EvaluationResultImpl rightOperand) {
+  public EvaluationResultImpl remainder(TypeProvider typeProvider, BinaryExpression node,
+      EvaluationResultImpl rightOperand) {
     return rightOperand.remainderError(node, this);
   }
 
   @Override
-  public EvaluationResultImpl shiftLeft(BinaryExpression node, EvaluationResultImpl rightOperand) {
+  public EvaluationResultImpl shiftLeft(TypeProvider typeProvider, BinaryExpression node,
+      EvaluationResultImpl rightOperand) {
     return rightOperand.shiftLeftError(node, this);
   }
 
   @Override
-  public EvaluationResultImpl shiftRight(BinaryExpression node, EvaluationResultImpl rightOperand) {
+  public EvaluationResultImpl shiftRight(TypeProvider typeProvider, BinaryExpression node,
+      EvaluationResultImpl rightOperand) {
     return rightOperand.shiftRightError(node, this);
   }
 
   @Override
-  public EvaluationResultImpl times(BinaryExpression node, EvaluationResultImpl rightOperand) {
+  public EvaluationResultImpl times(TypeProvider typeProvider, BinaryExpression node,
+      EvaluationResultImpl rightOperand) {
     return rightOperand.timesError(node, this);
   }
 
@@ -242,7 +262,8 @@ public class ErrorResult extends EvaluationResultImpl {
   }
 
   @Override
-  protected EvaluationResultImpl addToValid(BinaryExpression node, ValidResult leftOperand) {
+  protected EvaluationResultImpl addToValid(TypeProvider typeProvider, BinaryExpression node,
+      ValidResult leftOperand) {
     return this;
   }
 
@@ -252,7 +273,8 @@ public class ErrorResult extends EvaluationResultImpl {
   }
 
   @Override
-  protected EvaluationResultImpl bitAndValid(BinaryExpression node, ValidResult leftOperand) {
+  protected EvaluationResultImpl bitAndValid(TypeProvider typeProvider, BinaryExpression node,
+      ValidResult leftOperand) {
     return this;
   }
 
@@ -262,7 +284,8 @@ public class ErrorResult extends EvaluationResultImpl {
   }
 
   @Override
-  protected EvaluationResultImpl bitOrValid(BinaryExpression node, ValidResult leftOperand) {
+  protected EvaluationResultImpl bitOrValid(TypeProvider typeProvider, BinaryExpression node,
+      ValidResult leftOperand) {
     return this;
   }
 
@@ -272,7 +295,8 @@ public class ErrorResult extends EvaluationResultImpl {
   }
 
   @Override
-  protected EvaluationResultImpl bitXorValid(BinaryExpression node, ValidResult leftOperand) {
+  protected EvaluationResultImpl bitXorValid(TypeProvider typeProvider, BinaryExpression node,
+      ValidResult leftOperand) {
     return this;
   }
 
@@ -282,7 +306,8 @@ public class ErrorResult extends EvaluationResultImpl {
   }
 
   @Override
-  protected EvaluationResultImpl concatenateValid(Expression node, ValidResult leftOperand) {
+  protected EvaluationResultImpl concatenateValid(TypeProvider typeProvider, Expression node,
+      ValidResult leftOperand) {
     return this;
   }
 
@@ -292,7 +317,8 @@ public class ErrorResult extends EvaluationResultImpl {
   }
 
   @Override
-  protected EvaluationResultImpl divideValid(BinaryExpression node, ValidResult leftOperand) {
+  protected EvaluationResultImpl divideValid(TypeProvider typeProvider, BinaryExpression node,
+      ValidResult leftOperand) {
     return this;
   }
 
@@ -302,7 +328,8 @@ public class ErrorResult extends EvaluationResultImpl {
   }
 
   @Override
-  protected EvaluationResultImpl equalEqualValid(Expression node, ValidResult leftOperand) {
+  protected EvaluationResultImpl equalEqualValid(TypeProvider typeProvider, Expression node,
+      ValidResult leftOperand) {
     return this;
   }
 
@@ -318,13 +345,14 @@ public class ErrorResult extends EvaluationResultImpl {
   }
 
   @Override
-  protected EvaluationResultImpl greaterThanOrEqualValid(BinaryExpression node,
-      ValidResult leftOperand) {
+  protected EvaluationResultImpl greaterThanOrEqualValid(TypeProvider typeProvider,
+      BinaryExpression node, ValidResult leftOperand) {
     return this;
   }
 
   @Override
-  protected EvaluationResultImpl greaterThanValid(BinaryExpression node, ValidResult leftOperand) {
+  protected EvaluationResultImpl greaterThanValid(TypeProvider typeProvider, BinaryExpression node,
+      ValidResult leftOperand) {
     return this;
   }
 
@@ -344,12 +372,14 @@ public class ErrorResult extends EvaluationResultImpl {
   }
 
   @Override
-  protected EvaluationResultImpl lessThanOrEqualValid(BinaryExpression node, ValidResult leftOperand) {
+  protected EvaluationResultImpl lessThanOrEqualValid(TypeProvider typeProvider,
+      BinaryExpression node, ValidResult leftOperand) {
     return this;
   }
 
   @Override
-  protected EvaluationResultImpl lessThanValid(BinaryExpression node, ValidResult leftOperand) {
+  protected EvaluationResultImpl lessThanValid(TypeProvider typeProvider, BinaryExpression node,
+      ValidResult leftOperand) {
     return this;
   }
 
@@ -359,7 +389,8 @@ public class ErrorResult extends EvaluationResultImpl {
   }
 
   @Override
-  protected EvaluationResultImpl logicalAndValid(BinaryExpression node, ValidResult leftOperand) {
+  protected EvaluationResultImpl logicalAndValid(TypeProvider typeProvider, BinaryExpression node,
+      ValidResult leftOperand) {
     return this;
   }
 
@@ -369,7 +400,8 @@ public class ErrorResult extends EvaluationResultImpl {
   }
 
   @Override
-  protected EvaluationResultImpl logicalOrValid(BinaryExpression node, ValidResult leftOperand) {
+  protected EvaluationResultImpl logicalOrValid(TypeProvider typeProvider, BinaryExpression node,
+      ValidResult leftOperand) {
     return this;
   }
 
@@ -379,7 +411,8 @@ public class ErrorResult extends EvaluationResultImpl {
   }
 
   @Override
-  protected EvaluationResultImpl minusValid(BinaryExpression node, ValidResult leftOperand) {
+  protected EvaluationResultImpl minusValid(TypeProvider typeProvider, BinaryExpression node,
+      ValidResult leftOperand) {
     return this;
   }
 
@@ -389,7 +422,8 @@ public class ErrorResult extends EvaluationResultImpl {
   }
 
   @Override
-  protected EvaluationResultImpl notEqualValid(BinaryExpression node, ValidResult leftOperand) {
+  protected EvaluationResultImpl notEqualValid(TypeProvider typeProvider, BinaryExpression node,
+      ValidResult leftOperand) {
     return this;
   }
 
@@ -399,7 +433,8 @@ public class ErrorResult extends EvaluationResultImpl {
   }
 
   @Override
-  protected EvaluationResultImpl remainderValid(BinaryExpression node, ValidResult leftOperand) {
+  protected EvaluationResultImpl remainderValid(TypeProvider typeProvider, BinaryExpression node,
+      ValidResult leftOperand) {
     return this;
   }
 
@@ -409,7 +444,8 @@ public class ErrorResult extends EvaluationResultImpl {
   }
 
   @Override
-  protected EvaluationResultImpl shiftLeftValid(BinaryExpression node, ValidResult leftOperand) {
+  protected EvaluationResultImpl shiftLeftValid(TypeProvider typeProvider, BinaryExpression node,
+      ValidResult leftOperand) {
     return this;
   }
 
@@ -419,7 +455,8 @@ public class ErrorResult extends EvaluationResultImpl {
   }
 
   @Override
-  protected EvaluationResultImpl shiftRightValid(BinaryExpression node, ValidResult leftOperand) {
+  protected EvaluationResultImpl shiftRightValid(TypeProvider typeProvider, BinaryExpression node,
+      ValidResult leftOperand) {
     return this;
   }
 
@@ -429,7 +466,8 @@ public class ErrorResult extends EvaluationResultImpl {
   }
 
   @Override
-  protected EvaluationResultImpl timesValid(BinaryExpression node, ValidResult leftOperand) {
+  protected EvaluationResultImpl timesValid(TypeProvider typeProvider, BinaryExpression node,
+      ValidResult leftOperand) {
     return this;
   }
 }

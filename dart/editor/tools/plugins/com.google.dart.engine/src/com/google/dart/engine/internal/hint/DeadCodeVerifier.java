@@ -36,6 +36,8 @@ import com.google.dart.engine.element.PropertyInducingElement;
 import com.google.dart.engine.error.HintCode;
 import com.google.dart.engine.internal.constant.ValidResult;
 import com.google.dart.engine.internal.error.ErrorReporter;
+import com.google.dart.engine.internal.object.BoolState;
+import com.google.dart.engine.internal.object.DartObjectImpl;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.type.Type;
@@ -74,13 +76,13 @@ public class DeadCodeVerifier extends RecursiveASTVisitor<Void> {
       if (!isDebugConstant(lhsCondition)) {
         ValidResult lhsResult = getConstantBooleanValue(lhsCondition);
         if (lhsResult != null) {
-          if (lhsResult == ValidResult.RESULT_TRUE && isBarBar) {
+          if (lhsResult.isTrue() && isBarBar) {
             // report error on else block: true || !e!
             errorReporter.reportError(HintCode.DEAD_CODE, node.getRightOperand());
             // only visit the LHS:
             safelyVisit(lhsCondition);
             return null;
-          } else if (lhsResult == ValidResult.RESULT_FALSE && isAmpAmp) {
+          } else if (lhsResult.isFalse() && isAmpAmp) {
             // report error on if block: false && !e!
             errorReporter.reportError(HintCode.DEAD_CODE, node.getRightOperand());
             // only visit the LHS:
@@ -143,7 +145,7 @@ public class DeadCodeVerifier extends RecursiveASTVisitor<Void> {
     if (!isDebugConstant(conditionExpression)) {
       ValidResult result = getConstantBooleanValue(conditionExpression);
       if (result != null) {
-        if (result == ValidResult.RESULT_TRUE) {
+        if (result.isTrue()) {
           // report error on else block: true ? 1 : !2!
           errorReporter.reportError(HintCode.DEAD_CODE, node.getElseExpression());
           safelyVisit(node.getThenExpression());
@@ -183,7 +185,7 @@ public class DeadCodeVerifier extends RecursiveASTVisitor<Void> {
     if (!isDebugConstant(conditionExpression)) {
       ValidResult result = getConstantBooleanValue(conditionExpression);
       if (result != null) {
-        if (result == ValidResult.RESULT_TRUE) {
+        if (result.isTrue()) {
           // report error on else block: if(true) {} else {!}
           Statement elseStatement = node.getElseStatement();
           if (elseStatement != null) {
@@ -274,7 +276,7 @@ public class DeadCodeVerifier extends RecursiveASTVisitor<Void> {
     if (!isDebugConstant(conditionExpression)) {
       ValidResult result = getConstantBooleanValue(conditionExpression);
       if (result != null) {
-        if (result == ValidResult.RESULT_FALSE) {
+        if (result.isFalse()) {
           // report error on if block: while (false) {!}
           errorReporter.reportError(HintCode.DEAD_CODE, node.getBody());
           return null;
@@ -298,9 +300,9 @@ public class DeadCodeVerifier extends RecursiveASTVisitor<Void> {
   private ValidResult getConstantBooleanValue(Expression expression) {
     if (expression instanceof BooleanLiteral) {
       if (((BooleanLiteral) expression).getValue()) {
-        return ValidResult.RESULT_TRUE;
+        return new ValidResult(new DartObjectImpl(null, BoolState.from(true)));
       } else {
-        return ValidResult.RESULT_FALSE;
+        return new ValidResult(new DartObjectImpl(null, BoolState.from(false)));
       }
     }
     // Don't consider situations where we could evaluate to a constant boolean expression with the

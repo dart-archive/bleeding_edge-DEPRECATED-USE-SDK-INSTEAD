@@ -1426,7 +1426,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
           ParameterElementImpl parameterElt = parameterElts.get(i);
           EvaluationResultImpl result = parameterElt.getEvaluationResult();
           // TODO (jwren) Ignore Object types, see Dart bug 11287
-          if (result == null || result == ValidResult.RESULT_OBJECT) {
+          if (isUserDefinedObject(result)) {
             continue;
           }
           String parameterName = parameterElt.getName();
@@ -1435,10 +1435,10 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
             String overriddenParameterName = overriddenParameterElt.getName();
             if (parameterName != null && parameterName.equals(overriddenParameterName)) {
               EvaluationResultImpl overriddenResult = overriddenParameterElt.getEvaluationResult();
-              if (overriddenResult == null || result == ValidResult.RESULT_OBJECT) {
+              if (isUserDefinedObject(overriddenResult)) {
                 break;
               }
-              if (!result.equalValues(overriddenResult)) {
+              if (!result.equalValues(typeProvider, overriddenResult)) {
                 errorReporter.reportError(
                     StaticWarningCode.INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_NAMED,
                     formalParameters.get(i),
@@ -1456,15 +1456,15 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
           ParameterElementImpl parameterElt = parameterElts.get(i);
           EvaluationResultImpl result = parameterElt.getEvaluationResult();
           // TODO (jwren) Ignore Object types, see Dart bug 11287
-          if (result == null || result == ValidResult.RESULT_OBJECT) {
+          if (isUserDefinedObject(result)) {
             continue;
           }
           ParameterElementImpl overriddenParameterElt = overriddenParameterElts.get(i);
           EvaluationResultImpl overriddenResult = overriddenParameterElt.getEvaluationResult();
-          if (overriddenResult == null || result == ValidResult.RESULT_OBJECT) {
+          if (isUserDefinedObject(overriddenResult)) {
             continue;
           }
-          if (!result.equalValues(overriddenResult)) {
+          if (!result.equalValues(typeProvider, overriddenResult)) {
             errorReporter.reportError(
                 StaticWarningCode.INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_POSITIONAL,
                 formalParameters.get(i),
@@ -5413,6 +5413,101 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       CommentReference commentReference = (CommentReference) parent;
       if (commentReference.getNewKeyword() != null) {
         return true;
+      }
+    }
+    return false;
+  }
+
+  private boolean isUserDefinedObject(EvaluationResultImpl result) {
+    return result == null
+        || (result instanceof ValidResult && ((ValidResult) result).isUserDefinedObject());
+  }
+
+  /**
+   * Return {@code true} iff the passed {@link ClassElement} has a concrete implementation of the
+   * passed accessor name in the superclass chain.
+   */
+  private boolean memberHasConcreteAccessorImplementationInSuperclassChain(
+      ClassElement classElement, String accessorName, ArrayList<ClassElement> superclassChain) {
+    if (superclassChain.contains(classElement)) {
+      return false;
+    } else {
+      superclassChain.add(classElement);
+    }
+    for (PropertyAccessorElement accessor : classElement.getAccessors()) {
+      if (accessor.getName().equals(accessorName)) {
+        if (!accessor.isAbstract()) {
+          return true;
+        }
+      }
+    }
+    for (InterfaceType mixinType : classElement.getMixins()) {
+      if (mixinType != null) {
+        ClassElement mixinElement = mixinType.getElement();
+        if (mixinElement != null) {
+          for (PropertyAccessorElement accessor : mixinElement.getAccessors()) {
+            if (accessor.getName().equals(accessorName)) {
+              if (!accessor.isAbstract()) {
+                return true;
+              }
+            }
+          }
+        }
+      }
+    }
+    InterfaceType superType = classElement.getSupertype();
+    if (superType != null) {
+      ClassElement superClassElt = superType.getElement();
+      if (superClassElt != null) {
+        return memberHasConcreteAccessorImplementationInSuperclassChain(
+            superClassElt,
+            accessorName,
+            superclassChain);
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Return {@code true} iff the passed {@link ClassElement} has a concrete implementation of the
+   * passed method name in the superclass chain.
+   */
+  private boolean memberHasConcreteMethodImplementationInSuperclassChain(ClassElement classElement,
+      String methodName, ArrayList<ClassElement> superclassChain) {
+    if (superclassChain.contains(classElement)) {
+      return false;
+    } else {
+      superclassChain.add(classElement);
+    }
+    for (MethodElement method : classElement.getMethods()) {
+      if (method.getName().equals(methodName)) {
+        if (!method.isAbstract()) {
+          return true;
+        }
+      }
+    }
+    for (InterfaceType mixinType : classElement.getMixins()) {
+      if (mixinType != null) {
+        ClassElement mixinElement = mixinType.getElement();
+        if (mixinElement != null) {
+          for (MethodElement method : mixinElement.getMethods()) {
+            if (method.getName().equals(methodName)) {
+              if (!method.isAbstract()) {
+                return true;
+              }
+            }
+          }
+        }
+      }
+    }
+    InterfaceType superType = classElement.getSupertype();
+    if (superType != null) {
+      ClassElement superClassElt = superType.getElement();
+      if (superClassElt != null) {
+        return memberHasConcreteMethodImplementationInSuperclassChain(
+            superClassElt,
+            methodName,
+            superclassChain);
       }
     }
     return false;

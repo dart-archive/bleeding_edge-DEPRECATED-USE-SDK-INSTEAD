@@ -21,6 +21,7 @@ import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.internal.element.VariableElementImpl;
+import com.google.dart.engine.internal.resolver.TypeProvider;
 import com.google.dart.engine.source.Source;
 
 import java.util.ArrayList;
@@ -32,10 +33,15 @@ import java.util.Map;
  * Instances of the class {@code ConstantValueComputer} compute the values of constant variables in
  * one or more compilation units. The expected usage pattern is for the compilation units to be
  * added to this computer using the method {@link #add(CompilationUnit)} and then for the method
- * {@link #computeValues()} to invoked exactly once. Any use of an instance after invoking the
+ * {@link #computeValues()} to be invoked exactly once. Any use of an instance after invoking the
  * method {@link #computeValues()} will result in unpredictable behavior.
  */
 public class ConstantValueComputer {
+  /**
+   * The type provider used to access the known types.
+   */
+  private TypeProvider typeProvider;
+
   /**
    * The object used to find constant variables in the compilation units that were added.
    */
@@ -54,9 +60,11 @@ public class ConstantValueComputer {
 
   /**
    * Initialize a newly created constant value computer.
+   * 
+   * @param typeProvider the type provider used to access known types
    */
-  public ConstantValueComputer() {
-    super();
+  public ConstantValueComputer(TypeProvider typeProvider) {
+    this.typeProvider = typeProvider;
   }
 
   /**
@@ -96,7 +104,7 @@ public class ConstantValueComputer {
           //
           AnalysisEngine.getInstance().getLogger().logError(
               "Exiting constant value computer with " + referenceGraph.getNodeCount()
-                  + " variables that are neither sinks no in a cycle");
+                  + " variables that are neither sinks nor in a cycle");
           return;
         }
         for (VariableElement variable : variablesInCycle) {
@@ -123,7 +131,8 @@ public class ConstantValueComputer {
       //
       return;
     }
-    EvaluationResultImpl result = declaration.getInitializer().accept(new ConstantVisitor());
+    EvaluationResultImpl result = declaration.getInitializer().accept(
+        new ConstantVisitor(typeProvider));
     ((VariableElementImpl) variable).setEvaluationResult(result);
     if (result instanceof ErrorResult) {
       ArrayList<AnalysisError> errors = new ArrayList<AnalysisError>();

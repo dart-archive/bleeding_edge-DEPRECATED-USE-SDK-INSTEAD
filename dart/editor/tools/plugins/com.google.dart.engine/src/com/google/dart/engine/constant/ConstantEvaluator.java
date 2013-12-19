@@ -20,6 +20,7 @@ import com.google.dart.engine.internal.constant.ConstantVisitor;
 import com.google.dart.engine.internal.constant.ErrorResult;
 import com.google.dart.engine.internal.constant.EvaluationResultImpl;
 import com.google.dart.engine.internal.constant.ValidResult;
+import com.google.dart.engine.internal.resolver.TypeProvider;
 import com.google.dart.engine.source.Source;
 
 import java.util.ArrayList;
@@ -32,36 +33,42 @@ import java.util.ArrayList;
  * <li>A literal number.</li>
  * <li>A literal boolean.</li>
  * <li>A literal string where any interpolated expression is a compile-time constant that evaluates
- * to a numeric, string or boolean value or to {@code null}.</li>
- * <li>{@code null}.</li>
- * <li>A reference to a static constant variable.</li>
- * <li>An identifier expression that denotes a constant variable, a class or a type parameter.</li>
+ * to a numeric, string or boolean value or to <b>null</b>.</li>
+ * <li>A literal symbol.</li>
+ * <li><b>null</b>.</li>
+ * <li>A qualified reference to a static constant variable.</li>
+ * <li>An identifier expression that denotes a constant variable, class or type alias.</li>
  * <li>A constant constructor invocation.</li>
  * <li>A constant list literal.</li>
  * <li>A constant map literal.</li>
  * <li>A simple or qualified identifier denoting a top-level function or a static method.</li>
- * <li>A parenthesized expression {@code (e)} where {@code e} is a constant expression.</li>
- * <li>An expression of one of the forms {@code identical(e1, e2)}, {@code e1 == e2},
- * {@code e1 != e2} where {@code e1} and {@code e2} are constant expressions that evaluate to a
- * numeric, string or boolean value or to {@code null}.</li>
- * <li>An expression of one of the forms {@code !e}, {@code e1 && e2} or {@code e1 || e2}, where
- * {@code e}, {@code e1} and {@code e2} are constant expressions that evaluate to a boolean value or
- * to {@code null}.</li>
- * <li>An expression of one of the forms {@code ~e}, {@code e1 ^ e2}, {@code e1 & e2},
- * {@code e1 | e2}, {@code e1 >> e2} or {@code e1 << e2}, where {@code e}, {@code e1} and {@code e2}
- * are constant expressions that evaluate to an integer value or to {@code null}.</li>
- * <li>An expression of one of the forms {@code -e}, {@code e1 + e2}, {@code e1 - e2},
- * {@code e1 * e2}, {@code e1 / e2}, {@code e1 ~/ e2}, {@code e1 > e2}, {@code e1 < e2},
- * {@code e1 >= e2}, {@code e1 <= e2} or {@code e1 % e2}, where {@code e}, {@code e1} and {@code e2}
- * are constant expressions that evaluate to a numeric value or to {@code null}.</li>
+ * <li>A parenthesized expression <i>(e)</i> where <i>e</i> is a constant expression.</li>
+ * <li>An expression of the form <i>identical(e<sub>1</sub>, e<sub>2</sub>)</i> where
+ * <i>e<sub>1</sub></i> and <i>e<sub>2</sub></i> are constant expressions and <i>identical()</i> is
+ * statically bound to the predefined dart function <i>identical()</i> discussed above.</li>
+ * <li>An expression of one of the forms <i>e<sub>1</sub> == e<sub>2</sub></i> or <i>e<sub>1</sub>
+ * != e<sub>2</sub></i> where <i>e<sub>1</sub></i> and <i>e<sub>2</sub></i> are constant expressions
+ * that evaluate to a numeric, string or boolean value.</li>
+ * <li>An expression of one of the forms <i>!e</i>, <i>e<sub>1</sub> &amp;&amp; e<sub>2</sub></i> or
+ * <i>e<sub>1</sub> || e<sub>2</sub></i>, where <i>e</i>, <i>e1</sub></i> and <i>e2</sub></i> are
+ * constant expressions that evaluate to a boolean value.</li>
+ * <li>An expression of one of the forms <i>~e</i>, <i>e<sub>1</sub> ^ e<sub>2</sub></i>,
+ * <i>e<sub>1</sub> &amp; e<sub>2</sub></i>, <i>e<sub>1</sub> | e<sub>2</sub></i>, <i>e<sub>1</sub>
+ * &gt;&gt; e<sub>2</sub></i> or <i>e<sub>1</sub> &lt;&lt; e<sub>2</sub></i>, where <i>e</i>,
+ * <i>e<sub>1</sub></i> and <i>e<sub>2</sub></i> are constant expressions that evaluate to an
+ * integer value or to <b>null</b>.</li>
+ * <li>An expression of one of the forms <i>-e</i>, <i>e<sub>1</sub> + e<sub>2</sub></i>,
+ * <i>e<sub>1</sub> -e<sub>2</sub></i>, <i>e<sub>1</sub> * e<sub>2</sub></i>, <i>e<sub>1</sub> /
+ * e<sub>2</sub></i>, <i>e<sub>1</sub> ~/ e<sub>2</sub></i>, <i>e<sub>1</sub> &gt;
+ * e<sub>2</sub></i>, <i>e<sub>1</sub> &lt; e<sub>2</sub></i>, <i>e<sub>1</sub> &gt;=
+ * e<sub>2</sub></i>, <i>e<sub>1</sub> &lt;= e<sub>2</sub></i> or <i>e<sub>1</sub> %
+ * e<sub>2</sub></i>, where <i>e</i>, <i>e<sub>1</sub></i> and <i>e<sub>2</sub></i> are constant
+ * expressions that evaluate to a numeric value or to <b>null</b>.</li>
+ * <li>An expression of the form <i>e<sub>1</sub> ? e<sub>2</sub> : e<sub>3</sub></i> where
+ * <i>e<sub>1</sub></i>, <i>e<sub>2</sub></i> and <i>e<sub>3</sub></i> are constant expressions, and
+ * <i>e<sub>1</sub></i> evaluates to a boolean value.</li>
  * </ul>
- * </blockquote> The values returned by instances of this class are therefore {@code null} and
- * instances of the classes {@code Boolean}, {@code BigInteger}, {@code Double}, {@code String}, and
- * {@code DartObject}.
- * <p>
- * In addition, this class defines several values that can be returned to indicate various
- * conditions encountered during evaluation. These are documented with the static field that define
- * those values.
+ * </blockquote>
  */
 public class ConstantEvaluator {
   /**
@@ -70,16 +77,23 @@ public class ConstantEvaluator {
   private Source source;
 
   /**
+   * The type provider used to access the known types.
+   */
+  private TypeProvider typeProvider;
+
+  /**
    * Initialize a newly created evaluator to evaluate expressions in the given source.
    * 
    * @param source the source containing the expression(s) that will be evaluated
+   * @param typeProvider the type provider used to access known types
    */
-  public ConstantEvaluator(Source source) {
+  public ConstantEvaluator(Source source, TypeProvider typeProvider) {
     this.source = source;
+    this.typeProvider = typeProvider;
   }
 
   public EvaluationResult evaluate(Expression expression) {
-    EvaluationResultImpl result = expression.accept(new ConstantVisitor());
+    EvaluationResultImpl result = expression.accept(new ConstantVisitor(typeProvider));
     if (result instanceof ValidResult) {
       return EvaluationResult.forValue(((ValidResult) result).getValue());
     }
