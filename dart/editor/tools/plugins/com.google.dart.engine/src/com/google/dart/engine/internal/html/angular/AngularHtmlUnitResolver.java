@@ -123,6 +123,28 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
   }
 
   /**
+   * @return {@code true} if the given {@link HtmlUnit} has <code>ng-app</code> annotation.
+   */
+  private static boolean hasAngularAnnotation(HtmlUnit htmlUnit) {
+    class FoundAppError extends Error {
+    }
+    try {
+      htmlUnit.accept(new RecursiveXmlVisitor<Void>() {
+        @Override
+        public Void visitXmlTagNode(XmlTagNode node) {
+          if (node.getAttribute(NG_APP) != null) {
+            throw new FoundAppError();
+          }
+          return super.visitXmlTagNode(node);
+        }
+      });
+    } catch (FoundAppError e) {
+      return true;
+    }
+    return false;
+  }
+
+  /**
    * Returns {@code true} if given {@link Annotation} is <code>NgController</code>.
    */
   private static boolean isNgController(Annotation annotation) {
@@ -148,6 +170,7 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
   private final List<NgAnnotation> controllers = Lists.newArrayList();
   private ResolverVisitor resolver;
   private boolean isAngular = false;
+
   private AnalysisException thrownException;
 
   public AngularHtmlUnitResolver(InternalAnalysisContext context,
@@ -164,6 +187,11 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
    * @param unit the {@link HtmlUnit} to resolve
    */
   public void resolve(HtmlUnit unit) throws AnalysisException {
+    // check if Angular at all
+    if (!hasAngularAnnotation(unit)) {
+      return;
+    }
+    // prepare injects
     boolean success = prepareInjects(unit);
     if (!success) {
       return;
