@@ -193,6 +193,20 @@ public class HtmlParserTest extends EngineTestCase {
     assertEquals(null, bodyNode.getAttributeText(null));
   }
 
+  public void test_parse_headers() throws Exception {
+    String code = createSource(//
+        "<html>",
+        "  <body>",
+        "    <h2>000</h2>",
+        "    <div>",
+        "      111",
+        "    </div>",
+        "  </body>",
+        "</html>");
+    HtmlUnit htmlUnit = parse(code).getHtmlUnit();
+    validate(htmlUnit, t("html", t("body", t("h2", "000"), t("div"))));
+  }
+
   public void test_parse_script() throws Exception {
     HtmlUnit htmlUnit = parse(//
         "<html><script >here is <p> some</script></html>").getHtmlUnit();
