@@ -321,6 +321,11 @@ public class MockContext implements AnalysisContext {
   }
 
   @Override
+  public HtmlUnit getResolvedHtmlUnit(Source htmlSource) {
+    return null;
+  }
+
+  @Override
   public SourceFactory getSourceFactory() {
     return factory;
   }

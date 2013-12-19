@@ -688,6 +688,15 @@ public class AnalysisContextImplTest extends EngineTestCase {
     assertNull(context.getResolvedCompilationUnit(source, source));
   }
 
+  public void test_getResolvedHtmlUnit() throws Exception {
+    context = AnalysisContextFactory.contextWithCore();
+    sourceFactory = context.getSourceFactory();
+    Source source = addSource("/test.html", "<html></html>");
+    assertNull(context.getResolvedHtmlUnit(source));
+    context.resolveHtmlUnit(source);
+    assertNotNull(context.getResolvedHtmlUnit(source));
+  }
+
   public void test_getSourceFactory() {
     assertSame(sourceFactory, context.getSourceFactory());
   }

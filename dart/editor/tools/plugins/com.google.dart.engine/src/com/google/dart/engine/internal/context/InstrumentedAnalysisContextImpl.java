@@ -455,6 +455,17 @@ public class InstrumentedAnalysisContextImpl implements InternalAnalysisContext 
   }
 
   @Override
+  public HtmlUnit getResolvedHtmlUnit(Source htmlSource) {
+    InstrumentationBuilder instrumentation = Instrumentation.builder("Analysis-getResolvedHtmlUnit");
+    try {
+      instrumentation.metric("contextId", contextId);
+      return basis.getResolvedHtmlUnit(htmlSource);
+    } finally {
+      instrumentation.log(2); //Log if over 1ms
+    }
+  }
+
+  @Override
   public SourceFactory getSourceFactory() {
     InstrumentationBuilder instrumentation = Instrumentation.builder("Analysis-getSourceFactory");
     try {

@@ -818,6 +818,18 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @Override
+  public HtmlUnit getResolvedHtmlUnit(Source htmlSource) {
+    SourceEntry sourceEntry = getReadableSourceEntry(htmlSource);
+    if (sourceEntry instanceof HtmlEntry) {
+      HtmlEntry htmlEntry = (HtmlEntry) sourceEntry;
+      if (htmlEntry.getValue(HtmlEntry.ELEMENT) != null) {
+        return htmlEntry.getValue(HtmlEntry.PARSED_UNIT);
+      }
+    }
+    return null;
+  }
+
+  @Override
   public SourceFactory getSourceFactory() {
     return sourceFactory;
   }
@@ -1035,8 +1047,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
 
   @Override
   public HtmlUnit resolveHtmlUnit(Source htmlSource) throws AnalysisException {
-    // There is currently no difference between the parsed and resolved forms of an HTML
-    // unit. This code needs to change if resolution ever modifies the AST.
+    computeHtmlElement(htmlSource);
     return parseHtmlUnit(htmlSource);
   }
 

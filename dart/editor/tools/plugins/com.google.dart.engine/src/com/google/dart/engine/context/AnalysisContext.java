@@ -340,6 +340,16 @@ public interface AnalysisContext {
   public CompilationUnit getResolvedCompilationUnit(Source unitSource, Source librarySource);
 
   /**
+   * Return a fully resolved HTML unit, or {@code null} if the resolved unit is not already
+   * computed.
+   * 
+   * @param htmlSource the source of the HTML unit
+   * @return a fully resolved HTML unit
+   * @see #resolveHtmlUnit(Source)
+   */
+  public HtmlUnit getResolvedHtmlUnit(Source htmlSource);
+
+  /**
    * Return the source factory used to create the sources that can be analyzed in this context.
    * 
    * @return the source factory used to create the sources that can be analyzed in this context
