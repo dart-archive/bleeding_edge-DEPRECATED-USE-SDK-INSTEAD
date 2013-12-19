@@ -13,6 +13,8 @@
  */
 package com.google.dart.engine.internal.element.handle;
 
+import com.google.dart.engine.ast.ClassDeclaration;
+import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.ElementKind;
@@ -95,6 +97,11 @@ public class ClassElementHandle extends ElementHandle implements ClassElement {
   @Override
   public ConstructorElement getNamedConstructor(String name) {
     return getActualElement().getNamedConstructor(name);
+  }
+
+  @Override
+  public ClassDeclaration getNode() throws AnalysisException {
+    return getActualElement().getNode();
   }
 
   @Override

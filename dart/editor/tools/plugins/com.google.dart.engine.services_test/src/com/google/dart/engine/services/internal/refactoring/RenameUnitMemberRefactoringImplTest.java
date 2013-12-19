@@ -15,6 +15,7 @@
 package com.google.dart.engine.services.internal.refactoring;
 
 import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.context.AnalysisContextHelper;
 import com.google.dart.engine.services.change.Change;
 import com.google.dart.engine.services.status.RefactoringStatusSeverity;
 import com.google.dart.engine.source.FileBasedSource;
@@ -473,10 +474,10 @@ public class RenameUnitMemberRefactoringImplTest extends RenameRefactoringImplTe
     // index unit in separate context
     Source source2;
     {
-      ContextHelper helper = new ContextHelper();
+      AnalysisContextHelper helper = new AnalysisContextHelper();
       helper.addSource("/Lib.dart", libCode);
       source2 = helper.addSource("/Test2.dart", code);
-      CompilationUnit unit = helper.analyzeSingleUnitLibrary(source2);
+      CompilationUnit unit = helper.resolveDefiningUnit(source2);
       index.indexUnit(helper.context, unit);
     }
     // index unit Lib.dart in "test"
@@ -512,9 +513,9 @@ public class RenameUnitMemberRefactoringImplTest extends RenameRefactoringImplTe
         "}");
     // index unit in separate context
     {
-      ContextHelper helper = new ContextHelper();
+      AnalysisContextHelper helper = new AnalysisContextHelper();
       Source source = helper.addSource("/Test.dart", code);
-      CompilationUnit unit = helper.analyzeSingleUnitLibrary(source);
+      CompilationUnit unit = helper.resolveDefiningUnit(source);
       index.indexUnit(helper.context, unit);
     }
     // index same unit as "test"

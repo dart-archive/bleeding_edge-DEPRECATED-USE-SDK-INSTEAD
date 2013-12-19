@@ -15,6 +15,7 @@
 package com.google.dart.engine.services.internal.refactoring;
 
 import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.context.AnalysisContextHelper;
 import com.google.dart.engine.services.status.RefactoringStatusSeverity;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
@@ -398,9 +399,9 @@ public class RenameLocalRefactoringImplTest extends RenameRefactoringImplTest {
         "}");
     // index unit in separate context
     {
-      ContextHelper helper = new ContextHelper();
+      AnalysisContextHelper helper = new AnalysisContextHelper();
       Source source = helper.addSource("/Test.dart", code);
-      CompilationUnit unit = helper.analyzeSingleUnitLibrary(source);
+      CompilationUnit unit = helper.resolveDefiningUnit(source);
       index.indexUnit(helper.context, unit);
     }
     // index same unit as "test"

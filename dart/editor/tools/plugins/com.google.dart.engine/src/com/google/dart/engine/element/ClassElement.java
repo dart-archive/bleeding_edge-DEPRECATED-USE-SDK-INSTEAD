@@ -13,6 +13,8 @@
  */
 package com.google.dart.engine.element;
 
+import com.google.dart.engine.ast.ClassDeclaration;
+import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.type.InterfaceType;
 
 /**
@@ -108,6 +110,16 @@ public interface ClassElement extends Element {
    * @return the element representing the specified constructor
    */
   public ConstructorElement getNamedConstructor(String name);
+
+  /**
+   * Return the resolved {@link ClassDeclaration} node that declares this {@link ClassElement}.
+   * <p>
+   * This method is expensive, because resolved AST might be evicted from cache, so parsing and
+   * resolving will be performed.
+   * 
+   * @return the resolved {@link ClassDeclaration}, not null.
+   */
+  public ClassDeclaration getNode() throws AnalysisException;
 
   /**
    * Return the element representing the setter with the given name that is declared in this class,

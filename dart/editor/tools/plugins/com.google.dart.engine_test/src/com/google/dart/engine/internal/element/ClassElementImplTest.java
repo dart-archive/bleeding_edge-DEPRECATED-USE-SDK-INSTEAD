@@ -14,10 +14,16 @@
 package com.google.dart.engine.internal.element;
 
 import com.google.dart.engine.EngineTestCase;
+import com.google.dart.engine.ast.ClassDeclaration;
+import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.context.AnalysisContextHelper;
 import com.google.dart.engine.element.ClassElement;
+import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.FieldElement;
+import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
+import com.google.dart.engine.source.Source;
 import com.google.dart.engine.type.InterfaceType;
 
 import static com.google.dart.engine.element.ElementFactory.classElement;
@@ -90,6 +96,33 @@ public class ClassElementImplTest extends EngineTestCase {
     MethodElement method = methodElement(methodName, null);
     classA.setMethods(new MethodElement[] {method});
     assertNull(classA.getMethod(methodName + "x"));
+  }
+
+  public void test_getNode() throws Exception {
+    AnalysisContextHelper contextHelper = new AnalysisContextHelper();
+    AnalysisContext context = contextHelper.context;
+    Source source = contextHelper.addSource("/test.dart", createSource(//
+        "class A {}",
+        "class B {}"));
+    // prepare CompilationUnitElement
+    LibraryElement libraryElement = context.computeLibraryElement(source);
+    CompilationUnitElement unitElement = libraryElement.getDefiningCompilationUnit();
+    // A
+    {
+      ClassElement elementA = unitElement.getType("A");
+      ClassDeclaration nodeA = elementA.getNode();
+      assertNotNull(nodeA);
+      assertEquals("A", nodeA.getName().getName());
+      assertSame(elementA, nodeA.getElement());
+    }
+    // B
+    {
+      ClassElement elementB = unitElement.getType("B");
+      ClassDeclaration nodeB = elementB.getNode();
+      assertNotNull(nodeB);
+      assertEquals("B", nodeB.getName().getName());
+      assertSame(elementB, nodeB.getElement());
+    }
   }
 
   public void test_hasNonFinalField_false_const() {

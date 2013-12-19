@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.internal.element;
 
+import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisException;
@@ -275,6 +276,18 @@ public abstract class ElementImpl implements Element {
    */
   protected String getIdentifier() {
     return getName();
+  }
+
+  /**
+   * Return the resolved {@link CompilationUnit} that declares this {@link Element}.
+   * <p>
+   * This method is expensive, because resolved AST might have been already evicted from cache, so
+   * parsing and resolving will be performed.
+   * 
+   * @return the resolved {@link CompilationUnit} that declares given {@link Element}.
+   */
+  protected CompilationUnit getUnit() throws AnalysisException {
+    return getContext().resolveCompilationUnit(getSource(), getLibrary());
   }
 
   /**
