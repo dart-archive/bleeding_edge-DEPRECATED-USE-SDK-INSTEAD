@@ -97,6 +97,7 @@ public class DartServerMainTab extends AbstractLaunchConfigurationTab {
       notifyPanelChanged();
     }
   };
+  private Text vmArgumentsText;
 
   public DartServerMainTab() {
 
@@ -192,6 +193,14 @@ public class DartServerMainTab extends AbstractLaunchConfigurationTab {
       }
     });
 
+    // additional vm arguments
+    Label argsLabel = new Label(group, SWT.NONE);
+    argsLabel.setText("VM arguments:");
+
+    vmArgumentsText = new Text(group, SWT.BORDER | SWT.SINGLE);
+    GridDataFactory.swtDefaults().align(SWT.FILL, SWT.CENTER).grab(true, false).span(2, 1).applyTo(
+        vmArgumentsText);
+
     setControl(composite);
   }
 
@@ -232,6 +241,7 @@ public class DartServerMainTab extends AbstractLaunchConfigurationTab {
     workingDirText.setText(dartLauncher.getWorkingDirectory());
     argsText.setText(dartLauncher.getArguments());
     checkedModeButton.setSelection(dartLauncher.getCheckedMode());
+    vmArgumentsText.setText(dartLauncher.getVmArguments());
   }
 
   @Override
@@ -247,6 +257,7 @@ public class DartServerMainTab extends AbstractLaunchConfigurationTab {
     dartLauncher.setWorkingDirectory(workingDirText.getText().trim());
     dartLauncher.setArguments(argsText.getText().trim());
     dartLauncher.setCheckedMode(checkedModeButton.getSelection());
+    dartLauncher.setVmArguments(vmArgumentsText.getText().trim());
   }
 
   @Override
