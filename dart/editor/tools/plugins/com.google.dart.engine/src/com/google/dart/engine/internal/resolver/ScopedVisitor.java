@@ -175,6 +175,24 @@ public abstract class ScopedVisitor extends UnifyingASTVisitor<Void> {
   }
 
   /**
+   * Replaces the current {@link Scope} with the enclosing {@link Scope}.
+   */
+  public void popNameScope() {
+    nameScope = nameScope.getEnclosingScope();
+  }
+
+  /**
+   * Pushes a new {@link Scope} into the visitor.
+   * 
+   * @return the new {@link Scope}.
+   */
+  public Scope pushNameScope() {
+    Scope newScope = new EnclosedScope(nameScope);
+    nameScope = newScope;
+    return newScope;
+  }
+
+  /**
    * Report an error with the given analysis error.
    * 
    * @param errorCode analysis error

@@ -20,6 +20,7 @@ import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.internal.builder.HtmlUnitBuilder;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
 import com.google.dart.engine.internal.context.ResolvableHtmlUnit;
+import com.google.dart.engine.internal.html.angular.AngularHtmlUnitResolver;
 import com.google.dart.engine.source.Source;
 
 /**
@@ -106,8 +107,12 @@ public class ResolveHtmlTask extends AnalysisTask {
           "Internal error: computeResolvableHtmlUnit returned a value without a parsed HTML unit");
     }
     modificationTime = resolvableHtmlUnit.getModificationTime();
+    // build standard HTML element
     HtmlUnitBuilder builder = new HtmlUnitBuilder(getContext());
     element = builder.buildHtmlElement(source, modificationTime, unit);
+    // resolve toolkit-specific features
+    new AngularHtmlUnitResolver(getContext(), builder.getErrorListener(), source).resolve(unit);
+    // record all resolution errors
     resolutionErrors = builder.getErrorListener().getErrors(source);
   }
 }
