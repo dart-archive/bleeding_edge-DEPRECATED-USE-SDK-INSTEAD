@@ -21,7 +21,7 @@ vars.update({
   # updated to "https" for committers.
   "dart_branch": "/branches/bleeding_edge",
   "dartium_webkit_trunk": "http://src.chromium.org/blink/branches/dart/1650",
-  "dartium_webkit_revision": "164035",
+  "dartium_webkit_revision": "164128",
   "bootstrap_css_rev" : "@28387",
 
   "co19_rev": "@672",
@@ -68,10 +68,6 @@ deps.update({
 })
 
 hooks[0:0] = [{
-    "pattern": ".",
-    "action": ["python", "src/dartium_tools/export_overrides.py"],
-  },
-  {
     "pattern": "dart",
     "action": ["python", "src/dartium_tools/generate_dart_vm_version.py"],
   }]
