@@ -138,8 +138,12 @@ public class DartLaunchConfigWrapper {
   }
 
   public boolean getCheckedMode() {
+    return getCheckedMode(true);
+  }
+
+  public boolean getCheckedMode(boolean defaultValue) {
     try {
-      return launchConfig.getAttribute(VM_CHECKED_MODE, true);
+      return launchConfig.getAttribute(VM_CHECKED_MODE, defaultValue);
     } catch (CoreException e) {
       DartDebugCorePlugin.logError(e);
 

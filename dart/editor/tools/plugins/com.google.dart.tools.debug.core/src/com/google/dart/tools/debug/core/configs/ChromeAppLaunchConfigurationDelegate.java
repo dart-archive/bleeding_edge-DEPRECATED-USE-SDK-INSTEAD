@@ -256,6 +256,13 @@ public class ChromeAppLaunchConfigurationDelegate extends DartLaunchConfiguratio
       }
     }
 
+    // Add the environment variable DART_FLAGS="--enable-checked-mode" to enable asserts and type
+    // checks. Default to false for Chrome apps.
+    if (wrapper.getCheckedMode(false)) {
+      Map<String, String> env = processBuilder.environment();
+      env.put("DART_FLAGS", "--enable-checked-mode");
+    }
+
     Process runtimeProcess = null;
 
     try {

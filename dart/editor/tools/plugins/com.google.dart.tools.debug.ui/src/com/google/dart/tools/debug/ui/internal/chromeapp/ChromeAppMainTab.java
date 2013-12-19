@@ -64,6 +64,8 @@ public class ChromeAppMainTab extends AbstractLaunchConfigurationTab {
 
   protected Text envText;
 
+  private Button checkedModeButton;
+
   protected ModifyListener textModifyListener = new ModifyListener() {
     @Override
     public void modifyText(ModifyEvent e) {
@@ -109,9 +111,22 @@ public class ChromeAppMainTab extends AbstractLaunchConfigurationTab {
 
     // additional browser arguments
     group = new Group(composite, SWT.NONE);
-    group.setText("Browser arguments");
+    group.setText("Dartium settings");
     GridDataFactory.fillDefaults().grab(true, false).applyTo(group);
-    GridLayoutFactory.swtDefaults().applyTo(group);
+    GridLayoutFactory.swtDefaults().numColumns(2).applyTo(group);
+
+    checkedModeButton = new Button(group, SWT.CHECK);
+    checkedModeButton.setText("Run in checked mode");
+    checkedModeButton.addSelectionListener(new SelectionAdapter() {
+      @Override
+      public void widgetSelected(SelectionEvent e) {
+        notifyPanelChanged();
+      }
+    });
+    GridDataFactory.swtDefaults().span(2, 1).grab(true, false).applyTo(checkedModeButton);
+
+    Label argsLabel = new Label(group, SWT.NONE);
+    argsLabel.setText("Browser arguments:");
 
     argumentText = new Text(group, SWT.BORDER | SWT.SINGLE);
     argumentText.addModifyListener(textModifyListener);
@@ -162,6 +177,7 @@ public class ChromeAppMainTab extends AbstractLaunchConfigurationTab {
     fileText.setText(dartLauncher.getApplicationName());
     argumentText.setText(dartLauncher.getArguments());
     envText.setText(dartLauncher.getEnvironmentString());
+    checkedModeButton.setSelection(dartLauncher.getCheckedMode());
   }
 
   @Override
@@ -175,6 +191,7 @@ public class ChromeAppMainTab extends AbstractLaunchConfigurationTab {
     dartLauncher.setApplicationName(fileText.getText());
     dartLauncher.setArguments(argumentText.getText().trim());
     dartLauncher.setEnvironmentString(envText.getText().trim());
+    dartLauncher.setCheckedMode(checkedModeButton.getSelection());
   }
 
   @Override
