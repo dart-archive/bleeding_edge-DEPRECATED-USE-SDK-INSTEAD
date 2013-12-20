@@ -128,7 +128,7 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
       Element refElement = reference.getElement();
       refSource = refElement.getSource();
       // prepare CorrectionUtils
-      CompilationUnit refUnit = CorrectionUtils.getResolvedUnit(refElement);
+      CompilationUnit refUnit = refElement.getUnit();
       refUtils = new CorrectionUtils(refUnit);
       // prepare node and environment
       node = refUtils.findNode(reference.getSourceRange().getOffset(), ASTNode.class);
@@ -887,7 +887,7 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
       return RefactoringStatus.createFatalErrorStatus("Method declaration or reference must be selected to activate this refactoring.");
     }
     methodElement = (ExecutableElement) selectedElement;
-    methodUnit = CorrectionUtils.getResolvedUnit(selectedElement);
+    methodUnit = selectedElement.getUnit();
     methodUtils = new CorrectionUtils(methodUnit);
     if (selectedElement instanceof MethodElement
         || selectedElement instanceof PropertyAccessorElement) {

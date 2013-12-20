@@ -36,7 +36,6 @@ import com.google.dart.engine.services.change.CompositeChange;
 import com.google.dart.engine.services.change.Edit;
 import com.google.dart.engine.services.change.SourceChange;
 import com.google.dart.engine.services.change.SourceChangeManager;
-import com.google.dart.engine.services.internal.correction.CorrectionUtils;
 import com.google.dart.engine.services.refactoring.ConvertMethodToGetterRefactoring;
 import com.google.dart.engine.services.refactoring.ProgressMonitor;
 import com.google.dart.engine.services.status.RefactoringStatus;
@@ -164,17 +163,14 @@ public class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl implem
   private void updateElementDeclaration(Element element) throws AnalysisException {
     String description = "Convert method declaration into getter";
     SourceChange change = changeManager.get(element.getSource());
-    // prepare MethodDeclaration
+    // prepare parameters
     FormalParameterList parameters;
     {
-      CompilationUnit unit = CorrectionUtils.getResolvedUnit(element);
-      ASTNode node = new NodeLocator(element.getNameOffset()).searchWithin(unit);
-      if (element instanceof MethodElement) {
-        MethodDeclaration methodDeclaration = node.getAncestor(MethodDeclaration.class);
-        parameters = methodDeclaration.getParameters();
+      ASTNode node = element.getNode();
+      if (node instanceof MethodDeclaration) {
+        parameters = ((MethodDeclaration) node).getParameters();
       } else {
-        FunctionDeclaration functionDeclaration = node.getAncestor(FunctionDeclaration.class);
-        parameters = functionDeclaration.getFunctionExpression().getParameters();
+        parameters = ((FunctionDeclaration) node).getFunctionExpression().getParameters();
       }
     }
     // insert "get "
@@ -198,10 +194,9 @@ public class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl implem
       // prepare invocation
       MethodInvocation invocation;
       {
-        CompilationUnit refUnit = CorrectionUtils.getResolvedUnit(refElement);
-        int refOffset = refRange.getOffset();
-        ASTNode coveringNode = new NodeLocator(refOffset).searchWithin(refUnit);
-        invocation = coveringNode.getAncestor(MethodInvocation.class);
+        CompilationUnit refUnit = refElement.getUnit();
+        ASTNode refNode = new NodeLocator(refRange.getOffset()).searchWithin(refUnit);
+        invocation = refNode.getAncestor(MethodInvocation.class);
       }
       // we need invocation
       if (invocation != null) {

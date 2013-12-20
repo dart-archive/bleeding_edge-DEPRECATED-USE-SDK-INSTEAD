@@ -13,6 +13,8 @@
  */
 package com.google.dart.engine.element;
 
+import com.google.dart.engine.ast.FunctionTypeAlias;
+import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.Type;
 
@@ -30,6 +32,18 @@ public interface FunctionTypeAliasElement extends Element {
    */
   @Override
   public CompilationUnitElement getEnclosingElement();
+
+  /**
+   * Return the resolved {@link FunctionTypeAlias} node that declares this
+   * {@link FunctionTypeAliasElement} .
+   * <p>
+   * This method is expensive, because resolved AST might be evicted from cache, so parsing and
+   * resolving will be performed.
+   * 
+   * @return the resolved {@link FunctionTypeAlias}, not {@code null}.
+   */
+  @Override
+  public FunctionTypeAlias getNode() throws AnalysisException;
 
   /**
    * Return an array containing all of the parameters defined by this type alias.

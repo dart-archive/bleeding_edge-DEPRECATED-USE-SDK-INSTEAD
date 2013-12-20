@@ -13,7 +13,9 @@
  */
 package com.google.dart.engine.internal.element;
 
+import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.Identifier;
+import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.ElementVisitor;
@@ -70,6 +72,11 @@ public class FunctionElementImpl extends ExecutableElementImpl implements Functi
   @Override
   public ElementKind getKind() {
     return ElementKind.FUNCTION;
+  }
+
+  @Override
+  public FunctionDeclaration getNode() throws AnalysisException {
+    return getNode(FunctionDeclaration.class);
   }
 
   @Override

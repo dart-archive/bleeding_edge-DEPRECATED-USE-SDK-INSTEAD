@@ -14,6 +14,8 @@
 package com.google.dart.engine.internal.element;
 
 import com.google.dart.engine.ast.Identifier;
+import com.google.dart.engine.ast.VariableDeclaration;
+import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.ElementVisitor;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.VariableElement;
@@ -76,6 +78,11 @@ public abstract class VariableElementImpl extends ElementImpl implements Variabl
   @Override
   public FunctionElement getInitializer() {
     return initializer;
+  }
+
+  @Override
+  public VariableDeclaration getNode() throws AnalysisException {
+    return getNode(VariableDeclaration.class);
   }
 
   @Override

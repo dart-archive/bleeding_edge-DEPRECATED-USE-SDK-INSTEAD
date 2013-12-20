@@ -13,11 +13,8 @@
  */
 package com.google.dart.engine.internal.element;
 
-import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.ClassDeclaration;
-import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.Identifier;
-import com.google.dart.engine.ast.visitor.NodeLocator;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.ConstructorElement;
@@ -231,10 +228,7 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
 
   @Override
   public ClassDeclaration getNode() throws AnalysisException {
-    CompilationUnit unit = getUnit();
-    int offset = getNameOffset();
-    ASTNode node = new NodeLocator(offset).searchWithin(unit);
-    return node.getAncestor(ClassDeclaration.class);
+    return getNode(ClassDeclaration.class);
   }
 
   @Override

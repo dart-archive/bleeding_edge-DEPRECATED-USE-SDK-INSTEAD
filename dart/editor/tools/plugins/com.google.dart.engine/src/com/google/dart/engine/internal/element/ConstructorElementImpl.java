@@ -13,7 +13,9 @@
  */
 package com.google.dart.engine.internal.element;
 
+import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.Identifier;
+import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.ElementKind;
@@ -59,6 +61,11 @@ public class ConstructorElementImpl extends ExecutableElementImpl implements Con
   @Override
   public ElementKind getKind() {
     return ElementKind.CONSTRUCTOR;
+  }
+
+  @Override
+  public ConstructorDeclaration getNode() throws AnalysisException {
+    return getNode(ConstructorDeclaration.class);
   }
 
   @Override

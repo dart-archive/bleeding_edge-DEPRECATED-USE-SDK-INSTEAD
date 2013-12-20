@@ -22,7 +22,6 @@ import com.google.dart.engine.ast.AsExpression;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.Block;
 import com.google.dart.engine.ast.BooleanLiteral;
-import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.Directive;
@@ -48,7 +47,6 @@ import com.google.dart.engine.ast.Statement;
 import com.google.dart.engine.ast.StringLiteral;
 import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
 import com.google.dart.engine.ast.visitor.NodeLocator;
-import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementKind;
@@ -626,28 +624,6 @@ public class CorrectionUtils {
     sb.append(".dart");
     String fileName = sb.toString();
     return fileName;
-  }
-
-  /**
-   * @return the resolved {@link ASTNode} which declares given {@link Element}.
-   */
-  @SuppressWarnings("unchecked")
-  public static <T> T getResolvedNode(Element element) throws AnalysisException {
-    CompilationUnit unit = getResolvedUnit(element);
-    ASTNode node = new NodeLocator(element.getNameOffset()).searchWithin(unit);
-    switch (element.getKind()) {
-      case CLASS:
-        return (T) node.getAncestor(ClassDeclaration.class);
-      default:
-        throw new IllegalArgumentException(element.getKind().name());
-    }
-  }
-
-  /**
-   * @return the resolved {@link CompilationUnit} which declares given {@link Element}.
-   */
-  public static CompilationUnit getResolvedUnit(Element element) throws AnalysisException {
-    return element.getContext().resolveCompilationUnit(element.getSource(), element.getLibrary());
   }
 
   /**

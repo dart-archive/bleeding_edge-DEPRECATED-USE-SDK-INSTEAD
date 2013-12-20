@@ -13,10 +13,24 @@
  */
 package com.google.dart.engine.element;
 
+import com.google.dart.engine.ast.FunctionDeclaration;
+import com.google.dart.engine.context.AnalysisException;
+
 /**
  * The interface {@code FunctionElement} defines the behavior of elements representing a function.
  * 
  * @coverage dart.engine.element
  */
 public interface FunctionElement extends ExecutableElement, LocalElement {
+  /**
+   * Return the resolved {@link FunctionDeclaration} node that declares this {@link FunctionElement}
+   * .
+   * <p>
+   * This method is expensive, because resolved AST might be evicted from cache, so parsing and
+   * resolving will be performed.
+   * 
+   * @return the resolved {@link FunctionDeclaration}, not {@code null}.
+   */
+  @Override
+  public FunctionDeclaration getNode() throws AnalysisException;
 }

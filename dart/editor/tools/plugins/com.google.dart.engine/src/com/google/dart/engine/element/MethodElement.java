@@ -13,6 +13,9 @@
  */
 package com.google.dart.engine.element;
 
+import com.google.dart.engine.ast.MethodDeclaration;
+import com.google.dart.engine.context.AnalysisException;
+
 /**
  * The interface {@code MethodElement} defines the behavior of elements that represent a method
  * defined within a type.
@@ -20,6 +23,17 @@ package com.google.dart.engine.element;
  * @coverage dart.engine.element
  */
 public interface MethodElement extends ClassMemberElement, ExecutableElement {
+  /**
+   * Return the resolved {@link MethodDeclaration} node that declares this {@link MethodElement}.
+   * <p>
+   * This method is expensive, because resolved AST might be evicted from cache, so parsing and
+   * resolving will be performed.
+   * 
+   * @return the resolved {@link MethodDeclaration}, not {@code null}.
+   */
+  @Override
+  public MethodDeclaration getNode() throws AnalysisException;
+
   /**
    * Return {@code true} if this method is abstract. Methods are abstract if they are not external
    * and have no body.

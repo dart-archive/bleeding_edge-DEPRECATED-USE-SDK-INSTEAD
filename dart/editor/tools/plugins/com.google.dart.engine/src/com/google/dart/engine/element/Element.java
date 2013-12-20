@@ -13,6 +13,8 @@
  */
 package com.google.dart.engine.element;
 
+import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.source.Source;
@@ -161,12 +163,33 @@ public interface Element {
   public int getNameOffset();
 
   /**
+   * Return the resolved {@link ASTNode} node that declares this {@link Element}.
+   * <p>
+   * This method is expensive, because resolved AST might be evicted from cache, so parsing and
+   * resolving will be performed.
+   * 
+   * @return the resolved {@link ASTNode}, maybe {@code null} if {@link Element} is synthetic or
+   *         isn't contained in a compilation unit, such as a {@link LibraryElement}.
+   */
+  public ASTNode getNode() throws AnalysisException;
+
+  /**
    * Return the source that contains this element, or {@code null} if this element is not contained
    * in a source.
    * 
    * @return the source that contains this element
    */
   public Source getSource();
+
+  /**
+   * Return the resolved {@link CompilationUnit} that declares this {@link Element}.
+   * <p>
+   * This method is expensive, because resolved AST might have been already evicted from cache, so
+   * parsing and resolving will be performed.
+   * 
+   * @return the resolved {@link CompilationUnit}, maybe {@code null} if synthetic {@link Element}.
+   */
+  public CompilationUnit getUnit() throws AnalysisException;
 
   /**
    * Return {@code true} if this element, assuming that it is within scope, is accessible to code in

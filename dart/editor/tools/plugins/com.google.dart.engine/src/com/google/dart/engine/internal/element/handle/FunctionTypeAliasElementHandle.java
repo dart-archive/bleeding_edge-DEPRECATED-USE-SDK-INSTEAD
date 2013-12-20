@@ -13,6 +13,8 @@
  */
 package com.google.dart.engine.internal.element.handle;
 
+import com.google.dart.engine.ast.FunctionTypeAlias;
+import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.FunctionTypeAliasElement;
@@ -46,6 +48,11 @@ public class FunctionTypeAliasElementHandle extends ElementHandle implements
   @Override
   public ElementKind getKind() {
     return ElementKind.FUNCTION_TYPE_ALIAS;
+  }
+
+  @Override
+  public FunctionTypeAlias getNode() throws AnalysisException {
+    return getActualElement().getNode();
   }
 
   @Override

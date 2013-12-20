@@ -15,7 +15,6 @@
 package com.google.dart.engine.internal.html.angular;
 
 import com.google.common.collect.Lists;
-import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.Annotation;
 import com.google.dart.engine.ast.ArgumentList;
 import com.google.dart.engine.ast.ClassDeclaration;
@@ -27,7 +26,6 @@ import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.NamedExpression;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.SimpleStringLiteral;
-import com.google.dart.engine.ast.visitor.NodeLocator;
 import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.ClassElement;
@@ -98,28 +96,6 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
       }
     }
     return null;
-  }
-
-  /**
-   * @return the resolved {@link ASTNode} which declares given {@link Element}.
-   */
-  @SuppressWarnings("unchecked")
-  private static <T> T getResolvedNode(Element element) throws AnalysisException {
-    CompilationUnit unit = getResolvedUnit(element);
-    ASTNode node = new NodeLocator(element.getNameOffset()).searchWithin(unit);
-    switch (element.getKind()) {
-      case CLASS:
-        return (T) node.getAncestor(ClassDeclaration.class);
-      default:
-        throw new IllegalArgumentException(element.getKind().name());
-    }
-  }
-
-  /**
-   * @return the resolved {@link CompilationUnit} which declares given {@link Element}.
-   */
-  private static CompilationUnit getResolvedUnit(Element element) throws AnalysisException {
-    return element.getContext().resolveCompilationUnit(element.getSource(), element.getLibrary());
   }
 
   /**
@@ -368,7 +344,7 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
             Element injectElement = ((Identifier) argument).getStaticElement();
             if (injectElement instanceof ClassElement) {
               try {
-                ClassDeclaration injectedClass = getResolvedNode(injectElement);
+                ClassDeclaration injectedClass = ((ClassElement) injectElement).getNode();
                 injected.add(injectedClass);
               } catch (AnalysisException e) {
                 thrownException = e;
@@ -393,14 +369,13 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
     List<ClassDeclaration> modules = Lists.newArrayList();
     List<Expression> arguments = bootInvocation.getArgumentList().getArguments();
     for (Expression argument : arguments) {
-      if (argument instanceof NamedExpression) {
-        NamedExpression namedArgument = (NamedExpression) argument;
-        String name = namedArgument.getName().getLabel().getName();
-        // TODO(scheglov) limitation - only one module, add support for "modules"
-        if (name.equals("module")) {
-          Expression moduleExpression = namedArgument.getExpression();
-          Element moduleElement = moduleExpression.getBestType().getElement();
-          ClassDeclaration moduleClass = getResolvedNode(moduleElement);
+      // TODO(scheglov) limitation - only one module, add support for "modules"
+      {
+        Expression moduleExpression = getNamedExpression(argument, "module");
+        Element element = moduleExpression.getBestType().getElement();
+        if (element instanceof ClassElement) {
+          ClassElement moduleElement = (ClassElement) element;
+          ClassDeclaration moduleClass = moduleElement.getNode();
           if (moduleClass != null) {
             modules.add(moduleClass);
           }

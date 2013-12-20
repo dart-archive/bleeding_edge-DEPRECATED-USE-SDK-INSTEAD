@@ -13,7 +13,13 @@
  */
 package com.google.dart.engine.internal.element;
 
+import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.Identifier;
+import com.google.dart.engine.ast.MethodDeclaration;
+import com.google.dart.engine.context.AnalysisException;
+import com.google.dart.engine.element.ClassElement;
+import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.ElementVisitor;
 import com.google.dart.engine.element.PropertyAccessorElement;
@@ -99,6 +105,20 @@ public class PropertyAccessorElementImpl extends ExecutableElementImpl implement
       return super.getName() + '=';
     }
     return super.getName();
+  }
+
+  @Override
+  public ASTNode getNode() throws AnalysisException {
+    if (isSynthetic()) {
+      return null;
+    }
+    if (getEnclosingElement() instanceof ClassElement) {
+      return getNode(MethodDeclaration.class);
+    }
+    if (getEnclosingElement() instanceof CompilationUnitElement) {
+      return getNode(FunctionDeclaration.class);
+    }
+    return null;
   }
 
   @Override

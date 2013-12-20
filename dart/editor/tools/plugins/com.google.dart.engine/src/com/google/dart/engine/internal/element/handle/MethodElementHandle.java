@@ -13,6 +13,8 @@
  */
 package com.google.dart.engine.internal.element.handle;
 
+import com.google.dart.engine.ast.MethodDeclaration;
+import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.MethodElement;
@@ -40,6 +42,11 @@ public class MethodElementHandle extends ExecutableElementHandle implements Meth
   @Override
   public ElementKind getKind() {
     return ElementKind.METHOD;
+  }
+
+  @Override
+  public MethodDeclaration getNode() throws AnalysisException {
+    return getActualElement().getNode();
   }
 
   @Override

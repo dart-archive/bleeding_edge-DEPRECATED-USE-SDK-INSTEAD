@@ -13,6 +13,8 @@
  */
 package com.google.dart.engine.internal.element.handle;
 
+import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ElementKind;
@@ -62,6 +64,11 @@ public class CompilationUnitElementHandle extends ElementHandle implements Compi
   @Override
   public ElementKind getKind() {
     return ElementKind.COMPILATION_UNIT;
+  }
+
+  @Override
+  public CompilationUnit getNode() throws AnalysisException {
+    return getActualElement().getNode();
   }
 
   @Override

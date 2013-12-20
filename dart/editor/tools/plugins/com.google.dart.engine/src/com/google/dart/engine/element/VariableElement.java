@@ -13,6 +13,8 @@
  */
 package com.google.dart.engine.element;
 
+import com.google.dart.engine.ast.VariableDeclaration;
+import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.type.Type;
 
 /**
@@ -30,6 +32,18 @@ public interface VariableElement extends Element {
    * @return a synthetic function representing this variable's initializer
    */
   public FunctionElement getInitializer();
+
+  /**
+   * Return the resolved {@link VariableDeclaration} node that declares this {@link VariableElement}
+   * .
+   * <p>
+   * This method is expensive, because resolved AST might be evicted from cache, so parsing and
+   * resolving will be performed.
+   * 
+   * @return the resolved {@link VariableDeclaration}, not {@code null}.
+   */
+  @Override
+  public VariableDeclaration getNode() throws AnalysisException;
 
   /**
    * Return the declared type of this variable, or {@code null} if the variable did not have a

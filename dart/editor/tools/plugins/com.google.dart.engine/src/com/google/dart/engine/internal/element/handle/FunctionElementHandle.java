@@ -13,6 +13,8 @@
  */
 package com.google.dart.engine.internal.element.handle;
 
+import com.google.dart.engine.ast.FunctionDeclaration;
+import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.utilities.source.SourceRange;
@@ -36,6 +38,11 @@ public class FunctionElementHandle extends ExecutableElementHandle implements Fu
   @Override
   public ElementKind getKind() {
     return ElementKind.FUNCTION;
+  }
+
+  @Override
+  public FunctionDeclaration getNode() throws AnalysisException {
+    return getActualElement().getNode();
   }
 
   @Override

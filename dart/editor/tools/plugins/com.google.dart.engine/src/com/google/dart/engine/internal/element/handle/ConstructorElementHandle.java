@@ -13,6 +13,8 @@
  */
 package com.google.dart.engine.internal.element.handle;
 
+import com.google.dart.engine.ast.ConstructorDeclaration;
+import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.ElementKind;
@@ -41,6 +43,11 @@ public class ConstructorElementHandle extends ExecutableElementHandle implements
   @Override
   public ElementKind getKind() {
     return ElementKind.CONSTRUCTOR;
+  }
+
+  @Override
+  public ConstructorDeclaration getNode() throws AnalysisException {
+    return getActualElement().getNode();
   }
 
   @Override

@@ -13,6 +13,8 @@
  */
 package com.google.dart.engine.internal.element.member;
 
+import com.google.dart.engine.ast.VariableDeclaration;
+import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.ElementVisitor;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.VariableElement;
@@ -48,6 +50,11 @@ public abstract class VariableMember extends Member implements VariableElement {
     //
     throw new UnsupportedOperationException();
 //    return getBaseElement().getInitializer();
+  }
+
+  @Override
+  public VariableDeclaration getNode() throws AnalysisException {
+    return getBaseElement().getNode();
   }
 
   @Override

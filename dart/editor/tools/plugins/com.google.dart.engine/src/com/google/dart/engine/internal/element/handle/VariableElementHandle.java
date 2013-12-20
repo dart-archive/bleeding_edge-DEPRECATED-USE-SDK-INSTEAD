@@ -13,6 +13,8 @@
  */
 package com.google.dart.engine.internal.element.handle;
 
+import com.google.dart.engine.ast.VariableDeclaration;
+import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.type.Type;
@@ -36,6 +38,11 @@ public abstract class VariableElementHandle extends ElementHandle implements Var
   @Override
   public FunctionElement getInitializer() {
     return getActualElement().getInitializer();
+  }
+
+  @Override
+  public VariableDeclaration getNode() throws AnalysisException {
+    return getActualElement().getNode();
   }
 
   @Override

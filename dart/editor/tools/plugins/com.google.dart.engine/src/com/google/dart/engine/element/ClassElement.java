@@ -117,7 +117,7 @@ public interface ClassElement extends Element {
    * This method is expensive, because resolved AST might be evicted from cache, so parsing and
    * resolving will be performed.
    * 
-   * @return the resolved {@link ClassDeclaration}, not null.
+   * @return the resolved {@link ClassDeclaration}, not {@code null}.
    */
   public ClassDeclaration getNode() throws AnalysisException;
 

@@ -13,6 +13,8 @@
  */
 package com.google.dart.engine.internal.element;
 
+import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.Element;
@@ -180,6 +182,11 @@ public class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   }
 
   @Override
+  public ASTNode getNode() throws AnalysisException {
+    return null;
+  }
+
+  @Override
   public Source getSource() {
     return null;
   }
@@ -187,6 +194,11 @@ public class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   @Override
   public Type getType() {
     return DynamicTypeImpl.getInstance();
+  }
+
+  @Override
+  public CompilationUnit getUnit() throws AnalysisException {
+    return null;
   }
 
   @Override

@@ -43,7 +43,6 @@ import com.google.dart.engine.ast.Statement;
 import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationStatement;
-import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ConstructorElement;
@@ -53,7 +52,6 @@ import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.FunctionTypeAliasElement;
-import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
@@ -1098,51 +1096,6 @@ public class CorrectionUtilsTest extends AbstractDartTest {
         "my_super_test.dart",
         CorrectionUtils.getRecommentedFileNameForClass("MySuperTest"));
     assertEquals("http_server.dart", CorrectionUtils.getRecommentedFileNameForClass("HTTPServer"));
-  }
-
-  public void test_getResolvedNode_class() throws Exception {
-    parseTestUnit(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "class A {}",
-        "");
-    {
-      ClassElement element = findIdentifierElement("A {}");
-      ClassDeclaration node = CorrectionUtils.getResolvedNode(element);
-      assertNotNull(node);
-      assertEquals("A", node.getName().getName());
-    }
-  }
-
-  public void test_getResolvedNode_notSupported() throws Exception {
-    parseTestUnit(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "class A {}",
-        "");
-    {
-      Element element = mock(Element.class);
-      when(element.getContext()).thenReturn(analysisContext);
-      when(element.getSource()).thenReturn(testSource);
-      when(element.getKind()).thenReturn(ElementKind.ERROR);
-      try {
-        CorrectionUtils.getResolvedNode(element);
-        fail();
-      } catch (IllegalArgumentException e) {
-      }
-    }
-  }
-
-  public void test_getResolvedUnit() throws Exception {
-    Source source = mock(Source.class);
-    CompilationUnit compilationUnit = mock(CompilationUnit.class);
-    Element element = mock(Element.class);
-    LibraryElement library = mock(LibraryElement.class);
-    AnalysisContext analysisContext = mock(AnalysisContext.class);
-    when(element.getContext()).thenReturn(analysisContext);
-    when(element.getSource()).thenReturn(source);
-    when(element.getLibrary()).thenReturn(library);
-    when(analysisContext.resolveCompilationUnit(source, library)).thenReturn(compilationUnit);
-    //
-    assertSame(compilationUnit, CorrectionUtils.getResolvedUnit(element));
   }
 
   public void test_getSingleStatement() throws Exception {

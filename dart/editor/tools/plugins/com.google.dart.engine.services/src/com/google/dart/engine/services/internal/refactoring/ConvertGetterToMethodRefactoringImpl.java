@@ -16,10 +16,8 @@ package com.google.dart.engine.services.internal.refactoring;
 
 import com.google.common.collect.Sets;
 import com.google.dart.engine.ast.ASTNode;
-import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.MethodDeclaration;
-import com.google.dart.engine.ast.visitor.NodeLocator;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
@@ -34,7 +32,6 @@ import com.google.dart.engine.services.change.CompositeChange;
 import com.google.dart.engine.services.change.Edit;
 import com.google.dart.engine.services.change.SourceChange;
 import com.google.dart.engine.services.change.SourceChangeManager;
-import com.google.dart.engine.services.internal.correction.CorrectionUtils;
 import com.google.dart.engine.services.refactoring.ConvertGetterToMethodRefactoring;
 import com.google.dart.engine.services.refactoring.ProgressMonitor;
 import com.google.dart.engine.services.status.RefactoringStatus;
@@ -100,10 +97,10 @@ public class ConvertGetterToMethodRefactoringImpl extends RefactoringImpl implem
       }
       // MethodDeclaration
       if (element.getEnclosingElement() instanceof ClassElement) {
-        Set<Element> updateElements = getHierarchyMethods();
+        Set<PropertyAccessorElement> updateElements = getHierarchyMethods();
         pm.worked(1);
         // update elements
-        for (Element element : updateElements) {
+        for (PropertyAccessorElement element : updateElements) {
           updateElementDeclaration(element);
           updateElementReferences(element);
         }
@@ -125,7 +122,7 @@ public class ConvertGetterToMethodRefactoringImpl extends RefactoringImpl implem
   /**
    * When {@link #element} is {@link MethodElement}, finds all overrides in super- and sub- classes.
    */
-  private Set<Element> getHierarchyMethods() {
+  private Set<PropertyAccessorElement> getHierarchyMethods() {
     ClassElement enclosingClass = (ClassElement) element.getEnclosingElement();
     // prepare super/sub-classes
     Set<ClassElement> superClasses = HierarchyUtils.getSuperClasses(enclosingClass);
@@ -136,13 +133,13 @@ public class ConvertGetterToMethodRefactoringImpl extends RefactoringImpl implem
     hierarchyClasses.addAll(superClasses);
     hierarchyClasses.addAll(subClasses);
     // prepare elements to update
-    Set<Element> updateElements = Sets.newHashSet();
+    Set<PropertyAccessorElement> updateElements = Sets.newHashSet();
     for (ClassElement superClass : hierarchyClasses) {
       for (Element child : getChildren(superClass, element.getDisplayName())) {
         if (child instanceof PropertyAccessorElement && !child.isSynthetic()) {
           PropertyAccessorElement accessor = (PropertyAccessorElement) child;
           if (accessor.isGetter()) {
-            updateElements.add(child);
+            updateElements.add(accessor);
           }
         }
       }
@@ -150,20 +147,17 @@ public class ConvertGetterToMethodRefactoringImpl extends RefactoringImpl implem
     return updateElements;
   }
 
-  private void updateElementDeclaration(Element element) throws AnalysisException {
+  private void updateElementDeclaration(PropertyAccessorElement element) throws AnalysisException {
     String description = "Convert getter declaration into method";
     SourceChange change = changeManager.get(element.getSource());
     // prepare "get" keyword
     Token getKeyword = null;
     {
-      CompilationUnit unit = CorrectionUtils.getResolvedUnit(element);
-      ASTNode node = new NodeLocator(element.getNameOffset()).searchWithin(unit);
-      if (element.getEnclosingElement() instanceof ClassElement) {
-        MethodDeclaration methodDeclaration = node.getAncestor(MethodDeclaration.class);
-        getKeyword = methodDeclaration.getPropertyKeyword();
-      } else if (element.getEnclosingElement() instanceof CompilationUnitElement) {
-        FunctionDeclaration functionDeclaration = node.getAncestor(FunctionDeclaration.class);
-        getKeyword = functionDeclaration.getPropertyKeyword();
+      ASTNode node = element.getNode();
+      if (node instanceof MethodDeclaration) {
+        getKeyword = ((MethodDeclaration) node).getPropertyKeyword();
+      } else if (node instanceof FunctionDeclaration) {
+        getKeyword = ((FunctionDeclaration) node).getPropertyKeyword();
       }
     }
     // remove "get "

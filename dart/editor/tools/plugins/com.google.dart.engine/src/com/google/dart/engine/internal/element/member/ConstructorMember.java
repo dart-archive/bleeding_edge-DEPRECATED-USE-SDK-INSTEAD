@@ -13,6 +13,8 @@
  */
 package com.google.dart.engine.internal.element.member;
 
+import com.google.dart.engine.ast.ConstructorDeclaration;
+import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
@@ -82,6 +84,11 @@ public class ConstructorMember extends ExecutableMember implements ConstructorEl
   @Override
   public ClassElement getEnclosingElement() {
     return getBaseElement().getEnclosingElement();
+  }
+
+  @Override
+  public ConstructorDeclaration getNode() throws AnalysisException {
+    return getBaseElement().getNode();
   }
 
   @Override

@@ -13,6 +13,9 @@
  */
 package com.google.dart.engine.element;
 
+import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.context.AnalysisException;
+
 /**
  * The interface {@code CompilationUnitElement} defines the behavior of elements representing a
  * compilation unit.
@@ -49,6 +52,16 @@ public interface CompilationUnitElement extends Element, UriReferencedElement {
    * @return the function type aliases contained in this compilation unit
    */
   public FunctionTypeAliasElement[] getFunctionTypeAliases();
+
+  /**
+   * Return the resolved {@link CompilationUnit} node that declares this element.
+   * <p>
+   * This method is expensive, because resolved AST might be evicted from cache, so parsing and
+   * resolving will be performed.
+   * 
+   * @return the resolved {@link CompilationUnit}, not {@code null}.
+   */
+  public CompilationUnit getNode() throws AnalysisException;
 
   /**
    * Return an array containing all of the top-level variables contained in this compilation unit.

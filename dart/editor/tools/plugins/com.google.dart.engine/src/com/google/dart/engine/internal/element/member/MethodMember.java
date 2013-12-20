@@ -13,6 +13,8 @@
  */
 package com.google.dart.engine.internal.element.member;
 
+import com.google.dart.engine.ast.MethodDeclaration;
+import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementVisitor;
@@ -77,6 +79,11 @@ public class MethodMember extends ExecutableMember implements MethodElement {
   @Override
   public ClassElement getEnclosingElement() {
     return getBaseElement().getEnclosingElement();
+  }
+
+  @Override
+  public MethodDeclaration getNode() throws AnalysisException {
+    return getBaseElement().getNode();
   }
 
   @Override

@@ -13,7 +13,9 @@
  */
 package com.google.dart.engine.internal.element;
 
+import com.google.dart.engine.ast.FunctionTypeAlias;
 import com.google.dart.engine.ast.Identifier;
+import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementKind;
@@ -95,6 +97,11 @@ public class FunctionTypeAliasElementImpl extends ElementImpl implements Functio
   @Override
   public ElementKind getKind() {
     return ElementKind.FUNCTION_TYPE_ALIAS;
+  }
+
+  @Override
+  public FunctionTypeAlias getNode() throws AnalysisException {
+    return getNode(FunctionTypeAlias.class);
   }
 
   @Override

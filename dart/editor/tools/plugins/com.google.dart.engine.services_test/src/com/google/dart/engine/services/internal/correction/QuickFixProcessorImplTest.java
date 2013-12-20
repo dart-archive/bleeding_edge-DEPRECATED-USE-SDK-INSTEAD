@@ -1385,6 +1385,17 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
     }
   }
 
+  public void test_undefinedMethod_createQualified_targetIsFunctionType() throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "typedef A();",
+        "main() {",
+        "  A.myUndefinedMethod();",
+        "}",
+        "");
+    assertNoFix(CorrectionKind.QF_CREATE_METHOD);
+  }
+
   public void test_undefinedMethod_createUnqualified_parameters() throws Exception {
     prepareProblemWithFix(
         "// filler filler filler filler filler filler filler filler filler filler",

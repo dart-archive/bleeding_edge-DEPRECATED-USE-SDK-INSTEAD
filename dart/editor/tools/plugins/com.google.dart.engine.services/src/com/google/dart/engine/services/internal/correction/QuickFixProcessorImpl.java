@@ -867,7 +867,7 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
 
   private void addFix_importLibrary(CorrectionKind kind, String importPath) throws Exception {
     CompilationUnitElement libraryUnitElement = unitLibraryElement.getDefiningCompilationUnit();
-    CompilationUnit libraryUnit = CorrectionUtils.getResolvedUnit(libraryUnitElement);
+    CompilationUnit libraryUnit = libraryUnitElement.getNode();
     // prepare new import location
     int offset = 0;
     String prefix;
@@ -1265,15 +1265,19 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
         sourcePrefix = eol + prefix + eol;
         sourceSuffix = "";
       } else {
+        // prepare target interface type
         Type targetType = target.getBestType();
-        Element targetElement = targetType.getElement();
+        if (!(targetType instanceof InterfaceType)) {
+          return;
+        }
+        ClassElement targetElement = (ClassElement) targetType.getElement();
         targetSource = targetElement.getSource();
         // may be static
         if (target instanceof Identifier) {
           staticModifier = ((Identifier) target).getBestElement().getKind() == ElementKind.CLASS;
         }
         // prepare insert offset
-        ClassDeclaration targetClass = CorrectionUtils.getResolvedNode(targetElement);
+        ClassDeclaration targetClass = targetElement.getNode();
         prefix = "  ";
         insertOffset = targetClass.getEnd() - 1;
         if (targetClass.getMembers().isEmpty()) {
@@ -1631,7 +1635,7 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
     String eol = utils.getEndOfLine();
     Source targetSource = targetClassElement.getSource();
     // prepare insert offset
-    ClassDeclaration targetClassNode = CorrectionUtils.getResolvedNode(targetClassElement);
+    ClassDeclaration targetClassNode = targetClassElement.getNode();
     int insertOffset = targetClassNode.getEnd() - 1;
     // prepare prefix
     String prefix = "  ";
