@@ -8,6 +8,9 @@ to init
 	else
 		put "windows" into universal platform
 	end if
+	if RemoteScreenSize() <> (1920,1200) then
+		throw "Screen size must be 1920x1200"
+	end if
 	Set the ImageDoctor to Auto
 end init
 
