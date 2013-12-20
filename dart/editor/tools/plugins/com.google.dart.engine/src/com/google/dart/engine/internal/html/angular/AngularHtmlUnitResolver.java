@@ -21,7 +21,6 @@ import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.Identifier;
-import com.google.dart.engine.ast.LibraryIdentifier;
 import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.NamedExpression;
 import com.google.dart.engine.ast.SimpleIdentifier;
@@ -32,7 +31,6 @@ import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExternalHtmlScriptElement;
 import com.google.dart.engine.element.HtmlScriptElement;
-import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.html.ast.EmbeddedExpression;
@@ -42,7 +40,7 @@ import com.google.dart.engine.html.ast.visitor.RecursiveXmlVisitor;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
 import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
-import com.google.dart.engine.internal.element.LocalVariableElementImpl;
+import com.google.dart.engine.internal.element.TopLevelVariableElementImpl;
 import com.google.dart.engine.internal.resolver.InheritanceManager;
 import com.google.dart.engine.internal.resolver.ProxyConditionalAnalysisError;
 import com.google.dart.engine.internal.resolver.ResolverVisitor;
@@ -144,7 +142,10 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
   private final AnalysisErrorListener errorListener;
   private final Source source;
   private final List<NgAnnotation> controllers = Lists.newArrayList();
+  private CompilationUnitElementImpl unitElement;
+  private LibraryElementImpl libraryElement;
   private ResolverVisitor resolver;
+  private List<TopLevelVariableElementImpl> declaredVariables = Lists.newArrayList();
   private boolean isAngular = false;
 
   private AnalysisException thrownException;
@@ -172,8 +173,12 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
     if (!success) {
       return;
     }
+    // prepare Dart library
+    createLibraryElement();
+    unit.setCompilationUnitElement(libraryElement.getDefiningCompilationUnit());
     // prepare Dart resolver
-    resolver = createResolver();
+    createResolver();
+    unitElement.setTopLevelVariables(declaredVariables.toArray(new TopLevelVariableElementImpl[declaredVariables.size()]));
     // run this HTML visitor
     unit.accept(this);
     // push conditional errors 
@@ -206,7 +211,7 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
         // inject controllers
         for (NgAnnotation controller : controllers) {
           if (controller.getSelector().apply(node)) {
-            VariableElement controllerVar = createLocalVariable(
+            VariableElement controllerVar = createTopLevelVariable(
                 controller.getElement(),
                 controller.getName());
             if (nameScope == null) {
@@ -255,46 +260,46 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
   }
 
   /**
-   * @return the artificial {@link LibraryElementImpl} for this HTML {@link Source}.
+   * Puts into {@link #libraryElement} an artificial {@link LibraryElementImpl} for this HTML
+   * {@link Source}.
    */
-  private LibraryElement createLibraryElement() {
-    String sourceName = source.getFullName();
-    // prepare library name
-    List<SimpleIdentifier> components = Lists.newArrayList();
-    components.add(createIdentifier(sourceName));
-    LibraryIdentifier libraryIdentifier = new LibraryIdentifier(components);
-    // create LibraryElement
-    LibraryElementImpl libraryElement = new LibraryElementImpl(context, libraryIdentifier);
-    libraryElement.setDefiningCompilationUnit(new CompilationUnitElementImpl(sourceName));
-    return libraryElement;
+  private void createLibraryElement() {
+    // create CompilationUnitElementImpl
+    String unitName = source.getShortName();
+    unitElement = new CompilationUnitElementImpl(unitName);
+    unitElement.setSource(source);
+    // create LibraryElementImpl
+    libraryElement = new LibraryElementImpl(context, null);
+    libraryElement.setDefiningCompilationUnit(unitElement);
   }
 
   /**
-   * Creates new {@link LocalVariableElementImpl} with given name and type.
-   * 
-   * @param classElement the {@link ClassElement} to create type
-   * @param name the name of the variable
-   * @return the new {@link LocalVariableElementImpl}
+   * Puts into {@link #resolver} an {@link ResolverVisitor} to resolve {@link Expression}s in
+   * {@link #source}.
    */
-  private LocalVariableElementImpl createLocalVariable(ClassElement classElement, String name) {
-    SimpleIdentifier identifier = createIdentifier(name);
-    LocalVariableElementImpl variable = new LocalVariableElementImpl(identifier);
-    variable.setType(classElement.getType());
-    return variable;
-  }
-
-  /**
-   * @return the {@link ResolverVisitor} to resolve {@link Expression}s in {@link #source}.
-   */
-  private ResolverVisitor createResolver() {
-    LibraryElement libraryElement = createLibraryElement();
+  private void createResolver() {
     InheritanceManager inheritanceManager = new InheritanceManager(libraryElement);
-    return new ResolverVisitor(
+    resolver = new ResolverVisitor(
         libraryElement,
         source,
         typeProvider,
         inheritanceManager,
         errorListener);
+  }
+
+  /**
+   * Creates new {@link TopLevelVariableElementImpl} with given name and type.
+   * 
+   * @param classElement the {@link ClassElement} to create type
+   * @param name the name of the variable
+   * @return the new {@link TopLevelVariableElementImpl}
+   */
+  private TopLevelVariableElementImpl createTopLevelVariable(ClassElement classElement, String name) {
+    SimpleIdentifier identifier = createIdentifier(name);
+    TopLevelVariableElementImpl variable = new TopLevelVariableElementImpl(identifier);
+    declaredVariables.add(variable);
+    variable.setType(classElement.getType());
+    return variable;
   }
 
   /**
