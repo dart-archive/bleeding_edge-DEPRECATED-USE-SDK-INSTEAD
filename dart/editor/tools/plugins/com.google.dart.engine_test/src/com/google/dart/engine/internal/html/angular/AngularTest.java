@@ -126,6 +126,16 @@ abstract public class AngularTest extends EngineTestCase {
     return identifier;
   }
 
+  /**
+   * @return the offset of given <code>search</code> string in {@link #indexContent}. Fails test if
+   *         not found.
+   */
+  protected final int findOffset(String search) {
+    int offset = indexContent.indexOf(search);
+    assertThat(offset).describedAs(indexContent).isNotEqualTo(-1);
+    return offset;
+  }
+
   protected final void resolveIndex(String... lines) throws Exception {
     indexContent = createSource(lines);
     indexSource = contextHelper.addSource("/index.html", indexContent);
@@ -225,15 +235,5 @@ abstract public class AngularTest extends EngineTestCase {
             "        String selector: '[ng-app]',",
             "        /*Injector*/ injectorFactory/*(List<Module> modules): _defaultInjectorFactory*/}) {}",
             ""));
-  }
-
-  /**
-   * @return the offset of given <code>search</code> string in {@link testUnit}. Fails test if not
-   *         found.
-   */
-  private int findOffset(String search) {
-    int offset = indexContent.indexOf(search);
-    assertThat(offset).describedAs(indexContent).isNotEqualTo(-1);
-    return offset;
   }
 }

@@ -90,6 +90,11 @@ public class XmlTagNode extends XmlNode {
   private final Token nodeEnd;
 
   /**
+   * The expressions that are embedded in the tag's content.
+   */
+  private EmbeddedExpression[] expressions = EmbeddedExpression.EMPTY_ARRAY;
+
+  /**
    * Construct a new instance representing an XML or HTML element
    * 
    * @param nodeStart the starting {@link TokenType#LT} token (not {@code null})
@@ -269,7 +274,7 @@ public class XmlTagNode extends XmlNode {
    * @return the expressions that are embedded in the tag's content
    */
   public EmbeddedExpression[] getExpressions() {
-    return EmbeddedExpression.EMPTY_ARRAY;
+    return expressions;
   }
 
   /**
@@ -307,6 +312,15 @@ public class XmlTagNode extends XmlNode {
    */
   public List<XmlTagNode> getTagNodes() {
     return tagNodes;
+  }
+
+  /**
+   * Set the expressions that are embedded in the tag's content.
+   * 
+   * @param expressions expressions that are embedded in the tag's content
+   */
+  public void setExpressions(EmbeddedExpression[] expressions) {
+    this.expressions = expressions;
   }
 
   @Override

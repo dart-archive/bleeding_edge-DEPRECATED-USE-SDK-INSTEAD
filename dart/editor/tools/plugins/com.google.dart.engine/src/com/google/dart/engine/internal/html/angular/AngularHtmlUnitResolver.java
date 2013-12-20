@@ -38,6 +38,8 @@ import com.google.dart.engine.html.ast.EmbeddedExpression;
 import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.html.ast.XmlTagNode;
 import com.google.dart.engine.html.ast.visitor.RecursiveXmlVisitor;
+import com.google.dart.engine.html.parser.HtmlParser;
+import com.google.dart.engine.html.scanner.Token;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
 import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
@@ -50,13 +52,18 @@ import com.google.dart.engine.internal.scope.Scope;
 import com.google.dart.engine.scanner.StringToken;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.utilities.source.LineInfo;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Instances of the class {@link AngularHtmlUnitResolver} resolve Angular specific expressions.
  */
 public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
+  private static final String OPENING_DELIMITER = "{{";
+  private static final String CLOSING_DELIMITER = "}}";
+
   private static final String NG_APP = "ng-app";
   private static final String NG_BOOTSTRAP = "ngBootstrap";
   private static final String NG_CONTROLLER = "NgController";
@@ -143,6 +150,7 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
   private final TypeProvider typeProvider;
   private final AnalysisErrorListener errorListener;
   private final Source source;
+  private final LineInfo lineInfo;
   private final List<NgAnnotation> controllers = Lists.newArrayList();
   private CompilationUnitElementImpl unitElement;
   private LibraryElementImpl libraryElement;
@@ -153,8 +161,10 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
   private AnalysisException thrownException;
 
   public AngularHtmlUnitResolver(InternalAnalysisContext context,
-      AnalysisErrorListener errorListener, Source source) throws AnalysisException {
+      AnalysisErrorListener errorListener, Source source, LineInfo lineInfo)
+      throws AnalysisException {
     this.context = context;
+    this.lineInfo = lineInfo;
     this.typeProvider = context.getTypeProvider();
     this.errorListener = errorListener;
     this.source = source;
@@ -205,6 +215,7 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
       // process children
       Scope nameScope = null;
       try {
+        parseEmbeddedExpressions(node);
         // inject controllers
         for (NgAnnotation controller : controllers) {
           if (controller.getSelector().apply(node)) {
@@ -390,6 +401,59 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
       }
     }
     return modules;
+  }
+
+  /**
+   * Parse the value of the given token for embedded expressions, and add any embedded expressions
+   * that are found to the given list of expressions.
+   * 
+   * @param expressions the list to which embedded expressions are to be added
+   * @param token the token whose value is to be parsed
+   */
+  private void parseEmbeddedExpressions(ArrayList<EmbeddedExpression> expressions, Token token) {
+    String lexeme = token.getLexeme();
+    int startIndex = lexeme.indexOf(OPENING_DELIMITER);
+    while (startIndex >= 0) {
+      int endIndex = lexeme.indexOf(CLOSING_DELIMITER, startIndex + 2);
+      if (endIndex < 0) {
+        // TODO(brianwilkerson) Should we report this error or will it be reported by something else?
+        return;
+      } else if (startIndex + 2 < endIndex) {
+        int offset = token.getOffset();
+        Expression expression = HtmlParser.parseEmbeddedExpression(
+            source,
+            lineInfo,
+            lexeme.substring(startIndex + 2, endIndex),
+            offset + startIndex + 2,
+            errorListener);
+        expressions.add(new EmbeddedExpression(startIndex, expression, endIndex));
+      }
+      startIndex = lexeme.indexOf(OPENING_DELIMITER, endIndex + 2);
+    }
+  }
+
+  private void parseEmbeddedExpressions(XmlTagNode node) {
+    ArrayList<EmbeddedExpression> expressions = new ArrayList<EmbeddedExpression>();
+    Token token = node.getAttributeEnd();
+    Token endToken = node.getEndToken();
+    boolean inChild = false;
+    while (token != endToken) {
+      for (XmlTagNode child : node.getTagNodes()) {
+        if (token == child.getBeginToken()) {
+          inChild = true;
+          break;
+        }
+        if (token == child.getEndToken()) {
+          inChild = false;
+          break;
+        }
+      }
+      if (!inChild && token.getType() == com.google.dart.engine.html.scanner.TokenType.TEXT) {
+        parseEmbeddedExpressions(expressions, token);
+      }
+      token = token.getNext();
+    }
+    node.setExpressions(expressions.toArray(new EmbeddedExpression[expressions.size()]));
   }
 
   /**

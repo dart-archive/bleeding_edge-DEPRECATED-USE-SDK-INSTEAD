@@ -13,8 +13,10 @@
  */
 package com.google.dart.engine.internal.html.angular;
 
+import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.error.StaticWarningCode;
+import com.google.dart.engine.html.ast.HtmlUnitUtils;
 
 public class AngularHtmlUnitResolverTest extends AngularTest {
 
@@ -30,9 +32,9 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
         "  </body>",
         "</html>");
     assertNoErrors();
-    // "ctrl" is not resolved
-    SimpleIdentifier identifier = findIdentifier("ctrl");
-    assertNull(identifier.getBestElement());
+    // Angular is not initialized, so "ctrl" is not parsed
+    Expression expression = HtmlUnitUtils.getExpression(indexUnit, findOffset("ctrl"));
+    assertNull(expression);
   }
 
   public void test_notResolved_noDartScript() throws Exception {
@@ -45,9 +47,9 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
         "  </body>",
         "</html>");
     assertNoErrors();
-    // "ctrl" is not resolved
-    SimpleIdentifier identifier = findIdentifier("ctrl");
-    assertNull(identifier.getBestElement());
+    // Angular is not initialized, so "ctrl" is not parsed
+    Expression expression = HtmlUnitUtils.getExpression(indexUnit, findOffset("ctrl"));
+    assertNull(expression);
   }
 
   public void test_notResolved_notAngular() throws Exception {
@@ -60,9 +62,9 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
         "  </body>",
         "</html>");
     assertNoErrors();
-    // "ctrl" is not resolved
-    SimpleIdentifier identifier = findIdentifier("ctrl");
-    assertNull(identifier.getBestElement());
+    // Angular is not initialized, so "ctrl" is not parsed
+    Expression expression = HtmlUnitUtils.getExpression(indexUnit, findOffset("ctrl"));
+    assertNull(expression);
   }
 
   public void test_notResolved_wrongControllerMarker() throws Exception {
