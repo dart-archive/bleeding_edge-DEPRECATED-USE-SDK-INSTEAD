@@ -20,8 +20,9 @@ import com.google.dart.engine.ast.visitor.ElementLocator;
 import com.google.dart.engine.ast.visitor.NodeLocator;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
-import com.google.dart.engine.element.LocalVariableElement;
+import com.google.dart.engine.element.TopLevelVariableElement;
 import com.google.dart.engine.html.ast.visitor.RecursiveXmlVisitor;
+import com.google.dart.engine.internal.html.angular.AngularHtmlUnitResolver;
 
 /**
  * Utilities locating {@link Expression}s and {@link Element}s in {@link HtmlUnit}.
@@ -31,6 +32,9 @@ public class HtmlUnitUtils {
    * Returns the best {@link Element} of the given {@link Expression}.
    */
   public static Element getElement(Expression expression) {
+    if (expression == null) {
+      return null;
+    }
     return ElementLocator.locate(expression);
   }
 
@@ -49,10 +53,10 @@ public class HtmlUnitUtils {
   public static Element getElementToOpen(HtmlUnit htmlUnit, Expression expression) {
     Element element = getElement(expression);
     // special cases for Angular
-    if (inAngular(htmlUnit)) {
+    if (isAngular(htmlUnit)) {
       // replace artificial controller variable Element with controller ClassElement
-      if (element instanceof LocalVariableElement) {
-        LocalVariableElement variable = (LocalVariableElement) element;
+      if (element instanceof TopLevelVariableElement) {
+        TopLevelVariableElement variable = (TopLevelVariableElement) element;
         Element typeElement = variable.getType().getElement();
         if (typeElement instanceof ClassElement) {
           element = typeElement;
@@ -96,11 +100,10 @@ public class HtmlUnitUtils {
   }
 
   /**
-   * Returns {@code true} if then given {@link HtmlUnit} has Angular annotation.
+   * Returns {@code true} if the given {@link HtmlUnit} has Angular annotation.
    */
-  public static boolean inAngular(HtmlUnit htmlUnit) {
-    // TODO(scheglov) update later
-    return true;
+  public static boolean isAngular(HtmlUnit htmlUnit) {
+    return AngularHtmlUnitResolver.hasAngularAnnotation(htmlUnit);
   }
 
   /**
@@ -108,7 +111,7 @@ public class HtmlUnitUtils {
    * given offset.
    */
   private static Expression getExpressionAt(ASTNode root, int offset) {
-    if (root.getOffset() < offset && offset < root.getEnd()) {
+    if (root.getOffset() <= offset && offset < root.getEnd()) {
       ASTNode dartNode = new NodeLocator(offset).searchWithin(root);
       if (dartNode instanceof Expression) {
         return (Expression) dartNode;

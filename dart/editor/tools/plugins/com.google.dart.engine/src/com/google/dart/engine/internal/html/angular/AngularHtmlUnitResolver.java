@@ -14,6 +14,7 @@
 
 package com.google.dart.engine.internal.html.angular;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.dart.engine.ast.Annotation;
 import com.google.dart.engine.ast.ArgumentList;
@@ -62,19 +63,42 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
   private static final String ATTR_SELECTOR = "selector";
   private static final String ATTR_PUBLISH_AS = "publishAs";
 
-  private static SimpleIdentifier createIdentifier(String name) {
-    StringToken token = createStringToken(name);
-    return new SimpleIdentifier(token);
-  }
-
   /**
    * Returns {@link InjectSelector} for the given CSS selector string.
    */
-  private static InjectSelector createInjectSelector(String text) {
+  @VisibleForTesting
+  public static InjectSelector createInjectSelector(String text) {
     if (text.startsWith("[") && text.endsWith("]")) {
       return new AttributeInjectSelector(text.substring(1, text.length() - 1));
     }
     return null;
+  }
+
+  /**
+   * @return {@code true} if the given {@link HtmlUnit} has <code>ng-app</code> annotation.
+   */
+  public static boolean hasAngularAnnotation(HtmlUnit htmlUnit) {
+    class FoundAppError extends Error {
+    }
+    try {
+      htmlUnit.accept(new RecursiveXmlVisitor<Void>() {
+        @Override
+        public Void visitXmlTagNode(XmlTagNode node) {
+          if (node.getAttribute(NG_APP) != null) {
+            throw new FoundAppError();
+          }
+          return super.visitXmlTagNode(node);
+        }
+      });
+    } catch (FoundAppError e) {
+      return true;
+    }
+    return false;
+  }
+
+  private static SimpleIdentifier createIdentifier(String name) {
+    StringToken token = createStringToken(name);
+    return new SimpleIdentifier(token);
   }
 
   private static StringToken createStringToken(String name) {
@@ -94,28 +118,6 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
       }
     }
     return null;
-  }
-
-  /**
-   * @return {@code true} if the given {@link HtmlUnit} has <code>ng-app</code> annotation.
-   */
-  private static boolean hasAngularAnnotation(HtmlUnit htmlUnit) {
-    class FoundAppError extends Error {
-    }
-    try {
-      htmlUnit.accept(new RecursiveXmlVisitor<Void>() {
-        @Override
-        public Void visitXmlTagNode(XmlTagNode node) {
-          if (node.getAttribute(NG_APP) != null) {
-            throw new FoundAppError();
-          }
-          return super.visitXmlTagNode(node);
-        }
-      });
-    } catch (FoundAppError e) {
-      return true;
-    }
-    return false;
   }
 
   /**
@@ -200,11 +202,6 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
       if (!isAngular) {
         return super.visitXmlTagNode(node);
       }
-      // resolve expressions
-      for (EmbeddedExpression embeddedExpression : node.getExpressions()) {
-        Expression expression = embeddedExpression.getExpression();
-        resolveExpression(expression);
-      }
       // process children
       Scope nameScope = null;
       try {
@@ -219,6 +216,11 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
             }
             nameScope.define(controllerVar);
           }
+        }
+        // resolve expressions
+        for (EmbeddedExpression embeddedExpression : node.getExpressions()) {
+          Expression expression = embeddedExpression.getExpression();
+          resolveExpression(expression);
         }
         // process children
         return super.visitXmlTagNode(node);
@@ -369,7 +371,7 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
    * @param bootInvocation the <code>ngBootstrap</code> invocation
    * @return the modules {@link ClassDeclaration}s
    */
-  private List<ClassDeclaration> getModuleClass(MethodInvocation bootInvocation)
+  private List<ClassDeclaration> getModules(MethodInvocation bootInvocation)
       throws AnalysisException {
     List<ClassDeclaration> modules = Lists.newArrayList();
     List<Expression> arguments = bootInvocation.getArgumentList().getArguments();
@@ -408,7 +410,7 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
       return false;
     }
     // prepare modules
-    List<ClassDeclaration> modules = getModuleClass(bootInvocation);
+    List<ClassDeclaration> modules = getModules(bootInvocation);
     for (ClassDeclaration module : modules) {
       // prepare injected classes
       List<ClassDeclaration> injectedClasses = getInjectedClasses(module);
