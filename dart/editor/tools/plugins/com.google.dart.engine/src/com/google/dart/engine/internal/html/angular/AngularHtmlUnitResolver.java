@@ -16,6 +16,7 @@ package com.google.dart.engine.internal.html.angular;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
+import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.Annotation;
 import com.google.dart.engine.ast.ArgumentList;
 import com.google.dart.engine.ast.ClassDeclaration;
@@ -31,18 +32,21 @@ import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExternalHtmlScriptElement;
+import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.HtmlScriptElement;
-import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.html.ast.EmbeddedExpression;
 import com.google.dart.engine.html.ast.HtmlUnit;
+import com.google.dart.engine.html.ast.XmlAttributeNode;
 import com.google.dart.engine.html.ast.XmlTagNode;
 import com.google.dart.engine.html.ast.visitor.RecursiveXmlVisitor;
 import com.google.dart.engine.html.parser.HtmlParser;
 import com.google.dart.engine.html.scanner.Token;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
 import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
+import com.google.dart.engine.internal.element.FunctionElementImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
+import com.google.dart.engine.internal.element.LocalVariableElementImpl;
 import com.google.dart.engine.internal.element.TopLevelVariableElementImpl;
 import com.google.dart.engine.internal.resolver.InheritanceManager;
 import com.google.dart.engine.internal.resolver.ProxyConditionalAnalysisError;
@@ -52,6 +56,7 @@ import com.google.dart.engine.internal.scope.Scope;
 import com.google.dart.engine.scanner.StringToken;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.type.Type;
 import com.google.dart.engine.utilities.source.LineInfo;
 
 import java.util.ArrayList;
@@ -63,6 +68,8 @@ import java.util.List;
 public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
   private static final String OPENING_DELIMITER = "{{";
   private static final String CLOSING_DELIMITER = "}}";
+  private static final int OPENING_DELIMITER_LENGTH = OPENING_DELIMITER.length();
+  private static final int CLOSING_DELIMITER_LENGTH = CLOSING_DELIMITER.length();
 
   private static final String NG_APP = "ng-app";
   private static final String NG_BOOTSTRAP = "ngBootstrap";
@@ -103,7 +110,7 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
     return false;
   }
 
-  private static SimpleIdentifier createIdentifier(String name) {
+  static SimpleIdentifier createIdentifier(String name) {
     StringToken token = createStringToken(name);
     return new SimpleIdentifier(token);
   }
@@ -152,11 +159,15 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
   private final Source source;
   private final LineInfo lineInfo;
   private final List<NgAnnotation> controllers = Lists.newArrayList();
-  private CompilationUnitElementImpl unitElement;
+
   private LibraryElementImpl libraryElement;
+  private CompilationUnitElementImpl unitElement;
+  private FunctionElementImpl functionElement;
   private ResolverVisitor resolver;
-  private List<TopLevelVariableElementImpl> declaredVariables = Lists.newArrayList();
+
   private boolean isAngular = false;
+  private List<LocalVariableElementImpl> definedVariables = Lists.newArrayList();
+  private Scope nameScope;
 
   private AnalysisException thrownException;
 
@@ -185,14 +196,16 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
     if (!success) {
       return;
     }
+    // add built-in injects
+    controllers.add(NgRepeatDirective.INSTANCE);
     // prepare Dart library
     createLibraryElement();
     unit.setCompilationUnitElement(libraryElement.getDefiningCompilationUnit());
     // prepare Dart resolver
     createResolver();
-    unitElement.setTopLevelVariables(declaredVariables.toArray(new TopLevelVariableElementImpl[declaredVariables.size()]));
     // run this HTML visitor
     unit.accept(this);
+    functionElement.setLocalVariables(definedVariables.toArray(new LocalVariableElementImpl[definedVariables.size()]));
     // push conditional errors 
     for (ProxyConditionalAnalysisError conditionalCode : resolver.getProxyConditionalAnalysisErrors()) {
       resolver.reportError(conditionalCode.getAnalysisError());
@@ -204,6 +217,12 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
   }
 
   @Override
+  public Void visitXmlAttributeNode(XmlAttributeNode node) {
+    resolveExpressions(node.getExpressions());
+    return super.visitXmlAttributeNode(node);
+  }
+
+  @Override
   public Void visitXmlTagNode(XmlTagNode node) {
     boolean wasAngular = isAngular;
     try {
@@ -212,37 +231,75 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
       if (!isAngular) {
         return super.visitXmlTagNode(node);
       }
-      // process children
-      Scope nameScope = null;
+      // process node in separate name scope
+      nameScope = resolver.pushNameScope();
       try {
         parseEmbeddedExpressions(node);
         // inject controllers
         for (NgAnnotation controller : controllers) {
           if (controller.getSelector().apply(node)) {
-            VariableElement controllerVar = createTopLevelVariable(
-                controller.getElement(),
-                controller.getName());
-            if (nameScope == null) {
-              nameScope = resolver.pushNameScope();
-            }
-            nameScope.define(controllerVar);
+            controller.apply(this, node);
           }
         }
         // resolve expressions
-        for (EmbeddedExpression embeddedExpression : node.getExpressions()) {
-          Expression expression = embeddedExpression.getExpression();
-          resolveExpression(expression);
-        }
+        resolveExpressions(node.getExpressions());
         // process children
         return super.visitXmlTagNode(node);
       } finally {
-        if (nameScope != null) {
-          resolver.popNameScope();
-        }
+        resolver.popNameScope();
       }
     } finally {
       isAngular = wasAngular;
     }
+  }
+
+  /**
+   * Creates new {@link LocalVariableElementImpl} with given name and type.
+   * 
+   * @param type the {@link Type} of the variable
+   * @param name the name of the variable
+   * @return the new {@link TopLevelVariableElementImpl}
+   */
+  LocalVariableElementImpl createLocalVariable(Type type, String name) {
+    SimpleIdentifier identifier = createIdentifier(name);
+    LocalVariableElementImpl variable = new LocalVariableElementImpl(identifier);
+    definedVariables.add(variable);
+    variable.setType(type);
+    return variable;
+  }
+
+  /**
+   * Declares the given {@link LocalVariableElementImpl} in the current {@link #nameScope}.
+   */
+  void defineVariable(LocalVariableElementImpl variable) {
+    definedVariables.add(variable);
+    nameScope.define(variable);
+  }
+
+  Expression parseExpression(com.google.dart.engine.scanner.Token token) {
+    return HtmlParser.parseEmbeddedExpression(source, token, errorListener);
+  }
+
+  Expression parseExpression(String contents, int startIndex, int endIndex, int offset) {
+    com.google.dart.engine.scanner.Token token = scanDart(contents, startIndex, endIndex, offset);
+    return parseExpression(token);
+  }
+
+  /**
+   * Resolves given {@link ASTNode} using {@link #resolver}.
+   */
+  void resolveNode(ASTNode node) {
+    node.accept(resolver);
+  }
+
+  com.google.dart.engine.scanner.Token scanDart(String contents, int startIndex, int endIndex,
+      int offset) {
+    return HtmlParser.scanDartSource(
+        source,
+        lineInfo,
+        contents.substring(startIndex, endIndex),
+        offset + startIndex,
+        errorListener);
   }
 
   private NgController createController(ClassDeclaration injectedClass) {
@@ -284,6 +341,9 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
     // create LibraryElementImpl
     libraryElement = new LibraryElementImpl(context, null);
     libraryElement.setDefiningCompilationUnit(unitElement);
+    // create FunctionElementImpl
+    functionElement = new FunctionElementImpl(0);
+    unitElement.setFunctions(new FunctionElement[] {functionElement});
   }
 
   /**
@@ -298,21 +358,6 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
         typeProvider,
         inheritanceManager,
         errorListener);
-  }
-
-  /**
-   * Creates new {@link TopLevelVariableElementImpl} with given name and type.
-   * 
-   * @param classElement the {@link ClassElement} to create type
-   * @param name the name of the variable
-   * @return the new {@link TopLevelVariableElementImpl}
-   */
-  private TopLevelVariableElementImpl createTopLevelVariable(ClassElement classElement, String name) {
-    SimpleIdentifier identifier = createIdentifier(name);
-    TopLevelVariableElementImpl variable = new TopLevelVariableElementImpl(identifier);
-    declaredVariables.add(variable);
-    variable.setType(classElement.getType());
-    return variable;
   }
 
   /**
@@ -411,24 +456,22 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
    * @param token the token whose value is to be parsed
    */
   private void parseEmbeddedExpressions(ArrayList<EmbeddedExpression> expressions, Token token) {
+    // prepare Token information
     String lexeme = token.getLexeme();
+    int offset = token.getOffset();
+    // find expressions between {{ and }}
     int startIndex = lexeme.indexOf(OPENING_DELIMITER);
     while (startIndex >= 0) {
-      int endIndex = lexeme.indexOf(CLOSING_DELIMITER, startIndex + 2);
+      int endIndex = lexeme.indexOf(CLOSING_DELIMITER, startIndex + OPENING_DELIMITER_LENGTH);
       if (endIndex < 0) {
         // TODO(brianwilkerson) Should we report this error or will it be reported by something else?
         return;
-      } else if (startIndex + 2 < endIndex) {
-        int offset = token.getOffset();
-        Expression expression = HtmlParser.parseEmbeddedExpression(
-            source,
-            lineInfo,
-            lexeme.substring(startIndex + 2, endIndex),
-            offset + startIndex + 2,
-            errorListener);
+      } else if (startIndex + OPENING_DELIMITER_LENGTH < endIndex) {
+        startIndex += OPENING_DELIMITER_LENGTH;
+        Expression expression = parseExpression(lexeme, startIndex, endIndex, offset);
         expressions.add(new EmbeddedExpression(startIndex, expression, endIndex));
       }
-      startIndex = lexeme.indexOf(OPENING_DELIMITER, endIndex + 2);
+      startIndex = lexeme.indexOf(OPENING_DELIMITER, endIndex + CLOSING_DELIMITER_LENGTH);
     }
   }
 
@@ -490,10 +533,10 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
     return true;
   }
 
-  /**
-   * Resolves given {@link Expression} using {@link #resolver}.
-   */
-  private void resolveExpression(Expression expression) {
-    expression.accept(resolver);
+  private void resolveExpressions(EmbeddedExpression[] expressions) {
+    for (EmbeddedExpression embeddedExpression : expressions) {
+      Expression expression = embeddedExpression.getExpression();
+      resolveNode(expression);
+    }
   }
 }

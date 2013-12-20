@@ -18,11 +18,12 @@ import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.visitor.ElementLocator;
 import com.google.dart.engine.ast.visitor.NodeLocator;
-import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
-import com.google.dart.engine.element.TopLevelVariableElement;
+import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.html.ast.visitor.RecursiveXmlVisitor;
 import com.google.dart.engine.internal.html.angular.AngularHtmlUnitResolver;
+import com.google.dart.engine.type.InterfaceType;
+import com.google.dart.engine.type.Type;
 
 /**
  * Utilities locating {@link Expression}s and {@link Element}s in {@link HtmlUnit}.
@@ -55,11 +56,11 @@ public class HtmlUnitUtils {
     // special cases for Angular
     if (isAngular(htmlUnit)) {
       // replace artificial controller variable Element with controller ClassElement
-      if (element instanceof TopLevelVariableElement) {
-        TopLevelVariableElement variable = (TopLevelVariableElement) element;
-        Element typeElement = variable.getType().getElement();
-        if (typeElement instanceof ClassElement) {
-          element = typeElement;
+      if (element instanceof VariableElement) {
+        VariableElement variable = (VariableElement) element;
+        Type type = variable.getType();
+        if (variable.getNameOffset() == 0 && type instanceof InterfaceType) {
+          element = ((InterfaceType) type).getElement();
         }
       }
     }
@@ -81,8 +82,20 @@ public class HtmlUnitUtils {
     try {
       htmlUnit.accept(new RecursiveXmlVisitor<Void>() {
         @Override
+        public Void visitXmlAttributeNode(XmlAttributeNode node) {
+          findExpression(offset, result, node.getExpressions());
+          return super.visitXmlAttributeNode(node);
+        }
+
+        @Override
         public Void visitXmlTagNode(XmlTagNode node) {
-          for (EmbeddedExpression embeddedExpression : node.getExpressions()) {
+          findExpression(offset, result, node.getExpressions());
+          return super.visitXmlTagNode(node);
+        }
+
+        private void findExpression(final int offset, final Expression[] result,
+            EmbeddedExpression[] expressions) throws FoundExpressionError {
+          for (EmbeddedExpression embeddedExpression : expressions) {
             Expression expression = embeddedExpression.getExpression();
             Expression at = getExpressionAt(expression, offset);
             if (at != null) {
@@ -90,7 +103,6 @@ public class HtmlUnitUtils {
               throw new FoundExpressionError();
             }
           }
-          return super.visitXmlTagNode(node);
         }
       });
     } catch (FoundExpressionError e) {

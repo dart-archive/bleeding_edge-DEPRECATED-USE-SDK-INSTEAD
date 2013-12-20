@@ -15,12 +15,27 @@
 package com.google.dart.engine.internal.html.angular;
 
 import com.google.dart.engine.element.ClassElement;
+import com.google.dart.engine.html.ast.XmlTagNode;
+import com.google.dart.engine.internal.element.LocalVariableElementImpl;
+import com.google.dart.engine.type.InterfaceType;
 
 /**
  * {@link NgController} describes any <code>NgController</code> annotation instance.
  */
 class NgController extends NgAnnotation {
+  private final ClassElement element;
+  private final String name;
+
   public NgController(ClassElement element, InjectSelector selector, String name) {
-    super(element, selector, name);
+    super(selector);
+    this.element = element;
+    this.name = name;
+  }
+
+  @Override
+  public void apply(AngularHtmlUnitResolver resolver, XmlTagNode node) {
+    InterfaceType type = element.getType();
+    LocalVariableElementImpl variable = resolver.createLocalVariable(type, name);
+    resolver.defineVariable(variable);
   }
 }

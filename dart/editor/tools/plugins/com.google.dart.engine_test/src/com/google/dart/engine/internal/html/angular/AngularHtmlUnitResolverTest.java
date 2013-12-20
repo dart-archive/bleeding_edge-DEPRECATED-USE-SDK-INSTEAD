@@ -19,6 +19,26 @@ import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.html.ast.HtmlUnitUtils;
 
 public class AngularHtmlUnitResolverTest extends AngularTest {
+  public void test_ngRepeat_resolvedExpressions() throws Exception {
+    addMyController();
+    resolveIndex(//
+        "<html ng-app>",
+        "  <body>",
+        "    <div my-marker>",
+        "      <li ng-repeat='name in ctrl.names'>",
+        "        {{name}}",
+        "      </li>",
+        "    </div>",
+        "    <script type='application/dart' src='main.dart'></script>",
+        "  </body>",
+        "</html>");
+    assertNoErrors();
+    verify(indexSource);
+    assertResolvedIdentifier("name in", "String");
+    assertResolvedIdentifier("ctrl.", "MyController");
+    assertResolvedIdentifier("names'", "List<String>");
+    assertResolvedIdentifier("name}}", "String");
+  }
 
   public void test_notResolved_no_ngBootstrap_invocation() throws Exception {
     contextHelper.addSource("/main.dart", "// just empty script");
@@ -68,7 +88,7 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
   }
 
   public void test_notResolved_wrongControllerMarker() throws Exception {
-    addSingleFieldController();
+    addMyController();
     resolveIndex(//
         "<html ng-app>",
         "  <body>",
@@ -85,7 +105,7 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
   }
 
   public void test_resolveExpression_inTag() throws Exception {
-    addSingleFieldController();
+    addMyController();
     resolveIndex(//
         "<html ng-app>",
         "  <body>",
@@ -101,7 +121,7 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
   }
 
   public void test_resolveExpression_ngApp_onBody() throws Exception {
-    addSingleFieldController();
+    addMyController();
     resolveIndex(//
         "<html>",
         "  <body ng-app>",

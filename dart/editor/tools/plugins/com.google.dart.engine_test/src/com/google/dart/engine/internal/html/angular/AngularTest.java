@@ -45,7 +45,7 @@ abstract public class AngularTest extends EngineTestCase {
   protected Source indexSource;
   protected HtmlUnit indexUnit;
 
-  protected final void addSingleFieldController() {
+  protected final void addMyController() {
     contextHelper.addSource("/main.dart", createSource("",//
         "import 'angular.dart';",
         "",
@@ -54,6 +54,7 @@ abstract public class AngularTest extends EngineTestCase {
         "    publishAs: 'ctrl')",
         "class MyController {",
         "  String field;",
+        "  List<String> names;",
         "}",
         "",
         "class MyModule extends Module {",
@@ -122,7 +123,7 @@ abstract public class AngularTest extends EngineTestCase {
    */
   protected final SimpleIdentifier findIdentifier(String search) {
     SimpleIdentifier identifier = findExpression(findOffset(search), SimpleIdentifier.class);
-    assertNotNull(indexContent, identifier);
+    assertNotNull(search + " in " + indexContent, identifier);
     return identifier;
   }
 

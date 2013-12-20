@@ -82,6 +82,7 @@ import org.eclipse.ui.ide.FileStoreEditorInput;
 import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.ide.IGotoMarker;
 import org.eclipse.ui.part.FileEditorInput;
+import org.eclipse.ui.texteditor.AbstractTextEditor;
 import org.eclipse.ui.texteditor.IDocumentProvider;
 import org.eclipse.ui.texteditor.ITextEditor;
 import org.eclipse.ui.texteditor.ITextEditorActionDefinitionIds;
@@ -678,6 +679,12 @@ public class EditorUtility {
 
     if (part instanceof DartEditor) {
       ((DartEditor) part).selectEndReveal(element);
+      return;
+    }
+
+    if (part instanceof AbstractTextEditor) {
+      AbstractTextEditor textEditor = (AbstractTextEditor) part;
+      textEditor.selectAndReveal(element.getNameOffset(), element.getName().length());
       return;
     }
 

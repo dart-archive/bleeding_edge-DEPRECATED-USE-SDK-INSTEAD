@@ -69,21 +69,34 @@ public class HtmlParser extends XmlParser {
    * Given the contents of an embedded expression that occurs at the given offset, parse it as a
    * Dart expression. The contents should not include the expression's delimiters.
    * 
-   * @param contents the contents of the expression
-   * @param contentOffset the offset of the expression in the larger file
+   * @param source the source that contains that given token
+   * @param token the token to start parsing from
    * @return the Dart expression that was parsed
    */
-  public static Expression parseEmbeddedExpression(Source source, LineInfo lineInfo,
-      String contents, int contentOffset, AnalysisErrorListener errorListener) {
+  public static Expression parseEmbeddedExpression(Source source,
+      com.google.dart.engine.scanner.Token token, AnalysisErrorListener errorListener) {
+    Parser parser = new Parser(source, errorListener);
+    return parser.parseExpression(token);
+  }
+
+  /**
+   * Given the contents of an embedded expression that occurs at the given offset, scans it as a
+   * Dart code.
+   * 
+   * @param source the source of that contains the given contents
+   * @param contents the contents to scan
+   * @param contentOffset the offset of the contents in the larger file
+   * @return the first Dart token
+   */
+  public static com.google.dart.engine.scanner.Token scanDartSource(Source source,
+      LineInfo lineInfo, String contents, int contentOffset, AnalysisErrorListener errorListener) {
     Location location = lineInfo.getLocation(contentOffset);
     Scanner scanner = new Scanner(
         source,
         new SubSequenceReader(contents, contentOffset),
         errorListener);
     scanner.setSourceStart(location.getLineNumber(), location.getColumnNumber());
-    com.google.dart.engine.scanner.Token firstToken = scanner.tokenize();
-    Parser parser = new Parser(source, errorListener);
-    return parser.parseExpression(firstToken);
+    return scanner.tokenize();
   }
 
   /**

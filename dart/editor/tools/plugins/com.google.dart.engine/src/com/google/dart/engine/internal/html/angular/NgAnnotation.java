@@ -14,35 +14,25 @@
 
 package com.google.dart.engine.internal.html.angular;
 
-import com.google.dart.engine.element.ClassElement;
+import com.google.dart.engine.html.ast.XmlTagNode;
 
 /**
  * {@link NgAnnotation} describes any <code>NgAnnotation</code> annotation instance.
  */
 abstract class NgAnnotation {
-  private final ClassElement element;
   private final InjectSelector selector;
-  private final String name;
 
-  public NgAnnotation(ClassElement element, InjectSelector selector, String name) {
-    this.element = element;
+  public NgAnnotation(InjectSelector selector) {
     this.selector = selector;
-    this.name = name;
   }
 
   /**
-   * @return the {@link ClassElement} that is annotated with this annotation.
+   * Applies this {@link NgAnnotation} to the resolver.
+   * 
+   * @param resolver the {@link AngularHtmlUnitResolver} to apply to, not {@code null}
+   * @param node the {@link XmlTagNode} to apply within, not {@code null}
    */
-  public ClassElement getElement() {
-    return element;
-  }
-
-  /**
-   * @return the name under which the annotated entity should be published.
-   */
-  public String getName() {
-    return name;
-  }
+  public abstract void apply(AngularHtmlUnitResolver resolver, XmlTagNode node);
 
   /**
    * @return the {@link InjectSelector} of this annotation.

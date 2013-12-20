@@ -17,7 +17,7 @@ import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.PropertyAccessorElement;
-import com.google.dart.engine.element.TopLevelVariableElement;
+import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.html.ast.HtmlUnitUtils;
 
 /**
@@ -25,14 +25,14 @@ import com.google.dart.engine.html.ast.HtmlUnitUtils;
  */
 public class AngularHtmlUnitUtilsTest extends AngularTest {
   public void test_getElement_forExpression() throws Exception {
-    addSingleFieldController();
+    addMyController();
     resolveSimpleCtrlFieldHtml();
     // prepare expression
     int offset = indexContent.indexOf("ctrl");
     Expression expression = HtmlUnitUtils.getExpression(indexUnit, offset);
     // get element
     Element element = HtmlUnitUtils.getElement(expression);
-    assertInstanceOf(TopLevelVariableElement.class, element);
+    assertInstanceOf(VariableElement.class, element);
     assertEquals("ctrl", element.getName());
   }
 
@@ -42,7 +42,7 @@ public class AngularHtmlUnitUtilsTest extends AngularTest {
   }
 
   public void test_getElement_forOffset() throws Exception {
-    addSingleFieldController();
+    addMyController();
     resolveSimpleCtrlFieldHtml();
     // no expression
     {
@@ -59,7 +59,7 @@ public class AngularHtmlUnitUtilsTest extends AngularTest {
   }
 
   public void test_getElementToOpen_controller() throws Exception {
-    addSingleFieldController();
+    addMyController();
     resolveSimpleCtrlFieldHtml();
     // prepare expression
     int offset = indexContent.indexOf("ctrl");
@@ -71,7 +71,7 @@ public class AngularHtmlUnitUtilsTest extends AngularTest {
   }
 
   public void test_getElementToOpen_field() throws Exception {
-    addSingleFieldController();
+    addMyController();
     resolveSimpleCtrlFieldHtml();
     // prepare expression
     int offset = indexContent.indexOf("field");
@@ -83,7 +83,7 @@ public class AngularHtmlUnitUtilsTest extends AngularTest {
   }
 
   public void test_getExpression() throws Exception {
-    addSingleFieldController();
+    addMyController();
     resolveSimpleCtrlFieldHtml();
     // try offset without expression
     assertNull(HtmlUnitUtils.getExpression(indexUnit, 0));
@@ -97,13 +97,13 @@ public class AngularHtmlUnitUtilsTest extends AngularTest {
   }
 
   public void test_isAngular_false() throws Exception {
-    addSingleFieldController();
+    addMyController();
     resolveIndex("<html/>");
     assertFalse(HtmlUnitUtils.isAngular(indexUnit));
   }
 
   public void test_isAngular_true() throws Exception {
-    addSingleFieldController();
+    addMyController();
     resolveSimpleCtrlFieldHtml();
     assertTrue(HtmlUnitUtils.isAngular(indexUnit));
   }
