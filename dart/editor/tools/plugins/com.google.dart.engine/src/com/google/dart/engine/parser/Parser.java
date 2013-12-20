@@ -644,7 +644,9 @@ public class Parser {
             reportError(ParserErrorCode.MULTIPLE_LIBRARY_DIRECTIVES);
           } else {
             if (directives.size() > 0) {
-              reportError(ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST);
+              reportError(
+                  ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST,
+                  ((LibraryDirective) directive).getLibraryToken());
             }
             libraryDirectiveFound = true;
           }
