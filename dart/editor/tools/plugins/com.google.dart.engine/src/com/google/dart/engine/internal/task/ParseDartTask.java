@@ -256,6 +256,9 @@ public class ParseDartTask extends AnalysisTask {
     } finally {
       timeCounterScan.stop();
     }
+    if (token[0] == null) {
+      throw new AnalysisException("Could not get contents for '" + source.getFullName() + "'");
+    }
     //
     // Then parse the token stream.
     //
