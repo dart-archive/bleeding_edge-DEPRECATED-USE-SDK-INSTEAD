@@ -1,0 +1,11 @@
+node_modules
+packages
+pubspec.lock
+.idea
+test/type_factories_gen.dart
+test/main.dart.js
+test/main.dart.js.deps
+test/main.dart.js.map
+test/main.dart.precompiled.js
+out
+

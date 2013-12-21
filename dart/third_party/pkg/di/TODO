@@ -1,0 +1,15 @@
+transparency:
+- runtime check (all deps satisfied?)
+- logging
+- graph dump
+- runtime type check (warning: when overriding a provider with something that does not implement the provider)
+
+annotations:
+- injecting primitive types
+- injecting dynamic vars
+- overriding type annotations
+- support multiple constructors ???
+- injecting a property (config.baseUrl, rather than whole config) ???
+
+CONFIG:
+- allow implicit providers (Type)

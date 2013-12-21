@@ -1,0 +1,7 @@
+Packages in this directory should only be updated at their respective source
+location (github), then updated here.
+
+TODO: we should be using a gyp dependency for these.
+
+To update package di run update_di.sh from a git enlistment.
+
