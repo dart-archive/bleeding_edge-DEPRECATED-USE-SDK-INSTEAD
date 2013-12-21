@@ -1,5 +1,5 @@
 library di.generated.type_factories;
-import "/usr/local/google/home/blois/src/dart/dart/third_party/pkg/di/test/main.dart" as import_0;
+import "main.dart" as import_0;
 import "package:di/di.dart" as import_2;
 var typeFactories = new Map();
 main() {
