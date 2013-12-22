@@ -218,7 +218,10 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
 
   @Override
   public Void visitXmlAttributeNode(XmlAttributeNode node) {
-    resolveExpressions(node.getExpressions());
+    if (!isProcessedByDirective(node)) {
+      parseEmbeddedExpressions(node);
+      resolveExpressions(node.getExpressions());
+    }
     return super.visitXmlAttributeNode(node);
   }
 
@@ -451,6 +454,17 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
   }
 
   /**
+   * Checks if the given {@link XmlAttributeNode} has been already processed by one of the
+   * directives, so we should not try to find expressions and resolve it.
+   */
+  private boolean isProcessedByDirective(XmlAttributeNode node) {
+    // TODO(scheglov) We need some way to mark attribute as handled by directive.
+    // For now, just exclude all ng- attributes.
+    // TODO(scheglov) May be replace getName() with getNameToken() and return String from getName().
+    return node.getName().getLexeme().startsWith("ng-");
+  }
+
+  /**
    * Parse the value of the given token for embedded expressions, and add any embedded expressions
    * that are found to the given list of expressions.
    * 
@@ -475,6 +489,12 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
       }
       startIndex = lexeme.indexOf(OPENING_DELIMITER, endIndex + CLOSING_DELIMITER_LENGTH);
     }
+  }
+
+  private void parseEmbeddedExpressions(XmlAttributeNode node) {
+    ArrayList<EmbeddedExpression> expressions = new ArrayList<EmbeddedExpression>();
+    parseEmbeddedExpressions(expressions, node.getValue());
+    node.setExpressions(expressions.toArray(new EmbeddedExpression[expressions.size()]));
   }
 
   private void parseEmbeddedExpressions(XmlTagNode node) {

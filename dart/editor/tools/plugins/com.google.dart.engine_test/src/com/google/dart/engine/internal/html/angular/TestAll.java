@@ -23,6 +23,7 @@ public class TestAll {
     TestSuite suite = new ExtendedTestSuite("Tests in " + TestAll.class.getPackage().getName());
     suite.addTestSuite(AngularHtmlUnitResolverTest.class);
     suite.addTestSuite(AngularHtmlUnitUtilsTest.class);
+    suite.addTestSuite(AngularHtmlIndexContributorTest.class);
     return suite;
   }
 }

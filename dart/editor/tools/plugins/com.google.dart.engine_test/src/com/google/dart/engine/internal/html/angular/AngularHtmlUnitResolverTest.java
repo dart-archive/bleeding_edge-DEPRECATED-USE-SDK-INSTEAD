@@ -104,6 +104,22 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
     assertNull(identifier.getBestElement());
   }
 
+  public void test_resolveExpression_inAttribute() throws Exception {
+    addMyController();
+    resolveIndex(//
+        "<html ng-app>",
+        "  <body>",
+        "    <div my-marker>",
+        "      <button title='{{ctrl.field}}'></button>",
+        "    </div>",
+        "    <script type='application/dart' src='main.dart'></script>",
+        "  </body>",
+        "</html>");
+    assertNoErrors();
+    verify(indexSource);
+    assertResolvedIdentifier("ctrl", "MyController");
+  }
+
   public void test_resolveExpression_inTag() throws Exception {
     addMyController();
     resolveIndex(//

@@ -377,6 +377,14 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
   }
 
   /**
+   * Enter a new scope represented by the given {@link Element}.
+   */
+  public void enterScope(Element element) {
+    elementStack.addFirst(element);
+    unnamedFunctionCount.push(0);
+  }
+
+  /**
    * @return the inner-most enclosing {@link Element}, may be {@code null}.
    */
   @VisibleForTesting
@@ -789,15 +797,6 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
       variables.accept(this);
     }
     return null;
-  }
-
-  /**
-   * Enter a new scope represented by the given {@link Element}.
-   */
-  @VisibleForTesting
-  void enterScope(Element element) {
-    elementStack.addFirst(element);
-    unnamedFunctionCount.push(0);
   }
 
   /**

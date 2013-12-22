@@ -20,6 +20,7 @@ import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisContextHelper;
 import com.google.dart.engine.context.AnalysisException;
+import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.ErrorCode;
@@ -41,12 +42,14 @@ abstract public class AngularTest extends EngineTestCase {
   protected final AnalysisContextHelper contextHelper = new AnalysisContextHelper();
 
   protected AnalysisContext context;
+  protected Source mainSource;
   protected String indexContent;
   protected Source indexSource;
   protected HtmlUnit indexUnit;
+  protected CompilationUnitElement indexDartUnit;
 
   protected final void addMyController() {
-    contextHelper.addSource("/main.dart", createSource("",//
+    mainSource = contextHelper.addSource("/main.dart", createSource("",//
         "import 'angular.dart';",
         "",
         "@NgController(",
@@ -141,6 +144,7 @@ abstract public class AngularTest extends EngineTestCase {
     indexContent = createSource(lines);
     indexSource = contextHelper.addSource("/index.html", indexContent);
     indexUnit = context.resolveHtmlUnit(indexSource);
+    indexDartUnit = indexUnit.getCompilationUnitElement();
   }
 
   @Override
