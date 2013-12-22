@@ -39,6 +39,11 @@ public class ResolveHtmlTask extends AnalysisTask {
   private long modificationTime = -1L;
 
   /**
+   * The {@link HtmlUnit} that was resolved by this task.
+   */
+  private HtmlUnit resolvedUnit;
+
+  /**
    * The element produced by resolving the source.
    */
   private HtmlElement element = null;
@@ -83,6 +88,15 @@ public class ResolveHtmlTask extends AnalysisTask {
   }
 
   /**
+   * Return the {@link HtmlUnit} that was resolved by this task.
+   * 
+   * @return the {@link HtmlUnit} that was resolved by this task
+   */
+  public HtmlUnit getResolvedUnit() {
+    return resolvedUnit;
+  }
+
+  /**
    * Return the source that was or is to be resolved.
    * 
    * @return the source was or is to be resolved
@@ -116,5 +130,7 @@ public class ResolveHtmlTask extends AnalysisTask {
     new AngularHtmlUnitResolver(getContext(), builder.getErrorListener(), source, lineInfo).resolve(unit);
     // record all resolution errors
     resolutionErrors = builder.getErrorListener().getErrors(source);
+    // remember resolved unit
+    resolvedUnit = unit;
   }
 }

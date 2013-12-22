@@ -17,6 +17,7 @@ import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.ChangeNotice;
 import com.google.dart.engine.error.AnalysisError;
+import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.source.LineInfo;
 
@@ -37,6 +38,12 @@ public class ChangeNoticeImpl implements ChangeNotice {
    * not changed.
    */
   private CompilationUnit compilationUnit;
+
+  /**
+   * The fully resolved HTML that changed as a result of the analysis, or {@code null} if the HTML
+   * was not changed.
+   */
+  private HtmlUnit htmlUnit;
 
   /**
    * The errors that changed as a result of the analysis, or {@code null} if errors were not
@@ -63,44 +70,26 @@ public class ChangeNoticeImpl implements ChangeNotice {
     this.source = source;
   }
 
-  /**
-   * Return the fully resolved AST that changed as a result of the analysis, or {@code null} if the
-   * AST was not changed.
-   * 
-   * @return the fully resolved AST that changed as a result of the analysis
-   */
   @Override
   public CompilationUnit getCompilationUnit() {
     return compilationUnit;
   }
 
-  /**
-   * Return the errors that changed as a result of the analysis, or {@code null} if errors were not
-   * changed.
-   * 
-   * @return the errors that changed as a result of the analysis
-   */
   @Override
   public AnalysisError[] getErrors() {
     return errors;
   }
 
-  /**
-   * Return the line information associated with the source, or {@code null} if errors were not
-   * changed.
-   * 
-   * @return the line information associated with the source
-   */
+  @Override
+  public HtmlUnit getHtmlUnit() {
+    return htmlUnit;
+  }
+
   @Override
   public LineInfo getLineInfo() {
     return lineInfo;
   }
 
-  /**
-   * Return the source for which the result is being reported.
-   * 
-   * @return the source for which the result is being reported
-   */
   @Override
   public Source getSource() {
     return source;
@@ -128,6 +117,15 @@ public class ChangeNoticeImpl implements ChangeNotice {
     if (lineInfo == null) {
       AnalysisEngine.getInstance().getLogger().logError("No line info: " + source, new Exception());
     }
+  }
+
+  /**
+   * Set the fully resolved HTML that changed as a result of the analysis to the given HTML.
+   * 
+   * @param htmlUnit the fully resolved HTML that changed as a result of the analysis
+   */
+  public void setHtmlUnit(HtmlUnit htmlUnit) {
+    this.htmlUnit = htmlUnit;
   }
 
   @Override

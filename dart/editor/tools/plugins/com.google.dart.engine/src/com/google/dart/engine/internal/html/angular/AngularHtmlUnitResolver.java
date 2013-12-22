@@ -435,12 +435,14 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
       // TODO(scheglov) limitation - only one module, add support for "modules"
       {
         Expression moduleExpression = getNamedExpression(argument, "module");
-        Element element = moduleExpression.getBestType().getElement();
-        if (element instanceof ClassElement) {
-          ClassElement moduleElement = (ClassElement) element;
-          ClassDeclaration moduleClass = moduleElement.getNode();
-          if (moduleClass != null) {
-            modules.add(moduleClass);
+        if (moduleExpression != null) {
+          Element element = moduleExpression.getBestType().getElement();
+          if (element instanceof ClassElement) {
+            ClassElement moduleElement = (ClassElement) element;
+            ClassDeclaration moduleClass = moduleElement.getNode();
+            if (moduleClass != null) {
+              modules.add(moduleClass);
+            }
           }
         }
       }

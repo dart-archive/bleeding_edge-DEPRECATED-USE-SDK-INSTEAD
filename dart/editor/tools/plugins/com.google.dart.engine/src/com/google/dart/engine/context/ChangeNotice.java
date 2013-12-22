@@ -14,6 +14,7 @@
 package com.google.dart.engine.context;
 
 import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.source.Source;
 
 /**
@@ -30,6 +31,14 @@ public interface ChangeNotice extends AnalysisErrorInfo {
    * @return the fully resolved AST that changed as a result of the analysis
    */
   public CompilationUnit getCompilationUnit();
+
+  /**
+   * Return the fully resolved HTML that changed as a result of the analysis, or {@code null} if the
+   * HTML was not changed.
+   * 
+   * @return the fully resolved HTML that changed as a result of the analysis
+   */
+  public HtmlUnit getHtmlUnit();
 
   /**
    * Return the source for which the result is being reported.
