@@ -1,0 +1,18 @@
+{
+    CaptureDate = <*D2013-12-19 19:57:56 +0000>;
+    CaptureHost = "Mac Pro";
+    CaptureScreenSize = (
+	<*I1920>,
+	<*I1200>
+    );
+    HasAlpha = <*BY>;
+    HonorAlpha = <*BY>;
+    HotSpotX = <*R8>;
+    HotSpotY = <*R19>;
+    LastKnownLocationX = <*I0>;
+    LastKnownLocationY = <*I0>;
+    OriginalLocationX = <*I421>;
+    OriginalLocationY = <*I230>;
+    Pulsing = <*BN>;
+    Scale = <*R1>;
+}

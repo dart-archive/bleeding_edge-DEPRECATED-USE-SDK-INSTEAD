@@ -1,0 +1,19 @@
+{
+    CaptureDate = <*D2013-12-13 04:56:16 +0000>;
+    CaptureHost = "kyodai.pdx.corp.google.com:0.0";
+    CaptureScreenSize = (
+	<*I1920>,
+	<*I1200>
+    );
+    HasAlpha = <*BY>;
+    HonorAlpha = <*BY>;
+    HotSpotX = <*R10>;
+    HotSpotY = <*R21>;
+    ImageDescription = <>;
+    LastKnownLocationX = <*I0>;
+    LastKnownLocationY = <*I0>;
+    OriginalLocationX = <*I362>;
+    OriginalLocationY = <*I261>;
+    Pulsing = <*BN>;
+    Scale = <*R1>;
+}
