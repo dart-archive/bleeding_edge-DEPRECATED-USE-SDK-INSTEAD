@@ -403,7 +403,7 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
       return new DefaultTextDoubleClickStrategy();
     } else if (DartPartitions.DART_STRING.equals(contentType)
         || DartPartitions.DART_MULTI_LINE_STRING.equals(contentType)) {
-      return new DartStringDoubleClickSelector(getConfiguredDocumentPartitioning(sourceViewer));
+      return new DartStringDoubleClickSelector();
     }
     if (fJavaDoubleClickSelector == null) {
       fJavaDoubleClickSelector = new DartDoubleClickSelector();

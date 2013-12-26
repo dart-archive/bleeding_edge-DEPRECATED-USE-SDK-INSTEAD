@@ -31,6 +31,8 @@ import org.eclipse.ui.texteditor.ITextEditorExtension3;
 
 /**
  * Auto indent strategy for dart strings
+ * 
+ * @coverage dart.editor.ui.text
  */
 public class DartStringAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
 

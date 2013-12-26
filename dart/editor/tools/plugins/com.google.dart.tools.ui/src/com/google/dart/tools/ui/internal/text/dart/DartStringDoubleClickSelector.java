@@ -17,42 +17,27 @@ import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextViewer;
-import org.eclipse.jface.text.TextUtilities;
+import org.eclipse.jface.text.Region;
 
 /**
  * Double click strategy aware of Java string and character syntax rules.
+ * 
+ * @coverage dart.editor.ui.text
  */
 public class DartStringDoubleClickSelector extends DartDoubleClickSelector {
-
-  private String fPartitioning;
-
-  /**
-   * Creates a new Java string double click selector for the given document partitioning.
-   * 
-   * @param partitioning the document partitioning
-   */
-  public DartStringDoubleClickSelector(String partitioning) {
-    super();
-    fPartitioning = partitioning;
-  }
-
-  /*
-   * @see ITextDoubleClickStrategy#doubleClicked(ITextViewer)
-   */
   @Override
   public void doubleClicked(ITextViewer textViewer) {
-
+    // prepare offset
     int offset = textViewer.getSelectedRange().x;
-
     if (offset < 0) {
       return;
     }
-
+    // prepare document
     IDocument document = textViewer.getDocument();
-
+    // try to get string region
     IRegion region = match(document, offset);
-    if (region != null && region.getLength() >= 2) {
-      textViewer.setSelectedRange(region.getOffset() + 1, region.getLength() - 2);
+    if (region != null && region.getLength() > 0) {
+      textViewer.setSelectedRange(region.getOffset(), region.getLength());
     } else {
       region = selectWord(document, offset);
       textViewer.setSelectedRange(region.getOffset(), region.getLength());
@@ -61,13 +46,36 @@ public class DartStringDoubleClickSelector extends DartDoubleClickSelector {
 
   private IRegion match(IDocument document, int offset) {
     try {
-      if ((document.getChar(offset) == '"') || (document.getChar(offset) == '\'')
-          || (document.getChar(offset - 1) == '"') || (document.getChar(offset - 1) == '\'')) {
-        return TextUtilities.getPartition(document, fPartitioning, offset, true);
+      // previous is quote, search forward
+      {
+        char c = document.getChar(offset - 1);
+        if (c == '"' || c == '\'') {
+          int end = match(document, offset, 1, c);
+          return new Region(offset, end - offset);
+        }
+      }
+      // next is quote, search backward
+      {
+        char c = document.getChar(offset);
+        if (c == '"' || c == '\'') {
+          int end = match(document, offset - 1, -1, c) + 1;
+          return new Region(end, offset - end);
+        }
       }
     } catch (BadLocationException e) {
     }
-
     return null;
+  }
+
+  private int match(IDocument document, int offset, int delta, char charToFind)
+      throws BadLocationException {
+    for (;; offset += delta) {
+      char c = document.getChar(offset);
+      if (c == charToFind) {
+        return offset;
+      }
+      if (c == '\\') {
+      }
+    }
   }
 }
