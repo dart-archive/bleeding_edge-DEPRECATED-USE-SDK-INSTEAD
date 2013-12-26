@@ -135,7 +135,7 @@
       <key
             commandId="com.google.dart.tools.ui.generateJavascript"
             schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
-            sequence="M1+M2+G">
+            sequence="M1+M2+M3+G">
       </key>
       <key
             commandId="com.google.dart.tools.debug.ui.launchDialog"
