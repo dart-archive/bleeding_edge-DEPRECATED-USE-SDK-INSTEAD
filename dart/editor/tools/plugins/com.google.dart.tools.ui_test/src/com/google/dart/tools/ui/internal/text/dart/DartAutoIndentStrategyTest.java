@@ -13,10 +13,9 @@
  */
 package com.google.dart.tools.ui.internal.text.dart;
 
+import com.google.dart.engine.EngineTestCase;
 import com.google.dart.tools.internal.corext.refactoring.util.ReflectionUtils;
 import com.google.dart.tools.ui.text.DartPartitions;
-
-import junit.framework.TestCase;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jface.text.Document;
@@ -25,7 +24,7 @@ import org.eclipse.jface.text.IDocument;
 
 import static org.fest.assertions.Assertions.assertThat;
 
-public class DartAutoIndentStrategyTest extends TestCase {
+public class DartAutoIndentStrategyTest extends EngineTestCase {
   private static final String EOL = System.getProperty("line.separator", "\n");
 
   private static void assertSmartInsertAfterNewLine(String initial, String expected) {
@@ -51,15 +50,33 @@ public class DartAutoIndentStrategyTest extends TestCase {
     // handle command
     DocumentCommand command = new DocumentCommand() {
     };
+    command.caretOffset = -1;
     command.doit = true;
     command.offset = initialOffset;
     command.text = EOL;
     strategy.customizeDocumentCommand(document, command);
     // update document
     ReflectionUtils.invokeMethod(command, "execute(org.eclipse.jface.text.IDocument)", document);
+    // check new content
     String actual = document.get();
     assertEquals(expected, actual);
-    assertThat(command.caretOffset).isEqualTo(expectedOffset);
+    // check caret offset
+    int actualOffset = command.caretOffset;
+    if (actualOffset == -1) {
+      actualOffset = initialOffset + command.text.length();
+    }
+    assertThat(actualOffset).isEqualTo(expectedOffset);
+  }
+
+  public void test_afterConditional_withInvocation() throws Exception {
+    assertSmartInsertAfterNewLine(createSource("main() {", //
+        "  var v = true ?",
+        "      ''.length() : 0;!",
+        "}"), createSource("main() {", //
+        "  var v = true ?",
+        "      ''.length() : 0;",
+        "  !",
+        "}"));
   }
 
   public void test_smartIndexAfterNewLine_block_closed_betweenBraces() throws Exception {

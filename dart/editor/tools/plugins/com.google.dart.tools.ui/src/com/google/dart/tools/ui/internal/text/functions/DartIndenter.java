@@ -1259,6 +1259,9 @@ public class DartIndenter {
       if (fToken == Symbols.TokenIDENT) {
         pos = fPreviousPos;
         nextToken();
+      } else {
+        fPosition = p;
+        return false;
       }
     }
     // check for possible modifiers
