@@ -14,22 +14,26 @@
 package com.google.dart.tools.ui.internal.text.dart;
 
 import com.google.dart.engine.EngineTestCase;
+import com.google.dart.tools.core.formatter.DefaultCodeFormatterConstants;
 import com.google.dart.tools.internal.corext.refactoring.util.ReflectionUtils;
+import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.text.DartPartitions;
 
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.text.Document;
 import org.eclipse.jface.text.DocumentCommand;
 import org.eclipse.jface.text.IDocument;
+import org.eclipse.ui.texteditor.AbstractDecoratedTextEditorPreferenceConstants;
 
 import static org.fest.assertions.Assertions.assertThat;
 
 public class DartAutoIndentStrategyTest extends EngineTestCase {
   private static final String EOL = System.getProperty("line.separator", "\n");
+  private static final String USE_SPACES = AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SPACES_FOR_TABS;
+  private static final String TAB_CHAR = DefaultCodeFormatterConstants.FORMATTER_TAB_CHAR;
 
   private static void assertSmartInsertAfterNewLine(String initial, String expected) {
-    initial = StringUtils.replace(initial, "\n", EOL);
-    expected = StringUtils.replace(expected, "\n", EOL);
     int initialOffset = initial.indexOf('!');
     int expectedOffset = expected.indexOf('!');
     assertTrue("No cursor position in initial: " + initial, initialOffset != -1);
@@ -69,43 +73,95 @@ public class DartAutoIndentStrategyTest extends EngineTestCase {
   }
 
   public void test_afterConditional_withInvocation() throws Exception {
-    assertSmartInsertAfterNewLine(createSource("main() {", //
+    assertSmartInsertAfterNewLine(createSource(//
+        "main() {",
         "  var v = true ?",
         "      ''.length() : 0;!",
-        "}"), createSource("main() {", //
+        "}"), createSource(//
+        "main() {",
         "  var v = true ?",
         "      ''.length() : 0;",
         "  !",
         "}"));
   }
 
-  public void test_smartIndexAfterNewLine_block_closed_betweenBraces() throws Exception {
-    assertSmartInsertAfterNewLine("main() {\n  {!}\n}", "main() {\n  {\n    !\n  }\n}");
+  public void test_smartIndentAfterNewLine_block_closed_betweenBraces() throws Exception {
+    assertSmartInsertAfterNewLine(createSource(//
+        "main() {",
+        "  {!}",
+        "}"), createSource(//
+        "main() {",
+        "  {",
+        "    !",
+        "  }",
+        "}"));
   }
 
-  public void test_smartIndexAfterNewLine_block_noClosed() throws Exception {
-    assertSmartInsertAfterNewLine("main() {\n  {!\n}", "main() {\n  {\n    !\n  }\n}");
+  public void test_smartIndentAfterNewLine_block_noClosed() throws Exception {
+    assertSmartInsertAfterNewLine(createSource(//
+        "main() {",
+        "  {!",
+        "}"), createSource(//
+        "main() {",
+        "  {",
+        "    !",
+        "  }",
+        "}"));
   }
 
-  public void test_smartIndexAfterNewLine_class_noClosed() throws Exception {
-    assertSmartInsertAfterNewLine("main() {!", "main() {\n  !\n}");
+  public void test_smartIndentAfterNewLine_classBeforeMethod() throws Exception {
+    assertSmartInsertAfterNewLine(createSource(//
+        "class A {!main() {}"),
+        createSource(//
+            "class A {",
+            "  !",
+            "}main() {}"));
   }
 
-  public void test_smartIndexAfterNewLine_classBeforeMethod() throws Exception {
-    assertSmartInsertAfterNewLine("class A {!main() {}", "class A {\n  !\n}main() {}");
+  public void test_smartIndentAfterNewLine_method_hasClosed() throws Exception {
+    assertSmartInsertAfterNewLine(createSource(//
+        "main() {!}"),
+        createSource(//
+            "main() {",
+            "  !",
+            "}"));
   }
 
-  public void test_smartIndexAfterNewLine_method_hasClosed() throws Exception {
-    assertSmartInsertAfterNewLine("main() {!}", "main() {\n  !\n}");
+  public void test_smartIndentAfterNewLine_method_noClosed() throws Exception {
+    assertSmartInsertAfterNewLine(createSource(//
+        "main() {!"),
+        createSource(//
+            "main() {",
+            "  !",
+            "}"));
   }
 
-  public void test_smartIndexAfterNewLine_method_noClosed() throws Exception {
-    assertSmartInsertAfterNewLine("main() {!", "main() {\n  !\n}");
+  public void test_smartIndentAfterNewLine_wrapIntoBlock() throws Exception {
+    assertSmartInsertAfterNewLine(createSource(//
+        "main() {",
+        "  if (true) {!print();",
+        "}"), createSource(//
+        "main() {",
+        "  if (true) {",
+        "    !print();",
+        "  }",
+        "}"));
   }
 
-  public void test_smartIndexAfterNewLine_wrapIntoBlock() throws Exception {
-    assertSmartInsertAfterNewLine(
-        "main() {\n  if (true) {!print();\n}",
-        "main() {\n  if (true) {\n    !print();\n  }\n}");
+  public void test_useTabs() throws Exception {
+    IPreferenceStore preferenceStore = DartToolsPlugin.getDefault().getPreferenceStore();
+    try {
+      preferenceStore.setValue(USE_SPACES, false);
+      preferenceStore.setValue(TAB_CHAR, "tab");
+      assertSmartInsertAfterNewLine(createSource(//
+          "main() {!",
+          "}"), createSource(//
+          "main() {",
+          "\t!",
+          "}"));
+    } finally {
+      preferenceStore.setToDefault(USE_SPACES);
+      preferenceStore.setToDefault(TAB_CHAR);
+    }
   }
 }

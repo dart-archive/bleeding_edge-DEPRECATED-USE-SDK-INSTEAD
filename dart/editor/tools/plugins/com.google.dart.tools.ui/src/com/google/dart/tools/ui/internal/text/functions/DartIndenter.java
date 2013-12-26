@@ -457,20 +457,7 @@ public class DartIndenter {
    *         or <code>null</code> if it cannot be determined
    */
   public StringBuffer computeIndentation(int offset, boolean assumeOpeningBrace) {
-
     StringBuffer reference = getReferenceIndentation(offset, assumeOpeningBrace);
-
-    // TODO(pquitslund/messick): a minimal hack to ensure tabs are emitted when they should be
-    // Heuristics for extra indents (after braces, in constructor inits, etc.) 
-    // to be implemented in the overhaul
-    if (reference != null
-        && !DartToolsPlugin.getDefault().getPreferenceStore().getBoolean(
-            AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SPACES_FOR_TABS)) {
-      // Note the hard-wired assumption that indents are 2 spaces
-      // (To be fixed in the re-write)
-      String tabbed = reference.toString().replaceAll("  ", "\t");
-      return new StringBuffer(tabbed);
-    }
 
     // handle special alignment
     if (fAlign != DartHeuristicScanner.NOT_FOUND) {
