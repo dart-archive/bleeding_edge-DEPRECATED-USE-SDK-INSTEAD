@@ -69,13 +69,28 @@ public class LaunchConfigResourceResolver implements IResourceResolver {
 
   @Override
   public String getUrlRegexForResource(IResource resource) {
-    String relPath = calcRelPath(getSourceContainer(), resource);
+    IContainer container = getSourceContainer();
 
-    if (relPath == null) {
-      return null;
+    String relPath = calcRelPath(container, resource);
+
+    if (relPath != null) {
+      return URIUtilities.uriEncode(relPath);
     }
 
-    return URIUtilities.uriEncode(relPath);
+    // Check for package or self-reference links.
+    if (container.getProject().equals(resource.getProject())) {
+      String path = resource.getFullPath().toString();
+
+      if (path.contains("/packages/") || path.contains("/lib/")) {
+        if (path.startsWith("/")) {
+          path = path.substring(1);
+        }
+
+        return URIUtilities.uriEncode(path);
+      }
+    }
+
+    return null;
   }
 
   @Override
