@@ -103,15 +103,19 @@ public class DartiumDebugValue extends DartiumDebugElement implements IValue, ID
   public void evaluateExpression(final String expression, final IWatchExpressionListener listener) {
     String exprText = expression;
 
-    // If they're not trying to access 'this' as an array references, use a period after 'this'.
-    if (!exprText.startsWith("[")) {
-      exprText = "." + exprText;
+    if (exprText.equals("this") || exprText.startsWith("this.")) {
+      // do nothing
+
+    } else if (exprText.startsWith("[")) {
+      exprText = "this" + exprText;
+    } else {
+      exprText = "this." + exprText;
     }
 
     try {
       getConnection().getRuntime().callFunctionOn(
           value.getObjectId(),
-          "function(){return this" + exprText + ";}",
+          "function(){return " + exprText + ";}",
           null,
           false,
           new WebkitCallback<WebkitRemoteObject>() {
