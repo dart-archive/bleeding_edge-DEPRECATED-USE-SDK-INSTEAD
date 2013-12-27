@@ -43,7 +43,8 @@ public class NamedArgumentCompletionProposal extends AbstractDartCompletionPropo
     setCursorPosition(completion.length());
     name = proxy.getParameterName();
     type = proxy.getParameterType();
-    setImage(DartPluginImages.get(DartPluginImages.IMG_MISC_PRIVATE));
+    setImage(DartPluginImages.get(DartPluginImages.IMG_MISC_PROTECTED));
+    setRelevance(proxy.getRelevance() * 100); // needs to be higher than computeRelevance()
   }
 
   @Override
