@@ -15,6 +15,7 @@ package com.google.dart.tools.search.internal.ui;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.SimpleIdentifier;
@@ -24,6 +25,7 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.ImportElement;
+import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.search.MatchKind;
@@ -56,6 +58,7 @@ import org.eclipse.ui.IWorkbenchSite;
 import org.eclipse.ui.PlatformUI;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -176,6 +179,7 @@ public class FindReferencesAction extends AbstractDartSelectionAction {
       final String searchName = name;
       SearchView view = (SearchView) DartToolsPlugin.getActivePage().showView(SearchView.ID);
       view.showPage(new SearchMatchPage(view, "Searching for references...") {
+
         @Override
         protected boolean canUseFilterPotential() {
           return searchElement != null;
@@ -214,6 +218,7 @@ public class FindReferencesAction extends AbstractDartSelectionAction {
             allMatches.addAll(findElementReferences());
           }
           addUniqueNameReferences(allMatches, findNameReferences());
+          allMatches = getAccessibleMatches(allMatches);
           allMatches = FindDeclarationsAction.getUniqueMatches(allMatches);
           return allMatches;
         }
@@ -322,6 +327,62 @@ public class FindReferencesAction extends AbstractDartSelectionAction {
               MatchKind.VARIABLE_WRITE,
               searchElement,
               SourceRangeFactory.rangeElementName(searchElement)));
+        }
+
+        private List<SearchMatch> getAccessibleMatches(List<SearchMatch> matches) {
+          // just search for name
+          if (searchElement == null) {
+            return matches;
+          }
+          LibraryElement searchElementLibrary = searchElement.getLibrary();
+          // prepare filtered matches
+          List<SearchMatch> filteredMatches = Lists.newArrayList();
+          for (SearchMatch match : matches) {
+            LibraryElement matchLibrary = match.getElement().getLibrary();
+            if (isImported(searchElementLibrary, matchLibrary)) {
+              filteredMatches.add(match);
+            }
+          }
+          // done
+          return filteredMatches;
+        }
+
+        /**
+         * Checks if "what" is imported into "where" directly or indirectly, so there is a chance
+         * that it has access to an object from "what". Otherwise we find too many "second-order"
+         * positive matches.
+         * <p>
+         * https://code.google.com/p/dart/issues/detail?id=12268
+         */
+        private boolean isImported(LibraryElement what, LibraryElement where) {
+          return isImported(
+              what,
+              where,
+              Sets.<LibraryElement> newHashSet(),
+              Maps.<LibraryElement, Boolean> newHashMap());
+        }
+
+        private boolean isImported(LibraryElement what, LibraryElement where,
+            Set<LibraryElement> checking, Map<LibraryElement, Boolean> checked) {
+          if (!checking.add(where)) {
+            return false;
+          }
+          Boolean result = checked.get(where);
+          if (result == null) {
+            result = false;
+            if (where.equals(what)) {
+              result = true;
+            } else {
+              for (LibraryElement importedLibrary : where.getImportedLibraries()) {
+                if (isImported(what, importedLibrary, checking, checked)) {
+                  result = true;
+                  break;
+                }
+              }
+            }
+            checked.put(where, result);
+          }
+          return result;
         }
       });
     } catch (Throwable e) {

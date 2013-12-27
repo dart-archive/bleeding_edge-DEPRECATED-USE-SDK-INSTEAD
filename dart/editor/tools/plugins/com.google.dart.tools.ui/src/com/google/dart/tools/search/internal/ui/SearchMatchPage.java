@@ -892,6 +892,7 @@ public abstract class SearchMatchPage extends SearchPage {
   private boolean filterEnabledPotential = false;
   private int filteredCountSdk = 0;
   private int filteredCountPotential = 0;
+
   private static final Predicate<SearchMatch> FILTER_SDK = new Predicate<SearchMatch>() {
     @Override
     public boolean apply(SearchMatch input) {
@@ -1066,28 +1067,29 @@ public abstract class SearchMatchPage extends SearchPage {
     }
   }
 
-  // TODO(scheglov)
   private List<SearchMatch> applyFilters(List<SearchMatch> matches) {
     filteredCountSdk = 0;
     filteredCountPotential = 0;
     List<SearchMatch> filtered = Lists.newArrayList();
     for (SearchMatch match : matches) {
-      boolean filterOut = false;
+      // SDK filter
       if (FILTER_SDK.apply(match)) {
         filteredCountSdk++;
         if (filterEnabledSdk) {
-          filterOut = true;
+          continue;
         }
       }
-      if (canUseFilterPotential() && FILTER_POTENTIAL.apply(match)) {
-        filteredCountPotential++;
-        if (filterEnabledPotential) {
-          filterOut = true;
+      // potential filter
+      if (canUseFilterPotential()) {
+        // potential filter
+        if (FILTER_POTENTIAL.apply(match)) {
+          filteredCountPotential++;
+          if (filterEnabledPotential) {
+            continue;
+          }
         }
       }
-      if (filterOut) {
-        continue;
-      }
+      // OK
       filtered.add(match);
     }
     return filtered;
