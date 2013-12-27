@@ -2084,7 +2084,11 @@ public class CompletionEngine {
     }
     NameCollector names = new NameCollector();
     LibraryElement[] prefixLibraries = librariesImportedByName(prefixName);
+    // Library prefixes do not have a unique AST representation so we need to fudge state vars.
+    boolean litsAllowed = state.areLiteralsAllowed;
+    state.areLiteralsAllowed = false;
     names.addTopLevelNames(prefixLibraries, TopLevelNamesKind.DECLARED_AND_EXPORTS);
+    state.areLiteralsAllowed = litsAllowed;
     proposeNames(names, identifier);
   }
 

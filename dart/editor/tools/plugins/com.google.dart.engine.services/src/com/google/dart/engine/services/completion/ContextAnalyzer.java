@@ -122,7 +122,9 @@ class ContextAnalyzer extends GeneralizingASTVisitor<Void> {
   @Override
   public Void visitInstanceCreationExpression(InstanceCreationExpression node) {
     state.requiresConst(node.isConst());
-    state.mustBeInstantiableType();
+    if (completionNode.getParent().getParent() == child) {
+      state.mustBeInstantiableType();
+    }
     return super.visitInstanceCreationExpression(node);
   }
 
