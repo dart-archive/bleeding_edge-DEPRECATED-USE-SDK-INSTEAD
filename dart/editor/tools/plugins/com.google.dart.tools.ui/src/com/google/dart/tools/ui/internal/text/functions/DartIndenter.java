@@ -1177,6 +1177,8 @@ public class DartIndenter {
       switch (fToken) {
         case Symbols.TokenFOR:
           return true;
+        case Symbols.TokenIN:
+          return false;
         case Symbols.TokenLBRACE:
           return false;
         case Symbols.TokenSEMICOLON:

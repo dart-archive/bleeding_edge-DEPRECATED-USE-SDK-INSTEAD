@@ -24,6 +24,7 @@ import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.text.Document;
 import org.eclipse.jface.text.DocumentCommand;
 import org.eclipse.jface.text.IDocument;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.texteditor.AbstractDecoratedTextEditorPreferenceConstants;
 
 import static org.fest.assertions.Assertions.assertThat;
@@ -81,6 +82,39 @@ public class DartAutoIndentStrategyTest extends EngineTestCase {
         "main() {",
         "  var v = true ?",
         "      ''.length() : 0;",
+        "  !",
+        "}"));
+  }
+
+  public void test_afterFor_withBody() throws Exception {
+    assertSmartInsertAfterNewLine(createSource(//
+        "main() {",
+        "  for (var x = 0; x < 10; x++) print(x);!",
+        "}"), createSource(//
+        "main() {",
+        "  for (var x = 0; x < 10; x++) print(x);",
+        "  !",
+        "}"));
+  }
+
+  public void test_afterForIn_noBody() throws Exception {
+    assertSmartInsertAfterNewLine(createSource(//
+        "main() {",
+        "  for (var x in [1, 2, 3])!",
+        "}"), createSource(//
+        "main() {",
+        "  for (var x in [1, 2, 3])",
+        "    !",
+        "}"));
+  }
+
+  public void test_afterForIn_withBody() throws Exception {
+    assertSmartInsertAfterNewLine(createSource(//
+        "main() {",
+        "  for (var x in [1, 2, 3]) print(x);!",
+        "}"), createSource(//
+        "main() {",
+        "  for (var x in [1, 2, 3]) print(x);",
         "  !",
         "}"));
   }
@@ -149,19 +183,26 @@ public class DartAutoIndentStrategyTest extends EngineTestCase {
   }
 
   public void test_useTabs() throws Exception {
-    IPreferenceStore preferenceStore = DartToolsPlugin.getDefault().getPreferenceStore();
-    try {
-      preferenceStore.setValue(USE_SPACES, false);
-      preferenceStore.setValue(TAB_CHAR, "tab");
-      assertSmartInsertAfterNewLine(createSource(//
-          "main() {!",
-          "}"), createSource(//
-          "main() {",
-          "\t!",
-          "}"));
-    } finally {
-      preferenceStore.setToDefault(USE_SPACES);
-      preferenceStore.setToDefault(TAB_CHAR);
-    }
+    // We have 1000 and one listener for preferences that expect that we run them in UI.
+    // Just make them happy...
+    Display.getDefault().syncExec(new Runnable() {
+      @Override
+      public void run() {
+        IPreferenceStore preferenceStore = DartToolsPlugin.getDefault().getPreferenceStore();
+        try {
+          preferenceStore.setValue(USE_SPACES, false);
+          preferenceStore.setValue(TAB_CHAR, "tab");
+          assertSmartInsertAfterNewLine(createSource(//
+              "main() {!",
+              "}"), createSource(//
+              "main() {",
+              "\t!",
+              "}"));
+        } finally {
+          preferenceStore.setToDefault(USE_SPACES);
+          preferenceStore.setToDefault(TAB_CHAR);
+        }
+      }
+    });
   }
 }
