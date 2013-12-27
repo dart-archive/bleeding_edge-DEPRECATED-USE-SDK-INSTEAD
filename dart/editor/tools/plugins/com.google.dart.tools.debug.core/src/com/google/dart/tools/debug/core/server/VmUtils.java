@@ -39,6 +39,11 @@ public class VmUtils {
     // Use the URI class to convert things like '%20' ==> ' '.
     URI uri = URI.create(url);
 
+    // If there's no provided uri scheme, then return the original url.
+    if (uri.getScheme() == null) {
+      return url;
+    }
+
     if (url.startsWith(ECLIPSE_FORMAT)) {
       // The VM also wants file urls to start with file:///, not file:/.
       url = uri.getScheme() + "://" + uri.getPath();
