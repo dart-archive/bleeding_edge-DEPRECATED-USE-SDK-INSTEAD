@@ -142,7 +142,7 @@ import java.util.Stack;
  * Dart code editor.
  */
 public class CompilationUnitEditor extends DartEditor implements IDartReconcilingListener_OLD {
-  class AdaptedSourceViewer extends DartSourceViewer {
+  public class AdaptedSourceViewer extends DartSourceViewer {
 
     public AdaptedSourceViewer(Composite parent, IVerticalRuler verticalRuler,
         IOverviewRuler overviewRuler, boolean showAnnotationsOverview, int styles,
@@ -200,6 +200,10 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
 
     public IContentAssistant getContentAssistant() {
       return fContentAssistant;
+    }
+
+    public CompilationUnitEditor getEditor() {
+      return CompilationUnitEditor.this;
     }
 
     @Override

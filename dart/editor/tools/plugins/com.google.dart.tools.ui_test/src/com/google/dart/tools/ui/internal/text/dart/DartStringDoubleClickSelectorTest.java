@@ -13,24 +13,30 @@
  */
 package com.google.dart.tools.ui.internal.text.dart;
 
-import junit.framework.TestCase;
+import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.parser.ParserTestCase;
+import com.google.dart.tools.ui.internal.text.editor.CompilationUnitEditor;
 
 import org.eclipse.jface.text.Document;
 import org.eclipse.jface.text.IDocument;
-import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.swt.graphics.Point;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class DartStringDoubleClickSelectorTest extends TestCase {
+public class DartStringDoubleClickSelectorTest extends ParserTestCase {
   private static void assertDoubleClickSelection(String content, String clickPattern,
-      String resultContent) {
-    ITextViewer textViewer = mock(ITextViewer.class);
+      String resultContent) throws Exception {
+    CompilationUnitEditor.AdaptedSourceViewer textViewer = mock(CompilationUnitEditor.AdaptedSourceViewer.class);
     // mock document
     IDocument document = new Document(content);
     when(textViewer.getDocument()).thenReturn(document);
+    // mock editor
+    CompilationUnitEditor editor = mock(CompilationUnitEditor.class);
+    when(textViewer.getEditor()).thenReturn(editor);
+    CompilationUnit unit = parseCompilationUnit(content);
+    when(editor.getInputUnit()).thenReturn(unit);
     // mock double click position
     int clickOffset = content.indexOf(clickPattern);
     when(textViewer.getSelectedRange()).thenReturn(new Point(clickOffset, 0));
@@ -83,6 +89,21 @@ public class DartStringDoubleClickSelectorTest extends TestCase {
     String clickPattern = "');";
     String resultContent = "aaa bbb";
     assertDoubleClickSelection(content, clickPattern, resultContent);
+  }
+
+  public void test_interpolation() throws Exception {
+    String content = createSource(//
+        "main() {",
+        "  String first = 'a';",
+        "  String second = 'b';",
+        "  String first$second = 'c';",
+        "  String s = 'xxx$first$second${first$second.length}yyy';//",
+        "  print(s); ",
+        "}");
+    assertDoubleClickSelection(content, "xxx", "xxx$first$second${first$second.length}yyy");
+    assertDoubleClickSelection(content, "xx$", "xxx");
+    assertDoubleClickSelection(content, "yy\'", "yyy");
+    assertDoubleClickSelection(content, "';/", "xxx$first$second${first$second.length}yyy");
   }
 
   public void test_onWord() throws Exception {

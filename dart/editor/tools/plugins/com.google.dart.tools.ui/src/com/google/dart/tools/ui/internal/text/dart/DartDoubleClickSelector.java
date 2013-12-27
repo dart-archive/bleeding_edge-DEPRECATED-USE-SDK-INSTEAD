@@ -13,6 +13,12 @@
  */
 package com.google.dart.tools.ui.internal.text.dart;
 
+import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.InterpolationExpression;
+import com.google.dart.engine.ast.InterpolationString;
+import com.google.dart.engine.ast.SimpleIdentifier;
+import com.google.dart.engine.ast.visitor.NodeLocator;
+import com.google.dart.tools.ui.internal.text.editor.CompilationUnitEditor;
 import com.google.dart.tools.ui.internal.text.functions.DartPairMatcher;
 import com.google.dart.tools.ui.internal.text.functions.ISourceVersionDependent;
 import com.google.dart.tools.ui.text.editor.tmp.JavaScriptCore;
@@ -26,6 +32,8 @@ import org.eclipse.jface.text.Region;
 
 /**
  * Double click strategy aware of Java identifier syntax rules.
+ * 
+ * @coverage dart.editor.ui.text
  */
 public class DartDoubleClickSelector implements ITextDoubleClickStrategy, ISourceVersionDependent {
 
@@ -99,9 +107,8 @@ public class DartDoubleClickSelector implements ITextDoubleClickStrategy, ISourc
           ++offset;
         }
 
-        offset = anchor; // use to not select the previous word when right
-// behind it
-//				offset= anchor - 1; // use to select the previous word when right behind it
+        offset = anchor; // use to not select the previous word when right behind it
+//      offset = anchor - 1; // use to select the previous word when right behind it
         while (offset >= min) {
           c = document.getChar(offset);
           if (!backward(c, offset)) {
@@ -325,7 +332,21 @@ public class DartDoubleClickSelector implements ITextDoubleClickStrategy, ISourc
     if (region != null && region.getLength() >= 2) {
       textViewer.setSelectedRange(region.getOffset() + 1, region.getLength() - 2);
     } else {
-      region = selectWord(document, offset);
+      CompilationUnitEditor editor = ((CompilationUnitEditor.AdaptedSourceViewer) textViewer).getEditor();
+      NodeLocator locator = new NodeLocator(offset);
+      ASTNode node = locator.searchWithin(editor.getInputUnit());
+      if (node instanceof SimpleIdentifier) {
+        region = new Region(node.getOffset(), node.getLength());
+      } else if (node instanceof InterpolationString) {
+        region = computeStringRegion(node);
+        if (region == null) {
+          region = selectWord(document, offset);
+        }
+      } else if (node instanceof InterpolationExpression) {
+        region = new Region(node.getOffset(), node.getLength());
+      } else {
+        region = selectWord(document, offset);
+      }
       textViewer.setSelectedRange(region.getOffset(), region.getLength());
     }
   }
@@ -334,6 +355,32 @@ public class DartDoubleClickSelector implements ITextDoubleClickStrategy, ISourc
   public void setSourceVersion(String version) {
     fPairMatcher.setSourceVersion(version);
     fWordDetector.setSourceVersion(version);
+  }
+
+  protected IRegion computeStringRegion(ASTNode node) {
+    int start = node.getOffset();
+    int originalStart = start;
+    int end = node.getEnd();
+    InterpolationString str = (InterpolationString) node;
+    String chars = str.getContents().getLexeme();
+    if (chars != null && chars.length() > 0) {
+      char ch = chars.charAt(0);
+      if (ch == '\'' || ch == '"') {
+        start += 1;
+      }
+      if (start == originalStart || chars.length() > 1) {
+        ch = chars.charAt(chars.length() - 1);
+        if (ch == '\'' || ch == '"') {
+          end -= 1;
+        }
+      }
+      return new Region(start, end - start);
+    }
+    return null; // should not happen
+  }
+
+  protected void selectExpression(ASTNode node, ITextViewer textViewer) {
+    textViewer.setSelectedRange(node.getOffset(), node.getLength());
   }
 
   protected IRegion selectWord(IDocument document, int anchor) {

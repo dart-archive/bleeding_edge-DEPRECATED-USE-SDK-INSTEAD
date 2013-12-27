@@ -13,6 +13,11 @@
  */
 package com.google.dart.tools.ui.internal.text.dart;
 
+import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.InterpolationString;
+import com.google.dart.engine.ast.visitor.NodeLocator;
+import com.google.dart.tools.ui.internal.text.editor.CompilationUnitEditor;
+
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
@@ -40,6 +45,22 @@ public class DartStringDoubleClickSelector extends DartDoubleClickSelector {
       textViewer.setSelectedRange(region.getOffset(), region.getLength());
     } else {
       region = selectWord(document, offset);
+      try {
+        String selected = document.get(region.getOffset(), region.getLength());
+        if (selected.indexOf('$') >= 0) {
+          CompilationUnitEditor editor = ((CompilationUnitEditor.AdaptedSourceViewer) textViewer).getEditor();
+          NodeLocator locator = new NodeLocator(offset);
+          ASTNode node = locator.searchWithin(editor.getInputUnit());
+          if (node instanceof InterpolationString) {
+            IRegion strRegion = computeStringRegion(node);
+            if (strRegion != null) {
+              region = strRegion;
+            }
+          }
+        }
+      } catch (BadLocationException ex) {
+        // ignore it
+      }
       textViewer.setSelectedRange(region.getOffset(), region.getLength());
     }
   }
