@@ -73,6 +73,7 @@ import com.google.dart.engine.ast.SimpleFormalParameter;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.SimpleStringLiteral;
 import com.google.dart.engine.ast.Statement;
+import com.google.dart.engine.ast.SuperConstructorInvocation;
 import com.google.dart.engine.ast.SuperExpression;
 import com.google.dart.engine.ast.SwitchCase;
 import com.google.dart.engine.ast.SwitchMember;
@@ -729,6 +730,12 @@ public class CompletionEngine {
     }
 
     @Override
+    public Void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
+      analyzeSuperConstructorInvocation(node);
+      return null;
+    }
+
+    @Override
     public Void visitSwitchCase(SwitchCase node) {
       if (completionNode == node.getExpression()) {
         analyzeLocalName(completionNode);
@@ -1275,6 +1282,12 @@ public class CompletionEngine {
     }
 
     @Override
+    public Void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
+      analyzeSuperConstructorInvocation(node);
+      return null;
+    }
+
+    @Override
     public Void visitSwitchMember(SwitchMember node) {
       if (isCompletingKeyword(node.getKeyword())) {
         pKeyword(node.getKeyword());
@@ -1788,6 +1801,17 @@ public class CompletionEngine {
     NameCollector names = collectIdentifiersVisibleAt(identifier);
     for (Element element : names.getUniqueElements()) {
       proposeName(element, identifier, names);
+    }
+  }
+
+  void analyzeSuperConstructorInvocation(SuperConstructorInvocation node) {
+    ClassDeclaration enclosingClassNode = node.getAncestor(ClassDeclaration.class);
+    if (enclosingClassNode != null) {
+      ClassElement enclosingClassElement = enclosingClassNode.getElement();
+      if (enclosingClassElement != null) {
+        ClassElement superClassElement = enclosingClassElement.getSupertype().getElement();
+        constructorReference(superClassElement, node.getConstructorName());
+      }
     }
   }
 

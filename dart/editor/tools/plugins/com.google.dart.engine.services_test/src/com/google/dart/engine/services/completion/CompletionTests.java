@@ -1920,6 +1920,30 @@ public class CompletionTests extends CompletionTestCase {
         "}"), "1+fa", "1-fb", "1+ma", "1-mb");
   }
 
+  public void testCompletion_superConstructorInvocation_noNamePrefix() throws Exception {
+    test(src(//
+        "class A {",
+        "  A.fooA();",
+        "  A.fooB();",
+        "  A.bar();",
+        "}",
+        "class B extends A {",
+        "  B() : super.!1",
+        "}"), "1+fooA", "1+fooB", "1+bar");
+  }
+
+  public void testCompletion_superConstructorInvocation_withNamePrefix() throws Exception {
+    test(src(//
+        "class A {",
+        "  A.fooA();",
+        "  A.fooB();",
+        "  A.bar();",
+        "}",
+        "class B extends A {",
+        "  B() : super.f!1",
+        "}"), "1+fooA", "1+fooB", "1-bar");
+  }
+
   public void testCompletion_this() throws Exception {
     test(src(//
         "class A {",
