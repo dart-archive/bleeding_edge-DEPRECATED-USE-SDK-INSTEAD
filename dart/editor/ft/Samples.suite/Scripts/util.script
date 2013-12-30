@@ -1,6 +1,8 @@
 universal platform
 
 to init
+	put the SearchRectangle into origRect
+	set the SearchRectangle to ((0,0),(100,100))
 	if ImageFound("linux menu icon") then
 		put "linux" into universal platform
 	else if ImageFound("mac menu icon") then
@@ -8,6 +10,7 @@ to init
 	else
 		put "windows" into universal platform
 	end if
+	set the SearchRectangle to origRect
 	if RemoteScreenSize() <> (1920,1200) then
 		throw "Screen size must be 1920x1200"
 	end if
@@ -59,6 +62,8 @@ end checkProblems
 (* Assumes Chromium is the active proecss. *)
 to exitChromium
 	if isMacOSX()
+		(* Can fail if Chromium window is under Chromium menu causing window edge *)
+		(* to bleed thru menu due to alpha channel.  Re-position Chromium! *)
 		selectMenuItem "Chromium", "Quit Chromium"
 	else
 		TypeText altKey,F4

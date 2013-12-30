@@ -1,6 +1,6 @@
 openLab 0
 TypeText downArrow,downArrow,downArrow,downArrow,downArrow
-expandTreeNode
+Run util's expandTreeNode
 TypeText downArrow,downArrow,downArrow,downArrow,downArrow
 (*Run "check problems"*)
 Click "run button"
@@ -21,8 +21,8 @@ if (util's isMacOSX) then
 	TypeText CommandKey,Tab
 end if
 Wait 1
-Click (Text:"document")
-DoubleClick (Text:"app.dart",CaseSensitive:"yes")
+Click (Text:"document",CaseSensitive:"yes",ValidCharacters:"*",dpi:94)
+DoubleClick (Text:"app.dart",CaseSensitive:"yes",ValidCharacters:"*",dpi:94)
 put -80 into offset
 if (util's isLinux) then
 	put -100 into offset
@@ -48,5 +48,5 @@ DoubleClick (Text:"ObservableList",CaseSensitive:"yes")
 *)
 Click "stop debug button"
 DoubleClick (ImageLocation(Text:"void createDocument",CaseSensitive:"yes",ValidCharacters:"*",dpi:94)) + (offset,0)
-RightClick (Text:"io-2013-codelab-finished",CaseSensitive:"yes")
+RightClick (Text:"io-2013-codelab-finished",CaseSensitive:"yes",ValidCharacters:"*")
 Click (Text:"Close Folder")

@@ -10,7 +10,7 @@ if (util's isLinux) then
 	Wait 0.5
 	TypeText enter
 end if
-Wait 10
+Wait 30
 Run util's expandTreeNode
-WaitFor 30, "pubspec lock"
+WaitFor 10, "pubspec lock"
 (* Do not run "check problems" here because analysis may not have finished *)
