@@ -23,12 +23,13 @@ import org.eclipse.debug.internal.ui.elements.adapters.DefaultBreakpointsViewInp
 import org.eclipse.debug.internal.ui.viewers.model.provisional.IPresentationContext;
 import org.eclipse.debug.internal.ui.viewers.model.provisional.TreeModelViewer;
 import org.eclipse.debug.internal.ui.views.variables.details.DetailPaneProxy;
+import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
+import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.jface.viewers.ListViewer;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TreeSelection;
 import org.eclipse.jface.viewers.Viewer;
@@ -37,6 +38,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.ui.IActionBars;
+import org.eclipse.ui.IWorkbenchActionConstants;
 
 /**
  * A debugger breakpoints view.
@@ -46,9 +48,11 @@ public class BreakpointsView extends
     org.eclipse.debug.internal.ui.views.breakpoints.BreakpointsView {
   public static final String VIEW_ID = "com.google.dart.tools.debug.breakpointsView";
 
+  private static final String ACTION_GOTO_MARKER = "GotoMarker";
+
+  private RemoveBreakpointAction removeBreakpointAction;
   private RemoveAllBreakpointsAction removeAllBreakpointsAction;
 
-  ListViewer breakpointsViewer;
   private TreeModelViewer treeViewer;
   private IPreferenceStore preferences;
   private IPropertyChangeListener propertyChangeListener = new IPropertyChangeListener() {
@@ -75,13 +79,14 @@ public class BreakpointsView extends
 
   @Override
   public void dispose() {
+    if (removeBreakpointAction != null) {
+      removeBreakpointAction.dispose();
+    }
+
     if (removeAllBreakpointsAction != null) {
       removeAllBreakpointsAction.dispose();
     }
-    if (propertyChangeListener != null) {
-      getPreferences().removePropertyChangeListener(propertyChangeListener);
-      propertyChangeListener = null;
-    }
+
     if (propertyChangeListener != null) {
       getPreferences().removePropertyChangeListener(propertyChangeListener);
       propertyChangeListener = null;
@@ -98,9 +103,11 @@ public class BreakpointsView extends
 
   @Override
   protected void configureToolBar(IToolBarManager manager) {
-    removeAllBreakpointsAction = new RemoveAllBreakpointsAction();
+    manager.add(removeBreakpointAction);
 
+    removeAllBreakpointsAction = new RemoveAllBreakpointsAction();
     manager.add(removeAllBreakpointsAction);
+
     manager.update(true);
   }
 
@@ -123,9 +130,18 @@ public class BreakpointsView extends
         super.contextActivated(selection);
       }
     }
+
     if (isAvailable() && isVisible()) {
-      updateAction("ContentAssist"); //$NON-NLS-1$
+      updateAction("ContentAssist");
     }
+  }
+
+  @Override
+  protected void createActions() {
+    super.createActions();
+
+    removeBreakpointAction = new RemoveBreakpointAction(treeViewer);
+    setAction(REMOVE_ACTION, removeBreakpointAction);
   }
 
   @Override
@@ -144,6 +160,16 @@ public class BreakpointsView extends
     getPreferences().addPropertyChangeListener(propertyChangeListener);
     updateColors();
     return treeViewer;
+  }
+
+  @Override
+  protected void fillContextMenu(IMenuManager menu) {
+    updateObjects();
+
+    menu.add(getAction(ACTION_GOTO_MARKER));
+    menu.add(new Separator());
+    menu.add(removeBreakpointAction);
+    menu.add(new Separator(IWorkbenchActionConstants.MB_ADDITIONS));
   }
 
   @Override

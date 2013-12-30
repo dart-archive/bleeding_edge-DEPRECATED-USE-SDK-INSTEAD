@@ -27,8 +27,6 @@ public class WebkitPropertyDescriptor implements Comparable<WebkitPropertyDescri
   public static final String STATIC_FIELDS_OBJECT = "@staticFields";
   public static final String LIBRARY_OBJECT = "@library";
 
-  //public static final String LIBRARIES_OBJECT = "@libraries";
-
   public static WebkitPropertyDescriptor createIndexProperty(int index, WebkitRemoteObject value) {
     WebkitPropertyDescriptor descriptor = new WebkitPropertyDescriptor();
 

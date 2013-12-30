@@ -40,7 +40,7 @@ public class VmValue extends VmRef {
     value.name = obj.optString("name");
     value.signature = obj.optString("signature");
 
-    if (value.text == null && value.isFunction()) {
+    if (value.isFunction()) {
       value.text = value.name + value.signature;
     }
 

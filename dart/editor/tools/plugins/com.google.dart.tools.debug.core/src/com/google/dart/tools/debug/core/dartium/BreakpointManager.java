@@ -42,7 +42,6 @@ import java.util.Map;
  * Handle adding a removing breakpoints to the WebKit connection for the DartiumDebugTarget class.
  */
 class BreakpointManager implements IBreakpointListener {
-
   private static String PACKAGES_DIRECTORY_PATH = "/packages/";
   private static String LIB_DIRECTORY_PATH = "/lib/";
 
