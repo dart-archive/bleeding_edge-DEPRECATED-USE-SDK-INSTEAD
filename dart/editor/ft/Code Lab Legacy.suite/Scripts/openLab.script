@@ -1,0 +1,16 @@
+Run "open codelab file search"
+put param(1) into n
+repeat n
+	Wait 0.1
+	TypeText downArrow
+end repeat
+Wait 0.5
+TypeText enter
+if (util's isLinux) then
+	Wait 0.5
+	TypeText enter
+end if
+Wait 10
+Run util's expandTreeNode
+WaitFor 30, "pubspec lock"
+(* Do not run "check problems" here because analysis may not have finished *)

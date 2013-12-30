@@ -1,0 +1,3 @@
+(* Ensure a legacy web-ui app compiles and runs -- also checks basic debugger operations *)
+Run util's init
+Run "Step 0"

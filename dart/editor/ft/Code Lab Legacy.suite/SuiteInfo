@@ -1,0 +1,22 @@
+{
+    EPVersionNumber = 1311131500;
+    Schedules =     (
+    );
+    ScriptMetaData =     {
+        "Step 0" =         {
+        };
+        Untitled =         {
+        };
+        doit =         {
+        };
+        "open codelab file search" =         {
+        };
+        openLab =         {
+        };
+    };
+    helperSuitesInfo =     (
+                {
+            filePath = "/Users/messick/src/dart-git/dart/editor/ft/Samples.suite";
+        }
+    );
+}
