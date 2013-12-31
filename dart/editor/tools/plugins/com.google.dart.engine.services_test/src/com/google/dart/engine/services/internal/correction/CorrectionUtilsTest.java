@@ -34,6 +34,7 @@ import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.FunctionExpression;
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.ast.IfStatement;
+import com.google.dart.engine.ast.InstanceCreationExpression;
 import com.google.dart.engine.ast.IntegerLiteral;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.MethodInvocation;
@@ -1528,6 +1529,33 @@ public class CorrectionUtilsTest extends AbstractDartTest {
         findNode("getSortedNodes();", MethodInvocation.class),
         ImmutableSet.of(""),
         formatLines("sortedNodes", "nodes"));
+  }
+
+  public void test_getVariableNameSuggestions_Node_unresolvedInstanceCreation() throws Exception {
+    verifyNoTestUnitErrors = false;
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "import 'dart:math' as p;",
+        "main() {",
+        "  new NoSuchClass();",
+        "  new p.NoSuchClass();",
+        "  new NoSuchClass.named();",
+        "}");
+    assert_getVariableNameSuggestions(
+        null,
+        findNode("new NoSuchClass()", InstanceCreationExpression.class),
+        ImmutableSet.of(""),
+        formatLines("noSuchClass", "suchClass", "class"));
+    assert_getVariableNameSuggestions(
+        null,
+        findNode("new p.NoSuchClass()", InstanceCreationExpression.class),
+        ImmutableSet.of(""),
+        formatLines("noSuchClass", "suchClass", "class"));
+    assert_getVariableNameSuggestions(
+        null,
+        findNode("new NoSuchClass.named()", InstanceCreationExpression.class),
+        ImmutableSet.of(""),
+        formatLines("noSuchClass", "suchClass", "class"));
   }
 
   public void test_getVariableNameSuggestions_Node_withExclude() throws Exception {

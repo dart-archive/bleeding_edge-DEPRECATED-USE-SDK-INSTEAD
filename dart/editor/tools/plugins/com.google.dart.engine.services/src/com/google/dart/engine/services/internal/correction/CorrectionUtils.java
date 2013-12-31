@@ -24,12 +24,15 @@ import com.google.dart.engine.ast.Block;
 import com.google.dart.engine.ast.BooleanLiteral;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.ConstructorDeclaration;
+import com.google.dart.engine.ast.ConstructorName;
 import com.google.dart.engine.ast.Directive;
 import com.google.dart.engine.ast.ExportDirective;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.FunctionExpression;
+import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.ast.ImportDirective;
+import com.google.dart.engine.ast.InstanceCreationExpression;
 import com.google.dart.engine.ast.IsExpression;
 import com.google.dart.engine.ast.Label;
 import com.google.dart.engine.ast.LibraryDirective;
@@ -45,6 +48,7 @@ import com.google.dart.engine.ast.PropertyAccess;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.Statement;
 import com.google.dart.engine.ast.StringLiteral;
+import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
 import com.google.dart.engine.ast.visitor.NodeLocator;
 import com.google.dart.engine.element.CompilationUnitElement;
@@ -56,6 +60,7 @@ import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.element.ParameterElement;
+import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.element.visitor.GeneralizingElementVisitor;
@@ -854,6 +859,27 @@ public class CorrectionUtils {
       return node.getIdentifier().getName();
     } else if (expression instanceof MethodInvocation) {
       name = ((MethodInvocation) expression).getMethodName().getName();
+    } else if (expression instanceof InstanceCreationExpression) {
+      InstanceCreationExpression creation = (InstanceCreationExpression) expression;
+      ConstructorName constructorName = creation.getConstructorName();
+      TypeName typeName = constructorName.getType();
+      if (typeName != null) {
+        Identifier typeNameIdentifier = typeName.getName();
+        // new ClassName()
+        if (typeNameIdentifier instanceof SimpleIdentifier) {
+          return typeNameIdentifier.getName();
+        }
+        // new prefix.name();
+        if (typeNameIdentifier instanceof PrefixedIdentifier) {
+          PrefixedIdentifier prefixed = (PrefixedIdentifier) typeNameIdentifier;
+          // new prefix.ClassName()
+          if (prefixed.getPrefix().getStaticElement() instanceof PrefixElement) {
+            return prefixed.getIdentifier().getName();
+          }
+          // new ClassName.constructorName()
+          return prefixed.getPrefix().getName();
+        }
+      }
     }
     // strip known prefixes
     if (name != null) {

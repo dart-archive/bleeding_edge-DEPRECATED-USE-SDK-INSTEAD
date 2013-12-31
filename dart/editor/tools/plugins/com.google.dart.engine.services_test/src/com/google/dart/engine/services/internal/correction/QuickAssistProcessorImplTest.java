@@ -216,6 +216,35 @@ public class QuickAssistProcessorImplTest extends RefactoringImplTest {
     assert_assignToLocalVariable(initial, "readBytes();", initial);
   }
 
+  public void test_assignToLocalVariable_notExistingWithPrefix() throws Exception {
+    verifyNoTestUnitErrors = false;
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "import 'dart:math' as p;",
+        "main() {",
+        "  new p.NoSuchClass();",
+        "}",
+        "");
+    assert_assignToLocalVariable(
+        initial,
+        "new p.NoSuchClass()",
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "import 'dart:math' as p;",
+            "main() {",
+            "  var noSuchClass = new p.NoSuchClass();",
+            "}",
+            ""));
+    // linked positions
+    {
+      Map<String, List<SourceRange>> expected = Maps.newHashMap();
+      expected.put("NAME", getResultRanges("noSuchClass ="));
+      assertEquals(expected, resultProposal.getLinkedPositions());
+    }
+    // linked proposals
+    assertLinkedProposals("NAME", "noSuchClass", "suchClass", "class");
+  }
+
   public void test_assignToLocalVariable_throw() throws Exception {
     String initial = makeSource(
         "// filler filler filler filler filler filler filler filler filler filler",
