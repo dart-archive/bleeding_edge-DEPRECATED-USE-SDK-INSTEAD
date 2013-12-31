@@ -1879,8 +1879,13 @@ public class CompletionEngine {
 
   void dispatchPrefixAnalysis(InstanceCreationExpression node) {
     ClassElement classElement = (ClassElement) typeOf(node).getElement();
-    SimpleIdentifier identifier = node.getConstructorName().getName();
-    identifier = (SimpleIdentifier) node.getConstructorName().getType().getName();
+    Identifier typeName = node.getConstructorName().getType().getName();
+    SimpleIdentifier identifier = null;
+    if (typeName instanceof SimpleIdentifier) {
+      identifier = (SimpleIdentifier) typeName;
+    } else if (typeName instanceof PrefixedIdentifier) {
+      identifier = ((PrefixedIdentifier) typeName).getIdentifier();
+    }
     if (identifier == null) {
       identifier = new Ident(node);
     }

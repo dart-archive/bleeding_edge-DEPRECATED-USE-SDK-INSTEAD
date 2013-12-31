@@ -1558,6 +1558,14 @@ public class CompletionTests extends CompletionTestCase {
         "}"), "1+A.first", "1-A.second");
   }
 
+  public void testCompletion_constructorArguments_whenPrefixedType() throws Exception {
+    test(src(//
+        "import 'dart:math' as m;",
+        "main() {",
+        "  new m.Random(!1);",
+        "}"), "1+Random:ARGUMENT_LIST");
+  }
+
   public void testCompletion_double_inFractionPart() throws Exception {
     test(src(//
         "main() {",
