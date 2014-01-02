@@ -957,7 +957,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       //
       ClassElementImpl typeReference = getTypeReference(target);
       if (typeReference != null) {
-        staticElement = propagatedElement = resolveElement(typeReference, methodName.getName());
+        staticElement = propagatedElement = resolveElement(typeReference, methodName);
       } else {
         staticElement = resolveInvokedElement(target, staticType, methodName);
         propagatedElement = resolveInvokedElement(target, getPropagatedType(target), methodName);
@@ -2563,17 +2563,17 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
    * in 'C'.
    * 
    * @param classElement the class element
-   * @param memberName the member name
+   * @param nameNode the member name node
    */
-  private Element resolveElement(ClassElementImpl classElement, String memberName) {
+  private Element resolveElement(ClassElementImpl classElement, SimpleIdentifier nameNode) {
+    String name = nameNode.getName();
     Element element = null;
-    String methodNameStr = memberName;
-    element = classElement.getMethod(methodNameStr);
-    if (element == null) {
-      element = classElement.getSetter(memberName);
-      if (element == null) {
-        element = classElement.getGetter(memberName);
-      }
+    element = classElement.getMethod(name);
+    if (element == null && nameNode.inSetterContext()) {
+      element = classElement.getSetter(name);
+    }
+    if (element == null && nameNode.inGetterContext()) {
+      element = classElement.getGetter(name);
     }
     if (element != null && element.isAccessibleIn(definingLibrary)) {
       return element;
@@ -2698,7 +2698,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     //
     ClassElementImpl typeReference = getTypeReference(target);
     if (typeReference != null) {
-      staticElement = propagatedElement = resolveElement(typeReference, propertyName.getName());
+      staticElement = propagatedElement = resolveElement(typeReference, propertyName);
     } else {
       staticElement = resolveProperty(target, staticType, propertyName);
       propagatedElement = resolveProperty(target, propagatedType, propertyName);

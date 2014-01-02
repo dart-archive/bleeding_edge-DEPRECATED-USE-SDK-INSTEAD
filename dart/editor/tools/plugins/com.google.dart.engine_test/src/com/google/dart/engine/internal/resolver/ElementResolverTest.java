@@ -87,6 +87,7 @@ import static com.google.dart.engine.ast.ASTFactory.integer;
 import static com.google.dart.engine.ast.ASTFactory.methodDeclaration;
 import static com.google.dart.engine.ast.ASTFactory.methodInvocation;
 import static com.google.dart.engine.ast.ASTFactory.namedExpression;
+import static com.google.dart.engine.ast.ASTFactory.nullLiteral;
 import static com.google.dart.engine.ast.ASTFactory.postfixExpression;
 import static com.google.dart.engine.ast.ASTFactory.prefixExpression;
 import static com.google.dart.engine.ast.ASTFactory.propertyAccess;
@@ -486,6 +487,67 @@ public class ElementResolverTest extends EngineTestCase {
     resolveNode(identifier);
     assertSame(getter, identifier.getStaticElement());
     assertSame(getter, identifier.getIdentifier().getStaticElement());
+    listener.assertNoErrors();
+  }
+
+  public void test_visitPrefixedIdentifier_staticClassMember_getter() throws Exception {
+    ClassElementImpl classA = classElement("A");
+    // set accessors
+    String propName = "b";
+    PropertyAccessorElement getter = getterElement(propName, false, typeProvider.getIntType());
+    PropertyAccessorElement setter = setterElement(propName, false, typeProvider.getIntType());
+    classA.setAccessors(new PropertyAccessorElement[] {getter, setter});
+    // prepare "A.m"
+    SimpleIdentifier target = identifier("A");
+    target.setStaticElement(classA);
+    target.setStaticType(classA.getType());
+    PrefixedIdentifier identifier = identifier(target, identifier(propName));
+    // resolve
+    resolveNode(identifier);
+    assertSame(getter, identifier.getStaticElement());
+    assertSame(getter, identifier.getIdentifier().getStaticElement());
+    listener.assertNoErrors();
+  }
+
+  public void test_visitPrefixedIdentifier_staticClassMember_method() throws Exception {
+    ClassElementImpl classA = classElement("A");
+    // set accessors
+    String propName = "m";
+    PropertyAccessorElement setter = setterElement(propName, false, typeProvider.getIntType());
+    classA.setAccessors(new PropertyAccessorElement[] {setter});
+    // set methods
+    MethodElement method = methodElement("m", typeProvider.getIntType());
+    classA.setMethods(new MethodElement[] {method});
+    // prepare "A.m"
+    SimpleIdentifier target = identifier("A");
+    target.setStaticElement(classA);
+    target.setStaticType(classA.getType());
+    PrefixedIdentifier identifier = identifier(target, identifier(propName));
+    assignmentExpression(identifier, TokenType.EQ, nullLiteral());
+    // resolve
+    resolveNode(identifier);
+    assertSame(method, identifier.getStaticElement());
+    assertSame(method, identifier.getIdentifier().getStaticElement());
+    listener.assertNoErrors();
+  }
+
+  public void test_visitPrefixedIdentifier_staticClassMember_setter() throws Exception {
+    ClassElementImpl classA = classElement("A");
+    // set accessors
+    String propName = "b";
+    PropertyAccessorElement getter = getterElement(propName, false, typeProvider.getIntType());
+    PropertyAccessorElement setter = setterElement(propName, false, typeProvider.getIntType());
+    classA.setAccessors(new PropertyAccessorElement[] {getter, setter});
+    // prepare "A.b = null"
+    SimpleIdentifier target = identifier("A");
+    target.setStaticElement(classA);
+    target.setStaticType(classA.getType());
+    PrefixedIdentifier identifier = identifier(target, identifier(propName));
+    assignmentExpression(identifier, TokenType.EQ, nullLiteral());
+    // resolve
+    resolveNode(identifier);
+    assertSame(setter, identifier.getStaticElement());
+    assertSame(setter, identifier.getIdentifier().getStaticElement());
     listener.assertNoErrors();
   }
 
