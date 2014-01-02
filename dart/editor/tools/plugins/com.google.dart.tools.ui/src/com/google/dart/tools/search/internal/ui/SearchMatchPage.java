@@ -990,6 +990,12 @@ public abstract class SearchMatchPage extends SearchPage {
   }
 
   /**
+   * This is the first method called before performing refresh.
+   */
+  protected void beforeRefresh() {
+  }
+
+  /**
    * @return {@code true} if potential filter can be used.
    */
   protected boolean canUseFilterPotential() {
@@ -1234,6 +1240,7 @@ public abstract class SearchMatchPage extends SearchPage {
       new Job(taskName) {
         @Override
         protected IStatus run(IProgressMonitor monitor) {
+          beforeRefresh();
           // do query
           List<SearchMatch> matches = runQuery();
           int totalCount = matches.size();

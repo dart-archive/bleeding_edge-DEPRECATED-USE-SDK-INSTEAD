@@ -32,6 +32,7 @@ import com.google.dart.engine.search.MatchKind;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchFilter;
 import com.google.dart.engine.search.SearchMatch;
+import com.google.dart.engine.services.util.ElementUtils;
 import com.google.dart.engine.services.util.HierarchyUtils;
 import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.engine.utilities.source.SourceRangeFactory;
@@ -179,6 +180,13 @@ public class FindReferencesAction extends AbstractDartSelectionAction {
       final String searchName = name;
       SearchView view = (SearchView) DartToolsPlugin.getActivePage().showView(SearchView.ID);
       view.showPage(new SearchMatchPage(view, "Searching for references...") {
+        Map<LibraryElement, Set<LibraryElement>> cachedVisibleLibraries = Maps.newHashMap();
+
+        @Override
+        protected void beforeRefresh() {
+          super.beforeRefresh();
+          cachedVisibleLibraries.clear();
+        }
 
         @Override
         protected boolean canUseFilterPotential() {
@@ -355,34 +363,12 @@ public class FindReferencesAction extends AbstractDartSelectionAction {
          * https://code.google.com/p/dart/issues/detail?id=12268
          */
         private boolean isImported(LibraryElement what, LibraryElement where) {
-          return isImported(
-              what,
-              where,
-              Sets.<LibraryElement> newHashSet(),
-              Maps.<LibraryElement, Boolean> newHashMap());
-        }
-
-        private boolean isImported(LibraryElement what, LibraryElement where,
-            Set<LibraryElement> checking, Map<LibraryElement, Boolean> checked) {
-          if (!checking.add(where)) {
-            return false;
+          Set<LibraryElement> visibleLibraries = cachedVisibleLibraries.get(where);
+          if (visibleLibraries == null) {
+            visibleLibraries = ElementUtils.getVisibleElementsLibraries(where);
+            cachedVisibleLibraries.put(where, visibleLibraries);
           }
-          Boolean result = checked.get(where);
-          if (result == null) {
-            result = false;
-            if (where.equals(what)) {
-              result = true;
-            } else {
-              for (LibraryElement importedLibrary : where.getImportedLibraries()) {
-                if (isImported(what, importedLibrary, checking, checked)) {
-                  result = true;
-                  break;
-                }
-              }
-            }
-            checked.put(where, result);
-          }
-          return result;
+          return visibleLibraries.contains(what);
         }
       });
     } catch (Throwable e) {

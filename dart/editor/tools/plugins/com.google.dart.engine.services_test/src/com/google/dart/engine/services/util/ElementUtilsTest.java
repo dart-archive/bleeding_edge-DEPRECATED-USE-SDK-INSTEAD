@@ -18,15 +18,78 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.services.internal.refactoring.RefactoringImplTest;
 
+import static org.fest.assertions.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import java.util.Set;
 
 public class ElementUtilsTest extends RefactoringImplTest {
   private static Element mockElement(String name) {
     Element element = mock(Element.class);
     when(element.getDisplayName()).thenReturn(name);
     return element;
+  }
+
+  private static LibraryElement mockLibraryElement(String name) {
+    LibraryElement library = mock(LibraryElement.class);
+    when(library.toString()).thenReturn(name);
+    when(library.getDisplayName()).thenReturn(name);
+    when(library.getImportedLibraries()).thenReturn(new LibraryElement[] {});
+    when(library.getExportedLibraries()).thenReturn(new LibraryElement[] {});
+    return library;
+  }
+
+  public void test_getVisibleElementsLibraries_cycle() throws Exception {
+    LibraryElement library = mockLibraryElement("app");
+    LibraryElement libraryA = mockLibraryElement("A");
+    when(library.getImportedLibraries()).thenReturn(new LibraryElement[] {libraryA});
+    when(libraryA.getImportedLibraries()).thenReturn(new LibraryElement[] {library});
+    Set<LibraryElement> visibleLibraries = ElementUtils.getVisibleElementsLibraries(library);
+    assertThat(visibleLibraries).containsOnly(library, libraryA);
+  }
+
+  public void test_getVisibleElementsLibraries_directExport() throws Exception {
+    LibraryElement library = mockLibraryElement("app");
+    LibraryElement libraryA = mockLibraryElement("A");
+    when(library.getExportedLibraries()).thenReturn(new LibraryElement[] {libraryA});
+    Set<LibraryElement> visibleLibraries = ElementUtils.getVisibleElementsLibraries(library);
+    assertThat(visibleLibraries).containsOnly(library);
+  }
+
+  public void test_getVisibleElementsLibraries_directImport() throws Exception {
+    LibraryElement library = mockLibraryElement("app");
+    LibraryElement libraryA = mockLibraryElement("A");
+    when(library.getImportedLibraries()).thenReturn(new LibraryElement[] {libraryA});
+    Set<LibraryElement> visibleLibraries = ElementUtils.getVisibleElementsLibraries(library);
+    assertThat(visibleLibraries).containsOnly(library, libraryA);
+  }
+
+  public void test_getVisibleElementsLibraries_indirectExport() throws Exception {
+    LibraryElement library = mockLibraryElement("app");
+    LibraryElement libraryA = mockLibraryElement("A");
+    LibraryElement libraryAA = mockLibraryElement("AA");
+    when(library.getImportedLibraries()).thenReturn(new LibraryElement[] {libraryA});
+    when(libraryA.getExportedLibraries()).thenReturn(new LibraryElement[] {libraryAA});
+    Set<LibraryElement> visibleLibraries = ElementUtils.getVisibleElementsLibraries(library);
+    assertThat(visibleLibraries).containsOnly(library, libraryA, libraryAA);
+  }
+
+  public void test_getVisibleElementsLibraries_indirectImport() throws Exception {
+    LibraryElement library = mockLibraryElement("app");
+    LibraryElement libraryA = mockLibraryElement("A");
+    LibraryElement libraryAA = mockLibraryElement("AA");
+    when(library.getImportedLibraries()).thenReturn(new LibraryElement[] {libraryA});
+    when(libraryA.getImportedLibraries()).thenReturn(new LibraryElement[] {libraryAA});
+    Set<LibraryElement> visibleLibraries = ElementUtils.getVisibleElementsLibraries(library);
+    assertThat(visibleLibraries).containsOnly(library, libraryA, libraryAA);
+  }
+
+  public void test_getVisibleElementsLibraries_noImports() throws Exception {
+    LibraryElement library = mockLibraryElement("app");
+    Set<LibraryElement> visibleLibraries = ElementUtils.getVisibleElementsLibraries(library);
+    assertThat(visibleLibraries).containsOnly(library);
   }
 
   public void test_isAccessible_public() throws Exception {

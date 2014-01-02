@@ -14,11 +14,25 @@
 
 package com.google.dart.engine.services.util;
 
+import com.google.common.collect.Sets;
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.LibraryElement;
 
+import java.util.Set;
+
 public class ElementUtils {
+  /**
+   * Returns libraries whose elements the given library can potentially see.
+   * 
+   * @param where the {@link LibraryElement} to find potentially visible libraries for
+   */
+  public static Set<LibraryElement> getVisibleElementsLibraries(LibraryElement where) {
+    Set<LibraryElement> visibleLibraries = Sets.newHashSet();
+    addVisibleElementsLibraries(visibleLibraries, where, false);
+    return visibleLibraries;
+  }
+
   /**
    * Check if "what" is visible in "where".
    * 
@@ -47,5 +61,26 @@ public class ElementUtils {
    */
   public static boolean isPublic(Element element) {
     return !isPrivate(element);
+  }
+
+  /**
+   * Recursively fills set of visible libraries for {@link #getVisibleElementsLibraries}.
+   */
+  private static void addVisibleElementsLibraries(Set<LibraryElement> visibleLibraries,
+      LibraryElement where, boolean includeExports) {
+    // maybe already processed
+    if (!visibleLibraries.add(where)) {
+      return;
+    }
+    // add imported libraries
+    for (LibraryElement importedLibrary : where.getImportedLibraries()) {
+      addVisibleElementsLibraries(visibleLibraries, importedLibrary, true);
+    }
+    // add exported libraries
+    if (includeExports) {
+      for (LibraryElement exportedLibrary : where.getExportedLibraries()) {
+        addVisibleElementsLibraries(visibleLibraries, exportedLibrary, true);
+      }
+    }
   }
 }
