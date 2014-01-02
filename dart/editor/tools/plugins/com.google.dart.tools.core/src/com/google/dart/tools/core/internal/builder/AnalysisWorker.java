@@ -18,6 +18,7 @@ import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisResult;
 import com.google.dart.engine.context.ChangeNotice;
 import com.google.dart.engine.error.AnalysisError;
+import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.internal.context.AnalysisOptionsImpl;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.source.Source;
@@ -31,6 +32,7 @@ import com.google.dart.tools.core.analysis.model.ContextManager;
 import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
 import com.google.dart.tools.core.analysis.model.ResolvedEvent;
+import com.google.dart.tools.core.analysis.model.ResolvedHtmlEvent;
 import com.google.dart.tools.core.model.DartSdkManager;
 
 import org.eclipse.core.resources.IResource;
@@ -48,13 +50,12 @@ public class AnalysisWorker {
   /**
    * Internal implementation of events broadcast by the worker.
    */
-  private class Event implements ResolvedEvent, AnalysisEvent {
+  private abstract class AbstractEvent implements AnalysisEvent {
     private final AnalysisContext context;
-    CompilationUnit unit;
     Source source;
     IResource resource;
 
-    public Event(AnalysisContext context) {
+    public AbstractEvent(AnalysisContext context) {
       this.context = context;
     }
 
@@ -66,6 +67,17 @@ public class AnalysisWorker {
     @Override
     public ContextManager getContextManager() {
       return contextManager;
+    }
+  }
+
+  /**
+   * Internal implementation of events broadcast by the worker.
+   */
+  private class Event extends AbstractEvent implements ResolvedEvent {
+    CompilationUnit unit;
+
+    public Event(AnalysisContext context) {
+      super(context);
     }
 
     @Override
@@ -80,6 +92,32 @@ public class AnalysisWorker {
 
     @Override
     public CompilationUnit getUnit() {
+      return unit;
+    }
+  }
+
+  /**
+   * Internal implementation of events broadcast by the worker.
+   */
+  private class HtmlEvent extends AbstractEvent implements ResolvedHtmlEvent {
+    HtmlUnit unit;
+
+    public HtmlEvent(AnalysisContext context) {
+      super(context);
+    }
+
+    @Override
+    public IResource getResource() {
+      return resource;
+    }
+
+    @Override
+    public Source getSource() {
+      return source;
+    }
+
+    @Override
+    public HtmlUnit getUnit() {
       return unit;
     }
   }
@@ -205,6 +243,11 @@ public class AnalysisWorker {
   private final Event event;
 
   /**
+   * Contains information about the HTML unit that was resolved.
+   */
+  private final HtmlEvent htmlEvent;
+
+  /**
    * Flag to prevent log from being saturated with exceptions.
    */
   private static boolean exceptionLogged = false;
@@ -239,6 +282,7 @@ public class AnalysisWorker {
     this.markerManager = markerManager;
     this.contextManager.addWorker(this);
     this.event = new Event(context);
+    this.htmlEvent = new HtmlEvent(context);
   }
 
   /**
@@ -419,6 +463,37 @@ public class AnalysisWorker {
   }
 
   /**
+   * Notify those interested that a HTML unit has been resolved.
+   * 
+   * @param context the analysis context containing the unit that was resolved (not {@code null})
+   * @param unit the unit that was resolved (not {@code null})
+   * @param source the source of the unit that was resolved (not {@code null})
+   * @param resource the resource of the unit that was resolved or {@code null} if outside the
+   *          workspace
+   */
+  private void notifyResolved(AnalysisContext context, HtmlUnit unit, Source source,
+      IResource resource) {
+    AnalysisListener[] currentListeners;
+    synchronized (allListenersLock) {
+      currentListeners = allListeners;
+    }
+    htmlEvent.unit = unit;
+    htmlEvent.source = source;
+    htmlEvent.resource = resource;
+    for (AnalysisListener listener : currentListeners) {
+      try {
+        listener.resolvedHtml(htmlEvent);
+      } catch (Exception e) {
+        if (!exceptionLogged) {
+          // Log at most one exception so as not to flood the log
+          exceptionLogged = true;
+          DartCore.logError("Exception notifying listener of resolved HTML unit: " + source, e);
+        }
+      }
+    }
+  }
+
+  /**
    * Update both the index and the error markers based upon the analysis results.
    * 
    * @param context the analysis context containing the unit that was resolved (not {@code null})
@@ -460,6 +535,12 @@ public class AnalysisWorker {
       CompilationUnit unit = change.getCompilationUnit();
       if (unit != null) {
         notifyResolved(context, unit, source, res);
+      }
+
+      // If there is a resolved HTML unit, then then notify others such as indexer
+      HtmlUnit htmlUnit = change.getHtmlUnit();
+      if (htmlUnit != null) {
+        notifyResolved(context, htmlUnit, source, res);
       }
     }
   }

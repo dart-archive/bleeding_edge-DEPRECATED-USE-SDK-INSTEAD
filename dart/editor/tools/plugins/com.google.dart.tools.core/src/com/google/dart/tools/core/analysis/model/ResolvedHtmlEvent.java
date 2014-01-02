@@ -13,33 +13,35 @@
  */
 package com.google.dart.tools.core.analysis.model;
 
-import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.html.ast.HtmlUnit;
+import com.google.dart.engine.source.Source;
+
+import org.eclipse.core.resources.IResource;
 
 /**
- * Used by {@link ProjectManager} to notify others as analysis is process and when it is complete.
+ * Instances of {@link ResolvedHtmlEvent} contain information about the resolved HTML unit.
  * 
  * @coverage dart.tools.core.model
  */
-public interface AnalysisListener {
+public interface ResolvedHtmlEvent extends AnalysisEvent {
+  /**
+   * Answer the resource of the HTML unit that was resolved.
+   * 
+   * @return the resource or {@code null} if the source is outside the workspace
+   */
+  IResource getResource();
 
   /**
-   * Called when analysis for a particular {@link AnalysisContext} is complete.
+   * Answer the source of the HTML unit that was resolved.
    * 
-   * @param event contains information about the completed analysis
+   * @return the source (not {@code null})
    */
-  void complete(AnalysisEvent event);
+  Source getSource();
 
   /**
-   * Called when a compilation unit has been resolved.
+   * Answer the HTML unit that was resolved.
    * 
-   * @param event contains information about the compilation unit that was resolved
+   * @return the unit (not {@code null})
    */
-  void resolved(ResolvedEvent event);
-
-  /**
-   * Called when a HTML unit has been resolved.
-   * 
-   * @param event contains information about the HTML unit that was resolved
-   */
-  void resolvedHtml(ResolvedHtmlEvent event);
+  HtmlUnit getUnit();
 }

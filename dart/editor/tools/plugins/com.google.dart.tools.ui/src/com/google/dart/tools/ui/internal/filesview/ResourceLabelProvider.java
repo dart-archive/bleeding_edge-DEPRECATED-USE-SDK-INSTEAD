@@ -21,6 +21,7 @@ import com.google.dart.tools.core.analysis.model.AnalysisEvent;
 import com.google.dart.tools.core.analysis.model.AnalysisListener;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
 import com.google.dart.tools.core.analysis.model.ResolvedEvent;
+import com.google.dart.tools.core.analysis.model.ResolvedHtmlEvent;
 import com.google.dart.tools.core.internal.builder.AnalysisWorker;
 import com.google.dart.tools.core.utilities.io.FilenameUtils;
 import com.google.dart.tools.ui.DartToolsPlugin;
@@ -263,6 +264,11 @@ public class ResourceLabelProvider implements IStyledLabelProvider, ILabelProvid
 
   @Override
   public void resolved(ResolvedEvent event) {
+    // ignored
+  }
+
+  @Override
+  public void resolvedHtml(ResolvedHtmlEvent event) {
     // ignored
   }
 

@@ -26,6 +26,7 @@ import com.google.dart.tools.core.analysis.model.AnalysisEvent;
 import com.google.dart.tools.core.analysis.model.AnalysisListener;
 import com.google.dart.tools.core.analysis.model.ContextManager;
 import com.google.dart.tools.core.analysis.model.ResolvedEvent;
+import com.google.dart.tools.core.analysis.model.ResolvedHtmlEvent;
 import com.google.dart.tools.core.mock.MockFile;
 import com.google.dart.tools.core.mock.MockProject;
 import com.google.dart.tools.core.mock.MockWorkspace;
@@ -57,6 +58,12 @@ public class AnalysisWorkerTest extends AbstractDartCoreTest {
 
     @Override
     public void resolved(ResolvedEvent event) {
+      resolved.add(event.getResource());
+      assertEquals(originalCacheSize * 2, event.getContext().getAnalysisOptions().getCacheSize());
+    }
+
+    @Override
+    public void resolvedHtml(ResolvedHtmlEvent event) {
       resolved.add(event.getResource());
       assertEquals(originalCacheSize * 2, event.getContext().getAnalysisOptions().getCacheSize());
     }

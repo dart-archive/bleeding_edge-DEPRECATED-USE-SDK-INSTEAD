@@ -16,6 +16,7 @@ package com.google.dart.engine.internal.html.angular;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.Annotation;
 import com.google.dart.engine.ast.ArgumentList;
@@ -36,6 +37,8 @@ import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.ExternalHtmlScriptElement;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.HtmlScriptElement;
+import com.google.dart.engine.element.ImportElement;
+import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.element.angular.AngularSelector;
 import com.google.dart.engine.error.AnalysisErrorListener;
@@ -49,6 +52,7 @@ import com.google.dart.engine.html.scanner.Token;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
 import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
 import com.google.dart.engine.internal.element.FunctionElementImpl;
+import com.google.dart.engine.internal.element.ImportElementImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
 import com.google.dart.engine.internal.element.LocalVariableElementImpl;
 import com.google.dart.engine.internal.element.TopLevelVariableElementImpl;
@@ -65,6 +69,7 @@ import com.google.dart.engine.utilities.source.LineInfo;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Instances of the class {@link AngularHtmlUnitResolver} resolve Angular specific expressions.
@@ -179,6 +184,7 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
 
   private boolean isAngular = false;
   private List<LocalVariableElementImpl> definedVariables = Lists.newArrayList();
+  private Set<LibraryElement> injectedLibraries = Sets.newHashSet();
   private Scope nameScope;
 
   private AnalysisException thrownException;
@@ -218,6 +224,16 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
     // run this HTML visitor
     unit.accept(this);
     functionElement.setLocalVariables(definedVariables.toArray(new LocalVariableElementImpl[definedVariables.size()]));
+    // simulate imports for injects
+    {
+      List<ImportElement> imports = Lists.newArrayList();
+      for (LibraryElement injectedLibrary : injectedLibraries) {
+        ImportElementImpl importElement = new ImportElementImpl(-1);
+        importElement.setImportedLibrary(injectedLibrary);
+        imports.add(importElement);
+      }
+      libraryElement.setImports(imports.toArray(new ImportElement[imports.size()]));
+    }
     // push conditional errors 
     for (ProxyConditionalAnalysisError conditionalCode : resolver.getProxyConditionalAnalysisErrors()) {
       resolver.reportError(conditionalCode.getAnalysisError());
@@ -289,6 +305,9 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
   void defineVariable(LocalVariableElementImpl variable) {
     definedVariables.add(variable);
     nameScope.define(variable);
+    // when we inject variable, we give access to the library of its type
+    LibraryElement typeLibrary = variable.getType().getElement().getLibrary();
+    injectedLibraries.add(typeLibrary);
   }
 
   Expression parseExpression(com.google.dart.engine.scanner.Token token) {

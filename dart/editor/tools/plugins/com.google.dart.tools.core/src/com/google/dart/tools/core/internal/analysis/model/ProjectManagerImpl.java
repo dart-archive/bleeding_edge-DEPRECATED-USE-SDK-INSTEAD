@@ -35,6 +35,7 @@ import com.google.dart.tools.core.analysis.model.ProjectListener;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
 import com.google.dart.tools.core.analysis.model.PubFolder;
 import com.google.dart.tools.core.analysis.model.ResolvedEvent;
+import com.google.dart.tools.core.analysis.model.ResolvedHtmlEvent;
 import com.google.dart.tools.core.analysis.model.ResourceMap;
 import com.google.dart.tools.core.builder.BuildEvent;
 import com.google.dart.tools.core.internal.builder.AnalysisEngineParticipant;
@@ -86,6 +87,11 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
     @Override
     public void resolved(ResolvedEvent event) {
       index.indexUnit(event.getContext(), event.getUnit());
+    }
+
+    @Override
+    public void resolvedHtml(ResolvedHtmlEvent event) {
+      index.indexHtmlUnit(event.getContext(), event.getUnit());
     }
   };
 

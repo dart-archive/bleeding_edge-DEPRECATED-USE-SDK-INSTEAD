@@ -24,6 +24,7 @@ import com.google.dart.tools.core.analysis.model.AnalysisEvent;
 import com.google.dart.tools.core.analysis.model.AnalysisListener;
 import com.google.dart.tools.core.analysis.model.ContextManager;
 import com.google.dart.tools.core.analysis.model.ResolvedEvent;
+import com.google.dart.tools.core.analysis.model.ResolvedHtmlEvent;
 import com.google.dart.tools.core.internal.builder.AnalysisManager;
 import com.google.dart.tools.core.internal.builder.AnalysisWorker;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
@@ -108,6 +109,11 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
           applyAnalysisResult(event.getUnit());
         }
       }
+    }
+
+    @Override
+    public void resolvedHtml(ResolvedHtmlEvent event) {
+      // ignored
     }
   };
 
