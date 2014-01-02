@@ -24,4 +24,6 @@ h1, p {
   font-size: 24pt;
   text-align: center;
   margin-top: 140px;
+  -webkit-user-select: none;
+  user-select: none;
 }

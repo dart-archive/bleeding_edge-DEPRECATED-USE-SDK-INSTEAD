@@ -1,7 +1,5 @@
-For more information about packaged apps, see
-http://developer.chrome.com/apps/about_apps.html.
+For more information about packaged apps, see http://developer.chrome.com/apps/about_apps.html.
 
-`web/manifest.json` describes the Chrome packaged application.
+`app/manifest.json` describes the Chrome packaged application.
 
-`web/background.js` is the entry point to the Chrome app; it launches
-`web/{name.lower}.html`.
+`app/background.js` is the entry point to the Chrome App; it launches `app/{name.lower}.html`.

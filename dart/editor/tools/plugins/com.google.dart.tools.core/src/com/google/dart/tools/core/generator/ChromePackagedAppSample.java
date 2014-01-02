@@ -29,15 +29,11 @@ public class ChromePackagedAppSample extends AbstractSample {
     List<String[]> templates = new ArrayList<String[]>();
 
     templates.add(new String[] {"build.dart", "@chrome/build.dart"});
-    templates.add(new String[] {
-        "pubspec.yaml",
-        "name: {name}\ndescription: A sample chrome packaged application\n"
-            + "dependencies:\n  browser: any\n"});
-    templates.add(new String[] {"README.md", "@chrome/readme.md"});
+    templates.add(new String[] {"pubspec.yaml", "@chrome/pubspec.yaml"});
+    templates.add(new String[] {"readme.md", "@chrome/readme.md"});
 
     templates.add(new String[] {"app/dart_icon.png", "@chrome/dart_icon.png"});
     templates.add(new String[] {"app/background.js", "@chrome/background.js"});
-    templates.add(new String[] {"app/bootstrap.js", "@chrome/bootstrap.js"});
     templates.add(new String[] {"app/manifest.json", "@chrome/manifest.json"});
     templates.add(new String[] {"app/{name.lower}.dart", "@chrome/sample.dart"});
     templates.add(new String[] {"app/{name.lower}.html", "@chrome/sample.html"});
