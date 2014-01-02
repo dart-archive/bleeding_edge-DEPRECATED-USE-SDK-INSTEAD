@@ -147,6 +147,23 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
   private Relationship relationship = Relationship.getRelationship("test-relationship");
   private Location location = mockLocation(elementC);
 
+  public void test_aboutToIndex_incompleteResolution_noLibrary() throws Exception {
+    when(unitElementA.getLibrary()).thenReturn(null);
+    boolean mayIndex = store.aboutToIndex(contextA, unitElementA);
+    assertFalse(mayIndex);
+  }
+
+  public void test_aboutToIndex_incompleteResolution_noLibraryDefiningUnit() throws Exception {
+    when(libraryElement.getDefiningCompilationUnit()).thenReturn(null);
+    boolean mayIndex = store.aboutToIndex(contextA, unitElementA);
+    assertFalse(mayIndex);
+  }
+
+  public void test_aboutToIndex_incompleteResolution_noUnit() throws Exception {
+    boolean mayIndex = store.aboutToIndex(contextA, null);
+    assertFalse(mayIndex);
+  }
+
   public void test_aboutToIndex_removedContext() throws Exception {
     store.removeContext(contextA);
     boolean mayIndex = store.aboutToIndex(contextA, unitElementA);

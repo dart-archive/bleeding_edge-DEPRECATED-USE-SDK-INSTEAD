@@ -191,9 +191,20 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
     if (removedContexts.containsKey(context)) {
       return false;
     }
-    // prepare sources
+    // validate unit
+    if (unitElement == null) {
+      return false;
+    }
     LibraryElement libraryElement = unitElement.getLibrary();
-    Source library = libraryElement.getDefiningCompilationUnit().getSource();
+    if (libraryElement == null) {
+      return false;
+    }
+    CompilationUnitElement definingUnitElement = libraryElement.getDefiningCompilationUnit();
+    if (definingUnitElement == null) {
+      return false;
+    }
+    // prepare sources
+    Source library = definingUnitElement.getSource();
     Source unit = unitElement.getSource();
     // special handling for the defining library unit
     if (unit.equals(library)) {
