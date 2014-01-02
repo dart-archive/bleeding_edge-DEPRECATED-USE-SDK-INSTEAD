@@ -13,7 +13,7 @@ Run util's exitChromium
 RightClick (Text:"app.dart",CaseSensitive:"yes")
 Click (Text:"Run as JavaScript",CaseSensitive:"yes")
 Wait 2
-WaitFor 10,"plus file"
+WaitFor 20,"plus file"
 Click (Text:"Untitled",CaseSensitive:"yes")
 Run util's closeTab
 if (util's isMacOSX) then
