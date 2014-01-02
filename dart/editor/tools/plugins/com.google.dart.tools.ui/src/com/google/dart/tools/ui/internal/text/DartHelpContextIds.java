@@ -231,6 +231,7 @@ public interface DartHelpContextIds {
   public static final String OPEN_TYPE_HIERARCHY_ACTION = PREFIX + "open_type_hierarchy_action"; //$NON-NLS-1$	
   public static final String COLLAPSE_ALL_ACTION = PREFIX + "collapse_all_action"; //$NON-NLS-1$
   public static final String EXPAND_ALL_ACTION = PREFIX + "expand_all_action"; //$NON-NLS-1$
+  public static final String HIDE_NON_PUBLIC_ACTION = PREFIX + "hide_non_public_action"; //$NON-NLS-1$
   public static final String GOTO_RESOURCE_ACTION = PREFIX + "goto_resource_action"; //$NON-NLS-1$
   public static final String LINK_EDITOR_ACTION = PREFIX + "link_editor_action"; //$NON-NLS-1$
   public static final String GO_INTO_TOP_LEVEL_TYPE_ACTION = PREFIX

@@ -31,6 +31,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.ListenerList;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
@@ -46,6 +47,8 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
+import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.BusyIndicator;
 import org.eclipse.swt.widgets.Composite;
@@ -111,6 +114,27 @@ public class DartOutlinePage extends Page implements IContentOutlinePage {
     }
   }
 
+  private class HideNonPublicAction extends InstrumentedAction {
+    HideNonPublicAction() {
+      super("Hide non-public members", IAction.AS_CHECK_BOX); //$NON-NLS-1$
+      setDescription("Hide non-public members"); //$NON-NLS-1$
+      setToolTipText("Hide non-public members"); //$NON-NLS-1$
+      DartPluginImages.setLocalImageDescriptors(this, "public_co.gif"); //$NON-NLS-1$
+      PlatformUI.getWorkbench().getHelpSystem().setHelp(
+          this,
+          DartHelpContextIds.HIDE_NON_PUBLIC_ACTION);
+    }
+
+    @Override
+    protected void doRun(Event event, UIInstrumentationBuilder instrumentation) {
+      if (isChecked()) {
+        viewer.addFilter(PUBLIC_FILTER);
+      } else {
+        viewer.removeFilter(PUBLIC_FILTER);
+      }
+    }
+  }
+
   private class LexicalSortingAction extends InstrumentedAction {
     public LexicalSortingAction() {
       PlatformUI.getWorkbench().getHelpSystem().setHelp(
@@ -170,6 +194,17 @@ public class DartOutlinePage extends Page implements IContentOutlinePage {
     }
   };
 
+  private static final ViewerFilter PUBLIC_FILTER = new ViewerFilter() {
+    @Override
+    public boolean select(Viewer viewer, Object parentElement, Object o) {
+      if (o instanceof LightNodeElement) {
+        LightNodeElement element = (LightNodeElement) o;
+        return !element.isPrivate();
+      }
+      return false;
+    }
+  };
+
   public DartOutlinePage(String contextMenuID, DartEditor editor) {
     Assert.isNotNull(editor);
     this.contextMenuID = contextMenuID;
@@ -217,7 +252,6 @@ public class DartOutlinePage extends Page implements IContentOutlinePage {
     // register "viewer" as selection provide for this view
     IPageSite site = getSite();
     site.setSelectionProvider(viewer);
-    // TODO(scheglov)
     actionGroups = new CompositeActionGroup(new ActionGroup[] {
         new OpenViewActionGroup(site), new RefactorActionGroup(site),
         new DartSearchActionGroup(site)});
@@ -226,6 +260,7 @@ public class DartOutlinePage extends Page implements IContentOutlinePage {
       IActionBars actionBars = site.getActionBars();
       {
         IToolBarManager toolBarManager = actionBars.getToolBarManager();
+        toolBarManager.add(new HideNonPublicAction());
         toolBarManager.add(new LexicalSortingAction());
         toolBarManager.add(new ExpandAllAction());
         toolBarManager.add(new CollapseAllAction());
