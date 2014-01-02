@@ -23,6 +23,7 @@ import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.Identifier;
+import com.google.dart.engine.ast.InstanceCreationExpression;
 import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.NamedExpression;
 import com.google.dart.engine.ast.SimpleIdentifier;
@@ -31,9 +32,11 @@ import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.ExternalHtmlScriptElement;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.HtmlScriptElement;
+import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.html.ast.EmbeddedExpression;
 import com.google.dart.engine.html.ast.HtmlUnit;
@@ -74,6 +77,7 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
   private static final String NG_APP = "ng-app";
   private static final String NG_BOOTSTRAP = "ngBootstrap";
   private static final String NG_CONTROLLER = "NgController";
+  private static final String NG_DIRECTIVE = "NgDirective";
   private static final String ATTR_SELECTOR = "selector";
   private static final String ATTR_PUBLISH_AS = "publishAs";
 
@@ -139,6 +143,13 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
    */
   private static boolean isNgController(Annotation annotation) {
     return annotation.getName().getName().equals(NG_CONTROLLER);
+  }
+
+  /**
+   * Returns {@code true} if given {@link Annotation} is <code>NgDirective</code>.
+   */
+  private static boolean isNgDirective(Annotation annotation) {
+    return annotation.getName().getName().equals(NG_DIRECTIVE);
   }
 
   /**
@@ -308,7 +319,8 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
   private NgController createController(ClassDeclaration injectedClass) {
     List<Annotation> annotations = injectedClass.getMetadata();
     for (Annotation annotation : annotations) {
-      if (isNgController(annotation)) {
+      // TODO(scheglov) by some reason Angular To-Do sample uses @NgDirective for controller
+      if (isNgController(annotation) || isNgDirective(annotation)) {
         ArgumentList argumentList = annotation.getArguments();
         if (argumentList != null) {
           Expression selectorExpression = null;
@@ -398,29 +410,59 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
   /**
    * Returns {@link ClassDeclaration} of classes injected into given modules.
    */
-  private List<ClassDeclaration> getInjectedClasses(ClassDeclaration module) {
+  private List<ClassDeclaration> getInjectedClasses(Element moduleElement) throws AnalysisException {
     final List<ClassDeclaration> injected = Lists.newArrayList();
-    module.accept(new RecursiveASTVisitor<Void>() {
-      @Override
-      public Void visitMethodInvocation(MethodInvocation node) {
-        List<Expression> arguments = node.getArgumentList().getArguments();
-        if (node.getMethodName().getName().equals("type") && arguments.size() == 1) {
-          Expression argument = arguments.get(0);
-          if (argument instanceof Identifier) {
-            Element injectElement = ((Identifier) argument).getStaticElement();
-            if (injectElement instanceof ClassElement) {
-              try {
-                ClassDeclaration injectedClass = ((ClassElement) injectElement).getNode();
-                injected.add(injectedClass);
-              } catch (AnalysisException e) {
-                thrownException = e;
+    // ClassElement
+    if (moduleElement instanceof ClassElement) {
+      ClassDeclaration module = ((ClassElement) moduleElement).getNode();
+      module.accept(new RecursiveASTVisitor<Void>() {
+        @Override
+        public Void visitMethodInvocation(MethodInvocation node) {
+          List<Expression> arguments = node.getArgumentList().getArguments();
+          if (node.getMethodName().getName().equals("type") && arguments.size() == 1) {
+            Expression argument = arguments.get(0);
+            if (argument instanceof Identifier) {
+              Element injectElement = ((Identifier) argument).getStaticElement();
+              if (injectElement instanceof ClassElement) {
+                try {
+                  ClassDeclaration injectedClass = ((ClassElement) injectElement).getNode();
+                  injected.add(injectedClass);
+                } catch (AnalysisException e) {
+                  thrownException = e;
+                }
               }
             }
           }
+          return super.visitMethodInvocation(node);
         }
-        return super.visitMethodInvocation(node);
-      }
-    });
+      });
+    }
+    // LocalVariableElement
+    if (moduleElement instanceof LocalVariableElement) {
+      ASTNode enclosingMethod = moduleElement.getAncestor(ExecutableElement.class).getNode();
+      enclosingMethod.accept(new RecursiveASTVisitor<Void>() {
+        @Override
+        public Void visitMethodInvocation(MethodInvocation node) {
+          List<Expression> arguments = node.getArgumentList().getArguments();
+          if (node.getMethodName().getName().equals("type") && arguments.size() == 1) {
+            Expression argument = arguments.get(0);
+            if (argument instanceof Identifier) {
+              Element injectElement = ((Identifier) argument).getStaticElement();
+              if (injectElement instanceof ClassElement) {
+                try {
+                  ClassDeclaration injectedClass = ((ClassElement) injectElement).getNode();
+                  injected.add(injectedClass);
+                } catch (AnalysisException e) {
+                  thrownException = e;
+                }
+              }
+            }
+          }
+          return super.visitMethodInvocation(node);
+        }
+      });
+    }
+    // done
     return injected;
   }
 
@@ -428,24 +470,24 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
    * Finds all Angular modules references by the given <code>ngBootstrap</code> invocation.
    * 
    * @param bootInvocation the <code>ngBootstrap</code> invocation
-   * @return the modules {@link ClassDeclaration}s
+   * @return the module {@link Element}s - classes or local variables
    */
-  private List<ClassDeclaration> getModules(MethodInvocation bootInvocation)
-      throws AnalysisException {
-    List<ClassDeclaration> modules = Lists.newArrayList();
+  private List<Element> getModules(MethodInvocation bootInvocation) throws AnalysisException {
+    List<Element> modules = Lists.newArrayList();
     List<Expression> arguments = bootInvocation.getArgumentList().getArguments();
     for (Expression argument : arguments) {
       // TODO(scheglov) limitation - only one module, add support for "modules"
       {
         Expression moduleExpression = getNamedExpression(argument, "module");
         if (moduleExpression != null) {
-          Element element = moduleExpression.getBestType().getElement();
-          if (element instanceof ClassElement) {
-            ClassElement moduleElement = (ClassElement) element;
-            ClassDeclaration moduleClass = moduleElement.getNode();
-            if (moduleClass != null) {
-              modules.add(moduleClass);
-            }
+          Element element = null;
+          if (moduleExpression instanceof InstanceCreationExpression) {
+            element = moduleExpression.getBestType().getElement();
+          } else if (moduleExpression instanceof SimpleIdentifier) {
+            element = ((SimpleIdentifier) moduleExpression).getBestElement();
+          }
+          if (element != null) {
+            modules.add(element);
           }
         }
       }
@@ -539,8 +581,8 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
       return false;
     }
     // prepare modules
-    List<ClassDeclaration> modules = getModules(bootInvocation);
-    for (ClassDeclaration module : modules) {
+    List<Element> modules = getModules(bootInvocation);
+    for (Element module : modules) {
       // prepare injected classes
       List<ClassDeclaration> injectedClasses = getInjectedClasses(module);
       // prepare controllers

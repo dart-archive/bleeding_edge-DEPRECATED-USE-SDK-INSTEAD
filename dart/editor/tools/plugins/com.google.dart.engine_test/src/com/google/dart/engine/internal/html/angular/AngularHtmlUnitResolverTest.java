@@ -19,6 +19,76 @@ import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.html.ast.HtmlUnitUtils;
 
 public class AngularHtmlUnitResolverTest extends AngularTest {
+  public void test_moduleAsLocalVariable() throws Exception {
+    mainSource = contextHelper.addSource("/main.dart", createSource("",//
+        "import 'angular.dart';",
+        "",
+        "@NgController(",
+        "    selector: '[my-controller]',",
+        "    publishAs: 'ctrl')",
+        "class MyController {",
+        "  String field;",
+        "}",
+        "",
+        "class MyModule extends Module {",
+        "  MyModule() {",
+        "    type(MyController);",
+        "  }",
+        "}",
+        "",
+        "main() {",
+        "  var module = new Module()",
+        "    ..type(MyController);",
+        "  ngBootstrap(module: module);",
+        "}"));
+    resolveIndex(//
+        "<html ng-app>",
+        "  <body>",
+        "    <div my-controller>",
+        "      {{ctrl.field}}",
+        "    </div>",
+        "    <script type='application/dart' src='main.dart'></script>",
+        "  </body>",
+        "</html>");
+    assertNoErrors();
+    verify(indexSource);
+    assertResolvedIdentifier("ctrl", "MyController");
+  }
+
+  public void test_NgDirective_usedOnControllerClass() throws Exception {
+    mainSource = contextHelper.addSource("/main.dart", createSource("",//
+        "import 'angular.dart';",
+        "",
+        "@NgDirective(",
+        "    selector: '[my-controller]',",
+        "    publishAs: 'ctrl')",
+        "class MyController {",
+        "  String field;",
+        "}",
+        "",
+        "class MyModule extends Module {",
+        "  MyModule() {",
+        "    type(MyController);",
+        "  }",
+        "}",
+        "",
+        "main() {",
+        "  ngBootstrap(module: new MyModule());",
+        "}"));
+    resolveIndex(//
+        "<html ng-app>",
+        "  <body>",
+        "    <div my-controller>",
+        "      {{ctrl.field}}",
+        "    </div>",
+        "    <script type='application/dart' src='main.dart'></script>",
+        "  </body>",
+        "</html>");
+    assertNoErrors();
+    verify(indexSource);
+    assertResolvedIdentifier("ctrl", "MyController");
+  }
+
   public void test_ngRepeat_resolvedExpressions() throws Exception {
     addMyController();
     resolveIndex(//
