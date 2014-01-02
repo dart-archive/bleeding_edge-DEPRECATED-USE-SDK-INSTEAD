@@ -18,10 +18,13 @@ import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.HtmlElement;
+import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.index.IndexStore;
 import com.google.dart.engine.index.Relationship;
 import com.google.dart.engine.index.RelationshipCallback;
 import com.google.dart.engine.internal.index.operation.GetRelationshipsOperation;
+import com.google.dart.engine.internal.index.operation.IndexHtmlUnitOperation;
 import com.google.dart.engine.internal.index.operation.IndexUnitOperation;
 import com.google.dart.engine.internal.index.operation.OperationProcessor;
 import com.google.dart.engine.internal.index.operation.OperationQueue;
@@ -62,6 +65,47 @@ public class IndexImplTest extends EngineTestCase {
     assertSame(element, argument.getValue().getElement());
     assertSame(relationship, argument.getValue().getRelationship());
     assertSame(callback, argument.getValue().getCallback());
+  }
+
+  public void test_indexHtmlUnit() throws Exception {
+    Source unitSource = mock(Source.class);
+    // HtmlElement
+    HtmlElement htmlElement = mock(HtmlElement.class);
+    when(htmlElement.getSource()).thenReturn(unitSource);
+    // Dart CompilationUnitElement
+    CompilationUnitElement unitElement = mock(CompilationUnitElement.class);
+    // HtmlUnit
+    HtmlUnit unit = mock(HtmlUnit.class);
+    when(unit.getElement()).thenReturn(htmlElement);
+    when(unit.getCompilationUnitElement()).thenReturn(unitElement);
+    // call index
+    index.indexHtmlUnit(context, unit);
+    // verify
+    ArgumentCaptor<IndexHtmlUnitOperation> argument = ArgumentCaptor.forClass(IndexHtmlUnitOperation.class);
+    verify(queue).enqueue(argument.capture());
+    assertSame(unit, argument.getValue().getUnit());
+  }
+
+  public void test_indexHtmlUnit_noHtmlElement() throws Exception {
+    HtmlUnit unit = mock(HtmlUnit.class);
+    index.indexHtmlUnit(context, unit);
+    // verify
+    verifyZeroInteractions(queue);
+  }
+
+  public void test_indexHtmlUnit_noUnitElement() throws Exception {
+    HtmlUnit unit = mock(HtmlUnit.class);
+    HtmlElement htmlElement = mock(HtmlElement.class);
+    when(unit.getElement()).thenReturn(htmlElement);
+    index.indexHtmlUnit(context, unit);
+    // verify
+    verifyZeroInteractions(queue);
+  }
+
+  public void test_indexHtmlUnit_null() throws Exception {
+    index.indexHtmlUnit(context, null);
+    // verify
+    verifyZeroInteractions(queue);
   }
 
   public void test_indexUnit() throws Exception {

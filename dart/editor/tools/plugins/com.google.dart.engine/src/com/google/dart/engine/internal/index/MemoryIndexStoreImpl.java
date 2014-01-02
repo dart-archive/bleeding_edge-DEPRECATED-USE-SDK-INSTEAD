@@ -257,6 +257,27 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
   }
 
   @Override
+  public boolean aboutToIndex(AnalysisContext context, Source source) {
+    context = unwrapContext(context);
+    // may be already removed in other thread
+    if (removedContexts.containsKey(context)) {
+      return false;
+    }
+    // remove locations
+    removeLocations(context, source, source);
+    // remove keys
+    {
+      Map<Source2, Set<ElementRelationKey>> sourceToKeys = contextToSourceToKeys.get(context);
+      if (sourceToKeys != null) {
+        Source2 source2 = new Source2(source, source);
+        sourceToKeys.remove(source2);
+      }
+    }
+    // OK, we can index
+    return true;
+  }
+
+  @Override
   public Location[] getRelationships(Element element, Relationship relationship) {
     ElementRelationKey key = new ElementRelationKey(element, relationship);
     Set<Location> locations = keyToLocations.get(key);

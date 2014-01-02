@@ -16,11 +16,13 @@ package com.google.dart.engine.internal.index;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.index.IndexStore;
 import com.google.dart.engine.index.Relationship;
 import com.google.dart.engine.index.RelationshipCallback;
 import com.google.dart.engine.internal.index.operation.GetRelationshipsOperation;
+import com.google.dart.engine.internal.index.operation.IndexHtmlUnitOperation;
 import com.google.dart.engine.internal.index.operation.IndexUnitOperation;
 import com.google.dart.engine.internal.index.operation.OperationProcessor;
 import com.google.dart.engine.internal.index.operation.OperationQueue;
@@ -55,6 +57,20 @@ public class IndexImpl implements Index {
   @Override
   public String getStatistics() {
     return store.getStatistics();
+  }
+
+  @Override
+  public void indexHtmlUnit(AnalysisContext context, HtmlUnit unit) {
+    if (unit == null) {
+      return;
+    }
+    if (unit.getElement() == null) {
+      return;
+    }
+    if (unit.getCompilationUnitElement() == null) {
+      return;
+    }
+    queue.enqueue(new IndexHtmlUnitOperation(store, context, unit));
   }
 
   @Override

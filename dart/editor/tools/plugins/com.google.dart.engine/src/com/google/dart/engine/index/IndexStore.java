@@ -41,6 +41,20 @@ public interface IndexStore {
   boolean aboutToIndex(AnalysisContext context, CompilationUnitElement unitElement);
 
   /**
+   * Notifies the index store that we are going to index the given {@link Source}.
+   * <p>
+   * This method should be used only for a {@link Source} that cannot be a part of multiple
+   * libraries. Otherwise {@link #aboutToIndex(AnalysisContext, CompilationUnitElement)} should be
+   * used.
+   * 
+   * @param the {@link AnalysisContext} in which unit being indexed
+   * @param source the {@link Source} being indexed
+   * @return {@code true} the given {@link AnalysisContext} is active, or {@code false} if it was
+   *         removed before, so no any unit may be indexed with it
+   */
+  boolean aboutToIndex(AnalysisContext context, Source source);
+
+  /**
    * Return the locations of the elements that have the given relationship with the given element.
    * For example, if the element represents a method and the relationship is the is-referenced-by
    * relationship, then the returned locations will be all of the places where the method is

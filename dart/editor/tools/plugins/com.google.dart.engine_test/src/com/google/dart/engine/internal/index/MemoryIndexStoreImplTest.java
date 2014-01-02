@@ -160,7 +160,7 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
   }
 
   public void test_aboutToIndex_incompleteResolution_noUnit() throws Exception {
-    boolean mayIndex = store.aboutToIndex(contextA, null);
+    boolean mayIndex = store.aboutToIndex(contextA, (CompilationUnitElement) null);
     assertFalse(mayIndex);
   }
 
@@ -268,6 +268,32 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
       Location[] locations = store.getRelationships(elementA, relationship);
       assertLocations(locations);
     }
+  }
+
+  public void test_aboutToIndex_withSource_removedContext() throws Exception {
+    store.removeContext(contextA);
+    boolean mayIndex = store.aboutToIndex(contextA, sourceA);
+    assertFalse(mayIndex);
+  }
+
+  public void test_aboutToIndex_withSource_shouldRemoveLocations() throws Exception {
+    location = mockLocation(elementB);
+    when(elementB.getSource()).thenReturn(sourceA);
+    when(libraryElement.getSource()).thenReturn(sourceA);
+    store.recordRelationship(elementA, relationship, location);
+    // notify that we are going to re-index "A"
+    store.aboutToIndex(contextA, sourceA);
+    // all locations in "A" should be removed (and we don't have any other sources)
+    assertEquals(0, store.internalGetLocationCount(contextA));
+  }
+
+  public void test_aboutToIndex_withSource_shouldRemoveSourceKeys() throws Exception {
+    when(libraryElement.getSource()).thenReturn(sourceA);
+    store.recordRelationship(elementA, relationship, location);
+    // notify that we are going to re-index "A"
+    store.aboutToIndex(contextA, sourceA);
+    // all keys in "A" should be removed (and we don't have any other sources)
+    assertEquals(0, store.internalGetSourceKeyCount(contextA));
   }
 
   public void test_clearSource_instrumented() throws Exception {

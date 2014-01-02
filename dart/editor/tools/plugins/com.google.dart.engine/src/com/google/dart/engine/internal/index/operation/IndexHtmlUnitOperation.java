@@ -16,39 +16,39 @@ package com.google.dart.engine.internal.index.operation;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
 import com.google.dart.engine.AnalysisEngine;
-import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
-import com.google.dart.engine.element.CompilationUnitElement;
+import com.google.dart.engine.element.HtmlElement;
+import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.index.IndexStore;
-import com.google.dart.engine.internal.index.IndexContributor;
+import com.google.dart.engine.internal.html.angular.AngularHtmlIndexContributor;
 import com.google.dart.engine.source.Source;
 
 /**
- * Instances of the {@link IndexUnitOperation} implement an operation that adds data to the index
- * based on the resolved {@link CompilationUnit}.
+ * Instances of the {@link IndexHtmlUnitOperation} implement an operation that adds data to the
+ * index based on the resolved {@link HtmlUnit}.
  * 
  * @coverage dart.engine.index
  */
-public class IndexUnitOperation implements IndexOperation {
+public class IndexHtmlUnitOperation implements IndexOperation {
   /**
    * The index store against which this operation is being run.
    */
   private final IndexStore indexStore;
 
   /**
-   * The context in which compilation unit was resolved.
+   * The context in which {@link HtmlUnit} was resolved.
    */
   private final AnalysisContext context;
 
   /**
-   * The compilation unit being indexed.
+   * The {@link HtmlUnit} being indexed.
    */
-  private final CompilationUnit unit;
+  private final HtmlUnit unit;
 
   /**
-   * The element of the compilation unit being indexed.
+   * The element of the {@link HtmlUnit} being indexed.
    */
-  private final CompilationUnitElement unitElement;
+  private final HtmlElement htmlElement;
 
   /**
    * The source being indexed.
@@ -56,18 +56,18 @@ public class IndexUnitOperation implements IndexOperation {
   private final Source source;
 
   /**
-   * Initialize a newly created operation that will index the specified unit.
+   * Initialize a newly created operation that will index the specified {@link HtmlUnit}.
    * 
    * @param indexStore the index store against which this operation is being run
-   * @param context the context in which compilation unit was resolved
-   * @param unit the fully resolved AST structure
+   * @param context the context in which {@link HtmlUnit} was resolved
+   * @param unit the fully resolved {@link HtmlUnit}
    */
-  public IndexUnitOperation(IndexStore indexStore, AnalysisContext context, CompilationUnit unit) {
+  public IndexHtmlUnitOperation(IndexStore indexStore, AnalysisContext context, HtmlUnit unit) {
     this.indexStore = indexStore;
     this.context = context;
     this.unit = unit;
-    this.unitElement = unit.getElement();
-    this.source = unitElement.getSource();
+    this.htmlElement = unit.getElement();
+    this.source = htmlElement.getSource();
   }
 
   /**
@@ -78,10 +78,10 @@ public class IndexUnitOperation implements IndexOperation {
   }
 
   /**
-   * @return the {@link CompilationUnit} to be indexed.
+   * @return the {@link HtmlUnit} to be indexed.
    */
   @VisibleForTesting
-  public CompilationUnit getUnit() {
+  public HtmlUnit getUnit() {
     return unit;
   }
 
@@ -94,11 +94,11 @@ public class IndexUnitOperation implements IndexOperation {
   public void performOperation() {
     synchronized (indexStore) {
       try {
-        boolean mayIndex = indexStore.aboutToIndex(context, unitElement);
+        boolean mayIndex = indexStore.aboutToIndex(context, source);
         if (!mayIndex) {
           return;
         }
-        IndexContributor contributor = new IndexContributor(indexStore);
+        AngularHtmlIndexContributor contributor = new AngularHtmlIndexContributor(indexStore);
         unit.accept(contributor);
       } catch (Throwable exception) {
         AnalysisEngine.getInstance().getLogger().logError(
@@ -115,6 +115,6 @@ public class IndexUnitOperation implements IndexOperation {
 
   @Override
   public String toString() {
-    return "IndexUnitOperation(" + source.getFullName() + ")";
+    return "IndexHtmlUnitOperation(" + source.getFullName() + ")";
   }
 }

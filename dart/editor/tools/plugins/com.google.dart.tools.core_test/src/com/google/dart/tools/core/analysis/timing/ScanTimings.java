@@ -18,6 +18,7 @@ import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.index.Relationship;
 import com.google.dart.engine.index.RelationshipCallback;
@@ -101,6 +102,11 @@ public class ScanTimings extends TestCase {
     public String getStatistics() {
       // ignored
       return null;
+    }
+
+    @Override
+    public void indexHtmlUnit(AnalysisContext context, HtmlUnit unit) {
+      // ignored
     }
 
     @Override

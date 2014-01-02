@@ -23,6 +23,7 @@ public class TestAll {
     TestSuite suite = new ExtendedTestSuite("Tests in " + TestAll.class.getPackage().getName());
     suite.addTestSuite(GetRelationshipsOperationTest.class);
     suite.addTestSuite(IndexUnitOperationTest.class);
+    suite.addTestSuite(IndexHtmlUnitOperationTest.class);
     suite.addTestSuite(RemoveContextOperationTest.class);
     suite.addTestSuite(RemoveSourceOperationTest.class);
     suite.addTestSuite(RemoveSourcesOperationTest.class);

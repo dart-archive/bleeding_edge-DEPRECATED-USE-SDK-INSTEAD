@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, the Dart project authors.
+ * Copyright (c) 2013, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -15,11 +15,12 @@ package com.google.dart.engine.internal.index.operation;
 
 import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.EngineTestCase;
-import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.CompilationUnitElement;
+import com.google.dart.engine.element.HtmlElement;
+import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.index.IndexStore;
-import com.google.dart.engine.internal.index.IndexContributor;
+import com.google.dart.engine.internal.html.angular.AngularHtmlIndexContributor;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.logging.Logger;
 
@@ -31,13 +32,14 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class IndexUnitOperationTest extends EngineTestCase {
+public class IndexHtmlUnitOperationTest extends EngineTestCase {
   private AnalysisContext context = mock(AnalysisContext.class);
   private final IndexStore store = mock(IndexStore.class);
   private final Source unitSource = mock(Source.class);
+  private final HtmlElement htmlElement = mock(HtmlElement.class);
   private final CompilationUnitElement unitElement = mock(CompilationUnitElement.class);
-  private final CompilationUnit unit = mock(CompilationUnit.class);
-  private IndexUnitOperation operation;
+  private final HtmlUnit unit = mock(HtmlUnit.class);
+  private IndexHtmlUnitOperation operation;
 
   public void test_getSource() throws Exception {
     assertSame(unitSource, operation.getSource());
@@ -53,21 +55,21 @@ public class IndexUnitOperationTest extends EngineTestCase {
 
   public void test_performOperation() throws Exception {
     operation.performOperation();
-    verify(store).aboutToIndex(context, unitElement);
-    verify(unit).accept(isA(IndexContributor.class));
+    verify(store).aboutToIndex(context, unitSource);
+    verify(unit).accept(isA(AngularHtmlIndexContributor.class));
   }
 
   public void test_performOperation_aboutToIndex_false() throws Exception {
-    when(store.aboutToIndex(context, unitElement)).thenReturn(false);
+    when(store.aboutToIndex(context, unitSource)).thenReturn(false);
     operation.performOperation();
-    verify(unit, never()).accept(isA(IndexContributor.class));
+    verify(unit, never()).accept(isA(AngularHtmlIndexContributor.class));
   }
 
   public void test_performOperation_whenException() throws Exception {
     Logger oldLogger = AnalysisEngine.getInstance().getLogger();
     try {
       Error myException = new Error();
-      when(unit.accept(isA(IndexContributor.class))).thenThrow(myException);
+      when(unit.accept(isA(AngularHtmlIndexContributor.class))).thenThrow(myException);
       // set mock Logger
       Logger logger = mock(Logger.class);
       AnalysisEngine.getInstance().setLogger(logger);
@@ -88,15 +90,17 @@ public class IndexUnitOperationTest extends EngineTestCase {
 
   public void test_toString() throws Exception {
     when(unitSource.getFullName()).thenReturn("mySource");
-    assertEquals("IndexUnitOperation(mySource)", operation.toString());
+    assertEquals("IndexHtmlUnitOperation(mySource)", operation.toString());
   }
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    when(store.aboutToIndex(context, unitElement)).thenReturn(true);
-    when(unit.getElement()).thenReturn(unitElement);
+    when(store.aboutToIndex(context, unitSource)).thenReturn(true);
+    when(unit.getElement()).thenReturn(htmlElement);
+    when(unit.getCompilationUnitElement()).thenReturn(unitElement);
+    when(htmlElement.getSource()).thenReturn(unitSource);
     when(unitElement.getSource()).thenReturn(unitSource);
-    operation = new IndexUnitOperation(store, context, unit);
+    operation = new IndexHtmlUnitOperation(store, context, unit);
   }
 }

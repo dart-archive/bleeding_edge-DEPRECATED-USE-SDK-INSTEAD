@@ -14,6 +14,7 @@
 package com.google.dart.engine.html.ast;
 
 import com.google.dart.engine.element.CompilationUnitElement;
+import com.google.dart.engine.element.HtmlElement;
 import com.google.dart.engine.html.ast.visitor.XmlVisitor;
 import com.google.dart.engine.html.scanner.Token;
 import com.google.dart.engine.html.scanner.TokenType;
@@ -93,7 +94,7 @@ public class HtmlUnit extends XmlNode {
    * 
    * @return the element or {@code null} if the receiver is not resolved
    */
-  public HtmlElementImpl getElement() {
+  public HtmlElement getElement() {
     return element;
   }
 

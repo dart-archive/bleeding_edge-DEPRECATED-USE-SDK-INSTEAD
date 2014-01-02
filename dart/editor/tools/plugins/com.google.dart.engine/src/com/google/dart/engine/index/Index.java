@@ -16,6 +16,7 @@ package com.google.dart.engine.index;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceContainer;
 
@@ -34,11 +35,6 @@ import com.google.dart.engine.source.SourceContainer;
  */
 public interface Index {
   /**
-   * Answer index statistics.
-   */
-  String getStatistics();
-
-  /**
    * Asynchronously invoke the given callback with an array containing all of the locations of the
    * elements that have the given relationship with the given element. For example, if the element
    * represents a method and the relationship is the is-referenced-by relationship, then the
@@ -52,10 +48,23 @@ public interface Index {
   void getRelationships(Element element, Relationship relationship, RelationshipCallback callback);
 
   /**
+   * Answer index statistics.
+   */
+  String getStatistics();
+
+  /**
+   * Asynchronously process the given {@link HtmlUnit} in order to record the relationships.
+   * 
+   * @param context the {@link AnalysisContext} in which {@link HtmlUnit} was resolved
+   * @param unit the {@link HtmlUnit} being indexed
+   */
+  void indexHtmlUnit(AnalysisContext context, HtmlUnit unit);
+
+  /**
    * Asynchronously process the given {@link CompilationUnit} in order to record the relationships.
    * 
-   * @param context the {@link AnalysisContext} in compilation unit was resolved
-   * @param unit the compilation unit being indexed
+   * @param context the {@link AnalysisContext} in which {@link CompilationUnit} was resolved
+   * @param unit the {@link CompilationUnit} being indexed
    */
   void indexUnit(AnalysisContext context, CompilationUnit unit);
 
