@@ -15,6 +15,7 @@
 package com.google.dart.engine.internal.html.angular;
 
 import com.google.dart.engine.element.ClassElement;
+import com.google.dart.engine.element.angular.AngularSelector;
 import com.google.dart.engine.html.ast.XmlTagNode;
 import com.google.dart.engine.internal.element.LocalVariableElementImpl;
 import com.google.dart.engine.type.InterfaceType;
@@ -26,7 +27,7 @@ class NgController extends NgAnnotation {
   private final ClassElement element;
   private final String name;
 
-  public NgController(ClassElement element, InjectSelector selector, String name) {
+  public NgController(ClassElement element, AngularSelector selector, String name) {
     super(selector);
     this.element = element;
     this.name = name;

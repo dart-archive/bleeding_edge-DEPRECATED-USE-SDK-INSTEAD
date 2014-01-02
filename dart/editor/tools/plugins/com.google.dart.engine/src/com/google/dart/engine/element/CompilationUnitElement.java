@@ -61,6 +61,7 @@ public interface CompilationUnitElement extends Element, UriReferencedElement {
    * 
    * @return the resolved {@link CompilationUnit}, not {@code null}.
    */
+  @Override
   public CompilationUnit getNode() throws AnalysisException;
 
   /**

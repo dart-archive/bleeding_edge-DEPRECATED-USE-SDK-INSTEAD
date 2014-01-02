@@ -12,20 +12,19 @@
  * the License.
  */
 
-package com.google.dart.engine.internal.html.angular;
+package com.google.dart.engine.element.angular;
 
-import com.google.dart.engine.element.angular.AngularSelector;
 import com.google.dart.engine.html.ast.XmlTagNode;
 
-class AttributeInjectSelector implements AngularSelector {
-  private final String attributeName;
-
-  public AttributeInjectSelector(String attributeName) {
-    this.attributeName = attributeName;
-  }
-
-  @Override
-  public boolean apply(XmlTagNode node) {
-    return node.getAttribute(attributeName) != null;
-  }
+/**
+ * {@link AngularSelector} is used to decide when Angular object should be applied.
+ */
+public interface AngularSelector {
+  /**
+   * Checks if the given {@link XmlTagNode} matches this selector.
+   * 
+   * @param node the {@link XmlTagNode} to check
+   * @return {@code true} if the given {@link XmlTagNode} matches, or {@code false} otherwise
+   */
+  boolean apply(XmlTagNode node);
 }

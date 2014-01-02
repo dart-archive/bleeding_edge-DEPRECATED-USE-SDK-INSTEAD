@@ -25,6 +25,7 @@ import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
+import com.google.dart.engine.element.ToolkitObjectElement;
 import com.google.dart.engine.element.TypeParameterElement;
 import com.google.dart.engine.internal.type.InterfaceTypeImpl;
 import com.google.dart.engine.type.InterfaceType;
@@ -73,6 +74,11 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
    * The superclass of the class, or {@code null} if the class does not have an explicit superclass.
    */
   private InterfaceType supertype;
+
+  /**
+   * An array containing all of the toolkit objects attached to this class.
+   */
+  private ToolkitObjectElement[] toolkitObjects = ToolkitObjectElement.EMPTY_ARRAY;
 
   /**
    * The type defined by the class.
@@ -249,6 +255,11 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
   @Override
   public InterfaceType getSupertype() {
     return supertype;
+  }
+
+  @Override
+  public ToolkitObjectElement[] getToolkitObjects() {
+    return toolkitObjects;
   }
 
   @Override
@@ -514,6 +525,18 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
   }
 
   /**
+   * Set the toolkit specific information objects attached to this class.
+   * 
+   * @param toolkitObjects the toolkit objects attached to this class
+   */
+  public void setToolkitObjects(ToolkitObjectElement[] toolkitObjects) {
+    for (ToolkitObjectElement toolkitObject : toolkitObjects) {
+      ((ToolkitObjectElementImpl) toolkitObject).setEnclosingElement(this);
+    }
+    this.toolkitObjects = toolkitObjects;
+  }
+
+  /**
    * Set the type defined by the class to the given type.
    * 
    * @param type the type defined by the class
@@ -559,6 +582,7 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
     safelyVisitChildren(constructors, visitor);
     safelyVisitChildren(fields, visitor);
     safelyVisitChildren(methods, visitor);
+    safelyVisitChildren(toolkitObjects, visitor);
     safelyVisitChildren(typeParameters, visitor);
   }
 

@@ -41,6 +41,11 @@ public class CompilationUnitElementImpl extends ElementImpl implements Compilati
   public static final CompilationUnitElement[] EMPTY_ARRAY = new CompilationUnitElement[0];
 
   /**
+   * The source that corresponds to this compilation unit.
+   */
+  private Source source;
+
+  /**
    * An array containing all of the top-level accessors (getters and setters) contained in this
    * compilation unit.
    */
@@ -52,16 +57,6 @@ public class CompilationUnitElementImpl extends ElementImpl implements Compilati
   private FunctionElement[] functions = FunctionElementImpl.EMPTY_ARRAY;
 
   /**
-   * An array containing all of the variables contained in this compilation unit.
-   */
-  private TopLevelVariableElement[] variables = TopLevelVariableElementImpl.EMPTY_ARRAY;
-
-  /**
-   * The source that corresponds to this compilation unit.
-   */
-  private Source source;
-
-  /**
    * An array containing all of the function type aliases contained in this compilation unit.
    */
   private FunctionTypeAliasElement[] typeAliases = FunctionTypeAliasElementImpl.EMPTY_ARRAY;
@@ -70,6 +65,11 @@ public class CompilationUnitElementImpl extends ElementImpl implements Compilati
    * An array containing all of the types contained in this compilation unit.
    */
   private ClassElement[] types = ClassElementImpl.EMPTY_ARRAY;
+
+  /**
+   * An array containing all of the variables contained in this compilation unit.
+   */
+  private TopLevelVariableElement[] variables = TopLevelVariableElementImpl.EMPTY_ARRAY;
 
   /**
    * The URI that is specified by the "part" directive in the enclosing library, or {@code null} if

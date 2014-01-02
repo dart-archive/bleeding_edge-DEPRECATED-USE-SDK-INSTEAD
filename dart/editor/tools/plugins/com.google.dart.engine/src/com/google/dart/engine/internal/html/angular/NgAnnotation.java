@@ -14,15 +14,16 @@
 
 package com.google.dart.engine.internal.html.angular;
 
+import com.google.dart.engine.element.angular.AngularSelector;
 import com.google.dart.engine.html.ast.XmlTagNode;
 
 /**
  * {@link NgAnnotation} describes any <code>NgAnnotation</code> annotation instance.
  */
 abstract class NgAnnotation {
-  private final InjectSelector selector;
+  private final AngularSelector selector;
 
-  public NgAnnotation(InjectSelector selector) {
+  public NgAnnotation(AngularSelector selector) {
     this.selector = selector;
   }
 
@@ -35,9 +36,9 @@ abstract class NgAnnotation {
   public abstract void apply(AngularHtmlUnitResolver resolver, XmlTagNode node);
 
   /**
-   * @return the {@link InjectSelector} of this annotation.
+   * @return the {@link AngularSelector} of this annotation.
    */
-  public InjectSelector getSelector() {
+  public AngularSelector getSelector() {
     return selector;
   }
 }

@@ -119,6 +119,7 @@ public interface ClassElement extends Element {
    * 
    * @return the resolved {@link ClassDeclaration}, not {@code null}.
    */
+  @Override
   public ClassDeclaration getNode() throws AnalysisException;
 
   /**
@@ -143,6 +144,13 @@ public interface ClassElement extends Element {
    * @return the superclass of this class
    */
   public InterfaceType getSupertype();
+
+  /**
+   * Return an array containing all of the toolkit specific objects attached to this class.
+   * 
+   * @return the toolkit objects attached to this class
+   */
+  public ToolkitObjectElement[] getToolkitObjects();
 
   /**
    * Return the type defined by the class.

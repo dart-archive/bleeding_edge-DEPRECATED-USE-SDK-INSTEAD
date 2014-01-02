@@ -37,6 +37,7 @@ import com.google.dart.engine.element.ExternalHtmlScriptElement;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.HtmlScriptElement;
 import com.google.dart.engine.element.LocalVariableElement;
+import com.google.dart.engine.element.angular.AngularSelector;
 import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.html.ast.EmbeddedExpression;
 import com.google.dart.engine.html.ast.HtmlUnit;
@@ -82,10 +83,10 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
   private static final String ATTR_PUBLISH_AS = "publishAs";
 
   /**
-   * Returns {@link InjectSelector} for the given CSS selector string.
+   * Returns {@link AngularSelector} for the given CSS selector string.
    */
   @VisibleForTesting
-  public static InjectSelector createInjectSelector(String text) {
+  public static AngularSelector createInjectSelector(String text) {
     if (text.startsWith("[") && text.endsWith("]")) {
       return new AttributeInjectSelector(text.substring(1, text.length() - 1));
     }
@@ -332,7 +333,7 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
           if (selectorExpression instanceof SimpleStringLiteral
               && nameExpression instanceof SimpleStringLiteral) {
             String selectorText = ((SimpleStringLiteral) selectorExpression).getValue();
-            InjectSelector selector = createInjectSelector(selectorText);
+            AngularSelector selector = createInjectSelector(selectorText);
             String name = ((SimpleStringLiteral) nameExpression).getValue();
             if (selector != null && name != null) {
               return new NgController(injectedClass.getElement(), selector, name);

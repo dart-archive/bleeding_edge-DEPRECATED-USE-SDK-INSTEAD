@@ -14,11 +14,13 @@
 
 package com.google.dart.engine.internal.html.angular;
 
+import com.google.dart.engine.element.angular.AngularSelector;
+
 /**
  * {@link NgDirective} describes any <code>NgDirective</code> annotation instance.
  */
 abstract class NgDirective extends NgAnnotation {
-  public NgDirective(InjectSelector selector) {
+  public NgDirective(AngularSelector selector) {
     super(selector);
   }
 }

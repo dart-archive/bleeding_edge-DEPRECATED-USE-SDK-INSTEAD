@@ -22,6 +22,7 @@ import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
+import com.google.dart.engine.element.ToolkitObjectElement;
 import com.google.dart.engine.element.TypeParameterElement;
 import com.google.dart.engine.type.InterfaceType;
 
@@ -112,6 +113,11 @@ public class ClassElementHandle extends ElementHandle implements ClassElement {
   @Override
   public InterfaceType getSupertype() {
     return getActualElement().getSupertype();
+  }
+
+  @Override
+  public ToolkitObjectElement[] getToolkitObjects() {
+    return getActualElement().getToolkitObjects();
   }
 
   @Override

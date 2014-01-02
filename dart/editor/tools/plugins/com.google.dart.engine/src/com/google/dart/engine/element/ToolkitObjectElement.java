@@ -11,21 +11,18 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
+package com.google.dart.engine.element;
 
-package com.google.dart.engine.internal.html.angular;
-
-import com.google.dart.engine.element.angular.AngularSelector;
-import com.google.dart.engine.html.ast.XmlTagNode;
-
-class AttributeInjectSelector implements AngularSelector {
-  private final String attributeName;
-
-  public AttributeInjectSelector(String attributeName) {
-    this.attributeName = attributeName;
-  }
-
-  @Override
-  public boolean apply(XmlTagNode node) {
-    return node.getAttribute(attributeName) != null;
-  }
+/**
+ * The interface {@code ToolkitObjectElement} defines the behavior of elements that represent a
+ * toolkit specific object, such as Angular controller or component. These elements are not based on
+ * the Dart syntax, but on some semantic agreement, such as a special annotation.
+ * 
+ * @coverage dart.engine.element
+ */
+public interface ToolkitObjectElement extends Element {
+  /**
+   * An empty array of toolkit object elements.
+   */
+  ToolkitObjectElement[] EMPTY_ARRAY = new ToolkitObjectElement[0];
 }

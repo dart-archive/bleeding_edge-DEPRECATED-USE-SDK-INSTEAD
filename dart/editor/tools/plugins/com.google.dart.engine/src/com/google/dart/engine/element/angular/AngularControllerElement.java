@@ -11,14 +11,13 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-
-package com.google.dart.engine.internal.html.angular;
-
-import com.google.dart.engine.html.ast.XmlTagNode;
+package com.google.dart.engine.element.angular;
 
 /**
- * {@link InjectSelector} is used to decide when {@link NgAnnotation} should be applied.
+ * The interface {@code AngularControllerElement} defines the Angular controller described by
+ * <code>NgController</code> annotation.
+ * 
+ * @coverage dart.engine.element
  */
-interface InjectSelector {
-  boolean apply(XmlTagNode node);
+public interface AngularControllerElement extends AngularSelectorElement {
 }
