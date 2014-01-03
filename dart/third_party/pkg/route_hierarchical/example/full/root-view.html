@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <link rel="import" href="home.html">
+    <link rel="import" href="company-info-loader.html">
+    <link rel="import" href="portfolio.html">
+  </head>
+  <body>
+    <element name="x-root-view" constructor="RootView" extends="div">
+      <template>
+        <template if="currentRouteName == 'home'">
+          <x-home></x-home>
+        </template>
+        <template if="currentRouteName == 'companyInfo'">
+          <x-company-info-loader route="{{route.getRoute('companyInfo')}}"></x-company-info-loader>
+        </template>
+        <template if="currentRouteName == 'portfolio'">
+          <x-porfolio route="{{route.getRoute('portfolio')}}"></x-porfolio>
+        </template>
+      </template>
+      <script type="application/dart" src="root-view.dart"></script>
+    </element>
+  </body>
+</html>

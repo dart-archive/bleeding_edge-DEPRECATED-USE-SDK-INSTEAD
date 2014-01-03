@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+for details. All rights reserved. Use of this source code is governed by a
+BSD-style license that can be found in the LICENSE file.
+-->
+<html lang="en">
+  <head>
+    <title>client_test</title>
+  </head>
+  <body>
+    <script type="application/javascript">
+      if (navigator.webkitStartDart) {
+        navigator.webkitStartDart();
+      }
+    </script>
+    <script type="application/dart">
+      import "client_test.dart" as client_test;
+      import "url_template_test.dart" as url_template_test;
+
+      main() {
+        client_test.main();
+        url_template_test.main();
+      }
+    </script>
+  </body>
+</html>

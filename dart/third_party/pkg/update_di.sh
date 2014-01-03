@@ -5,22 +5,13 @@
 
 # bail on error
 set -e
+source update.sh
 
-DIR=$( cd $( dirname "${BASH_SOURCE[0]}" ) && pwd )
-echo $DIR
-pushd $DIR > /dev/null
-
-echo "*** Deleting old version"
-rm -rf di
-
-echo "*** Syncing code"
-git clone https://github.com/angular/di.dart di
-
-pushd di
-REVISION=`git rev-parse HEAD`
-rm -rf .git
+update "di" "https://github.com/angular/di.dart"
 
 echo "*** Generating static injector test files"
+pushd di > /dev/null
+
 pub install
 DART_SDK=../../../out/ReleaseIA32/dart-sdk
 $DART_SDK/bin/dart \
@@ -34,5 +25,3 @@ $DART_SDK/bin/dart \
 
 echo "*** Cleaning up packages"
 rm -rf packages
-
-echo "*** Updated to revision $REVISION"
