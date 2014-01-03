@@ -16,6 +16,7 @@ package com.google.dart.tools.debug.core.dartium;
 
 import com.google.dart.engine.source.ExplicitPackageUriResolver;
 import com.google.dart.engine.source.ExplicitPackageUriResolverTest;
+import com.google.dart.tools.core.DartCore;
 
 import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
 
@@ -51,14 +52,20 @@ public class BreakpointManagerTest extends TestCase {
   public void test_getPackagePath() {
     MockBreakpointManager manager = new MockBreakpointManager();
 
-    String path = manager.getPackagePath(createFile("/baz/lib/myLib.dart").getAbsolutePath(), null);
-    assertNotNull(path);
-    assertEquals("foo.bar.baz/myLib.dart", path);
-    path = manager.getPackagePath(createFile("/baz/src/myLib.dart").getAbsolutePath(), null);
-    assertNull(path);
-    path = manager.getPackagePath(createFile("/bar/baz/lib/util/util.dart").getAbsolutePath(), null);
-    assertNotNull(path);
-    assertEquals("foo.bar.baz/util/util.dart", path);
+    if (!DartCore.isWindows()) {
+      String path = manager.getPackagePath(
+          createFile("/baz/lib/myLib.dart").getAbsolutePath(),
+          null);
+      assertNotNull(path);
+      assertEquals("foo.bar.baz/myLib.dart", path);
+      path = manager.getPackagePath(createFile("/baz/src/myLib.dart").getAbsolutePath(), null);
+      assertNull(path);
+      path = manager.getPackagePath(
+          createFile("/bar/baz/lib/util/util.dart").getAbsolutePath(),
+          null);
+      assertNotNull(path);
+      assertEquals("foo.bar.baz/util/util.dart", path);
+    }
   }
 
 }
