@@ -138,6 +138,7 @@ public class MainEngine {
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/internal/element"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/internal/error"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/internal/hint"));
+    context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/internal/object"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/internal/parser"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/internal/resolver"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/internal/scope"));
@@ -287,10 +288,13 @@ public class MainEngine {
     }
     {
       CompilationUnit library = buildHtmlLibrary();
-      Files.write(
-          getFormattedSource(library),
-          new File(targetFolder + "/html.dart"),
-          Charsets.UTF_8);
+      String source = getFormattedSource(library);
+      // TODO(scheglov) restore HTML support
+      {
+        String s = "AngularHtmlUnitResolver.hasAngularAnnotation(htmlUnit);";
+        source = replaceSourceFragment(source, s, "false; // " + s);
+      }
+      Files.write(source, new File(targetFolder + "/html.dart"), Charsets.UTF_8);
     }
     {
       CompilationUnit library = buildUtilitiesDartLibrary();
@@ -369,6 +373,11 @@ public class MainEngine {
       CompilationUnit library = buildEngineLibrary();
       String source = getFormattedSource(library);
       source = replaceSourceFragment(source, "OSUtilities.LINE_SEPARATOR", "'\\n'");
+      // TODO(scheglov) restore Angular support
+      {
+        String s = "    new AngularHtmlUnitResolver(context, builder.errorListener, source, lineInfo).resolve(unit);";
+        source = replaceSourceFragment(source, s, "//" + s);
+      }
       Files.write(source, new File(targetFolder + "/engine.dart"), Charsets.UTF_8);
     }
     // Tests
@@ -508,6 +517,8 @@ public class MainEngine {
     CompilationUnit unit = new CompilationUnit(null, null, null, null, null);
     unit.getDirectives().add(libraryDirective("engine", "constant"));
     unit.getDirectives().add(importDirective("java_core.dart", null));
+    unit.getDirectives().add(
+        importDirective("java_engine.dart", null, importShowCombinator("ObjectUtilities")));
     unit.getDirectives().add(importDirective("source.dart", null, importShowCombinator("Source")));
     unit.getDirectives().add(
         importDirective(
@@ -515,14 +526,19 @@ public class MainEngine {
             null,
             importShowCombinator("AnalysisError", "ErrorCode", "CompileTimeErrorCode")));
     unit.getDirectives().add(
-        importDirective("scanner.dart", null, importShowCombinator("TokenType")));
+        importDirective("scanner.dart", null, importShowCombinator("Token", "TokenType")));
     unit.getDirectives().add(importDirective("ast.dart", null));
     unit.getDirectives().add(importDirective("element.dart", null));
     unit.getDirectives().add(
+        importDirective("resolver.dart", null, importShowCombinator("TypeProvider")));
+    unit.getDirectives().add(
         importDirective("engine.dart", null, importShowCombinator("AnalysisEngine")));
+    unit.getDirectives().add(
+        importDirective("utilities_dart.dart", null, importShowCombinator("ParameterKind")));
     for (CompilationUnitMember member : dartUnit.getDeclarations()) {
       File file = context.getMemberToFile().get(member);
-      if (isEnginePath(file, "constant/") || isEnginePath(file, "internal/constant/")) {
+      if (isEnginePath(file, "constant/") || isEnginePath(file, "internal/constant/")
+          || isEnginePath(file, "internal/object/")) {
         unit.getDeclarations().add(member);
       }
     }
@@ -538,8 +554,7 @@ public class MainEngine {
     unit.getDirectives().add(importDirective("utilities_collection.dart", null));
     unit.getDirectives().add(importDirective("source.dart", null));
     unit.getDirectives().add(importDirective("scanner.dart", null, importShowCombinator("Keyword")));
-    unit.getDirectives().add(
-        importDirective("ast.dart", null, importShowCombinator("Identifier", "LibraryIdentifier")));
+    unit.getDirectives().add(importDirective("ast.dart", null));
     unit.getDirectives().add(importDirective("sdk.dart", null, importShowCombinator("DartSdk")));
     unit.getDirectives().add(importDirective("html.dart", null, importShowCombinator("XmlTagNode")));
     unit.getDirectives().add(
@@ -580,7 +595,10 @@ public class MainEngine {
     unit.getDirectives().add(
         importDirective("ast_test.dart", null, importShowCombinator("ASTFactory")));
     unit.getDirectives().add(
-        importDirective("resolver_test.dart", null, importShowCombinator("TestTypeProvider")));
+        importDirective(
+            "resolver_test.dart",
+            null,
+            importShowCombinator("TestTypeProvider", "AnalysisContextHelper")));
     List<Statement> mainStatements = Lists.newArrayList();
     for (Entry<File, List<CompilationUnitMember>> entry : context.getFileToMembers().entrySet()) {
       File file = entry.getKey();
@@ -682,16 +700,8 @@ public class MainEngine {
             "sc",
             importShowCombinator("Scanner", "SubSequenceReader", "Token")));
     unit.getDirectives().add(importDirective("parser.dart", null, importShowCombinator("Parser")));
-    unit.getDirectives().add(
-        importDirective(
-            "ast.dart",
-            null,
-            importShowCombinator("ASTVisitor", "CompilationUnit", "Expression")));
-    unit.getDirectives().add(
-        importDirective(
-            "element.dart",
-            null,
-            importShowCombinator("HtmlElementImpl", "HtmlScriptElement")));
+    unit.getDirectives().add(importDirective("ast.dart", null));
+    unit.getDirectives().add(importDirective("element.dart", null));
     unit.getDirectives().add(
         importDirective("engine.dart", null, importShowCombinator("AnalysisEngine")));
     for (Entry<File, List<CompilationUnitMember>> entry : context.getFileToMembers().entrySet()) {

@@ -56,6 +56,7 @@ import static com.google.dart.java2dart.util.ASTFactory.namedExpression;
 import static com.google.dart.java2dart.util.ASTFactory.prefixExpression;
 import static com.google.dart.java2dart.util.ASTFactory.propertyAccess;
 import static com.google.dart.java2dart.util.ASTFactory.string;
+import static com.google.dart.java2dart.util.ASTFactory.thisExpression;
 import static com.google.dart.java2dart.util.ASTFactory.typeName;
 import static com.google.dart.java2dart.util.TokenFactory.token;
 
@@ -314,7 +315,8 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
               || isMethodInClass(node, "isEmpty", "java.lang.String")
               || isMethodInClass(node, "name", "java.lang.Enum")
               || isMethodInClass(node, "ordinal", "java.lang.Enum")
-              || isMethodInClass(node, "values", "java.lang.Enum")) {
+              || isMethodInClass(node, "values", "java.lang.Enum")
+              || isMethodInClass(node, "bitLength", "java.math.BigInteger")) {
             replaceNode(node, propertyAccess(target, nameNode));
             return null;
           }
@@ -330,6 +332,9 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
         }
         if (name.equals("equals") && args.size() == 1) {
           ASTNode parent = node.getParent();
+          if (target == null) {
+            target = thisExpression();
+          }
           if (parent instanceof PrefixExpression
               && ((PrefixExpression) parent).getOperator().getType() == TokenType.BANG) {
             replaceNode(parent, binaryExpression(target, TokenType.BANG_EQ, args.get(0)));

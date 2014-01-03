@@ -505,6 +505,22 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "}");
   }
 
+  public void test_Object_equals_implicitThis() throws Exception {
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "public class Test {",
+        "  public boolean equals(Object o) {",
+        "    return equals(o);",
+        "  }",
+        "}");
+    runProcessor();
+    assertFormattedSource(//
+        "class Test {",
+        "  bool operator ==(Object o) => this == o;",
+        "}");
+  }
+
   public void test_Object_equals2() throws Exception {
     setFileLines(
         "test/MyInterface.java",

@@ -14,9 +14,9 @@
 package com.google.dart.engine.internal.type;
 
 import com.google.dart.engine.element.TypeParameterElement;
+import com.google.dart.engine.internal.element.ElementPair;
 import com.google.dart.engine.type.Type;
 import com.google.dart.engine.type.TypeParameterType;
-import com.google.dart.engine.utilities.collection.ElementPair;
 import com.google.dart.engine.utilities.general.ObjectUtilities;
 
 import java.util.HashSet;

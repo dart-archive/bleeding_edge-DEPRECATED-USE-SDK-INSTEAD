@@ -22,6 +22,7 @@ import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.TypeParameterElement;
 import com.google.dart.engine.internal.element.ClassElementImpl;
+import com.google.dart.engine.internal.element.ElementPair;
 import com.google.dart.engine.internal.element.member.ConstructorMember;
 import com.google.dart.engine.internal.element.member.MethodMember;
 import com.google.dart.engine.internal.element.member.PropertyAccessorMember;
@@ -29,7 +30,6 @@ import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
 import com.google.dart.engine.type.TypeParameterType;
-import com.google.dart.engine.utilities.collection.ElementPair;
 import com.google.dart.engine.utilities.general.ObjectUtilities;
 
 import java.util.Arrays;

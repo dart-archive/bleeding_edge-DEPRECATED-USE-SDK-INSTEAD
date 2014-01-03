@@ -14,9 +14,9 @@
 package com.google.dart.engine.internal.type;
 
 import com.google.dart.engine.internal.element.DynamicElementImpl;
+import com.google.dart.engine.internal.element.ElementPair;
 import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.type.Type;
-import com.google.dart.engine.utilities.collection.ElementPair;
 
 import java.util.Set;
 

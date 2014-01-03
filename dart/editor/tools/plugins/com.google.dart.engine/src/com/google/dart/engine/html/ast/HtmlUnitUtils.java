@@ -29,6 +29,9 @@ import com.google.dart.engine.type.Type;
  * Utilities locating {@link Expression}s and {@link Element}s in {@link HtmlUnit}.
  */
 public class HtmlUnitUtils {
+  private static class FoundExpressionError extends Error {
+  }
+
   /**
    * Returns the best {@link Element} of the given {@link Expression}.
    */
@@ -75,8 +78,6 @@ public class HtmlUnitUtils {
   public static Expression getExpression(HtmlUnit htmlUnit, final int offset) {
     if (htmlUnit == null) {
       return null;
-    }
-    class FoundExpressionError extends Error {
     }
     final Expression[] result = {null};
     try {

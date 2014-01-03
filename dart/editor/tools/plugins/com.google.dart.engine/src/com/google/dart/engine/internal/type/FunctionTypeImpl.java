@@ -19,11 +19,11 @@ import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.TypeParameterElement;
+import com.google.dart.engine.internal.element.ElementPair;
 import com.google.dart.engine.internal.element.TypeParameterElementImpl;
 import com.google.dart.engine.internal.element.member.ParameterMember;
 import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.Type;
-import com.google.dart.engine.utilities.collection.ElementPair;
 import com.google.dart.engine.utilities.dart.ParameterKind;
 
 import java.util.ArrayList;
