@@ -1,0 +1,8 @@
+name: perf_api
+version: 0.0.8
+author: Pavel Jbanov <pavelgj@gmail.com>
+homepage: https://github.com/google/perf_api.dart
+description: A simple profiling instrumentation API
+
+dev_dependencies:
+  unittest: any
