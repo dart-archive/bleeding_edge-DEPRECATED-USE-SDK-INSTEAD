@@ -29,8 +29,6 @@ import com.google.dart.engine.utilities.general.TimeCounter.TimeCounterHandle;
 public class CompilationUnitBuilder {
   /**
    * Initialize a newly created compilation unit element builder.
-   * 
-   * @param analysisContext the analysis context in which the element model will be built
    */
   public CompilationUnitBuilder() {
     super();

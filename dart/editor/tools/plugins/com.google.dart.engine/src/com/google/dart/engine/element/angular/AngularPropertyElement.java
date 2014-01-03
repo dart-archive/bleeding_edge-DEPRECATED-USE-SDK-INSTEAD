@@ -30,7 +30,7 @@ public interface AngularPropertyElement extends AngularElement {
   FieldElement getField();
 
   /**
-   * Return the offset of the field name of this property in the {@link #getSource()}.
+   * Return the offset of the field name of this property in the property map.
    * 
    * @return the offset of the field name of this property
    */

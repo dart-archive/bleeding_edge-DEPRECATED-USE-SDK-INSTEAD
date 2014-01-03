@@ -39,13 +39,24 @@ import junit.framework.AssertionFailedError;
 import static org.fest.assertions.Assertions.assertThat;
 
 abstract public class AngularTest extends EngineTestCase {
-  protected final AnalysisContextHelper contextHelper = new AnalysisContextHelper();
+  /**
+   * @return the offset of given <code>search</code> string in <code>content</code>. Fails test if
+   *         not found.
+   */
+  protected static int findOffset(String content, String search) {
+    int offset = content.indexOf(search);
+    assertThat(offset).describedAs(content).isNotEqualTo(-1);
+    return offset;
+  }
 
+  protected final AnalysisContextHelper contextHelper = new AnalysisContextHelper();
   protected AnalysisContext context;
   protected Source mainSource;
+  protected CompilationUnitElement mainUnitElement;
   protected String indexContent;
   protected Source indexSource;
   protected HtmlUnit indexUnit;
+
   protected CompilationUnitElement indexDartUnit;
 
   protected final void addMyController() {
@@ -135,9 +146,7 @@ abstract public class AngularTest extends EngineTestCase {
    *         not found.
    */
   protected final int findOffset(String search) {
-    int offset = indexContent.indexOf(search);
-    assertThat(offset).describedAs(indexContent).isNotEqualTo(-1);
-    return offset;
+    return findOffset(indexContent, search);
   }
 
   protected final void resolveIndex(String... lines) throws Exception {
@@ -186,6 +195,12 @@ abstract public class AngularTest extends EngineTestCase {
         "/angular.dart",
         createSource(
             "library angular;",
+            "",
+            "class NgFilter {",
+            "  final String name;",
+            "  const NgFilter({this.name});",
+            "}",
+            "",
             "abstract class NgAnnotation {",
             "  NgAnnotation({",
             "    selector,",
@@ -231,7 +246,9 @@ abstract public class AngularTest extends EngineTestCase {
             "             exportExpressionAttrs: exportExpressionAttrs);",
             "}",
             "",
-            "class Module {}",
+            "class Module {",
+            "  type(Type t) {}",
+            "}",
             "",
             "Injector ngBootstrap({",
             "        Module module: null,",

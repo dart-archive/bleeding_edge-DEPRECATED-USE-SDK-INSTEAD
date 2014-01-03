@@ -22,6 +22,11 @@ import com.google.dart.engine.utilities.general.TimeCounter;
  */
 public class PerformanceStatistics {
   /**
+   * The {@link TimeCounter} for time spent in Angular analysis.
+   */
+  public static final TimeCounter angular = new TimeCounter();
+
+  /**
    * The {@link TimeCounter} for time spent in scanning.
    */
   public static final TimeCounter scan = new TimeCounter();

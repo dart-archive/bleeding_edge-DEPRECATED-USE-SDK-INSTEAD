@@ -35,6 +35,7 @@ import com.google.dart.engine.element.NamespaceCombinator;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.error.CompileTimeErrorCode;
+import com.google.dart.engine.internal.builder.AngularCompilationUnitBuilder;
 import com.google.dart.engine.internal.constant.ConstantValueComputer;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
 import com.google.dart.engine.internal.context.PerformanceStatistics;
@@ -796,6 +797,16 @@ public class LibraryResolver {
             visitor.reportError(conditionalCode.getAnalysisError());
           }
         }
+      }
+    } finally {
+      timeCounter.stop();
+    }
+    // Angular
+    timeCounter = PerformanceStatistics.angular.start();
+    try {
+      for (Source source : library.getCompilationUnitSources()) {
+        CompilationUnit ast = library.getAST(source);
+        new AngularCompilationUnitBuilder(errorListener, source).build(ast);
       }
     } finally {
       timeCounter.stop();

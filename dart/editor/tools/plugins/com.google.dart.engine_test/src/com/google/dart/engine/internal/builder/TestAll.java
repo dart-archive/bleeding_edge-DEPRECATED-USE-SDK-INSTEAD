@@ -24,6 +24,7 @@ public class TestAll {
     suite.addTestSuite(ElementBuilderTest.class);
     suite.addTestSuite(HtmlUnitBuilderTest.class);
     suite.addTestSuite(HtmlWarningCodeTest.class);
+    suite.addTestSuite(AngularCompilationUnitBuilderTest.class);
     return suite;
   }
 }

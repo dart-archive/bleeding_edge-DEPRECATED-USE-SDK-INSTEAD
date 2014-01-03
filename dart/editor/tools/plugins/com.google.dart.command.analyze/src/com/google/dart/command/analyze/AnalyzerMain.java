@@ -186,6 +186,7 @@ public class AnalyzerMain {
       System.out.println("resolve:" + PerformanceStatistics.resolve.getResult());
       System.out.println("errors:" + PerformanceStatistics.errors.getResult());
       System.out.println("hints:" + PerformanceStatistics.hints.getResult());
+      System.out.println("angular:" + PerformanceStatistics.angular.getResult());
       System.out.println("total:" + totalTime);
     }
 

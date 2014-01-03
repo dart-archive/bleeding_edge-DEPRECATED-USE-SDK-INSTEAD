@@ -19,6 +19,10 @@ package com.google.dart.engine.element;
  * @coverage dart.engine.element
  */
 public enum ElementKind {
+  ANGULAR_FILTER("Angular filter"),
+  ANGULAR_COMPONENT("Angular component"),
+  ANGULAR_CONTROLLER("Angular controller"),
+  ANGULAR_PROPERTY("Angular property"),
   CLASS("class"),
   COMPILATION_UNIT("compilation unit"),
   CONSTRUCTOR("constructor"),

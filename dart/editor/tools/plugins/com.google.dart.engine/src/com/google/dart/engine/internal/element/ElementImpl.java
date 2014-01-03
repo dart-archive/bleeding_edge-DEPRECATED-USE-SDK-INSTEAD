@@ -295,6 +295,15 @@ public abstract class ElementImpl implements Element {
   }
 
   /**
+   * Set this {@link Element} as an enclosing for given.
+   * 
+   * @param element the element to enclose, must be {@link ElementImpl}
+   */
+  protected void encloseElement(ElementImpl element) {
+    element.setEnclosingElement(this);
+  }
+
+  /**
    * Return an identifier that uniquely identifies this element among the children of this element's
    * parent.
    * 
