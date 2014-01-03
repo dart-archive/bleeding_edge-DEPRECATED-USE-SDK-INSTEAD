@@ -1,6 +1,11 @@
 universal platform
+universal initialized
 
 to init
+	put (@universal initialized is "initialized") into wasInitialized
+	if wasInitialized then
+		return
+	end if
 	put the SearchRectangle into origRect
 	set the SearchRectangle to ((0,0),(100,100))
 	if ImageFound("linux menu icon") then
@@ -15,6 +20,7 @@ to init
 		throw "Screen size must be 1920x1200"
 	end if
 	Set the ImageDoctor to Auto
+	put "initialized" into universal initialized
 end init
 
 to isLinux
@@ -124,6 +130,23 @@ to selectMenuItem with menuName, menuItem
 	set the SearchRectangle to origRect
 end selectMenuItem
 
+to selectContextMenuItem with contextLocator, menuItem
+	selectContextImageMenuItem (Text:contextLocator,CaseSensitive:"yes",ValidCharacters:"*",IgnoreSpaces:"yes",dpi:94), menuItem
+end selectContextMenuItem
+
+to selectContextImageMenuItem with contextLocator, menuItem
+	put the SearchRectangle into origRect
+	put ImageLocation(contextLocator) into imageLocation
+	Click imageLocation
+	RightClick imageLocation (*contextLocator*)
+	put mouselocation() - (15,0) into UL
+	put UL + (500,500) into BR
+	set the SearchRectangle to (UL,BR)
+	Wait 0.1
+	Click(Text:menuItem,CaseSensitive:"yes",ValidCharacters:"*",IgnoreSpaces:"yes",dpi:94)
+	set the SearchRectangle to origRect
+end selectContextImageMenuItem
+
 to closeDebugger
 	put ImageFound("debugger tab") into bug
 	if bug
@@ -209,4 +232,5 @@ end saveFile
 
 to expandTreeNode
 	TypeText enter
-end expandTreeNode
+	end expandTreeNode
+	

@@ -1,4 +1,3 @@
-Run util's init
 set TestList to ("sunflower","pop", "todoPolymer","todoAngular")
 repeat with each testScript of TestList
 	RunWithNewResults testScript

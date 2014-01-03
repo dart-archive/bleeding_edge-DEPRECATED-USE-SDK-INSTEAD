@@ -1,3 +1,5 @@
 (* Ensure a legacy web-ui app compiles and runs -- also checks basic debugger operations *)
-Run util's init
+Run toggleHints
 Run "Step 0"
+Run "Step 1"
+Run "Step 5"

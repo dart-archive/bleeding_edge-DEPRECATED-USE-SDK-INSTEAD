@@ -19,6 +19,11 @@
 	<real>11</real>
 	<key>HotSpotY</key>
 	<real>10</real>
+	<key>ImageDescription</key>
+	<data>
+	</data>
+	<key>ImageTolerance</key>
+	<integer>80</integer>
 	<key>LastKnownLocationX</key>
 	<integer>0</integer>
 	<key>LastKnownLocationY</key>

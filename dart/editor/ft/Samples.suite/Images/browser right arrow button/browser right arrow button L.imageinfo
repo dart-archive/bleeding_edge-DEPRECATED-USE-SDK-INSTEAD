@@ -12,13 +12,16 @@
 		<integer>1200</integer>
 	</array>
 	<key>HasAlpha</key>
-	<false/>
+	<true/>
 	<key>HonorAlpha</key>
 	<true/>
 	<key>HotSpotX</key>
 	<real>11</real>
 	<key>HotSpotY</key>
 	<real>11</real>
+	<key>ImageDescription</key>
+	<data>
+	</data>
 	<key>LastKnownLocationX</key>
 	<integer>0</integer>
 	<key>LastKnownLocationY</key>

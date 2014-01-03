@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>CaptureDate</key>
-	<date>2013-12-19T18:30:09Z</date>
+	<date>2013-08-08T16:08:44Z</date>
 	<key>CaptureHost</key>
 	<string>Mac Pro</string>
 	<key>CaptureScreenSize</key>
@@ -16,9 +16,9 @@
 	<key>HonorAlpha</key>
 	<true/>
 	<key>HotSpotX</key>
-	<real>21</real>
+	<real>22</real>
 	<key>HotSpotY</key>
-	<real>6</real>
+	<real>7</real>
 	<key>ImageDescription</key>
 	<data>
 	</data>
@@ -27,9 +27,9 @@
 	<key>LastKnownLocationY</key>
 	<integer>0</integer>
 	<key>OriginalLocationX</key>
-	<integer>315</integer>
+	<integer>31</integer>
 	<key>OriginalLocationY</key>
-	<integer>335</integer>
+	<integer>167</integer>
 	<key>Pulsing</key>
 	<false/>
 	<key>Scale</key>

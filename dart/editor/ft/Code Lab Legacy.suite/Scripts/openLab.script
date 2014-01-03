@@ -1,3 +1,4 @@
+Run util's init
 Run "open codelab file search"
 put param(1) into n
 repeat n

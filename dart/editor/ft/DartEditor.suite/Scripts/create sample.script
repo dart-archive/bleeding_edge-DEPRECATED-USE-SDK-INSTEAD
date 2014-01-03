@@ -1,3 +1,4 @@
+Run util's init
 Run util's selectMenuItem "File", "New Application" (* menu File>New Application *)
 TypeText "sample" (* enter project name *)
 TypeText return (* fire off creation and analysis *)

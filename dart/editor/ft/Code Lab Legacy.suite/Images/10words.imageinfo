@@ -3,9 +3,9 @@
 <plist version="1.0">
 <dict>
 	<key>CaptureDate</key>
-	<date>2013-12-19T18:30:09Z</date>
+	<date>2014-01-02T19:44:22Z</date>
 	<key>CaptureHost</key>
-	<string>Mac Pro</string>
+	<string>kyodai.pdx.corp.google.com:0.0</string>
 	<key>CaptureScreenSize</key>
 	<array>
 		<integer>1920</integer>
@@ -16,23 +16,22 @@
 	<key>HonorAlpha</key>
 	<true/>
 	<key>HotSpotX</key>
-	<real>21</real>
+	<real>30</real>
 	<key>HotSpotY</key>
-	<real>6</real>
-	<key>ImageDescription</key>
-	<data>
-	</data>
+	<real>12</real>
 	<key>LastKnownLocationX</key>
 	<integer>0</integer>
 	<key>LastKnownLocationY</key>
 	<integer>0</integer>
 	<key>OriginalLocationX</key>
-	<integer>315</integer>
+	<integer>7</integer>
 	<key>OriginalLocationY</key>
-	<integer>335</integer>
+	<integer>775</integer>
 	<key>Pulsing</key>
 	<false/>
 	<key>Scale</key>
 	<real>1</real>
+	<key>SearchAlgorithm</key>
+	<string>TextSmoothSquare</string>
 </dict>
 </plist>

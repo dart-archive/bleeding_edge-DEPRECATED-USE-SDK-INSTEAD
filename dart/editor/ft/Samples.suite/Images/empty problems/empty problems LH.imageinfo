@@ -19,6 +19,9 @@
 	<real>42</real>
 	<key>HotSpotY</key>
 	<real>27</real>
+	<key>ImageDescription</key>
+	<data>
+	</data>
 	<key>LastKnownLocationX</key>
 	<integer>0</integer>
 	<key>LastKnownLocationY</key>
@@ -31,7 +34,5 @@
 	<false/>
 	<key>Scale</key>
 	<real>1</real>
-	<key>SearchAlgorithm</key>
-	<string>TextSmoothSquare</string>
 </dict>
 </plist>
