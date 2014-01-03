@@ -1,0 +1,46 @@
+<!-- Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+     for details. All rights reserved. Use of this source code is governed by a
+     BSD-style license that can be found in the LICENSE file. -->
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8">
+    <title>Google Maps Dart API v3 Example: Directions Complex with
+    Proxy Objects</title>
+    <link href="directions.css"
+       rel="stylesheet" type="text/css">
+    <script src="https://maps.googleapis.com/maps/api/js?sensor=false" type="text/javascript"></script>
+    <script type="application/dart" src="directions.dart">
+    </script>
+  </head>
+  <body>
+    <div id="control">
+      <strong>Start:</strong>
+      <select id="start">
+        <option value="aarhus, denmark">Aarhus, DK</option>
+        <option value="london, uk">London, UK</option>
+        <option value="mountain view, ca">Mountain View, CA</option>
+        <option value="munich, de">Munich, DE</option>
+        <option value="portland, or">Portland, OR</option>
+        <option value="seattle, wa" selected>Seattle, WA</option>
+        <option value="st. petersburg, russia">St. Petersburg, RU</option>
+      </select>
+      <strong>End:</strong>
+      <select id="end">
+        <option value="aarhus, denmark">Aarhus, DK</option>
+        <option value="london, uk">London, UK</option>
+        <option value="mountain view, ca">Mountain View, CA</option>
+        <option value="munich, de">Munich, DE</option>
+        <option value="portland, or">Portland, OR</option>
+        <option value="seattle, wa" selected>Seattle, WA</option>
+        <option value="st. petersburg, russia">St. Petersburg, RU</option>
+      </select>
+    </div>
+    <div id="directions_panel"></div>
+    <div id="map_canvas"></div>
+    <script src="packages/browser/dart.js"></script>
+    <script src="packages/browser/interop.js"></script>
+ </body>
+</html>
