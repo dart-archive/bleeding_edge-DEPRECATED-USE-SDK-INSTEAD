@@ -25,6 +25,7 @@ public class TestAll {
     suite.addTestSuite(IndexExpressionTest.class);
     suite.addTestSuite(NodeListTest.class);
     suite.addTestSuite(SimpleIdentifierTest.class);
+    suite.addTestSuite(SimpleStringLiteralTest.class);
     suite.addTestSuite(VariableDeclarationTest.class);
     suite.addTest(com.google.dart.engine.ast.visitor.TestAll.suite());
     return suite;

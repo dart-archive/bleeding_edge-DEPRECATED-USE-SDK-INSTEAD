@@ -3807,6 +3807,21 @@ public class SimpleParserTest extends ParserTestCase {
   public void test_parsePrimaryExpression_string() throws Exception {
     SimpleStringLiteral literal = parse("parsePrimaryExpression", "\"string\"");
     assertFalse(literal.isMultiline());
+    assertFalse(literal.isRaw());
+    assertEquals("string", literal.getValue());
+  }
+
+  public void test_parsePrimaryExpression_string_multiline() throws Exception {
+    SimpleStringLiteral literal = parse("parsePrimaryExpression", "'''string'''");
+    assertTrue(literal.isMultiline());
+    assertFalse(literal.isRaw());
+    assertEquals("string", literal.getValue());
+  }
+
+  public void test_parsePrimaryExpression_string_raw() throws Exception {
+    SimpleStringLiteral literal = parse("parsePrimaryExpression", "r'string'");
+    assertFalse(literal.isMultiline());
+    assertTrue(literal.isRaw());
     assertEquals("string", literal.getValue());
   }
 

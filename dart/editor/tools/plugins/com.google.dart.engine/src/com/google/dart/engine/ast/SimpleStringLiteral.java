@@ -26,7 +26,7 @@ import com.google.dart.engine.utilities.general.StringUtilities;
  *   | basicStringLiteral
  *
  * rawStringLiteral ::=
- *     '@' basicStringLiteral
+ *     'r' basicStringLiteral
  *
  * simpleStringLiteral ::=
  *     multiLineStringLiteral
@@ -99,15 +99,34 @@ public class SimpleStringLiteral extends StringLiteral {
   }
 
   /**
+   * Return the offset of the first value character.
+   * 
+   * @return the offset of the first value character
+   */
+  public int getValueOffset() {
+    int valueOffset = 0;
+    if (isRaw()) {
+      valueOffset += 1;
+    }
+    if (isMultiline()) {
+      valueOffset += 3;
+    } else {
+      valueOffset += 1;
+    }
+    return getOffset() + valueOffset;
+  }
+
+  /**
    * Return {@code true} if this string literal is a multi-line string.
    * 
    * @return {@code true} if this string literal is a multi-line string
    */
   public boolean isMultiline() {
-    if (value.length() < 6) {
+    String lexeme = literal.getLexeme();
+    if (lexeme.length() < 6) {
       return false;
     }
-    return value.endsWith("\"\"\"") || value.endsWith("'''");
+    return lexeme.endsWith("\"\"\"") || lexeme.endsWith("'''");
   }
 
   /**
@@ -116,7 +135,7 @@ public class SimpleStringLiteral extends StringLiteral {
    * @return {@code true} if this string literal is a raw string
    */
   public boolean isRaw() {
-    return value.charAt(0) == '@';
+    return literal.getLexeme().charAt(0) == 'r';
   }
 
   @Override
