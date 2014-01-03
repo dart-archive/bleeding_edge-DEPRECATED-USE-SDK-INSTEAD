@@ -104,10 +104,19 @@ to deleteProject project
 	Click loc
 	Wait 0.2
 	RightClick loc (* select project and show context menu *)
+	put mouselocation() - (15,0) into UL
+	put UL + (500,500) into BR
+	set the SearchRectangle to (UL,BR)
 	Wait 0.2
 	Click(Text:"Delete",CaseSensitive:"Yes",ValidCharacters:"*") (* delete it *)
+	set the SearchRectangle to ()
 	WaitFor 0.5, "info icon" (* wait for the Delete Resources confirmation *)
-	Click(Text:"Delete project contents",ValidCharacters:"*") (* select the option to clear disk *)
+	put ImageRectangle("info icon") into loc
+	put the bottomLeft of loc into TL
+	put TL + (250,75) into BR
+	set the SearchRectangle to (TL,BR)
+	Click(Text:"Delete project contents",ValidCharacters:"*",dpi:94) (* select the option to clear disk *)
+	set the SearchRectangle to ()
 	Wait 0.2
 	TypeText enter
 end deleteProject
@@ -232,5 +241,4 @@ end saveFile
 
 to expandTreeNode
 	TypeText enter
-	end expandTreeNode
-	
+end expandTreeNode
