@@ -14,6 +14,7 @@
 package com.google.dart.tools.search.internal.ui;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -32,7 +33,6 @@ import com.google.dart.engine.search.MatchKind;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchFilter;
 import com.google.dart.engine.search.SearchMatch;
-import com.google.dart.engine.services.util.ElementUtils;
 import com.google.dart.engine.services.util.HierarchyUtils;
 import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.engine.utilities.source.SourceRangeFactory;
@@ -365,7 +365,8 @@ public class FindReferencesAction extends AbstractDartSelectionAction {
         private boolean isImported(LibraryElement what, LibraryElement where) {
           Set<LibraryElement> visibleLibraries = cachedVisibleLibraries.get(where);
           if (visibleLibraries == null) {
-            visibleLibraries = ElementUtils.getVisibleElementsLibraries(where);
+            LibraryElement[] visibleLibrariesArray = where.getVisibleLibraries();
+            visibleLibraries = ImmutableSet.copyOf(visibleLibrariesArray);
             cachedVisibleLibraries.put(where, visibleLibraries);
           }
           return visibleLibraries.contains(what);

@@ -68,6 +68,36 @@ public class ElementImplTest extends EngineTestCase {
     assertTrue(classElement.isAccessibleIn(library));
   }
 
+  public void test_isPrivate_false() {
+    Element element = classElement("C");
+    assertFalse(element.isPrivate());
+  }
+
+  public void test_isPrivate_null() {
+    Element element = classElement(null);
+    assertTrue(element.isPrivate());
+  }
+
+  public void test_isPrivate_true() {
+    Element element = classElement("_C");
+    assertTrue(element.isPrivate());
+  }
+
+  public void test_isPublic_false() {
+    Element element = classElement("_C");
+    assertFalse(element.isPublic());
+  }
+
+  public void test_isPublic_null() {
+    Element element = classElement(null);
+    assertFalse(element.isPublic());
+  }
+
+  public void test_isPublic_true() {
+    Element element = classElement("C");
+    assertTrue(element.isPublic());
+  }
+
   public void test_SORT_BY_OFFSET() {
     ClassElementImpl classElementA = classElement("A");
     classElementA.setNameOffset(1);

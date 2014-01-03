@@ -146,6 +146,16 @@ public abstract class Member implements Element {
   }
 
   @Override
+  public boolean isPrivate() {
+    return baseElement.isPrivate();
+  }
+
+  @Override
+  public boolean isPublic() {
+    return baseElement.isPublic();
+  }
+
+  @Override
   public boolean isSynthetic() {
     return baseElement.isSynthetic();
   }

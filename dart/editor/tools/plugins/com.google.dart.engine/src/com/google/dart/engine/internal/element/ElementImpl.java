@@ -220,6 +220,20 @@ public abstract class ElementImpl implements Element {
   }
 
   @Override
+  public boolean isPrivate() {
+    String name = getDisplayName();
+    if (name == null) {
+      return true;
+    }
+    return Identifier.isPrivateName(name);
+  }
+
+  @Override
+  public boolean isPublic() {
+    return !isPrivate();
+  }
+
+  @Override
   public boolean isSynthetic() {
     return hasModifier(Modifier.SYNTHETIC);
   }

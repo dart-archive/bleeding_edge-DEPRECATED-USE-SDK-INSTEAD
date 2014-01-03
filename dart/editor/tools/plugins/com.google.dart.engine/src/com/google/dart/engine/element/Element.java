@@ -211,6 +211,22 @@ public interface Element {
   public boolean isDeprecated();
 
   /**
+   * Return {@code true} if this element is private. Private elements are visible only within the
+   * library in which they are declared.
+   * 
+   * @return {@code true} if this element is private
+   */
+  public boolean isPrivate();
+
+  /**
+   * Return {@code true} if this element is public. Public elements are visible within any library
+   * that imports the library in which they are declared.
+   * 
+   * @return {@code true} if this element is public
+   */
+  public boolean isPublic();
+
+  /**
    * Return {@code true} if this element is synthetic. A synthetic element is an element that is not
    * represented in the source code explicitly, but is implied by the source code, such as the
    * default constructor for a class that does not explicitly define any constructors.

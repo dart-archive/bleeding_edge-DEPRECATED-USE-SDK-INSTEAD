@@ -92,6 +92,13 @@ public interface LibraryElement extends Element {
   public ClassElement getType(String className);
 
   /**
+   * Return an array containing all directly and indirectly imported libraries.
+   * 
+   * @return all directly and indirectly imported libraries
+   */
+  public LibraryElement[] getVisibleLibraries();
+
+  /**
    * Answer {@code true} if this library is an application that can be run in the browser.
    * 
    * @return {@code true} if this library is an application that can be run in the browser

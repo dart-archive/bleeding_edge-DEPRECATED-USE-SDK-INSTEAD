@@ -240,6 +240,16 @@ public abstract class ElementHandle implements Element {
   }
 
   @Override
+  public boolean isPrivate() {
+    return getActualElement().isPrivate();
+  }
+
+  @Override
+  public boolean isPublic() {
+    return getActualElement().isPublic();
+  }
+
+  @Override
   public boolean isSynthetic() {
     return getActualElement().isSynthetic();
   }

@@ -31,7 +31,6 @@ import com.google.dart.engine.services.internal.correction.CorrectionUtils;
 import com.google.dart.engine.services.refactoring.ProgressMonitor;
 import com.google.dart.engine.services.refactoring.RenameRefactoring;
 import com.google.dart.engine.services.status.RefactoringStatus;
-import com.google.dart.engine.services.util.ElementUtils;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.source.SourceRange;
 
@@ -118,7 +117,7 @@ public abstract class RenameRefactoringImpl extends RefactoringImpl implements R
       return false;
     }
     // public elements are always visible
-    if (ElementUtils.isPublic(element)) {
+    if (element.isPublic()) {
       return true;
     }
     // private elements are visible only in their library

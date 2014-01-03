@@ -89,6 +89,11 @@ public class LibraryElementHandle extends ElementHandle implements LibraryElemen
   }
 
   @Override
+  public LibraryElement[] getVisibleLibraries() {
+    return getActualElement().getVisibleLibraries();
+  }
+
+  @Override
   public boolean isBrowserApplication() {
     return getActualElement().isBrowserApplication();
   }

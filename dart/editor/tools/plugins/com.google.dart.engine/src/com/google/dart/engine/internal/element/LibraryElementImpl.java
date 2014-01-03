@@ -263,6 +263,13 @@ public class LibraryElementImpl extends ElementImpl implements LibraryElement {
   }
 
   @Override
+  public LibraryElement[] getVisibleLibraries() {
+    Set<LibraryElement> visibleLibraries = Sets.newHashSet();
+    addVisibleLibraries(visibleLibraries, false);
+    return visibleLibraries.toArray(new LibraryElement[visibleLibraries.size()]);
+  }
+
+  @Override
   public int hashCode() {
     return definingCompilationUnit.hashCode();
   }
@@ -361,6 +368,32 @@ public class LibraryElementImpl extends ElementImpl implements LibraryElement {
   @Override
   protected String getIdentifier() {
     return definingCompilationUnit.getSource().getEncoding();
+  }
+
+  /**
+   * Recursively fills set of visible libraries for {@link #getVisibleElementsLibraries}.
+   */
+  private void addVisibleLibraries(Set<LibraryElement> visibleLibraries, boolean includeExports) {
+    // maybe already processed
+    if (!visibleLibraries.add(this)) {
+      return;
+    }
+    // add imported libraries
+    for (ImportElement importElement : imports) {
+      LibraryElement importedLibrary = importElement.getImportedLibrary();
+      if (importedLibrary != null) {
+        ((LibraryElementImpl) importedLibrary).addVisibleLibraries(visibleLibraries, true);
+      }
+    }
+    // add exported libraries
+    if (includeExports) {
+      for (ExportElement exportElement : exports) {
+        LibraryElement exportedLibrary = exportElement.getExportedLibrary();
+        if (exportedLibrary != null) {
+          ((LibraryElementImpl) exportedLibrary).addVisibleLibraries(visibleLibraries, true);
+        }
+      }
+    }
   }
 
   /**

@@ -18,6 +18,7 @@ import com.google.common.collect.Lists;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.FieldElement;
+import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.TypeParameterElement;
@@ -36,7 +37,6 @@ import com.google.dart.engine.services.refactoring.ProgressMonitor;
 import com.google.dart.engine.services.refactoring.Refactoring;
 import com.google.dart.engine.services.refactoring.SubProgressMonitor;
 import com.google.dart.engine.services.status.RefactoringStatus;
-import com.google.dart.engine.services.util.ElementUtils;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceFactory;
 
@@ -138,7 +138,8 @@ public class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
         // check that element is accessible
         boolean accessible = false;
         for (Element refElement : reference.elements) {
-          accessible |= ElementUtils.isAccessible(element, refElement);
+          LibraryElement whereLibrary = refElement.getLibrary();
+          accessible |= element.isAccessibleIn(whereLibrary);
         }
         if (!accessible) {
           continue;
