@@ -1,11 +1,11 @@
 /*
  * Copyright (c) 2013, the Dart project authors.
- * 
+ *
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -15,10 +15,12 @@ package com.google.dart.tools.core.internal.analysis.model;
 
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.source.FileBasedSource;
+import com.google.dart.engine.source.PackageUriResolver;
 import com.google.dart.engine.utilities.io.FileUtilities2;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.pub.PubspecModel;
 
+import static com.google.dart.tools.core.DartCore.PACKAGES_DIRECTORY_NAME;
 import static com.google.dart.tools.core.pub.PubYamlUtilsTest.pubspecYamlString;
 
 import static org.mockito.Mockito.mock;
@@ -68,9 +70,13 @@ public class PubFolderImplTest extends PubResourceMapImplTest {
 
   @Override
   protected PubFolderImpl newTarget() {
-    pubContainer.getMockFile(DartCore.PUBSPEC_FILE_NAME).setContents(
-        pubspecYamlString.replace("name: web_components", "name: myapp"));
-    return new PubFolderImpl(pubContainer, context, expectedSdk);
+    pubContainer.getMockFile(DartCore.PUBSPEC_FILE_NAME)
+        .setContents(pubspecYamlString.replace("name: web_components", "name: myapp"));
+    return new PubFolderImpl(
+        pubContainer,
+        context,
+        expectedSdk,
+        new PackageUriResolver(new File(pubContainer.toFile(), PACKAGES_DIRECTORY_NAME)));
   }
 
   @Override

@@ -1,11 +1,11 @@
 /*
  * Copyright (c) 2012, the Dart project authors.
- * 
+ *
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -30,15 +30,24 @@ import java.util.Map;
 
 public class ExplicitPackageUriResolverTest extends TestCase {
 
-  static class MockExplicitPackageUriResolver extends ExplicitPackageUriResolver {
+  public static class MockExplicitPackageUriResolver extends ExplicitPackageUriResolver {
+
+    String jsonText = "{\"foo\":\"bar\"}";
+
     public MockExplicitPackageUriResolver(File rootDir) {
       super(null, rootDir);
     }
 
+    public MockExplicitPackageUriResolver(File rootDir, String jsonPackageList) {
+      super(null, rootDir);
+      if (!jsonPackageList.isEmpty()) {
+        jsonText = jsonPackageList;
+        packageMap = calculatePackageMap();
+      }
+    }
+
     @Override
     protected Map<String, List<File>> calculatePackageMap() {
-      final String jsonText = "{\"foo\":\"bar\"}";
-
       try {
         return parsePackageMap(jsonText);
       } catch (JSONException e) {
@@ -80,6 +89,18 @@ public class ExplicitPackageUriResolverTest extends TestCase {
     UriResolver resolver = new MockExplicitPackageUriResolver(directory);
     Source result = resolver.resolveAbsolute(contentCache, new URI("dart:core"));
     assertNull(result);
+  }
+
+  public void test_resolve_resolvePathToPackage() throws Exception {
+    File directory = createFile("/does/not/exist/foo_project");
+    String packages = "{\"packages\":{\"unittest\": [\"/dart/unittest/lib\"],"
+        + "\"foo.bar.baz\": [\"/src/foo/bar/baz/lib\", \"/gen/foo/bar/baz\"]}}";
+    ExplicitPackageUriResolver resolver = new MockExplicitPackageUriResolver(directory, packages);
+    String resolvedPath = resolver.resolvePathToPackage("baz/lib");
+    assertNotNull(resolvedPath);
+    assertEquals("foo.bar.baz", resolvedPath);
+    resolvedPath = resolver.resolvePathToPackage("dart/mypackage");
+    assertNull(resolvedPath);
   }
 
   @Override

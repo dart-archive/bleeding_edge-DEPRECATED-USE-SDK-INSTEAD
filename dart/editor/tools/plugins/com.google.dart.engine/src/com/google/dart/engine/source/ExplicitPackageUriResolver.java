@@ -1,11 +1,11 @@
 /*
  * Copyright (c) 2013, the Dart project authors.
- * 
+ *
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -14,6 +14,7 @@
 
 package com.google.dart.engine.source;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
 import com.google.dart.engine.utilities.io.ProcessRunner;
@@ -35,18 +36,18 @@ import java.util.Map;
  * An explicit package: resolver. This UriResolver shells out to pub, calling it's list-package-dirs
  * command. It parses the resulting json map, which maps symbolic package references to their
  * concrete locations on disk.
- * 
+ *
  * <pre>
- * {
- *   "packages": {
- *     "foo": "path/to/foo",
- *     "bar": "path/to/bar"
- *   },
- *   "input_files": [
- *     ...
- *   ]
- * },
- * </pre>
+ *{
+ *"packages": {
+ *"foo": "path/to/foo",
+ *"bar": "path/to/bar"
+ *},
+ *"input_files": [
+ *...
+ *]
+ *},
+ *</pre>
  */
 public class ExplicitPackageUriResolver extends UriResolver {
   /**
@@ -58,7 +59,7 @@ public class ExplicitPackageUriResolver extends UriResolver {
 
   /**
    * Return {@code true} if the given URI is a {@code package} URI.
-   * 
+   *
    * @param uri the URI being tested
    * @return {@code true} if the given URI is a {@code package} URI
    */
@@ -68,14 +69,15 @@ public class ExplicitPackageUriResolver extends UriResolver {
 
   private File rootDir;
   private DirectoryBasedDartSdk sdk;
-  private Map<String, List<File>> packageMap;
+  @VisibleForTesting
+  protected Map<String, List<File>> packageMap;
 
   // TODO: For now, this takes a DirectoryBasedDartSdk. We may want to abstract this out into
   // something that can return a package map.
 
   /**
    * Create a new ExplicitPackageUriResolver.
-   * 
+   *
    * @param sdk the sdk; this is used to locate the pub command to run
    * @param rootDir the directory for which we'll be resolving package information
    */
@@ -149,9 +151,27 @@ public class ExplicitPackageUriResolver extends UriResolver {
     String fullPackagePath = pkgName + "/" + relPath;
 
     return new FileBasedSource( //
-        contentCache,
-        new File(rootDir, fullPackagePath.replace('/', File.separatorChar)),
-        UriKind.PACKAGE_URI);
+        contentCache, new File(rootDir, fullPackagePath.replace('/', File.separatorChar)), UriKind.PACKAGE_URI);
+  }
+
+  public String resolvePathToPackage(String path) {
+    if (packageMap == null) {
+      return null;
+    }
+
+    for (String key : packageMap.keySet()) {
+      List<File> files = packageMap.get(key);
+      for (File file : files) {
+        try {
+          if (file.getCanonicalPath().endsWith(path)) {
+            return key;
+          }
+        } catch (IOException e) {
+
+        }
+      }
+    }
+    return null;
   }
 
   @Override
@@ -196,13 +216,11 @@ public class ExplicitPackageUriResolver extends UriResolver {
             "pub " + PUB_LIST_COMMAND + " failed: exit code " + runner.getExitCode());
       }
     } catch (IOException ioe) {
-      AnalysisEngine.getInstance().getLogger().logInformation(
-          "error running pub " + PUB_LIST_COMMAND,
-          ioe);
+      AnalysisEngine.getInstance()
+          .getLogger().logInformation("error running pub " + PUB_LIST_COMMAND, ioe);
     } catch (JSONException e) {
-      AnalysisEngine.getInstance().getLogger().logError(
-          "malformed json from pub " + PUB_LIST_COMMAND,
-          e);
+      AnalysisEngine.getInstance()
+          .getLogger().logError("malformed json from pub " + PUB_LIST_COMMAND, e);
     }
 
     return new HashMap<String, List<File>>();

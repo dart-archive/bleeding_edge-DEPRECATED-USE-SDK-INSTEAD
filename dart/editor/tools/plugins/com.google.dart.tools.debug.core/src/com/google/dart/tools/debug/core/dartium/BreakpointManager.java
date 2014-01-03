@@ -1,11 +1,11 @@
 /*
  * Copyright (c) 2012, the Dart project authors.
- * 
+ *
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -14,6 +14,7 @@
 
 package com.google.dart.tools.debug.core.dartium;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.breakpoints.DartBreakpoint;
@@ -28,6 +29,7 @@ import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarkerDelta;
 import org.eclipse.core.resources.IWorkspaceRoot;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.IBreakpointListener;
 import org.eclipse.debug.core.model.IBreakpoint;
@@ -41,14 +43,16 @@ import java.util.Map;
 /**
  * Handle adding a removing breakpoints to the WebKit connection for the DartiumDebugTarget class.
  */
-class BreakpointManager implements IBreakpointListener {
+public class BreakpointManager implements IBreakpointListener {
   private static String PACKAGES_DIRECTORY_PATH = "/packages/";
   private static String LIB_DIRECTORY_PATH = "/lib/";
 
   private DartiumDebugTarget debugTarget;
 
-  private Map<IBreakpoint, List<String>> breakpointToIdMap = new HashMap<IBreakpoint, List<String>>();
-  private Map<String, DartBreakpoint> breakpointsToUpdateMap = new HashMap<String, DartBreakpoint>();
+  private Map<IBreakpoint, List<String>>
+      breakpointToIdMap = new HashMap<IBreakpoint, List<String>>();
+  private Map<String, DartBreakpoint>
+      breakpointsToUpdateMap = new HashMap<String, DartBreakpoint>();
 
   private List<IBreakpoint> ignoredBreakpoints = new ArrayList<IBreakpoint>();
 
@@ -106,8 +110,8 @@ class BreakpointManager implements IBreakpointListener {
   }
 
   public void connect() throws IOException {
-    IBreakpoint[] breakpoints = DebugPlugin.getDefault().getBreakpointManager().getBreakpoints(
-        DartDebugCorePlugin.DEBUG_MODEL_ID);
+    IBreakpoint[] breakpoints = DebugPlugin.getDefault()
+        .getBreakpointManager().getBreakpoints(DartDebugCorePlugin.DEBUG_MODEL_ID);
 
     for (IBreakpoint breakpoint : breakpoints) {
       if (debugTarget.supportsBreakpoint(breakpoint)) {
@@ -142,11 +146,11 @@ class BreakpointManager implements IBreakpointListener {
   }
 
   public DartBreakpoint getBreakpointFor(WebkitLocation location) {
-    IBreakpoint[] breakpoints = DebugPlugin.getDefault().getBreakpointManager().getBreakpoints(
-        DartDebugCorePlugin.DEBUG_MODEL_ID);
+    IBreakpoint[] breakpoints = DebugPlugin.getDefault()
+        .getBreakpointManager().getBreakpoints(DartDebugCorePlugin.DEBUG_MODEL_ID);
 
-    WebkitScript script = debugTarget.getWebkitConnection().getDebugger().getScript(
-        location.getScriptId());
+    WebkitScript script = debugTarget.getWebkitConnection()
+        .getDebugger().getScript(location.getScriptId());
 
     if (script == null) {
       return null;
@@ -172,6 +176,32 @@ class BreakpointManager implements IBreakpointListener {
     return null;
   }
 
+  @VisibleForTesting
+  public String getPackagePath(String regex, IFile resource) {
+    Path path = new Path(regex);
+    int i = 0;
+    if (regex.indexOf(LIB_DIRECTORY_PATH) != -1) {
+      // remove all segments after "lib", they show path in the package
+      while (i < path.segmentCount() && !path.segment(i).equals("lib")) {
+        i++;
+      }
+    } else {
+      i = 1;
+    }
+    String filePath = new Path(regex).removeLastSegments(path.segmentCount() - (i + 1)).toString();
+
+    String packagePath = resolvePathToPackage(resource, filePath);
+    if (packagePath != null) {
+      packagePath += "/" + path.removeFirstSegments(i + 1);
+    }
+    return packagePath;
+  }
+
+  @VisibleForTesting
+  protected String resolvePathToPackage(IFile resource, String filePath) {
+    return DartCore.getProjectManager().resolvePathToPackage(resource, filePath);
+  }
+
   void addToBreakpointMap(IBreakpoint breakpoint, String id, boolean trackChanges) {
     synchronized (breakpointToIdMap) {
       if (breakpointToIdMap.get(breakpoint) == null) {
@@ -190,7 +220,8 @@ class BreakpointManager implements IBreakpointListener {
     DartBreakpoint breakpoint = breakpointsToUpdateMap.get(webkitBreakpoint.getBreakpointId());
 
     if (breakpoint != null) {
-      int eclipseLine = WebkitLocation.webkitToElipseLine(webkitBreakpoint.getLocation().getLineNumber());
+      int eclipseLine = WebkitLocation.webkitToElipseLine(
+          webkitBreakpoint.getLocation().getLineNumber());
 
       if (breakpoint.getLine() != eclipseLine) {
         ignoredBreakpoints.add(breakpoint);
@@ -234,12 +265,8 @@ class BreakpointManager implements IBreakpointListener {
           String packageRegex = packageName + "/"
               + regex.substring(libIndex + LIB_DIRECTORY_PATH.length());
 
-          debugTarget.getWebkitConnection().getDebugger().setBreakpointByUrl(
-              null,
-              packageRegex,
-              line,
-              -1,
-              new WebkitCallback<String>() {
+          debugTarget.getWebkitConnection().getDebugger()
+              .setBreakpointByUrl(null, packageRegex, line, -1, new WebkitCallback<String>() {
                 @Override
                 public void handleResult(WebkitResult<String> result) {
                   if (!result.isError()) {
@@ -250,12 +277,15 @@ class BreakpointManager implements IBreakpointListener {
         }
       }
 
-      debugTarget.getWebkitConnection().getDebugger().setBreakpointByUrl(
-          null,
-          regex,
-          line,
-          -1,
-          new WebkitCallback<String>() {
+      // check if it is a file in a package, if so replace regex with package uri path
+      // TODO(keertip): revisit when moved to calling pub for package info
+      String packagePath = getPackagePath(regex, breakpoint.getFile());
+      if (packagePath != null) {
+        regex = packagePath;
+      }
+
+      debugTarget.getWebkitConnection()
+          .getDebugger().setBreakpointByUrl(null, regex, line, -1, new WebkitCallback<String>() {
             @Override
             public void handleResult(WebkitResult<String> result) {
               if (!result.isError()) {
@@ -278,9 +308,9 @@ class BreakpointManager implements IBreakpointListener {
 
           if (mappedRegex != null) {
             if (DartDebugCorePlugin.LOGGING) {
-              System.out.println("breakpoint [" + regex + "," + breakpoint.getLine()
-                  + ",-1] ==> mapped to [" + mappedRegex + "," + location.getLine() + ","
-                  + location.getColumn() + "]");
+              System.out.println(
+                  "breakpoint [" + regex + "," + breakpoint.getLine() + ",-1] ==> mapped to ["
+                      + mappedRegex + "," + location.getLine() + "," + location.getColumn() + "]");
             }
 
             debugTarget.getWebkitConnection().getDebugger().setBreakpointByUrl(

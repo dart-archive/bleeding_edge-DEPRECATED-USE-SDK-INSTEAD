@@ -1,11 +1,11 @@
 /*
  * Copyright (c) 2012, the Dart project authors.
- * 
+ *
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -82,8 +82,8 @@ public class ProjectImplTest extends ContextManagerImplTest {
   private Index index;
 
   public void assertUriResolvedToPackageRoot(Project project, IPath expectedPackageRoot) {
-    IPath expected = expectedPackageRoot != null ? expectedPackageRoot.append("foo").append(
-        "foo.dart") : null;
+    IPath expected = expectedPackageRoot != null ? expectedPackageRoot.append("foo")
+        .append("foo.dart") : null;
 
     SourceFactory factory = project.getDefaultContext().getSourceFactory();
     Source source = factory.forUri("package:foo/foo.dart");
@@ -213,8 +213,8 @@ public class ProjectImplTest extends ContextManagerImplTest {
   public void test_getMultiplePackageRoots_project() throws Exception {
     CmdLineOptions options = CmdLineOptions.parseCmdLine(new String[] {});
     final IEclipsePreferences prefs = mock(IEclipsePreferences.class);
-    when(prefs.get(DartCore.PROJECT_PREF_PACKAGE_ROOT, "")).thenReturn(
-        "bar" + File.pathSeparator + "foo");
+    when(prefs.get(DartCore.PROJECT_PREF_PACKAGE_ROOT, ""))
+        .thenReturn("bar" + File.pathSeparator + "foo");
     final DartCore core = mock(DartCore.class);
     when(core.getProjectPreferences(projectContainer)).thenReturn(prefs);
 
@@ -235,8 +235,8 @@ public class ProjectImplTest extends ContextManagerImplTest {
   }
 
   public void test_getPackageRoots_global() throws Exception {
-    CmdLineOptions options = CmdLineOptions.parseCmdLine(new String[] {
-        "--package-root", "foo", "bar"});
+    CmdLineOptions options = CmdLineOptions.parseCmdLine(
+        new String[] {"--package-root", "foo", "bar"});
     DartCore core = DartCore.getPlugin();
 
     File[] roots = ProjectImpl.getPackageRoots(core, options, projectContainer);
@@ -544,6 +544,12 @@ public class ProjectImplTest extends ContextManagerImplTest {
 
     assertEquals(0, project.getPubFolders().length);
     assertUriResolvedToPackageRoot(project, new Path(packageRoots[0].getPath()));
+  }
+
+  public void test_resolvePathToPackage() {
+    ProjectImpl project = newTarget();
+    //TODO(keertip): implement project with ExplicitUriResolver and package map
+    // use that to verify path to package
   }
 
   public void test_resolveUriTofileInfoFile() throws IOException {
