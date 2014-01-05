@@ -14,6 +14,7 @@
 package com.google.dart.tools.ui.actions;
 
 import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.FieldFormalParameter;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.FieldFormalParameterElement;
@@ -76,7 +77,14 @@ public class OpenAction extends AbstractDartSelectionAction {
   @Override
   protected void doRun(DartSelection selection, Event event,
       UIInstrumentationBuilder instrumentation) {
+    ASTNode node = getSelectionNode(selection);
     Element element = getSelectionElement(selection);
+    // if are on get FieldFormalParameter, open field instead
+    if (node.getParent() instanceof FieldFormalParameter
+        && element instanceof FieldFormalParameterElement) {
+      element = ((FieldFormalParameterElement) element).getField();
+    }
+    // do open Element
     openElement(element);
   }
 
@@ -104,10 +112,6 @@ public class OpenAction extends AbstractDartSelectionAction {
       }
       getShell().getDisplay().beep();
       return;
-    }
-    // if we get FieldFormalParameterElement, we are already on it, open field instead
-    if (element instanceof FieldFormalParameterElement) {
-      element = ((FieldFormalParameterElement) element).getField();
     }
     // do open
     try {

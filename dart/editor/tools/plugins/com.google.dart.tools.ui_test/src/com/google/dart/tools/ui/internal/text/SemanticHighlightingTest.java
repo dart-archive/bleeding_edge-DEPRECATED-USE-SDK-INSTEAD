@@ -55,10 +55,15 @@ public class SemanticHighlightingTest extends
     preparePositions(
         "// filler filler filler filler filler filler filler filler filler filler",
         "const myAnnotation = 0;",
+        "class MyAnno { const MyAnno(p); }",
         "@myAnnotation // marker",
-        "var topLevelVar;",
+        "var topA;",
+        "@MyAnno(42) // marker",
+        "var topB;",
         "");
-    assertHasWordPosition(SemanticHighlightings.ANNOTATION, "myAnnotation // marker");
+    assertHasWordPosition(SemanticHighlightings.ANNOTATION, "@myAnnotation // marker");
+    assertHasWordPosition(SemanticHighlightings.ANNOTATION, "@MyAnno(");
+    assertHasWordPosition(SemanticHighlightings.ANNOTATION, ") // marker");
   }
 
   public void test_builtIn_abstract_class() throws Exception {

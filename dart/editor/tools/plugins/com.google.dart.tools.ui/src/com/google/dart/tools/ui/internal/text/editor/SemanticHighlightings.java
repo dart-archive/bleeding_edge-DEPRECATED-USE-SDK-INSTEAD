@@ -16,6 +16,7 @@ package com.google.dart.tools.ui.internal.text.editor;
 import com.google.common.collect.Lists;
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.Annotation;
+import com.google.dart.engine.ast.ArgumentList;
 import com.google.dart.engine.ast.AsExpression;
 import com.google.dart.engine.ast.CatchClause;
 import com.google.dart.engine.ast.ClassDeclaration;
@@ -24,6 +25,7 @@ import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.DoubleLiteral;
 import com.google.dart.engine.ast.ExportDirective;
 import com.google.dart.engine.ast.FieldDeclaration;
+import com.google.dart.engine.ast.FieldFormalParameter;
 import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.ImplementsClause;
 import com.google.dart.engine.ast.ImportDirective;
@@ -64,6 +66,7 @@ import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.PreferenceConstants;
 import com.google.dart.tools.ui.text.IDartColorConstants;
 
+import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeNode;
 import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeStartEnd;
 import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeToken;
 
@@ -86,28 +89,21 @@ public class SemanticHighlightings {
    */
   private static class AnnotationHighlighting extends DefaultSemanticHighlighting {
     @Override
-    public boolean consumes(SemanticToken token) {
+    public List<SourceRange> consumesMulti(SemanticToken token) {
       ASTNode node = token.getNode();
-      // annotation itself
       if (node instanceof Annotation) {
-        return true;
-      }
-      // 'Type' or 'Type.name'
-      ASTNode parent = node.getParent();
-      if (parent instanceof Annotation) {
-        Annotation annotation = (Annotation) parent;
-        return annotation.getName() == node;
-      }
-      // 'name' part of 'Type.name'
-      if (parent instanceof PrefixedIdentifier) {
-        ASTNode parent2 = parent.getParent();
-        if (parent2 instanceof Annotation) {
-          Annotation annotation = (Annotation) parent2;
-          return annotation.getName() == parent;
+        Annotation annotation = (Annotation) node;
+        List<SourceRange> positions = Lists.newArrayList();
+        ArgumentList arguments = annotation.getArguments();
+        if (arguments != null) {
+          positions.add(rangeStartEnd(annotation, arguments.getBeginToken()));
+          positions.add(rangeToken(arguments.getRightParenthesis()));
+        } else {
+          positions.add(rangeNode(annotation));
         }
+        return positions;
       }
-      // not an annotation
-      return false;
+      return null;
     }
 
     @Override
@@ -332,6 +328,14 @@ public class SemanticHighlightings {
           return false;
         }
       }
+      // ignore if in Annotation
+      if (node.getParent() instanceof Annotation) {
+        return false;
+      }
+      if (node.getParent() instanceof PrefixedIdentifier
+          && node.getParent().getParent() instanceof Annotation) {
+        return false;
+      }
       // highlight type name in declaration and use
       if (node.getStaticElement() instanceof ClassElement) {
         return true;
@@ -407,6 +411,13 @@ public class SemanticHighlightings {
     @Override
     public boolean isUnderlineByDefault() {
       return false;
+    }
+
+    protected List<SourceRange> addPosition(List<SourceRange> positions, ASTNode node) {
+      if (node != null) {
+        return addPosition(positions, rangeNode(node));
+      }
+      return positions;
     }
 
     protected List<SourceRange> addPosition(List<SourceRange> positions, SourceRange range) {
@@ -606,7 +617,8 @@ public class SemanticHighlightings {
     public boolean consumesIdentifier(SemanticToken token) {
       SimpleIdentifier node = token.getNodeIdentifier();
       Element element = node.getBestElement();
-      if (element instanceof FieldFormalParameterElement) {
+      if (node.getParent() instanceof FieldFormalParameter
+          && element instanceof FieldFormalParameterElement) {
         element = ((FieldFormalParameterElement) element).getField();
       }
       return element instanceof PropertyInducingElement
