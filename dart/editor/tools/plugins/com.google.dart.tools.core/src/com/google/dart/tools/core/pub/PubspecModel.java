@@ -51,14 +51,14 @@ public class PubspecModel {
 
     List<String> fieldNames = Arrays.asList(
         "name",
+        "version",
         "author",
         "authors",
-        "version",
-        "homepage",
-        "sdk",
         "description",
-        "documentation",
+        "homepage",
         "environment",
+        "sdk",
+        "documentation",
         "dependencies",
         "dev_dependencies",
         "dependency_overrides",
@@ -486,7 +486,7 @@ public class PubspecModel {
           }
         }
       }
-yamlMap.remove(PubspecConstants.DEPENDENCIES);
+      yamlMap.remove(PubspecConstants.DEPENDENCIES);
       if (!dependenciesMap.isEmpty()) {
         yamlMap.put(PubspecConstants.DEPENDENCIES, new TreeMap<String, Object>(dependenciesMap));
       }
