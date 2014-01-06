@@ -407,6 +407,19 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
     }
   }
 
+  private static String getWhitespaceRight(IDocument document, int index)
+      throws BadLocationException {
+    StringBuffer result = new StringBuffer();
+    while (true) {
+      char c = document.getChar(index++);
+      if (!Character.isWhitespace(c)) {
+        break;
+      }
+      result.append(c);
+    }
+    return result.toString();
+  }
+
   /**
    * Installs a Dart partitioner with <code>document</code>.
    * 
@@ -604,6 +617,7 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
 
   private boolean fCloseBrace;
   private boolean fIsSmartMode;
+
   private boolean fIsSmartTab;
 
   private String fPartitioning;
@@ -725,6 +739,26 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
 
   private boolean closeBrace() {
     return fCloseBrace;
+  }
+
+  private String computeForcedCascadePrefix(DartIndenter indenter, IDocument document, int offset,
+      String newText) throws BadLocationException {
+    int currentLine = document.getLineOfOffset(offset);
+    if (currentLine > 0) {
+      IRegion prevLineRegion = document.getLineInformation(currentLine - 1);
+      String prevLine = document.get(prevLineRegion.getOffset(), prevLineRegion.getLength());
+      String prevLine2 = prevLine.trim();
+      String newText2 = newText.trim();
+      if (newText2.startsWith("..")) {
+        String prevIndent = getWhitespaceRight(document, prevLineRegion.getOffset());
+        if (prevLine2.startsWith("..")) {
+          return prevIndent;
+        }
+        return prevIndent + indenter.getBlockIndent();
+      }
+    }
+    // don't force
+    return null;
   }
 
   /**
@@ -1470,6 +1504,10 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
       IRegion refLine = document.getLineInformationOfOffset(refOffset);
       String prefix = document.get(refLine.getOffset(), newOffset - refLine.getOffset());
 
+      // I don't see a good solution for pasting cascades.
+      // For now, if we paste cascade after other cascade, just force the same indentation.
+      String forcedCascadePrefix = computeForcedCascadePrefix(indenter, document, offset, newText);
+
       // handle the indentation computation inside a temporary document
       Document temp = new Document(prefix + newText);
       DocumentRewriteSession session = temp.startRewriteSession(DocumentRewriteSessionType.STRICTLY_SEQUENTIAL);
@@ -1506,6 +1544,9 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
           continue;
         }
         StringBuffer correct = indenter.computeIndentation(lineOffset);
+        if (l == first && forcedCascadePrefix != null) {
+          correct = new StringBuffer(forcedCascadePrefix);
+        }
         if (correct == null) {
           return; // bail out
         }

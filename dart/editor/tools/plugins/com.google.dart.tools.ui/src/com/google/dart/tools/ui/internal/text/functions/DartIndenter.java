@@ -796,6 +796,15 @@ public class DartIndenter {
     return ref;
   }
 
+  public String getBlockIndent() {
+    extraIndent = 1;
+    try {
+      return createIndent(0, 0, false).toString();
+    } finally {
+      extraIndent = 0;
+    }
+  }
+
   /**
    * Computes the indentation at the reference point of <code>position</code>.
    * 

@@ -34,7 +34,8 @@ public class DartAutoIndentStrategyTest extends EngineTestCase {
   private static final String USE_SPACES = AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SPACES_FOR_TABS;
   private static final String TAB_CHAR = DefaultCodeFormatterConstants.FORMATTER_TAB_CHAR;
 
-  private static void assertSmartInsertAfterNewLine(String initial, String expected) {
+  private static void assert_customizeDocumentCommand(String initial, String newText,
+      String expected) {
     int initialOffset = initial.indexOf('!');
     int expectedOffset = expected.indexOf('!');
     assertTrue("No cursor position in initial: " + initial, initialOffset != -1);
@@ -58,7 +59,7 @@ public class DartAutoIndentStrategyTest extends EngineTestCase {
     command.caretOffset = -1;
     command.doit = true;
     command.offset = initialOffset;
-    command.text = EOL;
+    command.text = newText;
     strategy.customizeDocumentCommand(document, command);
     // update document
     ReflectionUtils.invokeMethod(command, "execute(org.eclipse.jface.text.IDocument)", document);
@@ -71,6 +72,15 @@ public class DartAutoIndentStrategyTest extends EngineTestCase {
       actualOffset = initialOffset + command.text.length();
     }
     assertThat(actualOffset).isEqualTo(expectedOffset);
+  }
+
+  private static void assertSmartInsertAfterNewLine(String initial, String expected) {
+    assert_customizeDocumentCommand(initial, EOL, expected);
+  }
+
+  private static void assertSmartPaste(String initial, String newText, String expected) {
+    assert_customizeDocumentCommand(initial, newText, expected);
+
   }
 
   public void test_afterConditional_withInvocation() throws Exception {
@@ -179,6 +189,40 @@ public class DartAutoIndentStrategyTest extends EngineTestCase {
         "  if (true) {",
         "    !print();",
         "  }",
+        "}"));
+  }
+
+  public void test_smartPaste_cascade_afterCascade() throws Exception {
+    assertSmartPaste(createSource(//
+        "main() {",
+        "  a",
+        "    ..b = 100",
+        "!    ..c()",
+        "    ..d();",
+        "}"), "..x()" + EOL, createSource(//
+        "main() {",
+        "  a",
+        "    ..b = 100",
+        "    ..x()",
+        "!    ..c()",
+        "    ..d();",
+        "}"));
+  }
+
+  public void test_smartPaste_cascade_afterTarget() throws Exception {
+    assertSmartPaste(createSource(//
+        "main() {",
+        "  a",
+        "!    ..b = 100",
+        "    ..c()",
+        "    ..d();",
+        "}"), "..x()" + EOL, createSource(//
+        "main() {",
+        "  a",
+        "    ..x()",
+        "!    ..b = 100",
+        "    ..c()",
+        "    ..d();",
         "}"));
   }
 
