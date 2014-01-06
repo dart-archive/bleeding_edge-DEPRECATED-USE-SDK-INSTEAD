@@ -1,0 +1,15 @@
+#!/bin/bash
+
+export TESTDIR=~/Desktop/dart
+
+cd ~/dart
+rm -rf io-2013-dart-codelab
+rm -rf sample
+rm -rf todomvc sunflower pop-pop-win angular_todo
+tar xfz io-2013-dart-codelab.tar.gz
+cd ..
+rm -rf .dartEditor
+rm -rf .pub-cache
+
+$TESTDIR/DartEditor &
+
