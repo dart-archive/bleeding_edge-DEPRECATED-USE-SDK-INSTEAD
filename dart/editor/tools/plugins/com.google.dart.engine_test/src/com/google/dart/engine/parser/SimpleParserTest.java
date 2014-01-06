@@ -1660,6 +1660,15 @@ public class SimpleParserTest extends ParserTestCase {
     assertSize(0, declaration.getMembers());
   }
 
+  public void test_parseCompilationUnitMember_classTypeAlias() throws Exception {
+    ClassTypeAlias alias = parse(
+        "parseCompilationUnitMember",
+        new Object[] {emptyCommentAndMetadata()},
+        "abstract class A = B with C;");
+    assertEquals("A", alias.getName().getName());
+    assertNotNull(alias.getAbstractKeyword());
+  }
+
   public void test_parseCompilationUnitMember_constVariable() throws Exception {
     TopLevelVariableDeclaration declaration = parse(
         "parseCompilationUnitMember",
@@ -1798,6 +1807,7 @@ public class SimpleParserTest extends ParserTestCase {
         "void set p(int v) {}");
     assertNotNull(declaration.getFunctionExpression());
     assertNotNull(declaration.getPropertyKeyword());
+    assertNotNull(declaration.getReturnType());
   }
 
   public void test_parseCompilationUnitMember_typeAlias_abstract() throws Exception {

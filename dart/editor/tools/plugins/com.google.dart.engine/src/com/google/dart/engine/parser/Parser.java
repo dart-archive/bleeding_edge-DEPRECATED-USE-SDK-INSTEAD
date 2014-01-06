@@ -2981,7 +2981,10 @@ public class Parser {
       TypeName returnType = parseReturnType();
       if ((matches(Keyword.GET) || matches(Keyword.SET)) && matchesIdentifier(peek())) {
         validateModifiersForTopLevelFunction(modifiers);
-        return parseFunctionDeclaration(commentAndMetadata, modifiers.getExternalKeyword(), null);
+        return parseFunctionDeclaration(
+            commentAndMetadata,
+            modifiers.getExternalKeyword(),
+            returnType);
       } else if (matches(Keyword.OPERATOR) && isOperator(peek())) {
         reportError(ParserErrorCode.TOP_LEVEL_OPERATOR, currentToken);
         return convertToFunctionDeclaration(parseOperator(
