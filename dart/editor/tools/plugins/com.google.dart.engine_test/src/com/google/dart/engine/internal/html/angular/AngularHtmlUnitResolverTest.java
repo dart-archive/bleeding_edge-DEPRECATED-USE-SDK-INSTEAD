@@ -93,16 +93,9 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
 
   public void test_ngModel_modelAfterUsage() throws Exception {
     addMyController();
-    resolveIndex(//
-        "<html ng-app>",
-        "  <body>",
-        "    <div my-marker>",
-        "      <h3>Hello {{name}}!</h3>",
-        "      <input type='text' ng-model='name'>",
-        "    </div>",
-        "    <script type='application/dart' src='main.dart'></script>",
-        "  </body>",
-        "</html>");
+    resolveIndex(createHtmlWithMyController(//
+        "<h3>Hello {{name}}!</h3>",
+        "<input type='text' ng-model='name'>"));
     assertNoErrors();
     verify(indexSource);
     assertResolvedIdentifier("name}}!", "String");
@@ -111,16 +104,9 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
 
   public void test_ngModel_modelBeforeUsage() throws Exception {
     addMyController();
-    resolveIndex(//
-        "<html ng-app>",
-        "  <body>",
-        "    <div my-marker>",
-        "      <input type='text' ng-model='name'>",
-        "      <h3>Hello {{name}}!</h3>",
-        "    </div>",
-        "    <script type='application/dart' src='main.dart'></script>",
-        "  </body>",
-        "</html>");
+    resolveIndex(createHtmlWithMyController(//
+        "<input type='text' ng-model='name'>",
+        "<h3>Hello {{name}}!</h3>"));
     assertNoErrors();
     verify(indexSource);
     assertResolvedIdentifier("name}}!", "String");
@@ -131,15 +117,7 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
 
   public void test_ngModel_notIdentifier() throws Exception {
     addMyController();
-    resolveIndex(//
-        "<html ng-app>",
-        "  <body>",
-        "    <div my-marker>",
-        "      <input type='text' ng-model='ctrl.field'>",
-        "    </div>",
-        "    <script type='application/dart' src='main.dart'></script>",
-        "  </body>",
-        "</html>");
+    resolveIndex(createHtmlWithMyController("<input type='text' ng-model='ctrl.field'>"));
     assertNoErrors();
     verify(indexSource);
     assertResolvedIdentifier("field'>", "String");
@@ -147,47 +125,26 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
 
   public void test_ngRepeat_bad_expectedIdentifier() throws Exception {
     addMyController();
-    resolveIndex(//
-        "<html ng-app>",
-        "  <body>",
-        "    <div my-marker>",
-        "      <li ng-repeat='name + 42 in ctrl.names'>",
-        "      </li>",
-        "    </div>",
-        "    <script type='application/dart' src='main.dart'></script>",
-        "  </body>",
-        "</html>");
+    resolveIndex(createHtmlWithMyController(//
+        "<li ng-repeat='name + 42 in ctrl.names'>",
+        "</li>"));
     assertErrors(indexSource, AngularCode.EXPECTED_IDENTIFIER);
   }
 
   public void test_ngRepeat_bad_expectedIn() throws Exception {
     addMyController();
-    resolveIndex(//
-        "<html ng-app>",
-        "  <body>",
-        "    <div my-marker>",
-        "      <li ng-repeat='name : ctrl.names'>",
-        "      </li>",
-        "    </div>",
-        "    <script type='application/dart' src='main.dart'></script>",
-        "  </body>",
-        "</html>");
+    resolveIndex(createHtmlWithMyController(//
+        "<li ng-repeat='name : ctrl.names'>",
+        "</li>"));
     assertErrors(indexSource, AngularCode.EXPECTED_IN);
   }
 
   public void test_ngRepeat_resolvedExpressions() throws Exception {
     addMyController();
-    resolveIndex(//
-        "<html ng-app>",
-        "  <body>",
-        "    <div my-marker>",
-        "      <li ng-repeat='name in ctrl.names'>",
-        "        {{name}}",
-        "      </li>",
-        "    </div>",
-        "    <script type='application/dart' src='main.dart'></script>",
-        "  </body>",
-        "</html>");
+    resolveIndex(createHtmlWithMyController(//
+        "<li ng-repeat='name in ctrl.names'>",
+        "  {{name}}",
+        "</li>"));
     assertNoErrors();
     verify(indexSource);
     assertResolvedIdentifier("name in", "String");
@@ -262,15 +219,7 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
 
   public void test_resolveExpression_inAttribute() throws Exception {
     addMyController();
-    resolveIndex(//
-        "<html ng-app>",
-        "  <body>",
-        "    <div my-marker>",
-        "      <button title='{{ctrl.field}}'></button>",
-        "    </div>",
-        "    <script type='application/dart' src='main.dart'></script>",
-        "  </body>",
-        "</html>");
+    resolveIndex(createHtmlWithMyController("<button title='{{ctrl.field}}'></button>"));
     assertNoErrors();
     verify(indexSource);
     assertResolvedIdentifier("ctrl", "MyController");
@@ -278,15 +227,7 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
 
   public void test_resolveExpression_inTag() throws Exception {
     addMyController();
-    resolveIndex(//
-        "<html ng-app>",
-        "  <body>",
-        "    <div my-marker>",
-        "      {{ctrl.field}}",
-        "    </div>",
-        "    <script type='application/dart' src='main.dart'></script>",
-        "  </body>",
-        "</html>");
+    resolveIndex(createHtmlWithMyController("{{ctrl.field}}"));
     assertNoErrors();
     verify(indexSource);
     assertResolvedIdentifier("ctrl", "MyController");
@@ -297,7 +238,7 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
     resolveIndex(//
         "<html>",
         "  <body ng-app>",
-        "    <div my-marker>",
+        "    <div my-controller>",
         "      {{ctrl.field}}",
         "    </div>",
         "    <script type='application/dart' src='main.dart'></script>",

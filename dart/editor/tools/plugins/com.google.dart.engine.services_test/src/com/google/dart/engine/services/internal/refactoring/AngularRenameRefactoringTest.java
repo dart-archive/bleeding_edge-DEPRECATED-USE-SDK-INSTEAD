@@ -44,30 +44,18 @@ public class AngularRenameRefactoringTest extends AngularTest {
 
   public void test_dart_renameField_updateHtml() throws Exception {
     addMyController();
-    resolveIndex(//
-        "<html>",
-        "  <body ng-app>",
-        "    <div my-marker>",
-        "      <button title='{{ctrl.field}}'> {{ctrl.field}} </button>",
-        "    </div>",
-        "    <script type='application/dart' src='main.dart'></script>",
-        "  </body>",
-        "</html>");
+    resolveIndex(createHtmlWithMyController(//
+        "<button title='{{ctrl.field}}'> {{ctrl.field}} </button>",
+        ""));
     indexUnit(mainUnit);
     indexUnit(indexUnit);
     // prepare refactoring
     Element field = findMainElement("field");
     prepareRenameChange(field, "newName");
     // check results
-    assertIndexChangeResult(//
-        "<html>",
-        "  <body ng-app>",
-        "    <div my-marker>",
-        "      <button title='{{ctrl.newName}}'> {{ctrl.newName}} </button>",
-        "    </div>",
-        "    <script type='application/dart' src='main.dart'></script>",
-        "  </body>",
-        "</html>");
+    assertIndexChangeResult(createHtmlWithMyController(//
+        "<button title='{{ctrl.newName}}'> {{ctrl.newName}} </button>",
+        ""));
   }
 
   @Override

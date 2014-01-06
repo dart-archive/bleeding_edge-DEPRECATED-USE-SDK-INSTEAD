@@ -112,7 +112,7 @@ public class AngularHtmlUnitUtilsTest extends AngularTest {
     resolveIndex(//
         "<html>",
         "  <body ng-app>",
-        "    <div my-marker>",
+        "    <div my-controller>",
         "      {{ctrl.field}}",
         "    </div>",
         "    <script type='application/dart' src='main.dart'></script>",

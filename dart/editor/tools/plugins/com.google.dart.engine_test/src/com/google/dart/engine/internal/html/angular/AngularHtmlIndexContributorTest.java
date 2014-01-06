@@ -33,15 +33,9 @@ public class AngularHtmlIndexContributorTest extends AngularTest {
 
   public void test_inAttribute() throws Exception {
     addMyController();
-    resolveIndex(//
-        "<html>",
-        "  <body ng-app>",
-        "    <div my-marker>",
-        "      <button title='{{ctrl.field}}'>Remove</button>",
-        "    </div>",
-        "    <script type='application/dart' src='main.dart'></script>",
-        "  </body>",
-        "</html>");
+    resolveIndex(createHtmlWithMyController(//
+        "  <button title='{{ctrl.field}}'>Remove</button>",
+        ""));
     // prepare elements
     Element fieldGetter = ((FieldElement) findMainElement("field")).getGetter();
     // index
@@ -57,15 +51,9 @@ public class AngularHtmlIndexContributorTest extends AngularTest {
 
   public void test_inContent() throws Exception {
     addMyController();
-    resolveIndex(//
-        "<html>",
-        "  <body ng-app>",
-        "    <div my-marker>",
+    resolveIndex(createHtmlWithMyController(//
         "      {{ctrl.field}}",
-        "    </div>",
-        "    <script type='application/dart' src='main.dart'></script>",
-        "  </body>",
-        "</html>");
+        ""));
     // prepare elements
     Element fieldGetter = ((FieldElement) findMainElement("field")).getGetter();
     // index
@@ -81,17 +69,11 @@ public class AngularHtmlIndexContributorTest extends AngularTest {
 
   public void test_ngRepeat() throws Exception {
     addMyController();
-    resolveIndex(//
-        "<html ng-app>",
-        "  <body>",
-        "    <div my-marker>",
-        "      <li ng-repeat='name in ctrl.names'>",
-        "        {{name}}",
-        "      </li>",
-        "    </div>",
-        "    <script type='application/dart' src='main.dart'></script>",
-        "  </body>",
-        "</html>");
+    resolveIndex(createHtmlWithMyController(//
+        "  <li ng-repeat='name in ctrl.names'>",
+        "    {{name}}",
+        "  </li>",
+        ""));
     // prepare elements
     Element namesElement = ((FieldElement) findMainElement("names")).getGetter();
     Element nameElement = findIndexElement("name");
