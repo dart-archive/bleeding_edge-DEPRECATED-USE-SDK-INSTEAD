@@ -56,6 +56,7 @@ import com.google.dart.engine.internal.element.ImportElementImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
 import com.google.dart.engine.internal.element.LocalVariableElementImpl;
 import com.google.dart.engine.internal.element.TopLevelVariableElementImpl;
+import com.google.dart.engine.internal.element.angular.HasAttributeSelector;
 import com.google.dart.engine.internal.resolver.InheritanceManager;
 import com.google.dart.engine.internal.resolver.ProxyConditionalAnalysisError;
 import com.google.dart.engine.internal.resolver.ResolverVisitor;
@@ -93,7 +94,7 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
   @VisibleForTesting
   public static AngularSelector createInjectSelector(String text) {
     if (text.startsWith("[") && text.endsWith("]")) {
-      return new AttributeInjectSelector(text.substring(1, text.length() - 1));
+      return new HasAttributeSelector(text.substring(1, text.length() - 1));
     }
     return null;
   }

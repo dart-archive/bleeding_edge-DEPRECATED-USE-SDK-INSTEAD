@@ -51,6 +51,40 @@ public final class StringUtilities {
   }
 
   /**
+   * <p>
+   * Checks if the CharSequence contains only Unicode letters.
+   * </p>
+   * <p>
+   * {@code null} will return {@code false}. An empty CharSequence (length()=0) will return
+   * {@code false}.
+   * </p>
+   * 
+   * <pre>
+   * StringUtils.isAlpha(null)   = false
+   * StringUtils.isAlpha("")     = false
+   * StringUtils.isAlpha("  ")   = false
+   * StringUtils.isAlpha("abc")  = true
+   * StringUtils.isAlpha("ab2c") = false
+   * StringUtils.isAlpha("ab-c") = false
+   * </pre>
+   * 
+   * @param cs the CharSequence to check, may be null
+   * @return {@code true} if only contains letters, and is non-null
+   */
+  public static boolean isAlpha(CharSequence cs) {
+    if (cs == null || cs.length() == 0) {
+      return false;
+    }
+    int sz = cs.length();
+    for (int i = 0; i < sz; i++) {
+      if (Character.isLetter(cs.charAt(i)) == false) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
    * Return {@code true} if the given CharSequence is empty ("") or null.
    * 
    * <pre>
@@ -66,6 +100,47 @@ public final class StringUtilities {
    */
   public static boolean isEmpty(CharSequence cs) {
     return cs == null || cs.length() == 0;
+  }
+
+  /**
+   * <p>
+   * Checks if the CharSequence can be used as a tag name.
+   * </p>
+   * <p>
+   * {@code null} will return {@code false}. An empty CharSequence (length()=0) will return
+   * {@code false}.
+   * </p>
+   * 
+   * <pre>
+   * StringUtils.isAlpha(null)   = false
+   * StringUtils.isAlpha("")     = false
+   * StringUtils.isAlpha("  ")   = false
+   * StringUtils.isAlpha("ab c") = false
+   * StringUtils.isAlpha("abc")  = true
+   * StringUtils.isAlpha("ab2c") = true
+   * StringUtils.isAlpha("ab-c") = true
+   * </pre>
+   * 
+   * @param cs the CharSequence to check, may be null
+   * @return {@code true} if can be used as a tag name, and is non-null
+   */
+  public static boolean isTagName(CharSequence cs) {
+    if (cs == null || cs.length() == 0) {
+      return false;
+    }
+    int sz = cs.length();
+    for (int i = 0; i < sz; i++) {
+      char c = cs.charAt(i);
+      if (!Character.isLetter(c)) {
+        if (i == 0) {
+          return false;
+        }
+        if (!Character.isDigit(c) && c != '-') {
+          return false;
+        }
+      }
+    }
+    return true;
   }
 
   /**

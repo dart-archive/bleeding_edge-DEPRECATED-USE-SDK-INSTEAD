@@ -25,11 +25,36 @@ public class StringUtilitiesTest extends TestCase {
     assertEquals(0, StringUtilities.EMPTY_ARRAY.length);
   }
 
+  public void test_isAlpha() throws Exception {
+    assertFalse(StringUtilities.isAlpha(null));
+    assertFalse(StringUtilities.isAlpha(""));
+    assertFalse(StringUtilities.isAlpha("-"));
+    assertFalse(StringUtilities.isAlpha("0"));
+    assertFalse(StringUtilities.isAlpha("0a"));
+    assertFalse(StringUtilities.isAlpha("a0"));
+    assertFalse(StringUtilities.isAlpha("a b"));
+    assertTrue(StringUtilities.isAlpha("a"));
+    assertTrue(StringUtilities.isAlpha("ab"));
+  }
+
   public void test_isEmpty() {
     assertTrue(StringUtilities.isEmpty(""));
     assertFalse(StringUtilities.isEmpty(" "));
     assertFalse(StringUtilities.isEmpty("a"));
     assertTrue(StringUtilities.isEmpty(StringUtilities.EMPTY));
+  }
+
+  public void test_isTagName() throws Exception {
+    assertFalse(StringUtilities.isTagName(null));
+    assertFalse(StringUtilities.isTagName(""));
+    assertFalse(StringUtilities.isTagName("-"));
+    assertFalse(StringUtilities.isTagName("0"));
+    assertFalse(StringUtilities.isTagName("0a"));
+    assertFalse(StringUtilities.isTagName("a b"));
+    assertTrue(StringUtilities.isTagName("a0"));
+    assertTrue(StringUtilities.isTagName("a"));
+    assertTrue(StringUtilities.isTagName("ab"));
+    assertTrue(StringUtilities.isTagName("a-b"));
   }
 
   public void test_substringBefore() {

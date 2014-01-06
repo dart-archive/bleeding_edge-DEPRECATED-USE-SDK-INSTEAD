@@ -23,6 +23,11 @@ import com.google.dart.engine.element.FieldElement;
  */
 public interface AngularPropertyElement extends AngularElement {
   /**
+   * An empty array of property elements.
+   */
+  AngularPropertyElement[] EMPTY_ARRAY = {};
+
+  /**
    * Returns the field this property is mapped to.
    * 
    * @return the field this property is mapped to.

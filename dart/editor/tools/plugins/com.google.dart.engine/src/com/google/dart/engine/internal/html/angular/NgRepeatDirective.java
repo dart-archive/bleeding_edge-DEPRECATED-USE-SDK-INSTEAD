@@ -27,6 +27,7 @@ import com.google.dart.engine.html.ast.XmlTagNode;
 import com.google.dart.engine.internal.builder.ElementBuilder;
 import com.google.dart.engine.internal.builder.ElementHolder;
 import com.google.dart.engine.internal.element.LocalVariableElementImpl;
+import com.google.dart.engine.internal.element.angular.HasAttributeSelector;
 import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.KeywordToken;
 import com.google.dart.engine.scanner.Token;
@@ -39,7 +40,7 @@ import java.util.ArrayList;
  */
 public class NgRepeatDirective extends NgDirective {
   private static final String NG_REPEAT = "ng-repeat";
-  private static final AngularSelector SELECTOR = new AttributeInjectSelector(NG_REPEAT);
+  private static final AngularSelector SELECTOR = new HasAttributeSelector(NG_REPEAT);
 
   public static final NgRepeatDirective INSTANCE = new NgRepeatDirective();
 
