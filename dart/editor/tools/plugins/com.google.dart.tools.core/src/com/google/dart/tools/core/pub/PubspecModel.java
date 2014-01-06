@@ -486,7 +486,7 @@ public class PubspecModel {
           }
         }
       }
-
+yamlMap.remove(PubspecConstants.DEPENDENCIES);
       if (!dependenciesMap.isEmpty()) {
         yamlMap.put(PubspecConstants.DEPENDENCIES, new TreeMap<String, Object>(dependenciesMap));
       }
