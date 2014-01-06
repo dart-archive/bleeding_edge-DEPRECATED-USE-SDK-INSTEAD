@@ -8,20 +8,20 @@ execfile(os.path.join(path, 'clank.deps', 'DEPS.chromium')) # Include proper Chr
 
 vars.update({
   "chromium_url": "http://src.chromium.org/svn",
-  "dartium_chromium_url": "http://src.chromium.org/chrome/branches/dart/1650/src",
-  "dartium_chromium_revision": "240209",
+  "dartium_chromium_url": "http://src.chromium.org/chrome/branches/dart/1700/src",
+  "dartium_chromium_revision": "243199",
   "clank_url": "https://chrome-internal.googlesource.com/clank/",
   # This revision number should be kept in sync with the version of clank that
   # uses a similar chromium revision to that mentioned just above in
   # "chromium_revision". You can check which might be a good revision at:
-  # https://chrome-internal.googlesource.com/clank/internal/apps/+log/1650
-  "clank_rev": "29a5033df398d9b922296a18954b15b29600aa9c",
+  # https://chrome-internal.googlesource.com/clank/internal/apps/+log/1700
+  "clank_rev": "cac52530dd50c8248438a4ddb9d876e9e5d62bca",
   "chrome_internal": "https://chrome-internal.googlesource.com/",
   # The Dart repository URL is pulled out here so that it can be easily
   # updated to "https" for committers.
   "dart_branch": "/branches/bleeding_edge",
-  "dartium_webkit_trunk": "http://src.chromium.org/blink/branches/dart/1650",
-  "dartium_webkit_revision": "164364",
+  "dartium_webkit_trunk": "http://src.chromium.org/blink/branches/dart/1700",
+  "dartium_webkit_revision": "164530",
   "bootstrap_css_rev" : "@28387",
 
   "co19_rev": "@672",
