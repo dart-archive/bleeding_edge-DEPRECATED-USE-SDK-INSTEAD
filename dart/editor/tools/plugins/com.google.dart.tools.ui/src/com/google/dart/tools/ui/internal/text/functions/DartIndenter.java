@@ -1085,6 +1085,16 @@ public class DartIndenter {
       case Symbols.TokenLBRACE:
         pos = fPosition; // store
 
+        // special: map literal {} in list literal or argument list
+        {
+          nextToken();
+          if (fToken == Symbols.TokenCOMMA) {
+            fIndent = fPrefs.prefBlockIndent;
+            return pos;
+          }
+          fPosition = pos;
+        }
+
         // special: array initializer
         if (looksLikeArrayInitializerIntro()) {
           if (fPrefs.prefArrayDeepIndent) {

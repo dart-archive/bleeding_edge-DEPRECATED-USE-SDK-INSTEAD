@@ -129,6 +129,21 @@ public class DartAutoIndentStrategyTest extends EngineTestCase {
         "}"));
   }
 
+  public void test_inMapLiteral_inList() throws Exception {
+    assertSmartInsertAfterNewLine(createSource(//
+        "main() {",
+        "  [{'A': 0,",
+        "           'B': 0},",
+        "   {'A': 1,! 'B': 1}];",
+        "}"), createSource(//
+        "main() {",
+        "  [{'A': 0,",
+        "           'B': 0},",
+        "   {'A': 1,",
+        "     !'B': 1}];",
+        "}"));
+  }
+
   public void test_smartIndentAfterNewLine_block_closed_betweenBraces() throws Exception {
     assertSmartInsertAfterNewLine(createSource(//
         "main() {",
