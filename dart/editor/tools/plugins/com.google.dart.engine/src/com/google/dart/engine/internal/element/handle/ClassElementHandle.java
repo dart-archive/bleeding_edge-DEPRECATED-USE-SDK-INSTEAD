@@ -61,6 +61,11 @@ public class ClassElementHandle extends ElementHandle implements ClassElement {
   }
 
   @Override
+  public FieldElement getField(String fieldName) {
+    return getActualElement().getField(fieldName);
+  }
+
+  @Override
   public FieldElement[] getFields() {
     return getActualElement().getFields();
   }

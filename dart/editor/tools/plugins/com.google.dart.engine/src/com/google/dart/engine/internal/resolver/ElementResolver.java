@@ -627,7 +627,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
   public Void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
     SimpleIdentifier fieldName = node.getFieldName();
     ClassElement enclosingClass = resolver.getEnclosingClass();
-    FieldElement fieldElement = ((ClassElementImpl) enclosingClass).getField(fieldName.getName());
+    FieldElement fieldElement = enclosingClass.getField(fieldName.getName());
     fieldName.setStaticElement(fieldElement);
     if (fieldElement == null || fieldElement.isSynthetic()) {
       resolver.reportError(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTANT_FIELD, node, fieldName);
@@ -704,7 +704,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     String fieldName = node.getIdentifier().getName();
     ClassElement classElement = resolver.getEnclosingClass();
     if (classElement != null) {
-      FieldElement fieldElement = ((ClassElementImpl) classElement).getField(fieldName);
+      FieldElement fieldElement = classElement.getField(fieldName);
       if (fieldElement == null) {
         resolver.reportError(
             CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTANT_FIELD,

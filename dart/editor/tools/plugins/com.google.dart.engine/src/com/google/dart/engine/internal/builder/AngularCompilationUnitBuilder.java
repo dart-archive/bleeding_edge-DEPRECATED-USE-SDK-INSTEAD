@@ -31,7 +31,6 @@ import com.google.dart.engine.ast.NamedExpression;
 import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.SimpleStringLiteral;
 import com.google.dart.engine.ast.VariableDeclaration;
-import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.FieldElement;
@@ -142,6 +141,11 @@ public class AngularCompilationUnitBuilder {
   private ClassDeclaration classDeclaration;
 
   /**
+   * The {@link ClassElementImpl} that is currently being analyzed.
+   */
+  private ClassElementImpl classElement;
+
+  /**
    * The {@link Annotation} that is currently being analyzed.
    */
   private Annotation annotation;
@@ -166,6 +170,7 @@ public class AngularCompilationUnitBuilder {
     for (CompilationUnitMember unitMember : unit.getDeclarations()) {
       if (unitMember instanceof ClassDeclaration) {
         this.classDeclaration = (ClassDeclaration) unitMember;
+        this.classElement = (ClassElementImpl) classDeclaration.getElement();
         NodeList<Annotation> annotations = classDeclaration.getMetadata();
         for (Annotation annotation : annotations) {
           this.annotation = annotation;
@@ -187,17 +192,6 @@ public class AngularCompilationUnitBuilder {
         }
       }
     }
-  }
-
-  // TODO(scheglov) add ClassElement.getField(name)
-  private FieldElement findField(String name) {
-    FieldElement[] fields = classDeclaration.getElement().getFields();
-    for (FieldElement field : fields) {
-      if (name.equals(field.getName())) {
-        return field;
-      }
-    }
-    return null;
   }
 
   /**
@@ -419,7 +413,7 @@ public class AngularCompilationUnitBuilder {
       String fieldName = spec.substring(fieldNameOffset);
       fieldNameOffset += specLiteral.getValueOffset();
       // prepare field
-      FieldElement field = findField(fieldName);
+      FieldElement field = classElement.getField(fieldName);
       if (field == null) {
         reportError(specLiteral, AngularCode.INVALID_PROPERTY_FIELD, fieldName);
         continue;
@@ -497,11 +491,9 @@ public class AngularCompilationUnitBuilder {
   }
 
   /**
-   * Set the given {@link ToolkitObjectElement} for {@link ClassElement} of
-   * {@link #classDeclaration}.
+   * Set the given {@link ToolkitObjectElement} for {@link #classElement}.
    */
   private void setToolkitElement(ToolkitObjectElement element) {
-    ClassElementImpl classElement = (ClassElementImpl) classDeclaration.getElement();
     classElement.setToolkitObjects(new ToolkitObjectElement[] {element});
   }
 }

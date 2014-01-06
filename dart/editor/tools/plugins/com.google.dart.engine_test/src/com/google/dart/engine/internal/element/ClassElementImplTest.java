@@ -82,6 +82,16 @@ public class ClassElementImplTest extends EngineTestCase {
     assertLength(1, supers);
   }
 
+  public void test_getField() {
+    ClassElementImpl classA = classElement("A");
+    String fieldName = "f";
+    FieldElementImpl field = fieldElement(fieldName, false, false, false, null);
+    classA.setFields(new FieldElement[] {field});
+    assertSame(field, classA.getField(fieldName));
+    // no such field
+    assertSame(null, classA.getField("noSuchField"));
+  }
+
   public void test_getMethod_declared() {
     ClassElementImpl classA = classElement("A");
     String methodName = "m";

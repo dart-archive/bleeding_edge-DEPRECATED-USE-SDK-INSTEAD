@@ -362,13 +362,11 @@ public class HierarchyUtilsTest extends RefactoringImplTest {
    */
   private FieldElement getFieldElement(String className, String fieldName) {
     ClassElement classElement = getClassElement(className);
-    for (FieldElement fieldElement : classElement.getFields()) {
-      if (fieldElement.getName().equals(fieldName)) {
-        return fieldElement;
-      }
+    FieldElement fieldElement = classElement.getField(fieldName);
+    if (fieldElement == null) {
+      fail("Not found: " + fieldName);
     }
-    fail("Not found: " + fieldName);
-    return null;
+    return fieldElement;
   }
 
   /**

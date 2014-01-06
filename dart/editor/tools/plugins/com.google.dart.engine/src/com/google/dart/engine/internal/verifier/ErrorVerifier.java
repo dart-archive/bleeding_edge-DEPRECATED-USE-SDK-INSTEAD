@@ -2108,26 +2108,22 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     // conflict with class member
     if (constructorName != null && constructorElement != null && !constructorName.isSynthetic()) {
       // fields
-      FieldElement[] fields = classElement.getFields();
-      for (FieldElement field : fields) {
-        if (field.getName().equals(name)) {
-          errorReporter.reportError(
-              CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_NAME_AND_FIELD,
-              node,
-              name);
-          return true;
-        }
+      FieldElement field = classElement.getField(name);
+      if (field != null) {
+        errorReporter.reportError(
+            CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_NAME_AND_FIELD,
+            node,
+            name);
+        return true;
       }
       // methods
-      MethodElement[] methods = classElement.getMethods();
-      for (MethodElement method : methods) {
-        if (method.getName().equals(name)) {
-          errorReporter.reportError(
-              CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_NAME_AND_METHOD,
-              node,
-              name);
-          return true;
-        }
+      MethodElement method = classElement.getMethod(name);
+      if (method != null) {
+        errorReporter.reportError(
+            CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_NAME_AND_METHOD,
+            node,
+            name);
+        return true;
       }
     }
     return false;

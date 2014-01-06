@@ -46,6 +46,15 @@ public interface ClassElement extends Element {
   public ConstructorElement[] getConstructors();
 
   /**
+   * Return the field (synthetic or explicit) defined in this class that has the given name, or
+   * {@code null} if this class does not define a field with the given name.
+   * 
+   * @param fieldName the name of the field to be returned
+   * @return the field with the given name that is defined in this class
+   */
+  public FieldElement getField(String fieldName);
+
+  /**
    * Return an array containing all of the fields declared in this class.
    * 
    * @return the fields declared in this class
