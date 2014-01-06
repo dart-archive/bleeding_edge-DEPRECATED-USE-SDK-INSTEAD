@@ -298,6 +298,9 @@ public class DartHover implements ITextHover, ITextHoverExtension, ITextHoverExt
       // create StyledText widget
       textWidget = new StyledText(body, SWT.H_SCROLL | SWT.V_SCROLL);
       textWidget.setMargins(5, 5, 5, 5);
+      // We do this to prevent line spacing changing.
+      // See https://code.google.com/p/dart/issues/detail?id=15899
+      textWidget.setLineSpacing(1);
       // configure flat border
       textWidget.setData(FormToolkit.KEY_DRAW_BORDER, FormToolkit.TEXT_BORDER);
       formToolkit.paintBordersFor(body);
