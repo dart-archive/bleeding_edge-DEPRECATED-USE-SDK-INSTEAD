@@ -33,6 +33,7 @@ import com.google.dart.engine.services.refactoring.NullProgressMonitor;
 import com.google.dart.engine.services.refactoring.ProgressMonitor;
 import com.google.dart.engine.services.refactoring.Refactoring;
 import com.google.dart.engine.services.refactoring.RenameRefactoring;
+import com.google.dart.engine.services.status.RefactoringStatusSeverity;
 import com.google.dart.engine.source.Source;
 
 import java.util.List;
@@ -50,6 +51,21 @@ public abstract class RefactoringImplTest extends AbstractDartTest {
     assertNotNull("No change for: " + source.toString(), sourceChange);
     String sourceResult = getChangeResult(source, sourceChange);
     assertEquals(expected, sourceResult);
+  }
+
+  /**
+   * Asserts that "refactoring" status is OK.
+   */
+  public static void assertRefactoringStatusOK(RenameRefactoring refactoring) throws Exception {
+    ProgressMonitor pm = new NullProgressMonitor();
+    assertRefactoringStatus(
+        refactoring.checkInitialConditions(pm),
+        RefactoringStatusSeverity.OK,
+        null);
+    assertRefactoringStatus(
+        refactoring.checkFinalConditions(pm),
+        RefactoringStatusSeverity.OK,
+        null);
   }
 
   /**
@@ -140,9 +156,7 @@ public abstract class RefactoringImplTest extends AbstractDartTest {
   }
 
   protected final ProgressMonitor pm = new NullProgressMonitor();
-
   protected Index index;
-
   protected SearchEngine searchEngine;
 
   /**

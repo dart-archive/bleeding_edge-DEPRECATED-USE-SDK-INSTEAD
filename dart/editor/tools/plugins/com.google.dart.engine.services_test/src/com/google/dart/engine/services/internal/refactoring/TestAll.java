@@ -19,19 +19,20 @@ import junit.framework.TestSuite;
 public class TestAll {
   public static Test suite() {
     TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
-    suite.addTestSuite(NamingConventionsTest.class);
-    suite.addTestSuite(RenameLibraryRefactoringImplTest.class);
-    suite.addTestSuite(RenameUnitMemberRefactoringImplTest.class);
-    suite.addTestSuite(RenameImportRefactoringImplTest.class);
-    suite.addTestSuite(RenameConstructorRefactoringImplTest.class);
-    suite.addTestSuite(RenameClassMemberRefactoringImplTest.class);
-    suite.addTestSuite(RenameLocalRefactoringImplTest.class);
-    suite.addTestSuite(ExtractLocalRefactoringImplTest.class);
-    suite.addTestSuite(InlineLocalRefactoringImplTest.class);
-    suite.addTestSuite(ExtractMethodRefactoringImplTest.class);
-    suite.addTestSuite(InlineMethodRefactoringImplTest.class);
+    suite.addTestSuite(AngularRenameRefactoringTest.class);
     suite.addTestSuite(ConvertGetterToMethodRefactoringImplTest.class);
     suite.addTestSuite(ConvertMethodToGetterRefactoringImplTest.class);
+    suite.addTestSuite(ExtractLocalRefactoringImplTest.class);
+    suite.addTestSuite(ExtractMethodRefactoringImplTest.class);
+    suite.addTestSuite(InlineLocalRefactoringImplTest.class);
+    suite.addTestSuite(InlineMethodRefactoringImplTest.class);
+    suite.addTestSuite(NamingConventionsTest.class);
+    suite.addTestSuite(RenameClassMemberRefactoringImplTest.class);
+    suite.addTestSuite(RenameConstructorRefactoringImplTest.class);
+    suite.addTestSuite(RenameImportRefactoringImplTest.class);
+    suite.addTestSuite(RenameLibraryRefactoringImplTest.class);
+    suite.addTestSuite(RenameLocalRefactoringImplTest.class);
+    suite.addTestSuite(RenameUnitMemberRefactoringImplTest.class);
     return suite;
   }
 }

@@ -23,7 +23,6 @@ import com.google.dart.engine.internal.index.IndexContributor;
 import com.google.dart.engine.services.change.Change;
 import com.google.dart.engine.services.refactoring.RefactoringFactory;
 import com.google.dart.engine.services.refactoring.RenameRefactoring;
-import com.google.dart.engine.services.status.RefactoringStatusSeverity;
 import com.google.dart.engine.source.DartUriResolver;
 import com.google.dart.engine.source.SourceFactory;
 
@@ -38,14 +37,7 @@ public abstract class RenameRefactoringImplTest extends RefactoringImplTest {
    * Asserts that {@link #refactoring} status is OK.
    */
   protected final void assertRefactoringStatusOK() throws Exception {
-    assertRefactoringStatus(
-        refactoring.checkInitialConditions(pm),
-        RefactoringStatusSeverity.OK,
-        null);
-    assertRefactoringStatus(
-        refactoring.checkFinalConditions(pm),
-        RefactoringStatusSeverity.OK,
-        null);
+    assertRefactoringStatusOK(refactoring);
   }
 
   /**

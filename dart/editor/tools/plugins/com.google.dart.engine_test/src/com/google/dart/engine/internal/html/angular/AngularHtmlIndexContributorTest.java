@@ -13,12 +13,8 @@
  */
 package com.google.dart.engine.internal.html.angular;
 
-import com.google.dart.engine.ast.CompilationUnit;
-import com.google.dart.engine.context.AnalysisException;
-import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.FieldElement;
-import com.google.dart.engine.element.visitor.GeneralizingElementVisitor;
 import com.google.dart.engine.index.IndexStore;
 import com.google.dart.engine.internal.index.IndexConstants;
 import com.google.dart.engine.internal.index.IndexContributorHelper.ExpectedLocation;
@@ -32,29 +28,6 @@ import static org.mockito.Mockito.mock;
 import java.util.List;
 
 public class AngularHtmlIndexContributorTest extends AngularTest {
-  /**
-   * Finds an {@link Element} with the given names inside of the given root {@link Element}.
-   * <p>
-   * TODO(scheglov) move ElementUtils to Engine and this method into it; or just add it to Element
-   * 
-   * @param root the root {@link Element} to start searching from
-   * @param name the name of an {@link Element} to find
-   * @return the found {@link Element} or {@code null} if not found
-   */
-  private static Element findElement(Element root, final String name) {
-    final Element[] result = {null};
-    root.accept(new GeneralizingElementVisitor<Void>() {
-      @Override
-      public Void visitElement(Element element) {
-        if (element.getName().equals(name)) {
-          result[0] = element;
-        }
-        return super.visitElement(element);
-      }
-    });
-    return result[0];
-  }
-
   private IndexStore store = mock(IndexStore.class);
   private AngularHtmlIndexContributor index = new AngularHtmlIndexContributor(store);
 
@@ -139,21 +112,5 @@ public class AngularHtmlIndexContributorTest extends AngularTest {
 
   private List<RecordedRelation> captureRecordedRelations() {
     return captureRelations(store);
-  }
-
-  /**
-   * Returns {@link Element} from {@link #indexDartUnit}.
-   */
-  private Element findIndexElement(String name) throws AnalysisException {
-    return findElement(indexDartUnit, name);
-  }
-
-  /**
-   * Returns {@link Element} from {@link #mainSource}.
-   */
-  private Element findMainElement(String name) throws AnalysisException {
-    CompilationUnit unit = context.resolveCompilationUnit(mainSource, mainSource);
-    CompilationUnitElement unitElement = unit.getElement();
-    return findElement(unitElement, name);
   }
 }

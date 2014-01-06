@@ -15,6 +15,7 @@ package com.google.dart.engine.internal.html.angular;
 
 import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.context.AnalysisContext;
@@ -22,6 +23,7 @@ import com.google.dart.engine.context.AnalysisContextHelper;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.visitor.GeneralizingElementVisitor;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.error.GatheringErrorListener;
@@ -49,18 +51,43 @@ abstract public class AngularTest extends EngineTestCase {
     return offset;
   }
 
+  /**
+   * Finds an {@link Element} with the given names inside of the given root {@link Element}.
+   * <p>
+   * TODO(scheglov) maybe move this method to Element
+   * 
+   * @param root the root {@link Element} to start searching from
+   * @param name the name of an {@link Element} to find
+   * @return the found {@link Element} or {@code null} if not found
+   */
+  private static Element findElement(Element root, final String name) {
+    final Element[] result = {null};
+    root.accept(new GeneralizingElementVisitor<Void>() {
+      @Override
+      public Void visitElement(Element element) {
+        if (element.getName().equals(name)) {
+          result[0] = element;
+        }
+        return super.visitElement(element);
+      }
+    });
+    return result[0];
+  }
+
   protected final AnalysisContextHelper contextHelper = new AnalysisContextHelper();
   protected AnalysisContext context;
-  protected Source mainSource;
+
   protected String mainContent;
+  protected Source mainSource;
+  protected CompilationUnit mainUnit;
   protected CompilationUnitElement mainUnitElement;
+
   protected String indexContent;
   protected Source indexSource;
   protected HtmlUnit indexUnit;
-
   protected CompilationUnitElement indexDartUnit;
 
-  protected final void addMyController() {
+  protected final void addMyController() throws Exception {
     mainSource = contextHelper.addSource("/main.dart", createSource("",//
         "import 'angular.dart';",
         "",
@@ -81,6 +108,7 @@ abstract public class AngularTest extends EngineTestCase {
         "main() {",
         "  ngBootstrap(module: new MyModule());",
         "}"));
+    mainUnit = contextHelper.resolveDefiningUnit(mainSource);
   }
 
   /**
@@ -140,6 +168,22 @@ abstract public class AngularTest extends EngineTestCase {
     SimpleIdentifier identifier = findExpression(findOffset(search), SimpleIdentifier.class);
     assertNotNull(search + " in " + indexContent, identifier);
     return identifier;
+  }
+
+  /**
+   * Returns {@link Element} from {@link #indexDartUnit}.
+   */
+  protected final Element findIndexElement(String name) throws AnalysisException {
+    return findElement(indexDartUnit, name);
+  }
+
+  /**
+   * Returns {@link Element} from {@link #mainSource}.
+   */
+  protected final Element findMainElement(String name) throws AnalysisException {
+    CompilationUnit unit = context.resolveCompilationUnit(mainSource, mainSource);
+    CompilationUnitElement unitElement = unit.getElement();
+    return findElement(unitElement, name);
   }
 
   /**
