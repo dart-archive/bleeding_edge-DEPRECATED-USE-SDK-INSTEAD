@@ -11,7 +11,7 @@ DoubleClick "lib expando"
 TypeText downArrow
 TypeText enter
 
-put (325,250) into TopLeft
+put (325,200) into TopLeft
 put (700,500) into BottomRight
 set the SearchRectangle to (TopLeft,BottomRight)
 Click (Text:"Import the Web UI",CaseSensitive:"yes",IgnoreSpaces:"no",IgnoreUnderscores:"no",ValidCharacters:"*",Contrast:"yes")
