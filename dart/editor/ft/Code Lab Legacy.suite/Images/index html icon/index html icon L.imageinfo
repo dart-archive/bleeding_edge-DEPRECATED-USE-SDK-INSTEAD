@@ -3,9 +3,9 @@
 <plist version="1.0">
 <dict>
 	<key>CaptureDate</key>
-	<date>2014-01-02T19:21:45Z</date>
+	<date>2014-01-03T23:39:21Z</date>
 	<key>CaptureHost</key>
-	<string>kyodai.pdx.corp.google.com:0.0</string>
+	<string>kyodai.pdx.corp.google.com:2 (messick)</string>
 	<key>CaptureScreenSize</key>
 	<array>
 		<integer>1920</integer>
@@ -16,22 +16,17 @@
 	<key>HonorAlpha</key>
 	<true/>
 	<key>HotSpotX</key>
-	<real>27</real>
+	<real>40</real>
 	<key>HotSpotY</key>
-	<real>6</real>
-	<key>ImageDescription</key>
-	<data>
-	</data>
-	<key>ImageTolerance</key>
-	<integer>60</integer>
+	<real>7</real>
 	<key>LastKnownLocationX</key>
 	<integer>0</integer>
 	<key>LastKnownLocationY</key>
 	<integer>0</integer>
 	<key>OriginalLocationX</key>
-	<integer>15</integer>
+	<integer>47</integer>
 	<key>OriginalLocationY</key>
-	<integer>237</integer>
+	<integer>434</integer>
 	<key>Pulsing</key>
 	<false/>
 	<key>Scale</key>

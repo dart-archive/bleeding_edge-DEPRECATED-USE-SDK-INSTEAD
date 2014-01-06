@@ -66,5 +66,5 @@ TypeText "Lorem ipsum dolor sit amet"
 WaitFor 2, "10words"
 
 Run util's exitChromium
-Run util's deleteProject (Text:"2013-codelab",CaseSensitive:"yes",IgnoreSpaces:"no",IgnoreUnderscores:"no",ValidCharacters:"*",dpi:94)
+Run util's selectContextMenuItem "io-2013-codelab", "Close Folder"
 Run util's deleteOutput

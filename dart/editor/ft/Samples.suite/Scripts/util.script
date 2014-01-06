@@ -121,12 +121,12 @@ to deleteProject project
 	TypeText enter
 end deleteProject
 
+(* Select the menuItem from the menu named menuName on the menu bar *)
 to selectMenuItem with menuName, menuItem
 	put the SearchRectangle into origRect
 	set the SearchRectangle to ((0,0),(1920,200))
 	put ImageRectangle(Text:menuName,CaseSensitive:"yes",ValidCharacters:"*",IgnoreSpaces:"yes",dpi:94) into labelRect
 	Click center(labelRect)
-	(*Click(Text:menuName,CaseSensitive:"yes",ValidCharacters:"*",IgnoreSpaces:"yes",dpi:94)*)
 	put topLeft(labelRect)-(10,0) into UL
 	put UL + (500,500) into BR
 	set the SearchRectangle to (UL,BR)
@@ -139,10 +139,12 @@ to selectMenuItem with menuName, menuItem
 	set the SearchRectangle to origRect
 end selectMenuItem
 
+(* Select the menuItem from the context menu available by right-clicking at contextLocator text *)
 to selectContextMenuItem with contextLocator, menuItem
 	selectContextImageMenuItem (Text:contextLocator,CaseSensitive:"yes",ValidCharacters:"*",IgnoreSpaces:"yes",dpi:94), menuItem
 end selectContextMenuItem
 
+(* Select the menuItem from the context menu available by right-clicking at contextLocator *)
 to selectContextImageMenuItem with contextLocator, menuItem
 	put the SearchRectangle into origRect
 	put ImageLocation(contextLocator) into imageLocation
@@ -166,6 +168,26 @@ to closeDebugger
 		Click "debugger tab"
 	end if
 end closeDebugger
+
+(* Start the editor, typically only run at the beginning of a script *)
+to startDartEditor
+	set the SearchRectangle to ((0,0),(200,200))
+	DoubleClick "StartDartEditor"
+	Click "MaximizeWindowIcon"
+	set the SearchRectangle to ()
+	if isMacOSX()
+		SetOption ForceScreenRefresh, true
+	end if
+end startDartEditor
+
+(* Exit the editor *)
+to stopDartEditor
+	if isMacOSX()
+		TypeText commandKey,q
+	else
+		TypeText altKey,F4
+	end if
+end stopDartEditor
 
 to doKeyCmd key
 	if isMacOSX()
@@ -242,3 +264,15 @@ end saveFile
 to expandTreeNode
 	TypeText enter
 end expandTreeNode
+
+to endOfLine
+	if isMacOSX() then
+		doKeyCmd(rightArrow)
+	else
+		TypeText EndKey
+	end if
+end endOfLine
+
+to quickOutline
+	TypeText optionKey,o
+end quickOutline
