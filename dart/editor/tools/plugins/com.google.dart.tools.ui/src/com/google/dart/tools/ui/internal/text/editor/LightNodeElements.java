@@ -62,14 +62,38 @@ public class LightNodeElements {
    * {@link ViewerComparator} for {@link LightNodeElement} names.
    */
   public static class NameComparator extends ViewerComparator {
+    private static final int NOT_ELEMENT = 2;
+    private static final int PRIVATE_ELEMENT = 1;
+    private static final int PUBLIC_ELEMENT = 0;
+
+    @Override
+    public int category(Object e) {
+      if (!(e instanceof LightNodeElement)) {
+        return NOT_ELEMENT;
+      }
+      LightNodeElement element = (LightNodeElement) e;
+      if (element.isPrivate()) {
+        return PRIVATE_ELEMENT;
+      }
+      return PUBLIC_ELEMENT;
+    }
+
     @Override
     public int compare(Viewer viewer, Object e1, Object e2) {
+      // compare categories
+      int cat1 = category(e1);
+      int cat2 = category(e2);
+      if (cat1 != cat2) {
+        return cat1 - cat2;
+      }
+      // check types
       if (!(e1 instanceof LightNodeElement)) {
         return 0;
       }
       if (!(e2 instanceof LightNodeElement)) {
         return 0;
       }
+      // compare names
       String name1 = ((LightNodeElement) e1).getName();
       String name2 = ((LightNodeElement) e2).getName();
       if (name1 == null || name2 == null) {
