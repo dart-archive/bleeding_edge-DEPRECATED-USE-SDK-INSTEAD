@@ -346,6 +346,23 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_commentReference_beforeConstructor() throws Exception {
+    String code = createSource(//
+        "abstract class A {",
+        "  /// [p]",
+        "  A(int p) {}",
+        "}");
+    Source source = addSource(code);
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+    CompilationUnit unit = getAnalysisContext().parseCompilationUnit(source);
+    {
+      SimpleIdentifier ref = findNode(unit, code, "p]", SimpleIdentifier.class);
+      assertInstanceOf(ParameterElement.class, ref.getStaticElement());
+    }
+  }
+
   public void test_commentReference_beforeFunction_blockBody() throws Exception {
     String code = createSource(//
         "/// [p]",

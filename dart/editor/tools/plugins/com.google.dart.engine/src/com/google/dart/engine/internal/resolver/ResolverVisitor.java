@@ -319,6 +319,7 @@ public class ResolverVisitor extends ScopedVisitor {
   @Override
   public Void visitComment(Comment node) {
     if (node.getParent() instanceof FunctionDeclaration
+        || node.getParent() instanceof ConstructorDeclaration
         || node.getParent() instanceof MethodDeclaration) {
       if (node != commentBeforeFunction) {
         commentBeforeFunction = node;
