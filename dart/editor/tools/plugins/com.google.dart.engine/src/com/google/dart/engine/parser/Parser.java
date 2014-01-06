@@ -2576,10 +2576,10 @@ public class Parser {
       if (matches(next, TokenType.LT)) {
         next = skipTypeParameterList(next);
         if (next != null && matches(next, TokenType.EQ)) {
-          return parseClassTypeAlias(commentAndMetadata, keyword);
+          return parseClassTypeAlias(commentAndMetadata, abstractKeyword, keyword);
         }
       } else if (matches(next, TokenType.EQ)) {
-        return parseClassTypeAlias(commentAndMetadata, keyword);
+        return parseClassTypeAlias(commentAndMetadata, abstractKeyword, keyword);
       }
     }
 
@@ -2724,17 +2724,18 @@ public class Parser {
    * </pre>
    * 
    * @param commentAndMetadata the metadata to be associated with the member
-   * @param keyword the token representing the 'typedef' keyword
+   * @param abstractKeyword the token representing the 'abstract' keyword
+   * @param classKeyword the token representing the 'class' keyword
    * @return the class type alias that was parsed
    */
-  private ClassTypeAlias parseClassTypeAlias(CommentAndMetadata commentAndMetadata, Token keyword) {
+  private ClassTypeAlias parseClassTypeAlias(CommentAndMetadata commentAndMetadata,
+      Token abstractKeyword, Token classKeyword) {
     SimpleIdentifier className = parseSimpleIdentifier();
     TypeParameterList typeParameters = null;
     if (matches(TokenType.LT)) {
       typeParameters = parseTypeParameterList();
     }
     Token equals = expect(TokenType.EQ);
-    Token abstractKeyword = null;
     if (matches(Keyword.ABSTRACT)) {
       abstractKeyword = getAndAdvance();
     }
@@ -2767,7 +2768,7 @@ public class Parser {
     return new ClassTypeAlias(
         commentAndMetadata.getComment(),
         commentAndMetadata.getMetadata(),
-        keyword,
+        classKeyword,
         className,
         typeParameters,
         equals,
@@ -5437,12 +5438,12 @@ public class Parser {
       if (matches(next, TokenType.LT)) {
         next = skipTypeParameterList(next);
         if (next != null && matches(next, TokenType.EQ)) {
-          TypeAlias typeAlias = parseClassTypeAlias(commentAndMetadata, keyword);
+          TypeAlias typeAlias = parseClassTypeAlias(commentAndMetadata, null, keyword);
           reportError(ParserErrorCode.DEPRECATED_CLASS_TYPE_ALIAS, keyword);
           return typeAlias;
         }
       } else if (matches(next, TokenType.EQ)) {
-        TypeAlias typeAlias = parseClassTypeAlias(commentAndMetadata, keyword);
+        TypeAlias typeAlias = parseClassTypeAlias(commentAndMetadata, null, keyword);
         reportError(ParserErrorCode.DEPRECATED_CLASS_TYPE_ALIAS, keyword);
         return typeAlias;
       }

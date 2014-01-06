@@ -1212,7 +1212,7 @@ public class SimpleParserTest extends ParserTestCase {
   public void test_parseClassTypeAlias() throws Exception {
     Token token = token(Keyword.CLASS);
     ClassTypeAlias classTypeAlias = parse("parseClassTypeAlias", new Object[] {
-        emptyCommentAndMetadata(), token}, "A = B;");
+        emptyCommentAndMetadata(), null, token}, "A = B;");
     assertNotNull(classTypeAlias.getKeyword());
     assertEquals("A", classTypeAlias.getName().getName());
     assertNotNull(classTypeAlias.getEquals());
@@ -1226,7 +1226,7 @@ public class SimpleParserTest extends ParserTestCase {
   public void test_parseClassTypeAlias_abstract() throws Exception {
     Token token = token(Keyword.CLASS);
     ClassTypeAlias classTypeAlias = parse("parseClassTypeAlias", new Object[] {
-        emptyCommentAndMetadata(), token}, "A = abstract B;");
+        emptyCommentAndMetadata(), null, token}, "A = abstract B;");
     assertNotNull(classTypeAlias.getKeyword());
     assertEquals("A", classTypeAlias.getName().getName());
     assertNotNull(classTypeAlias.getEquals());
@@ -1240,7 +1240,7 @@ public class SimpleParserTest extends ParserTestCase {
   public void test_parseClassTypeAlias_implements() throws Exception {
     Token token = token(Keyword.CLASS);
     ClassTypeAlias classTypeAlias = parse("parseClassTypeAlias", new Object[] {
-        emptyCommentAndMetadata(), token}, "A = B implements C;");
+        emptyCommentAndMetadata(), null, token}, "A = B implements C;");
     assertNotNull(classTypeAlias.getKeyword());
     assertEquals("A", classTypeAlias.getName().getName());
     assertNotNull(classTypeAlias.getEquals());
@@ -1254,7 +1254,7 @@ public class SimpleParserTest extends ParserTestCase {
   public void test_parseClassTypeAlias_with() throws Exception {
     Token token = token(Keyword.CLASS);
     ClassTypeAlias classTypeAlias = parse("parseClassTypeAlias", new Object[] {
-        emptyCommentAndMetadata(), token}, "A = B with C;");
+        emptyCommentAndMetadata(), null, token}, "A = B with C;");
     assertNotNull(classTypeAlias.getKeyword());
     assertEquals("A", classTypeAlias.getName().getName());
     assertNotNull(classTypeAlias.getEquals());
@@ -1268,7 +1268,7 @@ public class SimpleParserTest extends ParserTestCase {
   public void test_parseClassTypeAlias_with_implements() throws Exception {
     Token token = token(Keyword.CLASS);
     ClassTypeAlias classTypeAlias = parse("parseClassTypeAlias", new Object[] {
-        emptyCommentAndMetadata(), token}, "A = B with C implements D;");
+        emptyCommentAndMetadata(), null, token}, "A = B with C implements D;");
     assertNotNull(classTypeAlias.getKeyword());
     assertEquals("A", classTypeAlias.getName().getName());
     assertNotNull(classTypeAlias.getEquals());

@@ -501,7 +501,7 @@ public class ErrorParserTest extends ParserTestCase {
     Token token = token(Keyword.CLASS);
     parse(
         "parseClassTypeAlias",
-        new Object[] {emptyCommentAndMetadata(), token},
+        new Object[] {emptyCommentAndMetadata(), null, token},
         "A = B",
         ParserErrorCode.EXPECTED_TOKEN);
   }
