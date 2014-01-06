@@ -14,13 +14,27 @@
 
 package com.google.dart.engine.internal.html.angular;
 
+import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.element.angular.AngularSelector;
+import com.google.dart.engine.html.ast.EmbeddedExpression;
+import com.google.dart.engine.html.ast.XmlAttributeNode;
 
 /**
  * {@link NgDirective} describes any <code>NgDirective</code> annotation instance.
  */
 abstract class NgDirective extends NgAnnotation {
+  protected static EmbeddedExpression newEmbeddedExpression(Expression e) {
+    return new EmbeddedExpression(e.getOffset(), e, e.getEnd());
+  }
+
   public NgDirective(AngularSelector selector) {
     super(selector);
+  }
+
+  /**
+   * Sets single {@link Expression} for {@link XmlAttributeNode}.
+   */
+  protected final void setExpression(XmlAttributeNode attribute, Expression expression) {
+    attribute.setExpressions(new EmbeddedExpression[] {newEmbeddedExpression(expression)});
   }
 }

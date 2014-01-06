@@ -142,7 +142,7 @@ abstract public class AngularTest extends EngineTestCase {
     assertErrors(indexSource);
   }
 
-  protected final void assertResolvedIdentifier(String name, String expectedTypeName) {
+  protected final Element assertResolvedIdentifier(String name, String expectedTypeName) {
     SimpleIdentifier identifier = findIdentifier(name);
     // check Element
     Element element = identifier.getBestElement();
@@ -151,6 +151,8 @@ abstract public class AngularTest extends EngineTestCase {
     Type type = identifier.getBestType();
     assertNotNull(type);
     assertEquals(expectedTypeName, type.toString());
+    // return Element for further analysis
+    return element;
   }
 
   /**

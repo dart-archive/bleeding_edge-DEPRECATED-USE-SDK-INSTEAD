@@ -21,6 +21,7 @@ import com.google.dart.engine.ast.ForEachStatement;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.Statement;
 import com.google.dart.engine.element.angular.AngularSelector;
+import com.google.dart.engine.error.AngularCode;
 import com.google.dart.engine.html.ast.EmbeddedExpression;
 import com.google.dart.engine.html.ast.XmlAttributeNode;
 import com.google.dart.engine.html.ast.XmlTagNode;
@@ -44,10 +45,6 @@ public class NgRepeatDirective extends NgDirective {
 
   public static final NgRepeatDirective INSTANCE = new NgRepeatDirective();
 
-  private static EmbeddedExpression newEmbeddedExpression(Expression e) {
-    return new EmbeddedExpression(e.getOffset(), e, e.getEnd());
-  }
-
   private NgRepeatDirective() {
     super(SELECTOR);
   }
@@ -62,14 +59,15 @@ public class NgRepeatDirective extends NgDirective {
     //
     Expression varExpression = resolver.parseExpression(token);
     token = varExpression.getEndToken().getNext();
-    // TODO(scheglov) report error if not SimpleIdentifier
     if (!(varExpression instanceof SimpleIdentifier)) {
+      resolver.reportError(varExpression, AngularCode.EXPECTED_IDENTIFIER);
       return;
     }
     SimpleIdentifier varName = (SimpleIdentifier) varExpression;
     // skip "in"
     if (token.getType() != TokenType.KEYWORD || ((KeywordToken) token).getKeyword() != Keyword.IN) {
-      // TODO(scheglov) report expected "in"
+      resolver.reportError(varExpression, AngularCode.EXPECTED_IN);
+      return;
     }
     token = token.getNext();
     // parse iterable

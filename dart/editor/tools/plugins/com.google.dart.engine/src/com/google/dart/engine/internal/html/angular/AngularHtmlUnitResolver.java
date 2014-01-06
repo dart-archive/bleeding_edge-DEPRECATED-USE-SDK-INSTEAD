@@ -30,6 +30,7 @@ import com.google.dart.engine.ast.NamedExpression;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.SimpleStringLiteral;
 import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
+import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
@@ -41,7 +42,9 @@ import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.element.angular.AngularSelector;
+import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
+import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.html.ast.EmbeddedExpression;
 import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.html.ast.XmlAttributeNode;
@@ -55,7 +58,6 @@ import com.google.dart.engine.internal.element.FunctionElementImpl;
 import com.google.dart.engine.internal.element.ImportElementImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
 import com.google.dart.engine.internal.element.LocalVariableElementImpl;
-import com.google.dart.engine.internal.element.TopLevelVariableElementImpl;
 import com.google.dart.engine.internal.element.angular.HasAttributeSelector;
 import com.google.dart.engine.internal.resolver.InheritanceManager;
 import com.google.dart.engine.internal.resolver.ProxyConditionalAnalysisError;
@@ -186,6 +188,7 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
   private boolean isAngular = false;
   private List<LocalVariableElementImpl> definedVariables = Lists.newArrayList();
   private Set<LibraryElement> injectedLibraries = Sets.newHashSet();
+  private Scope topNameScope;
   private Scope nameScope;
 
   private AnalysisException thrownException;
@@ -216,6 +219,7 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
       return;
     }
     // add built-in injects
+    controllers.add(NgModelDirective.INSTANCE);
     controllers.add(NgRepeatDirective.INSTANCE);
     // prepare Dart library
     createLibraryElement();
@@ -258,7 +262,11 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
   public Void visitXmlTagNode(XmlTagNode node) {
     boolean wasAngular = isAngular;
     try {
-      isAngular |= node.getAttribute(NG_APP) != null;
+      // new Angular context
+      if (node.getAttribute(NG_APP) != null) {
+        isAngular = true;
+        visitModelDirectives(node);
+      }
       // not Angular
       if (!isAngular) {
         return super.visitXmlTagNode(node);
@@ -286,18 +294,38 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
   }
 
   /**
-   * Creates new {@link LocalVariableElementImpl} with given name and type.
+   * Creates new {@link LocalVariableElementImpl} with given type and identifier.
    * 
    * @param type the {@link Type} of the variable
-   * @param name the name of the variable
-   * @return the new {@link TopLevelVariableElementImpl}
+   * @param identifier the identifier to create variable for
+   * @return the new {@link LocalVariableElementImpl}
    */
-  LocalVariableElementImpl createLocalVariable(Type type, String name) {
-    SimpleIdentifier identifier = createIdentifier(name);
+  LocalVariableElementImpl createLocalVariable(Type type, SimpleIdentifier identifier) {
     LocalVariableElementImpl variable = new LocalVariableElementImpl(identifier);
     definedVariables.add(variable);
     variable.setType(type);
     return variable;
+  }
+
+  /**
+   * Creates new {@link LocalVariableElementImpl} with given name and type.
+   * 
+   * @param type the {@link Type} of the variable
+   * @param name the name of the variable
+   * @return the new {@link LocalVariableElementImpl}
+   */
+  LocalVariableElementImpl createLocalVariable(Type type, String name) {
+    SimpleIdentifier identifier = createIdentifier(name);
+    return createLocalVariable(type, identifier);
+  }
+
+  /**
+   * Declares the given {@link LocalVariableElementImpl} in the {@link #topNameScope}.
+   */
+  void defineTopVariable(LocalVariableElementImpl variable) {
+    definedVariables.add(variable);
+    topNameScope.define(variable);
+    recordTypeLibraryInjected(variable);
   }
 
   /**
@@ -306,9 +334,14 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
   void defineVariable(LocalVariableElementImpl variable) {
     definedVariables.add(variable);
     nameScope.define(variable);
-    // when we inject variable, we give access to the library of its type
-    LibraryElement typeLibrary = variable.getType().getElement().getLibrary();
-    injectedLibraries.add(typeLibrary);
+    recordTypeLibraryInjected(variable);
+  }
+
+  /**
+   * @return the {@link TypeProvider} of the {@link AnalysisContext}.
+   */
+  TypeProvider getTypeProvider() {
+    return typeProvider;
   }
 
   Expression parseExpression(com.google.dart.engine.scanner.Token token) {
@@ -318,6 +351,18 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
   Expression parseExpression(String contents, int startIndex, int endIndex, int offset) {
     com.google.dart.engine.scanner.Token token = scanDart(contents, startIndex, endIndex, offset);
     return parseExpression(token);
+  }
+
+  /**
+   * Reports given {@link ErrorCode} at the given {@link ASTNode}.
+   */
+  void reportError(ASTNode node, ErrorCode errorCode, Object... arguments) {
+    errorListener.onError(new AnalysisError(
+        source,
+        node.getOffset(),
+        node.getLength(),
+        errorCode,
+        arguments));
   }
 
   /**
@@ -394,6 +439,7 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
         typeProvider,
         inheritanceManager,
         errorListener);
+    topNameScope = resolver.pushNameScope();
   }
 
   /**
@@ -618,10 +664,36 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
     return true;
   }
 
+  /**
+   * When we inject variable, we give access to the library of its type.
+   */
+  private void recordTypeLibraryInjected(LocalVariableElementImpl variable) {
+    LibraryElement typeLibrary = variable.getType().getElement().getLibrary();
+    injectedLibraries.add(typeLibrary);
+  }
+
   private void resolveExpressions(EmbeddedExpression[] expressions) {
     for (EmbeddedExpression embeddedExpression : expressions) {
       Expression expression = embeddedExpression.getExpression();
       resolveNode(expression);
     }
+  }
+
+  /**
+   * The "ng-model" directive is special, it contributes to the top-level name scope. These models
+   * can be used before actual "ng-model" attribute in HTML. So, we need to define them once we
+   * found {@link #NG_APP} context.
+   */
+  private void visitModelDirectives(XmlTagNode appNode) {
+    appNode.accept(new RecursiveXmlVisitor<Void>() {
+      @Override
+      public Void visitXmlTagNode(XmlTagNode node) {
+        NgModelDirective directive = NgModelDirective.INSTANCE;
+        if (directive.getSelector().apply(node)) {
+          directive.applyTopDeclarations(AngularHtmlUnitResolver.this, node);
+        }
+        return super.visitXmlTagNode(node);
+      }
+    });
   }
 }

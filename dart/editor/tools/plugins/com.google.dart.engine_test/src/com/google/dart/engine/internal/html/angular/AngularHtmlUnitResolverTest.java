@@ -15,6 +15,8 @@ package com.google.dart.engine.internal.html.angular;
 
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.SimpleIdentifier;
+import com.google.dart.engine.element.Element;
+import com.google.dart.engine.error.AngularCode;
 import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.html.ast.HtmlUnitUtils;
 
@@ -87,6 +89,90 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
     assertNoErrors();
     verify(indexSource);
     assertResolvedIdentifier("ctrl", "MyController");
+  }
+
+  public void test_ngModel_modelAfterUsage() throws Exception {
+    addMyController();
+    resolveIndex(//
+        "<html ng-app>",
+        "  <body>",
+        "    <div my-marker>",
+        "      <h3>Hello {{name}}!</h3>",
+        "      <input type='text' ng-model='name'>",
+        "    </div>",
+        "    <script type='application/dart' src='main.dart'></script>",
+        "  </body>",
+        "</html>");
+    assertNoErrors();
+    verify(indexSource);
+    assertResolvedIdentifier("name}}!", "String");
+    assertResolvedIdentifier("name'>", "String");
+  }
+
+  public void test_ngModel_modelBeforeUsage() throws Exception {
+    addMyController();
+    resolveIndex(//
+        "<html ng-app>",
+        "  <body>",
+        "    <div my-marker>",
+        "      <input type='text' ng-model='name'>",
+        "      <h3>Hello {{name}}!</h3>",
+        "    </div>",
+        "    <script type='application/dart' src='main.dart'></script>",
+        "  </body>",
+        "</html>");
+    assertNoErrors();
+    verify(indexSource);
+    assertResolvedIdentifier("name}}!", "String");
+    Element element = assertResolvedIdentifier("name'>", "String");
+    assertEquals("name", element.getName());
+    assertEquals(findOffset("name'>"), element.getNameOffset());
+  }
+
+  public void test_ngModel_notIdentifier() throws Exception {
+    addMyController();
+    resolveIndex(//
+        "<html ng-app>",
+        "  <body>",
+        "    <div my-marker>",
+        "      <input type='text' ng-model='ctrl.field'>",
+        "    </div>",
+        "    <script type='application/dart' src='main.dart'></script>",
+        "  </body>",
+        "</html>");
+    assertNoErrors();
+    verify(indexSource);
+    assertResolvedIdentifier("field'>", "String");
+  }
+
+  public void test_ngRepeat_bad_expectedIdentifier() throws Exception {
+    addMyController();
+    resolveIndex(//
+        "<html ng-app>",
+        "  <body>",
+        "    <div my-marker>",
+        "      <li ng-repeat='name + 42 in ctrl.names'>",
+        "      </li>",
+        "    </div>",
+        "    <script type='application/dart' src='main.dart'></script>",
+        "  </body>",
+        "</html>");
+    assertErrors(indexSource, AngularCode.EXPECTED_IDENTIFIER);
+  }
+
+  public void test_ngRepeat_bad_expectedIn() throws Exception {
+    addMyController();
+    resolveIndex(//
+        "<html ng-app>",
+        "  <body>",
+        "    <div my-marker>",
+        "      <li ng-repeat='name : ctrl.names'>",
+        "      </li>",
+        "    </div>",
+        "    <script type='application/dart' src='main.dart'></script>",
+        "  </body>",
+        "</html>");
+    assertErrors(indexSource, AngularCode.EXPECTED_IN);
   }
 
   public void test_ngRepeat_resolvedExpressions() throws Exception {
