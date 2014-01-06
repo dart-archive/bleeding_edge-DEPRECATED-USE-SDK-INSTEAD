@@ -1,3 +1,14 @@
+# This file is automatically processed to create .DEPS.git which is the file
+# that gclient uses under git.
+#
+# See http://code.google.com/p/chromium/wiki/UsingGit
+#
+# To test manually, run:
+#   python tools/deps2git/deps2git.py -o .DEPS.git
+#   gclient runhooks
+# DO NOT CHECK IN CHANGES TO .DEPS.git. It will be automatically updated by
+# a bot when you modify this one.
+#
 # When adding a new dependency, please update the top-level .gitignore file
 # to list the dependency's destination directory.
 
@@ -8,52 +19,53 @@ vars = {
   "sourceforge_url": "http://svn.code.sf.net/p/%(repo)s/code",
   "webkit_trunk": "http://src.chromium.org/blink/trunk",
   "nacl_trunk": "http://src.chromium.org/native_client/trunk",
-  "webkit_revision": "158192",
+  "webkit_revision": "161254",
   "chromium_git": "https://chromium.googlesource.com",
   "chromiumos_git": "https://chromium.googlesource.com/chromiumos",
   "skia_git": "https://skia.googlesource.com",
-  "swig_revision": "69281",
-  "nacl_revision": "12181",
+  "swig_revision": "230490",
+  "nacl_revision": "12321",
   # After changing nacl_revision, run 'glient sync' and check native_client/DEPS
   # to update other nacl_*_revision's.
-  "nacl_tools_revision": "11437",  # native_client/DEPS: tools_rev
+  "nacl_tools_revision": "12289",  # native_client/DEPS: tools_rev
   "gtm_revision": "616",
 
-  "libphonenumber_revision": "584",
-  "libvpx_revision": "224550",
+  "libphonenumber_revision": "621",
+  "libvpx_revision": "232686",
   "lss_revision": "24",
 
   # These two FFmpeg variables must be updated together.  One is used for SVN
   # checkouts and the other for Git checkouts.
-  "ffmpeg_revision": "224426",
-  "ffmpeg_hash": "5879ccd47e649bf2dfaec45f02ec5517bd3621d2",
+  "ffmpeg_revision": "232187",
+  "ffmpeg_hash": "79ff844dd6746854847e65a08535673de811930b",
 
-  "sfntly_revision": "134",
-  "skia_revision": "11429",
-  "skia_hash": "6ae638c32047ce3ad550b06b0bc9b1e84a413c2a",
+  "sfntly_revision": "228",
+  "lighttpd_revision": "33737",
+  "skia_revision": "12108",
+  "skia_hash": "d7f0e2db655b6f023e996bf7c8389d69000dab3a",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and V8 without interference from each other.
-  "v8_revision": "16822",
+  "v8_revision": "17449",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling WebRTC
   # and V8 without interference from each other.
-  "webrtc_revision": "4819",
+  "webrtc_revision": "5080",
   "jsoncpp_revision": "248",
-  "nss_revision": "223139",
+  "nss_revision": "231937",
   # Three lines of non-changing comments so that
-  # the commit queue can handle CLs rolling swarm_client
+  # the commit queue can handle CLs rolling swarming_client
   # and whatever else without interference from each other.
-  "swarm_revision": "224429",
+  "swarming_revision": "141ef86f4abf255e578320bfe6e42006c251bc39",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling openssl
   # and whatever else without interference from each other.
-  "openssl_revision": "207965",
+  "openssl_revision": "231572",
 }
 
 deps = {
   "src/breakpad/src":
-    (Var("googlecode_url") % "google-breakpad") + "/trunk/src@1213",
+    (Var("googlecode_url") % "google-breakpad") + "/trunk/src@1222",
 
   "src/sdch/open-vcdiff":
     (Var("googlecode_url") % "open-vcdiff") + "/trunk@42",
@@ -66,16 +78,16 @@ deps = {
 
   "src/third_party/angle_dx11":
     Var("chromium_git") +
-    "/external/angle.git@300b1eb5018651d2e68289a9dd234bbf906b3cc0",
+    "/external/angle.git@0f0edf94bfe1fc28979b0d12747a900164bb966a",
 
   "src/third_party/trace-viewer":
-    (Var("googlecode_url") % "trace-viewer") + "/trunk@1006",
+    (Var("googlecode_url") % "trace-viewer") + "/trunk@1055",
 
   "src/third_party/WebKit":
     Var("webkit_trunk") + "@" + Var("webkit_revision"),
 
   "src/third_party/icu":
-    "/trunk/deps/third_party/icu46@223384",
+    "/trunk/deps/third_party/icu46@228516",
 
   "src/third_party/libexif/sources":
     "/trunk/deps/third_party/libexif/sources@146817",
@@ -103,10 +115,11 @@ deps = {
     (Var("googlecode_url") % "grit-i18n") + "/trunk@136",
 
   "src/tools/gyp":
-    (Var("googlecode_url") % "gyp") + "/trunk@1735",
+    (Var("googlecode_url") % "gyp") + "/trunk@1773",
 
-  "src/tools/swarm_client":
-    "/trunk/tools/swarm_client@" + Var("swarm_revision"),
+  "src/tools/swarming_client":
+    Var("chromium_git") + "/external/swarming.client.git@" +
+        Var("swarming_revision"),
 
   "src/v8":
     (Var("googlecode_url") % "v8") + "/trunk@" + Var("v8_revision"),
@@ -132,7 +145,7 @@ deps = {
     (Var("googlecode_url") % "skia") + "/trunk/include@" + Var("skia_revision"),
 
   "src/third_party/ots":
-    (Var("googlecode_url") % "ots") + "/trunk@102",
+    (Var("googlecode_url") % "ots") + "/trunk@103",
 
   "src/tools/page_cycler/acid3":
     "/trunk/deps/page_cycler/acid3@171600",
@@ -149,10 +162,8 @@ deps = {
   "src/third_party/bidichecker":
     (Var("googlecode_url") % "bidichecker") + "/trunk/lib@4",
 
-  # When roll to another webgl conformance tests revision, please goto
-  # chrome/test/gpu and run generate_webgl_conformance_test_list.py.
   "src/third_party/webgl_conformance":
-    "/trunk/deps/third_party/webgl/sdk/tests@218717",
+    "/trunk/deps/third_party/webgl/sdk/tests@230853",
 
   "src/third_party/swig/Lib":
     "/trunk/deps/third_party/swig/Lib@" + Var("swig_revision"),
@@ -187,7 +198,7 @@ deps = {
     "/trunk/deps/third_party/yasm/patched-yasm@167605",
 
   "src/third_party/libjpeg_turbo":
-    "/trunk/deps/third_party/libjpeg_turbo@177737",
+    "/trunk/deps/third_party/libjpeg_turbo@228394",
 
   "src/third_party/flac":
     "/trunk/deps/third_party/flac@222897",
@@ -230,10 +241,10 @@ deps = {
          Var("libphonenumber_revision"),
 
   "src/tools/deps2git":
-    "/trunk/tools/deps2git@214390",
+    "/trunk/tools/deps2git@230538",
 
   "src/third_party/webpagereplay":
-    (Var("googlecode_url") % "web-page-replay") + "/trunk@521",
+    (Var("googlecode_url") % "web-page-replay") + "/trunk@522",
 
   "src/third_party/pywebsocket/src":
     (Var("googlecode_url") % "pywebsocket") + "/trunk/src@662",
@@ -241,14 +252,11 @@ deps = {
   "src/third_party/opus/src":
     "/trunk/deps/third_party/opus@185324",
 
-  "src/third_party/accessibility-developer-tools":
-    Var("chromium_git") + "/external/accessibility-developer-tools.git@2e3c9c8e49277a0ca1eeba510271eb03f9486d8f",
-
   "src/media/cdm/ppapi/api":
-    "/trunk/deps/cdm@181763",
+    "/trunk/deps/cdm@231683",
 
   "src/third_party/mesa/src":
-    "/trunk/deps/third_party/mesa@210110",
+    "/trunk/deps/third_party/mesa@229994",
 
   "src/third_party/cld_2/src":
     (Var("googlecode_url") % "cld2") + "/trunk@84",
@@ -261,7 +269,7 @@ deps_os = {
       "/trunk/deps/reference_builds/chrome_win@221746",
 
     "src/third_party/cygwin":
-      "/trunk/deps/third_party/cygwin@133786",
+      "/trunk/deps/third_party/cygwin@231940",
 
     "src/third_party/python_26":
       "/trunk/tools/third_party/python_26@89111",
@@ -279,7 +287,7 @@ deps_os = {
       "/trunk/deps/third_party/perl@147900",
 
     "src/third_party/lighttpd":
-      "/trunk/deps/third_party/lighttpd@33727",
+      "/trunk/deps/third_party/lighttpd@" + Var("lighttpd_revision"),
 
     # Chrome Frame related deps
     "src/third_party/xulrunner-sdk":
@@ -314,7 +322,7 @@ deps_os = {
     # Binary level profile guided optimizations. This points to the
     # latest release binaries for the toolchain.
     "src/third_party/syzygy/binaries":
-      (Var("googlecode_url") % "sawbuck") + "/trunk/syzygy/binaries@1770",
+      (Var("googlecode_url") % "sawbuck") + "/trunk/syzygy/binaries@1811",
 
     # Binaries for nacl sdk.
     "src/third_party/nacl_sdk_binaries":
@@ -337,6 +345,8 @@ deps_os = {
     "src/chrome/test/data/extensions/api_test/permissions/nacl_enabled/bin": None,
     "src/chrome/test/data/perf/canvas_bench": None,
     "src/chrome/test/data/perf/frame_rate/content": None,
+    "src/chrome/test/data/perf/third_party/octane": None,
+    "src/media/cdm/ppapi/api": None,
     "src/native_client": None,
     "src/native_client/src/third_party/ppapi": None,
     "src/third_party/angle_dx11": None,
@@ -346,24 +356,21 @@ deps_os = {
     "src/third_party/ffmpeg": None,
     "src/third_party/hunspell_dictionaries": None,
     "src/third_party/hunspell": None,
-    "src/third_party/leveldatabase/src": None,
     "src/third_party/libexif/sources": None,
     "src/third_party/libjpeg_turbo": None,
-    "src/third_party/libphonenumber/src/phonenumbers": None,
-    "src/third_party/libphonenumber/src/test": None,
-    "src/third_party/libphonenumber/src/resources": None,
     "src/third_party/libsrtp": None,
     "src/third_party/usrsctp/usrsctplib": None,
     "src/third_party/libvpx": None,
     "src/third_party/libyuv": None,
+    "src/third_party/mesa/src": None,
+    "src/third_party/opus/src": None,
+    "src/third_party/openmax_dl": None,
     "src/third_party/ots": None,
-    "src/third_party/pylib": None,
     "src/third_party/pymox/src": None,
     "src/third_party/safe_browsing/testing": None,
     "src/third_party/scons-2.0.1": None,
     "src/third_party/sfntly/cpp/src": None,
     "src/third_party/smhasher/src": None,
-    "src/third_party/snappy/src": None,
     "src/third_party/swig/Lib": None,
     "src/third_party/undoview": None,
     "src/third_party/v8-i18n": None,
@@ -384,7 +391,7 @@ deps_os = {
     "src/third_party/pdfsqueeze":
       (Var("googlecode_url") % "pdfsqueeze") + "/trunk@5",
     "src/third_party/lighttpd":
-      "/trunk/deps/third_party/lighttpd@33737",
+      "/trunk/deps/third_party/lighttpd@" + Var("lighttpd_revision"),
 
     "src/third_party/swig/mac":
       "/trunk/deps/third_party/swig/mac@" + Var("swig_revision"),
@@ -399,7 +406,7 @@ deps_os = {
   "unix": {
     # Linux, really.
     "src/chrome/tools/test/reference_build/chrome_linux":
-      "/trunk/deps/reference_builds/chrome_linux@221746",
+      "/trunk/deps/reference_builds/chrome_linux64@232223",
 
     "src/third_party/xdg-utils":
       "/trunk/deps/third_party/xdg-utils@203785",
@@ -415,7 +422,7 @@ deps_os = {
       "/trunk/deps/third_party/openssl@" + Var("openssl_revision"),
 
     "src/third_party/gold":
-      "/trunk/deps/third_party/gold@203758",
+      "/trunk/deps/third_party/gold@228995",
 
     "src/third_party/libmtp":
       "/trunk/deps/third_party/libmtp@206535",
@@ -433,7 +440,7 @@ deps_os = {
     # For Linux and Chromium OS.
     "src/third_party/cros_system_api":
       Var("chromiumos_git") + "/platform/system_api.git" +
-      "@205bfa55bbf3287769a600d7fa29e000d0ff085e",
+      "@99bce39f55240926a75454bb70998ab9f5ce9f13",
 
     # Note that this is different from Android's freetype repo.
     "src/third_party/freetype2/src":
@@ -610,6 +617,27 @@ hooks = [
     "action": ["python", "src/build/util/lastchange.py",
                "-s", "src/third_party/WebKit",
                "-o", "src/build/util/LASTCHANGE.blink"],
+  },
+  # Pull GN binaries. This needs to be before running GYP below.
+  {
+    "name": "gn_win",
+    "pattern": "\\.sha1$",
+    "action": [ "download_from_google_storage",
+                "--platform=win32",
+                "--directory",
+                "--bucket", "chromium-gn",
+                "src/tools/gn/bin/win",
+    ],
+  },
+  {
+    "name": "gn_linux",
+    "pattern": "\\.sha1$",
+    "action": [ "download_from_google_storage",
+                "--platform=\"linux*\"",
+                "--directory",
+                "--bucket", "chromium-gn",
+                "src/tools/gn/bin/linux",
+    ],
   },
   {
     # A change to a .gyp, .gypi, or to GYP itself should run the generator.
