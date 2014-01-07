@@ -14,7 +14,6 @@
 package com.google.dart.engine.source;
 
 import com.google.dart.engine.utilities.io.FileUtilities2;
-import com.google.dart.engine.utilities.os.OSUtilities;
 
 import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
 
@@ -93,20 +92,17 @@ public class ExplicitPackageUriResolverTest extends TestCase {
   }
 
   public void test_resolve_resolvePathToPackage() throws Exception {
-    if (!OSUtilities.isWindows()) {
-      File directory = createFile("/src/foo/bar/baz/lib");
-      File dir2 = createFile("/gen/foo/bar/baz");
-      String packages = "{\"packages\":{\"unittest\": [\"/dart/unittest/lib\"],"
-          + "\"foo.bar.baz\": [\"" + directory.getAbsolutePath() + "\",\"" + dir2.getAbsolutePath()
-          + "\"]}}";
-      ExplicitPackageUriResolver resolver = new MockExplicitPackageUriResolver(directory, packages);
-      File file = createFile("/baz/lib");
-      String resolvedPath = resolver.resolvePathToPackage(file.getAbsolutePath());
-      assertNotNull(resolvedPath);
-      assertEquals("foo.bar.baz", resolvedPath);
-      resolvedPath = resolver.resolvePathToPackage(createFile("dart/mypackage").getAbsolutePath());
-      assertNull(resolvedPath);
-    }
+    File directory = createFile("/src/foo/bar/baz/lib");
+    String packages = "{\"packages\":{\"unittest\": [\"/dart/unittest/lib\"],"
+        + "\"foo.bar.baz\": [\"/src/foo/bar/baz/lib\",\"/gen/foo/bar/baz\"]}}";
+    ExplicitPackageUriResolver resolver = new MockExplicitPackageUriResolver(directory, packages);
+    String resolvedPath = resolver.resolvePathToPackage(File.separator + "baz" + File.separator
+        + "lib");
+    assertNotNull(resolvedPath);
+    assertEquals("foo.bar.baz", resolvedPath);
+    resolvedPath = resolver.resolvePathToPackage(File.separator + "dart" + File.separator
+        + "mypackage");
+    assertNull(resolvedPath);
   }
 
   @Override
