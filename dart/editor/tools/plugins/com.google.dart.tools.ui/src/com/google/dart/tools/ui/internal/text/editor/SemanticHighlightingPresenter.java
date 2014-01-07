@@ -632,7 +632,11 @@ public class SemanticHighlightingPresenter implements ITextPresentationListener,
             addedPositionsList,
             removedPositionsList);
         if (textPresentation != null) {
-          fSourceViewer.changeTextPresentation(textPresentation, false);
+          try {
+            fSourceViewer.changeTextPresentation(textPresentation, false);
+          } catch (IllegalArgumentException e) {
+            // Ignore, may be source has been changed, so our presentation is not valid.
+          }
         } else {
           fSourceViewer.invalidateTextPresentation();
         }
