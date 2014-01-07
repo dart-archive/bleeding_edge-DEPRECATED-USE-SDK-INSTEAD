@@ -24,6 +24,7 @@ import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.Type;
+import com.google.dart.engine.utilities.dart.ParameterKind;
 
 /**
  * The abstract class {@code ExecutableElementImpl} implements the behavior common to
@@ -225,12 +226,34 @@ public abstract class ExecutableElementImpl extends ElementImpl implements Execu
   @Override
   protected void appendTo(StringBuilder builder) {
     builder.append("(");
+    String closing = null;
+    ParameterKind kind = ParameterKind.REQUIRED;
     int parameterCount = parameters.length;
     for (int i = 0; i < parameterCount; i++) {
       if (i > 0) {
         builder.append(", ");
       }
-      ((ParameterElementImpl) parameters[i]).appendTo(builder);
+      ParameterElementImpl parameter = (ParameterElementImpl) parameters[i];
+      ParameterKind parameterKind = parameter.getParameterKind();
+      if (parameterKind != kind) {
+        if (closing != null) {
+          builder.append(closing);
+        }
+        if (parameterKind == ParameterKind.POSITIONAL) {
+          builder.append("[");
+          closing = "]";
+        } else if (parameterKind == ParameterKind.NAMED) {
+          builder.append("{");
+          closing = "}";
+        } else {
+          closing = null;
+        }
+      }
+      kind = parameterKind;
+      parameter.appendToWithoutDelimiters(builder);
+    }
+    if (closing != null) {
+      builder.append(closing);
     }
     builder.append(")");
     if (type != null) {

@@ -227,9 +227,18 @@ public class ParameterElementImpl extends VariableElementImpl implements Paramet
         break;
     }
     builder.append(left);
+    appendToWithoutDelimiters(builder);
+    builder.append(right);
+  }
+
+  /**
+   * Append the type and name of this parameter to the given builder.
+   * 
+   * @param builder the builder to which the type and name are to be appended
+   */
+  protected void appendToWithoutDelimiters(StringBuilder builder) {
     builder.append(getType());
     builder.append(" ");
     builder.append(getDisplayName());
-    builder.append(right);
   }
 }
