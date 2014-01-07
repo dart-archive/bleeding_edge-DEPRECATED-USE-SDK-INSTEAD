@@ -1,0 +1,21 @@
+(* Ensure a legacy web-ui app compiles and runs -- also checks basic debugger operations *)
+Run toggleHints
+RunWithNewResults "Step 0"
+put the result into Outcome
+if the status of Outcome is not "Success" then
+	log Outcome
+else
+	set TestList to ("Step 1","Step 5")
+	repeat with each testScript of TestList
+		RunWithNewResults testScript
+		put the result into Outcome
+		put testScript & ":" && status of Outcome && Return after currentReport
+		if the status of Outcome is "Failure" then
+			run "clean up"
+		end if
+	end repeat
+	Log "Final Results"
+	repeat with each line of currentReport
+		log it
+	end Repeat
+end if

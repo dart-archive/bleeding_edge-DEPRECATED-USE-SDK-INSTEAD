@@ -1,0 +1,46 @@
+openLab 0
+TypeText downArrow,downArrow,downArrow,downArrow,downArrow
+Run util's expandTreeNode
+TypeText downArrow,downArrow,downArrow,downArrow,downArrow
+(*Run "check problems"*)
+
+Click "run button"
+WaitFor 10,"browser right arrow button"
+Click (Text:"Untitled",CaseSensitive:"yes")
+Click "plus file"
+Click "red stripe"
+Click "delete file X"
+Run util's exitChromium
+
+Run util's selectContextMenuItem "app.dart", "Run as JavaScript"
+Wait 2
+WaitFor 20,"plus file"
+Click (Text:"Untitled",CaseSensitive:"yes")
+Run util's closeTab
+if (util's isMacOSX) then
+	Wait 1
+	TypeText CommandKey,Tab
+end if
+Wait 1
+
+Click (Text:"document",CaseSensitive:"yes",ValidCharacters:"*",dpi:94)
+DoubleClick (Text:"app.dart",CaseSensitive:"yes",ValidCharacters:"*",dpi:94)
+put -80 into offset
+if (util's isLinux) then
+	put -100 into offset
+end if
+DoubleClick (ImageLocation(Text:"void createDocument",CaseSensitive:"yes",ValidCharacters:"*",dpi:94)) + (offset,0)
+Click "run button"
+WaitFor 10,"debug line indicator"
+
+Click "step into icon"
+Wait 2
+Click "step out icon"
+Wait 2
+Click "step over icon"
+Wait 2
+Click "stop debug button"
+
+DoubleClick (ImageLocation(Text:"void createDocument",CaseSensitive:"yes",ValidCharacters:"*",dpi:94)) + (offset,0)
+Run util's selectContextMenuItem "io-2013-codelab-finished", "Close Folder"
+Run util's deleteOutput
