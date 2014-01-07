@@ -83,7 +83,7 @@ abstract public class AngularTest extends EngineTestCase {
     root.accept(new GeneralizingElementVisitor<Void>() {
       @Override
       public Void visitElement(Element element) {
-        if (element.getName().equals(name)) {
+        if (name.equals(element.getName())) {
           result[0] = element;
         }
         return super.visitElement(element);
@@ -353,7 +353,9 @@ abstract public class AngularTest extends EngineTestCase {
             "}",
             "",
             "class Module {",
+            "  install(Module m) {}",
             "  type(Type t) {}",
+            "  value(Type t, value) {}",
             "}",
             "",
             "class Injector {}",

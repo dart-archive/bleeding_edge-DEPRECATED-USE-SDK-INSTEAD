@@ -16,20 +16,28 @@ package com.google.dart.engine.internal.builder;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.ClassElement;
+import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.ElementFactory;
+import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.element.ToolkitObjectElement;
 import com.google.dart.engine.element.angular.AngularComponentElement;
 import com.google.dart.engine.element.angular.AngularControllerElement;
 import com.google.dart.engine.element.angular.AngularElement;
 import com.google.dart.engine.element.angular.AngularFilterElement;
+import com.google.dart.engine.element.angular.AngularModuleElement;
 import com.google.dart.engine.element.angular.AngularPropertyElement;
 import com.google.dart.engine.element.angular.AngularPropertyKind;
 import com.google.dart.engine.element.angular.AngularSelector;
 import com.google.dart.engine.error.AngularCode;
 import com.google.dart.engine.error.ErrorCode;
+import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.internal.element.angular.HasAttributeSelector;
 import com.google.dart.engine.internal.element.angular.IsTagSelector;
 import com.google.dart.engine.internal.html.angular.AngularTest;
+import com.google.dart.engine.internal.type.DynamicTypeImpl;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.type.InterfaceType;
+import com.google.dart.engine.type.Type;
 
 public class AngularCompilationUnitBuilderTest extends AngularTest {
   private static void assertHasAttributeSelector(AngularSelector selector, String name) {
@@ -82,6 +90,153 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
     ClassElement classElement = mainUnitElement.getType("MyFilter");
     AngularFilterElement filter = getAngularElement(classElement, AngularFilterElement.class);
     assertNull(filter);
+  }
+
+  public void test_isModule_Module() throws Exception {
+    InterfaceType moduleType = ElementFactory.classElement("Module").getType();
+    assertTrue(AngularCompilationUnitBuilder.isModule(moduleType));
+  }
+
+  public void test_isModule_Module_subtype() throws Exception {
+    InterfaceType moduleType = ElementFactory.classElement("Module").getType();
+    ClassElementImpl myModuleElement = ElementFactory.classElement("MyModule", moduleType);
+    InterfaceType myModuleType = myModuleElement.getType();
+    assertTrue(AngularCompilationUnitBuilder.isModule(myModuleType));
+  }
+
+  public void test_isModule_notInterfaceType() throws Exception {
+    Type type = DynamicTypeImpl.getInstance();
+    assertFalse(AngularCompilationUnitBuilder.isModule(type));
+  }
+
+  public void test_isModule_null() throws Exception {
+    assertFalse(AngularCompilationUnitBuilder.isModule(null));
+  }
+
+  public void test_isModule_recursion() throws Exception {
+    ClassElementImpl myModuleElement = ElementFactory.classElement("MyModule");
+    InterfaceType myModuleType = myModuleElement.getType();
+    myModuleElement.setSupertype(myModuleType);
+    assertFalse(AngularCompilationUnitBuilder.isModule(myModuleType));
+  }
+
+  public void test_module_asClass() throws Exception {
+    String mainContent = createSource(//
+        "import 'angular.dart';",
+        "class ChildModuleA extends Module {}",
+        "class ChildModuleB extends Module {}",
+        "class MyModule extends Module {",
+        "  MyModule() {",
+        "    install(new ChildModuleA());",
+        "    install(new ChildModuleB());",
+        "    type(String);",
+        "    value(int, 42);",
+        "  }",
+        "}");
+    resolveMainSourceNoErrors(mainContent);
+    // prepare MyModule
+    ClassElement classElement = mainUnitElement.getType("MyModule");
+    AngularModuleElement module = getAngularElement(classElement, AngularModuleElement.class);
+    assertNotNull(module);
+    // check child modules
+    AngularModuleElement[] childModules = module.getChildModules();
+    assertLength(2, childModules);
+    assertEquals("ChildModuleA", childModules[0].getEnclosingElement().getName());
+    assertEquals("ChildModuleB", childModules[1].getEnclosingElement().getName());
+    // check key types
+    ClassElement[] keyTypes = module.getKeyTypes();
+    assertLength(2, keyTypes);
+    assertEquals("String", keyTypes[0].getName());
+    assertEquals("int", keyTypes[1].getName());
+  }
+
+  public void test_module_asClass_notInterestingInvocation() throws Exception {
+    String mainContent = createSource(//
+        "import 'angular.dart';",
+        "class MyModule extends Module {",
+        "  MyModule() {",
+        "    foo();",
+        "  }",
+        "  foo() {}",
+        "}");
+    resolveMainSourceNoErrors(mainContent);
+    // prepare MyModule
+    ClassElement variable = mainUnitElement.getType("MyModule");
+    AngularModuleElement module = getAngularElement(variable, AngularModuleElement.class);
+    assertNotNull(module);
+    // no properties
+    assertLength(0, module.getChildModules());
+    assertLength(0, module.getKeyTypes());
+  }
+
+  public void test_module_asLocalVariable_cascade() throws Exception {
+    String mainContent = createSource(//
+        "import 'angular.dart';",
+        "class ChildModuleA extends Module {}",
+        "class ChildModuleB extends Module {}",
+        "main() {",
+        "  var module = new Module()",
+        "    ..install(new ChildModuleA())",
+        "    ..install(new ChildModuleB())",
+        "    ..type(String)",
+        "    ..value(int, 42);",
+        "}");
+    resolveMainSourceNoErrors(mainContent);
+    // prepare "module"
+    LocalVariableElement variable = (LocalVariableElement) findMainElement("module");
+    AngularModuleElement module = getAngularElement(variable, AngularModuleElement.class);
+    assertNotNull(module);
+    // check child modules
+    AngularModuleElement[] childModules = module.getChildModules();
+    assertLength(2, childModules);
+    assertEquals("ChildModuleA", childModules[0].getEnclosingElement().getName());
+    assertEquals("ChildModuleB", childModules[1].getEnclosingElement().getName());
+    // check key types
+    ClassElement[] keyTypes = module.getKeyTypes();
+    assertLength(2, keyTypes);
+    assertEquals("String", keyTypes[0].getName());
+    assertEquals("int", keyTypes[1].getName());
+  }
+
+  public void test_module_asLocalVariable_otherInvocation() throws Exception {
+    String mainContent = createSource(//
+        "import 'angular.dart';",
+        "main() {",
+        "  var module = new Module();",
+        "  module.type(String);",
+        "  123.abs();",
+        "}");
+    resolveMainSourceNoErrors(mainContent);
+    // don't verify "module", just check the fact that there were no resolution problems
+  }
+
+  public void test_module_asLocalVariable_statements() throws Exception {
+    String mainContent = createSource(//
+        "import 'angular.dart';",
+        "class ChildModuleA extends Module {}",
+        "class ChildModuleB extends Module {}",
+        "main() {",
+        "  var module = new Module();",
+        "  module.install(new ChildModuleA());",
+        "  module.install(new ChildModuleB());",
+        "  module.type(String);",
+        "  module.value(int, 42);",
+        "}");
+    resolveMainSourceNoErrors(mainContent);
+    // prepare "module"
+    LocalVariableElement classElement = (LocalVariableElement) findMainElement("module");
+    AngularModuleElement module = getAngularElement(classElement, AngularModuleElement.class);
+    assertNotNull(module);
+    // check child modules
+    AngularModuleElement[] childModules = module.getChildModules();
+    assertLength(2, childModules);
+    assertEquals("ChildModuleA", childModules[0].getEnclosingElement().getName());
+    assertEquals("ChildModuleB", childModules[1].getEnclosingElement().getName());
+    // check key types
+    ClassElement[] keyTypes = module.getKeyTypes();
+    assertLength(2, keyTypes);
+    assertEquals("String", keyTypes[0].getName());
+    assertEquals("int", keyTypes[1].getName());
   }
 
   public void test_NgComponent_bad_missingCss() throws Exception {
@@ -525,12 +680,22 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
   }
 
   @SuppressWarnings("unchecked")
-  private <T extends AngularElement> T getAngularElement(ClassElement classElement,
+  private <T extends AngularElement> T getAngularElement(Element element,
       Class<T> angularElementType) {
-    ToolkitObjectElement[] toolkitObjects = classElement.getToolkitObjects();
-    for (ToolkitObjectElement toolkitObject : toolkitObjects) {
-      if (angularElementType.isInstance(toolkitObject)) {
-        return (T) toolkitObject;
+    ToolkitObjectElement[] toolkitObjects = null;
+    if (element instanceof ClassElement) {
+      ClassElement classElement = (ClassElement) element;
+      toolkitObjects = classElement.getToolkitObjects();
+    }
+    if (element instanceof LocalVariableElement) {
+      LocalVariableElement variableElement = (LocalVariableElement) element;
+      toolkitObjects = variableElement.getToolkitObjects();
+    }
+    if (toolkitObjects != null) {
+      for (ToolkitObjectElement toolkitObject : toolkitObjects) {
+        if (angularElementType.isInstance(toolkitObject)) {
+          return (T) toolkitObject;
+        }
       }
     }
     return null;

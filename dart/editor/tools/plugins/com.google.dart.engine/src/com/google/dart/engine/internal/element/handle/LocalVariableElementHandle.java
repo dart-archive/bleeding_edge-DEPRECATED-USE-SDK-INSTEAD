@@ -15,6 +15,7 @@ package com.google.dart.engine.internal.element.handle;
 
 import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.LocalVariableElement;
+import com.google.dart.engine.element.ToolkitObjectElement;
 import com.google.dart.engine.utilities.source.SourceRange;
 
 /**
@@ -37,6 +38,11 @@ public class LocalVariableElementHandle extends VariableElementHandle implements
   @Override
   public ElementKind getKind() {
     return ElementKind.LOCAL_VARIABLE;
+  }
+
+  @Override
+  public ToolkitObjectElement[] getToolkitObjects() {
+    return getActualElement().getToolkitObjects();
   }
 
   @Override

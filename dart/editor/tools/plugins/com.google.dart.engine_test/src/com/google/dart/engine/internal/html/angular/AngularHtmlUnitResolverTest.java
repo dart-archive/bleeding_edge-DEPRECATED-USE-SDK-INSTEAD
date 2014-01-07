@@ -21,7 +21,7 @@ import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.html.ast.HtmlUnitUtils;
 
 public class AngularHtmlUnitResolverTest extends AngularTest {
-  public void test_moduleAsLocalVariable() throws Exception {
+  public void test_moduleAsLocalVariable_inInitializer() throws Exception {
     mainSource = contextHelper.addSource("/main.dart", createSource("",//
         "import 'angular.dart';",
         "",
@@ -32,26 +32,34 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
         "  String field;",
         "}",
         "",
-        "class MyModule extends Module {",
-        "  MyModule() {",
-        "    type(MyController);",
-        "  }",
-        "}",
-        "",
         "main() {",
         "  var module = new Module()",
         "    ..type(MyController);",
         "  ngBootstrap(module: module);",
         "}"));
-    resolveIndex(//
-        "<html ng-app>",
-        "  <body>",
-        "    <div my-controller>",
-        "      {{ctrl.field}}",
-        "    </div>",
-        "    <script type='application/dart' src='main.dart'></script>",
-        "  </body>",
-        "</html>");
+    resolveIndex(createHtmlWithMyController("{{ctrl.field}}"));
+    assertNoErrors();
+    verify(indexSource);
+    assertResolvedIdentifier("ctrl", "MyController");
+  }
+
+  public void test_moduleAsLocalVariable_inStatements() throws Exception {
+    mainSource = contextHelper.addSource("/main.dart", createSource("",//
+        "import 'angular.dart';",
+        "",
+        "@NgController(",
+        "    selector: '[my-controller]',",
+        "    publishAs: 'ctrl')",
+        "class MyController {",
+        "  String field;",
+        "}",
+        "",
+        "main() {",
+        "  var module = new Module();",
+        "  module.type(MyController);",
+        "  ngBootstrap(module: module);",
+        "}"));
+    resolveIndex(createHtmlWithMyController("{{ctrl.field}}"));
     assertNoErrors();
     verify(indexSource);
     assertResolvedIdentifier("ctrl", "MyController");
@@ -77,15 +85,7 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
         "main() {",
         "  ngBootstrap(module: new MyModule());",
         "}"));
-    resolveIndex(//
-        "<html ng-app>",
-        "  <body>",
-        "    <div my-controller>",
-        "      {{ctrl.field}}",
-        "    </div>",
-        "    <script type='application/dart' src='main.dart'></script>",
-        "  </body>",
-        "</html>");
+    resolveIndex(createHtmlWithMyController("{{ctrl.field}}"));
     assertNoErrors();
     verify(indexSource);
     assertResolvedIdentifier("ctrl", "MyController");

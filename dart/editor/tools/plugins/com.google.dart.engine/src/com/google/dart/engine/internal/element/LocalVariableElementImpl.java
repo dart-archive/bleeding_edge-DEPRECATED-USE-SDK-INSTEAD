@@ -17,6 +17,7 @@ import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.ElementVisitor;
 import com.google.dart.engine.element.LocalVariableElement;
+import com.google.dart.engine.element.ToolkitObjectElement;
 import com.google.dart.engine.utilities.source.SourceRange;
 
 /**
@@ -71,6 +72,11 @@ public class LocalVariableElementImpl extends VariableElementImpl implements Loc
   }
 
   @Override
+  public ToolkitObjectElement[] getToolkitObjects() {
+    return getAncestor(CompilationUnitElementImpl.class).getToolkitObjects(this);
+  }
+
+  @Override
   public SourceRange getVisibleRange() {
     if (visibleRangeLength < 0) {
       return null;
@@ -100,6 +106,15 @@ public class LocalVariableElementImpl extends VariableElementImpl implements Loc
    */
   public void markPotentiallyMutatedInScope() {
     isPotentiallyMutatedInScope = true;
+  }
+
+  /**
+   * Set the toolkit specific information objects attached to this variable.
+   * 
+   * @param toolkitObjects the toolkit objects attached to this variable
+   */
+  public void setToolkitObjects(ToolkitObjectElement[] toolkitObjects) {
+    getAncestor(CompilationUnitElementImpl.class).setToolkitObjects(this, toolkitObjects);
   }
 
   /**

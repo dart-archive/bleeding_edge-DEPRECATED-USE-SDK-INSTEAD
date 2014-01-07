@@ -16,7 +16,7 @@ package com.google.dart.engine.element.angular;
 import com.google.dart.engine.element.FieldElement;
 
 /**
- * The interface {@code AngularControllerElement} defines a single property in
+ * The interface {@code AngularPropertyElement} defines a single property in
  * {@link AngularComponentElement}.
  * 
  * @coverage dart.engine.element

@@ -20,4 +20,10 @@ package com.google.dart.engine.element;
  * @coverage dart.engine.element
  */
 public interface LocalVariableElement extends LocalElement, VariableElement {
+  /**
+   * Return an array containing all of the toolkit specific objects attached to this variable.
+   * 
+   * @return the toolkit objects attached to this variable
+   */
+  public ToolkitObjectElement[] getToolkitObjects();
 }

@@ -23,7 +23,6 @@ import com.google.dart.engine.ast.ArgumentList;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.Expression;
-import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.ast.InstanceCreationExpression;
 import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.NamedExpression;
@@ -34,13 +33,14 @@ import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
-import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.ExternalHtmlScriptElement;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.HtmlScriptElement;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.LocalVariableElement;
+import com.google.dart.engine.element.ToolkitObjectElement;
+import com.google.dart.engine.element.angular.AngularModuleElement;
 import com.google.dart.engine.element.angular.AngularSelector;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
@@ -475,59 +475,37 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
   }
 
   /**
-   * Returns {@link ClassDeclaration} of classes injected into given modules.
+   * Returns {@link ClassDeclaration} of classes injected into the given module.
+   * 
+   * @param element a Dart {@link Element} used as an argument for <code>bootstrap</code> invocation
+   *          - class or variable.
    */
-  private List<ClassDeclaration> getInjectedClasses(Element moduleElement) throws AnalysisException {
-    final List<ClassDeclaration> injected = Lists.newArrayList();
+  private List<ClassDeclaration> getInjectedClasses(Element element) throws AnalysisException {
+    List<ClassDeclaration> injected = Lists.newArrayList();
+    ToolkitObjectElement[] toolkitObjects = ToolkitObjectElement.EMPTY_ARRAY;
     // ClassElement
-    if (moduleElement instanceof ClassElement) {
-      ClassDeclaration module = ((ClassElement) moduleElement).getNode();
-      module.accept(new RecursiveASTVisitor<Void>() {
-        @Override
-        public Void visitMethodInvocation(MethodInvocation node) {
-          List<Expression> arguments = node.getArgumentList().getArguments();
-          if (node.getMethodName().getName().equals("type") && arguments.size() == 1) {
-            Expression argument = arguments.get(0);
-            if (argument instanceof Identifier) {
-              Element injectElement = ((Identifier) argument).getStaticElement();
-              if (injectElement instanceof ClassElement) {
-                try {
-                  ClassDeclaration injectedClass = ((ClassElement) injectElement).getNode();
-                  injected.add(injectedClass);
-                } catch (AnalysisException e) {
-                  thrownException = e;
-                }
-              }
-            }
-          }
-          return super.visitMethodInvocation(node);
-        }
-      });
+    if (element instanceof ClassElement) {
+      ClassElement classElement = (ClassElement) element;
+      toolkitObjects = classElement.getToolkitObjects();
     }
     // LocalVariableElement
-    if (moduleElement instanceof LocalVariableElement) {
-      ASTNode enclosingMethod = moduleElement.getAncestor(ExecutableElement.class).getNode();
-      enclosingMethod.accept(new RecursiveASTVisitor<Void>() {
-        @Override
-        public Void visitMethodInvocation(MethodInvocation node) {
-          List<Expression> arguments = node.getArgumentList().getArguments();
-          if (node.getMethodName().getName().equals("type") && arguments.size() == 1) {
-            Expression argument = arguments.get(0);
-            if (argument instanceof Identifier) {
-              Element injectElement = ((Identifier) argument).getStaticElement();
-              if (injectElement instanceof ClassElement) {
-                try {
-                  ClassDeclaration injectedClass = ((ClassElement) injectElement).getNode();
-                  injected.add(injectedClass);
-                } catch (AnalysisException e) {
-                  thrownException = e;
-                }
-              }
-            }
+    if (element instanceof LocalVariableElement) {
+      LocalVariableElement variableElement = (LocalVariableElement) element;
+      toolkitObjects = variableElement.getToolkitObjects();
+    }
+    // process toolkit elements
+    for (ToolkitObjectElement toolkitObject : toolkitObjects) {
+      if (toolkitObject instanceof AngularModuleElement) {
+        AngularModuleElement moduleElement = (AngularModuleElement) toolkitObject;
+        for (ClassElement typeElement : moduleElement.getKeyTypes()) {
+          try {
+            ClassDeclaration injectedClass = typeElement.getNode();
+            injected.add(injectedClass);
+          } catch (AnalysisException e) {
+            thrownException = e;
           }
-          return super.visitMethodInvocation(node);
         }
-      });
+      }
     }
     // done
     return injected;
