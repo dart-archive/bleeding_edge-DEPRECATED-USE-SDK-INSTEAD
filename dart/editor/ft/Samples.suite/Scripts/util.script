@@ -173,10 +173,11 @@ end closeDebugger
 to startDartEditor
 	set the SearchRectangle to ((0,0),(200,200))
 	DoubleClick "StartDartEditor"
+	WaitFor 20,"MaximizeWindowIcon"
 	Click "MaximizeWindowIcon"
 	set the SearchRectangle to ()
 	if isMacOSX()
-		SetOption ForceScreenRefresh, true
+		(*SetOption ForceScreenRefresh, true*)
 	end if
 end startDartEditor
 
@@ -184,7 +185,7 @@ end startDartEditor
 to stopDartEditor
 	if isMacOSX()
 		TypeText commandKey,q
-	else
+		else
 		TypeText altKey,F4
 	end if
 end stopDartEditor
