@@ -1,11 +1,11 @@
 /*
  * Copyright 2013 Dart project authors.
- *
+ * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- *
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -68,7 +68,7 @@ import java.util.List;
 
 /**
  * Concrete implementation of {@link ProjectManager}.
- *
+ * 
  * @coverage dart.tools.core.model
  */
 public class ProjectManagerImpl extends ContextManagerImpl implements ProjectManager {
@@ -217,9 +217,8 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
           // into the dart:core files in the project, which leads to a large number of false
           // positives.
           //
-          result = new ProjectImpl(
-              resource,
-              new DirectoryBasedDartSdk(resource.getLocation().toFile()));
+          result = new ProjectImpl(resource, new DirectoryBasedDartSdk(
+              resource.getLocation().toFile()));
         } else {
           result = new ProjectImpl(resource, getSdk());
         }
@@ -484,8 +483,7 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
           }
           return true;
         }
-      },
-          0);
+      }, 0);
     } catch (CoreException e) {
       DartCore.logError(e);
     }
@@ -515,7 +513,7 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
       List<Source> sources = new ArrayList<Source>();
       IResource resource = getResourceFromPath(path);
 
-      if (resource != null) {
+      if (resource != null && resource.isAccessible()) {
         AnalysisContext context = getContext(resource);
         if (resource instanceof IFile) {
           Source source = getSource((IFile) resource);
@@ -532,8 +530,10 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
         for (Source source : sources) {
           AnalysisErrorInfo errorInfo = context.getErrors(source);
           if (errorInfo.getErrors().length > 0) {
-            AnalysisMarkerManager.getInstance()
-                .queueErrors(getResource(source), errorInfo.getLineInfo(), errorInfo.getErrors());
+            AnalysisMarkerManager.getInstance().queueErrors(
+                getResource(source),
+                errorInfo.getLineInfo(),
+                errorInfo.getErrors());
           }
           Project project = getProject(resource.getProject());
           if (project == null) {

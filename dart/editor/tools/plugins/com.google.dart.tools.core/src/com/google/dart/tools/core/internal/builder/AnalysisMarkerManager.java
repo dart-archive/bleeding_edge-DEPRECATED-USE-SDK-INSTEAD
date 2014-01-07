@@ -314,10 +314,12 @@ public class AnalysisMarkerManager {
 
     //TODO(keertip): remove resource from queue
     try {
-      if (resource instanceof IContainer) {
-        resource.deleteMarkers(null, false, IResource.DEPTH_INFINITE);
-      } else {
-        resource.deleteMarkers(null, false, IResource.DEPTH_ZERO);
+      if (resource.isAccessible()) {
+        if (resource instanceof IContainer) {
+          resource.deleteMarkers(null, false, IResource.DEPTH_INFINITE);
+        } else {
+          resource.deleteMarkers(null, false, IResource.DEPTH_ZERO);
+        }
       }
     } catch (Exception e) {
       DartCore.logError(e);
