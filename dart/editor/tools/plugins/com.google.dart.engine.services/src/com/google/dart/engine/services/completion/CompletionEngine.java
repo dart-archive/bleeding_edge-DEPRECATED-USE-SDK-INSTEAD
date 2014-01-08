@@ -58,6 +58,7 @@ import com.google.dart.engine.ast.ImportDirective;
 import com.google.dart.engine.ast.InstanceCreationExpression;
 import com.google.dart.engine.ast.InterpolationExpression;
 import com.google.dart.engine.ast.IsExpression;
+import com.google.dart.engine.ast.LibraryIdentifier;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.NamedExpression;
@@ -631,6 +632,12 @@ public class CompletionEngine {
     }
 
     @Override
+    public Void visitLibraryIdentifier(LibraryIdentifier node) {
+      // Library identifiers are always unique, so don't complete them.
+      return null;
+    }
+
+    @Override
     public Void visitMethodDeclaration(MethodDeclaration node) {
       if (completionNode == node.getName()) {
         if (node.getReturnType() == null) {
@@ -1183,6 +1190,12 @@ public class CompletionEngine {
         ident = new Ident(node);
       }
       analyzeLocalName(ident);
+      return null;
+    }
+
+    @Override
+    public Void visitLibraryIdentifier(LibraryIdentifier node) {
+      // Library identifiers are always unique, so don't complete them.
       return null;
     }
 

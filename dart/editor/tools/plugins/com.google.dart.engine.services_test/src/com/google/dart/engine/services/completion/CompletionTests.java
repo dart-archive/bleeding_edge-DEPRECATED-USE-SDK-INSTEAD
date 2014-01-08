@@ -1762,6 +1762,16 @@ public class CompletionTests extends CompletionTestCase {
         "}"), "1+caseVar", "1-otherVar");
   }
 
+  public void testCompletion_libraryIdentifier_atEOF() throws Exception {
+    test("library int.!1", "1-parse", "1-bool");
+  }
+
+  public void testCompletion_libraryIdentifier_notEOF() throws Exception {
+    test(src(//
+        "library int.!1",
+        ""), "1-parse", "1-bool");
+  }
+
   public void testCompletion_methodRef_asArg_incompatibleFunctionType() throws Exception {
     test(src(//
         "foo( f(int p) ) {}",
