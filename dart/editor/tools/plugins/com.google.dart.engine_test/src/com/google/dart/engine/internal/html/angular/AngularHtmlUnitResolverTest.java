@@ -21,6 +21,82 @@ import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.html.ast.HtmlUnitUtils;
 
 public class AngularHtmlUnitResolverTest extends AngularTest {
+  public void test_directive_resolvedExpression_attrString() throws Exception {
+    mainSource = contextHelper.addSource("/main.dart", createSource("",//
+        "import 'angular.dart';",
+        "",
+        "@NgDirective(",
+        "    selector: '[my-directive]',",
+        "    map: const {'my-directive' : '@condition'})",
+        "class MyDirective {",
+        "  set condition(value) {}",
+        "}",
+        "",
+        "main() {",
+        "  var module = new Module();",
+        "  module.type(MyDirective);",
+        "  ngBootstrap(module: module);",
+        "}"));
+    resolveIndex(createHtmlWithMyController(//
+        "<input type='text' ng-model='name'>",
+        "<div my-directive='name != null'>",
+        "</div>"));
+    assertNoErrors();
+    verify(indexSource);
+    // @condition means "string attribute", which we don't parse
+    assertNull(findIdentifierMaybe("name != null"));
+  }
+
+  public void test_directive_resolvedExpression_dotAsName() throws Exception {
+    mainSource = contextHelper.addSource("/main.dart", createSource("",//
+        "import 'angular.dart';",
+        "",
+        "@NgDirective(",
+        "    selector: '[my-directive]',",
+        "    map: const {'.' : '=>condition'})",
+        "class MyDirective {",
+        "  set condition(value) {}",
+        "}",
+        "",
+        "main() {",
+        "  var module = new Module();",
+        "  module.type(MyDirective);",
+        "  ngBootstrap(module: module);",
+        "}"));
+    resolveIndex(createHtmlWithMyController(//
+        "<input type='text' ng-model='name'>",
+        "<div my-directive='name != null'>",
+        "</div>"));
+    assertNoErrors();
+    verify(indexSource);
+    assertNotNull(findIdentifier("name != null"));
+  }
+
+  public void test_directive_resolvedExpression_oneWay() throws Exception {
+    mainSource = contextHelper.addSource("/main.dart", createSource("",//
+        "import 'angular.dart';",
+        "",
+        "@NgDirective(",
+        "    selector: '[my-directive]',",
+        "    map: const {'my-directive' : '=>condition'})",
+        "class MyDirective {",
+        "  set condition(value) {}",
+        "}",
+        "",
+        "main() {",
+        "  var module = new Module();",
+        "  module.type(MyDirective);",
+        "  ngBootstrap(module: module);",
+        "}"));
+    resolveIndex(createHtmlWithMyController(//
+        "<input type='text' ng-model='name'>",
+        "<div my-directive='name != null'>",
+        "</div>"));
+    assertNoErrors();
+    verify(indexSource);
+    assertNotNull(findIdentifier("name != null"));
+  }
+
   public void test_moduleAsLocalVariable_inInitializer() throws Exception {
     mainSource = contextHelper.addSource("/main.dart", createSource("",//
         "import 'angular.dart';",

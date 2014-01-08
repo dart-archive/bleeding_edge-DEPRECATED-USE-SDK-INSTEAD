@@ -22,6 +22,7 @@ import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.element.ToolkitObjectElement;
 import com.google.dart.engine.element.angular.AngularComponentElement;
 import com.google.dart.engine.element.angular.AngularControllerElement;
+import com.google.dart.engine.element.angular.AngularDirectiveElement;
 import com.google.dart.engine.element.angular.AngularElement;
 import com.google.dart.engine.element.angular.AngularFilterElement;
 import com.google.dart.engine.element.angular.AngularModuleElement;
@@ -239,6 +240,21 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
     assertEquals("int", keyTypes[1].getName());
   }
 
+  public void test_NgComponent_bad_cannotParseSelector() throws Exception {
+    contextHelper.addSource("my_template.html", "");
+    contextHelper.addSource("my_styles.css", "");
+    String mainContent = createAngularModuleSource(//
+        formatLines(//
+            "@NgComponent(publishAs: 'ctrl', selector: '~myComp',",
+            "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css')",
+            "class MyComponent {",
+            "}"),
+        formatLines("MyComponent"));
+    resolveMainSource(mainContent);
+    // has error
+    assertMainErrors(AngularCode.CANNOT_PARSE_SELECTOR);
+  }
+
   public void test_NgComponent_bad_missingCss() throws Exception {
     contextHelper.addSource("my_template.html", "");
     contextHelper.addSource("my_styles.css", "");
@@ -377,21 +393,6 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
     resolveMainSource(mainContent);
     // has error
     assertMainErrors(AngularCode.INVALID_PROPERTY_SPEC);
-  }
-
-  public void test_NgComponent_cannotParseSelector() throws Exception {
-    contextHelper.addSource("my_template.html", "");
-    contextHelper.addSource("my_styles.css", "");
-    String mainContent = createAngularModuleSource(//
-        formatLines(//
-            "@NgComponent(publishAs: 'ctrl', selector: '~myComp',",
-            "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css')",
-            "class MyComponent {",
-            "}"),
-        formatLines("MyComponent"));
-    resolveMainSource(mainContent);
-    // has error
-    assertMainErrors(AngularCode.CANNOT_PARSE_SELECTOR);
   }
 
   public void test_NgComponent_properties_fromFields() throws Exception {
@@ -607,6 +608,85 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
             "class MyController {",
             "}"),
         formatLines("MyController"));
+    resolveMainSource(mainContent);
+    // has error
+    assertMainErrors(AngularCode.MISSING_SELECTOR);
+  }
+
+  public void test_NgDirective() throws Exception {
+    String mainContent = createAngularModuleSource(//
+        formatLines(//
+            "@NgDirective(selector: '[my-dir]',",
+            "             map: const {",
+            "               'my-dir' : '=>myPropA',",
+            "               '.' : '&myPropB',",
+            "             })",
+            "class MyDirective {",
+            "  set myPropA(value) {}",
+            "  set myPropB(value) {}",
+            "}"),
+        formatLines("MyDirective"));
+    resolveMainSourceNoErrors(mainContent);
+    // prepare AngularDirectiveElement
+    ClassElement classElement = mainUnitElement.getType("MyDirective");
+    AngularDirectiveElement directive = getAngularElement(
+        classElement,
+        AngularDirectiveElement.class);
+    assertNotNull(directive);
+    // verify
+    assertEquals(null, directive.getName());
+    assertEquals(-1, directive.getNameOffset());
+    assertHasAttributeSelector(directive.getSelector(), "my-dir");
+    // verify properties
+    AngularPropertyElement[] properties = directive.getProperties();
+    assertLength(2, properties);
+    assertProperty(
+        properties[0],
+        "my-dir",
+        findMainOffset("my-dir' :"),
+        AngularPropertyKind.ONE_WAY,
+        "myPropA",
+        findMainOffset("myPropA'"));
+    assertProperty(
+        properties[1],
+        ".",
+        findMainOffset(".' :"),
+        AngularPropertyKind.CALLBACK,
+        "myPropB",
+        findMainOffset("myPropB'"));
+  }
+
+  public void test_NgDirective_bad_cannotParseSelector() throws Exception {
+    String mainContent = createAngularModuleSource(//
+        formatLines(//
+            "@NgDirective(selector: '~bad-selector',",
+            "             map: const {",
+            "               'my-dir' : '=>myPropA',",
+            "               '.' : '&myPropB',",
+            "             })",
+            "class MyDirective {",
+            "  set myPropA(value) {}",
+            "  set myPropB(value) {}",
+            "}"),
+        formatLines("MyDirective"));
+    resolveMainSource(mainContent);
+    // has error
+    assertMainErrors(AngularCode.CANNOT_PARSE_SELECTOR);
+  }
+
+  public void test_NgDirective_bad_missingSelector() throws Exception {
+    String mainContent = createAngularModuleSource(//
+        formatLines(//
+            "@NgDirective(/*selector: '[my-dir]',*/",
+            "             map: const {",
+            "               'my-dir' : '=>myPropA',",
+            "               '.' : '&myPropB',",
+            "             })",
+            "class MyDirective {",
+            "  set myPropA(value) {}",
+            "  set myPropB(value) {}",
+            "}"),
+        formatLines("MyDirective"));
     resolveMainSource(mainContent);
     // has error
     assertMainErrors(AngularCode.MISSING_SELECTOR);

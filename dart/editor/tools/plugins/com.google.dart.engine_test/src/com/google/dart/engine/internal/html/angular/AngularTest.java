@@ -182,12 +182,19 @@ abstract public class AngularTest extends EngineTestCase {
   }
 
   /**
-   * @return the {@link SimpleIdentifier} at the given search pattern.
+   * Returns the {@link SimpleIdentifier} at the given search pattern. Fails if not found.
    */
   protected final SimpleIdentifier findIdentifier(String search) {
-    SimpleIdentifier identifier = findExpression(findOffset(search), SimpleIdentifier.class);
+    SimpleIdentifier identifier = findIdentifierMaybe(search);
     assertNotNull(search + " in " + indexContent, identifier);
     return identifier;
+  }
+
+  /**
+   * Returns the {@link SimpleIdentifier} at the given search pattern, or {@code null} if not found.
+   */
+  protected final SimpleIdentifier findIdentifierMaybe(String search) {
+    return findExpression(findOffset(search), SimpleIdentifier.class);
   }
 
   /**

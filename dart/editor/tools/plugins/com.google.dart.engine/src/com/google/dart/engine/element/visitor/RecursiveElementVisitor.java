@@ -38,6 +38,7 @@ import com.google.dart.engine.element.TopLevelVariableElement;
 import com.google.dart.engine.element.TypeParameterElement;
 import com.google.dart.engine.element.angular.AngularComponentElement;
 import com.google.dart.engine.element.angular.AngularControllerElement;
+import com.google.dart.engine.element.angular.AngularDirectiveElement;
 import com.google.dart.engine.element.angular.AngularFilterElement;
 import com.google.dart.engine.element.angular.AngularModuleElement;
 import com.google.dart.engine.element.angular.AngularPropertyElement;
@@ -63,6 +64,12 @@ public class RecursiveElementVisitor<R> implements ElementVisitor<R> {
 
   @Override
   public R visitAngularControllerElement(AngularControllerElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+
+  @Override
+  public R visitAngularDirectiveElement(AngularDirectiveElement element) {
     element.visitChildren(this);
     return null;
   }

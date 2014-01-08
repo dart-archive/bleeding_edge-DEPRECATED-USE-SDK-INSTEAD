@@ -36,6 +36,7 @@ import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.element.ToolkitObjectElement;
 import com.google.dart.engine.element.angular.AngularControllerElement;
+import com.google.dart.engine.element.angular.AngularDirectiveElement;
 import com.google.dart.engine.element.angular.AngularModuleElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
@@ -199,10 +200,8 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
 
   @Override
   public Void visitXmlAttributeNode(XmlAttributeNode node) {
-    if (!isProcessedByDirective(node)) {
-      parseEmbeddedExpressions(node);
-      resolveExpressions(node.getExpressions());
-    }
+    parseEmbeddedExpressions(node);
+    resolveExpressions(node.getExpressions());
     return super.visitXmlAttributeNode(node);
   }
 
@@ -357,6 +356,10 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
         AngularControllerElement controller = (AngularControllerElement) toolkitObject;
         return new NgControllerElementProcessor(controller);
       }
+      if (toolkitObject instanceof AngularDirectiveElement) {
+        AngularDirectiveElement directive = (AngularDirectiveElement) toolkitObject;
+        return new NgDirectiveElementProcessor(directive);
+      }
     }
     return null;
   }
@@ -468,16 +471,6 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
   }
 
   /**
-   * Checks if the given {@link XmlAttributeNode} has been already processed by one of the
-   * directives, so we should not try to find expressions and resolve it.
-   */
-  private boolean isProcessedByDirective(XmlAttributeNode node) {
-    // TODO(scheglov) We need some way to mark attribute as handled by directive.
-    // For now, just exclude all ng- attributes.
-    return node.getName().startsWith("ng-");
-  }
-
-  /**
    * Parse the value of the given token for embedded expressions, and add any embedded expressions
    * that are found to the given list of expressions.
    * 
@@ -507,7 +500,9 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
   private void parseEmbeddedExpressions(XmlAttributeNode node) {
     ArrayList<EmbeddedExpression> expressions = new ArrayList<EmbeddedExpression>();
     parseEmbeddedExpressions(expressions, node.getValueToken());
-    node.setExpressions(expressions.toArray(new EmbeddedExpression[expressions.size()]));
+    if (!expressions.isEmpty()) {
+      node.setExpressions(expressions.toArray(new EmbeddedExpression[expressions.size()]));
+    }
   }
 
   private void parseEmbeddedExpressions(XmlTagNode node) {

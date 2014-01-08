@@ -17,6 +17,7 @@ package com.google.dart.engine.internal.html.angular;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.html.ast.EmbeddedExpression;
 import com.google.dart.engine.html.ast.XmlAttributeNode;
+import com.google.dart.engine.scanner.Token;
 
 /**
  * {@link NgDirectiveProcessor} describes any <code>NgDirective</code> annotation instance.
@@ -24,6 +25,13 @@ import com.google.dart.engine.html.ast.XmlAttributeNode;
 abstract class NgDirectiveProcessor extends NgProcessor {
   protected static EmbeddedExpression newEmbeddedExpression(Expression e) {
     return new EmbeddedExpression(e.getOffset(), e, e.getEnd());
+  }
+
+  protected Expression parseExpression(AngularHtmlUnitResolver resolver, XmlAttributeNode attribute) {
+    int offset = attribute.getValueToken().getOffset() + 1;
+    String value = attribute.getText();
+    Token token = resolver.scanDart(value, 0, value.length(), offset);
+    return resolver.parseExpression(token);
   }
 
   /**

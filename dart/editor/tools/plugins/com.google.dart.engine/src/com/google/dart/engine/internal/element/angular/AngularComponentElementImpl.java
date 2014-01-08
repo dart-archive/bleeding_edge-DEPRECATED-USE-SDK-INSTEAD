@@ -29,7 +29,7 @@ public class AngularComponentElementImpl extends AngularSelectorElementImpl impl
   /**
    * The array containing all of the properties declared by this component.
    */
-  private AngularPropertyElement[] properties;
+  private AngularPropertyElement[] properties = AngularPropertyElement.EMPTY_ARRAY;
 
   /**
    * The the CSS file URI.

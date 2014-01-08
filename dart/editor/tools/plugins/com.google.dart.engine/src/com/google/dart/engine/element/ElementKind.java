@@ -22,6 +22,7 @@ public enum ElementKind {
   ANGULAR_FILTER("Angular filter"),
   ANGULAR_COMPONENT("Angular component"),
   ANGULAR_CONTROLLER("Angular controller"),
+  ANGULAR_DIRECTIVE("Angular directive"),
   ANGULAR_MODULE("Angular module"),
   ANGULAR_PROPERTY("Angular property"),
   CLASS("class"),

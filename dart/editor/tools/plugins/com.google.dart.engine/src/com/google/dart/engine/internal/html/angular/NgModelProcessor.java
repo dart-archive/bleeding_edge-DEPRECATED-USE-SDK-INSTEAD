@@ -20,7 +20,6 @@ import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.html.ast.XmlAttributeNode;
 import com.google.dart.engine.html.ast.XmlTagNode;
 import com.google.dart.engine.internal.element.LocalVariableElementImpl;
-import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.type.InterfaceType;
 
 /**
@@ -73,12 +72,5 @@ class NgModelProcessor extends NgDirectiveProcessor {
     identifier.setStaticElement(element);
     identifier.setStaticType(type);
     setExpression(attribute, identifier);
-  }
-
-  private Expression parseExpression(AngularHtmlUnitResolver resolver, XmlAttributeNode attribute) {
-    int offset = attribute.getValueToken().getOffset() + 1;
-    String value = attribute.getText();
-    Token token = resolver.scanDart(value, 0, value.length(), offset);
-    return resolver.parseExpression(token);
   }
 }

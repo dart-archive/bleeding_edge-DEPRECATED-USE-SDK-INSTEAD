@@ -56,6 +56,7 @@ import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.internal.element.LocalVariableElementImpl;
 import com.google.dart.engine.internal.element.angular.AngularComponentElementImpl;
 import com.google.dart.engine.internal.element.angular.AngularControllerElementImpl;
+import com.google.dart.engine.internal.element.angular.AngularDirectiveElementImpl;
 import com.google.dart.engine.internal.element.angular.AngularFilterElementImpl;
 import com.google.dart.engine.internal.element.angular.AngularModuleElementImpl;
 import com.google.dart.engine.internal.element.angular.AngularPropertyElementImpl;
@@ -78,6 +79,7 @@ import java.util.Set;
 public class AngularCompilationUnitBuilder {
   private static final String NG_COMPONENT = "NgComponent";
   private static final String NG_CONTROLLER = "NgController";
+  private static final String NG_DIRECTIVE = "NgDirective";
   private static final String NG_FILTER = "NgFilter";
 
   private static final String NAME = "name";
@@ -265,6 +267,11 @@ public class AngularCompilationUnitBuilder {
           // @NgController
           if (isAngularAnnotation(NG_CONTROLLER)) {
             parseNgController();
+            continue;
+          }
+          // @NgDirective
+          if (isAngularAnnotation(NG_DIRECTIVE)) {
+            parseNgDirective();
             continue;
           }
         }
@@ -525,7 +532,7 @@ public class AngularCompilationUnitBuilder {
       element.setTemplateUriOffset(templateUriOffset);
       element.setStyleUri(styleUri);
       element.setStyleUriOffset(styleUriOffset);
-      element.setProperties(parseNgComponentProperties());
+      element.setProperties(parseNgComponentProperties(true));
       classToolkitObjects.add(element);
     }
   }
@@ -533,10 +540,12 @@ public class AngularCompilationUnitBuilder {
   /**
    * Parses {@link AngularPropertyElement}s from {@link #annotation} and {@link #classDeclaration}.
    */
-  private AngularPropertyElement[] parseNgComponentProperties() {
+  private AngularPropertyElement[] parseNgComponentProperties(boolean fromFields) {
     List<AngularPropertyElement> properties = Lists.newArrayList();
     parseNgComponentProperties_fromMap(properties);
-    parseNgComponentProperties_fromFields(properties);
+    if (fromFields) {
+      parseNgComponentProperties_fromFields(properties);
+    }
     return properties.toArray(new AngularPropertyElement[properties.size()]);
   }
 
@@ -679,6 +688,30 @@ public class AngularCompilationUnitBuilder {
       int nameOffset = getStringArgumentOffset(PUBLISH_AS);
       AngularControllerElementImpl element = new AngularControllerElementImpl(name, nameOffset);
       element.setSelector(selector);
+      classToolkitObjects.add(element);
+    }
+  }
+
+  private void parseNgDirective() {
+    boolean isValid = true;
+    // selector
+    AngularSelector selector = null;
+    if (!hasStringArgument(SELECTOR)) {
+      reportErrorForAnnotation(AngularCode.MISSING_SELECTOR);
+      isValid = false;
+    } else {
+      String selectorText = getStringArgument(SELECTOR);
+      selector = parseSelector(selectorText);
+      if (selector == null) {
+        reportErrorForArgument(SELECTOR, AngularCode.CANNOT_PARSE_SELECTOR, selectorText);
+        isValid = false;
+      }
+    }
+    // create
+    if (isValid) {
+      AngularDirectiveElementImpl element = new AngularDirectiveElementImpl();
+      element.setSelector(selector);
+      element.setProperties(parseNgComponentProperties(false));
       classToolkitObjects.add(element);
     }
   }
