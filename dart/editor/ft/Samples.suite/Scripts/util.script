@@ -49,7 +49,9 @@ end openWelcomePage
 to nextEditor count
 	repeat count times
 		doKeyCmd F6
-		TypeText return
+		if isLinux() then
+			TypeText return
+		end if
 		Wait 2
 	end repeat
 end NextEditor

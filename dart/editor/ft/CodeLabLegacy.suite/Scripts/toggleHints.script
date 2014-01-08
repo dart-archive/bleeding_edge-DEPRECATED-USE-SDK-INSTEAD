@@ -7,6 +7,6 @@ else (* windows *)
 	Run util's selectMenuItem "Tools", "Preferences"
 end if
 Click (Text:"Hints",CaseSensitive:"yes",ValidCharacters:"*",IgnoreSpaces:"yes",dpi:94)
-Click (Text:"Display Hints",CaseSensitive:"yes",ValidCharacters:"*",IgnoreSpaces:"yes",dpi:94)
+Click (Text:"Display hints",CaseSensitive:"yes",ValidCharacters:"*",IgnoreSpaces:"yes",dpi:94)
 Typetext enter
 Run util's openWelcomePage

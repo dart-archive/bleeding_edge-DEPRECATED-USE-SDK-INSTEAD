@@ -65,6 +65,8 @@ TypeText downArrow,enter
 TypeText "Lorem ipsum dolor sit amet"
 WaitFor 2, "10words"
 
+click (370, 19)
+
 Run util's exitChromium
 Run util's selectContextMenuItem "io-2013-codelab", "Close Folder"
 Run util's deleteOutput
