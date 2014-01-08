@@ -125,6 +125,25 @@ public class AngularCompilationUnitBuilder {
     return false;
   }
 
+  public static boolean isTagName(String s) {
+    if (s == null || s.length() == 0) {
+      return false;
+    }
+    int sz = s.length();
+    for (int i = 0; i < sz; i++) {
+      char c = s.charAt(i);
+      if (!Character.isLetter(c)) {
+        if (i == 0) {
+          return false;
+        }
+        if (!Character.isDigit(c) && c != '-') {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
   /**
    * Parses given selector text and returns {@link AngularSelector}. May be {@code null} if cannot
    * parse.

@@ -24,6 +24,8 @@ import com.google.dart.java2dart.Context;
 
 import static com.google.dart.java2dart.util.ASTFactory.binaryExpression;
 import static com.google.dart.java2dart.util.ASTFactory.instanceCreationExpression;
+import static com.google.dart.java2dart.util.ASTFactory.listLiteral;
+import static com.google.dart.java2dart.util.ASTFactory.mapLiteral;
 import static com.google.dart.java2dart.util.ASTFactory.typeName;
 
 import java.util.List;
@@ -49,6 +51,14 @@ public class GuavaSemanticProcessor extends SemanticProcessor {
         }
         if (isMethodInClass(node, "of", "com.google.common.collect.ImmutableMap")) {
           replaceNode(node, instanceCreationExpression(Keyword.NEW, typeName("Map")));
+          return null;
+        }
+        if (isMethodInClass(node, "newArrayList", "com.google.common.collect.Lists")) {
+          replaceNode(node, listLiteral());
+          return null;
+        }
+        if (isMethodInClass(node, "newHashMap", "com.google.common.collect.Maps")) {
+          replaceNode(node, mapLiteral());
           return null;
         }
         if (isMethodInClass(node, "newHashSet", "com.google.common.collect.Sets")) {

@@ -104,11 +104,10 @@ public final class StringUtilities {
 
   /**
    * <p>
-   * Checks if the CharSequence can be used as a tag name.
+   * Checks if the String can be used as a tag name.
    * </p>
    * <p>
-   * {@code null} will return {@code false}. An empty CharSequence (length()=0) will return
-   * {@code false}.
+   * {@code null} will return {@code false}. An empty String (length()=0) will return {@code false}.
    * </p>
    * 
    * <pre>
@@ -121,16 +120,16 @@ public final class StringUtilities {
    * StringUtils.isAlpha("ab-c") = true
    * </pre>
    * 
-   * @param cs the CharSequence to check, may be null
+   * @param s the String to check, may be null
    * @return {@code true} if can be used as a tag name, and is non-null
    */
-  public static boolean isTagName(CharSequence cs) {
-    if (cs == null || cs.length() == 0) {
+  public static boolean isTagName(String s) {
+    if (s == null || s.length() == 0) {
       return false;
     }
-    int sz = cs.length();
+    int sz = s.length();
     for (int i = 0; i < sz; i++) {
-      char c = cs.charAt(i);
+      char c = s.charAt(i);
       if (!Character.isLetter(c)) {
         if (i == 0) {
           return false;

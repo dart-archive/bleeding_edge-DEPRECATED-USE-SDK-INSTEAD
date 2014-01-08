@@ -73,7 +73,11 @@ public class LocalVariableElementImpl extends VariableElementImpl implements Loc
 
   @Override
   public ToolkitObjectElement[] getToolkitObjects() {
-    return getAncestor(CompilationUnitElementImpl.class).getToolkitObjects(this);
+    CompilationUnitElementImpl unit = getAncestor(CompilationUnitElementImpl.class);
+    if (unit == null) {
+      return ToolkitObjectElement.EMPTY_ARRAY;
+    }
+    return unit.getToolkitObjects(this);
   }
 
   @Override
@@ -114,7 +118,11 @@ public class LocalVariableElementImpl extends VariableElementImpl implements Loc
    * @param toolkitObjects the toolkit objects attached to this variable
    */
   public void setToolkitObjects(ToolkitObjectElement[] toolkitObjects) {
-    getAncestor(CompilationUnitElementImpl.class).setToolkitObjects(this, toolkitObjects);
+    CompilationUnitElementImpl unit = getAncestor(CompilationUnitElementImpl.class);
+    if (unit == null) {
+      return;
+    }
+    unit.setToolkitObjects(this, toolkitObjects);
   }
 
   /**

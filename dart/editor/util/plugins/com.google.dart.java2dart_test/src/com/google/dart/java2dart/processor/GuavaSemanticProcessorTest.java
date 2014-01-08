@@ -43,6 +43,57 @@ public class GuavaSemanticProcessorTest extends SemanticProcessorTest {
         "}");
   }
 
+  public void test_Lists_newArrayList() throws Exception {
+    setFileLines(
+        "com/google/common/collect/Lists.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "package com.google.common.collect;",
+            "import java.util.ArrayList;",
+            "public class Lists {",
+            "  public static <T> ArrayList<T> newArrayList() { return null; }",
+            "}"));
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "import java.util.List;",
+        "import com.google.common.collect.Lists;",
+        "public class Test {",
+        "  List<String> m = Lists.newArrayList();",
+        "}");
+    runProcessor();
+    assertFormattedSource(//
+        "class Test {",
+        "  List<String> m = [];",
+        "}");
+  }
+
+  public void test_Maps_newHashMap() throws Exception {
+    setFileLines(
+        "com/google/common/collect/Maps.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "package com.google.common.collect;",
+            "import java.util.HashMap;",
+            "public class Maps {",
+            "  public static <T> HashMap<T> newHashMap() { return null; }",
+            "}"));
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "import java.util.List;",
+        "import java.util.Map;",
+        "import com.google.common.collect.Maps;",
+        "public class Test {",
+        "  Map<String, List<String>> m = Maps.newHashMap();",
+        "}");
+    runProcessor();
+    assertFormattedSource(//
+        "class Test {",
+        "  Map<String, List<String>> m = {};",
+        "}");
+  }
+
   public void test_Objects_equal() throws Exception {
     setFileLines(
         "com/google/common/base/Objects.java",

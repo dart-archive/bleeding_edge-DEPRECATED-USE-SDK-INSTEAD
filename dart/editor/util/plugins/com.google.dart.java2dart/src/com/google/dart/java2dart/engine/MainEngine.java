@@ -20,8 +20,10 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.io.Files;
 import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.CompilationUnitMember;
+import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.Statement;
 import com.google.dart.engine.utilities.io.PrintStringWriter;
 import com.google.dart.java2dart.Context;
@@ -253,10 +255,35 @@ public class MainEngine {
     }
     {
       CompilationUnit library = buildUtilitiesGeneralLibrary();
-      Files.write(
-          getFormattedSource(library),
-          new File(targetFolder + "/utilities_general.dart"),
-          Charsets.UTF_8);
+      removeClass(library, "TimeCounter");
+      removeClass(library, "TimeCounter_TimeCounterHandle");
+      String source = getFormattedSource(library);
+      source += Joiner.on("\n").join(
+          new String[] {
+              "/**",
+              " * Helper for measuring how much time is spent doing some operation.",
+              " */",
+              "class TimeCounter {",
+              "  Stopwatch _sw = new Stopwatch();",
+              "",
+              "  /**",
+              "   * @return the number of milliseconds spent between [start] and [stop].",
+              "   */",
+              "  int get result => _sw.elapsedMilliseconds;",
+              "",
+              "  /**",
+              "   * Starts counting time.",
+              "   *",
+              "   * @return the [TimeCounterHandle] that should be used to stop counting.",
+              "   */",
+              "  TimeCounter_TimeCounterHandle start() => new TimeCounter_TimeCounterHandle(this);",
+              "}", "", "/**",
+              " * The handle object that should be used to stop and update counter.", " */",
+              "class TimeCounter_TimeCounterHandle {", "  final TimeCounter _counter;", "",
+              "  TimeCounter_TimeCounterHandle(this._counter) {", "    _counter._sw.start();",
+              "  }", "", "  /**", "   * Stops counting time and updates counter.", "   */",
+              "  void stop() {", "    _counter._sw.stop();", "  }", "}"});
+      Files.write(source, new File(targetFolder + "/utilities_general.dart"), Charsets.UTF_8);
     }
     {
       CompilationUnit library = buildSourceLibrary();
@@ -1112,7 +1139,6 @@ public class MainEngine {
   private static CompilationUnit buildUtilitiesGeneralLibrary() throws Exception {
     CompilationUnit unit = new CompilationUnit(null, null, null, null, null);
     unit.getDirectives().add(libraryDirective("engine", "utilities", "general"));
-    unit.getDirectives().add(importDirective("java_core.dart", null));
     for (Entry<File, List<CompilationUnitMember>> entry : context.getFileToMembers().entrySet()) {
       File file = entry.getKey();
       if (isEnginePath(file, "utilities/general/")) {
@@ -1154,6 +1180,22 @@ public class MainEngine {
 
   private static String makeSource(String... lines) {
     return Joiner.on("\n").join(lines);
+  }
+
+  /**
+   * Removes {@link ClassDeclaration} with the given name.
+   */
+  private static void removeClass(CompilationUnit unit, String name) {
+    NodeList<CompilationUnitMember> declarations = unit.getDeclarations();
+    for (Iterator<CompilationUnitMember> iter = declarations.iterator(); iter.hasNext();) {
+      CompilationUnitMember member = iter.next();
+      if (member instanceof ClassDeclaration) {
+        ClassDeclaration classDeclaration = (ClassDeclaration) member;
+        if (classDeclaration.getName().getName().equals(name)) {
+          iter.remove();
+        }
+      }
+    }
   }
 
   /**
