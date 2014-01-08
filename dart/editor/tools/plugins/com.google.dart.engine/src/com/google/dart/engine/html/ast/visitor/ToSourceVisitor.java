@@ -59,8 +59,8 @@ public class ToSourceVisitor implements XmlVisitor<Void> {
 
   @Override
   public Void visitXmlAttributeNode(XmlAttributeNode node) {
-    String name = node.getName().getLexeme();
-    Token value = node.getValue();
+    String name = node.getName();
+    Token value = node.getValueToken();
     if (name.length() == 0) {
       writer.print("__");
     } else {
@@ -78,7 +78,7 @@ public class ToSourceVisitor implements XmlVisitor<Void> {
   @Override
   public Void visitXmlTagNode(XmlTagNode node) {
     writer.print("<");
-    String tagName = node.getTag().getLexeme();
+    String tagName = node.getTag();
     writer.print(tagName);
     for (XmlAttributeNode attribute : node.getAttributes()) {
       writer.print(" ");

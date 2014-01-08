@@ -198,7 +198,7 @@ public class ParseHtmlTask extends AnalysisTask {
       public Void visitHtmlScriptTagNode(HtmlScriptTagNode node) {
         XmlAttributeNode scriptAttribute = null;
         for (XmlAttributeNode attribute : node.getAttributes()) {
-          if (attribute.getName().getLexeme().equalsIgnoreCase(ATTRIBUTE_SRC)) {
+          if (attribute.getName().equalsIgnoreCase(ATTRIBUTE_SRC)) {
             scriptAttribute = attribute;
           }
         }

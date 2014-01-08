@@ -261,7 +261,7 @@ public class HtmlUnitBuilder implements XmlVisitor<Void> {
    */
   private XmlAttributeNode getScriptSourcePath(XmlTagNode node) {
     for (XmlAttributeNode attribute : node.getAttributes()) {
-      if (attribute.getName().getLexeme().equals(SRC)) {
+      if (attribute.getName().equals(SRC)) {
         return attribute;
       }
     }
@@ -283,7 +283,7 @@ public class HtmlUnitBuilder implements XmlVisitor<Void> {
       } else {
         builder.append(", ");
       }
-      String tagName = pathNode.getTag().getLexeme();
+      String tagName = pathNode.getTag();
       if (pathNode == node) {
         builder.append("*");
         builder.append(tagName);
@@ -325,8 +325,8 @@ public class HtmlUnitBuilder implements XmlVisitor<Void> {
    */
   private void reportValueError(ErrorCode errorCode, XmlAttributeNode attribute,
       Object... arguments) {
-    int offset = attribute.getValue().getOffset() + 1;
-    int length = attribute.getValue().getLength() - 2;
+    int offset = attribute.getValueToken().getOffset() + 1;
+    int length = attribute.getValueToken().getLength() - 2;
     reportError(errorCode, offset, length, arguments);
   }
 

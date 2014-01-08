@@ -203,8 +203,8 @@ public class HtmlParser extends XmlParser {
       return false;
     }
     for (XmlAttributeNode attribute : attributes) {
-      if (attribute.getName().getLexeme().equals(TYPE)) {
-        Token valueToken = attribute.getValue();
+      if (attribute.getName().equals(TYPE)) {
+        Token valueToken = attribute.getValueToken();
         if (valueToken != null) {
           String value = valueToken.getLexeme();
           if (value.equals(APPLICATION_DART_IN_DOUBLE_QUOTES)

@@ -52,7 +52,7 @@ public class NgRepeatDirective extends NgDirective {
   @Override
   public void apply(AngularHtmlUnitResolver resolver, XmlTagNode node) {
     XmlAttributeNode attribute = node.getAttribute(NG_REPEAT);
-    int offset = attribute.getValue().getOffset() + 1;
+    int offset = attribute.getValueToken().getOffset() + 1;
     String spec = attribute.getText();
     // scan attribute as Dart
     Token token = resolver.scanDart(spec, 0, spec.length(), offset);

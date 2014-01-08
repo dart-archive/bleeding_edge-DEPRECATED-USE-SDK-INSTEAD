@@ -146,7 +146,7 @@ public class XmlTagNode extends XmlNode {
    */
   public XmlAttributeNode getAttribute(String name) {
     for (XmlAttributeNode attribute : attributes) {
-      if (attribute.getName().getLexeme().equals(name)) {
+      if (attribute.getName().equals(name)) {
         return attribute;
       }
     }
@@ -296,12 +296,12 @@ public class XmlTagNode extends XmlNode {
   }
 
   /**
-   * Answer the {@link TokenType#TAG} token after the starting '&lt;'.
+   * Answer the tag name after the starting '&lt;'.
    * 
-   * @return the token (not {@code null})
+   * @return the tag name (not {@code null})
    */
-  public Token getTag() {
-    return tag;
+  public String getTag() {
+    return tag.getLexeme();
   }
 
   /**
@@ -312,6 +312,15 @@ public class XmlTagNode extends XmlNode {
    */
   public List<XmlTagNode> getTagNodes() {
     return tagNodes;
+  }
+
+  /**
+   * Answer the {@link TokenType#TAG} token after the starting '&lt;'.
+   * 
+   * @return the token (not {@code null})
+   */
+  public Token getTagToken() {
+    return tag;
   }
 
   /**

@@ -34,6 +34,6 @@ public abstract class HtmlScriptElementImpl extends ElementImpl implements HtmlS
    * @param node the XML node from which this element is derived (not {@code null})
    */
   public HtmlScriptElementImpl(XmlTagNode node) {
-    super(node.getTag().getLexeme(), node.getTag().getOffset());
+    super(node.getTag(), node.getTagToken().getOffset());
   }
 }

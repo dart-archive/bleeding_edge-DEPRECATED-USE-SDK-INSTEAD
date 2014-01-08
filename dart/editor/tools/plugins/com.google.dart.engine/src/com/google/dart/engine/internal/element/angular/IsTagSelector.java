@@ -30,9 +30,7 @@ public class IsTagSelector implements AngularSelector {
 
   @Override
   public boolean apply(XmlTagNode node) {
-    // TODO(scheglov) May be replace getTag() with getTagToken() and return String from getTag().
-    // TODO(scheglov) or even just add isTag(String name)
-    return node.getTag().getLexeme().equals(name);
+    return node.getTag().equals(name);
   }
 
   /**

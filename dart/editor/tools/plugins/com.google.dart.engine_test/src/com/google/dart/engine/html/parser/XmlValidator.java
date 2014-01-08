@@ -138,8 +138,8 @@ public class XmlValidator extends RecursiveXmlVisitor<Void> {
           + XmlTagNode.class.getSimpleName());
     }
 
-    String actualName = actual.getName().getLexeme();
-    String actualValue = actual.getValue().getLexeme();
+    String actualName = actual.getName();
+    String actualValue = actual.getValueToken().getLexeme();
     if (expectedAttributeIndex < expectedAttributeKeyValuePairs.length) {
       String expectedName = expectedAttributeKeyValuePairs[expectedAttributeIndex];
       if (!expectedName.equals(actualName)) {
@@ -173,7 +173,7 @@ public class XmlValidator extends RecursiveXmlVisitor<Void> {
           + HtmlUnit.class.getSimpleName() + " or " + XmlTagNode.class.getSimpleName());
     }
     if (expectedTagsInOrderVisited != null) {
-      String actualTag = actual.getTag().getLexeme();
+      String actualTag = actual.getTag();
       if (expectedTagsIndex < expectedTagsInOrderVisited.length) {
 
         Tag expected = expectedTagsInOrderVisited[expectedTagsIndex];
@@ -206,7 +206,7 @@ public class XmlValidator extends RecursiveXmlVisitor<Void> {
           }
         }
         if (actual.getAttributeEnd().getType() == TokenType.GT) {
-          if (HtmlParser.SELF_CLOSING.contains(actual.getTag().getLexeme())) {
+          if (HtmlParser.SELF_CLOSING.contains(actual.getTag())) {
             assertNull(actual.getClosingTag());
           } else {
             assertNotNull(actual.getClosingTag());
@@ -229,7 +229,7 @@ public class XmlValidator extends RecursiveXmlVisitor<Void> {
         } else {
           for (int index = 0; index < expected.children.length; index++) {
             String expectedChildTag = expected.children[index].tag;
-            String actualChildTag = actual.getTagNodes().get(index).getTag().getLexeme();
+            String actualChildTag = actual.getTagNodes().get(index).getTag();
             if (!expectedChildTag.equals(actualChildTag)) {
               errors.add("Expected " + expectedTagsIndex + " tag: " + expected.tag + " child "
                   + index + " to have tag: " + expectedChildTag + " but found: " + actualChildTag);

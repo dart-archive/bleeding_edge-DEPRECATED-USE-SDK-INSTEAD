@@ -77,11 +77,21 @@ public class XmlAttributeNode extends XmlNode {
   }
 
   /**
-   * Answer the attribute name. This may be a zero length token if the attribute is badly formed.
+   * Answer the attribute name. This may be a zero length string if the attribute is badly formed.
    * 
    * @return the name (not {@code null})
    */
-  public Token getName() {
+  public String getName() {
+    return name.getLexeme();
+  }
+
+  /**
+   * Answer the attribute name token. This may be a zero length token if the attribute is badly
+   * formed.
+   * 
+   * @return the name token (not {@code null})
+   */
+  public Token getNameToken() {
     return name;
   }
 
@@ -116,12 +126,12 @@ public class XmlAttributeNode extends XmlNode {
   }
 
   /**
-   * Answer the attribute value. A properly formed value will start and end with matching quote
-   * characters, but the value returned may not be properly formed.
+   * Answer the attribute value token. A properly formed value will start and end with matching
+   * quote characters, but the value returned may not be properly formed.
    * 
-   * @return the value or {@code null} if this represents a badly formed attribute
+   * @return the value token or {@code null} if this represents a badly formed attribute
    */
-  public Token getValue() {
+  public Token getValueToken() {
     return value;
   }
 

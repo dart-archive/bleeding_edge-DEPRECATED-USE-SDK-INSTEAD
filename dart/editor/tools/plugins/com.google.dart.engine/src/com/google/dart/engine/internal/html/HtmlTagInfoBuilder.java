@@ -95,10 +95,10 @@ public class HtmlTagInfoBuilder implements XmlVisitor<Void> {
   @Override
   public Void visitXmlTagNode(XmlTagNode node) {
     node.visitChildren(this);
-    String tagName = node.getTag().getLexeme();
+    String tagName = node.getTag();
     tagSet.add(tagName);
     for (XmlAttributeNode attribute : node.getAttributes()) {
-      String attributeName = attribute.getName().getLexeme();
+      String attributeName = attribute.getName();
       if (attributeName.equals(ID_ATTRIBUTE)) {
         String attributeValue = attribute.getText();
         if (attributeValue != null) {

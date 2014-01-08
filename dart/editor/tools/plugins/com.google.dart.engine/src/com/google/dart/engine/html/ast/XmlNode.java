@@ -160,9 +160,9 @@ public abstract class XmlNode {
    */
   private void appendIdentifier(StringBuilder builder, XmlNode node) {
     if (node instanceof XmlTagNode) {
-      builder.append(((XmlTagNode) node).getTag().getLexeme());
+      builder.append(((XmlTagNode) node).getTag());
     } else if (node instanceof XmlAttributeNode) {
-      builder.append(((XmlAttributeNode) node).getName().getLexeme());
+      builder.append(((XmlAttributeNode) node).getName());
     } else {
       builder.append("htmlUnit");
     }

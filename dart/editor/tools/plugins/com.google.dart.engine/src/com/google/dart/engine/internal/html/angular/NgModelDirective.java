@@ -75,7 +75,7 @@ public class NgModelDirective extends NgDirective {
   }
 
   private Expression parseExpression(AngularHtmlUnitResolver resolver, XmlAttributeNode attribute) {
-    int offset = attribute.getValue().getOffset() + 1;
+    int offset = attribute.getValueToken().getOffset() + 1;
     String value = attribute.getText();
     Token token = resolver.scanDart(value, 0, value.length(), offset);
     return resolver.parseExpression(token);

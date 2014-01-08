@@ -547,8 +547,7 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
   private boolean isProcessedByDirective(XmlAttributeNode node) {
     // TODO(scheglov) We need some way to mark attribute as handled by directive.
     // For now, just exclude all ng- attributes.
-    // TODO(scheglov) May be replace getName() with getNameToken() and return String from getName().
-    return node.getName().getLexeme().startsWith("ng-");
+    return node.getName().startsWith("ng-");
   }
 
   /**
@@ -580,7 +579,7 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
 
   private void parseEmbeddedExpressions(XmlAttributeNode node) {
     ArrayList<EmbeddedExpression> expressions = new ArrayList<EmbeddedExpression>();
-    parseEmbeddedExpressions(expressions, node.getValue());
+    parseEmbeddedExpressions(expressions, node.getValueToken());
     node.setExpressions(expressions.toArray(new EmbeddedExpression[expressions.size()]));
   }
 
