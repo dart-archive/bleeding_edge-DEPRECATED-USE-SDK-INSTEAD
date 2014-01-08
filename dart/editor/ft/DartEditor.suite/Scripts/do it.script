@@ -1,4 +1,4 @@
-(* Exercize basic editing features *)
+(* Exercise basic editing features *)
 Run util's init
 Run "create sample"
 Run "completion"

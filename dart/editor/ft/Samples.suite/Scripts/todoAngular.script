@@ -17,6 +17,6 @@ TypeText enter
 Wait 0.5
 WaitFor 2, "some check"
 Run util's exitChromium
-Run util's checkProblems
+(*Run util's checkProblems -- disabled until html analysis bug is fixed*)
 Run util's deleteProject "angular project"
 Run util's deleteOutput

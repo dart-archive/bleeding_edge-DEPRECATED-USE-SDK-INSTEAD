@@ -6,7 +6,7 @@ Wait 5 (* let analysis finish *)
 Click "run button"
 WaitFor 10, "browser right arrow button"
 Click "browser right arrow button"
-WaitFor 10,  "pop balloon"
+WaitFor 20,  "pop balloon"
 Click "pop balloon"
 Run util's exitChromium
 Run util's checkProblems

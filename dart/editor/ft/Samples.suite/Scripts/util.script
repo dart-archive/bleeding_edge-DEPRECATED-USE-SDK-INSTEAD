@@ -82,7 +82,11 @@ end exitChromium
 to deleteOutput
 	put the SearchRectangle into origRect
 	set the SearchRectangle to ((0,800),(1920,1200))
-	put ImageLocation("problems tab") + (105,0) into outLoc
+	put 105 into deltaX
+	if isMacOSX() then
+		put 100 into deltaX
+	end if
+	put ImageLocation("problems tab") + (deltaX,0) into outLoc
 	Click outLoc
 	Wait 0.2
 	RightClick outLoc
@@ -173,6 +177,7 @@ end closeDebugger
 
 (* Start the editor, typically only run at the beginning of a script *)
 to startDartEditor
+	init()
 	set the SearchRectangle to ((0,0),(200,200))
 	DoubleClick "StartDartEditor"
 	WaitFor 20,"MaximizeWindowIcon"

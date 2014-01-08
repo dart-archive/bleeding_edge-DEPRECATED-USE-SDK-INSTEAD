@@ -1,4 +1,5 @@
 Run util's openWelcomePage
+TypeText escape
 Run util's openFileDialog
 WaitFor 2, "file search icon"
 if (util's isMacOSX) then

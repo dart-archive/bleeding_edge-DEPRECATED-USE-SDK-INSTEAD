@@ -17,7 +17,7 @@ Wait 5
 Run util's runApp
 put the SearchRectangle into origRect
 set the SearchRectangle to ((0,800),(1920,1200))
-WaitFor 2, (Text:"Breaking",CaseSensitive:"yes",ValidCharacters:"*",IgnoreSpaces:"yes",dpi:94)
+WaitFor 10, (Text:"Breaking",CaseSensitive:"yes",ValidCharacters:"*",IgnoreSpaces:"yes",dpi:94)
 set the SearchRectangle to origRect
 Run util's deleteOutput
 Click "stop debug button"
