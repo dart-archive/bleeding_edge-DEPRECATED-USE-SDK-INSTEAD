@@ -188,7 +188,10 @@ public class BreakpointManager implements IBreakpointListener {
     } else {
       i = 1;
     }
-    String filePath = new Path(regex).removeLastSegments(path.segmentCount() - (i + 1)).toString();
+    String filePath = regex;
+    if (path.segmentCount() > i + 1) {
+      filePath = new Path(regex).removeLastSegments(path.segmentCount() - (i + 1)).toString();
+    }
 
     String packagePath = resolvePathToPackage(resource, filePath);
     if (packagePath != null) {
