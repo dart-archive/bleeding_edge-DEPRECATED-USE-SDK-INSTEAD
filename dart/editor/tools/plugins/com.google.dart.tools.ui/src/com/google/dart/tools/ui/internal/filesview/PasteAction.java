@@ -84,47 +84,38 @@ public class PasteAction extends SelectionListenerAction {
 
   @Override
   public void run() {
-    // try a resource transfer
+    // prepare resources
     ResourceTransfer resTransfer = ResourceTransfer.getInstance();
-    IResource[] resourceData = (IResource[]) clipboard.getContents(resTransfer);
-
-    if (resourceData != null && resourceData.length > 0) {
-      if (resourceData[0].getType() == IResource.PROJECT) {
-        // enablement checks for all projects
-        for (int i = 0; i < resourceData.length; i++) {
-          CopyProjectOperation operation = new CopyProjectOperation(this.shell);
-          operation.copyProject((IProject) resourceData[i]);
-          // remove "packages" folders
-          IProject newProject = operation.newProject;
-          if (newProject != null) {
-            try {
-              DartCore.addToIgnores(newProject);
-              try {
-                PubPackageUtils.deletePackageDirectories(newProject);
-                PubPackageUtils.runPubInstall(newProject);
-              } finally {
-                DartCore.removeFromIgnores(newProject);
-              }
-            } catch (Throwable e) {
-              DartToolsPlugin.log(e);
-            }
+    IResource[] resources = (IResource[]) clipboard.getContents(resTransfer);
+    if (resources == null || resources.length == 0) {
+      return;
+    }
+    // may be project
+    if (resources[0] instanceof IProject) {
+      CopyProjectOperation operation = new CopyProjectOperation(this.shell);
+      operation.copyProject((IProject) resources[0]);
+      // remove "packages" folders
+      IProject newProject = operation.newProject;
+      if (newProject != null) {
+        try {
+          DartCore.addToIgnores(newProject);
+          try {
+            PubPackageUtils.deletePackageDirectories(newProject);
+            PubPackageUtils.runPubInstall(newProject);
+          } finally {
+            DartCore.removeFromIgnores(newProject);
           }
+        } catch (Throwable e) {
+          DartToolsPlugin.log(e);
         }
-        return;
       }
+      // done with project
+      return;
     }
-
-    // try a file transfer
-    FileTransfer fileTransfer = FileTransfer.getInstance();
-    String[] fileData = (String[]) clipboard.getContents(fileTransfer);
-
-    if (fileData != null) {
-      // enablement should ensure that we always have access to a container
-      IContainer container = getContainer();
-
-      CopyFilesAndFoldersOperation operation = new CopyFilesAndFoldersOperation(this.shell);
-      operation.copyFiles(fileData, container);
-    }
+    // just some resources
+    IContainer container = getContainer();
+    CopyFilesAndFoldersOperation operation = new CopyFilesAndFoldersOperation(this.shell);
+    operation.copyResources(resources, container);
   }
 
   /**
