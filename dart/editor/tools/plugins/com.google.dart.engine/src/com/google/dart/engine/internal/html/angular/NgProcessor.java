@@ -14,21 +14,14 @@
 
 package com.google.dart.engine.internal.html.angular;
 
-import com.google.dart.engine.element.angular.AngularSelector;
 import com.google.dart.engine.html.ast.XmlTagNode;
 
 /**
- * {@link NgAnnotation} describes any <code>NgAnnotation</code> annotation instance.
+ * {@link NgProcessor} is used to apply an Angular feature.
  */
-abstract class NgAnnotation {
-  private final AngularSelector selector;
-
-  public NgAnnotation(AngularSelector selector) {
-    this.selector = selector;
-  }
-
+abstract class NgProcessor {
   /**
-   * Applies this {@link NgAnnotation} to the resolver.
+   * Applies this {@link NgProcessor} to the resolver.
    * 
    * @param resolver the {@link AngularHtmlUnitResolver} to apply to, not {@code null}
    * @param node the {@link XmlTagNode} to apply within, not {@code null}
@@ -36,9 +29,10 @@ abstract class NgAnnotation {
   public abstract void apply(AngularHtmlUnitResolver resolver, XmlTagNode node);
 
   /**
-   * @return the {@link AngularSelector} of this annotation.
+   * Checks if this processor can be applied to the given {@link XmlTagNode}.
+   * 
+   * @param node the {@link XmlTagNode} to check
+   * @return {@code true} if this processor can be applied, or {@code false} otherwise
    */
-  public AngularSelector getSelector() {
-    return selector;
-  }
+  public abstract boolean canApply(XmlTagNode node);
 }

@@ -65,32 +65,6 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
     assertResolvedIdentifier("ctrl", "MyController");
   }
 
-  public void test_NgDirective_usedOnControllerClass() throws Exception {
-    mainSource = contextHelper.addSource("/main.dart", createSource("",//
-        "import 'angular.dart';",
-        "",
-        "@NgDirective(",
-        "    selector: '[my-controller]',",
-        "    publishAs: 'ctrl')",
-        "class MyController {",
-        "  String field;",
-        "}",
-        "",
-        "class MyModule extends Module {",
-        "  MyModule() {",
-        "    type(MyController);",
-        "  }",
-        "}",
-        "",
-        "main() {",
-        "  ngBootstrap(module: new MyModule());",
-        "}"));
-    resolveIndex(createHtmlWithMyController("{{ctrl.field}}"));
-    assertNoErrors();
-    verify(indexSource);
-    assertResolvedIdentifier("ctrl", "MyController");
-  }
-
   public void test_ngModel_modelAfterUsage() throws Exception {
     addMyController();
     resolveIndex(createHtmlWithMyController(//

@@ -14,20 +14,15 @@
 
 package com.google.dart.engine.internal.html.angular;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.dart.engine.ast.ASTNode;
-import com.google.dart.engine.ast.Annotation;
-import com.google.dart.engine.ast.ArgumentList;
-import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.InstanceCreationExpression;
 import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.NamedExpression;
 import com.google.dart.engine.ast.SimpleIdentifier;
-import com.google.dart.engine.ast.SimpleStringLiteral;
 import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisException;
@@ -40,8 +35,8 @@ import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.element.ToolkitObjectElement;
+import com.google.dart.engine.element.angular.AngularControllerElement;
 import com.google.dart.engine.element.angular.AngularModuleElement;
-import com.google.dart.engine.element.angular.AngularSelector;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.error.ErrorCode;
@@ -58,7 +53,6 @@ import com.google.dart.engine.internal.element.FunctionElementImpl;
 import com.google.dart.engine.internal.element.ImportElementImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
 import com.google.dart.engine.internal.element.LocalVariableElementImpl;
-import com.google.dart.engine.internal.element.angular.HasAttributeSelector;
 import com.google.dart.engine.internal.resolver.InheritanceManager;
 import com.google.dart.engine.internal.resolver.ProxyConditionalAnalysisError;
 import com.google.dart.engine.internal.resolver.ResolverVisitor;
@@ -71,6 +65,7 @@ import com.google.dart.engine.type.Type;
 import com.google.dart.engine.utilities.source.LineInfo;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -85,21 +80,6 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
 
   private static final String NG_APP = "ng-app";
   private static final String NG_BOOTSTRAP = "ngBootstrap";
-  private static final String NG_CONTROLLER = "NgController";
-  private static final String NG_DIRECTIVE = "NgDirective";
-  private static final String ATTR_SELECTOR = "selector";
-  private static final String ATTR_PUBLISH_AS = "publishAs";
-
-  /**
-   * Returns {@link AngularSelector} for the given CSS selector string.
-   */
-  @VisibleForTesting
-  public static AngularSelector createInjectSelector(String text) {
-    if (text.startsWith("[") && text.endsWith("]")) {
-      return new HasAttributeSelector(text.substring(1, text.length() - 1));
-    }
-    return null;
-  }
 
   /**
    * @return {@code true} if the given {@link HtmlUnit} has <code>ng-app</code> annotation.
@@ -147,38 +127,12 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
     return null;
   }
 
-  /**
-   * Returns {@code true} if given {@link Annotation} is <code>NgController</code>.
-   */
-  private static boolean isNgController(Annotation annotation) {
-    return annotation.getName().getName().equals(NG_CONTROLLER);
-  }
-
-  /**
-   * Returns {@code true} if given {@link Annotation} is <code>NgDirective</code>.
-   */
-  private static boolean isNgDirective(Annotation annotation) {
-    return annotation.getName().getName().equals(NG_DIRECTIVE);
-  }
-
-  /**
-   * Returns the existing {@link Expression} or new one from the {@link NamedExpression} with the
-   * given name.
-   */
-  private static Expression updateNamedArgument(Expression existing, Expression argument,
-      String name) {
-    if (existing != null) {
-      return existing;
-    }
-    return getNamedExpression(argument, name);
-  }
-
   private final InternalAnalysisContext context;
   private final TypeProvider typeProvider;
   private final AnalysisErrorListener errorListener;
   private final Source source;
   private final LineInfo lineInfo;
-  private final List<NgAnnotation> controllers = Lists.newArrayList();
+  private final List<NgProcessor> processors = Lists.newArrayList();
 
   private LibraryElementImpl libraryElement;
   private CompilationUnitElementImpl unitElement;
@@ -190,8 +144,6 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
   private Set<LibraryElement> injectedLibraries = Sets.newHashSet();
   private Scope topNameScope;
   private Scope nameScope;
-
-  private AnalysisException thrownException;
 
   public AngularHtmlUnitResolver(InternalAnalysisContext context,
       AnalysisErrorListener errorListener, Source source, LineInfo lineInfo)
@@ -218,9 +170,9 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
     if (!success) {
       return;
     }
-    // add built-in injects
-    controllers.add(NgModelDirective.INSTANCE);
-    controllers.add(NgRepeatDirective.INSTANCE);
+    // add built-in processors
+    processors.add(NgModelProcessor.INSTANCE);
+    processors.add(NgRepeatProcessor.INSTANCE);
     // prepare Dart library
     createLibraryElement();
     unit.setCompilationUnitElement(libraryElement.getDefiningCompilationUnit());
@@ -242,10 +194,6 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
     // push conditional errors 
     for (ProxyConditionalAnalysisError conditionalCode : resolver.getProxyConditionalAnalysisErrors()) {
       resolver.reportError(conditionalCode.getAnalysisError());
-    }
-    // check for recorded exception
-    if (thrownException != null) {
-      throw thrownException;
     }
   }
 
@@ -275,10 +223,10 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
       nameScope = resolver.pushNameScope();
       try {
         parseEmbeddedExpressions(node);
-        // inject controllers
-        for (NgAnnotation controller : controllers) {
-          if (controller.getSelector().apply(node)) {
-            controller.apply(this, node);
+        // apply processors
+        for (NgProcessor processor : processors) {
+          if (processor.canApply(node)) {
+            processor.apply(this, node);
           }
         }
         // resolve expressions
@@ -382,34 +330,6 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
         errorListener);
   }
 
-  private NgController createController(ClassDeclaration injectedClass) {
-    List<Annotation> annotations = injectedClass.getMetadata();
-    for (Annotation annotation : annotations) {
-      // TODO(scheglov) by some reason Angular To-Do sample uses @NgDirective for controller
-      if (isNgController(annotation) || isNgDirective(annotation)) {
-        ArgumentList argumentList = annotation.getArguments();
-        if (argumentList != null) {
-          Expression selectorExpression = null;
-          Expression nameExpression = null;
-          for (Expression argument : argumentList.getArguments()) {
-            selectorExpression = updateNamedArgument(selectorExpression, argument, ATTR_SELECTOR);
-            nameExpression = updateNamedArgument(nameExpression, argument, ATTR_PUBLISH_AS);
-          }
-          if (selectorExpression instanceof SimpleStringLiteral
-              && nameExpression instanceof SimpleStringLiteral) {
-            String selectorText = ((SimpleStringLiteral) selectorExpression).getValue();
-            AngularSelector selector = createInjectSelector(selectorText);
-            String name = ((SimpleStringLiteral) nameExpression).getValue();
-            if (selector != null && name != null) {
-              return new NgController(injectedClass.getElement(), selector, name);
-            }
-          }
-        }
-      }
-    }
-    return null;
-  }
-
   /**
    * Puts into {@link #libraryElement} an artificial {@link LibraryElementImpl} for this HTML
    * {@link Source}.
@@ -425,6 +345,20 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
     // create FunctionElementImpl
     functionElement = new FunctionElementImpl(0);
     unitElement.setFunctions(new FunctionElement[] {functionElement});
+  }
+
+  /**
+   * Creates new {@link NgProcessor} for the given {@link ClassElement}, maybe {@code null} if it
+   * doesn't have a supported Angular feature.
+   */
+  private NgProcessor createProcessor(ClassElement classElement) {
+    for (ToolkitObjectElement toolkitObject : classElement.getToolkitObjects()) {
+      if (toolkitObject instanceof AngularControllerElement) {
+        AngularControllerElement controller = (AngularControllerElement) toolkitObject;
+        return new NgControllerElementProcessor(controller);
+      }
+    }
+    return null;
   }
 
   /**
@@ -475,13 +409,12 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
   }
 
   /**
-   * Returns {@link ClassDeclaration} of classes injected into the given module.
+   * Returns {@link ClassElement}s injected into the given module.
    * 
    * @param element a Dart {@link Element} used as an argument for <code>bootstrap</code> invocation
    *          - class or variable.
    */
-  private List<ClassDeclaration> getInjectedClasses(Element element) throws AnalysisException {
-    List<ClassDeclaration> injected = Lists.newArrayList();
+  private List<ClassElement> getInjectedClasses(Element element) throws AnalysisException {
     ToolkitObjectElement[] toolkitObjects = ToolkitObjectElement.EMPTY_ARRAY;
     // ClassElement
     if (element instanceof ClassElement) {
@@ -493,22 +426,16 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
       LocalVariableElement variableElement = (LocalVariableElement) element;
       toolkitObjects = variableElement.getToolkitObjects();
     }
-    // process toolkit elements
+    // prepare injected classes
+    List<ClassElement> injectedClasses = Lists.newArrayList();
     for (ToolkitObjectElement toolkitObject : toolkitObjects) {
       if (toolkitObject instanceof AngularModuleElement) {
         AngularModuleElement moduleElement = (AngularModuleElement) toolkitObject;
-        for (ClassElement typeElement : moduleElement.getKeyTypes()) {
-          try {
-            ClassDeclaration injectedClass = typeElement.getNode();
-            injected.add(injectedClass);
-          } catch (AnalysisException e) {
-            thrownException = e;
-          }
-        }
+        Collections.addAll(injectedClasses, moduleElement.getKeyTypes());
       }
     }
     // done
-    return injected;
+    return injectedClasses;
   }
 
   /**
@@ -608,7 +535,7 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
   }
 
   /**
-   * Analyzes given {@link HtmlUnit} and fills {@link #controllers}.
+   * Analyzes given {@link HtmlUnit} and fills {@link #processors}.
    * 
    * @param unit the {@link HtmlUnit} to analyze
    * @return {@code true} if analysis for successful or {@code false} otherwise.
@@ -628,12 +555,12 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
     List<Element> modules = getModules(bootInvocation);
     for (Element module : modules) {
       // prepare injected classes
-      List<ClassDeclaration> injectedClasses = getInjectedClasses(module);
-      // prepare controllers
-      for (ClassDeclaration injectedClass : injectedClasses) {
-        NgController controller = createController(injectedClass);
-        if (controller != null) {
-          controllers.add(controller);
+      List<ClassElement> injectedClasses = getInjectedClasses(module);
+      // prepare processors
+      for (ClassElement injectedType : injectedClasses) {
+        NgProcessor processor = createProcessor(injectedType);
+        if (processor != null) {
+          processors.add(processor);
         }
       }
     }
@@ -665,8 +592,8 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
     appNode.accept(new RecursiveXmlVisitor<Void>() {
       @Override
       public Void visitXmlTagNode(XmlTagNode node) {
-        NgModelDirective directive = NgModelDirective.INSTANCE;
-        if (directive.getSelector().apply(node)) {
+        NgModelProcessor directive = NgModelProcessor.INSTANCE;
+        if (directive.canApply(node)) {
           directive.applyTopDeclarations(AngularHtmlUnitResolver.this, node);
         }
         return super.visitXmlTagNode(node);

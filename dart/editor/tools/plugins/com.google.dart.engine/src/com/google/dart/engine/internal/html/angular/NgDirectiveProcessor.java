@@ -15,20 +15,15 @@
 package com.google.dart.engine.internal.html.angular;
 
 import com.google.dart.engine.ast.Expression;
-import com.google.dart.engine.element.angular.AngularSelector;
 import com.google.dart.engine.html.ast.EmbeddedExpression;
 import com.google.dart.engine.html.ast.XmlAttributeNode;
 
 /**
- * {@link NgDirective} describes any <code>NgDirective</code> annotation instance.
+ * {@link NgDirectiveProcessor} describes any <code>NgDirective</code> annotation instance.
  */
-abstract class NgDirective extends NgAnnotation {
+abstract class NgDirectiveProcessor extends NgProcessor {
   protected static EmbeddedExpression newEmbeddedExpression(Expression e) {
     return new EmbeddedExpression(e.getOffset(), e, e.getEnd());
-  }
-
-  public NgDirective(AngularSelector selector) {
-    super(selector);
   }
 
   /**

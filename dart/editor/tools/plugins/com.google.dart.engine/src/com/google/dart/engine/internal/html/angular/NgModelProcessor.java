@@ -17,25 +17,21 @@ package com.google.dart.engine.internal.html.angular;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.element.VariableElement;
-import com.google.dart.engine.element.angular.AngularSelector;
 import com.google.dart.engine.html.ast.XmlAttributeNode;
 import com.google.dart.engine.html.ast.XmlTagNode;
 import com.google.dart.engine.internal.element.LocalVariableElementImpl;
-import com.google.dart.engine.internal.element.angular.HasAttributeSelector;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.type.InterfaceType;
 
 /**
- * {@link NgModelDirective} describes built-in <code>NgModel</code> directive.
+ * {@link NgModelProcessor} describes built-in <code>NgModel</code> directive.
  */
-public class NgModelDirective extends NgDirective {
+class NgModelProcessor extends NgDirectiveProcessor {
   private static final String NG_MODEL = "ng-model";
-  private static final AngularSelector SELECTOR = new HasAttributeSelector(NG_MODEL);
 
-  public static final NgModelDirective INSTANCE = new NgModelDirective();
+  public static final NgModelProcessor INSTANCE = new NgModelProcessor();
 
-  private NgModelDirective() {
-    super(SELECTOR);
+  private NgModelProcessor() {
   }
 
   @Override
@@ -50,6 +46,11 @@ public class NgModelDirective extends NgDirective {
     resolver.resolveNode(expression);
     // remember expression
     setExpression(attribute, expression);
+  }
+
+  @Override
+  public boolean canApply(XmlTagNode node) {
+    return node.getAttribute(NG_MODEL) != null;
   }
 
   /**

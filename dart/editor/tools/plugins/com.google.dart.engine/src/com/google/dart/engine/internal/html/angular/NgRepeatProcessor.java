@@ -20,7 +20,6 @@ import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.ForEachStatement;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.Statement;
-import com.google.dart.engine.element.angular.AngularSelector;
 import com.google.dart.engine.error.AngularCode;
 import com.google.dart.engine.html.ast.EmbeddedExpression;
 import com.google.dart.engine.html.ast.XmlAttributeNode;
@@ -28,7 +27,6 @@ import com.google.dart.engine.html.ast.XmlTagNode;
 import com.google.dart.engine.internal.builder.ElementBuilder;
 import com.google.dart.engine.internal.builder.ElementHolder;
 import com.google.dart.engine.internal.element.LocalVariableElementImpl;
-import com.google.dart.engine.internal.element.angular.HasAttributeSelector;
 import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.KeywordToken;
 import com.google.dart.engine.scanner.Token;
@@ -37,16 +35,14 @@ import com.google.dart.engine.scanner.TokenType;
 import java.util.ArrayList;
 
 /**
- * {@link NgRepeatDirective} describes built-in <code>NgRepeatDirective</code> directive.
+ * {@link NgRepeatProcessor} describes built-in <code>NgRepeatDirective</code> directive.
  */
-public class NgRepeatDirective extends NgDirective {
+class NgRepeatProcessor extends NgDirectiveProcessor {
   private static final String NG_REPEAT = "ng-repeat";
-  private static final AngularSelector SELECTOR = new HasAttributeSelector(NG_REPEAT);
 
-  public static final NgRepeatDirective INSTANCE = new NgRepeatDirective();
+  public static final NgRepeatProcessor INSTANCE = new NgRepeatProcessor();
 
-  private NgRepeatDirective() {
-    super(SELECTOR);
+  private NgRepeatProcessor() {
   }
 
   @Override
@@ -56,7 +52,7 @@ public class NgRepeatDirective extends NgDirective {
     String spec = attribute.getText();
     // scan attribute as Dart
     Token token = resolver.scanDart(spec, 0, spec.length(), offset);
-    //
+    // parse item name
     Expression varExpression = resolver.parseExpression(token);
     token = varExpression.getEndToken().getNext();
     if (!(varExpression instanceof SimpleIdentifier)) {
@@ -92,5 +88,10 @@ public class NgRepeatDirective extends NgDirective {
     LocalVariableElementImpl variable = (LocalVariableElementImpl) varName.getStaticElement();
     variable.setType(varName.getBestType());
     resolver.defineVariable(variable);
+  }
+
+  @Override
+  public boolean canApply(XmlTagNode node) {
+    return node.getAttribute(NG_REPEAT) != null;
   }
 }
