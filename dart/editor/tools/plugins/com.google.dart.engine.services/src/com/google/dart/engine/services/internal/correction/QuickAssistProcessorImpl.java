@@ -25,6 +25,7 @@ import com.google.dart.engine.ast.BlockFunctionBody;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.ConditionalExpression;
+import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.ExpressionFunctionBody;
 import com.google.dart.engine.ast.ExpressionStatement;
@@ -53,10 +54,13 @@ import com.google.dart.engine.ast.VariableDeclarationList;
 import com.google.dart.engine.ast.VariableDeclarationStatement;
 import com.google.dart.engine.ast.visitor.NodeLocator;
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.KeywordToken;
 import com.google.dart.engine.scanner.TokenClass;
@@ -81,12 +85,14 @@ import com.google.dart.engine.services.internal.util.ExecutionUtils;
 import com.google.dart.engine.services.internal.util.RunnableEx;
 import com.google.dart.engine.services.internal.util.TokenUtils;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
 import com.google.dart.engine.utilities.ast.ScopedNameFinder;
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.engine.utilities.source.SourceRange;
 
+import static com.google.dart.engine.services.correction.CorrectionKind.QA_ADD_JSON;
 import static com.google.dart.engine.services.correction.CorrectionKind.QA_ADD_TYPE_ANNOTATION;
 import static com.google.dart.engine.services.correction.CorrectionKind.QA_ASSIGN_TO_LOCAL_VARIABLE;
 import static com.google.dart.engine.services.correction.CorrectionKind.QA_CONVERT_INTO_BLOCK_BODY;
@@ -129,6 +135,7 @@ import java.io.File;
 import java.lang.reflect.Method;
 import java.net.URI;
 import java.text.MessageFormat;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -285,6 +292,124 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
       return proposals.toArray(new CorrectionProposal[proposals.size()]);
     } finally {
       instrumentation.log();
+    }
+  }
+
+  void addProposal_addJson() throws Exception {
+    if (!(node instanceof ClassDeclaration)) {
+      return;
+    }
+    ClassDeclaration classDeclaration = (ClassDeclaration) node;
+    ClassElement element = classDeclaration.getElement();
+    if (element != null) {
+      // prepare all types
+      Set<InterfaceType> allTypes = Sets.newHashSet();
+      allTypes.add(element.getType());
+      Collections.addAll(allTypes, element.getAllSupertypes());
+      // prepare all fields
+      Map<String, FieldElement> fields = Maps.newTreeMap();
+      for (InterfaceType type : allTypes) {
+        for (PropertyAccessorElement accessor : type.getAccessors()) {
+          // check if accessible
+          if (!accessor.isAccessibleIn(unitLibraryElement)) {
+            continue;
+          }
+          // use only synthetic accessors, i.e. real fields
+          if (!accessor.isSynthetic()) {
+            continue;
+          }
+          // add field
+          FieldElement field = (FieldElement) accessor.getVariable();
+          String name = field.getName();
+          if (!fields.containsKey(name)) {
+            fields.put(name, field);
+          }
+        }
+      }
+      // no fields
+      if (fields.isEmpty()) {
+        return;
+      }
+      // prepare environment
+      String indent = utils.getIndent(1);
+      String indent2 = utils.getIndent(2);
+      String eol = utils.getEndOfLine();
+      // fromJson(Map)
+      {
+        ConstructorDeclaration existing = classDeclaration.getConstructor("fromJson");
+        int offset = existing != null ? existing.getOffset()
+            : classDeclaration.getRightBracket().getOffset();
+        SourceBuilder builder = new SourceBuilder(offset);
+        if (existing == null) {
+          builder.append(eol);
+          builder.append(indent);
+        }
+        builder.append(classDeclaration.getName().getName());
+        builder.append(".fromJson(Map json) {");
+        builder.append(eol);
+        for (Entry<String, FieldElement> entry : fields.entrySet()) {
+          String name = entry.getKey();
+          builder.append(indent2);
+          builder.append(name);
+          builder.append(" = json['");
+          builder.append(name);
+          builder.append("'];");
+          builder.append(eol);
+        }
+        builder.append(indent);
+        builder.append("}");
+        if (existing == null) {
+          builder.append(eol);
+        }
+        // add/replace
+        if (existing == null) {
+          addInsertEdit(builder);
+        } else {
+          addReplaceEdit(rangeNode(existing), builder);
+        }
+      }
+      // toJson()
+      {
+        MethodDeclaration existing = classDeclaration.getMethod("toJson");
+        int offset = existing != null ? existing.getOffset()
+            : classDeclaration.getRightBracket().getOffset();
+        SourceBuilder builder = new SourceBuilder(offset);
+        if (existing == null) {
+          builder.append(eol);
+          builder.append(indent);
+        }
+        builder.append("Map toJson() {");
+        builder.append(eol);
+        builder.append(indent2);
+        builder.append("return {");
+        boolean isFirst = true;
+        for (Entry<String, FieldElement> entry : fields.entrySet()) {
+          String name = entry.getKey();
+          if (!isFirst) {
+            builder.append(", ");
+          }
+          isFirst = false;
+          builder.append("'");
+          builder.append(name);
+          builder.append("' : ");
+          builder.append(name);
+        }
+        builder.append("};");
+        builder.append(eol);
+        builder.append(indent);
+        builder.append("}");
+        if (existing == null) {
+          builder.append(eol);
+        }
+        // add/replace
+        if (existing == null) {
+          addInsertEdit(builder);
+        } else {
+          addReplaceEdit(rangeNode(existing), builder);
+        }
+      }
+      // add proposal
+      addUnitCorrectionProposal(QA_ADD_JSON);
     }
   }
 
@@ -661,7 +786,7 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
       return;
     }
     // prepare whole import namespace
-    ImportElement importElement = (ImportElement) importDirective.getElement();
+    ImportElement importElement = importDirective.getElement();
     Map<String, Element> namespace = CorrectionUtils.getImportNamespace(importElement);
     // prepare names of referenced elements (from this import)
     Set<String> referencedNames = Sets.newTreeSet();
@@ -1597,6 +1722,14 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
    */
   private void addRemoveEdit(SourceRange range) {
     addReplaceEdit(range, "");
+  }
+
+  /**
+   * Adds {@link Edit} to {@link #textEdits}.
+   */
+  private void addReplaceEdit(SourceRange range, SourceBuilder builder) {
+    String text = builder.toString();
+    textEdits.add(createReplaceEdit(range, text));
   }
 
   /**
