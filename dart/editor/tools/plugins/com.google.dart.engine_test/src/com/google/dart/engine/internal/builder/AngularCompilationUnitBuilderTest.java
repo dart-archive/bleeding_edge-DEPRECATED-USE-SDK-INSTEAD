@@ -28,12 +28,12 @@ import com.google.dart.engine.element.angular.AngularFilterElement;
 import com.google.dart.engine.element.angular.AngularModuleElement;
 import com.google.dart.engine.element.angular.AngularPropertyElement;
 import com.google.dart.engine.element.angular.AngularPropertyKind;
-import com.google.dart.engine.element.angular.AngularSelector;
+import com.google.dart.engine.element.angular.AngularSelectorElement;
 import com.google.dart.engine.error.AngularCode;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.internal.element.ClassElementImpl;
-import com.google.dart.engine.internal.element.angular.HasAttributeSelector;
-import com.google.dart.engine.internal.element.angular.IsTagSelector;
+import com.google.dart.engine.internal.element.angular.HasAttributeSelectorElementImpl;
+import com.google.dart.engine.internal.element.angular.IsTagSelectorElementImpl;
 import com.google.dart.engine.internal.html.angular.AngularTest;
 import com.google.dart.engine.internal.type.DynamicTypeImpl;
 import com.google.dart.engine.source.Source;
@@ -41,14 +41,14 @@ import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
 
 public class AngularCompilationUnitBuilderTest extends AngularTest {
-  private static void assertHasAttributeSelector(AngularSelector selector, String name) {
-    assertInstanceOf(HasAttributeSelector.class, selector);
-    assertEquals(name, ((HasAttributeSelector) selector).getAttributeName());
+  private static void assertHasAttributeSelector(AngularSelectorElement selector, String name) {
+    assertInstanceOf(HasAttributeSelectorElementImpl.class, selector);
+    assertEquals(name, ((HasAttributeSelectorElementImpl) selector).getName());
   }
 
-  private static void assertIsTagSelector(AngularSelector selector, String name) {
-    assertInstanceOf(IsTagSelector.class, selector);
-    assertEquals(name, ((IsTagSelector) selector).getName());
+  private static void assertIsTagSelector(AngularSelectorElement selector, String name) {
+    assertInstanceOf(IsTagSelectorElementImpl.class, selector);
+    assertEquals(name, ((IsTagSelectorElementImpl) selector).getName());
   }
 
   private static String createAngularModuleSource(String[] lines, String[] types) {
@@ -728,12 +728,19 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
   }
 
   public void test_parseSelector_hasAttribute() throws Exception {
-    AngularSelector selector = AngularCompilationUnitBuilder.parseSelector("[name]");
+    AngularSelectorElement selector = AngularCompilationUnitBuilder.parseSelector(42, "[name]");
     assertHasAttributeSelector(selector, "name");
+    assertEquals(42 + 1, selector.getNameOffset());
+  }
+
+  public void test_parseSelector_isTag() throws Exception {
+    AngularSelectorElement selector = AngularCompilationUnitBuilder.parseSelector(42, "name");
+    assertIsTagSelector(selector, "name");
+    assertEquals(42, selector.getNameOffset());
   }
 
   public void test_parseSelector_unknown() throws Exception {
-    AngularSelector selector = AngularCompilationUnitBuilder.parseSelector("~unknown");
+    AngularSelectorElement selector = AngularCompilationUnitBuilder.parseSelector(0, "~unknown");
     assertNull(selector);
   }
 
@@ -753,10 +760,6 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
     assertSame(expectedKind, property.getPropertyKind());
     assertEquals(expectedFieldName, property.getField().getName());
     assertEquals(expectedFieldOffset, property.getFieldNameOffset());
-  }
-
-  private int findMainOffset(String search) {
-    return findOffset(mainContent, search);
   }
 
   @SuppressWarnings("unchecked")
@@ -782,8 +785,7 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
   }
 
   private void resolveMainSource(String content) throws Exception {
-    mainContent = content;
-    mainSource = contextHelper.addSource("/main.dart", content);
+    addMainSource(content);
     CompilationUnit unit = contextHelper.resolveDefiningUnit(mainSource);
     mainUnitElement = unit.getElement();
   }

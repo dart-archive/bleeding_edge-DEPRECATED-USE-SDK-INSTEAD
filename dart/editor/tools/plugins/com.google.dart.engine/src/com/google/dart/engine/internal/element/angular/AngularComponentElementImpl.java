@@ -24,7 +24,7 @@ import com.google.dart.engine.element.angular.AngularPropertyElement;
  * 
  * @coverage dart.engine.element
  */
-public class AngularComponentElementImpl extends AngularSelectorElementImpl implements
+public class AngularComponentElementImpl extends AngularHasSelectorElementImpl implements
     AngularComponentElement {
   /**
    * The array containing all of the properties declared by this component.

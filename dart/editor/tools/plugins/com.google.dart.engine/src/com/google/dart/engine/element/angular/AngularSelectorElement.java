@@ -11,19 +11,24 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
+
 package com.google.dart.engine.element.angular;
 
+import com.google.dart.engine.element.Element;
+import com.google.dart.engine.html.ast.XmlTagNode;
+
 /**
- * The interface {@code AngularElement} defines the behavior of objects representing information
- * about an Angular element which is applied conditionally using some {@link AngularSelector}.
- * 
- * @coverage dart.engine.element
+ * {@link AngularSelectorElement} is used to decide when Angular object should be applied.
+ * <p>
+ * This class is an {@link Element} to support renaming component tag names, which are identifiers
+ * in selectors.
  */
 public interface AngularSelectorElement extends AngularElement {
   /**
-   * Returns the selector specified for this element.
+   * Checks if the given {@link XmlTagNode} matches this selector.
    * 
-   * @return the {@link AngularSelector} specified for this element
+   * @param node the {@link XmlTagNode} to check
+   * @return {@code true} if the given {@link XmlTagNode} matches, or {@code false} otherwise
    */
-  AngularSelector getSelector();
+  boolean apply(XmlTagNode node);
 }

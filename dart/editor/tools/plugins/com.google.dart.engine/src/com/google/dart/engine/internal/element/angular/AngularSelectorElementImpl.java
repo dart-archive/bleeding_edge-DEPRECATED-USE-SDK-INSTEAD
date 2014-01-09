@@ -14,23 +14,19 @@
 
 package com.google.dart.engine.internal.element.angular;
 
-import com.google.dart.engine.element.angular.AngularSelector;
+import com.google.dart.engine.element.ElementKind;
+import com.google.dart.engine.element.ElementVisitor;
 import com.google.dart.engine.element.angular.AngularSelectorElement;
 
 /**
- * Implementation of {@code AngularSelectorElement}.
+ * Implementation of {@code AngularFilterElement}.
  * 
  * @coverage dart.engine.element
  */
 public abstract class AngularSelectorElementImpl extends AngularElementImpl implements
     AngularSelectorElement {
   /**
-   * The selector of this element.
-   */
-  private AngularSelector selector;
-
-  /**
-   * Initialize a newly created Angular element to have the given name.
+   * Initialize a newly created Angular selector to have the given name.
    * 
    * @param name the name of this element
    * @param nameOffset the offset of the name of this element in the file that contains the
@@ -41,16 +37,12 @@ public abstract class AngularSelectorElementImpl extends AngularElementImpl impl
   }
 
   @Override
-  public AngularSelector getSelector() {
-    return selector;
+  public <R> R accept(ElementVisitor<R> visitor) {
+    return visitor.visitAngularSelectorElement(this);
   }
 
-  /**
-   * Set the selector of this selector-based element.
-   * 
-   * @param selector the selector to set
-   */
-  public void setSelector(AngularSelector selector) {
-    this.selector = selector;
+  @Override
+  public ElementKind getKind() {
+    return ElementKind.ANGULAR_SELECTOR;
   }
 }

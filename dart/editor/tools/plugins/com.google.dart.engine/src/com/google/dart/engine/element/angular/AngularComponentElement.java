@@ -19,7 +19,7 @@ package com.google.dart.engine.element.angular;
  * 
  * @coverage dart.engine.element
  */
-public interface AngularComponentElement extends AngularSelectorElement {
+public interface AngularComponentElement extends AngularHasSelectorElement {
   /**
    * Return an array containing all of the properties declared by this component.
    */

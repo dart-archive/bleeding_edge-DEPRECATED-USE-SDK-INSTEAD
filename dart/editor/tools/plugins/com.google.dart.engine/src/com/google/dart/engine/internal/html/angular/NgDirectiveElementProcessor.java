@@ -18,10 +18,10 @@ import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.element.angular.AngularDirectiveElement;
 import com.google.dart.engine.element.angular.AngularPropertyElement;
 import com.google.dart.engine.element.angular.AngularPropertyKind;
-import com.google.dart.engine.element.angular.AngularSelector;
+import com.google.dart.engine.element.angular.AngularSelectorElement;
 import com.google.dart.engine.html.ast.XmlAttributeNode;
 import com.google.dart.engine.html.ast.XmlTagNode;
-import com.google.dart.engine.internal.element.angular.HasAttributeSelector;
+import com.google.dart.engine.internal.element.angular.HasAttributeSelectorElementImpl;
 
 /**
  * {@link NgDirectiveElementProcessor} applies {@link AngularDirectiveElement} by parsing mapped
@@ -45,9 +45,9 @@ class NgDirectiveElementProcessor extends NgDirectiveProcessor {
       // prepare attribute name
       String name = property.getName();
       if (name.equals(".")) {
-        AngularSelector selector = element.getSelector();
-        if (selector instanceof HasAttributeSelector) {
-          name = ((HasAttributeSelector) selector).getAttributeName();
+        AngularSelectorElement selector = element.getSelector();
+        if (selector instanceof HasAttributeSelectorElementImpl) {
+          name = ((HasAttributeSelectorElementImpl) selector).getName();
         }
       }
       // resolve attribute expression

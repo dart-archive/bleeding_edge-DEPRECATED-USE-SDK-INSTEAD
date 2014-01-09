@@ -34,7 +34,7 @@ class NgComponentElementProcessor extends NgDirectiveProcessor {
 
   @Override
   public void apply(AngularHtmlUnitResolver resolver, XmlTagNode node) {
-    node.setElement(element);
+    node.setElement(element.getSelector());
     for (AngularPropertyElement property : element.getProperties()) {
       String name = property.getName();
       XmlAttributeNode attribute = node.getAttribute(name);

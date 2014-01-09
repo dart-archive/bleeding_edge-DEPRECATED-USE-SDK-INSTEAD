@@ -47,7 +47,7 @@ import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.element.angular.AngularModuleElement;
 import com.google.dart.engine.element.angular.AngularPropertyElement;
 import com.google.dart.engine.element.angular.AngularPropertyKind;
-import com.google.dart.engine.element.angular.AngularSelector;
+import com.google.dart.engine.element.angular.AngularSelectorElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.error.AngularCode;
@@ -60,8 +60,8 @@ import com.google.dart.engine.internal.element.angular.AngularDirectiveElementIm
 import com.google.dart.engine.internal.element.angular.AngularFilterElementImpl;
 import com.google.dart.engine.internal.element.angular.AngularModuleElementImpl;
 import com.google.dart.engine.internal.element.angular.AngularPropertyElementImpl;
-import com.google.dart.engine.internal.element.angular.HasAttributeSelector;
-import com.google.dart.engine.internal.element.angular.IsTagSelector;
+import com.google.dart.engine.internal.element.angular.HasAttributeSelectorElementImpl;
+import com.google.dart.engine.internal.element.angular.IsTagSelectorElementImpl;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
@@ -147,16 +147,19 @@ public class AngularCompilationUnitBuilder {
   }
 
   /**
-   * Parses given selector text and returns {@link AngularSelector}. May be {@code null} if cannot
-   * parse.
+   * Parses given selector text and returns {@link AngularSelectorElement}. May be {@code null} if
+   * cannot parse.
    */
   @VisibleForTesting
-  public static AngularSelector parseSelector(String text) {
+  public static AngularSelectorElement parseSelector(int offset, String text) {
     if (text.startsWith("[") && text.endsWith("]")) {
-      return new HasAttributeSelector(text.substring(1, text.length() - 1));
+      int nameOffset = offset + "[".length();
+      String attributeName = text.substring(1, text.length() - 1);
+      // TODO(scheglov) report warning if there are spaces between [ and identifier
+      return new HasAttributeSelectorElementImpl(attributeName, nameOffset);
     }
     if (StringUtilities.isTagName(text)) {
-      return new IsTagSelector(text);
+      return new IsTagSelectorElementImpl(text, offset);
     }
     return null;
   }
@@ -194,6 +197,15 @@ public class AngularCompilationUnitBuilder {
   private static boolean isModule(VariableDeclaration node) {
     Type type = node.getName().getBestType();
     return isModule(type);
+  }
+
+  /**
+   * Parses given {@link SimpleStringLiteral} using {@link #parseSelector(int, String)}.
+   */
+  private static AngularSelectorElement parseSelector(SimpleStringLiteral literal) {
+    int offset = literal.getValueOffset();
+    String text = literal.getStringValue();
+    return parseSelector(offset, text);
   }
 
   /**
@@ -319,8 +331,7 @@ public class AngularCompilationUnitBuilder {
    * @return the {@link String} value of the named argument.
    */
   private String getStringArgument(String name) {
-    Expression argument = getArgument(name);
-    return ((SimpleStringLiteral) argument).getValue();
+    return getStringLiteral(name).getValue();
   }
 
   /**
@@ -329,6 +340,14 @@ public class AngularCompilationUnitBuilder {
   private int getStringArgumentOffset(String name) {
     Expression argument = getArgument(name);
     return ((SimpleStringLiteral) argument).getValueOffset();
+  }
+
+  /**
+   * @return the {@link SimpleStringLiteral} of the named argument.
+   */
+  private SimpleStringLiteral getStringLiteral(String name) {
+    Expression argument = getArgument(name);
+    return (SimpleStringLiteral) argument;
   }
 
   /**
@@ -496,15 +515,15 @@ public class AngularCompilationUnitBuilder {
       isValid = false;
     }
     // selector
-    AngularSelector selector = null;
+    AngularSelectorElement selector = null;
     if (!hasStringArgument(SELECTOR)) {
       reportErrorForAnnotation(AngularCode.MISSING_SELECTOR);
       isValid = false;
     } else {
-      String selectorText = getStringArgument(SELECTOR);
-      selector = parseSelector(selectorText);
+      SimpleStringLiteral selectorLiteral = getStringLiteral(SELECTOR);
+      selector = parseSelector(selectorLiteral);
       if (selector == null) {
-        reportErrorForArgument(SELECTOR, AngularCode.CANNOT_PARSE_SELECTOR, selectorText);
+        reportErrorForArgument(SELECTOR, AngularCode.CANNOT_PARSE_SELECTOR, selectorLiteral);
         isValid = false;
       }
     }
@@ -670,15 +689,15 @@ public class AngularCompilationUnitBuilder {
       isValid = false;
     }
     // selector
-    AngularSelector selector = null;
+    AngularSelectorElement selector = null;
     if (!hasStringArgument(SELECTOR)) {
       reportErrorForAnnotation(AngularCode.MISSING_SELECTOR);
       isValid = false;
     } else {
-      String selectorText = getStringArgument(SELECTOR);
-      selector = parseSelector(selectorText);
+      SimpleStringLiteral selectorLiteral = getStringLiteral(SELECTOR);
+      selector = parseSelector(selectorLiteral);
       if (selector == null) {
-        reportErrorForArgument(SELECTOR, AngularCode.CANNOT_PARSE_SELECTOR, selectorText);
+        reportErrorForArgument(SELECTOR, AngularCode.CANNOT_PARSE_SELECTOR, selectorLiteral);
         isValid = false;
       }
     }
@@ -695,15 +714,15 @@ public class AngularCompilationUnitBuilder {
   private void parseNgDirective() {
     boolean isValid = true;
     // selector
-    AngularSelector selector = null;
+    AngularSelectorElement selector = null;
     if (!hasStringArgument(SELECTOR)) {
       reportErrorForAnnotation(AngularCode.MISSING_SELECTOR);
       isValid = false;
     } else {
-      String selectorText = getStringArgument(SELECTOR);
-      selector = parseSelector(selectorText);
+      SimpleStringLiteral selectorLiteral = getStringLiteral(SELECTOR);
+      selector = parseSelector(selectorLiteral);
       if (selector == null) {
-        reportErrorForArgument(SELECTOR, AngularCode.CANNOT_PARSE_SELECTOR, selectorText);
+        reportErrorForArgument(SELECTOR, AngularCode.CANNOT_PARSE_SELECTOR, selectorLiteral);
         isValid = false;
       }
     }

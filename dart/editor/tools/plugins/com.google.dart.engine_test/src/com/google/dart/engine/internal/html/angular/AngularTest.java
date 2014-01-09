@@ -105,6 +105,14 @@ abstract public class AngularTest extends EngineTestCase {
   protected HtmlUnit indexUnit;
   protected CompilationUnitElement indexDartUnit;
 
+  /**
+   * Fills {@link #mainContent} and {@link #mainSource}.
+   */
+  protected final void addMainSource(String content) {
+    mainContent = content;
+    mainSource = contextHelper.addSource("/main.dart", content);
+  }
+
   protected final void addMyController() throws Exception {
     mainSource = contextHelper.addSource("/main.dart", createSource("",//
         "import 'angular.dart';",
@@ -211,6 +219,14 @@ abstract public class AngularTest extends EngineTestCase {
     CompilationUnit unit = context.resolveCompilationUnit(mainSource, mainSource);
     CompilationUnitElement unitElement = unit.getElement();
     return findElement(unitElement, name);
+  }
+
+  /**
+   * @return the offset of given <code>search</code> string in {@link #mainContent}. Fails test if
+   *         not found.
+   */
+  protected final int findMainOffset(String search) {
+    return findOffset(mainContent, search);
   }
 
   /**

@@ -14,35 +14,51 @@
 
 package com.google.dart.engine.internal.element.angular;
 
-import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.ElementVisitor;
-import com.google.dart.engine.element.angular.AngularControllerElement;
+import com.google.dart.engine.element.angular.AngularHasSelectorElement;
+import com.google.dart.engine.element.angular.AngularSelectorElement;
 
 /**
- * Implementation of {@code AngularControllerElement}.
+ * Implementation of {@code AngularSelectorElement}.
  * 
  * @coverage dart.engine.element
  */
-public class AngularControllerElementImpl extends AngularHasSelectorElementImpl implements
-    AngularControllerElement {
+public abstract class AngularHasSelectorElementImpl extends AngularElementImpl implements
+    AngularHasSelectorElement {
   /**
-   * Initialize a newly created Angular controller to have the given name.
+   * The selector of this element.
+   */
+  private AngularSelectorElement selector;
+
+  /**
+   * Initialize a newly created Angular element to have the given name.
    * 
    * @param name the name of this element
    * @param nameOffset the offset of the name of this element in the file that contains the
    *          declaration of this element
    */
-  public AngularControllerElementImpl(String name, int nameOffset) {
+  public AngularHasSelectorElementImpl(String name, int nameOffset) {
     super(name, nameOffset);
   }
 
   @Override
-  public <R> R accept(ElementVisitor<R> visitor) {
-    return visitor.visitAngularControllerElement(this);
+  public AngularSelectorElement getSelector() {
+    return selector;
+  }
+
+  /**
+   * Set the selector of this selector-based element.
+   * 
+   * @param selector the selector to set
+   */
+  public void setSelector(AngularSelectorElement selector) {
+    encloseElement((AngularSelectorElementImpl) selector);
+    this.selector = selector;
   }
 
   @Override
-  public ElementKind getKind() {
-    return ElementKind.ANGULAR_CONTROLLER;
+  public void visitChildren(ElementVisitor<?> visitor) {
+    safelyVisitChild(selector, visitor);
+    super.visitChildren(visitor);
   }
 }

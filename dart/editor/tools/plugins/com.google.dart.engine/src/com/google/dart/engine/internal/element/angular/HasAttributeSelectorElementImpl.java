@@ -14,30 +14,20 @@
 
 package com.google.dart.engine.internal.element.angular;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.google.dart.engine.element.angular.AngularSelector;
+import com.google.dart.engine.element.angular.AngularSelectorElement;
 import com.google.dart.engine.html.ast.XmlTagNode;
 
 /**
- * Implementation of {@link AngularSelector} based tag name.
+ * Implementation of {@link AngularSelectorElement} based on presence of attribute.
  */
-public class IsTagSelector implements AngularSelector {
-  private final String name;
-
-  public IsTagSelector(String name) {
-    this.name = name;
+public class HasAttributeSelectorElementImpl extends AngularSelectorElementImpl {
+  public HasAttributeSelectorElementImpl(String attributeName, int offset) {
+    super(attributeName, offset);
   }
 
   @Override
   public boolean apply(XmlTagNode node) {
-    return node.getTag().equals(name);
-  }
-
-  /**
-   * @return the tag name to check for.
-   */
-  @VisibleForTesting
-  public String getName() {
-    return name;
+    String attributeName = getName();
+    return node.getAttribute(attributeName) != null;
   }
 }

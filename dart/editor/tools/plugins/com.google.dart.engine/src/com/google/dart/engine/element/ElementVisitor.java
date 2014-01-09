@@ -19,6 +19,7 @@ import com.google.dart.engine.element.angular.AngularDirectiveElement;
 import com.google.dart.engine.element.angular.AngularFilterElement;
 import com.google.dart.engine.element.angular.AngularModuleElement;
 import com.google.dart.engine.element.angular.AngularPropertyElement;
+import com.google.dart.engine.element.angular.AngularSelectorElement;
 
 /**
  * The interface {@code ElementVisitor} defines the behavior of objects that can be used to visit an
@@ -38,6 +39,8 @@ public interface ElementVisitor<R> {
   public R visitAngularModuleElement(AngularModuleElement element);
 
   public R visitAngularPropertyElement(AngularPropertyElement element);
+
+  public R visitAngularSelectorElement(AngularSelectorElement element);
 
   public R visitClassElement(ClassElement element);
 

@@ -19,5 +19,5 @@ package com.google.dart.engine.element.angular;
  * 
  * @coverage dart.engine.element
  */
-public interface AngularControllerElement extends AngularSelectorElement {
+public interface AngularControllerElement extends AngularHasSelectorElement {
 }

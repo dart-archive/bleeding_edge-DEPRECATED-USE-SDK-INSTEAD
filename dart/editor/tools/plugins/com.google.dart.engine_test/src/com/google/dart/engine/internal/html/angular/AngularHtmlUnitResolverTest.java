@@ -16,9 +16,9 @@ package com.google.dart.engine.internal.html.angular;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.element.Element;
-import com.google.dart.engine.element.angular.AngularComponentElement;
 import com.google.dart.engine.element.angular.AngularPropertyElement;
 import com.google.dart.engine.element.angular.AngularPropertyKind;
+import com.google.dart.engine.element.angular.AngularSelectorElement;
 import com.google.dart.engine.error.AngularCode;
 import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.html.ast.HtmlUnitUtils;
@@ -27,13 +27,13 @@ import com.google.dart.engine.html.ast.XmlTagNode;
 
 public class AngularHtmlUnitResolverTest extends AngularTest {
   public void test_component_use_resolveAttributes() throws Exception {
-    mainSource = contextHelper.addSource("/main.dart", createSource("",//
+    addMainSource(createSource("",//
         "import 'angular.dart';",
         "",
         "@NgComponent(",
         "    templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
         "    publishAs: 'ctrl',",
-        "    selector: 'myComponent',",
+        "    selector: 'myComponent', // selector",
         "    map: const {'attrA' : '=>setA', 'attrB' : '@setB'})",
         "class MyComponent {",
         "  set setA(value) {}",
@@ -54,10 +54,10 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
     assertNotNull(findIdentifier("someModel"));
     // "myComponent" tag was resolved
     XmlTagNode tagNode = HtmlUnitUtils.getTagNode(indexUnit, findOffset("myComponent"));
-    // TODO(scheglov) wrong, should be AngularSelectorElement
-    AngularComponentElement tagElement = (AngularComponentElement) tagNode.getElement();
+    AngularSelectorElement tagElement = (AngularSelectorElement) tagNode.getElement();
     assertNotNull(tagElement);
-    assertEquals("ctrl", tagElement.getName());
+    assertEquals("myComponent", tagElement.getName());
+    assertEquals(findMainOffset("myComponent', // selector"), tagElement.getNameOffset());
     // "attrA" attribute was resolved
     {
       XmlAttributeNode node = HtmlUnitUtils.getAttributeNode(indexUnit, findOffset("attrA='"));
