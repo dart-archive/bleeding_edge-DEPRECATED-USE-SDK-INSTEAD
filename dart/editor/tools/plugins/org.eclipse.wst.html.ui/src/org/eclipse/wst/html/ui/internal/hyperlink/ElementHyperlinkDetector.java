@@ -20,6 +20,9 @@ import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.html.ast.HtmlUnitUtils;
+import com.google.dart.engine.html.ast.XmlAttributeNode;
+import com.google.dart.engine.html.ast.XmlTagNode;
+import com.google.dart.engine.html.scanner.Token;
 import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.ui.DartToolsPlugin;
@@ -42,28 +45,48 @@ public class ElementHyperlinkDetector extends AbstractHyperlinkDetector {
   @Override
   public IHyperlink[] detectHyperlinks(ITextViewer textViewer, IRegion region,
       boolean canShowMultipleHyperlinks) {
-    try {
-      HtmlUnit parseHtmlUnit = getHtmlUnit(textViewer);
-      if (parseHtmlUnit == null) {
-        return null;
+    HtmlUnit parseHtmlUnit = getHtmlUnit(textViewer);
+    if (parseHtmlUnit == null) {
+      return null;
+    }
+    // prepare target Expression and Element
+    int offset = region.getOffset();
+    Element element = null;
+    Region linkRegion = null;
+    // try attribute
+    if (element == null) {
+      XmlAttributeNode attrNode = HtmlUnitUtils.getAttributeNode(parseHtmlUnit, offset);
+      if (attrNode != null) {
+        element = attrNode.getElement();
+        Token nameToken = attrNode.getNameToken();
+        linkRegion = new Region(nameToken.getOffset(), nameToken.getLength());
       }
-      // prepare target Expression and Element
-      Expression expression = HtmlUnitUtils.getExpression(parseHtmlUnit, region.getOffset());
-      Element element = HtmlUnitUtils.getElementToOpen(parseHtmlUnit, expression);
-      // create Element hyperlink
-      if (element != null) {
-        int offset = expression.getOffset();
-        int length = expression.getLength();
-        Region linkRegion = new Region(offset, length);
-        return new IHyperlink[] {new ElementHyperlink(linkRegion, element)};
+    }
+    // try tag
+    if (element == null) {
+      XmlTagNode tagNode = HtmlUnitUtils.getTagNode(parseHtmlUnit, offset);
+      if (tagNode != null) {
+        element = tagNode.getElement();
+        Token tagToken = tagNode.getTagToken();
+        linkRegion = new Region(tagToken.getOffset(), tagToken.getLength());
       }
-    } catch (AnalysisException e) {
-      DartToolsPlugin.log(e);
+    }
+    // try expression
+    if (element == null) {
+      Expression expression = HtmlUnitUtils.getExpression(parseHtmlUnit, offset);
+      if (expression != null) {
+        element = HtmlUnitUtils.getElementToOpen(parseHtmlUnit, expression);
+        linkRegion = new Region(expression.getOffset(), expression.getLength());
+      }
+    }
+    // create Element hyperlink
+    if (element != null && linkRegion != null) {
+      return new IHyperlink[] {new ElementHyperlink(linkRegion, element)};
     }
     return null;
   }
 
-  private HtmlUnit getHtmlUnit(ITextViewer textViewer) throws AnalysisException {
+  private HtmlUnit getHtmlUnit(ITextViewer textViewer) {
     IFile file = getFile(textViewer);
     if (file == null) {
       return null;
