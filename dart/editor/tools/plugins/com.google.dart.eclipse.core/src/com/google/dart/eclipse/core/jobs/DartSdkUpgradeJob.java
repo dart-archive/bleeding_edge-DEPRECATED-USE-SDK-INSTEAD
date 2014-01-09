@@ -22,10 +22,43 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.jobs.Job;
 
+import java.io.File;
+
 /**
  * Download and install the latest released version of the Dart SDK.
  */
 public class DartSdkUpgradeJob extends Job {
+
+  /**
+   * Ensure that the execute bit is set on the given files.
+   * 
+   * @param files the files that should be executable
+   */
+  public static void ensureExecutable(File... files) {
+    if (files != null) {
+      for (File file : files) {
+        if (file != null && !file.canExecute()) {
+          if (!makeExecutable(file)) {
+            DartCore.logError("Could not make " + file.getAbsolutePath() + " executable");
+          }
+        }
+      }
+    }
+  }
+
+  private static boolean makeExecutable(File file) {
+
+    DartCore.logInformation("Setting execute bit for " + file.getAbsolutePath());
+
+    // First try and set executable for all users.
+    if (file.setExecutable(true, false)) {
+      // success
+      return true;
+    }
+
+    // Then try only for the current user.
+    return file.setExecutable(true, true);
+  }
 
   // TODO (danrubel): Remove this if not referenced from the plugin.xml
   public DartSdkUpgradeJob() {
@@ -43,8 +76,9 @@ public class DartSdkUpgradeJob extends Job {
         DartCore.logError(status.getException());
       }
     }
-
+    if (status.isOK() && DartSdkManager.getManager().hasSdk()) {
+      ensureExecutable(new File(DartSdkManager.getManager().getSdk().getDirectory(), "bin").listFiles());
+    }
     return status;
   }
-
 }
