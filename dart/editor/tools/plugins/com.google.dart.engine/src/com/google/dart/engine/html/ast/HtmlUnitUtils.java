@@ -21,6 +21,7 @@ import com.google.dart.engine.ast.visitor.NodeLocator;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.html.ast.visitor.RecursiveXmlVisitor;
+import com.google.dart.engine.html.scanner.Token;
 import com.google.dart.engine.internal.html.angular.AngularHtmlUnitResolver;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
@@ -29,7 +30,40 @@ import com.google.dart.engine.type.Type;
  * Utilities locating {@link Expression}s and {@link Element}s in {@link HtmlUnit}.
  */
 public class HtmlUnitUtils {
+  private static class FoundAttributeNodeError extends Error {
+  }
+
   private static class FoundExpressionError extends Error {
+  }
+
+  private static class FoundTagNodeError extends Error {
+  }
+
+  /**
+   * Returns the {@link XmlAttributeNode} that is part of the given {@link HtmlUnit} and encloses
+   * the given offset.
+   */
+  public static XmlAttributeNode getAttributeNode(HtmlUnit htmlUnit, final int offset) {
+    if (htmlUnit == null) {
+      return null;
+    }
+    final XmlAttributeNode[] result = {null};
+    try {
+      htmlUnit.accept(new RecursiveXmlVisitor<Void>() {
+        @Override
+        public Void visitXmlAttributeNode(XmlAttributeNode node) {
+          Token nameToken = node.getNameToken();
+          if (nameToken.getOffset() <= offset && offset < nameToken.getEnd()) {
+            result[0] = node;
+            throw new FoundAttributeNodeError();
+          }
+          return super.visitXmlAttributeNode(node);
+        }
+      });
+    } catch (FoundAttributeNodeError e) {
+      return result[0];
+    }
+    return null;
   }
 
   /**
@@ -107,6 +141,34 @@ public class HtmlUnitUtils {
         }
       });
     } catch (FoundExpressionError e) {
+      return result[0];
+    }
+    return null;
+  }
+
+  /**
+   * Returns the {@link XmlTagNode} that is part of the given {@link HtmlUnit} and encloses the
+   * given offset.
+   */
+  public static XmlTagNode getTagNode(HtmlUnit htmlUnit, final int offset) {
+    if (htmlUnit == null) {
+      return null;
+    }
+    final XmlTagNode[] result = {null};
+    try {
+      htmlUnit.accept(new RecursiveXmlVisitor<Void>() {
+        @Override
+        public Void visitXmlTagNode(XmlTagNode node) {
+          super.visitXmlTagNode(node);
+          Token tagToken = node.getTagToken();
+          if (tagToken.getOffset() <= offset && offset < tagToken.getEnd()) {
+            result[0] = node;
+            throw new FoundTagNodeError();
+          }
+          return null;
+        }
+      });
+    } catch (FoundTagNodeError e) {
       return result[0];
     }
     return null;

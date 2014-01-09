@@ -35,6 +35,7 @@ import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.element.ToolkitObjectElement;
+import com.google.dart.engine.element.angular.AngularComponentElement;
 import com.google.dart.engine.element.angular.AngularControllerElement;
 import com.google.dart.engine.element.angular.AngularDirectiveElement;
 import com.google.dart.engine.element.angular.AngularModuleElement;
@@ -352,6 +353,10 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
    */
   private NgProcessor createProcessor(ClassElement classElement) {
     for (ToolkitObjectElement toolkitObject : classElement.getToolkitObjects()) {
+      if (toolkitObject instanceof AngularComponentElement) {
+        AngularComponentElement component = (AngularComponentElement) toolkitObject;
+        return new NgComponentElementProcessor(component);
+      }
       if (toolkitObject instanceof AngularControllerElement) {
         AngularControllerElement controller = (AngularControllerElement) toolkitObject;
         return new NgControllerElementProcessor(controller);

@@ -15,48 +15,37 @@
 package com.google.dart.engine.internal.html.angular;
 
 import com.google.dart.engine.ast.Expression;
-import com.google.dart.engine.element.angular.AngularDirectiveElement;
+import com.google.dart.engine.element.angular.AngularComponentElement;
 import com.google.dart.engine.element.angular.AngularPropertyElement;
 import com.google.dart.engine.element.angular.AngularPropertyKind;
-import com.google.dart.engine.element.angular.AngularSelector;
 import com.google.dart.engine.html.ast.XmlAttributeNode;
 import com.google.dart.engine.html.ast.XmlTagNode;
-import com.google.dart.engine.internal.element.angular.HasAttributeSelector;
 
 /**
- * {@link NgDirectiveElementProcessor} applies {@link AngularDirectiveElement} by parsing mapped
+ * {@link NgComponentElementProcessor} applies {@link AngularComponentElement} by parsing mapped
  * attributes as expressions.
  */
-class NgDirectiveElementProcessor extends NgDirectiveProcessor {
-  private final AngularDirectiveElement element;
+class NgComponentElementProcessor extends NgDirectiveProcessor {
+  private final AngularComponentElement element;
 
-  public NgDirectiveElementProcessor(AngularDirectiveElement element) {
+  public NgComponentElementProcessor(AngularComponentElement element) {
     this.element = element;
   }
 
   @Override
   public void apply(AngularHtmlUnitResolver resolver, XmlTagNode node) {
+    node.setElement(element);
     for (AngularPropertyElement property : element.getProperties()) {
-      // don't resolve string attribute - we don't know in in general case how it is used
-      AngularPropertyKind kind = property.getPropertyKind();
-      if (kind == AngularPropertyKind.ATTR) {
-        continue;
-      }
-      // prepare attribute name
       String name = property.getName();
-      if (name.equals(".")) {
-        AngularSelector selector = element.getSelector();
-        if (selector instanceof HasAttributeSelector) {
-          name = ((HasAttributeSelector) selector).getAttributeName();
-        }
-      }
-      // resolve attribute expression
       XmlAttributeNode attribute = node.getAttribute(name);
       if (attribute != null) {
-        Expression expression = parseExpression(resolver, attribute);
-        resolver.resolveNode(expression);
-        setExpression(attribute, expression);
         attribute.setElement(property);
+        // resolve if binding
+        if (property.getPropertyKind() != AngularPropertyKind.ATTR) {
+          Expression expression = parseExpression(resolver, attribute);
+          resolver.resolveNode(expression);
+          setExpression(attribute, expression);
+        }
       }
     }
   }

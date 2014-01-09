@@ -16,11 +16,66 @@ package com.google.dart.engine.internal.html.angular;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.angular.AngularComponentElement;
+import com.google.dart.engine.element.angular.AngularPropertyElement;
+import com.google.dart.engine.element.angular.AngularPropertyKind;
 import com.google.dart.engine.error.AngularCode;
 import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.html.ast.HtmlUnitUtils;
+import com.google.dart.engine.html.ast.XmlAttributeNode;
+import com.google.dart.engine.html.ast.XmlTagNode;
 
 public class AngularHtmlUnitResolverTest extends AngularTest {
+  public void test_component_use_resolveAttributes() throws Exception {
+    mainSource = contextHelper.addSource("/main.dart", createSource("",//
+        "import 'angular.dart';",
+        "",
+        "@NgComponent(",
+        "    templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
+        "    publishAs: 'ctrl',",
+        "    selector: 'myComponent',",
+        "    map: const {'attrA' : '=>setA', 'attrB' : '@setB'})",
+        "class MyComponent {",
+        "  set setA(value) {}",
+        "  set setB(value) {}",
+        "}",
+        "",
+        "main() {",
+        "  var module = new Module();",
+        "  module.type(MyComponent);",
+        "  ngBootstrap(module: module);",
+        "}"));
+    resolveIndex(createHtmlWithMyController(//
+        "<input type='text' ng-model='someModel'/>",
+        "<myComponent attrA='someModel' attrB='bbb'/>"));
+    assertNoErrors();
+    verify(indexSource);
+    // "attrA" attribute expression was resolved
+    assertNotNull(findIdentifier("someModel"));
+    // "myComponent" tag was resolved
+    XmlTagNode tagNode = HtmlUnitUtils.getTagNode(indexUnit, findOffset("myComponent"));
+    // TODO(scheglov) wrong, should be AngularSelectorElement
+    AngularComponentElement tagElement = (AngularComponentElement) tagNode.getElement();
+    assertNotNull(tagElement);
+    assertEquals("ctrl", tagElement.getName());
+    // "attrA" attribute was resolved
+    {
+      XmlAttributeNode node = HtmlUnitUtils.getAttributeNode(indexUnit, findOffset("attrA='"));
+      AngularPropertyElement eement = (AngularPropertyElement) node.getElement();
+      assertNotNull(eement);
+      assertEquals("attrA", eement.getName());
+      assertEquals("setA", eement.getField().getName());
+    }
+    // "attrB" attribute was resolved, even if it @binding
+    {
+      XmlAttributeNode node = HtmlUnitUtils.getAttributeNode(indexUnit, findOffset("attrB='"));
+      AngularPropertyElement element = (AngularPropertyElement) node.getElement();
+      assertNotNull(element);
+      assertEquals("attrB", element.getName());
+      assertEquals("setB", element.getField().getName());
+    }
+  }
+
   public void test_directive_resolvedExpression_attrString() throws Exception {
     mainSource = contextHelper.addSource("/main.dart", createSource("",//
         "import 'angular.dart';",
@@ -69,6 +124,7 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
         "</div>"));
     assertNoErrors();
     verify(indexSource);
+    // "name" attribute was resolved
     assertNotNull(findIdentifier("name != null"));
   }
 
@@ -94,7 +150,17 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
         "</div>"));
     assertNoErrors();
     verify(indexSource);
+    // "name" expression was resolved
     assertNotNull(findIdentifier("name != null"));
+    // "my-directive" attribute was resolved
+    XmlAttributeNode attrNode = HtmlUnitUtils.getAttributeNode(
+        indexUnit,
+        findOffset("my-directive='"));
+    assertNotNull(attrNode);
+    AngularPropertyElement propertyElement = (AngularPropertyElement) attrNode.getElement();
+    assertNotNull(propertyElement);
+    assertSame(AngularPropertyKind.ONE_WAY, propertyElement.getPropertyKind());
+    assertEquals("condition", propertyElement.getField().getName());
   }
 
   public void test_moduleAsLocalVariable_inInitializer() throws Exception {
