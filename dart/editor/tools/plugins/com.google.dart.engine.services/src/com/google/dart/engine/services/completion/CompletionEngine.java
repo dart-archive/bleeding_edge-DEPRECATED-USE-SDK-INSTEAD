@@ -318,12 +318,17 @@ public class CompletionEngine {
     }
 
     private void mergeName(Element element) {
+      if (element == null) {
+        return;
+      }
+      // ignore private
       String name = element.getDisplayName();
       if (Identifier.isPrivateName(name)) {
         if (!isInCurrentLibrary(element)) {
           return;
         }
       }
+      // add to other Element(s) with such name
       List<Element> dups = uniqueNames.get(name);
       if (dups == null) {
         dups = new ArrayList<Element>();
