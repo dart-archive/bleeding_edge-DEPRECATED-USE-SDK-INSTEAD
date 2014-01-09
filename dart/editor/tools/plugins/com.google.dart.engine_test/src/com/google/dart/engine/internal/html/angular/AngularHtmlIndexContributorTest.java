@@ -15,6 +15,8 @@ package com.google.dart.engine.internal.html.angular;
 
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.FieldElement;
+import com.google.dart.engine.element.angular.AngularPropertyElement;
+import com.google.dart.engine.element.angular.AngularSelectorElement;
 import com.google.dart.engine.index.IndexStore;
 import com.google.dart.engine.internal.index.IndexConstants;
 import com.google.dart.engine.internal.index.IndexContributorHelper.ExpectedLocation;
@@ -31,7 +33,51 @@ public class AngularHtmlIndexContributorTest extends AngularTest {
   private IndexStore store = mock(IndexStore.class);
   private AngularHtmlIndexContributor index = new AngularHtmlIndexContributor(store);
 
-  public void test_inAttribute() throws Exception {
+  public void test_component_use() throws Exception {
+    addMainSource(createSource("",//
+        "import 'angular.dart';",
+        "",
+        "@NgComponent(",
+        "    templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
+        "    publishAs: 'ctrl',",
+        "    selector: 'myComponent', // selector",
+        "    map: const {'attrA' : '=>setA', 'attrB' : '@setB'})",
+        "class MyComponent {",
+        "  set setA(value) {}",
+        "  set setB(value) {}",
+        "}",
+        "",
+        "main() {",
+        "  var module = new Module();",
+        "  module.type(MyComponent);",
+        "  ngBootstrap(module: module);",
+        "}"));
+    resolveIndex(createHtmlWithMyController(//
+    "<myComponent attrA='null' attrB='str'/>"));
+    // prepare elements
+    AngularSelectorElement selectorElement = findMainElement("myComponent");
+    AngularPropertyElement attrA = findMainElement("attrA");
+    AngularPropertyElement attrB = findMainElement("attrB");
+    // index
+    indexUnit.accept(index);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    assertRecordedRelation(
+        relations,
+        selectorElement,
+        IndexConstants.IS_REFERENCED_BY,
+        new ExpectedLocation(indexHtmlUnit, findOffset("myComponent attrA='null"), "myComponent"));
+    assertRecordedRelation(relations, attrA, IndexConstants.IS_REFERENCED_BY, new ExpectedLocation(
+        indexHtmlUnit,
+        findOffset("attrA='null"),
+        "attrA"));
+    assertRecordedRelation(relations, attrB, IndexConstants.IS_REFERENCED_BY, new ExpectedLocation(
+        indexHtmlUnit,
+        findOffset("attrB='str"),
+        "attrB"));
+  }
+
+  public void test_expression_inAttribute() throws Exception {
     addMyController();
     resolveIndex(createHtmlWithMyController(//
         "  <button title='{{ctrl.field}}'>Remove</button>",
@@ -49,7 +95,7 @@ public class AngularHtmlIndexContributorTest extends AngularTest {
         new ExpectedLocation(indexDartUnit, findOffset("field}}"), "field"));
   }
 
-  public void test_inContent() throws Exception {
+  public void test_expression_inContent() throws Exception {
     addMyController();
     resolveIndex(createHtmlWithMyController(//
         "      {{ctrl.field}}",
@@ -67,7 +113,7 @@ public class AngularHtmlIndexContributorTest extends AngularTest {
         new ExpectedLocation(indexDartUnit, findOffset("field}}"), "field"));
   }
 
-  public void test_ngRepeat() throws Exception {
+  public void test_expression_ngRepeat() throws Exception {
     addMyController();
     resolveIndex(createHtmlWithMyController(//
         "  <li ng-repeat='name in ctrl.names'>",

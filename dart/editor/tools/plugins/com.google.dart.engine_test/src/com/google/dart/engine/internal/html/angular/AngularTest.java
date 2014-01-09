@@ -23,6 +23,7 @@ import com.google.dart.engine.context.AnalysisContextHelper;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.HtmlElement;
 import com.google.dart.engine.element.visitor.GeneralizingElementVisitor;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.ErrorCode;
@@ -103,6 +104,7 @@ abstract public class AngularTest extends EngineTestCase {
   protected String indexContent;
   protected Source indexSource;
   protected HtmlUnit indexUnit;
+  protected HtmlElement indexHtmlUnit;
   protected CompilationUnitElement indexDartUnit;
 
   /**
@@ -208,17 +210,19 @@ abstract public class AngularTest extends EngineTestCase {
   /**
    * Returns {@link Element} from {@link #indexDartUnit}.
    */
-  protected final Element findIndexElement(String name) throws AnalysisException {
-    return findElement(indexDartUnit, name);
+  @SuppressWarnings("unchecked")
+  protected final <T extends Element> T findIndexElement(String name) throws AnalysisException {
+    return (T) findElement(indexDartUnit, name);
   }
 
   /**
    * Returns {@link Element} from {@link #mainSource}.
    */
-  protected final Element findMainElement(String name) throws AnalysisException {
+  @SuppressWarnings("unchecked")
+  protected final <T extends Element> T findMainElement(String name) throws AnalysisException {
     CompilationUnit unit = context.resolveCompilationUnit(mainSource, mainSource);
     CompilationUnitElement unitElement = unit.getElement();
-    return findElement(unitElement, name);
+    return (T) findElement(unitElement, name);
   }
 
   /**
@@ -241,6 +245,7 @@ abstract public class AngularTest extends EngineTestCase {
     indexContent = createSource(lines);
     indexSource = contextHelper.addSource("/index.html", indexContent);
     indexUnit = context.resolveHtmlUnit(indexSource);
+    indexHtmlUnit = indexUnit.getElement();
     indexDartUnit = indexUnit.getCompilationUnitElement();
   }
 

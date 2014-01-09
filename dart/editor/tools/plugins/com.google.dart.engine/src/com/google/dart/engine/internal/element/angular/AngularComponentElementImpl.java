@@ -144,4 +144,10 @@ public class AngularComponentElementImpl extends AngularHasSelectorElementImpl i
   public void setTemplateUriOffset(int templateUriOffset) {
     this.templateUriOffset = templateUriOffset;
   }
+
+  @Override
+  public void visitChildren(ElementVisitor<?> visitor) {
+    safelyVisitChildren(properties, visitor);
+    super.visitChildren(visitor);
+  }
 }
