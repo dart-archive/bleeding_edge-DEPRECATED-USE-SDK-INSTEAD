@@ -47,11 +47,16 @@ to openWelcomePage
 end openWelcomePage
 
 to nextEditor count
+	(* Typetext wasn't working correctly on linux, so now using keydown/keyup instead  *)
 	repeat count times
-		doKeyCmd F6
-		if isLinux() then
-			TypeText return
+		if isMacOSX()
+			keydown commandKey,F6
+			keyup commandKey,F6
+		else
+			keydown controlKey,F6
+			keyup controlKey,F6
 		end if
+		(*doKeyCmd F6*)
 		Wait 2
 	end repeat
 end NextEditor
@@ -85,7 +90,7 @@ to deleteOutput
 	put 105 into deltaX
 	if isMacOSX() then
 		put 100 into deltaX
-	end if
+		end if
 	put ImageLocation("problems tab") + (deltaX,0) into outLoc
 	Click outLoc
 	Wait 0.2

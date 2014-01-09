@@ -22,10 +22,14 @@
 	<key>ImageDescription</key>
 	<data>
 	</data>
+	<key>ImageTolerance</key>
+	<integer>10</integer>
 	<key>LastKnownLocationX</key>
 	<integer>0</integer>
 	<key>LastKnownLocationY</key>
 	<integer>0</integer>
+	<key>MaxIgnoredPixels</key>
+	<integer>1</integer>
 	<key>OriginalLocationX</key>
 	<integer>40</integer>
 	<key>OriginalLocationY</key>
