@@ -226,35 +226,35 @@ public class ParseDartTask extends AnalysisTask {
     //
     // Scan the contents of the file.
     //
-    TimeCounterHandle timeCounterScan = PerformanceStatistics.scan.start();
-    try {
-      Source.ContentReceiver receiver = new Source.ContentReceiver() {
-        @Override
-        public void accept(CharBuffer contents, long modificationTime) {
-          doScan(contents, modificationTime);
-        }
+    Source.ContentReceiver receiver = new Source.ContentReceiver() {
+      @Override
+      public void accept(CharBuffer contents, long modificationTime) {
+        doScan(contents, modificationTime);
+      }
 
-        @Override
-        public void accept(String contents, long modificationTime) {
-          doScan(contents, modificationTime);
-        }
+      @Override
+      public void accept(String contents, long modificationTime) {
+        doScan(contents, modificationTime);
+      }
 
-        private void doScan(CharSequence contents, long modificationTime) {
-          ParseDartTask.this.modificationTime = modificationTime;
+      private void doScan(CharSequence contents, long modificationTime) {
+        ParseDartTask.this.modificationTime = modificationTime;
+        TimeCounterHandle timeCounterScan = PerformanceStatistics.scan.start();
+        try {
           Scanner scanner = new Scanner(source, new CharSequenceReader(contents), errorListener);
           scanner.setPreserveComments(getContext().getAnalysisOptions().getPreserveComments());
           token[0] = scanner.tokenize();
           lineInfo = new LineInfo(scanner.getLineStarts());
+        } finally {
+          timeCounterScan.stop();
         }
-      };
-      try {
-        source.getContents(receiver);
-      } catch (Exception exception) {
-        modificationTime = source.getModificationStamp();
-        throw new AnalysisException(exception);
       }
-    } finally {
-      timeCounterScan.stop();
+    };
+    try {
+      source.getContents(receiver);
+    } catch (Exception exception) {
+      modificationTime = source.getModificationStamp();
+      throw new AnalysisException(exception);
     }
     if (token[0] == null) {
       throw new AnalysisException("Could not get contents for '" + source.getFullName() + "'");
