@@ -61,6 +61,11 @@ public class NullState extends InstanceState {
   }
 
   @Override
+  public boolean hasExactValue() {
+    return true;
+  }
+
+  @Override
   public int hashCode() {
     return 0;
   }

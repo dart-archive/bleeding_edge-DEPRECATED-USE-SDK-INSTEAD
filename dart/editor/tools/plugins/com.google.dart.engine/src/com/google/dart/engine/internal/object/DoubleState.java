@@ -99,12 +99,6 @@ public class DoubleState extends NumState {
   }
 
   @Override
-  public boolean equals(Object object) {
-    return object instanceof DoubleState
-        && ObjectUtilities.equals(value, ((DoubleState) object).value);
-  }
-
-  @Override
   public BoolState equalEqual(InstanceState rightOperand) throws EvaluationException {
     assertBoolNumStringOrNull(rightOperand);
     if (value == null) {
@@ -129,15 +123,17 @@ public class DoubleState extends NumState {
   }
 
   @Override
+  public boolean equals(Object object) {
+    return object instanceof DoubleState
+        && ObjectUtilities.equals(value, ((DoubleState) object).value);
+  }
+
+  @Override
   public String getTypeName() {
     return "double"; //$NON-NLS-0$
   }
 
-  /**
-   * Return the value of this instance.
-   * 
-   * @return the value of this instance
-   */
+  @Override
   public Double getValue() {
     return value;
   }
@@ -188,6 +184,11 @@ public class DoubleState extends NumState {
       return BoolState.UNKNOWN_VALUE;
     }
     throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+  }
+
+  @Override
+  public boolean hasExactValue() {
+    return true;
   }
 
   @Override

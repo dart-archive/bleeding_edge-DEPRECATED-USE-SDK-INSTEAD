@@ -38,6 +38,15 @@ public class ListState extends InstanceState {
   }
 
   @Override
+  public BoolState equalEqual(InstanceState rightOperand) throws EvaluationException {
+    assertBoolNumStringOrNull(rightOperand);
+    if (rightOperand instanceof DynamicState) {
+      return BoolState.UNKNOWN_VALUE;
+    }
+    return BoolState.from(equals(rightOperand));
+  }
+
+  @Override
   public boolean equals(Object object) {
     if (!(object instanceof ListState)) {
       return false;
@@ -58,17 +67,33 @@ public class ListState extends InstanceState {
   }
 
   @Override
-  public BoolState equalEqual(InstanceState rightOperand) throws EvaluationException {
-    assertBoolNumStringOrNull(rightOperand);
-    if (rightOperand instanceof DynamicState) {
-      return BoolState.UNKNOWN_VALUE;
-    }
-    return BoolState.from(equals(rightOperand));
+  public String getTypeName() {
+    return "List"; //$NON-NLS-0$
   }
 
   @Override
-  public String getTypeName() {
-    return "List"; //$NON-NLS-0$
+  public Object[] getValue() {
+    int count = elements.length;
+    Object[] result = new Object[count];
+    for (int i = 0; i < count; i++) {
+      DartObjectImpl element = elements[i];
+      if (!element.hasExactValue()) {
+        return null;
+      }
+      result[i] = element.getValue();
+    }
+    return result;
+  }
+
+  @Override
+  public boolean hasExactValue() {
+    int count = elements.length;
+    for (int i = 0; i < count; i++) {
+      if (!elements[i].hasExactValue()) {
+        return false;
+      }
+    }
+    return true;
   }
 
   @Override

@@ -143,6 +143,17 @@ public abstract class InstanceState {
   public abstract String getTypeName();
 
   /**
+   * Return this object's value if it can be represented exactly, or {@code null} if either the
+   * value cannot be represented exactly or if the value is {@code null}. Clients should use
+   * {@link #hasExactValue()} to distinguish between these two cases.
+   * 
+   * @return this object's value
+   */
+  public Object getValue() {
+    return null;
+  }
+
+  /**
    * Return the result of invoking the '&gt;' operator on this object with the given argument.
    * 
    * @param rightOperand the right-hand operand of the operation
@@ -166,6 +177,15 @@ public abstract class InstanceState {
     assertNumOrNull(this);
     assertNumOrNull(rightOperand);
     throw new EvaluationException(CompileTimeErrorCode.INVALID_CONSTANT);
+  }
+
+  /**
+   * Return {@code true} if this object's value can be represented exactly.
+   * 
+   * @return {@code true} if this object's value can be represented exactly
+   */
+  public boolean hasExactValue() {
+    return false;
   }
 
   /**

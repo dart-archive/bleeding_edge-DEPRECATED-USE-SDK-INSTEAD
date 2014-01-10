@@ -98,13 +98,14 @@ public class BoolState extends InstanceState {
     return "bool"; //$NON-NLS-0$
   }
 
-  /**
-   * Return the value of this instance.
-   * 
-   * @return the value of this instance
-   */
+  @Override
   public Boolean getValue() {
     return value;
+  }
+
+  @Override
+  public boolean hasExactValue() {
+    return true;
   }
 
   @Override

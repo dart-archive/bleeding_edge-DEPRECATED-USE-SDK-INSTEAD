@@ -168,11 +168,6 @@ public class IntState extends NumState {
   }
 
   @Override
-  public boolean equals(Object object) {
-    return object instanceof IntState && ObjectUtilities.equals(value, ((IntState) object).value);
-  }
-
-  @Override
   public BoolState equalEqual(InstanceState rightOperand) throws EvaluationException {
     assertBoolNumStringOrNull(rightOperand);
     if (value == null) {
@@ -197,15 +192,16 @@ public class IntState extends NumState {
   }
 
   @Override
+  public boolean equals(Object object) {
+    return object instanceof IntState && ObjectUtilities.equals(value, ((IntState) object).value);
+  }
+
+  @Override
   public String getTypeName() {
     return "int"; //$NON-NLS-0$
   }
 
-  /**
-   * Return the value of this instance.
-   * 
-   * @return the value of this instance
-   */
+  @Override
   public BigInteger getValue() {
     return value;
   }
@@ -256,6 +252,11 @@ public class IntState extends NumState {
       return BoolState.UNKNOWN_VALUE;
     }
     throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+  }
+
+  @Override
+  public boolean hasExactValue() {
+    return true;
   }
 
   @Override

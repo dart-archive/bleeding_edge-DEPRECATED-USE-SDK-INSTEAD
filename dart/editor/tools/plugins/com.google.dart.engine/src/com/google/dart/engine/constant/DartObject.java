@@ -28,7 +28,7 @@ public interface DartObject {
    * 
    * @return the boolean value of this object
    */
-  public Object getBoolValue();
+  public Boolean getBoolValue();
 
   /**
    * Return the floating point value of this object, or {@code null} if either the value of this
@@ -60,6 +60,22 @@ public interface DartObject {
    * @return the run-time type of this object
    */
   public InterfaceType getType();
+
+  /**
+   * Return this object's value if it can be represented exactly, or {@code null} if either the
+   * value cannot be represented exactly or if the value is {@code null}. Clients should use
+   * {@link #hasExactValue()} to distinguish between these two cases.
+   * 
+   * @return this object's value
+   */
+  public Object getValue();
+
+  /**
+   * Return {@code true} if this object's value can be represented exactly.
+   * 
+   * @return {@code true} if this object's value can be represented exactly
+   */
+  public boolean hasExactValue();
 
   /**
    * Return {@code true} if this object represents the value 'false'.

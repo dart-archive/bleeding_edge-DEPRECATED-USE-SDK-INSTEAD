@@ -43,12 +43,6 @@ public class SymbolState extends InstanceState {
   }
 
   @Override
-  public boolean equals(Object object) {
-    return object instanceof SymbolState
-        && ObjectUtilities.equals(value, ((SymbolState) object).value);
-  }
-
-  @Override
   public BoolState equalEqual(InstanceState rightOperand) throws EvaluationException {
     assertBoolNumStringOrNull(rightOperand);
     if (value == null) {
@@ -67,17 +61,24 @@ public class SymbolState extends InstanceState {
   }
 
   @Override
+  public boolean equals(Object object) {
+    return object instanceof SymbolState
+        && ObjectUtilities.equals(value, ((SymbolState) object).value);
+  }
+
+  @Override
   public String getTypeName() {
     return "Symbol"; //$NON-NLS-0$
   }
 
-  /**
-   * Return the value of this instance.
-   * 
-   * @return the value of this instance
-   */
+  @Override
   public String getValue() {
     return value;
+  }
+
+  @Override
+  public boolean hasExactValue() {
+    return true;
   }
 
   @Override

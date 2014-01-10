@@ -198,7 +198,7 @@ public class DartObjectImpl implements DartObject {
   }
 
   @Override
-  public Object getBoolValue() {
+  public Boolean getBoolValue() {
     if (state instanceof BoolState) {
       return ((BoolState) state).getValue();
     }
@@ -234,6 +234,11 @@ public class DartObjectImpl implements DartObject {
     return type;
   }
 
+  @Override
+  public Object getValue() {
+    return state.getValue();
+  }
+
   /**
    * Return the result of invoking the '&gt;' operator on this object with the given argument.
    * 
@@ -260,6 +265,11 @@ public class DartObjectImpl implements DartObject {
     return new DartObjectImpl(
         typeProvider.getBoolType(),
         state.greaterThanOrEqual(rightOperand.state));
+  }
+
+  @Override
+  public boolean hasExactValue() {
+    return state.hasExactValue();
   }
 
   @Override

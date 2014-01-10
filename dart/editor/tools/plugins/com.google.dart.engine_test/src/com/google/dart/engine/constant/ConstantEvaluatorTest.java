@@ -345,7 +345,7 @@ public class ConstantEvaluatorTest extends ResolverTestCase {
     EvaluationResult result = getExpressionValue(contents);
     DartObject value = result.getValue();
     assertEquals("bool", value.getType().getName());
-    assertEquals(expectedValue, value.getBoolValue());
+    assertEquals(expectedValue, value.getBoolValue().booleanValue());
   }
 
   private void assertValue(double expectedValue, String contents) throws Exception {

@@ -41,6 +41,15 @@ public class MapState extends InstanceState {
   }
 
   @Override
+  public BoolState equalEqual(InstanceState rightOperand) throws EvaluationException {
+    assertBoolNumStringOrNull(rightOperand);
+    if (rightOperand instanceof DynamicState) {
+      return BoolState.UNKNOWN_VALUE;
+    }
+    return BoolState.from(equals(rightOperand));
+  }
+
+  @Override
   public boolean equals(Object object) {
     if (!(object instanceof MapState)) {
       return false;
@@ -64,17 +73,32 @@ public class MapState extends InstanceState {
   }
 
   @Override
-  public BoolState equalEqual(InstanceState rightOperand) throws EvaluationException {
-    assertBoolNumStringOrNull(rightOperand);
-    if (rightOperand instanceof DynamicState) {
-      return BoolState.UNKNOWN_VALUE;
-    }
-    return BoolState.from(equals(rightOperand));
+  public String getTypeName() {
+    return "Map"; //$NON-NLS-0$
   }
 
   @Override
-  public String getTypeName() {
-    return "Map"; //$NON-NLS-0$
+  public Map<Object, Object> getValue() {
+    HashMap<Object, Object> result = new HashMap<Object, Object>();
+    for (Map.Entry<DartObjectImpl, DartObjectImpl> entry : entries.entrySet()) {
+      DartObjectImpl key = entry.getKey();
+      DartObjectImpl value = entry.getValue();
+      if (!key.hasExactValue() || !value.hasExactValue()) {
+        return null;
+      }
+      result.put(key.getValue(), value.getValue());
+    }
+    return result;
+  }
+
+  @Override
+  public boolean hasExactValue() {
+    for (Map.Entry<DartObjectImpl, DartObjectImpl> entry : entries.entrySet()) {
+      if (!entry.getKey().hasExactValue() || !entry.getValue().hasExactValue()) {
+        return false;
+      }
+    }
+    return true;
   }
 
   @Override

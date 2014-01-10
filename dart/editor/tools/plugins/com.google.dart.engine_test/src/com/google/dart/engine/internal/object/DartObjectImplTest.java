@@ -19,6 +19,7 @@ import com.google.dart.engine.internal.resolver.TypeProvider;
 
 import java.math.BigInteger;
 import java.util.HashMap;
+import java.util.Map;
 
 public class DartObjectImplTest extends EngineTestCase {
   TypeProvider typeProvider = new TestTypeProvider();
@@ -327,6 +328,79 @@ public class DartObjectImplTest extends EngineTestCase {
     assertEquals(symbolValue("a"), symbolValue("a"));
   }
 
+  public void test_getValue_bool_false() {
+    assertEquals(Boolean.FALSE, boolValue(false).getValue());
+  }
+
+  public void test_getValue_bool_true() {
+    assertEquals(Boolean.TRUE, boolValue(true).getValue());
+  }
+
+  public void test_getValue_bool_unknown() {
+    assertNull(boolValue(null).getValue());
+  }
+
+  public void test_getValue_double_known() {
+    double value = 2.3;
+    assertEquals(value, doubleValue(value).getValue());
+  }
+
+  public void test_getValue_double_unknown() {
+    assertNull(doubleValue(null).getValue());
+  }
+
+  public void test_getValue_int_known() {
+    int value = 23;
+    assertEquals(BigInteger.valueOf(value), intValue(value).getValue());
+  }
+
+  public void test_getValue_int_unknown() {
+    assertNull(intValue(null).getValue());
+  }
+
+  public void test_getValue_list_empty() {
+    Object result = listValue().getValue();
+    assertInstanceOf(Object[].class, result);
+    Object[] array = (Object[]) result;
+    assertLength(0, array);
+  }
+
+  public void test_getValue_list_valid() {
+    Object result = listValue(intValue(23)).getValue();
+    assertInstanceOf(Object[].class, result);
+    Object[] array = (Object[]) result;
+    assertLength(1, array);
+  }
+
+  @SuppressWarnings("rawtypes")
+  public void test_getValue_map_empty() {
+    Object result = mapValue().getValue();
+    assertInstanceOf(Map.class, result);
+    Map map = (Map) result;
+    assertSize(0, map);
+  }
+
+  @SuppressWarnings("rawtypes")
+  public void test_getValue_map_valid() {
+    Object result = mapValue(stringValue("key"), stringValue("value")).getValue();
+    assertInstanceOf(Map.class, result);
+    Map map = (Map) result;
+    assertSize(1, map);
+  }
+
+  public void test_getValue_null() {
+    assertNull(nullValue().getValue());
+  }
+
+  public void test_getValue_string_known() {
+    String value = "twenty-three";
+    assertEquals(value, stringValue(value).getValue());
+  }
+
+  public void test_getValue_string_unknown() {
+    assertNull(stringValue(null).getValue());
+  }
+
   public void test_greaterThan_invalid_knownInt() throws EvaluationException {
     assertGreaterThan(null, stringValue("1"), intValue(2));
   }
@@ -453,6 +527,82 @@ public class DartObjectImplTest extends EngineTestCase {
 
   public void test_greaterThanOrEqual_unknownInt_knownInt() throws EvaluationException {
     assertGreaterThanOrEqual(boolValue(null), intValue(null), intValue(2));
+  }
+
+  public void test_hasExactValue_bool_false() {
+    assertTrue(boolValue(false).hasExactValue());
+  }
+
+  public void test_hasExactValue_bool_true() {
+    assertTrue(boolValue(true).hasExactValue());
+  }
+
+  public void test_hasExactValue_bool_unknown() {
+    assertTrue(boolValue(null).hasExactValue());
+  }
+
+  public void test_hasExactValue_double_known() {
+    assertTrue(doubleValue(2.3).hasExactValue());
+  }
+
+  public void test_hasExactValue_double_unknown() {
+    assertTrue(doubleValue(null).hasExactValue());
+  }
+
+  public void test_hasExactValue_dynamic() {
+    assertFalse(dynamicValue().hasExactValue());
+  }
+
+  public void test_hasExactValue_int_known() {
+    assertTrue(intValue(23).hasExactValue());
+  }
+
+  public void test_hasExactValue_int_unknown() {
+    assertTrue(intValue(null).hasExactValue());
+  }
+
+  public void test_hasExactValue_list_empty() {
+    assertTrue(listValue().hasExactValue());
+  }
+
+  public void test_hasExactValue_list_invalid() {
+    assertFalse(dynamicValue().hasExactValue());
+  }
+
+  public void test_hasExactValue_list_valid() {
+    assertTrue(listValue(intValue(23)).hasExactValue());
+  }
+
+  public void test_hasExactValue_map_empty() {
+    assertTrue(mapValue().hasExactValue());
+  }
+
+  public void test_hasExactValue_map_invalidKey() {
+    assertFalse(mapValue(dynamicValue(), stringValue("value")).hasExactValue());
+  }
+
+  public void test_hasExactValue_map_invalidValue() {
+    assertFalse(mapValue(stringValue("key"), dynamicValue()).hasExactValue());
+  }
+
+  public void test_hasExactValue_map_valid() {
+    assertTrue(mapValue(stringValue("key"), stringValue("value")).hasExactValue());
+  }
+
+  public void test_hasExactValue_null() {
+    assertTrue(nullValue().hasExactValue());
+  }
+
+  public void test_hasExactValue_num() {
+    assertFalse(numValue().hasExactValue());
+  }
+
+  public void test_hasExactValue_string_known() {
+    assertTrue(stringValue("twenty-three").hasExactValue());
+  }
+
+  public void test_hasExactValue_string_unknown() {
+    assertTrue(stringValue(null).hasExactValue());
   }
 
   public void test_integerDivide_invalid_knownInt() throws EvaluationException {
