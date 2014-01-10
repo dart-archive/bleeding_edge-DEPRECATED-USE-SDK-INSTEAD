@@ -18,13 +18,33 @@ import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.io.Files;
+import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AsExpression;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.CompilationUnitMember;
+import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.NodeList;
+import com.google.dart.engine.ast.ParenthesizedExpression;
 import com.google.dart.engine.ast.Statement;
+import com.google.dart.engine.ast.visitor.NodeLocator;
+import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.context.AnalysisErrorInfo;
+import com.google.dart.engine.context.AnalysisResult;
+import com.google.dart.engine.context.ChangeSet;
+import com.google.dart.engine.error.AnalysisError;
+import com.google.dart.engine.error.HintCode;
+import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
+import com.google.dart.engine.source.ContentCache;
+import com.google.dart.engine.source.DartUriResolver;
+import com.google.dart.engine.source.FileBasedSource;
+import com.google.dart.engine.source.FileUriResolver;
+import com.google.dart.engine.source.PackageUriResolver;
+import com.google.dart.engine.source.Source;
+import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.engine.utilities.io.PrintStringWriter;
 import com.google.dart.java2dart.Context;
 import com.google.dart.java2dart.processor.BeautifySemanticProcessor;
@@ -43,13 +63,18 @@ import static com.google.dart.java2dart.util.ASTFactory.importDirective;
 import static com.google.dart.java2dart.util.ASTFactory.importShowCombinator;
 import static com.google.dart.java2dart.util.ASTFactory.libraryDirective;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -58,15 +83,34 @@ import java.util.regex.Pattern;
  * Translates some parts of "com.google.dart.engine" project.
  */
 public class MainEngine {
+  static class Edit {
+    public final int offset;
+    public final int length;
+    public final String replacement;
+
+    public Edit(int offset, int length, String replacement) {
+      this.offset = offset;
+      this.length = length;
+      this.replacement = replacement;
+    }
+
+    @Override
+    public String toString() {
+      return (offset < 0 ? "(" : "X(") + "offset: " + offset + ", length " + length
+          + ", replacement :>" + replacement + "<:)";
+    }
+
+  }
+
   /**
    * Default package src location (can be overridden)
    */
   private static String src_package = "package:analysis_engine/src/";
-
   private static final Context context = new Context();
   private static File engineFolder;
   private static File engineTestFolder;
   private static File engineFolder2;
+
   private static CompilationUnit dartUnit;
 
   private static final String HEADER = "// This code was auto-generated, is not intended to be edited, and is subject to\n"
@@ -331,7 +375,9 @@ public class MainEngine {
     {
       CompilationUnit library = buildAstLibrary();
       File astFile = new File(targetFolder + "/ast.dart");
-      Files.write(getFormattedSource(library), astFile, Charsets.UTF_8);
+      String source = getFormattedSource(library);
+      source = source.replace("AngularCompilationUnitBuilder.getElement(node, offset);", "null;");
+      Files.write(source, astFile, Charsets.UTF_8);
       Files.append(
           Files.toString(new File("resources/ast_include.dart"), Charsets.UTF_8),
           astFile,
@@ -455,6 +501,10 @@ public class MainEngine {
           new File(targetTestFolder + "/resolver_test.dart"),
           Charsets.UTF_8);
     }
+    {
+      String projectFolder = new File(targetFolder).getParentFile().getParentFile().getParent();
+      fixUnnecessaryCastHints(projectFolder);
+    }
     System.out.println("Translation complete");
   }
 
@@ -469,6 +519,23 @@ public class MainEngine {
       // OK, add this member
       targetUnit.getDeclarations().add(member);
     }
+  }
+
+  private static void applyEdits(File file, List<Edit> edits) throws IOException {
+    // sort in descending order
+    Collections.sort(edits, new Comparator<Edit>() {
+      @Override
+      public int compare(Edit o1, Edit o2) {
+        return o2.offset - o1.offset;
+      }
+    });
+    // apply to file
+    String content = Files.toString(file, Charsets.UTF_8);
+    for (Edit edit : edits) {
+      content = content.substring(0, edit.offset) + edit.replacement
+          + content.substring(edit.offset + edit.length);
+    }
+    Files.write(content, file, Charsets.UTF_8);
   }
 
   private static CompilationUnit buildAstLibrary() throws Exception {
@@ -1146,6 +1213,92 @@ public class MainEngine {
       }
     }
     return unit;
+  }
+
+  private static void fixUnnecessaryCastHints(String projectPath) throws Exception {
+    System.out.println();
+    System.out.println("Removing unnecessary casts.");
+    AnalysisContext context = AnalysisEngine.getInstance().createAnalysisContext();
+    DirectoryBasedDartSdk sdk = DirectoryBasedDartSdk.getDefaultSdk();
+    SourceFactory sourceFactory = new SourceFactory(
+        new DartUriResolver(sdk),
+        new FileUriResolver(),
+        new PackageUriResolver(new File(projectPath + "/packages")));
+    context.setSourceFactory(sourceFactory);
+    ContentCache contentCache = sourceFactory.getContentCache();
+    // prepare sources
+    List<Source> sources = Lists.newArrayList();
+    Map<Source, File> sourceToFile = Maps.newHashMap();
+    for (File file : FileUtils.listFiles(
+        new File(projectPath + "/lib/src/generated"),
+        new String[] {"dart"},
+        true)) {
+      if (file.getAbsolutePath().contains("/packages/")) {
+        continue;
+      }
+      FileBasedSource source = new FileBasedSource(contentCache, file);
+      sources.add(source);
+      sourceToFile.put(source, file);
+    }
+    for (File file : FileUtils.listFiles(
+        new File(projectPath + "/test/generated"),
+        new String[] {"dart"},
+        true)) {
+      if (file.getAbsolutePath().contains("/packages/")) {
+        continue;
+      }
+      FileBasedSource source = new FileBasedSource(contentCache, file);
+      sources.add(source);
+      sourceToFile.put(source, file);
+    }
+    // add sources to AnalysisContext
+    {
+      ChangeSet changeSet = new ChangeSet();
+      for (Source source : sources) {
+        changeSet.added(source);
+      }
+      context.applyChanges(changeSet);
+    }
+    System.out.println(sources.size() + " sources to analyze.");
+    // perform analysis
+    while (true) {
+      AnalysisResult analysisResult = context.performAnalysisTask();
+      if (analysisResult.getChangeNotices() == null) {
+        break;
+      }
+    }
+    System.out.println("Analysis done.");
+    // process errors
+    for (Source source : sources) {
+      CompilationUnit unit = context.parseCompilationUnit(source);
+      List<Edit> edits = Lists.newArrayList();
+      AnalysisErrorInfo errorInfo = context.getErrors(source);
+      AnalysisError[] errors = errorInfo.getErrors();
+      for (AnalysisError error : errors) {
+        if (error.getErrorCode() == HintCode.UNNECESSARY_CAST) {
+          ASTNode node = new NodeLocator(error.getOffset()).searchWithin(unit);
+          AsExpression asExpression = node.getAncestor(AsExpression.class);
+          if (asExpression != null) {
+            // remove "as" and its enclosing ()
+            ASTNode enclosing = asExpression;
+            if (enclosing.getParent() instanceof ParenthesizedExpression) {
+              enclosing = enclosing.getParent();
+            }
+            // add Edit
+            Expression expr = asExpression.getExpression();
+            int enOffset = enclosing.getOffset();
+            int exEnd = expr.getEnd();
+            edits.add(new Edit(enOffset, expr.getOffset() - enOffset, ""));
+            edits.add(new Edit(exEnd, enclosing.getEnd() - exEnd, ""));
+          }
+        }
+      }
+      // apply edits to file
+      File file = sourceToFile.get(source);
+      applyEdits(file, edits);
+    }
+    System.out.println("Edits applied.");
+    System.out.println();
   }
 
   /**
