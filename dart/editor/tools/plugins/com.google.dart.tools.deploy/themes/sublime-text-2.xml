@@ -4,7 +4,7 @@
     <annotation color="#FFFFFF" />
     <background color="#272822" />
     <bracket color="#F9FAF4" />
-    <builtin color="#AAAAAA" />
+    <builtin color="#FF007F" />
     <class color="#52E3F6" />
     <commentTaskTag color="#FFFFFF" />
     <constant color="#A082BD" />
@@ -12,7 +12,7 @@
     <currentLine color="#5B5A4E" />
     <deletionIndication color="#FF0000" />
     <deprecatedMember color="#FF0000" />
-    <directive color="#A05080" bold="true" />
+    <directive color="#D05080" bold="true" />
     <dynamicType color="#CFBFAD" />
     <enum color="#E0E2E4" />
     <field color="#CFBFAD" />

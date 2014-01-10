@@ -1,3 +1,4 @@
+library sample;
 final xs = [1, 2, 3, 4, 5];
 const howMany = 3;
 
