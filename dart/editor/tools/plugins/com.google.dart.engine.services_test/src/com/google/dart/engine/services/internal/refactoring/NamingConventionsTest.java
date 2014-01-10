@@ -18,6 +18,7 @@ import com.google.dart.engine.services.internal.correction.AbstractDartTest;
 import com.google.dart.engine.services.refactoring.NamingConventions;
 import com.google.dart.engine.services.status.RefactoringStatusSeverity;
 
+import static com.google.dart.engine.services.refactoring.NamingConventions.validateAngularPropertyName;
 import static com.google.dart.engine.services.refactoring.NamingConventions.validateClassName;
 import static com.google.dart.engine.services.refactoring.NamingConventions.validateConstantName;
 import static com.google.dart.engine.services.refactoring.NamingConventions.validateConstructorName;
@@ -34,6 +35,53 @@ import static com.google.dart.engine.services.refactoring.NamingConventions.vali
  * Test for {@link NamingConventions}.
  */
 public class NamingConventionsTest extends AbstractDartTest {
+  public void test_validateAngularPropertyName_blank() throws Exception {
+    assertRefactoringStatus(
+        validateAngularPropertyName(" "),
+        RefactoringStatusSeverity.ERROR,
+        "Property name must not be blank.");
+    assertRefactoringStatus(
+        validateAngularPropertyName(" "),
+        RefactoringStatusSeverity.ERROR,
+        "Property name must not be blank.");
+  }
+
+  public void test_validateAngularPropertyName_hasBlank() throws Exception {
+    assertRefactoringStatus(
+        validateAngularPropertyName("my- bad-name"),
+        RefactoringStatusSeverity.ERROR,
+        "Property name must not contain ' '.");
+  }
+
+  public void test_validateAngularPropertyName_hasDot() throws Exception {
+    assertRefactoringStatus(
+        validateAngularPropertyName("my.bad.name"),
+        RefactoringStatusSeverity.ERROR,
+        "Property name must not contain '.'.");
+  }
+
+  public void test_validateAngularPropertyName_notIdentifierStart() throws Exception {
+    assertRefactoringStatus(
+        validateAngularPropertyName("2my-bad-name"),
+        RefactoringStatusSeverity.ERROR,
+        "Property name must not start with '2'.");
+  }
+
+  public void test_validateAngularPropertyName_null() throws Exception {
+    assertRefactoringStatus(
+        validateAngularPropertyName(null),
+        RefactoringStatusSeverity.ERROR,
+        "Property name must not be null.");
+  }
+
+  public void test_validateAngularPropertyName_OK_oneIdentifier() throws Exception {
+    assertRefactoringStatusOK(validateAngularPropertyName("name"));
+  }
+
+  public void test_validateAngularPropertyName_OK_severalIdentifiers() throws Exception {
+    assertRefactoringStatusOK(validateAngularPropertyName("my-property-name"));
+  }
+
   public void test_validateClassName_doesNotStartWithLowerCase() throws Exception {
     assertRefactoringStatus(
         validateClassName("newName"),

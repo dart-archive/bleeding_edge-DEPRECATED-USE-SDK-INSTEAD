@@ -14,12 +14,18 @@
 package com.google.dart.engine.services.assist;
 
 import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.visitor.ElementLocator;
 import com.google.dart.engine.ast.visitor.NodeLocator;
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.ToolkitObjectElement;
+import com.google.dart.engine.element.angular.AngularComponentElement;
+import com.google.dart.engine.element.angular.AngularDirectiveElement;
+import com.google.dart.engine.element.angular.AngularPropertyElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.source.Source;
@@ -83,6 +89,42 @@ public class AssistContext {
         return null;
       }
       coveredElement = ElementLocator.locate(coveredNode);
+      // FIXME(scheglov) We need some better way/place for locating Angular Elements.
+      // At first this is just wrong place.
+      // It works only for refactorings, but not for:
+      //  * navigation;
+      //  * hover;
+      // And it is incomplete:
+      //  * no support @NgOneWay('property') annotation on fields.
+      //  * no support for map : const {'property' : '=>field'}
+      if (coveredElement == null) {
+        ClassDeclaration classDeclaration = coveredNode.getAncestor(ClassDeclaration.class);
+        if (classDeclaration != null) {
+          ClassElement classElement = classDeclaration.getElement();
+          if (classElement != null) {
+            for (ToolkitObjectElement toolkitObject : classElement.getToolkitObjects()) {
+              AngularPropertyElement[] properties = AngularPropertyElement.EMPTY_ARRAY;
+              if (toolkitObject instanceof AngularComponentElement) {
+                AngularComponentElement component = (AngularComponentElement) toolkitObject;
+                properties = component.getProperties();
+              }
+              if (toolkitObject instanceof AngularDirectiveElement) {
+                AngularDirectiveElement directive = (AngularDirectiveElement) toolkitObject;
+                properties = directive.getProperties();
+              }
+              // check properties
+              for (AngularPropertyElement property : properties) {
+                int propertyOffset = property.getNameOffset();
+                int propertyEnd = propertyOffset + property.getName().length();
+                if (propertyOffset <= selectionOffset && selectionOffset < propertyEnd) {
+                  coveredElement = property;
+                  return coveredElement;
+                }
+              }
+            }
+          }
+        }
+      }
     }
     return coveredElement;
   }

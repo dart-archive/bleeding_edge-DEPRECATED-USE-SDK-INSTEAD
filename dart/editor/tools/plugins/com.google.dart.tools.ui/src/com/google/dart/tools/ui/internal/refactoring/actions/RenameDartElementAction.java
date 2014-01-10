@@ -22,6 +22,7 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.PrefixElement;
+import com.google.dart.engine.element.angular.AngularElement;
 import com.google.dart.engine.internal.index.IndexContributor;
 import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.engine.source.Source;
@@ -72,6 +73,8 @@ public class RenameDartElementAction extends AbstractRefactoringAction {
         element = IndexContributor.getImportElement((SimpleIdentifier) node);
       }
       // usually
+    } else if (element instanceof AngularElement) {
+      return element;
     } else if (node instanceof InstanceCreationExpression) {
       // "new X()" - to give name to unnamed constructor
     } else {

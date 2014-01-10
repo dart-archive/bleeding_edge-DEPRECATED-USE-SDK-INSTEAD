@@ -31,6 +31,7 @@ import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.PropertyInducingElement;
 import com.google.dart.engine.element.TypeParameterElement;
 import com.google.dart.engine.element.VariableElement;
+import com.google.dart.engine.element.angular.AngularElement;
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.index.Location;
 import com.google.dart.engine.index.LocationWithData;
@@ -335,6 +336,9 @@ public class SearchEngineImpl implements SearchEngine {
         element = ((Member) element).getBaseElement();
       }
       switch (element.getKind()) {
+        case ANGULAR_PROPERTY:
+          searchReferences((AngularElement) element, scope, filter, listener);
+          return;
         case CLASS:
           searchReferences((ClassElement) element, scope, filter, listener);
           return;
@@ -489,6 +493,16 @@ public class SearchEngineImpl implements SearchEngine {
       Thread.yield();
     }
     return listener.getMatches();
+  }
+
+  private void searchReferences(AngularElement element, SearchScope scope, SearchFilter filter,
+      SearchListener listener) {
+    assert listener != null;
+    listener = applyFilter(filter, listener);
+    index.getRelationships(
+        element,
+        IndexConstants.IS_REFERENCED_BY,
+        newCallback(MatchKind.ANGULAR_REFERENCE, scope, listener));
   }
 
   private void searchReferences(ClassElement type, SearchScope scope, SearchFilter filter,

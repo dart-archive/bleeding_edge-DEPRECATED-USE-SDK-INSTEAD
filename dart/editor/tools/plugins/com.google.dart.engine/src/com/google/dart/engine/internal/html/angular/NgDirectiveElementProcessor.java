@@ -37,11 +37,6 @@ class NgDirectiveElementProcessor extends NgDirectiveProcessor {
   @Override
   public void apply(AngularHtmlUnitResolver resolver, XmlTagNode node) {
     for (AngularPropertyElement property : element.getProperties()) {
-      // don't resolve string attribute - we don't know in in general case how it is used
-      AngularPropertyKind kind = property.getPropertyKind();
-      if (kind == AngularPropertyKind.ATTR) {
-        continue;
-      }
       // prepare attribute name
       String name = property.getName();
       if (name.equals(".")) {
@@ -53,10 +48,13 @@ class NgDirectiveElementProcessor extends NgDirectiveProcessor {
       // resolve attribute expression
       XmlAttributeNode attribute = node.getAttribute(name);
       if (attribute != null) {
-        Expression expression = parseExpression(resolver, attribute);
-        resolver.resolveNode(expression);
-        setExpression(attribute, expression);
         attribute.setElement(property);
+        // resolve if binding
+        if (property.getPropertyKind() != AngularPropertyKind.ATTR) {
+          Expression expression = parseExpression(resolver, attribute);
+          resolver.resolveNode(expression);
+          setExpression(attribute, expression);
+        }
       }
     }
   }

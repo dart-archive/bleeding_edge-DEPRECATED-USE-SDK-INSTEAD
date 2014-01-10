@@ -27,6 +27,7 @@ import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
+import com.google.dart.engine.element.angular.AngularPropertyElement;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.engine.services.internal.correction.AbstractDartTest;
@@ -36,6 +37,7 @@ import com.google.dart.engine.services.internal.refactoring.ExtractLocalRefactor
 import com.google.dart.engine.services.internal.refactoring.ExtractMethodRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.InlineLocalRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.InlineMethodRefactoringImpl;
+import com.google.dart.engine.services.internal.refactoring.RenameAngularPropertyRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.RenameClassMemberRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.RenameConstructorRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.RenameLibraryRefactoringImpl;
@@ -102,6 +104,13 @@ public class RefactoringFactoryTest extends AbstractDartTest {
     AssistContext context = new AssistContext(searchEngine, analysisContext, testUnit, 0, 0);
     InlineMethodRefactoring refactoring = createInlineMethodRefactoring(context);
     assertThat(refactoring).isInstanceOf(InlineMethodRefactoringImpl.class);
+  }
+
+  public void test_createRenameRefactoring_AngularPropertyElement() throws Exception {
+    AngularPropertyElement element = mock(AngularPropertyElement.class);
+    // create refactoring
+    Refactoring refactoring = createRenameRefactoring(searchEngine, element);
+    assertThat(refactoring).isInstanceOf(RenameAngularPropertyRefactoringImpl.class);
   }
 
   public void test_createRenameRefactoring_classMember_FieldElement() throws Exception {

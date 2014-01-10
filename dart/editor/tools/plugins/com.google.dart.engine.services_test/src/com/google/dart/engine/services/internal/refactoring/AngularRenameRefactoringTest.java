@@ -17,6 +17,8 @@ package com.google.dart.engine.services.internal.refactoring;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.ElementKind;
+import com.google.dart.engine.element.angular.AngularPropertyElement;
 import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.index.IndexFactory;
@@ -28,7 +30,11 @@ import com.google.dart.engine.services.refactoring.NullProgressMonitor;
 import com.google.dart.engine.services.refactoring.ProgressMonitor;
 import com.google.dart.engine.services.refactoring.RefactoringFactory;
 import com.google.dart.engine.services.refactoring.RenameRefactoring;
+import com.google.dart.engine.services.status.RefactoringStatus;
+import com.google.dart.engine.services.status.RefactoringStatusSeverity;
 
+import static com.google.dart.engine.services.internal.correction.AbstractDartTest.assertRefactoringStatus;
+import static com.google.dart.engine.services.internal.correction.AbstractDartTest.assertRefactoringStatusOK;
 import static com.google.dart.engine.services.internal.refactoring.RefactoringImplTest.assertChangeResult;
 import static com.google.dart.engine.services.internal.refactoring.RefactoringImplTest.assertRefactoringStatusOK;
 
@@ -42,7 +48,80 @@ public class AngularRenameRefactoringTest extends AngularTest {
   private RenameRefactoring refactoring;
   private Change refactoringChange;
 
-  public void test_dart_renameField_updateHtml() throws Exception {
+  public void test_angular_renameProperty_checkNewName() throws Exception {
+    prepareMyComponent();
+    resolveIndex(createHtmlWithAngular("<myComponent test='null'/>"));
+    indexUnit(indexUnit);
+    // prepare refactoring
+    AngularPropertyElement property = findMainElement("test");
+    createRenameRefactoring(property);
+    // "newName"
+    {
+      RefactoringStatus status = refactoring.checkNewName("newName");
+      assertRefactoringStatusOK(status);
+    }
+    // "new-name"
+    {
+      RefactoringStatus status = refactoring.checkNewName("new-name");
+      assertRefactoringStatusOK(status);
+    }
+    // "new.name" - bad
+    {
+      RefactoringStatus status = refactoring.checkNewName("new.name");
+      assertRefactoringStatus(
+          status,
+          RefactoringStatusSeverity.ERROR,
+          "Property name must not contain '.'.");
+    }
+    // there is already "other" property
+    {
+      RefactoringStatus status = refactoring.checkNewName("other");
+      assertRefactoringStatus(
+          status,
+          RefactoringStatusSeverity.ERROR,
+          "Component already defines property with name 'other'.");
+    }
+  }
+
+  public void test_angular_renameProperty_inComponent() throws Exception {
+    prepareMyComponent();
+    resolveIndex(createHtmlWithAngular("<myComponent test='null'/>"));
+    indexUnit(indexUnit);
+    // prepare refactoring
+    AngularPropertyElement property = findMainElement("test");
+    prepareRenameChange(property, "newName");
+    // check results
+    assertIndexChangeResult(createHtmlWithAngular("<myComponent newName='null'/>"));
+    assertMainChangeResult(mainContent.replace("'test' :", "'newName' :"));
+  }
+
+  public void test_angular_renameProperty_inDirective() throws Exception {
+    resolveMainSource(createSource(//
+        "import 'angular.dart';",
+        "",
+        "@NgDirective(",
+        "    selector: '[test]',",
+        "    map: const {'test' : '@field'})",
+        "class MyDirective {",
+        "  set field(value) {}",
+        "}",
+        "",
+        "main() {",
+        "  var module = new Module();",
+        "  module.type(MyDirective);",
+        "  ngBootstrap(module: module);",
+        "}"));
+    resolveIndex(createHtmlWithAngular("<div test='null'/>"));
+    indexUnit(indexUnit);
+    // prepare refactoring
+    AngularPropertyElement property = findMainElement(ElementKind.ANGULAR_PROPERTY, "test");
+    prepareRenameChange(property, "newName");
+    // check results
+    assertIndexChangeResult(createHtmlWithAngular("<div newName='null'/>"));
+    assertMainChangeResult(mainContent.replace("'test' :", "'newName' :"));
+  }
+
+  public void test_dart_renameField_updateHtmlExpression() throws Exception {
     addMyController();
     resolveIndex(createHtmlWithMyController(//
         "<button title='{{ctrl.field}}'> {{ctrl.field}} </button>",
@@ -80,8 +159,16 @@ public class AngularRenameRefactoringTest extends AngularTest {
     super.tearDown();
   }
 
-  private void assertIndexChangeResult(String... lines) throws Exception {
-    assertChangeResult(refactoringChange, indexSource, createSource(lines));
+  private void assertIndexChangeResult(String expected) throws Exception {
+    assertChangeResult(refactoringChange, indexSource, expected);
+  }
+
+  private void assertMainChangeResult(String expected) throws Exception {
+    assertChangeResult(refactoringChange, mainSource, expected);
+  }
+
+  private void createRenameRefactoring(Element element) {
+    refactoring = RefactoringFactory.createRenameRefactoring(searchEngine, element);
   }
 
   /**
@@ -100,8 +187,28 @@ public class AngularRenameRefactoringTest extends AngularTest {
     index.indexHtmlUnit(context, unit);
   }
 
+  private void prepareMyComponent() throws Exception {
+    resolveMainSource(createSource(//
+        "import 'angular.dart';",
+        "",
+        "@NgComponent(",
+        "    templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
+        "    publishAs: 'ctrl',",
+        "    selector: 'myComponent', // selector",
+        "    map: const {'test' : '=>field', 'other' : '=>field'})",
+        "class MyComponent {",
+        "  set field(value) {}",
+        "}",
+        "",
+        "main() {",
+        "  var module = new Module();",
+        "  module.type(MyComponent);",
+        "  ngBootstrap(module: module);",
+        "}"));
+  }
+
   private void prepareRenameChange(Element element, String newName) throws Exception {
-    refactoring = RefactoringFactory.createRenameRefactoring(searchEngine, element);
+    createRenameRefactoring(element);
     refactoring.setNewName(newName);
     // validate status
     assertRefactoringStatusOK(refactoring);

@@ -21,11 +21,18 @@ import com.google.dart.engine.services.status.RefactoringStatusSeverity;
 import com.google.dart.engine.utilities.source.SourceRange;
 
 public class AbstractDartTest extends com.google.dart.engine.internal.index.AbstractDartTest {
+  /**
+   * Asserts that given {@link RefactoringStatus} has expected severity.
+   */
+  public static void assertRefactoringStatus(RefactoringStatus status,
+      RefactoringStatusSeverity expectedSeverity) {
+    assertRefactoringStatus(status, expectedSeverity, null, null);
+  }
 
   /**
    * Asserts that given {@link RefactoringStatus} has expected severity and message.
    */
-  protected static void assertRefactoringStatus(RefactoringStatus status,
+  public static void assertRefactoringStatus(RefactoringStatus status,
       RefactoringStatusSeverity expectedSeverity, String expectedMessage) {
     assertRefactoringStatus(status, expectedSeverity, expectedMessage, null);
   }
@@ -33,14 +40,16 @@ public class AbstractDartTest extends com.google.dart.engine.internal.index.Abst
   /**
    * Asserts that given {@link RefactoringStatus} has expected severity and message.
    */
-  protected static void assertRefactoringStatus(RefactoringStatus status,
+  public static void assertRefactoringStatus(RefactoringStatus status,
       RefactoringStatusSeverity expectedSeverity, String expectedMessage,
       SourceRange expectedContextRange) {
     assertSame(status.getMessage(), expectedSeverity, status.getSeverity());
     if (expectedSeverity != RefactoringStatusSeverity.OK) {
       RefactoringStatusEntry entry = status.getEntryWithHighestSeverity();
       assertSame(expectedSeverity, entry.getSeverity());
-      assertEquals(expectedMessage, entry.getMessage());
+      if (expectedMessage != null) {
+        assertEquals(expectedMessage, entry.getMessage());
+      }
       if (expectedContextRange != null) {
         assertEquals(expectedContextRange, entry.getContext().getRange());
       }
@@ -50,7 +59,7 @@ public class AbstractDartTest extends com.google.dart.engine.internal.index.Abst
   /**
    * Asserts that given {@link RefactoringStatus} is OK.
    */
-  protected static void assertRefactoringStatusOK(RefactoringStatus status) {
+  public static void assertRefactoringStatusOK(RefactoringStatus status) {
     assertRefactoringStatus(status, RefactoringStatusSeverity.OK, null);
   }
 

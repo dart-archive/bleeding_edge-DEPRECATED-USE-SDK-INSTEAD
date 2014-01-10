@@ -109,7 +109,7 @@ public class AngularHtmlUnitUtilsTest extends AngularTest {
   }
 
   private void resolveSimpleCtrlFieldHtml() throws Exception {
-    resolveIndex(//
+    resolveIndex(createSource(//
         "<html>",
         "  <body ng-app>",
         "    <div my-controller>",
@@ -117,6 +117,6 @@ public class AngularHtmlUnitUtilsTest extends AngularTest {
         "    </div>",
         "    <script type='application/dart' src='main.dart'></script>",
         "  </body>",
-        "</html>");
+        "</html>"));
   }
 }

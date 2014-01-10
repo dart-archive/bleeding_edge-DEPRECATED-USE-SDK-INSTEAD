@@ -54,4 +54,9 @@ class SourceReference {
   public int hashCode() {
     return Objects.hashCode(source, range);
   }
+
+  @Override
+  public String toString() {
+    return source + "@" + range;
+  }
 }

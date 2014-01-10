@@ -30,6 +30,7 @@ import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.LocalElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
+import com.google.dart.engine.element.angular.AngularPropertyElement;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.engine.services.internal.refactoring.ConvertGetterToMethodRefactoringImpl;
@@ -38,6 +39,7 @@ import com.google.dart.engine.services.internal.refactoring.ExtractLocalRefactor
 import com.google.dart.engine.services.internal.refactoring.ExtractMethodRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.InlineLocalRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.InlineMethodRefactoringImpl;
+import com.google.dart.engine.services.internal.refactoring.RenameAngularPropertyRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.RenameClassMemberRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.RenameConstructorRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.RenameImportRefactoringImpl;
@@ -109,6 +111,10 @@ public class RefactoringFactory {
   public static RenameRefactoring createRenameRefactoring(SearchEngine searchEngine, Element element) {
     Preconditions.checkNotNull(searchEngine);
     Preconditions.checkNotNull(element);
+    if (element instanceof AngularPropertyElement) {
+      AngularPropertyElement property = (AngularPropertyElement) element;
+      return new RenameAngularPropertyRefactoringImpl(searchEngine, property);
+    }
     if (element instanceof PropertyAccessorElement) {
       element = ((PropertyAccessorElement) element).getVariable();
     }

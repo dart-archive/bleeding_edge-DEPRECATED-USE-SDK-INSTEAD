@@ -63,6 +63,22 @@ public class EngineTestCase extends TestCase {
   }
 
   /**
+   * Assert that the given collection is non-{@code null} and has the expected number of elements.
+   * 
+   * @param expectedSize the expected number of elements
+   * @param c the collection being tested
+   * @throws AssertionFailedError if the list is {@code null} or does not have the expected number
+   *           of elements
+   */
+  public static void assertCollectionSize(int expectedSize, Collection<?> c) {
+    if (c == null) {
+      fail("Expected collection of size " + expectedSize + "; found null");
+    } else if (c.size() != expectedSize) {
+      fail("Expected collection of size " + expectedSize + "; contained " + c.size() + " elements");
+    }
+  }
+
+  /**
    * Assert that the given array is non-{@code null} and contains the expected elements. The
    * elements can appear in any order.
    * 
@@ -279,22 +295,6 @@ public class EngineTestCase extends TestCase {
       assertEquals(
           ((StringToken) expectedToken).getLexeme(),
           ((StringToken) actualToken).getLexeme());
-    }
-  }
-
-  /**
-   * Assert that the given collection is non-{@code null} and has the expected number of elements.
-   * 
-   * @param expectedSize the expected number of elements
-   * @param c the collection being tested
-   * @throws AssertionFailedError if the list is {@code null} or does not have the expected number
-   *           of elements
-   */
-  public static void assertCollectionSize(int expectedSize, Collection<?> c) {
-    if (c == null) {
-      fail("Expected collection of size " + expectedSize + "; found null");
-    } else if (c.size() != expectedSize) {
-      fail("Expected collection of size " + expectedSize + "; contained " + c.size() + " elements");
     }
   }
 

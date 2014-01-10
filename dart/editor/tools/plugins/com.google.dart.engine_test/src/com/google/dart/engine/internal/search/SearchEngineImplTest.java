@@ -33,6 +33,7 @@ import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.TopLevelVariableElement;
 import com.google.dart.engine.element.TypeParameterElement;
+import com.google.dart.engine.element.angular.AngularElement;
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.index.IndexFactory;
 import com.google.dart.engine.index.IndexStore;
@@ -342,6 +343,27 @@ public class SearchEngineImplTest extends EngineTestCase {
       List<SearchMatch> matches = searchFunctionDeclarationsSync();
       assertMatches(matches, new ExpectedMatch(elementB, MatchKind.FUNCTION_DECLARATION, 10, 20));
     }
+  }
+
+  public void test_searchReferences_AngularElement() throws Exception {
+    AngularElement referencedElement = mockElement(
+        AngularElement.class,
+        ElementKind.ANGULAR_PROPERTY);
+    {
+      Location locationA = new Location(elementA, 1, 2);
+      indexStore.recordRelationship(referencedElement, IndexConstants.IS_REFERENCED_BY, locationA);
+    }
+    {
+      Location locationB = new Location(elementB, 10, 20);
+      indexStore.recordRelationship(referencedElement, IndexConstants.IS_REFERENCED_BY, locationB);
+    }
+    // search matches
+    List<SearchMatch> matches = searchReferencesSync(Element.class, referencedElement);
+    // verify
+    assertMatches(
+        matches,
+        new ExpectedMatch(elementA, MatchKind.ANGULAR_REFERENCE, 1, 2),
+        new ExpectedMatch(elementB, MatchKind.ANGULAR_REFERENCE, 10, 20));
   }
 
   public void test_searchReferences_ClassElement() throws Exception {

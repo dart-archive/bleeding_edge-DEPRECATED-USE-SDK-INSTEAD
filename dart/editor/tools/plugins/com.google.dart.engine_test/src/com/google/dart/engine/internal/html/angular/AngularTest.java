@@ -44,6 +44,21 @@ import static org.fest.assertions.Assertions.assertThat;
 
 abstract public class AngularTest extends EngineTestCase {
   /**
+   * Creates an HTML content that has Angular marker and script with "main.dart" reference.
+   */
+  protected static String createHtmlWithAngular(String... lines) {
+    String source = createSource(//
+        "<html ng-app>",
+        "  <body>");
+    source += createSource(lines);
+    source += createSource(//
+        "    <script type='application/dart' src='main.dart'></script>",
+        "  </body>",
+        "</html>");
+    return source;
+  }
+
+  /**
    * Creates an HTML content that has Angular marker, script with "main.dart" reference and
    * "MyController" injected.
    */
@@ -267,8 +282,8 @@ abstract public class AngularTest extends EngineTestCase {
     return findOffset(indexContent, search);
   }
 
-  protected final void resolveIndex(String... lines) throws Exception {
-    indexContent = createSource(lines);
+  protected final void resolveIndex(String content) throws Exception {
+    indexContent = content;
     indexSource = contextHelper.addSource("/index.html", indexContent);
     indexUnit = context.resolveHtmlUnit(indexSource);
     indexHtmlUnit = indexUnit.getElement();

@@ -77,7 +77,7 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
   }
 
   public void test_directive_resolvedExpression_attrString() throws Exception {
-    mainSource = contextHelper.addSource("/main.dart", createSource("",//
+    addMainSource(createSource("",//
         "import 'angular.dart';",
         "",
         "@NgDirective(",
@@ -100,10 +100,18 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
     verify(indexSource);
     // @condition means "string attribute", which we don't parse
     assertNull(findIdentifierMaybe("name != null"));
+    // "my-directive" attribute was resolved
+    XmlAttributeNode attrNode = HtmlUnitUtils.getAttributeNode(
+        indexUnit,
+        findOffset("my-directive='"));
+    assertNotNull(attrNode);
+    AngularPropertyElement propertyElement = (AngularPropertyElement) attrNode.getElement();
+    assertNotNull(propertyElement);
+    assertSame(AngularPropertyKind.ATTR, propertyElement.getPropertyKind());
   }
 
   public void test_directive_resolvedExpression_dotAsName() throws Exception {
-    mainSource = contextHelper.addSource("/main.dart", createSource("",//
+    addMainSource(createSource("",//
         "import 'angular.dart';",
         "",
         "@NgDirective(",
@@ -129,7 +137,7 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
   }
 
   public void test_directive_resolvedExpression_oneWay() throws Exception {
-    mainSource = contextHelper.addSource("/main.dart", createSource("",//
+    addMainSource(createSource("",//
         "import 'angular.dart';",
         "",
         "@NgDirective(",
@@ -164,7 +172,7 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
   }
 
   public void test_moduleAsLocalVariable_inInitializer() throws Exception {
-    mainSource = contextHelper.addSource("/main.dart", createSource("",//
+    addMainSource(createSource("",//
         "import 'angular.dart';",
         "",
         "@NgController(",
@@ -186,7 +194,7 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
   }
 
   public void test_moduleAsLocalVariable_inStatements() throws Exception {
-    mainSource = contextHelper.addSource("/main.dart", createSource("",//
+    addMainSource(createSource("",//
         "import 'angular.dart';",
         "",
         "@NgController(",
@@ -271,7 +279,7 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
 
   public void test_notResolved_no_ngBootstrap_invocation() throws Exception {
     contextHelper.addSource("/main.dart", "// just empty script");
-    resolveIndex(//
+    resolveIndex(createSource(//
         "<html ng-app>",
         "  <body>",
         "    <div my-marker>",
@@ -279,7 +287,7 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
         "    </div>",
         "    <script type='application/dart' src='main.dart'></script>",
         "  </body>",
-        "</html>");
+        "</html>"));
     assertNoErrors();
     // Angular is not initialized, so "ctrl" is not parsed
     Expression expression = HtmlUnitUtils.getExpression(indexUnit, findOffset("ctrl"));
@@ -287,14 +295,14 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
   }
 
   public void test_notResolved_noDartScript() throws Exception {
-    resolveIndex(//
+    resolveIndex(createSource(//
         "<html ng-app>",
         "  <body>",
         "    <div my-marker>",
         "      {{ctrl.field}}",
         "    </div>",
         "  </body>",
-        "</html>");
+        "</html>"));
     assertNoErrors();
     // Angular is not initialized, so "ctrl" is not parsed
     Expression expression = HtmlUnitUtils.getExpression(indexUnit, findOffset("ctrl"));
@@ -302,14 +310,14 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
   }
 
   public void test_notResolved_notAngular() throws Exception {
-    resolveIndex(//
+    resolveIndex(createSource(//
         "<html no-ng-app>",
         "  <body>",
         "    <div my-marker>",
         "      {{ctrl.field}}",
         "    </div>",
         "  </body>",
-        "</html>");
+        "</html>"));
     assertNoErrors();
     // Angular is not initialized, so "ctrl" is not parsed
     Expression expression = HtmlUnitUtils.getExpression(indexUnit, findOffset("ctrl"));
@@ -318,7 +326,7 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
 
   public void test_notResolved_wrongControllerMarker() throws Exception {
     addMyController();
-    resolveIndex(//
+    resolveIndex(createSource(//
         "<html ng-app>",
         "  <body>",
         "    <div not-my-marker>",
@@ -326,7 +334,7 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
         "    </div>",
         "    <script type='application/dart' src='main.dart'></script>",
         "  </body>",
-        "</html>");
+        "</html>"));
     assertErrors(indexSource, StaticWarningCode.UNDEFINED_IDENTIFIER);
     // "ctrl" is not resolved
     SimpleIdentifier identifier = findIdentifier("ctrl");
@@ -351,7 +359,7 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
 
   public void test_resolveExpression_ngApp_onBody() throws Exception {
     addMyController();
-    resolveIndex(//
+    resolveIndex(createSource(//
         "<html>",
         "  <body ng-app>",
         "    <div my-controller>",
@@ -359,7 +367,7 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
         "    </div>",
         "    <script type='application/dart' src='main.dart'></script>",
         "  </body>",
-        "</html>");
+        "</html>"));
     assertNoErrors();
     verify(indexSource);
     assertResolvedIdentifier("ctrl", "MyController");
