@@ -19,7 +19,6 @@ import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.HtmlElement;
 import com.google.dart.engine.html.ast.HtmlUnit;
-import com.google.dart.engine.html.ast.HtmlUnitUtils;
 import com.google.dart.engine.html.ast.XmlAttributeNode;
 import com.google.dart.engine.html.ast.XmlTagNode;
 import com.google.dart.engine.html.scanner.Token;
@@ -29,7 +28,7 @@ import com.google.dart.engine.internal.index.IndexConstants;
 import com.google.dart.engine.internal.index.IndexContributor;
 
 /**
- * Visits resolved {@link HtmlUnitUtils} and adds relationships into {@link IndexStore}.
+ * Visits resolved {@link HtmlUnit} and adds relationships into {@link IndexStore}.
  * 
  * @coverage dart.engine.index
  */

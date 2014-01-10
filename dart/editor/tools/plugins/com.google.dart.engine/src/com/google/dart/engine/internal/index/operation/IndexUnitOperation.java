@@ -20,6 +20,7 @@ import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.index.IndexStore;
+import com.google.dart.engine.internal.html.angular.AngularDartIndexContributor;
 import com.google.dart.engine.internal.index.IndexContributor;
 import com.google.dart.engine.source.Source;
 
@@ -98,8 +99,8 @@ public class IndexUnitOperation implements IndexOperation {
         if (!mayIndex) {
           return;
         }
-        IndexContributor contributor = new IndexContributor(indexStore);
-        unit.accept(contributor);
+        unit.accept(new IndexContributor(indexStore));
+        unit.accept(new AngularDartIndexContributor(indexStore));
       } catch (Throwable exception) {
         AnalysisEngine.getInstance().getLogger().logError(
             "Could not index " + unit.getElement().getLocation(),

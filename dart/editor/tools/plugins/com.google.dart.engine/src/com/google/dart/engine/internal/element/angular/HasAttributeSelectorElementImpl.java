@@ -30,4 +30,9 @@ public class HasAttributeSelectorElementImpl extends AngularSelectorElementImpl 
     String attributeName = getName();
     return node.getAttribute(attributeName) != null;
   }
+
+  @Override
+  public String getDisplayName() {
+    return "[" + super.getDisplayName() + "]";
+  }
 }

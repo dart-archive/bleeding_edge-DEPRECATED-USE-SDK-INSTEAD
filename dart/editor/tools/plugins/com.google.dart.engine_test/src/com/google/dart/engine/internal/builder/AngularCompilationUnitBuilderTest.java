@@ -13,8 +13,6 @@
  */
 package com.google.dart.engine.internal.builder;
 
-import com.google.dart.engine.ast.CompilationUnit;
-import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementFactory;
@@ -30,13 +28,11 @@ import com.google.dart.engine.element.angular.AngularPropertyElement;
 import com.google.dart.engine.element.angular.AngularPropertyKind;
 import com.google.dart.engine.element.angular.AngularSelectorElement;
 import com.google.dart.engine.error.AngularCode;
-import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.internal.element.angular.HasAttributeSelectorElementImpl;
 import com.google.dart.engine.internal.element.angular.IsTagSelectorElementImpl;
 import com.google.dart.engine.internal.html.angular.AngularTest;
 import com.google.dart.engine.internal.type.DynamicTypeImpl;
-import com.google.dart.engine.source.Source;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
 
@@ -744,14 +740,6 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
     assertNull(selector);
   }
 
-  private void assertMainErrors(ErrorCode... expectedErrorCodes) throws AnalysisException {
-    assertErrors(mainSource, expectedErrorCodes);
-  }
-
-  private void assertNoErrors(Source source) throws AnalysisException {
-    assertErrors(source);
-  }
-
   private void assertProperty(AngularPropertyElement property, String expectedName,
       int expectedNameOffset, AngularPropertyKind expectedKind, String expectedFieldName,
       int expectedFieldOffset) {
@@ -782,16 +770,5 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
       }
     }
     return null;
-  }
-
-  private void resolveMainSource(String content) throws Exception {
-    addMainSource(content);
-    CompilationUnit unit = contextHelper.resolveDefiningUnit(mainSource);
-    mainUnitElement = unit.getElement();
-  }
-
-  private void resolveMainSourceNoErrors(String content) throws Exception {
-    resolveMainSource(content);
-    assertNoErrors(mainSource);
   }
 }

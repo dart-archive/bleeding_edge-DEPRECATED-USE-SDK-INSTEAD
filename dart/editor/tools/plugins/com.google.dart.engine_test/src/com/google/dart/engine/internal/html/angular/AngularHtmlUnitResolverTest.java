@@ -61,10 +61,10 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
     // "attrA" attribute was resolved
     {
       XmlAttributeNode node = HtmlUnitUtils.getAttributeNode(indexUnit, findOffset("attrA='"));
-      AngularPropertyElement eement = (AngularPropertyElement) node.getElement();
-      assertNotNull(eement);
-      assertEquals("attrA", eement.getName());
-      assertEquals("setA", eement.getField().getName());
+      AngularPropertyElement element = (AngularPropertyElement) node.getElement();
+      assertNotNull(element);
+      assertEquals("attrA", element.getName());
+      assertEquals("setA", element.getField().getName());
     }
     // "attrB" attribute was resolved, even if it @binding
     {

@@ -21,9 +21,10 @@ import junit.framework.TestSuite;
 public class TestAll {
   public static Test suite() {
     TestSuite suite = new ExtendedTestSuite("Tests in " + TestAll.class.getPackage().getName());
+    suite.addTestSuite(AngularDartIndexContributorTest.class);
+    suite.addTestSuite(AngularHtmlIndexContributorTest.class);
     suite.addTestSuite(AngularHtmlUnitResolverTest.class);
     suite.addTestSuite(AngularHtmlUnitUtilsTest.class);
-    suite.addTestSuite(AngularHtmlIndexContributorTest.class);
     return suite;
   }
 }

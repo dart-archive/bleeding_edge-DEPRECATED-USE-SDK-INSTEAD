@@ -27,20 +27,33 @@ import com.google.dart.engine.element.angular.AngularPropertyElement;
 public class AngularDirectiveElementImpl extends AngularHasSelectorElementImpl implements
     AngularDirectiveElement {
   /**
+   * The offset of the annotation that defines this directive.
+   */
+  private int offset;
+
+  /**
    * The array containing all of the properties declared by this directive.
    */
   private AngularPropertyElement[] properties = AngularPropertyElement.EMPTY_ARRAY;
 
   /**
    * Initialize a newly created Angular directive to have the given name.
+   * 
+   * @param offset the offset of the annotation that defines this directive
    */
-  public AngularDirectiveElementImpl() {
+  public AngularDirectiveElementImpl(int offset) {
     super(null, -1);
+    this.offset = offset;
   }
 
   @Override
   public <R> R accept(ElementVisitor<R> visitor) {
     return visitor.visitAngularDirectiveElement(this);
+  }
+
+  @Override
+  public String getDisplayName() {
+    return getSelector().getDisplayName();
   }
 
   @Override
@@ -63,5 +76,16 @@ public class AngularDirectiveElementImpl extends AngularHasSelectorElementImpl i
       encloseElement((AngularPropertyElementImpl) property);
     }
     this.properties = properties;
+  }
+
+  @Override
+  public void visitChildren(ElementVisitor<?> visitor) {
+    safelyVisitChildren(properties, visitor);
+    super.visitChildren(visitor);
+  }
+
+  @Override
+  protected String getIdentifier() {
+    return "NgDirective@" + offset;
   }
 }

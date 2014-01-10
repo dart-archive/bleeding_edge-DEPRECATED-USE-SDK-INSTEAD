@@ -669,7 +669,11 @@ public class AngularCompilationUnitBuilder {
       // prepare field
       FieldElement field = classElement.getField(fieldName);
       if (field == null) {
-        reportError(specLiteral, AngularCode.INVALID_PROPERTY_FIELD, fieldName);
+        reportError(
+            fieldNameOffset,
+            fieldName.length(),
+            AngularCode.INVALID_PROPERTY_FIELD,
+            fieldName);
         continue;
       }
       // add property
@@ -728,7 +732,8 @@ public class AngularCompilationUnitBuilder {
     }
     // create
     if (isValid) {
-      AngularDirectiveElementImpl element = new AngularDirectiveElementImpl();
+      int offset = annotation.getOffset();
+      AngularDirectiveElementImpl element = new AngularDirectiveElementImpl(offset);
       element.setSelector(selector);
       element.setProperties(parseNgComponentProperties(false));
       classToolkitObjects.add(element);
@@ -751,12 +756,13 @@ public class AngularCompilationUnitBuilder {
   }
 
   private void reportError(ASTNode node, ErrorCode errorCode, Object... arguments) {
-    errorListener.onError(new AnalysisError(
-        source,
-        node.getOffset(),
-        node.getLength(),
-        errorCode,
-        arguments));
+    int offset = node.getOffset();
+    int length = node.getLength();
+    reportError(offset, length, errorCode, arguments);
+  }
+
+  private void reportError(int offset, int length, ErrorCode errorCode, Object... arguments) {
+    errorListener.onError(new AnalysisError(source, offset, length, errorCode, arguments));
   }
 
   private void reportErrorForAnnotation(ErrorCode errorCode, Object... arguments) {

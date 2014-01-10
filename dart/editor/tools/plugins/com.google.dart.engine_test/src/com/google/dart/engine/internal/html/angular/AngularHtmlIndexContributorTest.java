@@ -34,7 +34,7 @@ public class AngularHtmlIndexContributorTest extends AngularTest {
   private AngularHtmlIndexContributor index = new AngularHtmlIndexContributor(store);
 
   public void test_component_use() throws Exception {
-    addMainSource(createSource("",//
+    resolveMainSource(createSource("",//
         "import 'angular.dart';",
         "",
         "@NgComponent(",
@@ -92,7 +92,7 @@ public class AngularHtmlIndexContributorTest extends AngularTest {
         relations,
         fieldGetter,
         IndexConstants.IS_REFERENCED_BY_QUALIFIED,
-        new ExpectedLocation(indexDartUnit, findOffset("field}}"), "field"));
+        new ExpectedLocation(indexDartUnitElement, findOffset("field}}"), "field"));
   }
 
   public void test_expression_inContent() throws Exception {
@@ -110,7 +110,7 @@ public class AngularHtmlIndexContributorTest extends AngularTest {
         relations,
         fieldGetter,
         IndexConstants.IS_REFERENCED_BY_QUALIFIED,
-        new ExpectedLocation(indexDartUnit, findOffset("field}}"), "field"));
+        new ExpectedLocation(indexDartUnitElement, findOffset("field}}"), "field"));
   }
 
   public void test_expression_ngRepeat() throws Exception {
@@ -131,9 +131,9 @@ public class AngularHtmlIndexContributorTest extends AngularTest {
         relations,
         namesElement,
         IndexConstants.IS_REFERENCED_BY_QUALIFIED,
-        new ExpectedLocation(indexDartUnit, findOffset("names'>"), "names"));
+        new ExpectedLocation(indexDartUnitElement, findOffset("names'>"), "names"));
     assertRecordedRelation(relations, nameElement, IndexConstants.IS_READ_BY, new ExpectedLocation(
-        indexDartUnit,
+        indexDartUnitElement,
         findOffset("name}}"),
         "name"));
   }

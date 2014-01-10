@@ -23,6 +23,7 @@ import com.google.dart.engine.context.AnalysisContextHelper;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.HtmlElement;
 import com.google.dart.engine.element.visitor.GeneralizingElementVisitor;
 import com.google.dart.engine.error.AnalysisError;
@@ -61,6 +62,43 @@ abstract public class AngularTest extends EngineTestCase {
   }
 
   /**
+   * Finds an {@link Element} with the given names inside of the given root {@link Element}.
+   * <p>
+   * TODO(scheglov) maybe move this method to Element
+   * 
+   * @param root the root {@link Element} to start searching from
+   * @param kind the kind of the {@link Element} to find, if {@code null} then any kind
+   * @param name the name of an {@link Element} to find
+   * @return the found {@link Element} or {@code null} if not found
+   */
+  @SuppressWarnings("unchecked")
+  protected static <T extends Element> T findElement(Element root, final ElementKind kind,
+      final String name) {
+    final Element[] result = {null};
+    root.accept(new GeneralizingElementVisitor<Void>() {
+      @Override
+      public Void visitElement(Element element) {
+        if ((kind == null || element.getKind() == kind) && name.equals(element.getName())) {
+          result[0] = element;
+        }
+        return super.visitElement(element);
+      }
+    });
+    return (T) result[0];
+  }
+
+  /**
+   * Finds an {@link Element} with the given names inside of the given root {@link Element}.
+   * 
+   * @param root the root {@link Element} to start searching from
+   * @param name the name of an {@link Element} to find
+   * @return the found {@link Element} or {@code null} if not found
+   */
+  protected static <T extends Element> T findElement(Element root, String name) {
+    return findElement(root, null, name);
+  }
+
+  /**
    * @return the offset of given <code>search</code> string in <code>content</code>. Fails test if
    *         not found.
    */
@@ -68,29 +106,6 @@ abstract public class AngularTest extends EngineTestCase {
     int offset = content.indexOf(search);
     assertThat(offset).describedAs(content).isNotEqualTo(-1);
     return offset;
-  }
-
-  /**
-   * Finds an {@link Element} with the given names inside of the given root {@link Element}.
-   * <p>
-   * TODO(scheglov) maybe move this method to Element
-   * 
-   * @param root the root {@link Element} to start searching from
-   * @param name the name of an {@link Element} to find
-   * @return the found {@link Element} or {@code null} if not found
-   */
-  private static Element findElement(Element root, final String name) {
-    final Element[] result = {null};
-    root.accept(new GeneralizingElementVisitor<Void>() {
-      @Override
-      public Void visitElement(Element element) {
-        if (name.equals(element.getName())) {
-          result[0] = element;
-        }
-        return super.visitElement(element);
-      }
-    });
-    return result[0];
   }
 
   protected final AnalysisContextHelper contextHelper = new AnalysisContextHelper();
@@ -105,7 +120,7 @@ abstract public class AngularTest extends EngineTestCase {
   protected Source indexSource;
   protected HtmlUnit indexUnit;
   protected HtmlElement indexHtmlUnit;
-  protected CompilationUnitElement indexDartUnit;
+  protected CompilationUnitElement indexDartUnitElement;
 
   /**
    * Fills {@link #mainContent} and {@link #mainSource}.
@@ -116,7 +131,7 @@ abstract public class AngularTest extends EngineTestCase {
   }
 
   protected final void addMyController() throws Exception {
-    mainSource = contextHelper.addSource("/main.dart", createSource("",//
+    resolveMainSource(createSource("",//
         "import 'angular.dart';",
         "",
         "@NgController(",
@@ -136,7 +151,6 @@ abstract public class AngularTest extends EngineTestCase {
         "main() {",
         "  ngBootstrap(module: new MyModule());",
         "}"));
-    mainUnit = contextHelper.resolveDefiningUnit(mainSource);
   }
 
   /**
@@ -159,6 +173,10 @@ abstract public class AngularTest extends EngineTestCase {
     errorListener.assertErrors(expectedErrorCodes);
   }
 
+  protected final void assertMainErrors(ErrorCode... expectedErrorCodes) throws AnalysisException {
+    assertErrors(mainSource, expectedErrorCodes);
+  }
+
   /**
    * Assert that no errors have been reported against the given source.
    * 
@@ -168,6 +186,10 @@ abstract public class AngularTest extends EngineTestCase {
    */
   protected final void assertNoErrors() throws AnalysisException {
     assertErrors(indexSource);
+  }
+
+  protected final void assertNoErrors(Source source) throws AnalysisException {
+    assertErrors(source);
   }
 
   protected final Element assertResolvedIdentifier(String name, String expectedTypeName) {
@@ -208,21 +230,25 @@ abstract public class AngularTest extends EngineTestCase {
   }
 
   /**
-   * Returns {@link Element} from {@link #indexDartUnit}.
+   * Returns {@link Element} from {@link #indexDartUnitElement}.
    */
-  @SuppressWarnings("unchecked")
   protected final <T extends Element> T findIndexElement(String name) throws AnalysisException {
-    return (T) findElement(indexDartUnit, name);
+    return findElement(indexDartUnitElement, name);
   }
 
   /**
-   * Returns {@link Element} from {@link #mainSource}.
+   * Returns {@link Element} from {@link #mainUnitElement}.
    */
-  @SuppressWarnings("unchecked")
+  protected final <T extends Element> T findMainElement(ElementKind kind, String name)
+      throws AnalysisException {
+    return findElement(mainUnitElement, kind, name);
+  }
+
+  /**
+   * Returns {@link Element} from {@link #mainUnitElement}.
+   */
   protected final <T extends Element> T findMainElement(String name) throws AnalysisException {
-    CompilationUnit unit = context.resolveCompilationUnit(mainSource, mainSource);
-    CompilationUnitElement unitElement = unit.getElement();
-    return (T) findElement(unitElement, name);
+    return findElement(mainUnitElement, name);
   }
 
   /**
@@ -246,7 +272,18 @@ abstract public class AngularTest extends EngineTestCase {
     indexSource = contextHelper.addSource("/index.html", indexContent);
     indexUnit = context.resolveHtmlUnit(indexSource);
     indexHtmlUnit = indexUnit.getElement();
-    indexDartUnit = indexUnit.getCompilationUnitElement();
+    indexDartUnitElement = indexUnit.getCompilationUnitElement();
+  }
+
+  protected final void resolveMainSource(String content) throws Exception {
+    addMainSource(content);
+    mainUnit = contextHelper.resolveDefiningUnit(mainSource);
+    mainUnitElement = mainUnit.getElement();
+  }
+
+  protected final void resolveMainSourceNoErrors(String content) throws Exception {
+    resolveMainSource(content);
+    assertNoErrors(mainSource);
   }
 
   @Override
