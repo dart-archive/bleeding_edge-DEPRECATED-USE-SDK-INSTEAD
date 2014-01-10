@@ -22,14 +22,14 @@ public class TimeCounter {
    * The handle object that should be used to stop and update counter.
    */
   public class TimeCounterHandle {
-    final long startTime = System.currentTimeMillis();
+    final long startTime = System.nanoTime();
 
     /**
      * Stops counting time and updates counter.
      */
     public void stop() {
       synchronized (TimeCounter.this) {
-        result += (System.currentTimeMillis() - startTime);
+        result += (System.nanoTime() - startTime);
       }
     }
   }
@@ -40,7 +40,7 @@ public class TimeCounter {
    * @return the number of milliseconds spent between {@link #start()} and {@link #stop()}.
    */
   public long getResult() {
-    return result;
+    return result / 1000000;
   }
 
   /**
