@@ -197,6 +197,32 @@ public class DartElementUtil {
 //  }
 
   /**
+   * Each synthetic {@link PropertyInducingElement} has either getter or setter
+   * {@link PropertyAccessorElement}. When we want to open such {@link PropertyInducingElement}, we
+   * actually should open one of the {@link PropertyAccessorElement}.
+   * 
+   * @return the given {@link Element} or its {@link PropertyAccessorElement}.
+   */
+  public static Element getAccessorIfSyntheticVariable(Element element) {
+    if (element instanceof PropertyInducingElement) {
+      PropertyInducingElement variable = (PropertyInducingElement) element;
+      if (variable.isSynthetic()) {
+        // first try setter, because it is usually used in Angular
+        PropertyAccessorElement setter = variable.getSetter();
+        if (setter != null) {
+          return setter;
+        }
+        // try getter
+        PropertyAccessorElement getter = variable.getSetter();
+        if (getter != null) {
+          return getter;
+        }
+      }
+    }
+    return element;
+  }
+
+  /**
    * @return the given {@link Element} or, its "base" {@link Element} if {@link Member}.
    */
   public static Element getBaseIfMember(Element element) {

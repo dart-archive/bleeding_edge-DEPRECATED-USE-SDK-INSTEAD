@@ -14,8 +14,6 @@
 package com.google.dart.tools.ui.internal.actions;
 
 import com.google.dart.engine.ast.ASTNode;
-import com.google.dart.engine.ast.ArgumentList;
-import com.google.dart.engine.ast.visitor.ElementLocator;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ConstructorElement;
@@ -165,18 +163,7 @@ public class ActionUtil {
     if (context == null) {
       return null;
     }
-    // prepare ASTNode
-    ASTNode node = context.getCoveredNode();
-    // ArgumentList has no its own Element, use Element of invocation or instance creation
-    if (node instanceof ArgumentList) {
-      node = node.getParent();
-    }
-    // just in case
-    if (node == null) {
-      return null;
-    }
-    // OK, get Element
-    return ElementLocator.locate(node);
+    return context.getCoveredElement();
   }
 
   /**

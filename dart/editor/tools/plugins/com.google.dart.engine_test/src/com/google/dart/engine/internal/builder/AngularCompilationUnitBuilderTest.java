@@ -13,9 +13,14 @@
  */
 package com.google.dart.engine.internal.builder;
 
+import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.ClassDeclaration;
+import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.ast.SimpleStringLiteral;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementFactory;
+import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.element.ToolkitObjectElement;
 import com.google.dart.engine.element.angular.AngularComponentElement;
@@ -35,6 +40,9 @@ import com.google.dart.engine.internal.html.angular.AngularTest;
 import com.google.dart.engine.internal.type.DynamicTypeImpl;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
+
+import static com.google.dart.engine.ast.ASTFactory.classDeclaration;
+import static com.google.dart.engine.ast.ASTFactory.compilationUnit;
 
 public class AngularCompilationUnitBuilderTest extends AngularTest {
   private static void assertHasAttributeSelector(AngularSelectorElement selector, String name) {
@@ -87,6 +95,115 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
     ClassElement classElement = mainUnitElement.getType("MyFilter");
     AngularFilterElement filter = getAngularElement(classElement, AngularFilterElement.class);
     assertNull(filter);
+  }
+
+  public void test_getElement_component_property_fromFieldAnnotation() throws Exception {
+    resolveMainSource(createAngularModuleSource(//
+        formatLines(//
+            "@NgComponent(publishAs: 'ctrl', selector: 'myComp',",
+            "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css')",
+            "class MyComponent {",
+            "  @NgOneWay('prop')",
+            "  var field;",
+            "}"),
+        formatLines("MyComponent")));
+    // prepare node
+    SimpleStringLiteral node = findMainNode("prop'", SimpleStringLiteral.class);
+    int offset = node.getOffset();
+    // prepare Element
+    Element element = AngularCompilationUnitBuilder.getElement(node, offset);
+    assertNotNull(element);
+    // check AngularPropertyElement
+    AngularPropertyElement property = (AngularPropertyElement) element;
+    assertEquals("prop", property.getName());
+  }
+
+  public void test_getElement_component_property_fromMap() throws Exception {
+    resolveMainSource(createAngularModuleSource(//
+        formatLines(//
+            "@NgComponent(publishAs: 'ctrl', selector: 'myComp',",
+            "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
+            "             map: const {",
+            "               'prop' : '@field',",
+            "             })",
+            "class MyComponent {",
+            "  var field;",
+            "}"),
+        formatLines("MyComponent")));
+    // AngularPropertyElement
+    {
+      SimpleStringLiteral node = findMainNode("prop'", SimpleStringLiteral.class);
+      int offset = node.getOffset();
+      // prepare Element
+      Element element = AngularCompilationUnitBuilder.getElement(node, offset);
+      assertNotNull(element);
+      // check AngularPropertyElement
+      AngularPropertyElement property = (AngularPropertyElement) element;
+      assertEquals("prop", property.getName());
+    }
+    // FieldElement
+    {
+      SimpleStringLiteral node = findMainNode("@field'", SimpleStringLiteral.class);
+      int offset = node.getOffset();
+      // prepare Element
+      Element element = AngularCompilationUnitBuilder.getElement(node, offset);
+      assertNotNull(element);
+      // check FieldElement
+      FieldElement field = (FieldElement) element;
+      assertEquals("field", field.getName());
+    }
+  }
+
+  public void test_getElement_directive_property() throws Exception {
+    resolveMainSource(createAngularModuleSource(//
+        formatLines(//
+            "@NgDirective(selector: '[my-dir]',",
+            "             map: const {",
+            "               'my-dir' : '=>field'",
+            "             })",
+            "class MyDirective {",
+            "  set field(value) {}",
+            "}"),
+        formatLines("MyComponent")));
+    // prepare node
+    SimpleStringLiteral node = findMainNode("my-dir'", SimpleStringLiteral.class);
+    int offset = node.getOffset();
+    // prepare Element
+    Element element = AngularCompilationUnitBuilder.getElement(node, offset);
+    assertNotNull(element);
+    // check AngularPropertyElement
+    AngularPropertyElement property = (AngularPropertyElement) element;
+    assertEquals("my-dir", property.getName());
+  }
+
+  public void test_getElement_noClassDeclaration() throws Exception {
+    CompilationUnit unit = compilationUnit();
+    Element element = AngularCompilationUnitBuilder.getElement(unit, 0);
+    assertNull(element);
+  }
+
+  public void test_getElement_noClassElement() throws Exception {
+    ClassDeclaration classDeclaration = classDeclaration(null, "Test", null, null, null, null);
+    Element element = AngularCompilationUnitBuilder.getElement(classDeclaration, 0);
+    assertNull(element);
+  }
+
+  public void test_getElement_noNode() throws Exception {
+    Element element = AngularCompilationUnitBuilder.getElement(null, 0);
+    assertNull(element);
+  }
+
+  public void test_getElement_notFound() throws Exception {
+    resolveMainSource(createSource(//
+        "class MyComponent {",
+        "  var str = 'some string';",
+        "}"));
+    // prepare node
+    SimpleStringLiteral node = findMainNode("some string'", SimpleStringLiteral.class);
+    int offset = node.getOffset();
+    // no Element
+    Element element = AngularCompilationUnitBuilder.getElement(node, offset);
+    assertNull(element);
   }
 
   public void test_isModule_Module() throws Exception {
@@ -748,6 +865,13 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
     assertSame(expectedKind, property.getPropertyKind());
     assertEquals(expectedFieldName, property.getField().getName());
     assertEquals(expectedFieldOffset, property.getFieldNameOffset());
+  }
+
+  /**
+   * Find {@link ASTNode} of the given type in {@link #mainUnit}.
+   */
+  private <T extends ASTNode> T findMainNode(String search, Class<T> clazz) {
+    return findNode(mainUnit, mainContent, search, clazz);
   }
 
   @SuppressWarnings("unchecked")

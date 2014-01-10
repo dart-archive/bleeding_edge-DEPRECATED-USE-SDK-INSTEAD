@@ -63,7 +63,7 @@ public class NewSelectionConverter {
       return null;
     }
 
-    return ElementLocator.locate(node);
+    return ElementLocator.locate(node, caret);
   }
 
   /**
@@ -83,7 +83,7 @@ public class NewSelectionConverter {
       return null;
     }
 
-    return ElementLocator.locate(node);
+    return ElementLocator.locate(node, offset);
   }
 
   /**

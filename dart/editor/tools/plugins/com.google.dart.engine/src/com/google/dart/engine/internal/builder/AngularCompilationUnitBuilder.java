@@ -44,6 +44,8 @@ import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.element.ToolkitObjectElement;
 import com.google.dart.engine.element.VariableElement;
+import com.google.dart.engine.element.angular.AngularComponentElement;
+import com.google.dart.engine.element.angular.AngularDirectiveElement;
 import com.google.dart.engine.element.angular.AngularModuleElement;
 import com.google.dart.engine.element.angular.AngularPropertyElement;
 import com.google.dart.engine.element.angular.AngularPropertyKind;
@@ -100,6 +102,57 @@ public class AngularCompilationUnitBuilder {
   private static final String NG_ONE_WAY_ONE_TIME = "NgOneWayOneTime";
   private static final String NG_TWO_WAY = "NgTwoWay";
 
+  public static Element getElement(ASTNode node, int offset) {
+    // maybe no node
+    if (node == null) {
+      return null;
+    }
+    // prepare enclosing ClassDeclaration
+    ClassDeclaration classDeclaration = node.getAncestor(ClassDeclaration.class);
+    if (classDeclaration == null) {
+      return null;
+    }
+    // prepare ClassElement
+    ClassElement classElement = classDeclaration.getElement();
+    if (classElement == null) {
+      return null;
+    }
+    // check toolkit objects
+    for (ToolkitObjectElement toolkitObject : classElement.getToolkitObjects()) {
+      AngularPropertyElement[] properties = AngularPropertyElement.EMPTY_ARRAY;
+      // try properties of AngularComponentElement
+      if (toolkitObject instanceof AngularComponentElement) {
+        AngularComponentElement component = (AngularComponentElement) toolkitObject;
+        properties = component.getProperties();
+      }
+      // try properties of AngularDirectiveElement
+      if (toolkitObject instanceof AngularDirectiveElement) {
+        AngularDirectiveElement directive = (AngularDirectiveElement) toolkitObject;
+        properties = directive.getProperties();
+      }
+      // check properties
+      for (AngularPropertyElement property : properties) {
+        // property name (use complete node range)
+        int propertyOffset = property.getNameOffset();
+        int propertyEnd = propertyOffset + property.getName().length();
+        if (node.getOffset() <= propertyOffset && propertyEnd < node.getEnd()) {
+          return property;
+        }
+        // field name (use complete node range, including @, => and <=>)
+        FieldElement field = property.getField();
+        if (field != null) {
+          int fieldOffset = property.getFieldNameOffset();
+          int fieldEnd = fieldOffset + field.getName().length();
+          if (node.getOffset() <= fieldOffset && fieldEnd < node.getEnd()) {
+            return field;
+          }
+        }
+      }
+    }
+    // no Element
+    return null;
+  }
+
   /**
    * Checks if given {@link Type} is an Angular <code>Module</code> or its subclass.
    */
@@ -125,25 +178,6 @@ public class AngularCompilationUnitBuilder {
     }
     // no
     return false;
-  }
-
-  public static boolean isTagName(String s) {
-    if (s == null || s.length() == 0) {
-      return false;
-    }
-    int sz = s.length();
-    for (int i = 0; i < sz; i++) {
-      char c = s.charAt(i);
-      if (!Character.isLetter(c)) {
-        if (i == 0) {
-          return false;
-        }
-        if (!Character.isDigit(c) && c != '-') {
-          return false;
-        }
-      }
-    }
-    return true;
   }
 
   /**

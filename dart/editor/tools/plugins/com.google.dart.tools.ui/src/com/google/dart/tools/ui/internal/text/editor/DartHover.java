@@ -459,14 +459,15 @@ public class DartHover implements ITextHover, ITextHoverExtension, ITextHoverExt
     if (editor != null) {
       List<Annotation> annotations = getAnnotations(hoverRegion);
       // prepare node
-      ASTNode node = NewSelectionConverter.getNodeAtOffset(editor, hoverRegion.getOffset());
+      int offset = hoverRegion.getOffset();
+      ASTNode node = NewSelectionConverter.getNodeAtOffset(editor, offset);
       if (node instanceof MethodDeclaration) {
         MethodDeclaration method = (MethodDeclaration) node;
         node = method.getName();
       }
       // show Expression
       if (node instanceof Expression) {
-        Element element = ElementLocator.locate(node);
+        Element element = ElementLocator.locate(node, offset);
         return new HoverInfo(node, element, annotations);
       }
       // always show annotations, enen if no node

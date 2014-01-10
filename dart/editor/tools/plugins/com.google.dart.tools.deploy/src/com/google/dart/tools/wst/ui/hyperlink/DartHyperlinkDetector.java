@@ -112,7 +112,7 @@ public class DartHyperlinkDetector extends AbstractHyperlinkDetector {
       return null;
     }
 
-    Element element = ElementLocator.locate(node);
+    Element element = ElementLocator.locate(node, offset);
     if (element != null) {
       IRegion wordRegion = getWordRegion(node);
       return new IHyperlink[] {new DartElementHyperlink(element, wordRegion, new Opener(

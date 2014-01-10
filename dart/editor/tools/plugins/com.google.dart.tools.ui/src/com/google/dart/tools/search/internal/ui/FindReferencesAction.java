@@ -25,6 +25,7 @@ import com.google.dart.engine.element.ClassMemberElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.FieldElement;
+import com.google.dart.engine.element.HtmlElement;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
@@ -346,7 +347,14 @@ public class FindReferencesAction extends AbstractDartSelectionAction {
           // prepare filtered matches
           List<SearchMatch> filteredMatches = Lists.newArrayList();
           for (SearchMatch match : matches) {
-            LibraryElement matchLibrary = match.getElement().getLibrary();
+            Element matchElement = match.getElement();
+            // HtmlElement has no enclosing LibraryElement to check, so always keep these matches
+            if (matchElement instanceof HtmlElement) {
+              filteredMatches.add(match);
+              continue;
+            }
+            // check enclosing LibraryElement
+            LibraryElement matchLibrary = matchElement.getLibrary();
             if (isImported(searchElementLibrary, matchLibrary)) {
               filteredMatches.add(match);
             }

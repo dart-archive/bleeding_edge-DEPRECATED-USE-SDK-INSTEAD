@@ -39,6 +39,7 @@ import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.internal.builder.AngularCompilationUnitBuilder;
 
 /**
  * Instances of the class {@code ElementLocator} locate the {@link Element Dart model element}
@@ -188,7 +189,34 @@ public class ElementLocator {
   }
 
   /**
-   * Clients should use {@link #locate(ASTNode)}.
+   * Locate the {@link Element Dart model element} associated with the given {@link ASTNode AST
+   * node} and offset.
+   * 
+   * @param node the node (not {@code null})
+   * @param offset the offset relative to source
+   * @return the associated element, or {@code null} if none is found
+   */
+  public static Element locate(ASTNode node, int offset) {
+    // try to get Element from node
+    {
+      Element nodeElement = locate(node);
+      if (nodeElement != null) {
+        return nodeElement;
+      }
+    }
+    // try to get Angular specific Element
+    {
+      Element element = AngularCompilationUnitBuilder.getElement(node, offset);
+      if (element != null) {
+        return element;
+      }
+    }
+    // no Element
+    return null;
+  }
+
+  /**
+   * Clients should use {@link #locate(ASTNode)} or {@link #locate(ASTNode, int)}.
    */
   private ElementLocator() {
   }
