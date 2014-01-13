@@ -491,6 +491,13 @@ public class AngularCompilationUnitBuilder {
       List<ClassElement> keyTypes = Lists.newArrayList();
 
       @Override
+      public Void visitClassDeclaration(ClassDeclaration node) {
+        // Don't visit class declarations to save time.
+        // Remove this method if we will need to search for module variables in classes.
+        return null;
+      }
+
+      @Override
       public Void visitFunctionDeclaration(FunctionDeclaration node) {
         childModules.clear();
         keyTypes.clear();
