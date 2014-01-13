@@ -20,6 +20,7 @@ import com.google.dart.engine.ast.CompilationUnitMember;
 import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.FieldElement;
+import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.ToolkitObjectElement;
 import com.google.dart.engine.element.angular.AngularComponentElement;
 import com.google.dart.engine.element.angular.AngularDirectiveElement;
@@ -81,7 +82,20 @@ public class AngularDartIndexContributor extends GeneralizingASTVisitor<Void> {
         int offset = property.getFieldNameOffset();
         int length = field.getName().length();
         Location location = new Location(property, offset, length);
-        store.recordRelationship(field, IndexConstants.IS_REFERENCED_BY, location);
+        // getter reference
+        if (property.getPropertyKind().callsGetter()) {
+          PropertyAccessorElement getter = field.getGetter();
+          if (getter != null) {
+            store.recordRelationship(getter, IndexConstants.IS_REFERENCED_BY_QUALIFIED, location);
+          }
+        }
+        // setter reference
+        if (property.getPropertyKind().callsSetter()) {
+          PropertyAccessorElement setter = field.getSetter();
+          if (setter != null) {
+            store.recordRelationship(setter, IndexConstants.IS_REFERENCED_BY_QUALIFIED, location);
+          }
+        }
       }
     }
   }

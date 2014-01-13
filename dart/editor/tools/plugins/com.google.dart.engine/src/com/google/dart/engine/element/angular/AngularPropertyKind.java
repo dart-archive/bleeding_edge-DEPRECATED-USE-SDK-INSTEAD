@@ -47,5 +47,24 @@ public enum AngularPropertyKind {
    * `<=>` - Treat the DOM attribute value as an expression. Set up a watch on both outside as well
    * as component scope to keep the source and destination in sync. (cost: 2 watches)
    */
-  TWO_WAY
+  TWO_WAY {
+    @Override
+    public boolean callsGetter() {
+      return true;
+    }
+  };
+
+  /**
+   * Returns {@code true} if property of this kind calls field getter.
+   */
+  public boolean callsGetter() {
+    return false;
+  }
+
+  /**
+   * Returns {@code true} if property of this kind calls field setter.
+   */
+  public boolean callsSetter() {
+    return true;
+  }
 }

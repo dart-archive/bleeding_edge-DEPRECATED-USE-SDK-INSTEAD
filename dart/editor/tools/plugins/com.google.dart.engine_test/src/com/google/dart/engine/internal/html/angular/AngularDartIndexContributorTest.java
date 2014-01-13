@@ -13,14 +13,14 @@
  */
 package com.google.dart.engine.internal.html.angular;
 
-import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.FieldElement;
-import com.google.dart.engine.element.angular.AngularPropertyElement;
+import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.index.IndexStore;
-import com.google.dart.engine.internal.index.IndexConstants;
 import com.google.dart.engine.internal.index.IndexContributorHelper.ExpectedLocation;
 import com.google.dart.engine.internal.index.IndexContributorHelper.RecordedRelation;
 
+import static com.google.dart.engine.internal.index.IndexConstants.IS_REFERENCED_BY_QUALIFIED;
+import static com.google.dart.engine.internal.index.IndexContributorHelper.assertNoRecordedRelation;
 import static com.google.dart.engine.internal.index.IndexContributorHelper.assertRecordedRelation;
 import static com.google.dart.engine.internal.index.IndexContributorHelper.captureRelations;
 
@@ -40,9 +40,13 @@ public class AngularDartIndexContributorTest extends AngularTest {
         "    templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
         "    publishAs: 'ctrl',",
         "    selector: 'myComponent', // selector",
-        "    map: const {'prop' : '=>field'})",
+        "    map: const {",
+        "        'propAttr' : '@field', // attr",
+        "        'propOneWay' : '=>field', // one-way",
+        "        'propTwoWay' : '<=>field', // two-way",
+        "    })",
         "class MyComponent {",
-        "  set field(value) {}",
+        "  var field;",
         "}",
         "",
         "main() {",
@@ -50,16 +54,39 @@ public class AngularDartIndexContributorTest extends AngularTest {
         "  module.type(MyComponent);",
         "  ngBootstrap(module: module);",
         "}"));
-    AngularPropertyElement property = findMainElement("prop");
     FieldElement field = findMainElement("field");
+    PropertyAccessorElement getter = field.getGetter();
+    PropertyAccessorElement setter = field.getSetter();
     // index
     mainUnit.accept(index);
-    // verify
     List<RecordedRelation> relations = captureRecordedRelations();
-    assertRecordedRelation(relations, field, IndexConstants.IS_REFERENCED_BY, new ExpectedLocation(
-        property,
-        findMainOffset("field'})"),
-        "field"));
+    // @field
+    {
+      ExpectedLocation location = new ExpectedLocation(
+          findMainElement("propAttr"),
+          findMainOffset("field', // attr"),
+          "field");
+      assertNoRecordedRelation(relations, getter, IS_REFERENCED_BY_QUALIFIED, location);
+      assertRecordedRelation(relations, setter, IS_REFERENCED_BY_QUALIFIED, location);
+    }
+    // =>field
+    {
+      ExpectedLocation location = new ExpectedLocation(
+          findMainElement("propOneWay"),
+          findMainOffset("field', // one-way"),
+          "field");
+      assertNoRecordedRelation(relations, getter, IS_REFERENCED_BY_QUALIFIED, location);
+      assertRecordedRelation(relations, setter, IS_REFERENCED_BY_QUALIFIED, location);
+    }
+    // <=>field
+    {
+      ExpectedLocation location = new ExpectedLocation(
+          findMainElement("propTwoWay"),
+          findMainOffset("field', // two-way"),
+          "field");
+      assertRecordedRelation(relations, getter, IS_REFERENCED_BY_QUALIFIED, location);
+      assertRecordedRelation(relations, setter, IS_REFERENCED_BY_QUALIFIED, location);
+    }
   }
 
   public void test_directive_propertyField() throws Exception {
@@ -68,9 +95,13 @@ public class AngularDartIndexContributorTest extends AngularTest {
         "",
         "@NgDirective(",
         "    selector: '[my-directive]',",
-        "    map: const {'my-directive' : '=>field'})",
+        "    map: const {",
+        "        'propAttr' : '@field', // attr",
+        "        'propOneWay' : '=>field', // one-way",
+        "        'propTwoWay' : '<=>field', // two-way",
+        "    })",
         "class MyDirective {",
-        "  set field(value) {}",
+        "  var field;",
         "}",
         "",
         "main() {",
@@ -78,16 +109,39 @@ public class AngularDartIndexContributorTest extends AngularTest {
         "  module.type(MyDirective);",
         "  ngBootstrap(module: module);",
         "}"));
-    AngularPropertyElement property = findMainElement(ElementKind.ANGULAR_PROPERTY, "my-directive");
     FieldElement field = findMainElement("field");
+    PropertyAccessorElement getter = field.getGetter();
+    PropertyAccessorElement setter = field.getSetter();
     // index
     mainUnit.accept(index);
-    // verify
     List<RecordedRelation> relations = captureRecordedRelations();
-    assertRecordedRelation(relations, field, IndexConstants.IS_REFERENCED_BY, new ExpectedLocation(
-        property,
-        findMainOffset("field'})"),
-        "field"));
+    // @field
+    {
+      ExpectedLocation location = new ExpectedLocation(
+          findMainElement("propAttr"),
+          findMainOffset("field', // attr"),
+          "field");
+      assertNoRecordedRelation(relations, getter, IS_REFERENCED_BY_QUALIFIED, location);
+      assertRecordedRelation(relations, setter, IS_REFERENCED_BY_QUALIFIED, location);
+    }
+    // =>field
+    {
+      ExpectedLocation location = new ExpectedLocation(
+          findMainElement("propOneWay"),
+          findMainOffset("field', // one-way"),
+          "field");
+      assertNoRecordedRelation(relations, getter, IS_REFERENCED_BY_QUALIFIED, location);
+      assertRecordedRelation(relations, setter, IS_REFERENCED_BY_QUALIFIED, location);
+    }
+    // <=>field
+    {
+      ExpectedLocation location = new ExpectedLocation(
+          findMainElement("propTwoWay"),
+          findMainOffset("field', // two-way"),
+          "field");
+      assertRecordedRelation(relations, getter, IS_REFERENCED_BY_QUALIFIED, location);
+      assertRecordedRelation(relations, setter, IS_REFERENCED_BY_QUALIFIED, location);
+    }
   }
 
   private List<RecordedRelation> captureRecordedRelations() {
