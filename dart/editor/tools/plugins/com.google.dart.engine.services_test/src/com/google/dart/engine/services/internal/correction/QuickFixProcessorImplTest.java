@@ -852,6 +852,53 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
             ""));
   }
 
+  public void test_importLibrary_withTopLevelFunction_upDownPath() throws Exception {
+    Source libSource = setFileContent(
+        "aaa/lib_a.dart",
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "library A;",
+            "class AAA {}"));
+    testSource = setFileContent(
+        "bbb/Test.dart",
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "main() {",
+            "  AAA a = null;",
+            "}"));
+    // prepare AnalysisContext
+    ensureAnalysisContext();
+    {
+      ChangeSet changeSet = new ChangeSet();
+      changeSet.added(libSource);
+      changeSet.added(testSource);
+      analysisContext.applyChanges(changeSet);
+    }
+    // fill "test*" fields
+    testLibraryElement = analysisContext.computeLibraryElement(testSource);
+    testUnit = analysisContext.resolveCompilationUnit(testSource, testLibraryElement);
+    // process "libSource"
+    analysisContext.computeLibraryElement(libSource);
+    // prepare proposal
+    prepareProblemWithFix();
+    SourceCorrectionProposal proposal = (SourceCorrectionProposal) findProposal(CorrectionKind.QF_IMPORT_LIBRARY_PROJECT);
+    assertNotNull(proposal);
+    // we have "fix", note that preview is for library
+    SourceChange appChange = proposal.getChange();
+    assertSame(testSource, appChange.getSource());
+    assertChangeResult(
+        appChange,
+        testSource,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "",
+            "import '../aaa/lib_a.dart';",
+            "",
+            "main() {",
+            "  AAA a = null;",
+            "}"));
+  }
+
   public void test_importLibrary_withType_hasDirectiveImport() throws Exception {
     Source libSource = setFileContent(
         "LibA.dart",

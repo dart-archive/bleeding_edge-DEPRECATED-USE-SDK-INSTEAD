@@ -20,10 +20,11 @@ public class TestAll {
   public static Test suite() {
     TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
     suite.addTestSuite(CorrectionUtilsTest.class);
-    suite.addTestSuite(StatementAnalyzerTest.class);
-    suite.addTestSuite(SourceBuilderTest.class);
     suite.addTestSuite(QuickAssistProcessorImplTest.class);
     suite.addTestSuite(QuickFixProcessorImplTest.class);
+    suite.addTestSuite(SourceBuilderTest.class);
+    suite.addTestSuite(StatementAnalyzerTest.class);
+    suite.addTestSuite(URIUtilsTest.class);
     return suite;
   }
 }

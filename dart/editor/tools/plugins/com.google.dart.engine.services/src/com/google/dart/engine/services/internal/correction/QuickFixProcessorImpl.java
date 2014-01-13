@@ -1022,9 +1022,9 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
           }
         }
         // relative URI
-        URI unitLibraryUri = unitLibraryFolder.toURI();
-        URI libraryUri = libraryFile.toURI();
-        String relative = unitLibraryUri.relativize(libraryUri).getPath();
+        String relative = URIUtils.computeRelativePath(
+            unitLibraryFolder.getAbsolutePath(),
+            libraryFile.getAbsolutePath());
         addFix_importLibrary(CorrectionKind.QF_IMPORT_LIBRARY_PROJECT, relative);
       }
     }
