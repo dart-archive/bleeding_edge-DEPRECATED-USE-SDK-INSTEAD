@@ -68,6 +68,7 @@ import static com.google.dart.java2dart.util.TokenFactory.token;
 import org.apache.commons.io.Charsets;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.dom.AST;
@@ -595,6 +596,7 @@ public class Context {
       ensureFieldInitializers(dartUniverse);
       dontUseThisInFieldInitializers(dartUniverse);
       ensureUniqueClassMemberNames(dartUniverse);
+      renameAnonymousClassDeclarations();
       applyLocalVariableSemanticChanges(dartUniverse);
       new ConstructorSemanticProcessor(this).process(dartUniverse);
       renameConstructors(dartUniverse);
@@ -849,6 +851,68 @@ public class Context {
     },
         null);
     return units;
+  }
+
+  /**
+   * Improves names for anonymous {@link ClassDeclaration}s.
+   */
+  private void renameAnonymousClassDeclarations() {
+    // prepare unused top-level names
+    Set<String> usedTopNames = Sets.newHashSet();
+    for (CompilationUnitMember unitMember : dartUniverse.getDeclarations()) {
+      if (unitMember instanceof ClassDeclaration) {
+        ClassDeclaration classDeclaration = (ClassDeclaration) unitMember;
+        String name = classDeclaration.getName().getName();
+        usedTopNames.add(name);
+      }
+    }
+    // rename anonymous types
+    for (Entry<InstanceCreationExpression, ClassDeclaration> entry : anonymousDeclarations.entrySet()) {
+      // prepare enclosing information
+      InstanceCreationExpression creation = entry.getKey();
+      ClassDeclaration enclosingClass = creation.getAncestor(ClassDeclaration.class);
+      //
+      SimpleIdentifier enclosingClassMemberName = null;
+      if (enclosingClassMemberName == null) {
+        MethodDeclaration enclosingMethod = creation.getAncestor(MethodDeclaration.class);
+        if (enclosingMethod != null) {
+          enclosingClassMemberName = enclosingMethod.getName();
+        }
+      }
+      if (enclosingClassMemberName == null) {
+        VariableDeclaration enclosingField = creation.getAncestor(VariableDeclaration.class);
+        if (enclosingField != null) {
+          enclosingClassMemberName = enclosingField.getName();
+        }
+      }
+      // prepare new name for anonymous class
+      ClassDeclaration classDeclaration = entry.getValue();
+      SimpleIdentifier nameNode = classDeclaration.getName();
+      String name = nameNode.getName();
+      name = StringUtils.substringBeforeLast(name, "_");
+      {
+        String enclosingClassName = enclosingClass.getName().getName();
+        if (!enclosingClassName.equals(name)) {
+          name = name + "_" + enclosingClassName;
+        }
+      }
+      if (enclosingClassMemberName != null) {
+        name += "_" + enclosingClassMemberName.getName();
+      }
+      // ensure unique name
+      if (!usedTopNames.add(name)) {
+        int index = 2;
+        while (true) {
+          String newName = name + "_" + index++;
+          if (usedTopNames.add(newName)) {
+            name = newName;
+            break;
+          }
+        }
+      }
+      // rename
+      renameIdentifier(nameNode, name);
+    }
   }
 
   private void renameConstructors(CompilationUnit unit) {

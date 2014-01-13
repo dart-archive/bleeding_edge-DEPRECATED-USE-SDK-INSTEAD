@@ -498,13 +498,15 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
         name = name + "_" + context.generateTechnicalAnonymousClassIndex();
         innerClass = declareInnerClass(binding, anoDeclaration, name, ArrayUtils.EMPTY_STRING_ARRAY);
         typeNameNode = typeName(name);
+        final SimpleIdentifier typeNameIdentifier = (SimpleIdentifier) typeNameNode.getName();
+        putReference(binding, typeNameIdentifier);
+        putReference(binding, innerClass.getName());
         // prepare enclosing type
         final ITypeBinding enclosingTypeBinding = getEnclosingTypeBinding(node);
         final SimpleIdentifier enclosingTypeRef = replaceEnclosingClassMemberReferences(
             innerClass,
             enclosingTypeBinding);
         // declare referenced final variables
-        final String finalName = name;
         anoDeclaration.accept(new ASTVisitor() {
           final Set<org.eclipse.jdt.core.dom.IVariableBinding> addedParameters = Sets.newHashSet();
           final List<FormalParameter> constructorParameters = Lists.newArrayList();
@@ -525,7 +527,7 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
               innerClass.getMembers().add(
                   index,
                   constructorDeclaration(
-                      identifier(finalName),
+                      typeNameIdentifier,
                       null,
                       formalParameterList(constructorParameters),
                       null));
@@ -573,6 +575,13 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
             return super.visit(node);
           }
         });
+        // replace constructor type with shared (and tracked) identifier
+        for (ClassMember classMember : innerClass.getMembers()) {
+          if (classMember instanceof ConstructorDeclaration) {
+            ConstructorDeclaration cd = (ConstructorDeclaration) classMember;
+            cd.setReturnType(typeNameIdentifier);
+          }
+        }
       } else {
         innerClass = null;
       }
