@@ -100,6 +100,7 @@ public enum HintCode implements ErrorCode {
    * @param memberName some private member name
    * @param className the class name where the member is overriding the functionality
    */
+  // This was determined to not be a good hint, see: dartbug.com/16029
   OVERRIDDING_PRIVATE_MEMBER(
       "The %s '%s' does not override the definition from '%s' because it is private and in a different library"),
 

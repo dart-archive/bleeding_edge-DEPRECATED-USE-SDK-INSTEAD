@@ -54,6 +54,71 @@ public class HintCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void fail_overriddingPrivateMember_getter() throws Exception {
+    Source source = addSource(createSource(//
+        "import 'lib1.dart';",
+        "class B extends A {",
+        "  get _g => 0;",
+        "}"));
+    Source source2 = addSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "class A {",
+        "  get _g => 0;",
+        "}"));
+    resolve(source);
+    assertErrors(source, HintCode.OVERRIDDING_PRIVATE_MEMBER);
+    verify(source, source2);
+  }
+
+  public void fail_overriddingPrivateMember_method() throws Exception {
+    Source source = addSource(createSource(//
+        "import 'lib1.dart';",
+        "class B extends A {",
+        "  _m(int x) => 0;",
+        "}"));
+    Source source2 = addSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "class A {",
+        "  _m(int x) => 0;",
+        "}"));
+    resolve(source);
+    assertErrors(source, HintCode.OVERRIDDING_PRIVATE_MEMBER);
+    verify(source, source2);
+  }
+
+  public void fail_overriddingPrivateMember_method2() throws Exception {
+    Source source = addSource(createSource(//
+        "import 'lib1.dart';",
+        "class B extends A {}",
+        "class C extends B {",
+        "  _m(int x) => 0;",
+        "}"));
+    Source source2 = addSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "class A {",
+        "  _m(int x) => 0;",
+        "}"));
+    resolve(source);
+    assertErrors(source, HintCode.OVERRIDDING_PRIVATE_MEMBER);
+    verify(source, source2);
+  }
+
+  public void fail_overriddingPrivateMember_setter() throws Exception {
+    Source source = addSource(createSource(//
+        "import 'lib1.dart';",
+        "class B extends A {",
+        "  set _s(int x) {}",
+        "}"));
+    Source source2 = addSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "class A {",
+        "  set _s(int x) {}",
+        "}"));
+    resolve(source);
+    assertErrors(source, HintCode.OVERRIDDING_PRIVATE_MEMBER);
+    verify(source, source2);
+  }
+
   public void fail_overrideEqualsButNotHashCode() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
@@ -622,71 +687,6 @@ public class HintCodeTest extends ResolverTestCase {
     resolve(source);
     assertErrors(source, HintCode.IS_NOT_DOUBLE);
     verify(source);
-  }
-
-  public void test_overriddingPrivateMember_getter() throws Exception {
-    Source source = addSource(createSource(//
-        "import 'lib1.dart';",
-        "class B extends A {",
-        "  get _g => 0;",
-        "}"));
-    Source source2 = addSource("/lib1.dart", createSource(//
-        "library lib1;",
-        "class A {",
-        "  get _g => 0;",
-        "}"));
-    resolve(source);
-    assertErrors(source, HintCode.OVERRIDDING_PRIVATE_MEMBER);
-    verify(source, source2);
-  }
-
-  public void test_overriddingPrivateMember_method() throws Exception {
-    Source source = addSource(createSource(//
-        "import 'lib1.dart';",
-        "class B extends A {",
-        "  _m(int x) => 0;",
-        "}"));
-    Source source2 = addSource("/lib1.dart", createSource(//
-        "library lib1;",
-        "class A {",
-        "  _m(int x) => 0;",
-        "}"));
-    resolve(source);
-    assertErrors(source, HintCode.OVERRIDDING_PRIVATE_MEMBER);
-    verify(source, source2);
-  }
-
-  public void test_overriddingPrivateMember_method2() throws Exception {
-    Source source = addSource(createSource(//
-        "import 'lib1.dart';",
-        "class B extends A {}",
-        "class C extends B {",
-        "  _m(int x) => 0;",
-        "}"));
-    Source source2 = addSource("/lib1.dart", createSource(//
-        "library lib1;",
-        "class A {",
-        "  _m(int x) => 0;",
-        "}"));
-    resolve(source);
-    assertErrors(source, HintCode.OVERRIDDING_PRIVATE_MEMBER);
-    verify(source, source2);
-  }
-
-  public void test_overriddingPrivateMember_setter() throws Exception {
-    Source source = addSource(createSource(//
-        "import 'lib1.dart';",
-        "class B extends A {",
-        "  set _s(int x) {}",
-        "}"));
-    Source source2 = addSource("/lib1.dart", createSource(//
-        "library lib1;",
-        "class A {",
-        "  set _s(int x) {}",
-        "}"));
-    resolve(source);
-    assertErrors(source, HintCode.OVERRIDDING_PRIVATE_MEMBER);
-    verify(source, source2);
   }
 
   public void test_typeCheck_type_is_Null() throws Exception {

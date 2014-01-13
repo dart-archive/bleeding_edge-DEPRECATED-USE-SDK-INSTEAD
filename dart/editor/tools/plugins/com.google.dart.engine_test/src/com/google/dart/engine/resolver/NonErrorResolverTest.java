@@ -1518,7 +1518,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  static _m() {}",
         "}"));
     resolve(source);
-    assertErrors(source, HintCode.OVERRIDDING_PRIVATE_MEMBER);
+    assertErrors(source);
     verify(source);
   }
 

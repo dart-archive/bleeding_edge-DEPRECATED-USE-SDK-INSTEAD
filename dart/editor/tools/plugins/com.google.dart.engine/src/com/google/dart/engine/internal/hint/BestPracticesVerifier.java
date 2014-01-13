@@ -187,7 +187,8 @@ public class BestPracticesVerifier extends RecursiveASTVisitor<Void> {
 
   @Override
   public Void visitMethodDeclaration(MethodDeclaration node) {
-    checkForOverridingPrivateMember(node);
+    // This was determined to not be a good hint, see: dartbug.com/16029
+    //checkForOverridingPrivateMember(node);
     checkForMissingReturn(node.getReturnType(), node.getBody());
     return super.visitMethodDeclaration(node);
   }
@@ -446,6 +447,7 @@ public class BestPracticesVerifier extends RecursiveASTVisitor<Void> {
    * @return {@code true} if and only if a hint code is generated on the passed node
    * @see HintCode#OVERRIDDING_PRIVATE_MEMBER
    */
+  @SuppressWarnings("unused")
   private boolean checkForOverridingPrivateMember(MethodDeclaration node) {
     // If not in an enclosing class, return false
     if (enclosingClass == null) {
