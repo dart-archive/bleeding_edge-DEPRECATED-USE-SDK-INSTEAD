@@ -141,7 +141,11 @@ public class MainEngine {
 
   private static CompilationUnit dartUnit;
 
-  private static final String HEADER = "// This code was auto-generated, is not intended to be edited, and is subject to\n"
+  private static final String HEADER = "// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file\n"
+      + "// for details. All rights reserved. Use of this source code is governed by a\n"
+      + "// BSD-style license that can be found in the LICENSE file.\n"
+      + "\n"
+      + "// This code was auto-generated, is not intended to be edited, and is subject to\n"
       + "// significant change. Please see the README file for more information.\n\n";
 
   public static void main(String[] args) throws Exception {
