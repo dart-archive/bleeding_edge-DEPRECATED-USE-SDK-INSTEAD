@@ -137,6 +137,17 @@ public class NewDartElementImageProvider {
   public ImageDescriptor getBaseImageDescriptor(Element element, int renderFlags) {
 
     switch (element.getKind()) {
+      case ANGULAR_COMPONENT:
+      case ANGULAR_CONTROLLER:
+      case ANGULAR_DIRECTIVE:
+      case ANGULAR_FILTER:
+      case ANGULAR_MODULE:
+      case ANGULAR_PROPERTY:
+      case ANGULAR_SELECTOR:
+        return DartPluginImages.DESC_ANGULAR;
+
+      case HTML:
+        return DartPluginImages.DESC_DART_HTML_FILE;
 
       case FUNCTION:
         if (isPrivate(element)) {

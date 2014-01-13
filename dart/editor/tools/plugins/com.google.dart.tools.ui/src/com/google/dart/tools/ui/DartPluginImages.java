@@ -191,6 +191,10 @@ public class DartPluginImages {
 
   public static final String IMG_OBJS_HELP = NAME_PREFIX + "help.gif"; //$NON-NLS-1$
   /*
+   * Set of predefined Angular Image Descriptors.
+   */
+  public static final ImageDescriptor DESC_ANGULAR = createUnManaged(T_DART, "angular_16.png");
+  /*
    * Set of predefined Image Descriptors.
    */
   public static final ImageDescriptor DESC_DART_LIB_FILE = createUnManaged(
