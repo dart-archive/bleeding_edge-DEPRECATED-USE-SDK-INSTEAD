@@ -6,4 +6,4 @@ Run util's isLinux
 If the result is true
 	TypeText enter
 end if
-WaitFor 5.0, "pubspec lock" (* confirm file creation *)
+WaitFor 10.0, "pubspec lock" (* confirm file creation *)

@@ -91,7 +91,7 @@ to deleteOutput
 	put 105 into deltaX
 	if isMacOSX() then
 		put 85 into deltaX
-		end if
+	end if
 	put ImageLocation("problems tab") + (deltaX,0) into outLoc
 	Click outLoc
 	Wait 0.2
@@ -232,7 +232,8 @@ to saveFile
 end saveFile
 
 to openFileDialog
-	doKeyCmd("o")
+	SelectMenuItem "File", "Existing Folder"
+	Wait 0.5
 end openFileDialog
 
 to openFind

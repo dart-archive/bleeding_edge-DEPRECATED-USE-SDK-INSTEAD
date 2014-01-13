@@ -20,5 +20,5 @@ set the SearchRectangle to (UL,BR)
 Click (Text:"io-2012-codelab",CaseSensitive:"yes",ValidCharacters:"*")
 set the SearchRectangle to ()
 Run util's expandTreeNode
-WaitFor 10, "pubspec lock"
+WaitFor 30, "pubspec lock"
 (* Do not run "check problems" here because analysis may not have finished *)

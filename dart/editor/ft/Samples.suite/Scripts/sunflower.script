@@ -1,11 +1,11 @@
 Run util's init
 Run util's openWelcomePage
 Click "sunflower icon"
-Wait 5
+Wait 10
 Click "run button"
-WaitFor 5, "browser right arrow button"
+WaitFor 10, "browser right arrow button"
 Click "browser right arrow button"
-WaitFor 20,"sunflower slider"
+WaitFor 10,"sunflower slider"
 Click "sunflower slider"
 Run util's exitChromium
 Run util's checkProblems

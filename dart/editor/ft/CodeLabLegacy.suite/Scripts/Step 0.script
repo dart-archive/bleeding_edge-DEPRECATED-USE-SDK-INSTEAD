@@ -23,8 +23,11 @@ if (util's isMacOSX) then
 end if
 Wait 1
 
-Click (Text:"document",CaseSensitive:"yes",ValidCharacters:"*",dpi:94)
-DoubleClick (Text:"app.dart",CaseSensitive:"yes",ValidCharacters:"*",dpi:94)
+set the SearchRectangle to ((0,100),(300,400))
+(*Click (Text:"document",CaseSensitive:"yes",ValidCharacters:"*",IgnoreSpaces:"yes",dpi:94)*)
+Click "lib expando"
+DoubleClick (Text:"app.dart",CaseSensitive:"yes",IgnoreSpaces:"yes",ValidCharacters:"*",dpi:94)
+set the SearchRectangle to ()
 put -80 into offset
 if (util's isLinux) then
 	put -100 into offset
