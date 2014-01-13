@@ -51,6 +51,7 @@ import com.google.dart.engine.ast.Label;
 import com.google.dart.engine.ast.ListLiteral;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.MethodInvocation;
+import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.NullLiteral;
 import com.google.dart.engine.ast.PrefixedIdentifier;
 import com.google.dart.engine.ast.PropertyAccess;
@@ -216,6 +217,15 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
       int index = arguments.indexOf(node);
       if (index != -1) {
         arguments.set(index, (TypeName) replacement);
+        return;
+      }
+    }
+    if (parent instanceof Block) {
+      Block block = (Block) parent;
+      NodeList<Statement> statements = block.getStatements();
+      int index = statements.indexOf(node);
+      if (index != -1) {
+        statements.set(index, (Statement) replacement);
         return;
       }
     }

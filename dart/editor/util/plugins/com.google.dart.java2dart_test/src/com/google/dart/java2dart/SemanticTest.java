@@ -755,6 +755,46 @@ public class SemanticTest extends AbstractSemanticTest {
         getFormattedSource(unit));
   }
 
+  public void test_constructor_typeArgs() throws Exception {
+    setFileLines(
+        "test/Test.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "package test;",
+            "public class Test<T> {",
+            "  Test() {",
+            "    print(0);",
+            "  }",
+            "  Test(int p) {",
+            "    print(1);",
+            "  }",
+            "  static void main() {",
+            "    new Test<String>();",
+            "    new Test<String>(2);",
+            "  }",
+            "}",
+            ""));
+    Context context = new Context();
+    context.addSourceFolder(tmpFolder);
+    context.addSourceFiles(tmpFolder);
+    CompilationUnit unit = context.translate();
+    assertEquals(
+        toString(
+            "class Test<T> {",
+            "  Test() {",
+            "    print(0);",
+            "  }",
+            "  Test.con1(int p) {",
+            "    print(1);",
+            "  }",
+            "  static void main() {",
+            "    new Test<String>();",
+            "    new Test<String>.con1(2);",
+            "  }",
+            "}"),
+        getFormattedSource(unit));
+  }
+
   public void test_ensurePrimitiveFieldInitializer() throws Exception {
     setFileLines(
         "test/Test.java",

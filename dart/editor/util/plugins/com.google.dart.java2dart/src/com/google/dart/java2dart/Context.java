@@ -394,6 +394,7 @@ public class Context {
    * @return the not <code>null</code> {@link ConstructorDescription}, may be just added.
    */
   public ConstructorDescription getConstructorDescription(IMethodBinding binding) {
+    binding = (IMethodBinding) Bindings.getDeclaration(binding);
     ConstructorDescription description = bindingToConstructor.get(binding);
     if (description == null) {
       description = new ConstructorDescription(binding);
@@ -639,6 +640,7 @@ public class Context {
    * {@link ConstructorDeclaration} is reference to the given Java signature.
    */
   void putConstructorBinding(ConstructorDeclaration node, IMethodBinding binding) {
+    binding = (IMethodBinding) Bindings.getDeclaration(binding);
     constructorToBinding.put(node, binding);
   }
 

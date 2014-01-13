@@ -17,6 +17,7 @@ import com.google.common.collect.Lists;
 import com.google.dart.engine.source.Source;
 
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -29,12 +30,12 @@ public class OperationQueue {
   /**
    * The non-query operations that are waiting to be performed.
    */
-  private final List<IndexOperation> nonQueryOperations = Lists.newLinkedList();
+  private final LinkedList<IndexOperation> nonQueryOperations = Lists.newLinkedList();
 
   /**
    * The query operations that are waiting to be performed.
    */
-  private final List<IndexOperation> queryOperations = Lists.newLinkedList();
+  private final LinkedList<IndexOperation> queryOperations = Lists.newLinkedList();
 
   /**
    * {@code true} if query operations should be returned by {@link #dequeue(long)} or {code false}
@@ -77,13 +78,13 @@ public class OperationQueue {
         if (timeout <= 0L) {
           return null;
         }
-        nonQueryOperations.wait(timeout);
+        waitForOperationAvailable(timeout);
       }
       if (!nonQueryOperations.isEmpty()) {
-        return nonQueryOperations.remove(0);
+        return nonQueryOperations.removeFirst();
       }
       if (processQueries && !queryOperations.isEmpty()) {
-        return queryOperations.remove(0);
+        return queryOperations.removeFirst();
       }
       return null;
     }
@@ -98,25 +99,15 @@ public class OperationQueue {
     synchronized (nonQueryOperations) {
       if (operation instanceof RemoveSourceOperation) {
         Source source = ((RemoveSourceOperation) operation).getSource();
-        for (Iterator<IndexOperation> iter = nonQueryOperations.listIterator(); iter.hasNext();) {
-          IndexOperation indexOperation = iter.next();
-          if (indexOperation.removeWhenSourceRemoved(source)) {
-            iter.remove();
-          }
-        }
-        for (Iterator<IndexOperation> iter = queryOperations.listIterator(); iter.hasNext();) {
-          IndexOperation indexOperation = iter.next();
-          if (indexOperation.removeWhenSourceRemoved(source)) {
-            iter.remove();
-          }
-        }
+        removeForSource(source, nonQueryOperations);
+        removeForSource(source, queryOperations);
       }
       if (operation.isQuery()) {
         queryOperations.add(operation);
       } else {
         nonQueryOperations.add(operation);
       }
-      nonQueryOperations.notifyAll();
+      notifyOperationAvailable();
     }
   }
 
@@ -148,7 +139,7 @@ public class OperationQueue {
       if (this.processQueries != processQueries) {
         this.processQueries = processQueries;
         if (processQueries && !queryOperations.isEmpty()) {
-          nonQueryOperations.notifyAll();
+          notifyOperationAvailable();
         }
       }
     }
@@ -163,5 +154,25 @@ public class OperationQueue {
     synchronized (nonQueryOperations) {
       return nonQueryOperations.size() + queryOperations.size();
     }
+  }
+
+  private void notifyOperationAvailable() {
+    nonQueryOperations.notifyAll();
+  }
+
+  /**
+   * Removes operations that should be removed when given {@link Source} is removed.
+   */
+  private void removeForSource(Source source, LinkedList<IndexOperation> operations) {
+    for (Iterator<IndexOperation> iter = operations.listIterator(); iter.hasNext();) {
+      IndexOperation indexOperation = iter.next();
+      if (indexOperation.removeWhenSourceRemoved(source)) {
+        iter.remove();
+      }
+    }
+  }
+
+  private void waitForOperationAvailable(long timeout) throws InterruptedException {
+    nonQueryOperations.wait(timeout);
   }
 }

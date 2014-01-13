@@ -188,7 +188,7 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
   public boolean aboutToIndex(AnalysisContext context, CompilationUnitElement unitElement) {
     context = unwrapContext(context);
     // may be already removed in other thread
-    if (removedContexts.containsKey(context)) {
+    if (isRemovedContext(context)) {
       return false;
     }
     // validate unit
@@ -260,7 +260,7 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
   public boolean aboutToIndex(AnalysisContext context, Source source) {
     context = unwrapContext(context);
     // may be already removed in other thread
-    if (removedContexts.containsKey(context)) {
+    if (isRemovedContext(context)) {
       return false;
     }
     // remove locations
@@ -371,10 +371,10 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
       return;
     }
     // may be already removed in other thread
-    if (removedContexts.containsKey(elementContext)) {
+    if (isRemovedContext(elementContext)) {
       return;
     }
-    if (removedContexts.containsKey(locationContext)) {
+    if (isRemovedContext(locationContext)) {
       return;
     }
     // record: key -> location(s)
@@ -382,7 +382,7 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
     {
       Set<Location> locations = keyToLocations.remove(key);
       if (locations == null) {
-        locations = Sets.newSetFromMap(new IdentityHashMap<Location, Boolean>(4));
+        locations = createLocationIdentitySet();
       } else {
         keyCount--;
       }
@@ -435,7 +435,7 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
       return;
     }
     // mark as removed
-    removedContexts.put(context, WEAK_SET_VALUE);
+    markRemovedContext(context);
     removeSources(context, null);
     // remove context
     contextToSourceToKeys.remove(context);
@@ -517,6 +517,13 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
   }
 
   /**
+   * Creates new {@link Set} that uses object identity instead of equals.
+   */
+  private Set<Location> createLocationIdentitySet() {
+    return Sets.newSetFromMap(new IdentityHashMap<Location, Boolean>(4));
+  }
+
+  /**
    * @return the canonical {@link ElementRelationKey} for given {@link Element} and
    *         {@link Relationship}, i.e. unique instance for this combination.
    */
@@ -528,6 +535,20 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
       canonicalKeys.put(key, canonicalKey);
     }
     return canonicalKey;
+  }
+
+  /**
+   * Checks if given {@link AnalysisContext} is marked as removed.
+   */
+  private boolean isRemovedContext(AnalysisContext context) {
+    return removedContexts.containsKey(context);
+  }
+
+  /**
+   * Marks given {@link AnalysisContext} as removed.
+   */
+  private void markRemovedContext(AnalysisContext context) {
+    removedContexts.put(context, WEAK_SET_VALUE);
   }
 
   /**

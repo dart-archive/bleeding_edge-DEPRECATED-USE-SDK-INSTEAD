@@ -43,15 +43,17 @@ public class GuavaSemanticProcessorTest extends SemanticProcessorTest {
         "}");
   }
 
-  public void test_Lists_newArrayList() throws Exception {
+  public void test_Lists() throws Exception {
     setFileLines(
         "com/google/common/collect/Lists.java",
         toString(
             "// filler filler filler filler filler filler filler filler filler filler",
             "package com.google.common.collect;",
             "import java.util.ArrayList;",
+            "import java.util.LinkedList;",
             "public class Lists {",
             "  public static <T> ArrayList<T> newArrayList() { return null; }",
+            "  public static <T> LinkedList<T> newLinkedList() { return null; }",
             "}"));
     translateSingleFile(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -59,12 +61,14 @@ public class GuavaSemanticProcessorTest extends SemanticProcessorTest {
         "import java.util.List;",
         "import com.google.common.collect.Lists;",
         "public class Test {",
-        "  List<String> m = Lists.newArrayList();",
+        "  Object test_newArrayList() { return Lists.newArrayList(); }",
+        "  Object test_newLinkedList() { return Lists.newLinkedList(); }",
         "}");
     runProcessor();
-    assertFormattedSource(//
+    assertFormattedSource(
         "class Test {",
-        "  List<String> m = [];",
+        "  Object test_newArrayList() => [];",
+        "  Object test_newLinkedList() => new Queue();",
         "}");
   }
 
@@ -94,7 +98,7 @@ public class GuavaSemanticProcessorTest extends SemanticProcessorTest {
         "}");
   }
 
-  public void test_Objects_equal() throws Exception {
+  public void test_Objects() throws Exception {
     setFileLines(
         "com/google/common/base/Objects.java",
         toString(
@@ -102,6 +106,7 @@ public class GuavaSemanticProcessorTest extends SemanticProcessorTest {
             "package com.google.common.base;",
             "public class Objects {",
             "  public boolean equal(Object a, Object b) {return false;}",
+            "  public boolean hashCode(Object ...elements) {return 0;}",
             "}"));
     translateSingleFile(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -111,15 +116,23 @@ public class GuavaSemanticProcessorTest extends SemanticProcessorTest {
         "  public boolean run_equal(Object a, Object b) {",
         "    return Objects.equal(a, b);",
         "  }",
+        "  public boolean run_equalNot(Object a, Object b) {",
+        "    return !Objects.equal(a, b);",
+        "  }",
+        "  public boolean run_hashCode(Object a, Object b, Object c) {",
+        "    return Objects.hashCode(a, b, c);",
+        "  }",
         "}");
     runProcessor();
     assertFormattedSource(//
         "class Test {",
         "  bool run_equal(Object a, Object b) => a == b;",
+        "  bool run_equalNot(Object a, Object b) => a != b;",
+        "  bool run_hashCode(Object a, Object b, Object c) => JavaArrays.makeHashCode([a, b, c]);",
         "}");
   }
 
-  public void test_Sets_newHashSet() throws Exception {
+  public void test_Sets() throws Exception {
     setFileLines(
         "com/google/common/collect/Sets.java",
         toString(
@@ -128,6 +141,7 @@ public class GuavaSemanticProcessorTest extends SemanticProcessorTest {
             "import java.util.Set;",
             "public class Sets {",
             "  public static <T> Set<T> newHashSet() { return null; }",
+            "  public static <T> Set<T> difference(Set<T> s, Set<?> t) { return null; }",
             "}"));
     translateSingleFile(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -135,12 +149,14 @@ public class GuavaSemanticProcessorTest extends SemanticProcessorTest {
         "import java.util.Set;",
         "import com.google.common.collect.Sets;",
         "public class Test {",
-        "  Set<String> m = Sets.newHashSet();",
+        "  Object test_newHashSet() { return Sets.newHashSet(); }",
+        "  Object test_difference(Set<String> s, Set<String> t) { return Sets.difference(s, t); }",
         "}");
     runProcessor();
-    assertFormattedSource(//
+    assertFormattedSource(
         "class Test {",
-        "  Set<String> m = new Set();",
+        "  Object test_newHashSet() => new Set();",
+        "  Object test_difference(Set<String> s, Set<String> t) => s.difference(t);",
         "}");
   }
 

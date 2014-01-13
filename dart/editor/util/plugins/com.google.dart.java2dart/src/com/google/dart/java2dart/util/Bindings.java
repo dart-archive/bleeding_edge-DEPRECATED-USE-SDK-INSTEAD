@@ -623,6 +623,9 @@ public class Bindings {
   }
 
   public static IBinding getDeclaration(IBinding binding) {
+    if (binding == null) {
+      return null;
+    }
     switch (binding.getKind()) {
       case IBinding.TYPE:
         return ((ITypeBinding) binding).getTypeDeclaration();

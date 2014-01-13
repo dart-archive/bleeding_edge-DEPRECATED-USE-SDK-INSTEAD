@@ -122,11 +122,11 @@ public class OperationProcessor {
 
   /**
    * Stop processing operations after the current operation has completed. If the argument is
-   * {@code true} then this method will wait until the last operation has completed; otherwise
-   * this method might return before the last operation has completed.
+   * {@code true} then this method will wait until the last operation has completed; otherwise this
+   * method might return before the last operation has completed.
    * 
-   * @param wait {@code true} if this method will wait until the last operation has completed
-   *          before returning
+   * @param wait {@code true} if this method will wait until the last operation has completed before
+   *          returning
    * @return the library files for the libraries that need to be analyzed when a new session is
    *         started.
    */
@@ -147,7 +147,7 @@ public class OperationProcessor {
           return getUnanalyzedSources();
         }
       }
-      Uninterruptibles.sleepUninterruptibly(1, TimeUnit.MILLISECONDS);
+      waitOneMs();
     }
     return getUnanalyzedSources();
   }
@@ -155,12 +155,12 @@ public class OperationProcessor {
   /**
    * Waits until processors will switch from "ready" to "running" state.
    * 
-   * @return {@code true} if processor is now actually in "running" state, e.g. not in
-   *         "stopped" state.
+   * @return {@code true} if processor is now actually in "running" state, e.g. not in "stopped"
+   *         state.
    */
   public boolean waitForRunning() {
     while (state == ProcessorState.READY) {
-      Thread.yield();
+      threadYield();
     }
     return state == ProcessorState.RUNNING;
   }
@@ -188,5 +188,13 @@ public class OperationProcessor {
     synchronized (this) {
       return state == ProcessorState.RUNNING;
     }
+  }
+
+  private void threadYield() {
+    Thread.yield();
+  }
+
+  private void waitOneMs() {
+    Uninterruptibles.sleepUninterruptibly(1, TimeUnit.MILLISECONDS);
   }
 }

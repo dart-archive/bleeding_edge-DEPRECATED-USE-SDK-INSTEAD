@@ -23,20 +23,33 @@ import com.google.common.io.Files;
 import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.AsExpression;
+import com.google.dart.engine.ast.AssignmentExpression;
+import com.google.dart.engine.ast.CatchClause;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.CompilationUnitMember;
 import com.google.dart.engine.ast.Expression;
+import com.google.dart.engine.ast.ExpressionFunctionBody;
+import com.google.dart.engine.ast.FieldDeclaration;
+import com.google.dart.engine.ast.MethodDeclaration;
+import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.ParenthesizedExpression;
 import com.google.dart.engine.ast.Statement;
+import com.google.dart.engine.ast.TryStatement;
+import com.google.dart.engine.ast.TypeName;
+import com.google.dart.engine.ast.VariableDeclaration;
+import com.google.dart.engine.ast.VariableDeclarationList;
 import com.google.dart.engine.ast.visitor.NodeLocator;
+import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisErrorInfo;
 import com.google.dart.engine.context.AnalysisResult;
 import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.HintCode;
+import com.google.dart.engine.scanner.Keyword;
+import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
 import com.google.dart.engine.source.ContentCache;
 import com.google.dart.engine.source.DartUriResolver;
@@ -58,10 +71,25 @@ import com.google.dart.java2dart.processor.SemanticProcessor;
 import com.google.dart.java2dart.processor.TypeSemanticProcessor;
 import com.google.dart.java2dart.util.ToFormattedSourceVisitor;
 
+import static com.google.dart.java2dart.util.ASTFactory.assignmentExpression;
+import static com.google.dart.java2dart.util.ASTFactory.binaryExpression;
+import static com.google.dart.java2dart.util.ASTFactory.blockFunctionBody;
+import static com.google.dart.java2dart.util.ASTFactory.booleanLiteral;
 import static com.google.dart.java2dart.util.ASTFactory.exportDirective;
+import static com.google.dart.java2dart.util.ASTFactory.expressionFunctionBody;
+import static com.google.dart.java2dart.util.ASTFactory.expressionStatement;
+import static com.google.dart.java2dart.util.ASTFactory.formalParameterList;
+import static com.google.dart.java2dart.util.ASTFactory.functionExpression;
+import static com.google.dart.java2dart.util.ASTFactory.identifier;
 import static com.google.dart.java2dart.util.ASTFactory.importDirective;
 import static com.google.dart.java2dart.util.ASTFactory.importShowCombinator;
+import static com.google.dart.java2dart.util.ASTFactory.indexExpression;
+import static com.google.dart.java2dart.util.ASTFactory.instanceCreationExpression;
 import static com.google.dart.java2dart.util.ASTFactory.libraryDirective;
+import static com.google.dart.java2dart.util.ASTFactory.methodInvocation;
+import static com.google.dart.java2dart.util.ASTFactory.nullLiteral;
+import static com.google.dart.java2dart.util.ASTFactory.simpleFormalParameter;
+import static com.google.dart.java2dart.util.ASTFactory.typeName;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -174,6 +202,7 @@ public class MainEngine {
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/html/ast/visitor"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/html/parser"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/html/scanner"));
+    context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/index"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/parser"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/resolver"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/scanner"));
@@ -184,6 +213,8 @@ public class MainEngine {
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/internal/element"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/internal/error"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/internal/hint"));
+    context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/internal/html/angular"));
+    context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/internal/index"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/internal/object"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/internal/parser"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/internal/resolver"));
@@ -452,6 +483,13 @@ public class MainEngine {
         source = replaceSourceFragment(source, s, "//" + s);
       }
       Files.write(source, new File(targetFolder + "/engine.dart"), Charsets.UTF_8);
+    }
+    {
+      CompilationUnit library = buildIndexLibrary();
+      Files.write(
+          getFormattedSource(library),
+          new File(targetFolder + "/index.dart"),
+          Charsets.UTF_8);
     }
     // Tests
     {
@@ -810,6 +848,126 @@ public class MainEngine {
         unit,
         "sc",
         new String[] {"com.google.dart.engine.scanner."});
+    return unit;
+  }
+
+  private static CompilationUnit buildIndexLibrary() throws Exception {
+    CompilationUnit unit = new CompilationUnit(null, null, null, null, null);
+    unit.getDirectives().add(libraryDirective("engine", "index"));
+    unit.getDirectives().add(
+        importDirective("dart:collection", null, importShowCombinator("Queue")));
+    unit.getDirectives().add(importDirective("java_core.dart", null));
+    unit.getDirectives().add(importDirective("source.dart", null));
+    unit.getDirectives().add(importDirective("scanner.dart", null, importShowCombinator("Token")));
+    unit.getDirectives().add(importDirective("ast.dart", null));
+    unit.getDirectives().add(importDirective("element.dart", null));
+    unit.getDirectives().add(
+        importDirective(
+            "resolver.dart",
+            null,
+            importShowCombinator("Namespace", "NamespaceBuilder")));
+    unit.getDirectives().add(
+        importDirective(
+            "engine.dart",
+            null,
+            importShowCombinator(
+                "AnalysisEngine",
+                "AnalysisContext",
+                "InstrumentedAnalysisContextImpl")));
+    unit.getDirectives().add(importDirective("html.dart", "ht"));
+    for (Entry<File, List<CompilationUnitMember>> entry : context.getFileToMembers().entrySet()) {
+      File file = entry.getKey();
+      if (file.getName().contains("MemoryIndexReader")
+          || file.getName().contains("MemoryIndexWriter")) {
+        continue;
+      }
+      if (isEnginePath(file, "index/") || isEnginePath(file, "internal/index/")
+          || isEnginePath(file, "internal/html/angular/ExpressionVisitor.java")
+          || isEnginePath(file, "internal/html/angular/AngularDartIndexContributor.java")
+          || isEnginePath(file, "internal/html/angular/AngularHtmlIndexContributor.java")) {
+        addNotRemovedCompiationUnitEntries(unit, entry.getValue());
+      }
+    }
+    EngineSemanticProcessor.useImportPrefix(
+        context,
+        unit,
+        "ht",
+        new String[] {"com.google.dart.engine.html."});
+    unit.accept(new RecursiveASTVisitor<Void>() {
+      @Override
+      public Void visitCatchClause(CatchClause node) {
+        TypeName exceptionType = node.getExceptionType();
+        if (exceptionType != null
+            && exceptionType.getName().getName().equals("InterruptedException")) {
+          TryStatement tryStatement = (TryStatement) node.getParent();
+          SemanticProcessor.replaceNode(tryStatement, tryStatement.getBody());
+          return null;
+        }
+        return super.visitCatchClause(node);
+      }
+
+      @Override
+      public Void visitFieldDeclaration(FieldDeclaration node) {
+        VariableDeclarationList fields = node.getFields();
+        for (VariableDeclaration field : fields.getVariables()) {
+          if (field.getName().getName().equals("_removedContexts")) {
+            fields.setType(typeName("Expando"));
+            field.setInitializer(instanceCreationExpression(Keyword.NEW, typeName("Expando")));
+          }
+        }
+        return null;
+      }
+
+      @Override
+      public Void visitMethodDeclaration(MethodDeclaration node) {
+        String name = node.getName().getName();
+        if (name.equals("createLocationIdentitySet")) {
+          node.setBody(expressionFunctionBody(instanceCreationExpression(
+              Keyword.NEW,
+              typeName("Set", typeName("Location")),
+              "identity")));
+          return null;
+        }
+        if (name.equals("isRemovedContext")) {
+          node.setBody(expressionFunctionBody(binaryExpression(
+              indexExpression(identifier("_removedContexts"), identifier("context")),
+              TokenType.BANG_EQ,
+              nullLiteral())));
+          return null;
+        }
+        if (name.equals("markRemovedContext")) {
+          AssignmentExpression expr = assignmentExpression(
+              indexExpression(identifier("_removedContexts"), identifier("context")),
+              TokenType.EQ,
+              booleanLiteral(true));
+          node.setBody(blockFunctionBody(expressionStatement(expr)));
+          return null;
+        }
+        if (name.equals("notifyOperationAvailable") || name.equals("waitForOperationAvailable")
+            || name.equals("threadYield") || name.equals("waitOneMs")) {
+          node.setBody(blockFunctionBody());
+          return null;
+        }
+        if (name.equals("removeForSource")) {
+          ExpressionFunctionBody closureBody = expressionFunctionBody(methodInvocation(
+              identifier("_"),
+              "removeWhenSourceRemoved",
+              identifier("source")));
+          closureBody.setSemicolon(null);
+          MethodInvocation expr = methodInvocation(
+              identifier("operations"),
+              "removeWhere",
+              functionExpression(formalParameterList(simpleFormalParameter("_")), closureBody));
+          node.setBody(blockFunctionBody(expressionStatement(expr)));
+          return null;
+        }
+        if (name.equals("readIndex") || name.equals("writeIndex")) {
+          ((ClassDeclaration) node.getParent()).getMembers().remove(node);
+          return null;
+        }
+        return super.visitMethodDeclaration(node);
+      }
+    });
     return unit;
   }
 

@@ -75,8 +75,12 @@ import java.util.Set;
  * Instances of the class {@link AngularHtmlUnitResolver} resolve Angular specific expressions.
  */
 public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
+  private static class FoundAppError extends Error {
+  }
+
   private static final String OPENING_DELIMITER = "{{";
   private static final String CLOSING_DELIMITER = "}}";
+
   private static final int OPENING_DELIMITER_LENGTH = OPENING_DELIMITER.length();
   private static final int CLOSING_DELIMITER_LENGTH = CLOSING_DELIMITER.length();
 
@@ -87,8 +91,6 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
    * @return {@code true} if the given {@link HtmlUnit} has <code>ng-app</code> annotation.
    */
   public static boolean hasAngularAnnotation(HtmlUnit htmlUnit) {
-    class FoundAppError extends Error {
-    }
     try {
       htmlUnit.accept(new RecursiveXmlVisitor<Void>() {
         @Override

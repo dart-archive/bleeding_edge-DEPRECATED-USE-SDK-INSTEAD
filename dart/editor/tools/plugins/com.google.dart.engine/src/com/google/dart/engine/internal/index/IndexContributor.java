@@ -87,7 +87,6 @@ import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
-import com.google.dart.engine.utilities.collection.IntStack;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -364,14 +363,6 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
    */
   private LinkedList<Element> elementStack = Lists.newLinkedList();
 
-  /**
-   * A stack containing one value for each name scope that has been entered, where the values are a
-   * count of the number of unnamed functions that have been found within that scope. These counts
-   * are used to synthesize a name for those functions. The innermost scope is at the top of the
-   * stack.
-   */
-  private IntStack unnamedFunctionCount = new IntStack();
-
   public IndexContributor(IndexStore store) {
     this.store = store;
   }
@@ -381,7 +372,6 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
    */
   public void enterScope(Element element) {
     elementStack.addFirst(element);
-    unnamedFunctionCount.push(0);
   }
 
   /**
@@ -829,7 +819,6 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
    */
   private void exitScope() {
     elementStack.removeFirst();
-    unnamedFunctionCount.pop();
   }
 
   /**
