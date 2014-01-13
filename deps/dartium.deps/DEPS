@@ -8,12 +8,11 @@ execfile(os.path.join(path, 'dartium.deps', 'DEPS.chromium')) # Include proper C
 
 vars.update({
   "chromium_url": "http://src.chromium.org/svn",
-  "dartium_chromium_url": "http://src.chromium.org/chrome/branches/dart/1700/src",
+  "dartium_base": "http://src.chromium.org",
+  "dartium_chromium_branch": "/chrome/branches/dart/1700/src",
   "dartium_chromium_revision": "243199",
-  # The Dart repository URL is pulled out here so that it can be easily
-  # updated to "https" for committers.
   "dart_branch": "/branches/bleeding_edge",
-  "dartium_webkit_trunk": "http://src.chromium.org/blink/branches/dart/1700",
+  "dartium_webkit_branch": "/blink/branches/dart/1700",
   "dartium_webkit_revision": "164626",
   "bootstrap_css_rev" : "@28387",
 
@@ -31,7 +30,7 @@ def massage_deps(deps):
     if value.startswith(Var("webkit_trunk")):
       path, revision = value.split('@') # and svn revision.
       path = path[len(Var("webkit_trunk")):]  # Strip WebKit repo.
-      value = (Var("dartium_webkit_trunk") + path +
+      value = (Var("dartium_base") + Var("dartium_webkit_branch") + path +
                '@' + Var("dartium_webkit_revision"))
       deps[key] = value
       continue
@@ -42,7 +41,8 @@ for os_deps in deps_os.values():
 
 deps.update({
   "src":
-    Var("dartium_chromium_url") + "@" + Var("dartium_chromium_revision"),
+    Var("dartium_base") + Var("dartium_chromium_branch") + "@" +
+        Var("dartium_chromium_revision"),
 
   "src/dart":
     Var("dart_branch") + "/dart",
