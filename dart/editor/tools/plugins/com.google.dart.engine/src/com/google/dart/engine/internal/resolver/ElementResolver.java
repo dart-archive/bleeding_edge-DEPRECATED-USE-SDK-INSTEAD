@@ -2731,53 +2731,55 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     if (shouldReportMissingMember_static || shouldReportMissingMember_propagated) {
       Element staticOrPropagatedEnclosingElt = shouldReportMissingMember_static
           ? staticType.getElement() : propagatedType.getElement();
-      boolean isStaticProperty = isStatic(staticOrPropagatedEnclosingElt);
-      if (propertyName.inSetterContext()) {
-        if (isStaticProperty) {
-          ErrorCode errorCode = shouldReportMissingMember_static
-              ? StaticWarningCode.UNDEFINED_SETTER : HintCode.UNDEFINED_SETTER;
-          resolver.reportErrorProxyConditionalAnalysisError(
-              staticOrPropagatedEnclosingElt,
-              errorCode,
-              propertyName,
-              propertyName.getName(),
-              staticOrPropagatedEnclosingElt.getDisplayName());
+      if (staticOrPropagatedEnclosingElt != null) {
+        boolean isStaticProperty = isStatic(staticOrPropagatedEnclosingElt);
+        if (propertyName.inSetterContext()) {
+          if (isStaticProperty) {
+            ErrorCode errorCode = shouldReportMissingMember_static
+                ? StaticWarningCode.UNDEFINED_SETTER : HintCode.UNDEFINED_SETTER;
+            resolver.reportErrorProxyConditionalAnalysisError(
+                staticOrPropagatedEnclosingElt,
+                errorCode,
+                propertyName,
+                propertyName.getName(),
+                staticOrPropagatedEnclosingElt.getDisplayName());
+          } else {
+            ErrorCode errorCode = shouldReportMissingMember_static
+                ? StaticTypeWarningCode.UNDEFINED_SETTER : HintCode.UNDEFINED_SETTER;
+            resolver.reportErrorProxyConditionalAnalysisError(
+                staticOrPropagatedEnclosingElt,
+                errorCode,
+                propertyName,
+                propertyName.getName(),
+                staticOrPropagatedEnclosingElt.getDisplayName());
+          }
+        } else if (propertyName.inGetterContext()) {
+          if (isStaticProperty) {
+            ErrorCode errorCode = shouldReportMissingMember_static
+                ? StaticWarningCode.UNDEFINED_GETTER : HintCode.UNDEFINED_GETTER;
+            resolver.reportErrorProxyConditionalAnalysisError(
+                staticOrPropagatedEnclosingElt,
+                errorCode,
+                propertyName,
+                propertyName.getName(),
+                staticOrPropagatedEnclosingElt.getDisplayName());
+          } else {
+            ErrorCode errorCode = shouldReportMissingMember_static
+                ? StaticTypeWarningCode.UNDEFINED_GETTER : HintCode.UNDEFINED_GETTER;
+            resolver.reportErrorProxyConditionalAnalysisError(
+                staticOrPropagatedEnclosingElt,
+                errorCode,
+                propertyName,
+                propertyName.getName(),
+                staticOrPropagatedEnclosingElt.getDisplayName());
+          }
         } else {
-          ErrorCode errorCode = shouldReportMissingMember_static
-              ? StaticTypeWarningCode.UNDEFINED_SETTER : HintCode.UNDEFINED_SETTER;
           resolver.reportErrorProxyConditionalAnalysisError(
               staticOrPropagatedEnclosingElt,
-              errorCode,
+              StaticWarningCode.UNDEFINED_IDENTIFIER,
               propertyName,
-              propertyName.getName(),
-              staticOrPropagatedEnclosingElt.getDisplayName());
+              propertyName.getName());
         }
-      } else if (propertyName.inGetterContext()) {
-        if (isStaticProperty) {
-          ErrorCode errorCode = shouldReportMissingMember_static
-              ? StaticWarningCode.UNDEFINED_GETTER : HintCode.UNDEFINED_GETTER;
-          resolver.reportErrorProxyConditionalAnalysisError(
-              staticOrPropagatedEnclosingElt,
-              errorCode,
-              propertyName,
-              propertyName.getName(),
-              staticOrPropagatedEnclosingElt.getDisplayName());
-        } else {
-          ErrorCode errorCode = shouldReportMissingMember_static
-              ? StaticTypeWarningCode.UNDEFINED_GETTER : HintCode.UNDEFINED_GETTER;
-          resolver.reportErrorProxyConditionalAnalysisError(
-              staticOrPropagatedEnclosingElt,
-              errorCode,
-              propertyName,
-              propertyName.getName(),
-              staticOrPropagatedEnclosingElt.getDisplayName());
-        }
-      } else {
-        resolver.reportErrorProxyConditionalAnalysisError(
-            staticOrPropagatedEnclosingElt,
-            StaticWarningCode.UNDEFINED_IDENTIFIER,
-            propertyName,
-            propertyName.getName());
       }
     }
   }
