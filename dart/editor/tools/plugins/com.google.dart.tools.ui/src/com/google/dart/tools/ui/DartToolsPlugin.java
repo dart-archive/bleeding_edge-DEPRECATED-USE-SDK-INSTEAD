@@ -53,6 +53,7 @@ import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.editors.text.EditorsUI;
@@ -176,6 +177,14 @@ public class DartToolsPlugin extends AbstractUIPlugin {
     } else {
       return getBundledImageDescriptor(p.makeAbsolute().toString());
     }
+  }
+
+  public static IEditorPart getActiveEditor() {
+    IWorkbenchPage page = getActivePage();
+    if (page != null) {
+      return page.getActiveEditor();
+    }
+    return null;
   }
 
   public static IWorkbenchPage getActivePage() {

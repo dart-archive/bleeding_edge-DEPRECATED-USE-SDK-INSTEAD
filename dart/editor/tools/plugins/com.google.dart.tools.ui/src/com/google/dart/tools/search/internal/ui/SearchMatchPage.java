@@ -42,6 +42,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -563,10 +564,9 @@ public abstract class SearchMatchPage extends SearchPage {
   }
 
   private static final String SETTINGS_ID = "SearchMatchPage";
-
   private static final String FILTER_SDK_ID = "filter_SDK";
-
   private static final String FILTER_POTENTIAL_ID = "filter_potential";
+  private static final String FILTER_PROJECT_ID = "filter_project";
 
   private static final ITreeContentProvider CONTENT_PROVIDER = new SearchContentProvider();
   private static final IBaseLabelProvider LABEL_PROVIDER = new DelegatingStyledCellLabelProvider(
@@ -870,6 +870,21 @@ public abstract class SearchMatchPage extends SearchPage {
       refresh();
     }
   };
+
+  private IAction filterProjectAction = new Action(null, IAction.AS_CHECK_BOX) {
+    {
+      setToolTipText("Show only current project actions");
+      DartPluginImages.setLocalImageDescriptors(this, "search_filter_project.gif");
+    }
+
+    @Override
+    public void run() {
+      filterEnabledProject = isChecked();
+      getDialogSettings().put(FILTER_PROJECT_ID, filterEnabledProject);
+      refresh();
+    }
+  };
+
   private final SearchView searchView;
   private final String taskName;
 
@@ -890,8 +905,10 @@ public abstract class SearchMatchPage extends SearchPage {
   private PositionTracker positionTracker;
   private boolean filterEnabledSdk = false;
   private boolean filterEnabledPotential = false;
+  private boolean filterEnabledProject = false;
   private int filteredCountSdk = 0;
   private int filteredCountPotential = 0;
+  private int filteredCountProject = 0;
 
   private static final Predicate<SearchMatch> FILTER_SDK = new Predicate<SearchMatch>() {
     @Override
@@ -907,6 +924,16 @@ public abstract class SearchMatchPage extends SearchPage {
     public boolean apply(SearchMatch input) {
       return input.getKind() == MatchKind.NAME_REFERENCE_RESOLVED
           || input.getKind() == MatchKind.NAME_REFERENCE_UNRESOLVED;
+    }
+  };
+
+  private final Predicate<SearchMatch> FILTER_PROJECT = new Predicate<SearchMatch>() {
+    @Override
+    public boolean apply(SearchMatch input) {
+      IProject currentProject = getCurrentProject();
+      IFile resource = DartUI.getElementFile(input.getElement());
+      return resource != null && currentProject != null
+          && currentProject.equals(resource.getProject());
     }
   };
 
@@ -964,6 +991,7 @@ public abstract class SearchMatchPage extends SearchPage {
   @Override
   public void makeContributions(IMenuManager menuManager, IToolBarManager toolBarManager,
       IStatusLineManager statusLineManager) {
+    toolBarManager.add(filterProjectAction);
     toolBarManager.add(filterSdkAction);
     toolBarManager.add(filterPotentialAction);
     toolBarManager.add(new Separator());
@@ -1000,6 +1028,13 @@ public abstract class SearchMatchPage extends SearchPage {
    */
   protected boolean canUseFilterPotential() {
     return true;
+  }
+
+  /**
+   * Clients may implement this method to allow "Only current project" filter.
+   */
+  protected IProject getCurrentProject() {
+    return null;
   }
 
   /**
@@ -1076,6 +1111,7 @@ public abstract class SearchMatchPage extends SearchPage {
   private List<SearchMatch> applyFilters(List<SearchMatch> matches) {
     filteredCountSdk = 0;
     filteredCountPotential = 0;
+    filteredCountProject = 0;
     List<SearchMatch> filtered = Lists.newArrayList();
     for (SearchMatch match : matches) {
       // SDK filter
@@ -1087,12 +1123,19 @@ public abstract class SearchMatchPage extends SearchPage {
       }
       // potential filter
       if (canUseFilterPotential()) {
-        // potential filter
         if (FILTER_POTENTIAL.apply(match)) {
           filteredCountPotential++;
           if (filterEnabledPotential) {
             continue;
           }
+        }
+      }
+      // project filter
+      if (getCurrentProject() != null) {
+        if (FILTER_PROJECT.apply(match)) {
+          filteredCountProject++;
+        } else if (filterEnabledProject) {
+          continue;
         }
       }
       // OK
@@ -1166,9 +1209,17 @@ public abstract class SearchMatchPage extends SearchPage {
       filterEnabledPotential = true;
       filterPotentialAction.setChecked(true);
     }
+    if (settings.getBoolean(FILTER_PROJECT_ID)) {
+      filterEnabledProject = true;
+      filterProjectAction.setChecked(true);
+    }
     if (!canUseFilterPotential()) {
       filterPotentialAction.setEnabled(false);
       filterPotentialAction.setChecked(false);
+    }
+    if (getCurrentProject() == null) {
+      filterProjectAction.setEnabled(false);
+      filterProjectAction.setChecked(false);
     }
   }
 
@@ -1257,6 +1308,12 @@ public abstract class SearchMatchPage extends SearchPage {
               filtersDesc += ",   potential: " + filteredCountPotential;
               if (filterEnabledPotential) {
                 filtersDesc += " (filtered)";
+              }
+            }
+            if (getCurrentProject() != null) {
+              filtersDesc += ",   in project: " + filteredCountProject;
+              if (filterEnabledProject) {
+                filtersDesc += " (only)";
               }
             }
           }

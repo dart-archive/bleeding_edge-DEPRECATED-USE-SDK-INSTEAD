@@ -54,8 +54,13 @@ import static com.google.dart.tools.search.internal.ui.FindDeclarationsAction.is
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.widgets.Event;
+import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.IWorkbenchSite;
 import org.eclipse.ui.PlatformUI;
 
@@ -101,6 +106,24 @@ public class FindReferencesAction extends AbstractDartSelectionAction {
     } catch (Throwable e) {
       ExceptionHandler.handle(e, "Find references", "Exception during search.");
     }
+  }
+
+  /**
+   * Finds the "current" project. That is the project of the active editor.
+   */
+  private static IProject findCurrentProject() {
+    IEditorPart editor = DartToolsPlugin.getActiveEditor();
+    if (editor != null) {
+      IEditorInput input = editor.getEditorInput();
+      if (input instanceof IFileEditorInput) {
+        IFileEditorInput fileInput = (IFileEditorInput) input;
+        IFile file = fileInput.getFile();
+        if (file != null) {
+          return file.getProject();
+        }
+      }
+    }
+    return null;
   }
 
   /**
@@ -179,6 +202,7 @@ public class FindReferencesAction extends AbstractDartSelectionAction {
       final SearchEngine searchEngine = DartCore.getProjectManager().newSearchEngine();
       final Element searchElement = element;
       final String searchName = name;
+      final IProject currentProject = findCurrentProject();
       SearchView view = (SearchView) DartToolsPlugin.getActivePage().showView(SearchView.ID);
       view.showPage(new SearchMatchPage(view, "Searching for references...") {
         Map<LibraryElement, Set<LibraryElement>> cachedVisibleLibraries = Maps.newHashMap();
@@ -192,6 +216,11 @@ public class FindReferencesAction extends AbstractDartSelectionAction {
         @Override
         protected boolean canUseFilterPotential() {
           return searchElement != null;
+        }
+
+        @Override
+        protected IProject getCurrentProject() {
+          return currentProject;
         }
 
         @Override
