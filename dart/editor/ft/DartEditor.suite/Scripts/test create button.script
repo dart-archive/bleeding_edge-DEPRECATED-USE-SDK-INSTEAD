@@ -1,5 +1,5 @@
 (* Create and run a command-line app using the button on the Welcome page *)
-Run util's openWelcomePage
+util.openWelcomePage
 set the SearchRectangle to ((200,150),(700,350))
 Click "create app button"
 TypeText "sample"
@@ -12,5 +12,42 @@ Click "run button"
 set the SearchRectangle to ((200,900),(500,1100))
 WaitFor 10, (Text:"Hello, World!",CaseSensitive:"yes",IgnoreSpaces:"yes",ValidCharacters:"*",dpi:94)
 set the SearchRectangle to ()
-Run util's deleteProject "sample project"
-Run util's deleteOutput
+util.deleteProject "sample project"
+util.deleteOutput
+
+(* Ditto, using polymer *)
+set the SearchRectangle to ((200,150),(700,350))
+Click "create app button"
+set the SearchRectangle to ()
+TypeText "sample"
+TypeText tab,tab,tab,tab
+TypeText downArrow
+TypeText enter
+Wait 30
+WaitFor 10.0, "pubspec lock" (* confirm file creation *)
+Click "run button"
+set the SearchRectangle to ((200,200),(700,700))
+WaitFor 2,(Text:"click count",CaseSensitive:"yes",IgnoreSpaces:"yes",ValidCharacters:"*",dpi:94)
+set the SearchRectangle to ()
+util.exitChromium
+util.deleteProject "sample project"
+util.deleteOutput
+
+(* Chrome *)
+set the SearchRectangle to ((200,150),(700,350))
+Click "create app button"
+set the SearchRectangle to ()
+TypeText "sample"
+TypeText tab,tab,tab,tab
+TypeText upArrow,upArrow
+TypeText enter
+Wait 5
+WaitFor 10.0, "pubspec lock" (* confirm file creation *)
+util.selectContextImageMenuItem "manifest", "Run as Chrome App"
+set the SearchRectangle to ((200,200),(700,700))
+WaitFor 2,(Text:"Click me!",CaseSensitive:"yes",IgnoreSpaces:"yes",ValidCharacters:"*",dpi:94)
+set the SearchRectangle to ()
+if (util.isLinux()) then
+	Click "close window X"
+end if
+util.exitChromium
