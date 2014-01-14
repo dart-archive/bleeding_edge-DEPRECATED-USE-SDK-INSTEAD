@@ -697,6 +697,32 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
             ""));
   }
 
+  public void test_creationFunction_forFunctionType_method_enclosingClass_static() throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  static foo() {",
+        "    useFunction(test);",
+        "  }",
+        "}",
+        "",
+        "useFunction(int g(double a, String b)) {}");
+    assert_runProcessor(
+        CorrectionKind.QF_CREATE_METHOD,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  static foo() {",
+            "    useFunction(test);",
+            "  }",
+            "  ",
+            "  static int test(double a, String b) {",
+            "  }",
+            "}",
+            "",
+            "useFunction(int g(double a, String b)) {}"));
+  }
+
   public void test_creationFunction_forFunctionType_method_targetClass() throws Exception {
     prepareProblemWithFix(
         "// filler filler filler filler filler filler filler filler filler filler",

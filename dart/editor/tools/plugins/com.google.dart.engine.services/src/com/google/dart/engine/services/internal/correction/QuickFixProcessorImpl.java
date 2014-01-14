@@ -1254,12 +1254,7 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
       if (target == null) {
         targetSource = source;
         ClassMember enclosingMember = node.getAncestor(ClassMember.class);
-        if (enclosingMember instanceof MethodDeclaration) {
-          staticModifier = ((MethodDeclaration) enclosingMember).isStatic();
-        }
-        if (enclosingMember instanceof FieldDeclaration) {
-          staticModifier = ((FieldDeclaration) enclosingMember).isStatic();
-        }
+        staticModifier = inStaticMemberContext(enclosingMember);
         prefix = utils.getNodePrefix(enclosingMember);
         insertOffset = enclosingMember.getEnd();
         sourcePrefix = eol + prefix + eol;
@@ -1532,13 +1527,17 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
    * Prepares proposal for creating function corresponding to the given {@link FunctionType}.
    */
   private void addProposal_createFunction(FunctionType functionType, String name,
-      Source targetSource, int insertOffset, String eol, String prefix, String sourcePrefix,
-      String sourceSuffix) {
+      Source targetSource, int insertOffset, boolean isStatic, String eol, String prefix,
+      String sourcePrefix, String sourceSuffix) {
     // build method source
     SourceBuilder sb = new SourceBuilder(insertOffset);
     {
       sb.append(sourcePrefix);
       sb.append(prefix);
+      // may be static
+      if (isStatic) {
+        sb.append("static ");
+      }
       // may be return type
       {
         Type returnType = functionType.getReturnType();
@@ -1616,6 +1615,7 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
         name,
         source,
         insertOffset,
+        false,
         eol,
         prefix,
         sourcePrefix,
@@ -1651,6 +1651,7 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
         name,
         targetSource,
         insertOffset,
+        inStaticMemberContext(),
         eol,
         prefix,
         sourcePrefix,
@@ -1809,6 +1810,29 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
       }
     }
     return defaultSourceMap;
+  }
+
+  /**
+   * @return {@code true} if {@link #node} if part of a static method or any field initializer.
+   */
+  private boolean inStaticMemberContext() {
+    ClassMember member = node.getAncestor(ClassMember.class);
+    return inStaticMemberContext(member);
+  }
+
+  /**
+   * @return {@code true} if the given {@link ClassMember} is a part of a static method or any field
+   *         initializer.
+   */
+  private boolean inStaticMemberContext(ClassMember member) {
+    if (member instanceof MethodDeclaration) {
+      return ((MethodDeclaration) member).isStatic();
+    }
+    // field initializer cannot reference "this"
+    if (member instanceof FieldDeclaration) {
+      return true;
+    }
+    return false;
   }
 
   /**
