@@ -11,3 +11,4 @@ Run "search box"
 Run util's deleteProject "sample project"
 Run util's deleteProject "sunflower project"
 Run util's closeDebugger
+Run "test create button"

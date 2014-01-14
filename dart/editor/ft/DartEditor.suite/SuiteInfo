@@ -51,6 +51,8 @@
         };
         "terminate editor" =         {
         };
+        "test create button" =         {
+        };
     };
     helperSuitesInfo =     (
                 {

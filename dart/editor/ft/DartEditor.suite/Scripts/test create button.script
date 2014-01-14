@@ -1,0 +1,16 @@
+(* Create and run a command-line app using the button on the Welcome page *)
+Run util's openWelcomePage
+set the SearchRectangle to ((200,150),(700,350))
+Click (Text:"Create an application",CaseSensitive:"yes",ValidCharacters:"*",dpi:94)
+TypeText "sample"
+set the SearchRectangle to ((500,400),(1400,700))
+Click (Text:"Command-line application",CaseSensitive:"yes",ValidCharacters:"*",dpi:94)
+set the SearchRectangle to ()
+TypeText enter
+WaitFor 10.0, "pubspec lock" (* confirm file creation *)
+Click "run button"
+set the SearchRectangle to ((0,800),(1920,1200))
+WaitFor 10, (Text:"Hello, World!",CaseSensitive:"yes",ValidCharacters:"*",dpi:94)
+set the SearchRectangle to ()
+Run util's deleteProject "sample project"
+Run util's deleteOutput
