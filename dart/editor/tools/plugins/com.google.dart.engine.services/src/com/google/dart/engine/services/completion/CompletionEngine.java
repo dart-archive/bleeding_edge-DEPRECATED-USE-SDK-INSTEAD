@@ -106,6 +106,7 @@ import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.PropertyInducingElement;
+import com.google.dart.engine.element.TopLevelVariableElement;
 import com.google.dart.engine.element.TypeParameterElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.error.AnalysisError;
@@ -478,6 +479,9 @@ public class CompletionEngine {
 
     @Override
     public Void visitAnnotation(Annotation node) {
+      if (completionNode instanceof SimpleIdentifier) {
+        analyzeAnnotationName(completionNode);
+      }
       return null;
     }
 
@@ -1611,6 +1615,26 @@ public class CompletionEngine {
     requestor.endReporting();
   }
 
+  void analyzeAnnotationName(SimpleIdentifier identifier) {
+    filter = new Filter(identifier);
+    NameCollector names = collectTopLevelElementVisibleAt(identifier);
+    for (Element element : names.getUniqueElements()) {
+      if (element instanceof PropertyAccessorElement) {
+        element = ((PropertyAccessorElement) element).getVariable();
+      }
+      if (element instanceof TopLevelVariableElement) {
+        TopLevelVariableElement variable = (TopLevelVariableElement) element;
+        if (state.isCompileTimeConstantRequired && !variable.isConst()) {
+          continue;
+        }
+        proposeName(element, identifier, names);
+      }
+      if (element instanceof ClassElement) {
+        proposeName(element, identifier, names);
+      }
+    }
+  }
+
   void analyzeConstructorTypeName(SimpleIdentifier identifier) {
     filter = new Filter(identifier);
     Element[] types = findAllTypes(getCurrentLibrary(), TopLevelNamesKind.DECLARED_AND_IMPORTS);
@@ -2184,6 +2208,12 @@ public class CompletionEngine {
       ClassElement classElement = ((ClassDeclaration) decl.getParent()).getElement();
       names.addNamesDefinedByHierarchy(classElement, false);
     }
+    names.addTopLevelNames(getCurrentLibrary(), TopLevelNamesKind.DECLARED_AND_IMPORTS);
+    return names;
+  }
+
+  private NameCollector collectTopLevelElementVisibleAt(ASTNode ident) {
+    NameCollector names = new NameCollector();
     names.addTopLevelNames(getCurrentLibrary(), TopLevelNamesKind.DECLARED_AND_IMPORTS);
     return names;
   }

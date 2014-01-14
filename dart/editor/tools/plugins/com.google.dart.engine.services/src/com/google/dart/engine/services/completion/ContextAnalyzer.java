@@ -1,6 +1,7 @@
 package com.google.dart.engine.services.completion;
 
 import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.Annotation;
 import com.google.dart.engine.ast.ArgumentDefinitionTest;
 import com.google.dart.engine.ast.ArgumentList;
 import com.google.dart.engine.ast.CatchClause;
@@ -44,6 +45,12 @@ class ContextAnalyzer extends GeneralizingASTVisitor<Void> {
   ContextAnalyzer(CompletionState state, ASTNode completionNode) {
     this.state = state;
     this.completionNode = completionNode;
+  }
+
+  @Override
+  public Void visitAnnotation(Annotation node) {
+    state.requiresConst(true);
+    return super.visitAnnotation(node);
   }
 
   @Override

@@ -1481,6 +1481,24 @@ public class CompletionTests extends CompletionTestCase {
     test("typedef int fnint(int k); fn!1int x;", "1+fnint");
   }
 
+  public void testCompletion_annotation_topLevelVar() throws Exception {
+    test(src(//
+        "const fooConst = null;",
+        "final fooNotConst = null;",
+        "const bar = null;",
+        "",
+        "@foo!1",
+        "main() {",
+        "}"), "1+fooConst", "1-fooNotConst", "1-bar");
+  }
+
+  public void testCompletion_annotation_type() throws Exception {
+    test(src(//
+        "@Obje!1",
+        "main() {",
+        "}"), "1+Object", "1-String");
+  }
+
   public void testCompletion_arguments_ignoreEmpty() throws Exception {
     test(src(//
         "class A {",
