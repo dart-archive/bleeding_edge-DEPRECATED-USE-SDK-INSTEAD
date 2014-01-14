@@ -798,6 +798,12 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
       sb.append(eol);
       sb.append(prefix);
     }
+    // @override
+    {
+      sb.append("@override");
+      sb.append(eol);
+      sb.append(prefix);
+    }
     // return type
     appendType(sb, missingOverride.getType().getReturnType());
     if (isGetter) {
