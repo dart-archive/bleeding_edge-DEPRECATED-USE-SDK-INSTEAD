@@ -198,6 +198,50 @@ public class SyntaxTranslatorTest extends AbstractSemanticTest {
         "}");
   }
 
+  public void test_commentLine_beforeStatement_blockStyle() throws Exception {
+    parseJava(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "public class A {",
+        "  void main() {",
+        "    /*",
+        "     * aaa",
+        "     * bbb",
+        "     */",
+        "    int v = 0;",
+        "  }",
+        "}");
+    assertDartSource(
+        "class A {",
+        "  void main() {",
+        "    /*",
+        "     * aaa",
+        "     * bbb",
+        "     */",
+        "    int v = 0;",
+        "  }",
+        "}");
+  }
+
+  public void test_commentLine_beforeStatement_lineStyle() throws Exception {
+    parseJava(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "public class A {",
+        "  void main() {",
+        "    // aaa",
+        "    // bbb",
+        "    int v = 0;",
+        "  }",
+        "}");
+    assertDartSource(
+        "class A {",
+        "  void main() {",
+        "    // aaa",
+        "    // bbb",
+        "    int v = 0;",
+        "  }",
+        "}");
+  }
+
   public void test_constructor() throws Exception {
     parseJava(
         "// filler filler filler filler filler filler filler filler filler filler",

@@ -20,12 +20,15 @@ import com.google.dart.engine.utilities.dart.ParameterKind;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.PrintWriter;
+import java.util.List;
 
 /**
  * Instances of the class {link ToFormattedSourceVisitor} write a source representation of a visited
  * AST node (and all of it's children) to a writer.
  */
 public class ToFormattedSourceVisitor implements ASTVisitor<Void> {
+  public static final String COMMENTS_KEY = "List of comments before statement";
+
   /**
    * The writer to which the source is to be written.
    */
@@ -1039,6 +1042,19 @@ public class ToFormattedSourceVisitor implements ASTVisitor<Void> {
     indent();
   }
 
+  @SuppressWarnings("unchecked")
+  private void printLeadingComments(Statement statement) {
+    List<String> comments = (List<String>) statement.getProperty(COMMENTS_KEY);
+    if (comments == null) {
+      return;
+    }
+    for (String comment : comments) {
+      writer.print(comment);
+      writer.print("\n");
+      indent();
+    }
+  }
+
   /**
    * Safely visit the given node.
    * 
@@ -1159,7 +1175,11 @@ public class ToFormattedSourceVisitor implements ASTVisitor<Void> {
               indent();
             }
           }
-          nodes.get(i).accept(this);
+          ASTNode node = nodes.get(i);
+          if (node instanceof Statement) {
+            printLeadingComments((Statement) node);
+          }
+          node.accept(this);
         }
         // suffix
         writer.print(suffix);

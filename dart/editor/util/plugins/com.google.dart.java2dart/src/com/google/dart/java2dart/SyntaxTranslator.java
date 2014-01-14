@@ -78,6 +78,7 @@ import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.java2dart.util.ExecutionUtils;
 import com.google.dart.java2dart.util.JavaUtils;
 import com.google.dart.java2dart.util.RunnableEx;
+import com.google.dart.java2dart.util.ToFormattedSourceVisitor;
 
 import static com.google.dart.java2dart.util.ASTFactory.asExpression;
 import static com.google.dart.java2dart.util.ASTFactory.assertStatement;
@@ -238,7 +239,7 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
    */
   public static CompilationUnit translate(Context context,
       org.eclipse.jdt.core.dom.CompilationUnit javaUnit, String javaSource) {
-    SyntaxTranslator translator = new SyntaxTranslator(context, javaSource);
+    SyntaxTranslator translator = new SyntaxTranslator(context, javaSource, javaUnit);
     javaUnit.accept(translator);
     return (CompilationUnit) translator.result;
   }
@@ -320,6 +321,7 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
     return superString.endsWith(subString);
   }
 
+  private final org.eclipse.jdt.core.dom.CompilationUnit javaUnit;
   private final Context context;
   private final String javaSource;
 
@@ -329,7 +331,9 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
 
   private MethodDeclaration constructorImpl;
 
-  private SyntaxTranslator(Context context, String javaSource) {
+  private SyntaxTranslator(Context context, String javaSource,
+      org.eclipse.jdt.core.dom.CompilationUnit javaUnit) {
+    this.javaUnit = javaUnit;
     this.context = context;
     this.javaSource = javaSource;
   }
@@ -1849,11 +1853,29 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
     });
     Assert.isNotNull(result, "No result for: " + node.getClass().getCanonicalName());
     T castedResult = (T) result;
+    // remember type for each Expression
     if (node instanceof org.eclipse.jdt.core.dom.Expression) {
       context.putNodeTypeBinding(
           result,
           ((org.eclipse.jdt.core.dom.Expression) node).resolveTypeBinding());
     }
+    // attach leading comments to Statement
+    if (node instanceof org.eclipse.jdt.core.dom.Statement) {
+      int index = javaUnit.firstLeadingCommentIndex(node);
+      if (index != -1) {
+        List<String> commentLines = Lists.newArrayList();
+        List<org.eclipse.jdt.core.dom.Comment> allComments = javaUnit.getCommentList();
+        while (index < allComments.size()) {
+          org.eclipse.jdt.core.dom.Comment comment = allComments.get(index++);
+          if (comment.getStartPosition() > node.getStartPosition()) {
+            break;
+          }
+          commentLines.add(getJavaSource(comment));
+        }
+        result.setProperty(ToFormattedSourceVisitor.COMMENTS_KEY, commentLines);
+      }
+    }
+    // done
     result = null;
     return castedResult;
   }
