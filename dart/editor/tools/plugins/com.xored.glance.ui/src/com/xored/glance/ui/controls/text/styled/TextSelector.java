@@ -31,12 +31,12 @@ public abstract class TextSelector implements FocusListener {
 
   @Override
   public void focusGained(FocusEvent e) {
-    showSelection();
+//    showSelection();
   }
 
   @Override
   public void focusLost(FocusEvent e) {
-    hideSelection();
+//    hideSelection();
   }
 
   public void setMatch(Match match) {
