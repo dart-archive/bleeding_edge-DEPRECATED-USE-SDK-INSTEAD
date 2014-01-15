@@ -38,6 +38,7 @@ vars = {
   "WebCore_rev" : "@31553",
   "weberknecht_rev" : "@26547",
   "bootstrap_css_rev" : "@28387",
+  "font_awesome_rev": "@31824",
 }
 
 deps = {
@@ -95,6 +96,9 @@ deps = {
   "dart/third_party/WebCore": "/third_party/WebCore" + Var("WebCore_rev"),
   "dart/third_party/weberknecht":
       "/third_party/weberknecht" + Var("weberknecht_rev"),
+
+  "dart/third_party/font-awesome":
+      "/third_party/font-awesome" + Var("font_awesome_rev"),
 }
 
 deps_os = {
