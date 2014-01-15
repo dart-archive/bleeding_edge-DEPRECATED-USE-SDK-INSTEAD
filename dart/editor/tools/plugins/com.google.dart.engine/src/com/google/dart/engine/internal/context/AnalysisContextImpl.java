@@ -71,6 +71,7 @@ import com.google.dart.engine.source.SourceContainer;
 import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.engine.source.SourceKind;
 import com.google.dart.engine.utilities.collection.ListUtilities;
+import com.google.dart.engine.utilities.io.PrintStringWriter;
 import com.google.dart.engine.utilities.os.OSUtilities;
 import com.google.dart.engine.utilities.source.LineInfo;
 
@@ -199,6 +200,12 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   private HashMap<Source, ChangeNoticeImpl> pendingNotices = new HashMap<Source, ChangeNoticeImpl>();
 
   /**
+   * A set containing information about the tasks that have been performed since the last change
+   * notification. Used to detect infinite loops in {@link #performAnalysisTask()}.
+   */
+  private HashSet<String> recentTasks = new HashSet<String>();
+
+  /**
    * The object used to synchronize access to all of the caches. The rules related to the use of
    * this lock object are
    * <ul>
@@ -243,6 +250,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       return;
     }
     synchronized (cacheLock) {
+      recentTasks.clear();
       //
       // First, compute the list of sources that have been removed.
       //
@@ -270,6 +278,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         // that might have been referencing the not-yet-existing source that was just added. Longer
         // term we need to keep track of which libraries are referencing non-existing sources and
         // only re-analyze those libraries.
+        logInformation("Added Dart sources, invalidating all resolution information");
         for (Map.Entry<Source, SourceEntry> mapEntry : cache.entrySet()) {
           SourceEntry sourceEntry = mapEntry.getValue();
           if (!mapEntry.getKey().isInSystemLibrary() && sourceEntry instanceof DartEntry) {
@@ -991,7 +1000,12 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     if (task == null) {
       return new AnalysisResult(getChangeNotices(true), getEnd - getStart, null, -1L);
     }
-    //System.out.println(task);
+    String taskDescriptor = task.toString();
+    if (recentTasks.add(taskDescriptor)) {
+      logInformation("Performing task: " + taskDescriptor);
+    } else {
+      logInformation("*** Performing repeated task: " + taskDescriptor);
+    }
     long performStart = System.currentTimeMillis();
     try {
       task.perform(resultRecorder);
@@ -1117,6 +1131,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   public void setChangedContents(Source source, String contents, int offset, int oldLength,
       int newLength) {
     synchronized (cacheLock) {
+      recentTasks.clear();
       String originalContents = sourceFactory.setContents(source, contents);
       if (contents != null) {
         if (!contents.equals(originalContents)) {
@@ -1143,6 +1158,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   @Override
   public void setContents(Source source, String contents) {
     synchronized (cacheLock) {
+      recentTasks.clear();
       String originalContents = sourceFactory.setContents(source, contents);
       if (contents != null) {
         if (!contents.equals(originalContents)) {
@@ -1270,11 +1286,17 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
             }
           }
         } else {
+          @SuppressWarnings("resource")
+          PrintStringWriter writer = new PrintStringWriter();
+          writer.println("Library resolution results discarded for");
           for (Library library : resolvedLibraries) {
             for (Source source : library.getCompilationUnitSources()) {
               DartEntry dartEntry = getReadableDartEntry(source);
               if (dartEntry != null) {
                 long resultTime = library.getModificationTime(source);
+                writer.println("  " + debuggingString(source) + "; sourceTime = "
+                    + source.getModificationStamp() + ", resultTime = " + resultTime
+                    + ", cacheTime = " + dartEntry.getModificationTime());
                 DartEntryImpl dartCopy = dartEntry.getWritableCopy();
                 if (thrownException == null || resultTime >= 0L) {
                   //
@@ -1295,9 +1317,13 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
                 if (source.equals(unitSource)) {
                   unitEntry = dartCopy;
                 }
+              } else {
+                writer.println("  " + debuggingString(source) + "; sourceTime = "
+                    + source.getModificationStamp() + ", no entry");
               }
             }
           }
+          logInformation(writer.toString());
         }
       }
     }
@@ -1617,6 +1643,17 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       cache.put(source, dartEntry);
       return dartEntry;
     }
+  }
+
+  /**
+   * Return a string with debugging information about the given source (the full name and
+   * modification stamp of the source).
+   * 
+   * @param source the source for which a debugging string is to be produced
+   * @return debugging information about the given source
+   */
+  private String debuggingString(Source source) {
+    return "'" + source.getFullName() + "' [" + source.getModificationStamp() + "]";
   }
 
   /**
@@ -2210,8 +2247,9 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
    * <b>Note:</b> This method must only be invoked while we are synchronized on {@link #cacheLock}.
    * 
    * @param librarySource the source of the library being invalidated
+   * @param writer the writer to which debugging information should be written
    */
-  private void invalidateLibraryResolution(Source librarySource) {
+  private void invalidateLibraryResolution(Source librarySource, PrintStringWriter writer) {
     // TODO(brianwilkerson) This could be optimized. There's no need to flush all of these caches if
     // the public namespace hasn't changed, which will be a fairly common case. The question is
     // whether we can afford the time to compute the namespace to look for differences.
@@ -2219,15 +2257,25 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     if (libraryEntry != null) {
       Source[] includedParts = libraryEntry.getValue(DartEntry.INCLUDED_PARTS);
       DartEntryImpl libraryCopy = libraryEntry.getWritableCopy();
+      long oldTime = libraryCopy.getModificationTime();
       libraryCopy.invalidateAllResolutionInformation();
       libraryCopy.setState(DartEntry.INCLUDED_PARTS, CacheState.INVALID);
       cache.put(librarySource, libraryCopy);
+      if (writer != null) {
+        writer.println("  Invalidated library source: " + debuggingString(librarySource)
+            + " (previously modified at " + oldTime + ")");
+      }
       for (Source partSource : includedParts) {
         SourceEntry partEntry = cache.get(partSource);
         if (partEntry instanceof DartEntry) {
           DartEntryImpl partCopy = ((DartEntry) partEntry).getWritableCopy();
+          oldTime = partCopy.getModificationTime();
           partCopy.invalidateAllResolutionInformation();
           cache.put(partSource, partCopy);
+          if (writer != null) {
+            writer.println("  Invalidated part source: " + debuggingString(partSource)
+                + " (previously modified at " + oldTime + ")");
+          }
         }
       }
     }
@@ -2261,6 +2309,29 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       }
     }
     return false;
+  }
+
+  /**
+   * Log the given debugging information.
+   * 
+   * @param message the message to be added to the log
+   */
+  private void logInformation(String message) {
+    AnalysisEngine.getInstance().getLogger().logInformation(message);
+  }
+
+  /**
+   * Log the given debugging information.
+   * 
+   * @param message the message to be added to the log
+   * @param exception the exception to be included in the log entry
+   */
+  private void logInformation(String message, Throwable exception) {
+    if (exception == null) {
+      AnalysisEngine.getInstance().getLogger().logInformation(message);
+    } else {
+      AnalysisEngine.getInstance().getLogger().logInformation(message, exception);
+    }
   }
 
   /**
@@ -2335,6 +2406,9 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         cache.put(source, dartCopy);
         dartEntry = dartCopy;
       } else {
+        logInformation("Generated errors discarded for " + debuggingString(source)
+            + "; sourceTime = " + sourceTime + ", resultTime = " + resultTime + ", cacheTime = "
+            + dartEntry.getModificationTime(), thrownException);
         DartEntryImpl dartCopy = dartEntry.getWritableCopy();
         if (thrownException == null || resultTime >= 0L) {
           //
@@ -2440,6 +2514,9 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
           cache.put(unitSource, dartCopy);
           dartEntry = dartCopy;
         } else {
+          logInformation("Generated hints discarded for " + debuggingString(unitSource)
+              + "; sourceTime = " + sourceTime + ", resultTime = " + resultTime + ", cacheTime = "
+              + dartEntry.getModificationTime(), thrownException);
           if (dartEntry.getState(DartEntry.HINTS, librarySource) == CacheState.IN_PROCESS) {
             DartEntryImpl dartCopy = dartEntry.getWritableCopy();
             if (thrownException == null || resultTime >= 0L) {
@@ -2555,6 +2632,11 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         cache.put(source, dartCopy);
         dartEntry = dartCopy;
       } else {
+        logInformation(
+            "Parse results discarded for " + debuggingString(source) + "; sourceTime = "
+                + sourceTime + ", resultTime = " + resultTime + ", cacheTime = "
+                + dartEntry.getModificationTime(),
+            thrownException);
         DartEntryImpl dartCopy = dartEntry.getWritableCopy();
         if (thrownException == null || resultTime >= 0L) {
           //
@@ -2634,6 +2716,11 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         cache.put(source, htmlCopy);
         htmlEntry = htmlCopy;
       } else {
+        logInformation(
+            "Parse results discarded for " + debuggingString(source) + "; sourceTime = "
+                + sourceTime + ", resultTime = " + resultTime + ", cacheTime = "
+                + htmlEntry.getModificationTime(),
+            thrownException);
         HtmlEntryImpl htmlCopy = ((HtmlEntry) sourceEntry).getWritableCopy();
         if (thrownException == null || resultTime >= 0L) {
           //
@@ -2717,6 +2804,9 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         cache.put(unitSource, dartCopy);
         dartEntry = dartCopy;
       } else {
+        logInformation("Resolution results discarded for " + debuggingString(unitSource)
+            + "; sourceTime = " + sourceTime + ", resultTime = " + resultTime + ", cacheTime = "
+            + dartEntry.getModificationTime(), thrownException);
         DartEntryImpl dartCopy = dartEntry.getWritableCopy();
         if (thrownException == null || resultTime >= 0L) {
           //
@@ -2794,6 +2884,9 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         cache.put(source, htmlCopy);
         htmlEntry = htmlCopy;
       } else {
+        logInformation("Resolution results discarded for " + debuggingString(source)
+            + "; sourceTime = " + sourceTime + ", resultTime = " + resultTime + ", cacheTime = "
+            + htmlEntry.getModificationTime(), thrownException);
         HtmlEntryImpl htmlCopy = htmlEntry.getWritableCopy();
         if (thrownException == null || resultTime >= 0L) {
           //
@@ -2838,10 +2931,15 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     SourceEntry sourceEntry = cache.get(source);
     if (sourceEntry == null) {
       sourceEntry = createSourceEntry(source);
+      logInformation("Added new source: " + debuggingString(source));
     } else {
       SourceEntryImpl sourceCopy = sourceEntry.getWritableCopy();
+      long oldTime = sourceCopy.getModificationTime();
       sourceCopy.setModificationTime(source.getModificationStamp());
+      // TODO(brianwilkerson) Understand why we're not invalidating the cache.
       cache.put(source, sourceCopy);
+      logInformation("Added new source: " + debuggingString(source) + " (previously modified at "
+          + oldTime + ")");
     }
     return sourceEntry instanceof DartEntry;
   }
@@ -2856,13 +2954,21 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     if (sourceEntry == null || sourceEntry.getModificationTime() == source.getModificationStamp()) {
       // Either we have removed this source, in which case we don't care that it is changed, or we
       // have already invalidated the cache and don't need to invalidate it again.
+      if (sourceEntry == null) {
+        logInformation("Modified source, but there is no entry: " + debuggingString(source));
+      } else {
+        logInformation("Modified source, but modification time matches: " + debuggingString(source));
+      }
       return;
     }
     if (sourceEntry instanceof HtmlEntry) {
       HtmlEntryImpl htmlCopy = ((HtmlEntry) sourceEntry).getWritableCopy();
+      long oldTime = htmlCopy.getModificationTime();
       htmlCopy.setModificationTime(source.getModificationStamp());
       htmlCopy.invalidateAllInformation();
       cache.put(source, htmlCopy);
+      logInformation("Modified HTML source: " + debuggingString(source)
+          + " (previously modified at " + oldTime + ")");
     } else if (sourceEntry instanceof DartEntry) {
       Source[] containingLibraries = getLibrariesContaining(source);
       HashSet<Source> librariesToInvalidate = new HashSet<Source>();
@@ -2873,15 +2979,22 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         }
       }
 
+      PrintStringWriter writer = new PrintStringWriter();
+      long oldTime = sourceEntry.getModificationTime();
+      writer.println("Modified Dart source: " + debuggingString(source)
+          + " (previously modified at " + oldTime + ")");
+
       for (Source library : librariesToInvalidate) {
 //    for (Source library : containingLibraries) {
-        invalidateLibraryResolution(library);
+        invalidateLibraryResolution(library, writer);
       }
 
       DartEntryImpl dartCopy = ((DartEntry) sourceEntry).getWritableCopy();
       dartCopy.setModificationTime(source.getModificationStamp());
       dartCopy.invalidateAllInformation();
       cache.put(source, dartCopy);
+
+      logInformation(writer.toString());
     }
   }
 
@@ -2891,6 +3004,9 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
    * @param source the source that has been deleted
    */
   private void sourceRemoved(Source source) {
+    PrintStringWriter writer = new PrintStringWriter();
+    writer.println("Removed source: " + debuggingString(source));
+
     SourceEntry sourceEntry = cache.get(source);
     if (sourceEntry instanceof DartEntry) {
       HashSet<Source> libraries = new HashSet<Source>();
@@ -2901,9 +3017,10 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         }
       }
       for (Source librarySource : libraries) {
-        invalidateLibraryResolution(librarySource);
+        invalidateLibraryResolution(librarySource, writer);
       }
     }
     cache.remove(source);
+    logInformation(writer.toString());
   }
 }
