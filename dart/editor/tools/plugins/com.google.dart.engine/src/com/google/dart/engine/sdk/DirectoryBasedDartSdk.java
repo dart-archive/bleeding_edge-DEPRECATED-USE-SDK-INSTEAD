@@ -205,27 +205,6 @@ public class DirectoryBasedDartSdk implements DartSdk {
     analysisContext.applyChanges(changeSet);
   }
 
-  /**
-   * Initialize a newly created SDK to represent the Dart SDK installed in the given directory.
-   * <p>
-   * Added in order to test AnalysisContextImpl2.
-   * 
-   * @param sdkDirectory the directory containing the SDK
-   */
-  public DirectoryBasedDartSdk(File sdkDirectory, boolean ignored) {
-    this.sdkDirectory = sdkDirectory.getAbsoluteFile();
-    initializeSdk();
-    initializeLibraryMap();
-    analysisContext = new AnalysisContextImpl();
-    analysisContext.setSourceFactory(new SourceFactory(new DartUriResolver(this)));
-    String[] uris = getUris();
-    ChangeSet changeSet = new ChangeSet();
-    for (String uri : uris) {
-      changeSet.added(analysisContext.getSourceFactory().forUri(uri));
-    }
-    analysisContext.applyChanges(changeSet);
-  }
-
   @Override
   public Source fromEncoding(ContentCache contentCache, UriKind kind, URI uri) {
     return new FileBasedSource(contentCache, new File(uri), kind);
