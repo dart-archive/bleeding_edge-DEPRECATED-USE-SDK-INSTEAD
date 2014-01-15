@@ -53,6 +53,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
@@ -194,8 +195,15 @@ public class NewApplicationCreationPage extends WizardPage {
     samplesViewer.setContentProvider(new ArrayContentProvider());
     List<AbstractSample> samples = AbstractSample.getAllSamples();
     samplesViewer.setInput(samples);
-    GridDataFactory.fillDefaults().hint(-1, 60).grab(true, false).align(SWT.FILL, SWT.CENTER).applyTo(
-        samplesViewer.getControl());
+    {
+      Control samplesControl = samplesViewer.getControl();
+      int height = new PixelConverter(samplesControl).convertHeightInCharsToPixels(8);
+      GridDataFactory gdf = GridDataFactory.fillDefaults();
+      gdf.hint(-1, height);
+      gdf.grab(true, false);
+      gdf.align(SWT.FILL, SWT.CENTER);
+      gdf.applyTo(samplesControl);
+    }
     samplesViewer.setSelection(new StructuredSelection(getDefaultSample(samples)));
     samplesViewer.addSelectionChangedListener(new ISelectionChangedListener() {
       @Override
