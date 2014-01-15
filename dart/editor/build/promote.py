@@ -111,11 +111,6 @@ def _PromoteDartArchiveBuild(channel, revision):
       safety_check_on_gs_path(gs_path, to_revision, channel)
       Gsutil(['-m', 'rm', '-R', '-f', gs_path])
 
-    # Copy VERSION file.
-    from_loc = raw_namer.version_filepath(revision)
-    to_loc = release_namer.version_filepath(to_revision)
-    Gsutil(['cp', '-a', 'public-read', from_loc, to_loc])
-
     # Copy sdk directory.
     from_loc = raw_namer.sdk_directory(revision)
     to_loc = release_namer.sdk_directory(to_revision)
@@ -162,6 +157,12 @@ def _PromoteDartArchiveBuild(channel, revision):
         to_loc = release_namer.editor_installer_filepath(
             to_revision, system, arch, extension)
         Gsutil(['cp', '-a', 'public-read', from_loc, to_loc])
+
+    # Copy VERSION file.
+    from_loc = raw_namer.version_filepath(revision)
+    to_loc = release_namer.version_filepath(to_revision)
+    Gsutil(['cp', '-a', 'public-read', from_loc, to_loc])
+
 
   promote(revision)
   promote('latest')
