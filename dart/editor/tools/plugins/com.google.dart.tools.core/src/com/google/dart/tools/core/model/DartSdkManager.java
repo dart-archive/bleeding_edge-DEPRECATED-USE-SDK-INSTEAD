@@ -73,6 +73,8 @@ public class DartSdkManager {
 
   private static final String DEFAULT_UPDATE_URL = "http://dartlang.org/editor/update/channels/dev/";
 
+  private static final String USER_DEFINED_SDK_KEY = "dart.sdk";
+
   /**
    * A special instance of {@link com.google.dart.engine.sdk.DartSdk} representing missing SDK.
    */
@@ -402,8 +404,32 @@ public class DartSdkManager {
     return new File(fileUri);
   }
 
+  /**
+   * Return the user-defined SDK directory.
+   * 
+   * @return the directory or {@code null} if it is not defined
+   */
+  private File getUserDefinedSdkDirectory() {
+    String sdkPath = DartCore.getUserDefinedProperty(USER_DEFINED_SDK_KEY);
+    if (sdkPath != null) {
+      sdkPath = sdkPath.trim();
+      if (sdkPath.length() > 0) {
+        return new File(sdkPath);
+      }
+    }
+    return null;
+  }
+
   private void initSdk() {
-    if (getDefaultPluginsSdkDirectory().exists()) {
+    File sdkDir = getUserDefinedSdkDirectory();
+    if (sdkDir != null && !sdkDir.exists()) {
+      DartCore.logError(USER_DEFINED_SDK_KEY + " defined in " + DartCore.EDITOR_PROPERTIES
+          + " but does not exist: " + sdkDir);
+      sdkDir = null;
+    }
+    if (sdkDir != null) {
+      oldSdk = new DartSdk(sdkDir);
+    } else if (getDefaultPluginsSdkDirectory().exists()) {
       oldSdk = new DartSdk(getDefaultPluginsSdkDirectory());
     } else if (getDefaultEditorSdkDirectory().exists()) {
       oldSdk = new DartSdk(getDefaultEditorSdkDirectory());

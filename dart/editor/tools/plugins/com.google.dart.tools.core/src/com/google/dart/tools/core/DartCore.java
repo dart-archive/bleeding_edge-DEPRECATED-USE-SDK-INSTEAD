@@ -94,6 +94,7 @@ import java.util.Properties;
  * @coverage dart.tools.core
  */
 public class DartCore extends Plugin implements DartSdkListener {
+
   /**
    * The unique instance of this class.
    */
@@ -114,6 +115,11 @@ public class DartCore extends Plugin implements DartSdkListener {
    * The id of the plug-in that defines the Dart model.
    */
   public static final String PLUGIN_ID = DartCore.class.getPackage().getName();
+
+  /**
+   * Name of file containing user-defined properties.
+   */
+  public static final String EDITOR_PROPERTIES = "editor.properties";
 
   /**
    * The id of the project nature used for Dart projects.
@@ -666,7 +672,7 @@ public class DartCore extends Plugin implements DartSdkListener {
     Properties properties = new Properties();
 
     File installDirectory = getEclipseInstallationDirectory();
-    File file = new File(installDirectory, "editor.properties");
+    File file = new File(installDirectory, EDITOR_PROPERTIES);
 
     if (file.exists()) {
       try {
@@ -1247,7 +1253,7 @@ public class DartCore extends Plugin implements DartSdkListener {
     Properties properties = new Properties();
 
     File installDirectory = getEclipseInstallationDirectory();
-    File file = new File(installDirectory, "editor.properties");
+    File file = new File(installDirectory, EDITOR_PROPERTIES);
 
     try {
       if (!file.exists()) {
