@@ -1,13 +1,16 @@
 import 'dart:html';
 
-Element sampleText;
-
 void main() {
-  sampleText = querySelector("#sample_text_id");
-  sampleText.onClick.listen(reverseText);
+  querySelector("#sample_text_id")
+      ..text = "Click me!"
+      ..onClick.listen(reverseText);
 }
 
 void reverseText(MouseEvent event) {
-  var text = sampleText.text;
-  sampleText.text = '${text.substring(1)}${text.substring(0, 1)}';
+  var text = querySelector("#sample_text_id").text;
+  var buffer = new StringBuffer();
+  for (int i = text.length - 1; i >= 0; i--) {
+    buffer.write(text[i]);
+  }
+  querySelector("#sample_text_id").text = buffer.toString();
 }
