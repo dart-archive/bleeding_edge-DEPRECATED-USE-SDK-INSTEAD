@@ -354,8 +354,8 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
   }
 
   public void test_NgComponent_bad_cannotParseSelector() throws Exception {
-    contextHelper.addSource("my_template.html", "");
-    contextHelper.addSource("my_styles.css", "");
+    contextHelper.addSource("/my_template.html", "");
+    contextHelper.addSource("/my_styles.css", "");
     String mainContent = createAngularModuleSource(//
         formatLines(//
             "@NgComponent(publishAs: 'ctrl', selector: '~myComp',",
@@ -369,8 +369,8 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
   }
 
   public void test_NgComponent_bad_missingCss() throws Exception {
-    contextHelper.addSource("my_template.html", "");
-    contextHelper.addSource("my_styles.css", "");
+    contextHelper.addSource("/my_template.html", "");
+    contextHelper.addSource("/my_styles.css", "");
     String mainContent = createAngularModuleSource(//
         formatLines(//
             "@NgComponent(publishAs: 'ctrl', selector: 'myComp',",
@@ -384,8 +384,8 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
   }
 
   public void test_NgComponent_bad_missingPublishAs() throws Exception {
-    contextHelper.addSource("my_template.html", "");
-    contextHelper.addSource("my_styles.css", "");
+    contextHelper.addSource("/my_template.html", "");
+    contextHelper.addSource("/my_styles.css", "");
     String mainContent = createAngularModuleSource(//
         formatLines(//
             "@NgComponent(/*publishAs: 'ctrl',*/ selector: 'myComp',",
@@ -399,8 +399,8 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
   }
 
   public void test_NgComponent_bad_missingSelector() throws Exception {
-    contextHelper.addSource("my_template.html", "");
-    contextHelper.addSource("my_styles.css", "");
+    contextHelper.addSource("/my_template.html", "");
+    contextHelper.addSource("/my_styles.css", "");
     String mainContent = createAngularModuleSource(//
         formatLines(//
             "@NgComponent(publishAs: 'ctrl', /*selector: 'myComp',*/",
@@ -414,8 +414,8 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
   }
 
   public void test_NgComponent_bad_missingTemplate() throws Exception {
-    contextHelper.addSource("my_template.html", "");
-    contextHelper.addSource("my_styles.css", "");
+    contextHelper.addSource("/my_template.html", "");
+    contextHelper.addSource("/my_styles.css", "");
     String mainContent = createAngularModuleSource(//
         formatLines(//
             "@NgComponent(publishAs: 'ctrl', selector: 'myComp',",
@@ -429,8 +429,8 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
   }
 
   public void test_NgComponent_bad_properties_invalidBinding() throws Exception {
-    contextHelper.addSource("my_template.html", "");
-    contextHelper.addSource("my_styles.css", "");
+    contextHelper.addSource("/my_template.html", "");
+    contextHelper.addSource("/my_styles.css", "");
     String mainContent = createAngularModuleSource(//
         formatLines(//
             "@NgComponent(publishAs: 'ctrl', selector: 'myComp',",
@@ -445,8 +445,8 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
   }
 
   public void test_NgComponent_bad_properties_nameNotStringLiteral() throws Exception {
-    contextHelper.addSource("my_template.html", "");
-    contextHelper.addSource("my_styles.css", "");
+    contextHelper.addSource("/my_template.html", "");
+    contextHelper.addSource("/my_styles.css", "");
     String mainContent = createAngularModuleSource(//
         formatLines(//
             "@NgComponent(publishAs: 'ctrl', selector: 'myComp',",
@@ -461,8 +461,8 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
   }
 
   public void test_NgComponent_bad_properties_noSuchField() throws Exception {
-    contextHelper.addSource("my_template.html", "");
-    contextHelper.addSource("my_styles.css", "");
+    contextHelper.addSource("/my_template.html", "");
+    contextHelper.addSource("/my_styles.css", "");
     String mainContent = createAngularModuleSource(//
         formatLines(//
             "@NgComponent(publishAs: 'ctrl', selector: 'myComp',",
@@ -477,8 +477,8 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
   }
 
   public void test_NgComponent_bad_properties_notMapLiteral() throws Exception {
-    contextHelper.addSource("my_template.html", "");
-    contextHelper.addSource("my_styles.css", "");
+    contextHelper.addSource("/my_template.html", "");
+    contextHelper.addSource("/my_styles.css", "");
     String mainContent = createAngularModuleSource(//
         formatLines(//
             "@NgComponent(publishAs: 'ctrl', selector: 'myComp',",
@@ -493,8 +493,8 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
   }
 
   public void test_NgComponent_bad_properties_specNotStringLiteral() throws Exception {
-    contextHelper.addSource("my_template.html", "");
-    contextHelper.addSource("my_styles.css", "");
+    contextHelper.addSource("/my_template.html", "");
+    contextHelper.addSource("/my_styles.css", "");
     String mainContent = createAngularModuleSource(//
         formatLines(//
             "@NgComponent(publishAs: 'ctrl', selector: 'myComp',",
@@ -509,8 +509,8 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
   }
 
   public void test_NgComponent_properties_fromFields() throws Exception {
-    contextHelper.addSource("my_template.html", "");
-    contextHelper.addSource("my_styles.css", "");
+    contextHelper.addSource("/my_template.html", "");
+    contextHelper.addSource("/my_styles.css", "");
     resolveMainSourceNoErrors(createAngularModuleSource(//
         formatLines(//
             "@NgComponent(publishAs: 'ctrl', selector: 'myComp',",
@@ -575,8 +575,8 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
   }
 
   public void test_NgComponent_properties_fromMap() throws Exception {
-    contextHelper.addSource("my_template.html", "");
-    contextHelper.addSource("my_styles.css", "");
+    contextHelper.addSource("/my_template.html", "");
+    contextHelper.addSource("/my_styles.css", "");
     resolveMainSourceNoErrors(createAngularModuleSource(//
         formatLines(//
             "@NgComponent(publishAs: 'ctrl', selector: 'myComp',",
@@ -643,8 +643,8 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
   }
 
   public void test_NgComponent_properties_no() throws Exception {
-    contextHelper.addSource("my_template.html", "");
-    contextHelper.addSource("my_styles.css", "");
+    contextHelper.addSource("/my_template.html", "");
+    contextHelper.addSource("/my_styles.css", "");
     String mainContent = createAngularModuleSource(//
         formatLines(//
             "@NgComponent(publishAs: 'ctrl', selector: 'myComp',",

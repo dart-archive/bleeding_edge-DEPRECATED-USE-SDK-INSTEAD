@@ -55,6 +55,13 @@ public class TestTaskVisitor<E> implements AnalysisTaskVisitor<E> {
   }
 
   @Override
+  public E visitResolveAngularComponentTemplateTask(ResolveAngularComponentTemplateTask task)
+      throws AnalysisException {
+    Assert.fail("Unexpectedly invoked visitResolveAngularComponentTemplateTask");
+    return null;
+  }
+
+  @Override
   public E visitResolveDartLibraryTask(ResolveDartLibraryTask task) throws AnalysisException {
     Assert.fail("Unexpectedly invoked visitResolveDartLibraryTask");
     return null;

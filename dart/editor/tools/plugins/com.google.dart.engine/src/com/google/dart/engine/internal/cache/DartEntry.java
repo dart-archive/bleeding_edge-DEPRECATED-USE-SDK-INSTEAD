@@ -15,6 +15,7 @@ package com.google.dart.engine.internal.cache;
 
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.element.angular.AngularElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.internal.scope.Namespace;
 import com.google.dart.engine.source.Source;
@@ -27,6 +28,13 @@ import com.google.dart.engine.source.SourceKind;
  * @coverage dart.engine
  */
 public interface DartEntry extends SourceEntry {
+  /**
+   * The data descriptor representing the Angular elements accessible in the library. This data is
+   * only available for Dart files that are the defining compilation unit of a library.
+   */
+  public static final DataDescriptor<AngularElement[]> ANGULAR_ELEMENTS = new DataDescriptor<AngularElement[]>(
+      "DartEntry.ANGULAR_ELEMENTS");
+
   /**
    * The data descriptor representing the library element for the library. This data is only
    * available for Dart files that are the defining compilation unit of a library.

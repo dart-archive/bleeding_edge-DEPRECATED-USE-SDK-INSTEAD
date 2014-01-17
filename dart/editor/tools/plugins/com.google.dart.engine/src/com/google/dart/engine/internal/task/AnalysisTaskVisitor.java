@@ -68,6 +68,16 @@ public interface AnalysisTaskVisitor<E> {
   public E visitParseHtmlTask(ParseHtmlTask task) throws AnalysisException;
 
   /**
+   * Visit a {@link ResolveAngularComponentTemplateTask}.
+   * 
+   * @param task the task to be visited
+   * @return the result of visiting the task
+   * @throws AnalysisException if the visitor throws an exception for some reason
+   */
+  public E visitResolveAngularComponentTemplateTask(ResolveAngularComponentTemplateTask task)
+      throws AnalysisException;
+
+  /**
    * Visit a {@link ResolveDartLibraryTask}.
    * 
    * @param task the task to be visited

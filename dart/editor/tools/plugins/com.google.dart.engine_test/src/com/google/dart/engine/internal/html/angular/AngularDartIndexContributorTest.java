@@ -33,6 +33,8 @@ public class AngularDartIndexContributorTest extends AngularTest {
   private AngularDartIndexContributor index = new AngularDartIndexContributor(store);
 
   public void test_component_propertyField() throws Exception {
+    contextHelper.addSource("/my_template.html", "");
+    contextHelper.addSource("/my_styles.css", "");
     resolveMainSourceNoErrors(createSource("",//
         "import 'angular.dart';",
         "",

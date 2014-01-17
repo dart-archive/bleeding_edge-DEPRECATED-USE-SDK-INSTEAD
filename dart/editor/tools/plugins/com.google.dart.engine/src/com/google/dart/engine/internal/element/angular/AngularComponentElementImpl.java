@@ -18,6 +18,7 @@ import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.ElementVisitor;
 import com.google.dart.engine.element.angular.AngularComponentElement;
 import com.google.dart.engine.element.angular.AngularPropertyElement;
+import com.google.dart.engine.source.Source;
 
 /**
  * Implementation of {@code AngularComponentElement}.
@@ -45,6 +46,11 @@ public class AngularComponentElementImpl extends AngularHasSelectorElementImpl i
    * The HTML template URI.
    */
   private String templateUri;
+
+  /**
+   * The HTML template source.
+   */
+  private Source templateSource;
 
   /**
    * The offset of the {@link #templateUri} in the {@link #getSource()}.
@@ -88,6 +94,11 @@ public class AngularComponentElementImpl extends AngularHasSelectorElementImpl i
   }
 
   @Override
+  public Source getTemplateSource() {
+    return templateSource;
+  }
+
+  @Override
   public String getTemplateUri() {
     return templateUri;
   }
@@ -125,6 +136,15 @@ public class AngularComponentElementImpl extends AngularHasSelectorElementImpl i
    */
   public void setStyleUriOffset(int styleUriOffset) {
     this.styleUriOffset = styleUriOffset;
+  }
+
+  /**
+   * Set the HTML template source.
+   * 
+   * @param templateSource the template source to set
+   */
+  public void setTemplateSource(Source templateSource) {
+    this.templateSource = templateSource;
   }
 
   /**

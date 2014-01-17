@@ -28,6 +28,17 @@ import java.util.ArrayList;
  */
 public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
   /**
+   * The state of the Angular resolution errors.
+   */
+  private CacheState angularErrorsState = CacheState.INVALID;
+
+  /**
+   * The hints produced while performing Angular resolution, or an empty array if the error are not
+   * currently cached.
+   */
+  private AnalysisError[] angularErrors = AnalysisError.NO_ERRORS;
+
+  /**
    * The state of the cached parsed (but not resolved) HTML unit.
    */
   private CacheState parsedUnitState = CacheState.INVALID;
@@ -101,14 +112,25 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
   @Override
   public AnalysisError[] getAllErrors() {
     ArrayList<AnalysisError> errors = new ArrayList<AnalysisError>();
-    for (AnalysisError error : parseErrors) {
-      errors.add(error);
+    if (parseErrors != null) {
+      for (AnalysisError error : parseErrors) {
+        errors.add(error);
+      }
     }
-    for (AnalysisError error : resolutionErrors) {
-      errors.add(error);
+    if (resolutionErrors != null) {
+      for (AnalysisError error : resolutionErrors) {
+        errors.add(error);
+      }
     }
-    for (AnalysisError error : hints) {
-      errors.add(error);
+    if (angularErrors != null) {
+      for (AnalysisError error : angularErrors) {
+        errors.add(error);
+      }
+    }
+    if (hints != null) {
+      for (AnalysisError error : hints) {
+        errors.add(error);
+      }
     }
     if (errors.size() == 0) {
       return AnalysisError.NO_ERRORS;
@@ -123,7 +145,9 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
 
   @Override
   public CacheState getState(DataDescriptor<?> descriptor) {
-    if (descriptor == ELEMENT) {
+    if (descriptor == ANGULAR_ERRORS) {
+      return angularErrorsState;
+    } else if (descriptor == ELEMENT) {
       return elementState;
     } else if (descriptor == PARSE_ERRORS) {
       return parseErrorsState;
@@ -142,7 +166,9 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
   @Override
   @SuppressWarnings("unchecked")
   public <E> E getValue(DataDescriptor<E> descriptor) {
-    if (descriptor == ELEMENT) {
+    if (descriptor == ANGULAR_ERRORS) {
+      return (E) angularErrors;
+    } else if (descriptor == ELEMENT) {
       return (E) element;
     } else if (descriptor == PARSE_ERRORS) {
       return (E) parseErrors;
@@ -184,6 +210,9 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
    * Invalidate all of the resolution information associated with the HTML file.
    */
   public void invalidateAllResolutionInformation() {
+    angularErrors = AnalysisError.NO_ERRORS;
+    angularErrorsState = CacheState.INVALID;
+
     element = null;
     elementState = CacheState.INVALID;
 
@@ -211,6 +240,7 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
    * this entry.
    */
   public void recordResolutionError() {
+    setState(HtmlEntry.ANGULAR_ERRORS, CacheState.ERROR);
     setState(HtmlEntry.ELEMENT, CacheState.ERROR);
     setState(HtmlEntry.RESOLUTION_ERRORS, CacheState.ERROR);
     setState(HtmlEntry.HINTS, CacheState.ERROR);
@@ -218,7 +248,10 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
 
   @Override
   public void setState(DataDescriptor<?> descriptor, CacheState state) {
-    if (descriptor == ELEMENT) {
+    if (descriptor == ANGULAR_ERRORS) {
+      angularErrors = updatedValue(state, angularErrors, null);
+      angularErrorsState = state;
+    } else if (descriptor == ELEMENT) {
       element = updatedValue(state, element, null);
       elementState = state;
     } else if (descriptor == PARSE_ERRORS) {
@@ -243,7 +276,10 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
 
   @Override
   public <E> void setValue(DataDescriptor<E> descriptor, E value) {
-    if (descriptor == ELEMENT) {
+    if (descriptor == ANGULAR_ERRORS) {
+      angularErrors = (AnalysisError[]) value;
+      angularErrorsState = CacheState.VALID;
+    } else if (descriptor == ELEMENT) {
       element = (HtmlElement) value;
       elementState = CacheState.VALID;
     } else if (descriptor == PARSE_ERRORS) {
@@ -270,6 +306,8 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
   protected void copyFrom(SourceEntryImpl entry) {
     super.copyFrom(entry);
     HtmlEntryImpl other = (HtmlEntryImpl) entry;
+    angularErrorsState = other.angularErrorsState;
+    angularErrors = other.angularErrors;
     parseErrorsState = other.parseErrorsState;
     parseErrors = other.parseErrors;
     parsedUnitState = other.parsedUnitState;
@@ -298,5 +336,7 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
     builder.append(referencedLibrariesState);
     builder.append("; element = ");
     builder.append(elementState);
+    builder.append("; angularErrors = ");
+    builder.append(angularErrorsState);
   }
 }

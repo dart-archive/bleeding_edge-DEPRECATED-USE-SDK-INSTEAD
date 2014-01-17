@@ -33,6 +33,8 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementLocation;
 import com.google.dart.engine.element.HtmlElement;
 import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.element.angular.AngularComponentElement;
+import com.google.dart.engine.element.angular.AngularElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.internal.cache.AnalysisCache;
@@ -61,6 +63,7 @@ import com.google.dart.engine.internal.task.GenerateDartHintsTask;
 import com.google.dart.engine.internal.task.IncrementalAnalysisTask;
 import com.google.dart.engine.internal.task.ParseDartTask;
 import com.google.dart.engine.internal.task.ParseHtmlTask;
+import com.google.dart.engine.internal.task.ResolveAngularComponentTemplateTask;
 import com.google.dart.engine.internal.task.ResolveDartLibraryTask;
 import com.google.dart.engine.internal.task.ResolveDartUnitTask;
 import com.google.dart.engine.internal.task.ResolveHtmlTask;
@@ -122,6 +125,12 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     @Override
     public HtmlEntry visitParseHtmlTask(ParseHtmlTask task) throws AnalysisException {
       return recordParseHtmlTaskResults(task);
+    }
+
+    @Override
+    public HtmlEntry visitResolveAngularComponentTemplateTask(
+        ResolveAngularComponentTemplateTask task) throws AnalysisException {
+      return recordResolveAngularComponentTemplateTaskResults(task);
     }
 
     @Override
@@ -1273,6 +1282,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
                 dartCopy.setValue(DartEntry.RESOLUTION_ERRORS, librarySource, errors);
                 if (source == librarySource) {
                   recordElementData(dartCopy, library.getLibraryElement(), htmlSource);
+                  recordAngularComponents(library, dartCopy);
                 }
               } else {
                 dartCopy.recordResolutionError();
@@ -1379,7 +1389,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
           // This shouldn't be possible because we should never have performed the task if the
           // source didn't represent a Dart file, but check to be safe.
           throw new AnalysisException(
-              "Internal error: attempting to reolve non-Dart file as a Dart file: "
+              "Internal error: attempting to resolve non-Dart file as a Dart file: "
                   + source.getFullName());
         }
         long sourceTime = source.getModificationStamp();
@@ -1909,6 +1919,47 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
           return task;
         }
       }
+      //
+      // Look for HTML sources that should be resolved as Angular templates.
+      //
+      for (Map.Entry<Source, SourceEntry> entry : cache.entrySet()) {
+        SourceEntry sourceEntry = entry.getValue();
+        if (sourceEntry instanceof DartEntry) {
+          DartEntry dartEntry = (DartEntry) sourceEntry;
+          AngularElement[] angularElements = dartEntry.getValue(DartEntry.ANGULAR_ELEMENTS);
+          for (AngularElement angularElement : angularElements) {
+            // prepare Angular component
+            if (!(angularElement instanceof AngularComponentElement)) {
+              continue;
+            }
+            AngularComponentElement component = (AngularComponentElement) angularElement;
+            // prepare HTML template
+            Source templateSource = component.getTemplateSource();
+            if (templateSource == null) {
+              continue;
+            }
+            // prepare HTML template entry
+            HtmlEntry htmlEntry = getReadableHtmlEntry(templateSource);
+            if (htmlEntry == null) {
+              continue;
+            }
+            // we need an entry with invalid Angular errors
+            CacheState angularErrorsState = htmlEntry.getState(HtmlEntry.ANGULAR_ERRORS);
+            if (angularErrorsState != CacheState.INVALID) {
+              continue;
+            }
+            // do Angular component resolution
+            HtmlEntryImpl htmlCopy = htmlEntry.getWritableCopy();
+            htmlCopy.setState(HtmlEntry.ANGULAR_ERRORS, CacheState.IN_PROCESS);
+            cache.put(templateSource, htmlCopy);
+            return new ResolveAngularComponentTemplateTask(
+                this,
+                templateSource,
+                component,
+                angularElements);
+          }
+        }
+      }
       return null;
     }
   }
@@ -2338,6 +2389,51 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
+   * Updates {@link HtmlEntry}s that correspond to the previously known and new Angular components.
+   * 
+   * @param library the {@link Library} that was resolved
+   * @param dartCopy the {@link DartEntryImpl} to record new Angular components
+   */
+  private void recordAngularComponents(Library library, DartEntryImpl dartCopy)
+      throws AnalysisException {
+    // reset old Angular errors
+    AngularElement[] oldAngularElements = dartCopy.getValue(DartEntry.ANGULAR_ELEMENTS);
+    if (oldAngularElements != null) {
+      for (AngularElement angularElement : oldAngularElements) {
+        if (angularElement instanceof AngularComponentElement) {
+          AngularComponentElement component = (AngularComponentElement) angularElement;
+          Source templateSource = component.getTemplateSource();
+          if (templateSource != null) {
+            HtmlEntry htmlEntry = getReadableHtmlEntry(templateSource);
+            HtmlEntryImpl htmlCopy = htmlEntry.getWritableCopy();
+            htmlCopy.setValue(HtmlEntry.ANGULAR_ERRORS, AnalysisError.NO_ERRORS);
+            cache.put(templateSource, htmlCopy);
+            // notify about (disappeared) HTML errors
+            ChangeNoticeImpl notice = getNotice(templateSource);
+            notice.setErrors(htmlCopy.getAllErrors(), computeLineInfo(templateSource));
+          }
+        }
+      }
+    }
+    // invalidate new Angular errors
+    AngularElement[] newAngularElements = library.getAngularElements();
+    for (AngularElement angularElement : newAngularElements) {
+      if (angularElement instanceof AngularComponentElement) {
+        AngularComponentElement component = (AngularComponentElement) angularElement;
+        Source templateSource = component.getTemplateSource();
+        if (templateSource != null) {
+          HtmlEntry htmlEntry = getReadableHtmlEntry(templateSource);
+          HtmlEntryImpl htmlCopy = htmlEntry.getWritableCopy();
+          htmlCopy.setState(HtmlEntry.ANGULAR_ERRORS, CacheState.INVALID);
+          cache.put(templateSource, htmlCopy);
+        }
+      }
+    }
+    // remember Angular elements to resolve HTML templates later
+    dartCopy.setValue(DartEntry.ANGULAR_ELEMENTS, newAngularElements);
+  }
+
+  /**
    * Given a cache entry and a library element, record the library element and other information
    * gleaned from the element in the cache entry.
    * 
@@ -2761,6 +2857,87 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
+   * Record the results produced by performing a {@link ResolveAngularComponentTemplateTask}. If the
+   * results were computed from data that is now out-of-date, then the results will not be recorded.
+   * 
+   * @param task the task that was performed
+   * @throws AnalysisException if the results could not be recorded
+   */
+  private HtmlEntry recordResolveAngularComponentTemplateTaskResults(
+      ResolveAngularComponentTemplateTask task) throws AnalysisException {
+    Source source = task.getSource();
+    AnalysisException thrownException = task.getException();
+    HtmlEntry htmlEntry = null;
+    synchronized (cacheLock) {
+      SourceEntry sourceEntry = cache.get(source);
+      if (!(sourceEntry instanceof HtmlEntry)) {
+        // This shouldn't be possible because we should never have performed the task if the source
+        // didn't represent an HTML file, but check to be safe.
+        throw new AnalysisException(
+            "Internal error: attempting to resolve non-HTML file as an HTML file: "
+                + source.getFullName());
+      }
+      htmlEntry = (HtmlEntry) sourceEntry;
+      cache.accessed(source);
+      long sourceTime = source.getModificationStamp();
+      long resultTime = task.getModificationTime();
+      if (sourceTime == resultTime) {
+        if (htmlEntry.getModificationTime() != sourceTime) {
+          // The source has changed without the context being notified. Simulate notification.
+          sourceChanged(source);
+          htmlEntry = getReadableHtmlEntry(source);
+          if (htmlEntry == null) {
+            throw new AnalysisException("An HTML file became a non-HTML file: "
+                + source.getFullName());
+          }
+        }
+        HtmlEntryImpl htmlCopy = htmlEntry.getWritableCopy();
+        if (thrownException == null) {
+          htmlCopy.setValue(HtmlEntry.ANGULAR_ERRORS, task.getResolutionErrors());
+          ChangeNoticeImpl notice = getNotice(source);
+          notice.setErrors(htmlCopy.getAllErrors(), htmlCopy.getValue(SourceEntry.LINE_INFO));
+        } else {
+          htmlCopy.recordResolutionError();
+        }
+        htmlCopy.setException(thrownException);
+        cache.put(source, htmlCopy);
+        htmlEntry = htmlCopy;
+      } else {
+        HtmlEntryImpl htmlCopy = htmlEntry.getWritableCopy();
+        if (thrownException == null || resultTime >= 0L) {
+          //
+          // The analysis was performed on out-of-date sources. Mark the cache so that the sources
+          // will be re-analyzed using the up-to-date sources.
+          //
+          if (htmlCopy.getState(HtmlEntry.ANGULAR_ERRORS) == CacheState.IN_PROCESS) {
+            htmlCopy.setState(HtmlEntry.ANGULAR_ERRORS, CacheState.INVALID);
+          }
+          if (htmlCopy.getState(HtmlEntry.ELEMENT) == CacheState.IN_PROCESS) {
+            htmlCopy.setState(HtmlEntry.ELEMENT, CacheState.INVALID);
+          }
+          if (htmlCopy.getState(HtmlEntry.RESOLUTION_ERRORS) == CacheState.IN_PROCESS) {
+            htmlCopy.setState(HtmlEntry.RESOLUTION_ERRORS, CacheState.INVALID);
+          }
+        } else {
+          //
+          // We could not determine whether the sources were up-to-date or out-of-date. Mark the
+          // cache so that we won't attempt to re-analyze the sources until there's a good chance
+          // that we'll be able to do so without error.
+          //
+          htmlCopy.recordResolutionError();
+        }
+        htmlCopy.setException(thrownException);
+        cache.put(source, htmlCopy);
+        htmlEntry = htmlCopy;
+      }
+    }
+    if (thrownException != null) {
+      throw thrownException;
+    }
+    return htmlEntry;
+  }
+
+  /**
    * Record the results produced by performing a {@link ResolveDartUnitTask}. If the results were
    * computed from data that is now out-of-date, then the results will not be recorded.
    * 
@@ -2780,7 +2957,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         // This shouldn't be possible because we should never have performed the task if the source
         // didn't represent a Dart file, but check to be safe.
         throw new AnalysisException(
-            "Internal error: attempting to reolve non-Dart file as a Dart file: "
+            "Internal error: attempting to resolve non-Dart file as a Dart file: "
                 + unitSource.getFullName());
       }
       dartEntry = (DartEntry) sourceEntry;
@@ -2856,7 +3033,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         // This shouldn't be possible because we should never have performed the task if the source
         // didn't represent an HTML file, but check to be safe.
         throw new AnalysisException(
-            "Internal error: attempting to reolve non-HTML file as an HTML file: "
+            "Internal error: attempting to resolve non-HTML file as an HTML file: "
                 + source.getFullName());
       }
       htmlEntry = (HtmlEntry) sourceEntry;

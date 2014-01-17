@@ -26,11 +26,13 @@ public enum AngularCode implements ErrorCode {
   INVALID_PROPERTY_MAP("Argument 'map' must be a constant map literal"),
   INVALID_PROPERTY_NAME("Property name must be a string literal"),
   INVALID_PROPERTY_SPEC("Property binding specification must be a string literal"),
+  INVALID_URI("Invalid URI syntax: '%s'"),
   MISSING_CSS_URL("Argument 'cssUrl' must be provided"),
   MISSING_NAME("Argument 'name' must be provided"),
   MISSING_PUBLISH_AS("Argument 'publishAs' must be provided"),
   MISSING_TEMPLATE_URL("Argument 'templateUrl' must be provided"),
-  MISSING_SELECTOR("Argument 'selector' must be provided");
+  MISSING_SELECTOR("Argument 'selector' must be provided"),
+  URI_DOES_NOT_EXIST("Target of URI does not exist: '%s'");
 
   /**
    * The template used to create the message to be displayed for this error.

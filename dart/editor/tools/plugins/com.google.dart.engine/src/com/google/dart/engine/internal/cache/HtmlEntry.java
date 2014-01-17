@@ -26,6 +26,12 @@ import com.google.dart.engine.source.Source;
  */
 public interface HtmlEntry extends SourceEntry {
   /**
+   * The data descriptor representing the errors reported during Angular resolution.
+   */
+  public static final DataDescriptor<AnalysisError[]> ANGULAR_ERRORS = new DataDescriptor<AnalysisError[]>(
+      "HtmlEntry.ANGULAR_ERRORS");
+
+  /**
    * The data descriptor representing the HTML element.
    */
   public static final DataDescriptor<HtmlElement> ELEMENT = new DataDescriptor<HtmlElement>(

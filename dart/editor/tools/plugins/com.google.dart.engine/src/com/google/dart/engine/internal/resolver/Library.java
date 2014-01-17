@@ -20,6 +20,7 @@ import com.google.dart.engine.ast.StringInterpolation;
 import com.google.dart.engine.ast.StringLiteral;
 import com.google.dart.engine.ast.UriBasedDirective;
 import com.google.dart.engine.context.AnalysisException;
+import com.google.dart.engine.element.angular.AngularElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.error.CompileTimeErrorCode;
@@ -102,6 +103,11 @@ public class Library {
   private LibraryScope libraryScope;
 
   /**
+   * An array of all top-level Angular elements that could be used in this library.
+   */
+  private AngularElement[] angularElements;
+
+  /**
    * An empty array that can be used to initialize lists of libraries.
    */
   private static final Library[] EMPTY_ARRAY = new Library[0];
@@ -124,6 +130,15 @@ public class Library {
     this.errorListener = errorListener;
     this.librarySource = librarySource;
     this.libraryElement = (LibraryElementImpl) analysisContext.getLibraryElement(librarySource);
+  }
+
+  /**
+   * Return an array of all top-level Angular elements that could be used in this library.
+   * 
+   * @return an array of all top-level Angular elements that could be used in this library
+   */
+  public AngularElement[] getAngularElements() {
+    return angularElements;
   }
 
   /**
@@ -361,6 +376,16 @@ public class Library {
    */
   public String getUri(UriBasedDirective directive) {
     return directiveUris.get(directive);
+  }
+
+  /**
+   * Set the array of all top-level Angular elements that could be used in this library.
+   * 
+   * @param angularElements the array of all top-level Angular elements that could be used in this
+   *          library
+   */
+  public void setAngularElements(AngularElement[] angularElements) {
+    this.angularElements = angularElements;
   }
 
   /**

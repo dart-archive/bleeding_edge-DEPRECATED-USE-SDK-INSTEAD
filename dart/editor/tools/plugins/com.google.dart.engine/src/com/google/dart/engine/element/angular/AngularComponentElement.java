@@ -13,6 +13,8 @@
  */
 package com.google.dart.engine.element.angular;
 
+import com.google.dart.engine.source.Source;
+
 /**
  * The interface {@code AngularControllerElement} defines the Angular component described by
  * <code>NgComponent</code> annotation.
@@ -36,6 +38,11 @@ public interface AngularComponentElement extends AngularHasSelectorElement {
    * @return the offset of the style URI
    */
   int getStyleUriOffset();
+
+  /**
+   * Returns the HTML template {@link Source}, {@code null} if not resolved.
+   */
+  Source getTemplateSource();
 
   /**
    * Returns the HTML template URI.

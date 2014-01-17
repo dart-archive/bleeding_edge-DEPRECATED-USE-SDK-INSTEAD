@@ -22,4 +22,8 @@ import com.google.dart.engine.element.ToolkitObjectElement;
  * @coverage dart.engine.element
  */
 public interface AngularElement extends ToolkitObjectElement {
+  /**
+   * An empty array of angular elements.
+   */
+  AngularElement[] EMPTY_ARRAY = new AngularElement[0];
 }

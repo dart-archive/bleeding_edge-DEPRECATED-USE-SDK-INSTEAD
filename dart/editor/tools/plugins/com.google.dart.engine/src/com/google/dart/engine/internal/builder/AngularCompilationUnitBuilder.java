@@ -37,15 +37,20 @@ import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.SimpleStringLiteral;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
+import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.ClassElement;
+import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.FieldElement;
+import com.google.dart.engine.element.ImportElement;
+import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.element.ToolkitObjectElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.element.angular.AngularComponentElement;
 import com.google.dart.engine.element.angular.AngularDirectiveElement;
+import com.google.dart.engine.element.angular.AngularElement;
 import com.google.dart.engine.element.angular.AngularModuleElement;
 import com.google.dart.engine.element.angular.AngularPropertyElement;
 import com.google.dart.engine.element.angular.AngularPropertyKind;
@@ -64,11 +69,15 @@ import com.google.dart.engine.internal.element.angular.AngularModuleElementImpl;
 import com.google.dart.engine.internal.element.angular.AngularPropertyElementImpl;
 import com.google.dart.engine.internal.element.angular.HasAttributeSelectorElementImpl;
 import com.google.dart.engine.internal.element.angular.IsTagSelectorElementImpl;
+import com.google.dart.engine.internal.scope.Namespace;
+import com.google.dart.engine.internal.scope.NamespaceBuilder;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
 import com.google.dart.engine.utilities.general.StringUtilities;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Set;
 
@@ -101,6 +110,31 @@ public class AngularCompilationUnitBuilder {
   private static final String NG_ONE_WAY = "NgOneWay";
   private static final String NG_ONE_WAY_ONE_TIME = "NgOneWayOneTime";
   private static final String NG_TWO_WAY = "NgTwoWay";
+
+  /**
+   * Returns the array of all top-level Angular elements that could be used in this library.
+   * 
+   * @param libraryElement the {@link LibraryElement} to analyze
+   * @return the array of all top-level Angular elements that could be used in this library
+   */
+  public static AngularElement[] getAngularElements(LibraryElement libraryElement) {
+    List<AngularElement> angularElements = Lists.newArrayList();
+    // add Angular elements from current library
+    for (CompilationUnitElement unit : libraryElement.getParts()) {
+      for (ClassElement type : unit.getTypes()) {
+        addAngularElements(angularElements, type);
+      }
+    }
+    // handle imports
+    for (ImportElement importElement : libraryElement.getImports()) {
+      Namespace namespace = new NamespaceBuilder().createImportNamespace(importElement);
+      for (Element importedElement : namespace.getDefinedNames().values()) {
+        addAngularElements(angularElements, importedElement);
+      }
+    }
+    // done
+    return angularElements.toArray(new AngularElement[angularElements.size()]);
+  }
 
   public static Element getElement(ASTNode node, int offset) {
     // maybe no node
@@ -199,6 +233,24 @@ public class AngularCompilationUnitBuilder {
   }
 
   /**
+   * Adds {@link AngularElement} declared by the given top-level {@link Element}.
+   * 
+   * @param angularElements the list to fill with top-level {@link AngularElement}s
+   * @param unitMember the top-level member of unit, such as {@link ClassElement}, to get
+   *          {@link AngularElement}s from
+   */
+  private static void addAngularElements(List<AngularElement> angularElements, Element unitMember) {
+    if (unitMember instanceof ClassElement) {
+      ClassElement type = (ClassElement) unitMember;
+      for (ToolkitObjectElement toolkitObject : type.getToolkitObjects()) {
+        if (toolkitObject instanceof AngularElement) {
+          angularElements.add((AngularElement) toolkitObject);
+        }
+      }
+    }
+  }
+
+  /**
    * Returns the {@link FieldElement} of the first field in the given {@link FieldDeclaration}.
    */
   private static FieldElement getOnlyFieldElement(FieldDeclaration fieldDeclaration) {
@@ -243,14 +295,19 @@ public class AngularCompilationUnitBuilder {
   }
 
   /**
-   * The source containing the unit that will be analyzed.
+   * The {@link AnalysisContext} that performs analysis.
    */
-  private final Source source;
+  private final AnalysisContext context;
 
   /**
    * The listener to which errors will be reported.
    */
   private final AnalysisErrorListener errorListener;
+
+  /**
+   * The source containing the unit that will be analyzed.
+   */
+  private final Source source;
 
   /**
    * The {@link ClassDeclaration} that is currently being analyzed.
@@ -278,7 +335,9 @@ public class AngularCompilationUnitBuilder {
    * @param errorListener the listener to which errors will be reported.
    * @param source the source containing the unit that will be analyzed
    */
-  public AngularCompilationUnitBuilder(AnalysisErrorListener errorListener, Source source) {
+  public AngularCompilationUnitBuilder(AnalysisContext context,
+      AnalysisErrorListener errorListener, Source source) {
+    this.context = context;
     this.errorListener = errorListener;
     this.source = source;
   }
@@ -594,6 +653,24 @@ public class AngularCompilationUnitBuilder {
       element.setSelector(selector);
       element.setTemplateUri(templateUri);
       element.setTemplateUriOffset(templateUriOffset);
+      // resolve template URI
+      // TODO(scheglov) resolve to HtmlElement to allow F3 ?
+      {
+        try {
+          new URI(templateUri);
+          // TODO(scheglov) think if there is better solution
+          if (templateUri.startsWith("packages/")) {
+            templateUri = "package:" + templateUri.substring("packages/".length());
+          }
+          Source templateSource = context.getSourceFactory().resolveUri(source, templateUri);
+          if (templateSource == null || !templateSource.exists()) {
+            reportErrorForArgument(TEMPLATE_URL, AngularCode.URI_DOES_NOT_EXIST, templateUri);
+          }
+          element.setTemplateSource(templateSource);
+        } catch (URISyntaxException exception) {
+          reportErrorForArgument(TEMPLATE_URL, AngularCode.INVALID_URI, templateUri);
+        }
+      }
       element.setStyleUri(styleUri);
       element.setStyleUriOffset(styleUriOffset);
       element.setProperties(parseNgComponentProperties(true));
