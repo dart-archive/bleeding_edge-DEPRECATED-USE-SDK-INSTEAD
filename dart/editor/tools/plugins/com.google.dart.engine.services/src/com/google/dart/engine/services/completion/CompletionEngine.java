@@ -121,6 +121,7 @@ import com.google.dart.engine.search.SearchScope;
 import com.google.dart.engine.search.SearchScopeFactory;
 import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.engine.services.internal.correction.CorrectionUtils;
+import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.InterfaceType;
@@ -131,6 +132,7 @@ import com.google.dart.engine.utilities.dart.ParameterKind;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.File;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -2017,32 +2019,7 @@ public class CompletionEngine {
     }
   }
 
-  void namespacePackageReference(NamespaceDirective node, List<LibraryElement> libraries,
-      List<LibraryElement> librariesInLib) {
-    String prefix = filter.prefix;
-    if (prefix.startsWith("dart:") || prefix.startsWith("package:")) {
-      return;
-    }
-    if (isUnitInLibFolder(context.getCompilationUnit().getElement())) {
-      namespacePackageReferenceFromList(node, prefix, librariesInLib);
-    } else {
-      namespacePackageReferenceFromList(node, prefix, libraries);
-    }
-  }
-
-  void namespacePackageReferenceFromList(NamespaceDirective node, String prefix,
-      List<LibraryElement> libraries) {
-//    context.getCompilationUnit().getElement().getSource().getFullName();
-//    URI baseUri = currentCompilationUnit.getUnderlyingResource().getParent().getLocationURI();
-//    for (LibraryElement library : libraries) {
-//      String name = URIUtilities.relativize(baseUri, library.getUri()).toString();
-//      if (name.startsWith(prefix)) {
-//        pName(name, ProposalKind.IMPORT);
-//      }
-//    }
-  }
-
-  void namespacePubReference(NamespaceDirective node, List<String> packages) {
+  void namespacePubReference(NamespaceDirective node, Set<String> packageUris) {
     // no import URI or package:
     String prefix = filter.prefix;
     String[] prefixStrings = prefix.split(":");
@@ -2054,15 +2031,36 @@ public class CompletionEngine {
       pName("package:", ProposalKind.IMPORT);
       return;
     }
+    // check "packages" folder for package libraries that are not added to AnalysisContext
+    {
+      Source contextSource = context.getSource();
+      if (contextSource instanceof FileBasedSource) {
+        FileBasedSource contextFileSource = (FileBasedSource) contextSource;
+        String contextFilePath = contextFileSource.getFullName();
+        File contextFile = new File(contextFilePath);
+        File contextFolder = contextFile.getParentFile();
+        File contextPackages = new File(contextFolder, "packages");
+        if (contextPackages.isDirectory()) {
+          for (File packageFolder : contextPackages.listFiles()) {
+            String packageName = packageFolder.getName();
+            String packageLibName = packageName + ".dart";
+            File packageFile = new File(packageFolder, packageLibName);
+            if (packageFile.exists() && packageFile.isFile()) {
+              packageUris.add("package:" + packageName + "/" + packageLibName);
+            }
+          }
+        }
+      }
+    }
     // add known package: URIs
-    for (String lib : packages) {
-      if (filterDisallows(lib)) {
+    for (String uri : packageUris) {
+      if (filterDisallows(uri)) {
         continue;
       }
       CompletionProposal prop = createProposal(ProposalKind.IMPORT);
-      prop.setCompletion(lib);
-      // pub "lib" before "lib/src"
-      if (!lib.contains("/src/")) {
+      prop.setCompletion(uri);
+      // put "lib" before "lib/src"
+      if (!uri.contains("/src/")) {
         prop.setRelevance(CompletionProposal.RELEVANCE_HIGH);
       }
       // done
@@ -2076,7 +2074,7 @@ public class CompletionEngine {
       lit = lit.substring(1, Math.max(lit.length() - 1, 0));
     }
     filter = new Filter(new Ident(node, lit, literal.getOffset() + 1));
-    List<String> packages = new ArrayList<String>();
+    Set<String> packageUris = Sets.newHashSet();
     List<LibraryElement> libraries = new ArrayList<LibraryElement>();
     List<LibraryElement> librariesInLib = new ArrayList<LibraryElement>();
     String currentLibraryName = getCurrentLibrary().getSource().getFullName();
@@ -2094,7 +2092,7 @@ public class CompletionEngine {
         if (uri != null) {
           String uriString = uri.toString();
           if (uriString.startsWith("package:")) {
-            packages.add(uriString);
+            packageUris.add(uriString);
           }
         }
       }
@@ -2108,7 +2106,7 @@ public class CompletionEngine {
       }
     }
     namespaceSdkReference(node);
-    namespacePubReference(node, packages);
+    namespacePubReference(node, packageUris);
 //    importPackageReference(node, libraries, librariesInLib);
   }
 
