@@ -165,11 +165,9 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
     return copy;
   }
 
-  /**
-   * Invalidate all of the information associated with the HTML file.
-   */
+  @Override
   public void invalidateAllInformation() {
-    setState(LINE_INFO, CacheState.INVALID);
+    super.invalidateAllInformation();
 
     parseErrors = AnalysisError.NO_ERRORS;
     parseErrorsState = CacheState.INVALID;

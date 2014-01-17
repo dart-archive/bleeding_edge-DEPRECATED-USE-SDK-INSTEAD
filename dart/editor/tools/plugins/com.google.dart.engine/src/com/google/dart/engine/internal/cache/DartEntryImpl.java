@@ -624,11 +624,9 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     }
   }
 
-  /**
-   * Invalidate all of the information associated with the compilation unit.
-   */
+  @Override
   public void invalidateAllInformation() {
-    setState(LINE_INFO, CacheState.INVALID);
+    super.invalidateAllInformation();
 
     sourceKind = SourceKind.UNKNOWN;
     sourceKindState = CacheState.INVALID;

@@ -997,6 +997,9 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     long getStart = System.currentTimeMillis();
     AnalysisTask task = getNextTaskAnalysisTask();
     long getEnd = System.currentTimeMillis();
+    if (task == null && validateCacheConsistency()) {
+      task = getNextTaskAnalysisTask();
+    }
     if (task == null) {
       return new AnalysisResult(getChangeNotices(true), getEnd - getStart, null, -1L);
     }
@@ -3022,5 +3025,34 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     }
     cache.remove(source);
     logInformation(writer.toString());
+  }
+
+  /**
+   * Check the cache for any invalid entries (entries whose modification time does not match the
+   * modification time of the source associated with the entry). Invalid entries will be marked as
+   * invalid so that the source will be re-analyzed.
+   * <p>
+   * <b>Note:</b> This method must only be invoked while we are synchronized on {@link #cacheLock}.
+   * 
+   * @return {@code true} if at least one entry was invalid
+   */
+  private boolean validateCacheConsistency() {
+    long consistencyCheckStart = System.nanoTime();
+    int inconsistentCount = 0;
+    synchronized (cacheLock) {
+      for (Map.Entry<Source, SourceEntry> entry : cache.entrySet()) {
+        Source source = entry.getKey();
+        SourceEntry sourceEntry = entry.getValue();
+        long sourceTime = source.getModificationStamp();
+        if (sourceTime != sourceEntry.getModificationTime()) {
+          sourceChanged(source);
+          inconsistentCount++;
+        }
+      }
+    }
+    long consistencyCheckEnd = System.nanoTime();
+    logInformation("Consistency check found " + inconsistentCount + " inconsistent entries in "
+        + ((consistencyCheckEnd - consistencyCheckStart) / 1000000.0) + " ms");
+    return inconsistentCount > 0;
   }
 }

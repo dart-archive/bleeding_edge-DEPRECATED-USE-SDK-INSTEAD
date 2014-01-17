@@ -88,6 +88,14 @@ public abstract class SourceEntryImpl implements SourceEntry {
   }
 
   /**
+   * Invalidate all of the information associated with this source.
+   */
+  public void invalidateAllInformation() {
+    lineInfo = null;
+    lineInfoState = CacheState.INVALID;
+  }
+
+  /**
    * Set the exception that caused one or more values to have a state of {@link CacheState#ERROR} to
    * the given exception.
    * 
