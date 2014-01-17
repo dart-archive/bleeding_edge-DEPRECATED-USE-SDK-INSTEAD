@@ -2,8 +2,6 @@
 <html>
   <head>
     <meta charset="utf8">
-    <script type="application/dart" src="client.dart"></script>
-    <script src="packages/browser/dart.js"></script>
     <style type="text/css">
     body {
       font-family: helvetica;
@@ -40,16 +38,17 @@
   <body>
     <header>
       <h1>Search the Web for Dart</h1>
-      <div>Seach through StackOverflow and GitHub for Dart-related topics and
+      <div>Search StackOverflow and GitHub for Dart-related topics and
       repositories.</div>
-      <input type="search" placeholder="Search" value="" id="q" disabled>
-      </input>
+      <input type="search" placeholder="Search" value="" id="q" disabled />
       <div id="status"></div>
     </header>
-    <div id="results">
-    </div>
+    <div id="results"></div>
     <div class="clear"></div>
-    <footer>Search-requests are sent to the server-side Dart application,
-    that will forward the requests to the invidual API providers.</footer>
+    <footer>This app sends your search request to a server-side Dart application,
+    which forwards the request to StackOverflow and GitHub.</footer>
+
+    <script type="application/dart" src="client.dart"></script>
+    <script src="packages/browser/dart.js"></script>
   </body>
 </html>

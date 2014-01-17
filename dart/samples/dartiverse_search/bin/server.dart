@@ -27,12 +27,12 @@ final List<SearchEngine> searchEngines = [
 /**
  * Handle an established [WebSocket] connection.
  *
- * The web-socket can send search requests as JSON-formatted messages,
- * that will be responded to with a series of results and finally a done
+ * The WebSocket can send search requests as JSON-formatted messages,
+ * which will be responded to with a series of results and finally a done
  * message.
  */
 void handleWebSocket(WebSocket webSocket) {
-  log.info('New web-socket connection');
+  log.info('New WebSocket connection');
 
   // Listen for incoming data. We expect the data to be a JSON-encoded String.
   webSocket
@@ -49,7 +49,7 @@ void handleWebSocket(WebSocket webSocket) {
           for (var engine in searchEngines) {
             engine.search(input)
               .listen((result) {
-                // The search-engine found a result. Sent it to the client.
+                // The search-engine found a result. Send it to the client.
                 log.info("Got result from ${engine.name} for '$input': "
                          "${result.title}");
                 var response = {
@@ -61,7 +61,7 @@ void handleWebSocket(WebSocket webSocket) {
                 webSocket.add(JSON.encode(response));
               }, onError: (error) {
                 log.warning("Error while searching on ${engine.name}: $error");
-              },onDone: () {
+              }, onDone: () {
                 done++;
                 if (done == searchEngines.length) {
                   // All search-engines are done. Send done message to the
@@ -73,7 +73,7 @@ void handleWebSocket(WebSocket webSocket) {
           break;
 
         default:
-          log.warning("Invalid request '$request'.");
+          log.warning("Invalid request: '$request'");
       }
     }, onError: (error) {
       log.warning('Bad WebSocket request');
@@ -108,18 +108,18 @@ void main() {
 
     // Set up default handler. This will serve files from our 'build' directory.
     var virDir = new http_server.VirtualDirectory(buildPath);
-    // Disable jail-root, as packages are local sym-links.
+    // Disable jail root, as packages are local symlinks.
     virDir.jailRoot = false;
     virDir.allowDirectoryListing = true;
     virDir.directoryHandler = (dir, request) {
-      // Redirect directory-requests to index.html files.
+      // Redirect directory requests to index.html files.
       var indexUri = new Uri.file(dir.path).resolve('index.html');
       virDir.serveFile(new File(indexUri.toFilePath()), request);
     };
 
     // Add an error page handler.
     virDir.errorPageHandler = (HttpRequest request) {
-      log.warning("Resource not found ${request.uri.path}");
+      log.warning("Resource not found: ${request.uri.path}");
       request.response.statusCode = HttpStatus.NOT_FOUND;
       request.response.close();
     };

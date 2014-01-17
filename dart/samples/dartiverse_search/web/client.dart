@@ -11,6 +11,7 @@ class Client {
   static const Duration RECONNECT_DELAY = const Duration(milliseconds: 500);
 
   bool connectPending = false;
+  String mostRecentSearch = null;
   WebSocket webSocket;
   final DivElement log = new DivElement();
   SearchInputElement searchElement = querySelector('#q');
@@ -31,13 +32,13 @@ class Client {
     webSocket.onOpen.first.then((_) {
       onConnected();
       webSocket.onClose.first.then((_) {
-        print("Connection disconnected to ${webSocket.url}");
+        print("Connection disconnected to ${webSocket.url}.");
         onDisconnected();
       });
     });
     webSocket.onError.first.then((_) {
       print("Failed to connect to ${webSocket.url}. "
-            "Please run bin/server.dart and try again.");
+            "Run bin/server.dart and try again.");
       onDisconnected();
     });
   }
@@ -47,14 +48,14 @@ class Client {
     searchElement.disabled = false;
     searchElement.focus();
     webSocket.onMessage.listen((e) {
-      onMessage(e.data);
+      handleMessage(e.data);
     });
   }
 
   void onDisconnected() {
     if (connectPending) return;
     connectPending = true;
-    setStatus('Disconnected - start \'bin/server.dart\' to continue');
+    setStatus('Disconnected. Start \'bin/server.dart\' to continue.');
     searchElement.disabled = true;
     new Timer(RECONNECT_DELAY, connect);
   }
@@ -64,7 +65,7 @@ class Client {
   }
 
 
-  void onMessage(data) {
+  void handleMessage(data) {
     var json = JSON.decode(data);
     var response = json['response'];
     switch (response) {
@@ -73,7 +74,10 @@ class Client {
         break;
 
       case 'searchDone':
-        setStatus(resultsElement.children.isEmpty ? "No results found" : "");
+        setStatus(resultsElement.children.isEmpty
+             ? "$mostRecentSearch: No results found"
+             : "$mostRecentSearch: "
+               "${resultsElement.children.length} results found");
         break;
 
       default:
@@ -94,13 +98,14 @@ class Client {
 
   void search(String input) {
     if (input.isEmpty) return;
-    setStatus('Searching...');
+    setStatus('Searching for $input...');
     resultsElement.children.clear();
     var request = {
       'request': 'search',
       'input': input
     };
     webSocket.send(JSON.encode(request));
+    mostRecentSearch = input;
   }
 }
 
