@@ -726,6 +726,17 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
     assertMainErrors(AngularCode.MISSING_SELECTOR);
   }
 
+  public void test_NgController_noAnnotationArguments() throws Exception {
+    String mainContent = createAngularModuleSource(//
+        formatLines(//
+            "@NgController",
+            "class MyController {",
+            "}"),
+        formatLines("MyController"));
+    resolveMainSource(mainContent);
+    // ignore errors, but there should be no exceptions
+  }
+
   public void test_NgDirective() throws Exception {
     String mainContent = createAngularModuleSource(//
         formatLines(//

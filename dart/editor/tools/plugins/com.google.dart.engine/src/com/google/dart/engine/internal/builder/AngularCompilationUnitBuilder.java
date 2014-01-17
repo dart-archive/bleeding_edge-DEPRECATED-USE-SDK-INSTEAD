@@ -299,6 +299,10 @@ public class AngularCompilationUnitBuilder {
         // process annotations
         NodeList<Annotation> annotations = classDeclaration.getMetadata();
         for (Annotation annotation : annotations) {
+          // verify annotation
+          if (annotation.getArguments() == null) {
+            continue;
+          }
           this.annotation = annotation;
           // @NgFilter
           if (isAngularAnnotation(NG_FILTER)) {
