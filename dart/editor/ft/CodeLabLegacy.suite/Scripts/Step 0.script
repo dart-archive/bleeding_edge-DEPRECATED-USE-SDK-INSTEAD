@@ -34,6 +34,7 @@ if (util's isLinux) then
 end if
 DoubleClick (ImageLocation(Text:"void createDocument",CaseSensitive:"yes",ValidCharacters:"*",dpi:94)) + (offset,0)
 Click "run button"
+set the SearchRectangle to ((100,400),(500,800))
 WaitFor 10,"debug line indicator"
 
 Click "step into icon"

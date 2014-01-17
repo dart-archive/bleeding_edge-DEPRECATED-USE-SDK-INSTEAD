@@ -20,14 +20,17 @@ set the SearchRectangle to ((200,150),(700,350))
 Click "create app button"
 set the SearchRectangle to ()
 TypeText "sample"
-TypeText tab,tab,tab,tab
+TypeText tab,tab
+if util.isLinux()
+	TypeText tab,tab
+end if
 TypeText downArrow
 TypeText enter
 Wait 30
 WaitFor 10.0, "pubspec lock" (* confirm file creation *)
 Click "run button"
 set the SearchRectangle to ((200,200),(700,700))
-WaitFor 2,(Text:"click count",CaseSensitive:"yes",IgnoreSpaces:"yes",ValidCharacters:"*",dpi:94)
+WaitFor 10,(Text:"click count",CaseSensitive:"yes",IgnoreSpaces:"yes",ValidCharacters:"*",dpi:94)
 set the SearchRectangle to ()
 util.exitChromium
 util.deleteProject "sample project"
@@ -38,16 +41,25 @@ set the SearchRectangle to ((200,150),(700,350))
 Click "create app button"
 set the SearchRectangle to ()
 TypeText "sample"
-TypeText tab,tab,tab,tab
+TypeText tab,tab
+if util.isLinux()
+	TypeText tab,tab
+end if
 TypeText upArrow,upArrow
 TypeText enter
 Wait 5
 WaitFor 10.0, "pubspec lock" (* confirm file creation *)
 util.selectContextImageMenuItem "manifest", "Run as Chrome App"
-set the SearchRectangle to ((200,200),(700,700))
-WaitFor 2,(Text:"Click me!",CaseSensitive:"yes",IgnoreSpaces:"yes",ValidCharacters:"*",dpi:94)
+if util.isMacOSX() then
+	set the SearchRectangle to ((700,350),(1300,850))
+else
+	set the SearchRectangle to ((200,200),(700,700))
+end if
+WaitFor 10,(Text:"Click me!",CaseSensitive:"yes",IgnoreSpaces:"yes",ValidCharacters:"*",dpi:94)
 set the SearchRectangle to ()
 if (util.isLinux()) then
 	Click "close window X"
 end if
 util.exitChromium
+util.deleteProject "sample project"
+util.deleteOutput
