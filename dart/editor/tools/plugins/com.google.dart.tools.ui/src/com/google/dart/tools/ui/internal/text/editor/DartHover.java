@@ -192,6 +192,7 @@ public class DartHover implements ITextHover, ITextHoverExtension, ITextHoverExt
           String text = element.toString();
           text = WordUtils.wrap(text, 100);
           setGridVisible(elementSection, true);
+          elementSection.setTitle(WordUtils.capitalize(element.getKind().getDisplayName()));
           elementSection.setText(text);
         }
         // Dart Doc
@@ -213,6 +214,7 @@ public class DartHover implements ITextHover, ITextHoverExtension, ITextHoverExt
           String text = node.toSource();
           text = WordUtils.wrap(text, 100);
           setGridVisible(elementSection, true);
+          elementSection.setTitle("Node");
           elementSection.setText(text);
         }
         // parameter
@@ -348,6 +350,10 @@ public class DartHover implements ITextHover, ITextHoverExtension, ITextHoverExt
     public void setText(String text) {
       textWidget.setText(text);
       textWidget.setSelection(0);
+    }
+
+    public void setTitle(String title) {
+      section.setText(title);
     }
   }
 
