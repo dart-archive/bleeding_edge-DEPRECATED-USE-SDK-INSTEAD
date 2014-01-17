@@ -16,7 +16,10 @@ package com.google.dart.engine.ast.visitor;
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.ConstructorDeclaration;
+import com.google.dart.engine.ast.InstanceCreationExpression;
 import com.google.dart.engine.ast.MethodInvocation;
+import com.google.dart.engine.ast.PrefixedIdentifier;
+import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ConstructorElement;
@@ -29,7 +32,14 @@ import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.internal.context.AnalysisOptionsImpl;
 import com.google.dart.engine.internal.index.AbstractDartTest;
 import com.google.dart.engine.resolver.ResolverTestCase;
+import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.source.Source;
+
+import static com.google.dart.engine.ast.ASTFactory.identifier;
+import static com.google.dart.engine.ast.ASTFactory.instanceCreationExpression;
+import static com.google.dart.engine.ast.ASTFactory.typeName;
+import static com.google.dart.engine.element.ElementFactory.classElement;
+import static com.google.dart.engine.element.ElementFactory.constructorElement;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -123,6 +133,37 @@ public class ElementLocatorTest extends ResolverTestCase {
         "}");
     Element element = ElementLocator.locate(node);
     assertInstanceOf(ConstructorElement.class, element);
+  }
+
+  public void test_InstanceCreationExpression_type_prefixedIdentifier() throws Exception {
+    // prepare: new pref.A()
+    SimpleIdentifier identifier = identifier("A");
+    PrefixedIdentifier prefixedIdentifier = identifier("pref", identifier);
+    InstanceCreationExpression creation = instanceCreationExpression(
+        Keyword.NEW,
+        typeName(prefixedIdentifier));
+    // set ConstructorElement
+    ClassElement classElement = classElement("A");
+    ConstructorElement constructorElement = constructorElement(classElement, null);
+    creation.getConstructorName().setStaticElement(constructorElement);
+    // verify that "A" is resolved to ConstructorElement
+    Element element = ElementLocator.locate(identifier);
+    assertSame(constructorElement, element);
+  }
+
+  public void test_InstanceCreationExpression_type_simpleIdentifier() throws Exception {
+    // prepare: new A()
+    SimpleIdentifier identifier = identifier("A");
+    InstanceCreationExpression creation = instanceCreationExpression(
+        Keyword.NEW,
+        typeName(identifier));
+    // set ConstructorElement
+    ClassElement classElement = classElement("A");
+    ConstructorElement constructorElement = constructorElement(classElement, null);
+    creation.getConstructorName().setStaticElement(constructorElement);
+    // verify that "A" is resolved to ConstructorElement
+    Element element = ElementLocator.locate(identifier);
+    assertSame(constructorElement, element);
   }
 
   public void test_libraryElement_export() throws Exception {
