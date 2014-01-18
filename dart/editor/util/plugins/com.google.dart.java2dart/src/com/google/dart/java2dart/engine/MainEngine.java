@@ -1211,7 +1211,8 @@ public class MainEngine {
       // non-IO part
       if (isEnginePath(file, "sdk/DartSdk") || isEnginePath(file, "sdk/SdkLibrary")
           || isEnginePath(file, "internal/sdk/SdkLibraryImpl")
-          || isEnginePath(file, "internal/sdk/LibraryMap")) {
+          || isEnginePath(file, "internal/sdk/LibraryMap")
+          || isEnginePath(file, "internal/sdk/LibraryBuilder")) {
         continue;
       }
       // IO part
@@ -1230,14 +1231,28 @@ public class MainEngine {
             "source.dart",
             null,
             importShowCombinator("ContentCache", "Source", "UriKind")));
+    unit.getDirectives().add(importDirective("ast.dart", null));
     unit.getDirectives().add(
         importDirective("engine.dart", null, importShowCombinator("AnalysisContext")));
     for (Entry<File, List<CompilationUnitMember>> entry : context.getFileToMembers().entrySet()) {
       File file = entry.getKey();
+      List<CompilationUnitMember> members = entry.getValue();
+      {
+        for (Iterator<CompilationUnitMember> iter = members.iterator(); iter.hasNext();) {
+          CompilationUnitMember member = iter.next();
+          if (member instanceof ClassDeclaration
+              && ((ClassDeclaration) member).getName().getName().endsWith(
+                  "SdkLibrariesReader_LibraryBuilder")) {
+            unit.getDeclarations().add(member);
+            iter.remove();
+            continue;
+          }
+        }
+      }
       if (isEnginePath(file, "sdk/DartSdk") || isEnginePath(file, "sdk/SdkLibrary")
           || isEnginePath(file, "internal/sdk/SdkLibraryImpl")
           || isEnginePath(file, "internal/sdk/LibraryMap")) {
-        addNotRemovedCompiationUnitEntries(unit, entry.getValue());
+        addNotRemovedCompiationUnitEntries(unit, members);
       }
     }
     return unit;
