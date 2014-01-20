@@ -15,6 +15,7 @@ package com.google.dart.engine.html.scanner;
 
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.collection.IntList;
+import com.google.dart.engine.utilities.general.StringUtilities;
 
 import static com.google.dart.engine.html.scanner.TokenType.COMMENT;
 import static com.google.dart.engine.html.scanner.TokenType.DECLARATION;
@@ -243,7 +244,7 @@ public abstract class AbstractScanner {
               c = recordStartOfLineAndAdvance(c);
             }
             emit(DECLARATION, start, -1);
-            if (!tail.getLexeme().endsWith(">")) {
+            if (!StringUtilities.endsWithChar(tail.getLexeme(), '>')) {
               // TODO (danrubel): Report missing '>' in directive
             }
           }

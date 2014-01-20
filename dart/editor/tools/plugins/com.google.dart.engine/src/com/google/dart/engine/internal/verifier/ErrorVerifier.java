@@ -143,6 +143,7 @@ import com.google.dart.engine.type.Type;
 import com.google.dart.engine.type.TypeParameterType;
 import com.google.dart.engine.utilities.dart.ParameterKind;
 import com.google.dart.engine.utilities.general.ObjectUtilities;
+import com.google.dart.engine.utilities.general.StringUtilities;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -3681,7 +3682,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
         // Figure out the correct identifier to lookup in the inheritance graph, if 'x', then 'x=',
         // or if 'x=', then 'x'.
         String lookupIdentifier = propertyAccessorElement.getName();
-        if (lookupIdentifier.endsWith("=")) {
+        if (StringUtilities.endsWithChar(lookupIdentifier, '=')) {
           lookupIdentifier = lookupIdentifier.substring(0, lookupIdentifier.length() - 1);
         } else {
           lookupIdentifier += "=";
@@ -4276,7 +4277,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     }
     // name should start with '_'
     SimpleIdentifier name = node.getIdentifier();
-    if (name.isSynthetic() || !name.getName().startsWith("_")) {
+    if (name.isSynthetic() || !StringUtilities.startsWithChar(name.getName(), '_')) {
       return false;
     }
     // report problem

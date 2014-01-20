@@ -99,12 +99,6 @@ public class AngularCompilationUnitBuilder {
   private static final String TEMPLATE_URL = "templateUrl";
   private static final String CSS_URL = "cssUrl";
 
-  private static final String PREFIX_ATTR = "@";
-  private static final String PREFIX_CALLBACK = "&";
-  private static final String PREFIX_ONE_WAY = "=>";
-  private static final String PREFIX_ONE_WAY_ONE_TIME = "=>!";
-  private static final String PREFIX_TWO_WAY = "<=>";
-
   private static final String NG_ATTR = "NgAttr";
   private static final String NG_CALLBACK = "NgCallback";
   private static final String NG_ONE_WAY = "NgOneWay";
@@ -220,7 +214,7 @@ public class AngularCompilationUnitBuilder {
    */
   @VisibleForTesting
   public static AngularSelectorElement parseSelector(int offset, String text) {
-    if (text.startsWith("[") && text.endsWith("]")) {
+    if (StringUtilities.startsWithChar(text, '[') && StringUtilities.endsWithChar(text, ']')) {
       int nameOffset = offset + "[".length();
       String attributeName = text.substring(1, text.length() - 1);
       // TODO(scheglov) report warning if there are spaces between [ and identifier
@@ -767,19 +761,19 @@ public class AngularCompilationUnitBuilder {
       // parse binding kind and field name
       AngularPropertyKind kind;
       int fieldNameOffset;
-      if (spec.startsWith(PREFIX_ATTR)) {
+      if (StringUtilities.startsWithChar(spec, '@')) {
         kind = AngularPropertyKind.ATTR;
         fieldNameOffset = 1;
-      } else if (spec.startsWith(PREFIX_CALLBACK)) {
+      } else if (StringUtilities.startsWithChar(spec, '&')) {
         kind = AngularPropertyKind.CALLBACK;
         fieldNameOffset = 1;
-      } else if (spec.startsWith(PREFIX_ONE_WAY_ONE_TIME)) {
+      } else if (StringUtilities.startsWith3(spec, 0, '=', '>', '!')) {
         kind = AngularPropertyKind.ONE_WAY_ONE_TIME;
         fieldNameOffset = 3;
-      } else if (spec.startsWith(PREFIX_ONE_WAY)) {
+      } else if (StringUtilities.startsWith2(spec, 0, '=', '>')) {
         kind = AngularPropertyKind.ONE_WAY;
         fieldNameOffset = 2;
-      } else if (spec.startsWith(PREFIX_TWO_WAY)) {
+      } else if (StringUtilities.startsWith3(spec, 0, '<', '=', '>')) {
         kind = AngularPropertyKind.TWO_WAY;
         fieldNameOffset = 3;
       } else {

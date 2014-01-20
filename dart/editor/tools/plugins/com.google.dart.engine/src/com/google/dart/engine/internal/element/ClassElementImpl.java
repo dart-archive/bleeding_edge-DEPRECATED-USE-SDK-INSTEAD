@@ -29,6 +29,7 @@ import com.google.dart.engine.element.ToolkitObjectElement;
 import com.google.dart.engine.element.TypeParameterElement;
 import com.google.dart.engine.internal.type.InterfaceTypeImpl;
 import com.google.dart.engine.type.InterfaceType;
+import com.google.dart.engine.utilities.general.StringUtilities;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -235,7 +236,7 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
   public PropertyAccessorElement getSetter(String setterName) {
     // TODO (jwren) revisit- should we append '=' here or require clients to include it?
     // Do we need the check for isSetter below?
-    if (!setterName.endsWith("=")) {
+    if (!StringUtilities.endsWithChar(setterName, '=')) {
       setterName += '=';
     }
     for (PropertyAccessorElement accessor : accessors) {

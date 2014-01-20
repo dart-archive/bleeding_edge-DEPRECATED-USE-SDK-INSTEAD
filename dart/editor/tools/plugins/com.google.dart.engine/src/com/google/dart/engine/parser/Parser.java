@@ -33,6 +33,7 @@ import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.dart.ParameterKind;
+import com.google.dart.engine.utilities.general.StringUtilities;
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 
@@ -1513,23 +1514,29 @@ public class Parser {
     boolean isRaw = false;
     int start = 0;
     if (first) {
-      if (lexeme.startsWith("r\"\"\"") || lexeme.startsWith("r'''")) { //$NON-NLS-1$ //$NON-NLS-2$
+      if (StringUtilities.startsWith4(lexeme, 0, 'r', '"', '"', '"')
+          || StringUtilities.startsWith4(lexeme, 0, 'r', '\'', '\'', '\'')) {
         isRaw = true;
         start += 4;
-      } else if (lexeme.startsWith("r\"") || lexeme.startsWith("r'")) { //$NON-NLS-1$ //$NON-NLS-2$
+      } else if (StringUtilities.startsWith2(lexeme, 0, 'r', '"')
+          || StringUtilities.startsWith2(lexeme, 0, 'r', '\'')) {
         isRaw = true;
         start += 2;
-      } else if (lexeme.startsWith("\"\"\"") || lexeme.startsWith("'''")) { //$NON-NLS-1$ //$NON-NLS-2$
+      } else if (StringUtilities.startsWith3(lexeme, 0, '"', '"', '"')
+          || StringUtilities.startsWith3(lexeme, 0, '\'', '\'', '\'')) {
         start += 3;
-      } else if (lexeme.startsWith("\"") || lexeme.startsWith("'")) { //$NON-NLS-1$ //$NON-NLS-2$
+      } else if (StringUtilities.startsWithChar(lexeme, '"')
+          || StringUtilities.startsWithChar(lexeme, '\'')) {
         start += 1;
       }
     }
     int end = lexeme.length();
     if (last) {
-      if (lexeme.endsWith("\"\"\"") || lexeme.endsWith("'''")) { //$NON-NLS-1$ //$NON-NLS-2$
+      if (StringUtilities.endsWith3(lexeme, '"', '"', '"')
+          || StringUtilities.endsWith3(lexeme, '\'', '\'', '\'')) {
         end -= 3;
-      } else if (lexeme.endsWith("\"") || lexeme.endsWith("'")) { //$NON-NLS-1$ //$NON-NLS-2$
+      } else if (StringUtilities.endsWithChar(lexeme, '"')
+          || StringUtilities.endsWithChar(lexeme, '\'')) {
         end -= 1;
       }
     }
@@ -1759,9 +1766,17 @@ public class Parser {
   private List<int[]> getCodeBlockRanges(String comment) {
     ArrayList<int[]> ranges = new ArrayList<int[]>();
     int length = comment.length();
+    if (length < 3) {
+      return ranges;
+    }
     int index = 0;
-    if (comment.startsWith("/**") || comment.startsWith("///")) {
-      index = 3;
+    char firstChar = comment.charAt(0);
+    if (firstChar == '/') {
+      char secondChar = comment.charAt(1);
+      char thirdChar = comment.charAt(2);
+      if ((secondChar == '*' && thirdChar == '*') || (secondChar == '/' && thirdChar == '/')) {
+        index = 3;
+      }
     }
     while (index < length) {
       char currentChar = comment.charAt(index);
@@ -1770,7 +1785,7 @@ public class Parser {
         while (index < length && Character.isWhitespace(comment.charAt(index))) {
           index = index + 1;
         }
-        if (comment.startsWith("*     ", index)) {
+        if (StringUtilities.startsWith6(comment, index, '*', ' ', ' ', ' ', ' ', ' ')) {
           int end = index + 6;
           while (end < length && comment.charAt(end) != '\r' && comment.charAt(end) != '\n') {
             end = end + 1;
@@ -1778,8 +1793,8 @@ public class Parser {
           ranges.add(new int[] {index, end});
           index = end;
         }
-      } else if (comment.startsWith("[:", index)) {
-        int end = comment.indexOf(":]", index + 2);
+      } else if (index + 1 < length && currentChar == '[' && comment.charAt(index + 1) == ':') {
+        int end = StringUtilities.indexOf2(comment, index + 2, ':', ']');
         if (end < 0) {
           end = length;
         }
@@ -3304,14 +3319,15 @@ public class Parser {
     Token commentToken = currentToken.getPrecedingComments();
     while (commentToken != null) {
       if (commentToken.getType() == TokenType.SINGLE_LINE_COMMENT) {
-        if (commentToken.getLexeme().startsWith("///")) { //$NON-NLS-1$
-          if (commentTokens.size() == 1 && commentTokens.get(0).getLexeme().startsWith("/**")) { //$NON-NLS-1$
+        if (StringUtilities.startsWith3(commentToken.getLexeme(), 0, '/', '/', '/')) {
+          if (commentTokens.size() == 1
+              && StringUtilities.startsWith3(commentTokens.get(0).getLexeme(), 0, '/', '*', '*')) {
             commentTokens.clear();
           }
           commentTokens.add(commentToken);
         }
       } else {
-        if (commentToken.getLexeme().startsWith("/**")) { //$NON-NLS-1$
+        if (StringUtilities.startsWith3(commentToken.getLexeme(), 0, '/', '*', '*')) {
           commentTokens.clear();
           commentTokens.add(commentToken);
         }

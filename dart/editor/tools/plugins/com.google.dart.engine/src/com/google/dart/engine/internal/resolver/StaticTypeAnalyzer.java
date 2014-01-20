@@ -1593,17 +1593,17 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
       // If the query has spaces, full parsing is required because it might be:
       //   E[text='warning text']
       //
-      if (argumentValue.contains(" ")) {
+      if (StringUtilities.indexOf1(argumentValue, 0, ' ') >= 0) {
         return null;
       }
       //
       // Otherwise, try to extract the tag based on http://www.w3.org/TR/CSS2/selector.html.
       //
       String tag = argumentValue;
-      tag = StringUtilities.substringBefore(tag, ":");
-      tag = StringUtilities.substringBefore(tag, "[");
-      tag = StringUtilities.substringBefore(tag, ".");
-      tag = StringUtilities.substringBefore(tag, "#");
+      tag = StringUtilities.substringBeforeChar(tag, ':');
+      tag = StringUtilities.substringBeforeChar(tag, '[');
+      tag = StringUtilities.substringBeforeChar(tag, '.');
+      tag = StringUtilities.substringBeforeChar(tag, '#');
 
       tag = HTML_ELEMENT_TO_CLASS_MAP.get(tag.toLowerCase());
       ClassElement returnType = library.getType(tag);

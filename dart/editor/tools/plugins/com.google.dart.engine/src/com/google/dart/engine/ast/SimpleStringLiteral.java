@@ -126,7 +126,8 @@ public class SimpleStringLiteral extends StringLiteral {
     if (lexeme.length() < 6) {
       return false;
     }
-    return lexeme.endsWith("\"\"\"") || lexeme.endsWith("'''");
+    return StringUtilities.endsWith3(lexeme, '"', '"', '"')
+        || StringUtilities.endsWith3(lexeme, '\'', '\'', '\'');
   }
 
   /**

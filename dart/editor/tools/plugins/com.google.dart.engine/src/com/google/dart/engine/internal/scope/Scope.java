@@ -24,6 +24,7 @@ import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.error.CompileTimeErrorCode;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.utilities.general.StringUtilities;
 
 import java.util.HashMap;
 
@@ -37,7 +38,7 @@ public abstract class Scope {
   /**
    * The prefix used to mark an identifier as being private to its library.
    */
-  public static final String PRIVATE_NAME_PREFIX = "_"; //$NON-NLS-1$
+  public static final int PRIVATE_NAME_PREFIX = '_';
 
   /**
    * The suffix added to the declared name of a setter when looking up the setter. Used to
@@ -58,7 +59,7 @@ public abstract class Scope {
    * @return {@code true} if the given name is a library-private name
    */
   public static boolean isPrivateName(String name) {
-    return name != null && name.startsWith(PRIVATE_NAME_PREFIX);
+    return name != null && StringUtilities.startsWithChar(name, PRIVATE_NAME_PREFIX);
   }
 
   /**

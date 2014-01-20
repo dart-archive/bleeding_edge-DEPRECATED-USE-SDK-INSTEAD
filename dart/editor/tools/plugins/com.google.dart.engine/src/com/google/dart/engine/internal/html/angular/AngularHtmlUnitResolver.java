@@ -64,6 +64,7 @@ import com.google.dart.engine.scanner.StringToken;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.type.Type;
+import com.google.dart.engine.utilities.general.StringUtilities;
 import com.google.dart.engine.utilities.source.LineInfo;
 
 import java.util.ArrayList;
@@ -77,6 +78,9 @@ import java.util.Set;
 public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
   private static class FoundAppError extends Error {
   }
+
+  private static final int OPENING_DELIMITER_CHAR = '{';
+  private static final int CLOSING_DELIMITER_CHAR = '}';
 
   private static final String OPENING_DELIMITER = "{{";
   private static final String CLOSING_DELIMITER = "}}";
@@ -489,9 +493,17 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
     String lexeme = token.getLexeme();
     int offset = token.getOffset();
     // find expressions between {{ and }}
-    int startIndex = lexeme.indexOf(OPENING_DELIMITER);
+    int startIndex = StringUtilities.indexOf2(
+        lexeme,
+        0,
+        OPENING_DELIMITER_CHAR,
+        OPENING_DELIMITER_CHAR);
     while (startIndex >= 0) {
-      int endIndex = lexeme.indexOf(CLOSING_DELIMITER, startIndex + OPENING_DELIMITER_LENGTH);
+      int endIndex = StringUtilities.indexOf2(
+          lexeme,
+          startIndex + OPENING_DELIMITER_LENGTH,
+          CLOSING_DELIMITER_CHAR,
+          CLOSING_DELIMITER_CHAR);
       if (endIndex < 0) {
         // TODO(brianwilkerson) Should we report this error or will it be reported by something else?
         return;
@@ -500,7 +512,11 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
         Expression expression = parseExpression(lexeme, startIndex, endIndex, offset);
         expressions.add(new EmbeddedExpression(startIndex, expression, endIndex));
       }
-      startIndex = lexeme.indexOf(OPENING_DELIMITER, endIndex + CLOSING_DELIMITER_LENGTH);
+      startIndex = StringUtilities.indexOf2(
+          lexeme,
+          endIndex + CLOSING_DELIMITER_LENGTH,
+          OPENING_DELIMITER_CHAR,
+          OPENING_DELIMITER_CHAR);
     }
   }
 

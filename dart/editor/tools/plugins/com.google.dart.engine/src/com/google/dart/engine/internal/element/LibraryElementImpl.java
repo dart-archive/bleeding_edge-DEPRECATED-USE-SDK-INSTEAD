@@ -27,6 +27,7 @@ import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.utilities.general.StringUtilities;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -286,7 +287,7 @@ public class LibraryElementImpl extends ElementImpl implements LibraryElement {
 
   @Override
   public boolean isInSdk() {
-    return getName().startsWith("dart.");
+    return StringUtilities.startsWith5(getName(), 0, 'd', 'a', 'r', 't', '.');
   }
 
   @Override

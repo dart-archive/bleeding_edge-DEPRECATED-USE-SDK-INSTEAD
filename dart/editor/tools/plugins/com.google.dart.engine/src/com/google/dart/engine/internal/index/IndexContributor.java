@@ -87,6 +87,7 @@ import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
+import com.google.dart.engine.utilities.general.StringUtilities;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -904,7 +905,7 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
       if (name.equals("--")) {
         name = "-";
       }
-      if (name.endsWith("=") && !name.equals("==")) {
+      if (StringUtilities.endsWithChar(name, '=') && !name.equals("==")) {
         name = name.substring(0, name.length() - 1);
       }
       Element nameElement = new NameElementImpl(name);

@@ -38,6 +38,133 @@ public final class StringUtilities {
   private static final Interner<String> INTERNER = Interners.newWeakInterner();
 
   /**
+   * Return {@code true} if the three-character substring occurs at the end of the given string.
+   * 
+   * @param string the string being searched
+   * @param char1 the first character in the substring
+   * @param char2 the second character in the substring
+   * @param char3 the third character in the substring
+   * @return {@code true} if the substring occurs at the end of the string
+   */
+  public static boolean endsWith3(String string, int char1, int char2, int char3) {
+    int length = string.length();
+    return length >= 3 && string.charAt(length - 3) == char1 && string.charAt(length - 2) == char2
+        && string.charAt(length - 1) == char3;
+  }
+
+  /**
+   * Return {@code true} if the given string ends with the given character.
+   * 
+   * @param string the string being searched
+   * @param character the character being tested for
+   * @return {@code true} if the string ends with the character
+   */
+  public static boolean endsWithChar(String string, int character) {
+    int length = string.length();
+    return length > 0 && string.charAt(length - 1) == character;
+  }
+
+  /**
+   * Return the index of the first occurrence of the given character in the given string that is at
+   * or after the given starting index. Return {@code -1} if the substring does not occur.
+   * 
+   * @param string the string being searched
+   * @param startIndex the index at which the search should begin
+   * @param char1 the first character in the substring
+   * @return the index of the first occurrence of the substring
+   */
+  public static int indexOf1(String string, int startIndex, int char1) {
+    int index = startIndex;
+    int last = string.length();
+    while (index < last) {
+      if (string.charAt(index) == char1) {
+        return index;
+      }
+      index++;
+    }
+    return -1;
+  }
+
+  /**
+   * Return the index of the first occurrence of the given characters as a substring of the given
+   * string that is at or after the given starting index. Return {@code -1} if the substring does
+   * not occur.
+   * 
+   * @param string the string being searched
+   * @param startIndex the index at which the search should begin
+   * @param char1 the first character in the substring
+   * @param char2 the second character in the substring
+   * @return the index of the first occurrence of the substring
+   */
+  public static int indexOf2(String string, int startIndex, int char1, int char2) {
+    int index = startIndex;
+    int last = string.length() - 1;
+    while (index < last) {
+      if (string.charAt(index) == char1 && string.charAt(index + 1) == char2) {
+        return index;
+      }
+      index++;
+    }
+    return -1;
+  }
+
+  /**
+   * Return the index of the first occurrence of the given characters as a substring of the given
+   * string that is at or after the given starting index. Return {@code -1} if the substring does
+   * not occur.
+   * 
+   * @param string the string being searched
+   * @param startIndex the index at which the search should begin
+   * @param char1 the first character in the substring
+   * @param char2 the second character in the substring
+   * @param char3 the third character in the substring
+   * @param char4 the fourth character in the substring
+   * @return the index of the first occurrence of the substring
+   */
+  public static int indexOf4(String string, int startIndex, int char1, int char2, int char3,
+      int char4) {
+    int index = startIndex;
+    int last = string.length() - 3;
+    while (index < last) {
+      if (string.charAt(index) == char1 && string.charAt(index + 1) == char2
+          && string.charAt(index + 2) == char3 && string.charAt(index + 3) == char4) {
+        return index;
+      }
+      index++;
+    }
+    return -1;
+  }
+
+  /**
+   * Return the index of the first occurrence of the given characters as a substring of the given
+   * string that is at or after the given starting index. Return {@code -1} if the substring does
+   * not occur.
+   * 
+   * @param string the string being searched
+   * @param startIndex the index at which the search should begin
+   * @param char1 the first character in the substring
+   * @param char2 the second character in the substring
+   * @param char3 the third character in the substring
+   * @param char4 the fourth character in the substring
+   * @param char5 the fifth character in the substring
+   * @return the index of the first occurrence of the substring
+   */
+  public static int indexOf5(String string, int startIndex, int char1, int char2, int char3,
+      int char4, int char5) {
+    int index = startIndex;
+    int last = string.length() - 4;
+    while (index < last) {
+      if (string.charAt(index) == char1 && string.charAt(index + 1) == char2
+          && string.charAt(index + 2) == char3 && string.charAt(index + 3) == char4
+          && string.charAt(index + 4) == char5) {
+        return index;
+      }
+      index++;
+    }
+    return -1;
+  }
+
+  /**
    * Returns a canonical representation for the given {@link String}.
    * 
    * @return the given {@link String} or its canonical representation.
@@ -143,6 +270,109 @@ public final class StringUtilities {
   }
 
   /**
+   * Return {@code true} if the two-character substring occurs at the given index in the given
+   * string.
+   * 
+   * @param string the string being searched
+   * @param startIndex the index at which the search should begin
+   * @param char1 the first character in the substring
+   * @param char2 the second character in the substring
+   * @return {@code true} if the substring occurs at the given index in the string
+   */
+  public static boolean startsWith2(String string, int startIndex, int char1, int char2) {
+    return string.length() - startIndex >= 2 && string.charAt(startIndex) == char1
+        && string.charAt(startIndex + 1) == char2;
+  }
+
+  /**
+   * Return {@code true} if the three-character substring occurs at the given index in the given
+   * string.
+   * 
+   * @param string the string being searched
+   * @param startIndex the index at which the search should begin
+   * @param char1 the first character in the substring
+   * @param char2 the second character in the substring
+   * @param char3 the third character in the substring
+   * @return {@code true} if the substring occurs at the given index in the string
+   */
+  public static boolean startsWith3(String string, int startIndex, int char1, int char2, int char3) {
+    return string.length() - startIndex >= 3 && string.charAt(startIndex) == char1
+        && string.charAt(startIndex + 1) == char2 && string.charAt(startIndex + 2) == char3;
+  }
+
+  /**
+   * Return {@code true} if the four-character substring occurs at the given index in the given
+   * string.
+   * 
+   * @param string the string being searched
+   * @param startIndex the index at which the search should begin
+   * @param char1 the first character in the substring
+   * @param char2 the second character in the substring
+   * @param char3 the third character in the substring
+   * @param char4 the fourth character in the substring
+   * @return {@code true} if the substring occurs at the given index in the string
+   */
+  public static boolean startsWith4(String string, int startIndex, int char1, int char2, int char3,
+      int char4) {
+    return string.length() - startIndex >= 4 && string.charAt(startIndex) == char1
+        && string.charAt(startIndex + 1) == char2 && string.charAt(startIndex + 2) == char3
+        && string.charAt(startIndex + 3) == char4;
+  }
+
+  /**
+   * Return {@code true} if the five-character substring occurs at the given index in the given
+   * string.
+   * 
+   * @param string the string being searched
+   * @param startIndex the index at which the search should begin
+   * @param char1 the first character in the substring
+   * @param char2 the second character in the substring
+   * @param char3 the third character in the substring
+   * @param char4 the fourth character in the substring
+   * @param char5 the fifth character in the substring
+   * @return {@code true} if the substring occurs at the given index in the string
+   */
+  public static boolean startsWith5(String string, int startIndex, int char1, int char2, int char3,
+      int char4, int char5) {
+    return string.length() - startIndex >= 5 && string.charAt(startIndex) == char1
+        && string.charAt(startIndex + 1) == char2 && string.charAt(startIndex + 2) == char3
+        && string.charAt(startIndex + 3) == char4 && string.charAt(startIndex + 4) == char5;
+  }
+
+  /**
+   * Return {@code true} if the six-character substring occurs at the given index in the given
+   * string.
+   * 
+   * @param string the string being searched
+   * @param startIndex the index at which the search should begin
+   * @param char1 the first character in the substring
+   * @param char2 the second character in the substring
+   * @param char3 the third character in the substring
+   * @param char4 the fourth character in the substring
+   * @param char5 the fifth character in the substring
+   * @param char6 the sixth character in the substring
+   * @return {@code true} if the substring occurs at the given index in the string
+   */
+  public static boolean startsWith6(String string, int startIndex, int char1, int char2, int char3,
+      int char4, int char5, int char6) {
+    return string.length() - startIndex >= 6 && string.charAt(startIndex) == char1
+        && string.charAt(startIndex + 1) == char2 && string.charAt(startIndex + 2) == char3
+        && string.charAt(startIndex + 3) == char4 && string.charAt(startIndex + 4) == char5
+        && string.charAt(startIndex + 5) == char6;
+  }
+
+  /**
+   * Return {@code true} if the given string starts with the given character.
+   * 
+   * @param string the string being searched
+   * @param character the character being tested for
+   * @return {@code true} if the string starts with the character
+   */
+  public static boolean startsWithChar(String string, int character) {
+    return string.length() > 0 && string.charAt(0) == character;
+  }
+
+  /**
    * Return the substring before the first occurrence of a separator. The separator is not returned.
    * <p>
    * A {@code null} string input will return {@code null}. An empty ("") string input will return
@@ -171,6 +401,39 @@ public final class StringUtilities {
     }
     if (separator.length() == 0) {
       return EMPTY;
+    }
+    int pos = str.indexOf(separator);
+    if (pos < 0) {
+      return str;
+    }
+    return str.substring(0, pos);
+  }
+
+  /**
+   * Return the substring before the first occurrence of a separator. The separator is not included
+   * in the returned value.
+   * <p>
+   * A {@code null} string input will return {@code null}. An empty ("") string input will return
+   * the empty string.
+   * <p>
+   * If nothing is found, the string input is returned.
+   * 
+   * <pre>
+   * StringUtils.substringBefore(null, *)      = null
+   * StringUtils.substringBefore("", *)        = ""
+   * StringUtils.substringBefore("abc", 'a')   = ""
+   * StringUtils.substringBefore("abcba", 'b') = "a"
+   * StringUtils.substringBefore("abc", 'c')   = "ab"
+   * StringUtils.substringBefore("abc", 'd')   = "abc"
+   * </pre>
+   * 
+   * @param str the string to get a substring from, may be null
+   * @param separator the character to search for
+   * @return the substring before the first occurrence of the separator
+   */
+  public static String substringBeforeChar(String str, int separator) {
+    if (isEmpty(str)) {
+      return str;
     }
     int pos = str.indexOf(separator);
     if (pos < 0) {

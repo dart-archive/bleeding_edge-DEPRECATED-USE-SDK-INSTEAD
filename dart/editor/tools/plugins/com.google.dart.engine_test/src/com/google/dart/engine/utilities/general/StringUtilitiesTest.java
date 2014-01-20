@@ -25,6 +25,54 @@ public class StringUtilitiesTest extends TestCase {
     assertEquals(0, StringUtilities.EMPTY_ARRAY.length);
   }
 
+  public void test_endsWith3() {
+    assertTrue(StringUtilities.endsWith3("abc", 'a', 'b', 'c')); // all
+    assertTrue(StringUtilities.endsWith3("abcdefghi", 'g', 'h', 'i')); // end
+    assertFalse(StringUtilities.endsWith3("abcdefghi", 'd', 'e', 'a')); // missing
+  }
+
+  public void test_endsWithChar() {
+    assertTrue(StringUtilities.endsWithChar("a", 'a'));
+    assertFalse(StringUtilities.endsWithChar("b", 'a'));
+    assertFalse(StringUtilities.endsWithChar("", 'a'));
+  }
+
+  public void test_indexOf1() {
+    assertEquals(0, StringUtilities.indexOf1("a", 0, 'a')); // all
+    assertEquals(0, StringUtilities.indexOf1("abcdef", 0, 'a')); // first
+    assertEquals(2, StringUtilities.indexOf1("abcdef", 0, 'c')); // middle
+    assertEquals(5, StringUtilities.indexOf1("abcdef", 0, 'f')); // last
+    assertEquals(-1, StringUtilities.indexOf1("abcdef", 0, 'z')); // missing
+    assertEquals(-1, StringUtilities.indexOf1("abcdef", 1, 'a')); // before start
+  }
+
+  public void test_indexOf2() {
+    assertEquals(0, StringUtilities.indexOf2("ab", 0, 'a', 'b')); // all
+    assertEquals(0, StringUtilities.indexOf2("abcdef", 0, 'a', 'b')); // first
+    assertEquals(2, StringUtilities.indexOf2("abcdef", 0, 'c', 'd')); // middle
+    assertEquals(4, StringUtilities.indexOf2("abcdef", 0, 'e', 'f')); // last
+    assertEquals(-1, StringUtilities.indexOf2("abcdef", 0, 'd', 'a')); // missing
+    assertEquals(-1, StringUtilities.indexOf2("abcdef", 1, 'a', 'b')); // before start
+  }
+
+  public void test_indexOf4() {
+    assertEquals(0, StringUtilities.indexOf4("abcd", 0, 'a', 'b', 'c', 'd')); // all
+    assertEquals(0, StringUtilities.indexOf4("abcdefghi", 0, 'a', 'b', 'c', 'd')); // first
+    assertEquals(2, StringUtilities.indexOf4("abcdefghi", 0, 'c', 'd', 'e', 'f')); // middle
+    assertEquals(5, StringUtilities.indexOf4("abcdefghi", 0, 'f', 'g', 'h', 'i')); // last
+    assertEquals(-1, StringUtilities.indexOf4("abcdefghi", 0, 'd', 'e', 'a', 'd')); // missing
+    assertEquals(-1, StringUtilities.indexOf4("abcdefghi", 1, 'a', 'b', 'c', 'd')); // before start
+  }
+
+  public void test_indexOf5() {
+    assertEquals(0, StringUtilities.indexOf5("abcde", 0, 'a', 'b', 'c', 'd', 'e')); // all
+    assertEquals(0, StringUtilities.indexOf5("abcdefghi", 0, 'a', 'b', 'c', 'd', 'e')); // first
+    assertEquals(2, StringUtilities.indexOf5("abcdefghi", 0, 'c', 'd', 'e', 'f', 'g')); // middle
+    assertEquals(4, StringUtilities.indexOf5("abcdefghi", 0, 'e', 'f', 'g', 'h', 'i')); // last
+    assertEquals(-1, StringUtilities.indexOf5("abcdefghi", 0, 'd', 'e', 'f', 'i', 'n')); // missing
+    assertEquals(-1, StringUtilities.indexOf5("abcdefghi", 1, 'a', 'b', 'c', 'd', 'e')); // before start
+  }
+
   public void test_isAlpha() throws Exception {
     assertFalse(StringUtilities.isAlpha(null));
     assertFalse(StringUtilities.isAlpha(""));
@@ -57,6 +105,52 @@ public class StringUtilitiesTest extends TestCase {
     assertTrue(StringUtilities.isTagName("a-b"));
   }
 
+  public void test_startsWith2() {
+    assertTrue(StringUtilities.startsWith2("ab", 0, 'a', 'b')); // all
+    assertTrue(StringUtilities.startsWith2("abcdefghi", 0, 'a', 'b')); // first
+    assertTrue(StringUtilities.startsWith2("abcdefghi", 2, 'c', 'd')); // middle
+    assertTrue(StringUtilities.startsWith2("abcdefghi", 5, 'f', 'g')); // end
+    assertFalse(StringUtilities.startsWith2("abcdefghi", 0, 'd', 'd')); // missing
+  }
+
+  public void test_startsWith3() {
+    assertTrue(StringUtilities.startsWith3("abc", 0, 'a', 'b', 'c')); // all
+    assertTrue(StringUtilities.startsWith3("abcdefghi", 0, 'a', 'b', 'c')); // first
+    assertTrue(StringUtilities.startsWith3("abcdefghi", 2, 'c', 'd', 'e')); // middle
+    assertTrue(StringUtilities.startsWith3("abcdefghi", 6, 'g', 'h', 'i')); // end
+    assertFalse(StringUtilities.startsWith3("abcdefghi", 0, 'd', 'e', 'a')); // missing
+  }
+
+  public void test_startsWith4() {
+    assertTrue(StringUtilities.startsWith4("abcd", 0, 'a', 'b', 'c', 'd')); // all
+    assertTrue(StringUtilities.startsWith4("abcdefghi", 0, 'a', 'b', 'c', 'd')); // first
+    assertTrue(StringUtilities.startsWith4("abcdefghi", 2, 'c', 'd', 'e', 'f')); // middle
+    assertTrue(StringUtilities.startsWith4("abcdefghi", 5, 'f', 'g', 'h', 'i')); // end
+    assertFalse(StringUtilities.startsWith4("abcdefghi", 0, 'd', 'e', 'a', 'd')); // missing
+  }
+
+  public void test_startsWith5() {
+    assertTrue(StringUtilities.startsWith5("abcde", 0, 'a', 'b', 'c', 'd', 'e')); // all
+    assertTrue(StringUtilities.startsWith5("abcdefghi", 0, 'a', 'b', 'c', 'd', 'e')); // first
+    assertTrue(StringUtilities.startsWith5("abcdefghi", 2, 'c', 'd', 'e', 'f', 'g')); // middle
+    assertTrue(StringUtilities.startsWith5("abcdefghi", 4, 'e', 'f', 'g', 'h', 'i')); // end
+    assertFalse(StringUtilities.startsWith5("abcdefghi", 0, 'a', 'b', 'c', 'b', 'a')); // missing
+  }
+
+  public void test_startsWith6() {
+    assertTrue(StringUtilities.startsWith6("abcdef", 0, 'a', 'b', 'c', 'd', 'e', 'f')); // all
+    assertTrue(StringUtilities.startsWith6("abcdefghi", 0, 'a', 'b', 'c', 'd', 'e', 'f')); // first
+    assertTrue(StringUtilities.startsWith6("abcdefghi", 2, 'c', 'd', 'e', 'f', 'g', 'h')); // middle
+    assertTrue(StringUtilities.startsWith6("abcdefghi", 3, 'd', 'e', 'f', 'g', 'h', 'i')); // end
+    assertFalse(StringUtilities.startsWith6("abcdefghi", 0, 'a', 'b', 'c', 'd', 'e', 'g')); // missing
+  }
+
+  public void test_startsWithChar() {
+    assertTrue(StringUtilities.startsWithChar("a", 'a'));
+    assertFalse(StringUtilities.startsWithChar("b", 'a'));
+    assertFalse(StringUtilities.startsWithChar("", 'a'));
+  }
+
   public void test_substringBefore() {
     assertEquals(null, StringUtilities.substringBefore(null, ""));
     assertEquals(null, StringUtilities.substringBefore(null, "a"));
@@ -67,5 +161,14 @@ public class StringUtilitiesTest extends TestCase {
     assertEquals("abc", StringUtilities.substringBefore("abc", "d"));
     assertEquals("", StringUtilities.substringBefore("abc", ""));
     assertEquals("abc", StringUtilities.substringBefore("abc", null));
+  }
+
+  public void test_substringBeforeChar() {
+    assertEquals(null, StringUtilities.substringBeforeChar(null, 'a'));
+    assertEquals("", StringUtilities.substringBeforeChar("", 'a'));
+    assertEquals("", StringUtilities.substringBeforeChar("abc", 'a'));
+    assertEquals("a", StringUtilities.substringBeforeChar("abcba", 'b'));
+    assertEquals("ab", StringUtilities.substringBeforeChar("abc", 'c'));
+    assertEquals("abc", StringUtilities.substringBeforeChar("abc", 'd'));
   }
 }

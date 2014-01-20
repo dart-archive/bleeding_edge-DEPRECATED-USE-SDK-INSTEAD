@@ -14,6 +14,7 @@
 package com.google.dart.engine.ast;
 
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.utilities.general.StringUtilities;
 
 /**
  * The abstract class {@code Identifier} defines the behavior common to nodes that represent an
@@ -36,7 +37,7 @@ public abstract class Identifier extends Expression {
    * @return {@code true} if the given name is private
    */
   public static boolean isPrivateName(String name) {
-    return name.startsWith("_");
+    return StringUtilities.startsWithChar(name, '_');
   }
 
   /**

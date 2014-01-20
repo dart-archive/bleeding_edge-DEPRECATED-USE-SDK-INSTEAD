@@ -25,6 +25,7 @@ import com.google.dart.engine.internal.error.ErrorReporter;
 import com.google.dart.engine.source.FileUriResolver;
 import com.google.dart.engine.source.PackageUriResolver;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.utilities.general.StringUtilities;
 
 import java.io.File;
 
@@ -104,13 +105,14 @@ public class PubVerifier extends RecursiveASTVisitor<Void> {
     if (fullName != null) {
       int pathIndex = 0;
       int fullNameIndex = fullName.length();
-      while (pathIndex < path.length() && path.startsWith("../", pathIndex)) {
+      while (pathIndex < path.length()
+          && StringUtilities.startsWith3(path, pathIndex, '.', '.', '/')) {
         fullNameIndex = fullName.lastIndexOf('/', fullNameIndex);
         if (fullNameIndex < 4) {
           return false;
         }
         // Check for "/lib" at a specified place in the fullName
-        if (fullName.startsWith("/lib", fullNameIndex - 4)) {
+        if (StringUtilities.startsWith4(fullName, fullNameIndex - 4, '/', 'l', 'i', 'b')) {
           String relativePubspecPath = path.substring(0, pathIndex + 3).concat(PUBSPEC_YAML);
           Source pubspecSource = context.getSourceFactory().resolveUri(source, relativePubspecPath);
           if (pubspecSource != null && pubspecSource.exists()) {
@@ -139,17 +141,17 @@ public class PubVerifier extends RecursiveASTVisitor<Void> {
    */
   private boolean checkForFileImportOutsideLibReferencesFileInside(StringLiteral uriLiteral,
       String path) {
-    if (path.startsWith("lib/")) {
+    if (StringUtilities.startsWith4(path, 0, 'l', 'i', 'b', '/')) {
       if (checkForFileImportOutsideLibReferencesFileInside(uriLiteral, path, 0)) {
         return true;
       }
     }
-    int pathIndex = path.indexOf("/lib/");
+    int pathIndex = StringUtilities.indexOf5(path, 0, '/', 'l', 'i', 'b', '/');
     while (pathIndex != -1) {
       if (checkForFileImportOutsideLibReferencesFileInside(uriLiteral, path, pathIndex + 1)) {
         return true;
       }
-      pathIndex = path.indexOf("/lib/", pathIndex + 4);
+      pathIndex = StringUtilities.indexOf5(path, pathIndex + 4, '/', 'l', 'i', 'b', '/');
     }
     return false;
   }
@@ -164,7 +166,7 @@ public class PubVerifier extends RecursiveASTVisitor<Void> {
     }
     String fullName = getSourceFullName(source);
     if (fullName != null) {
-      if (!fullName.contains("/lib/")) {
+      if (StringUtilities.indexOf5(fullName, 0, '/', 'l', 'i', 'b', '/') < 0) {
         // Files outside the lib directory hierarchy should not reference files inside
         // ... use package: url instead
         errorReporter.reportError(
@@ -185,7 +187,8 @@ public class PubVerifier extends RecursiveASTVisitor<Void> {
    * @see PubSuggestionCode.PACKAGE_IMPORT_CONTAINS_DOT_DOT
    */
   private boolean checkForPackageImportContainsDotDot(StringLiteral uriLiteral, String path) {
-    if (path.startsWith("../") || path.contains("/../")) {
+    if (StringUtilities.startsWith3(path, 0, '.', '.', '/')
+        || StringUtilities.indexOf4(path, 0, '/', '.', '.', '/') >= 0) {
       // Package import should not to contain ".."
       errorReporter.reportError(PubSuggestionCode.PACKAGE_IMPORT_CONTAINS_DOT_DOT, uriLiteral);
       return true;
