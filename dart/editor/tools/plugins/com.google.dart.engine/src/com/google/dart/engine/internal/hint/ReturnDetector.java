@@ -66,6 +66,7 @@ import com.google.dart.engine.ast.VariableDeclarationList;
 import com.google.dart.engine.ast.VariableDeclarationStatement;
 import com.google.dart.engine.ast.WhileStatement;
 import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
+import com.google.dart.engine.scanner.TokenType;
 
 /**
  * Instances of the class {@code ExitDetector} determine whether the visited AST node is guaranteed
@@ -102,7 +103,31 @@ public class ReturnDetector extends GeneralizingASTVisitor<Boolean> {
 
   @Override
   public Boolean visitBinaryExpression(BinaryExpression node) {
-    return node.getLeftOperand().accept(this) || node.getRightOperand().accept(this);
+    Expression lhsExpression = node.getLeftOperand();
+    TokenType operatorType = node.getOperator().getType();
+    // If the operator is || and the left hand side is false literal, don't consider the RHS of the
+    // binary expression.
+    // TODO(jwren) Do we want to take constant expressions into account, evaluate if(false) {}
+    // differently than if(<condition>), when <condition> evaluates to a constant false value?
+    if (operatorType == TokenType.BAR_BAR) {
+      if (lhsExpression instanceof BooleanLiteral) {
+        BooleanLiteral booleanLiteral = (BooleanLiteral) lhsExpression;
+        if (!booleanLiteral.getValue()) {
+          return false;
+        }
+      }
+    }
+    // If the operator is && and the left hand side is true literal, don't consider the RHS of the
+    // binary expression.
+    if (operatorType == TokenType.AMPERSAND_AMPERSAND) {
+      if (lhsExpression instanceof BooleanLiteral) {
+        BooleanLiteral booleanLiteral = (BooleanLiteral) lhsExpression;
+        if (booleanLiteral.getValue()) {
+          return false;
+        }
+      }
+    }
+    return lhsExpression.accept(this) || node.getRightOperand().accept(this);
   }
 
   @Override
@@ -135,7 +160,7 @@ public class ReturnDetector extends GeneralizingASTVisitor<Boolean> {
     Expression thenStatement = node.getThenExpression();
     Expression elseStatement = node.getElseExpression();
     // TODO(jwren) Do we want to take constant expressions into account, evaluate if(false) {}
-    // differently than if(<condition>)?
+    // differently than if(<condition>), when <condition> evaluates to a constant false value?
     if (conditionExpression.accept(this)) {
       return true;
     }
@@ -225,7 +250,7 @@ public class ReturnDetector extends GeneralizingASTVisitor<Boolean> {
     Statement thenStatement = node.getThenStatement();
     Statement elseStatement = node.getElseStatement();
     // TODO(jwren) Do we want to take constant expressions into account, evaluate if(false) {}
-    // differently than if(<condition>)?
+    // differently than if(<condition>), when <condition> evaluates to a constant false value?
     if (conditionExpression.accept(this)) {
       return true;
     }

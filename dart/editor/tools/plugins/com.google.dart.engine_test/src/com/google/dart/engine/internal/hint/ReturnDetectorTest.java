@@ -46,7 +46,7 @@ public class ReturnDetectorTest extends ParserTestCase {
     assertTrue("v = throw '';");
   }
 
-  public void test_binaryExpression() throws Exception {
+  public void test_binaryExpression_and() throws Exception {
     assertFalse("a && b;");
   }
 
@@ -58,12 +58,32 @@ public class ReturnDetectorTest extends ParserTestCase {
     assertTrue("a && (throw '');");
   }
 
+  public void test_binaryExpression_and_rhs2() throws Exception {
+    assertTrue("false && (throw '');");
+  }
+
+  public void test_binaryExpression_and_rhs3() throws Exception {
+    assertFalse("true && (throw '');");
+  }
+
+  public void test_binaryExpression_or() throws Exception {
+    assertFalse("a || b;");
+  }
+
   public void test_binaryExpression_or_lhs() throws Exception {
     assertTrue("throw '' || b;");
   }
 
   public void test_binaryExpression_or_rhs() throws Exception {
     assertTrue("a || (throw '');");
+  }
+
+  public void test_binaryExpression_or_rhs2() throws Exception {
+    assertTrue("true || (throw '');");
+  }
+
+  public void test_binaryExpression_or_rhs3() throws Exception {
+    assertFalse("false || (throw '');");
   }
 
   public void test_block_empty() throws Exception {
