@@ -73,11 +73,11 @@ import com.google.dart.engine.scanner.TokenType;
  * to terminate by executing a {@code return} statement, {@code throw} expression, {@code rethrow}
  * expression, or simple infinite loop such as {@code while(true)}.
  */
-public class ReturnDetector extends GeneralizingASTVisitor<Boolean> {
+public class ExitDetector extends GeneralizingASTVisitor<Boolean> {
   /**
    * Initialize a newly created return detector.
    */
-  public ReturnDetector() {
+  public ExitDetector() {
     super();
   }
 

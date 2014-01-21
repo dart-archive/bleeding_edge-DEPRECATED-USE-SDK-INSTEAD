@@ -16,7 +16,7 @@ package com.google.dart.engine.internal.hint;
 import com.google.dart.engine.ast.Statement;
 import com.google.dart.engine.parser.ParserTestCase;
 
-public class ReturnDetectorTest extends ParserTestCase {
+public class ExitDetectorTest extends ParserTestCase {
 
   public void test_asExpression() throws Exception {
     assertFalse("a as Object;");
@@ -135,7 +135,7 @@ public class ReturnDetectorTest extends ParserTestCase {
   }
 
   public void test_creation() {
-    assertNotNull(new ReturnDetector());
+    assertNotNull(new ExitDetector());
   }
 
   public void test_doStatement_false_nonReturn() throws Exception {
@@ -407,7 +407,7 @@ public class ReturnDetectorTest extends ParserTestCase {
   }
 
   private void assertHasReturn(boolean expectedResult, String source) throws Exception {
-    ReturnDetector detector = new ReturnDetector();
+    ExitDetector detector = new ExitDetector();
     Statement statement = parseStatement(source);
     assertSame(expectedResult, statement.accept(detector));
   }
