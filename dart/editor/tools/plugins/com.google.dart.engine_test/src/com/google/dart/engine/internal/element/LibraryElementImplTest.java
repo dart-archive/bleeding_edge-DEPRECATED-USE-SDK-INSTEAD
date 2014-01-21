@@ -15,6 +15,7 @@ package com.google.dart.engine.internal.element;
 
 import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ElementFactory;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
@@ -23,11 +24,13 @@ import com.google.dart.engine.source.SourceFactory;
 
 import static com.google.dart.engine.ast.ASTFactory.identifier;
 import static com.google.dart.engine.ast.ASTFactory.libraryIdentifier;
+import static com.google.dart.engine.element.ElementFactory.compilationUnit;
 import static com.google.dart.engine.element.ElementFactory.exportFor;
 import static com.google.dart.engine.element.ElementFactory.importFor;
 import static com.google.dart.engine.element.ElementFactory.library;
 
 public class LibraryElementImplTest extends EngineTestCase {
+
   public void test_creation() {
     assertNotNull(new LibraryElementImpl(createAnalysisContext(), libraryIdentifier("l")));
   }
@@ -66,6 +69,18 @@ public class LibraryElementImplTest extends EngineTestCase {
       assertSame(prefixB, prefixes[0]);
       assertSame(prefixA, prefixes[1]);
     }
+  }
+
+  public void test_getUnits() throws Exception {
+    AnalysisContext context = createAnalysisContext();
+    LibraryElementImpl library = library(context, "test");
+    CompilationUnitElement unitLib = library.getDefiningCompilationUnit();
+    CompilationUnitElementImpl unitA = compilationUnit(context, "unit_a.dart");
+    CompilationUnitElementImpl unitB = compilationUnit(context, "unit_b.dart");
+    library.setParts(new CompilationUnitElement[] {unitA, unitB});
+    assertEqualsIgnoreOrder(
+        new CompilationUnitElement[] {unitLib, unitA, unitB},
+        library.getUnits());
   }
 
   public void test_getVisibleLibraries_cycle() {

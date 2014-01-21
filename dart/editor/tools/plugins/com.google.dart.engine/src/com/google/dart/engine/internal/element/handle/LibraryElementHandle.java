@@ -89,6 +89,11 @@ public class LibraryElementHandle extends ElementHandle implements LibraryElemen
   }
 
   @Override
+  public CompilationUnitElement[] getUnits() {
+    return getActualElement().getUnits();
+  }
+
+  @Override
   public LibraryElement[] getVisibleLibraries() {
     return getActualElement().getVisibleLibraries();
   }

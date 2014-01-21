@@ -84,6 +84,15 @@ public final class ElementFactory {
     return classElement(typeName, getObject().getType(), parameterNames);
   }
 
+  public static CompilationUnitElementImpl compilationUnit(AnalysisContext context, String fileName) {
+    FileBasedSource source = new FileBasedSource(
+        context.getSourceFactory().getContentCache(),
+        createFile(fileName));
+    CompilationUnitElementImpl unit = new CompilationUnitElementImpl(fileName);
+    unit.setSource(source);
+    return unit;
+  }
+
   public static ConstructorElementImpl constructorElement(ClassElement definingClass, String name,
       boolean isConst, Type... argumentTypes) {
     Type type = definingClass.getType();
@@ -291,11 +300,7 @@ public final class ElementFactory {
 
   public static LibraryElementImpl library(AnalysisContext context, String libraryName) {
     String fileName = "/" + libraryName + ".dart";
-    FileBasedSource source = new FileBasedSource(
-        context.getSourceFactory().getContentCache(),
-        createFile(fileName));
-    CompilationUnitElementImpl unit = new CompilationUnitElementImpl(fileName);
-    unit.setSource(source);
+    CompilationUnitElementImpl unit = compilationUnit(context, fileName);
     LibraryElementImpl library = new LibraryElementImpl(context, libraryIdentifier(libraryName));
     library.setDefiningCompilationUnit(unit);
     return library;

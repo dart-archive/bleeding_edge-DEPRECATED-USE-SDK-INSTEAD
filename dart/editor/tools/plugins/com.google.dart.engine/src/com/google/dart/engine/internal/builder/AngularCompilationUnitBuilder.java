@@ -65,7 +65,6 @@ import com.google.dart.engine.utilities.general.StringUtilities;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -101,11 +100,7 @@ public class AngularCompilationUnitBuilder {
   public static AngularElement[] getAngularElements(LibraryElement libraryElement) {
     List<AngularElement> angularElements = Lists.newArrayList();
     // add Angular elements from current library
-    // TODO(scheglov) use LibraryElement.getUnits()
-    List<CompilationUnitElement> libraryUnits = Lists.newArrayList();
-    libraryUnits.add(libraryElement.getDefiningCompilationUnit());
-    Collections.addAll(libraryUnits, libraryElement.getParts());
-    for (CompilationUnitElement unit : libraryUnits) {
+    for (CompilationUnitElement unit : libraryElement.getUnits()) {
       for (ClassElement type : unit.getTypes()) {
         addAngularElements(angularElements, type);
       }

@@ -92,6 +92,14 @@ public interface LibraryElement extends Element {
   public ClassElement getType(String className);
 
   /**
+   * Return an array containing all of the compilation units this library consists of. This includes
+   * the defining compilation unit and units included using the {@code part} directive.
+   * 
+   * @return the compilation units this library consists of
+   */
+  public CompilationUnitElement[] getUnits();
+
+  /**
    * Return an array containing all directly and indirectly imported libraries.
    * 
    * @return all directly and indirectly imported libraries

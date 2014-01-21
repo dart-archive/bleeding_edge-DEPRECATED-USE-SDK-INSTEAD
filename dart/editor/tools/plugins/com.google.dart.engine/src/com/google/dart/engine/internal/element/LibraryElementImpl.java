@@ -264,6 +264,14 @@ public class LibraryElementImpl extends ElementImpl implements LibraryElement {
   }
 
   @Override
+  public CompilationUnitElement[] getUnits() {
+    CompilationUnitElement[] units = new CompilationUnitElement[1 + parts.length];
+    units[0] = definingCompilationUnit;
+    System.arraycopy(parts, 0, units, 1, parts.length);
+    return units;
+  }
+
+  @Override
   public LibraryElement[] getVisibleLibraries() {
     Set<LibraryElement> visibleLibraries = Sets.newHashSet();
     addVisibleLibraries(visibleLibraries, false);
