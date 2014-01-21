@@ -44,4 +44,9 @@ public class AnalysisContextHelper {
     LibraryElement libraryElement = context.computeLibraryElement(source);
     return context.resolveCompilationUnit(source, libraryElement);
   }
+
+  public void runTasks() {
+    while (context.performAnalysisTask().getChangeNotices() != null) {
+    }
+  }
 }

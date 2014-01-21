@@ -19,7 +19,6 @@ import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.SimpleStringLiteral;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
-import com.google.dart.engine.element.ElementFactory;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.element.ToolkitObjectElement;
@@ -28,18 +27,13 @@ import com.google.dart.engine.element.angular.AngularControllerElement;
 import com.google.dart.engine.element.angular.AngularDirectiveElement;
 import com.google.dart.engine.element.angular.AngularElement;
 import com.google.dart.engine.element.angular.AngularFilterElement;
-import com.google.dart.engine.element.angular.AngularModuleElement;
 import com.google.dart.engine.element.angular.AngularPropertyElement;
 import com.google.dart.engine.element.angular.AngularPropertyKind;
 import com.google.dart.engine.element.angular.AngularSelectorElement;
 import com.google.dart.engine.error.AngularCode;
-import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.internal.element.angular.HasAttributeSelectorElementImpl;
 import com.google.dart.engine.internal.element.angular.IsTagSelectorElementImpl;
 import com.google.dart.engine.internal.html.angular.AngularTest;
-import com.google.dart.engine.internal.type.DynamicTypeImpl;
-import com.google.dart.engine.type.InterfaceType;
-import com.google.dart.engine.type.Type;
 
 import static com.google.dart.engine.ast.ASTFactory.classDeclaration;
 import static com.google.dart.engine.ast.ASTFactory.compilationUnit;
@@ -55,42 +49,19 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
     assertEquals(name, ((IsTagSelectorElementImpl) selector).getName());
   }
 
-  private static String createAngularModuleSource(String[] lines, String[] types) {
+  private static String createAngularSource(String... lines) {
     String source = "import 'angular.dart';\n";
     source += createSource(lines);
-    source += "\n";
-    source += createSource(//
-        "class MyModule extends Module {",
-        "  MyModule() {");
-    for (String type : types) {
-      source += "    type(" + type + ");";
-    }
-    source += createSource(//
-        "  }",
-        "}",
-        "",
-        "main() {",
-        "  ngBootstrap(module: new MyModule());",
-        "}");
     return source;
   }
 
-  /**
-   * Function to force formatter to put every string on separate line.
-   */
-  private static String[] formatLines(String... lines) {
-    return lines;
-  }
-
   public void test_bad_notConstructorAnnotation() throws Exception {
-    String mainContent = createAngularModuleSource(//
-        formatLines(//
-            "const MY_ANNOTATION = null;",
-            "@MY_ANNOTATION",
-            "class MyFilter {",
-            "}"),
-        formatLines("MyFilter"));
-    resolveMainSourceNoErrors(mainContent);
+    String mainContent = createSource(//
+        "const MY_ANNOTATION = null;",
+        "@MY_ANNOTATION()",
+        "class MyFilter {",
+        "}");
+    resolveMainSource(mainContent);
     // prepare AngularFilterElement
     ClassElement classElement = mainUnitElement.getType("MyFilter");
     AngularFilterElement filter = getAngularElement(classElement, AngularFilterElement.class);
@@ -98,15 +69,13 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
   }
 
   public void test_getElement_component_property_fromFieldAnnotation() throws Exception {
-    resolveMainSource(createAngularModuleSource(//
-        formatLines(//
-            "@NgComponent(publishAs: 'ctrl', selector: 'myComp',",
-            "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css')",
-            "class MyComponent {",
-            "  @NgOneWay('prop')",
-            "  var field;",
-            "}"),
-        formatLines("MyComponent")));
+    resolveMainSource(createAngularSource(//
+        "@NgComponent(publishAs: 'ctrl', selector: 'myComp',",
+        "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css')",
+        "class MyComponent {",
+        "  @NgOneWay('prop')",
+        "  var field;",
+        "}"));
     // prepare node
     SimpleStringLiteral node = findMainNode("prop'", SimpleStringLiteral.class);
     int offset = node.getOffset();
@@ -119,17 +88,15 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
   }
 
   public void test_getElement_component_property_fromMap() throws Exception {
-    resolveMainSource(createAngularModuleSource(//
-        formatLines(//
-            "@NgComponent(publishAs: 'ctrl', selector: 'myComp',",
-            "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
-            "             map: const {",
-            "               'prop' : '@field',",
-            "             })",
-            "class MyComponent {",
-            "  var field;",
-            "}"),
-        formatLines("MyComponent")));
+    resolveMainSource(createAngularSource(//
+        "@NgComponent(publishAs: 'ctrl', selector: 'myComp',",
+        "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
+        "             map: const {",
+        "               'prop' : '@field',",
+        "             })",
+        "class MyComponent {",
+        "  var field;",
+        "}"));
     // AngularPropertyElement
     {
       SimpleStringLiteral node = findMainNode("prop'", SimpleStringLiteral.class);
@@ -155,16 +122,14 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
   }
 
   public void test_getElement_directive_property() throws Exception {
-    resolveMainSource(createAngularModuleSource(//
-        formatLines(//
-            "@NgDirective(selector: '[my-dir]',",
-            "             map: const {",
-            "               'my-dir' : '=>field'",
-            "             })",
-            "class MyDirective {",
-            "  set field(value) {}",
-            "}"),
-        formatLines("MyComponent")));
+    resolveMainSource(createAngularSource(//
+        "@NgDirective(selector: '[my-dir]',",
+        "             map: const {",
+        "               'my-dir' : '=>field'",
+        "             })",
+        "class MyDirective {",
+        "  set field(value) {}",
+        "}"));
     // prepare node
     SimpleStringLiteral node = findMainNode("my-dir'", SimpleStringLiteral.class);
     int offset = node.getOffset();
@@ -206,163 +171,14 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
     assertNull(element);
   }
 
-  public void test_isModule_Module() throws Exception {
-    InterfaceType moduleType = ElementFactory.classElement("Module").getType();
-    assertTrue(AngularCompilationUnitBuilder.isModule(moduleType));
-  }
-
-  public void test_isModule_Module_subtype() throws Exception {
-    InterfaceType moduleType = ElementFactory.classElement("Module").getType();
-    ClassElementImpl myModuleElement = ElementFactory.classElement("MyModule", moduleType);
-    InterfaceType myModuleType = myModuleElement.getType();
-    assertTrue(AngularCompilationUnitBuilder.isModule(myModuleType));
-  }
-
-  public void test_isModule_notInterfaceType() throws Exception {
-    Type type = DynamicTypeImpl.getInstance();
-    assertFalse(AngularCompilationUnitBuilder.isModule(type));
-  }
-
-  public void test_isModule_null() throws Exception {
-    assertFalse(AngularCompilationUnitBuilder.isModule(null));
-  }
-
-  public void test_isModule_recursion() throws Exception {
-    ClassElementImpl myModuleElement = ElementFactory.classElement("MyModule");
-    InterfaceType myModuleType = myModuleElement.getType();
-    myModuleElement.setSupertype(myModuleType);
-    assertFalse(AngularCompilationUnitBuilder.isModule(myModuleType));
-  }
-
-  public void test_module_asClass() throws Exception {
-    String mainContent = createSource(//
-        "import 'angular.dart';",
-        "class ChildModuleA extends Module {}",
-        "class ChildModuleB extends Module {}",
-        "class MyModule extends Module {",
-        "  MyModule() {",
-        "    install(new ChildModuleA());",
-        "    install(new ChildModuleB());",
-        "    type(String);",
-        "    value(int, 42);",
-        "  }",
-        "}");
-    resolveMainSourceNoErrors(mainContent);
-    // prepare MyModule
-    ClassElement classElement = mainUnitElement.getType("MyModule");
-    AngularModuleElement module = getAngularElement(classElement, AngularModuleElement.class);
-    assertNotNull(module);
-    // check child modules
-    AngularModuleElement[] childModules = module.getChildModules();
-    assertLength(2, childModules);
-    assertEquals("ChildModuleA", childModules[0].getEnclosingElement().getName());
-    assertEquals("ChildModuleB", childModules[1].getEnclosingElement().getName());
-    // check key types
-    ClassElement[] keyTypes = module.getKeyTypes();
-    assertLength(2, keyTypes);
-    assertEquals("String", keyTypes[0].getName());
-    assertEquals("int", keyTypes[1].getName());
-  }
-
-  public void test_module_asClass_notInterestingInvocation() throws Exception {
-    String mainContent = createSource(//
-        "import 'angular.dart';",
-        "class MyModule extends Module {",
-        "  MyModule() {",
-        "    foo();",
-        "  }",
-        "  foo() {}",
-        "}");
-    resolveMainSourceNoErrors(mainContent);
-    // prepare MyModule
-    ClassElement variable = mainUnitElement.getType("MyModule");
-    AngularModuleElement module = getAngularElement(variable, AngularModuleElement.class);
-    assertNotNull(module);
-    // no properties
-    assertLength(0, module.getChildModules());
-    assertLength(0, module.getKeyTypes());
-  }
-
-  public void test_module_asLocalVariable_cascade() throws Exception {
-    String mainContent = createSource(//
-        "import 'angular.dart';",
-        "class ChildModuleA extends Module {}",
-        "class ChildModuleB extends Module {}",
-        "main() {",
-        "  var module = new Module()",
-        "    ..install(new ChildModuleA())",
-        "    ..install(new ChildModuleB())",
-        "    ..type(String)",
-        "    ..value(int, 42);",
-        "}");
-    resolveMainSourceNoErrors(mainContent);
-    // prepare "module"
-    LocalVariableElement variable = (LocalVariableElement) findMainElement("module");
-    AngularModuleElement module = getAngularElement(variable, AngularModuleElement.class);
-    assertNotNull(module);
-    // check child modules
-    AngularModuleElement[] childModules = module.getChildModules();
-    assertLength(2, childModules);
-    assertEquals("ChildModuleA", childModules[0].getEnclosingElement().getName());
-    assertEquals("ChildModuleB", childModules[1].getEnclosingElement().getName());
-    // check key types
-    ClassElement[] keyTypes = module.getKeyTypes();
-    assertLength(2, keyTypes);
-    assertEquals("String", keyTypes[0].getName());
-    assertEquals("int", keyTypes[1].getName());
-  }
-
-  public void test_module_asLocalVariable_otherInvocation() throws Exception {
-    String mainContent = createSource(//
-        "import 'angular.dart';",
-        "main() {",
-        "  var module = new Module();",
-        "  module.type(String);",
-        "  123.abs();",
-        "}");
-    resolveMainSourceNoErrors(mainContent);
-    // don't verify "module", just check the fact that there were no resolution problems
-  }
-
-  public void test_module_asLocalVariable_statements() throws Exception {
-    String mainContent = createSource(//
-        "import 'angular.dart';",
-        "class ChildModuleA extends Module {}",
-        "class ChildModuleB extends Module {}",
-        "main() {",
-        "  var module = new Module();",
-        "  module.install(new ChildModuleA());",
-        "  module.install(new ChildModuleB());",
-        "  module.type(String);",
-        "  module.value(int, 42);",
-        "}");
-    resolveMainSourceNoErrors(mainContent);
-    // prepare "module"
-    LocalVariableElement classElement = (LocalVariableElement) findMainElement("module");
-    AngularModuleElement module = getAngularElement(classElement, AngularModuleElement.class);
-    assertNotNull(module);
-    // check child modules
-    AngularModuleElement[] childModules = module.getChildModules();
-    assertLength(2, childModules);
-    assertEquals("ChildModuleA", childModules[0].getEnclosingElement().getName());
-    assertEquals("ChildModuleB", childModules[1].getEnclosingElement().getName());
-    // check key types
-    ClassElement[] keyTypes = module.getKeyTypes();
-    assertLength(2, keyTypes);
-    assertEquals("String", keyTypes[0].getName());
-    assertEquals("int", keyTypes[1].getName());
-  }
-
   public void test_NgComponent_bad_cannotParseSelector() throws Exception {
     contextHelper.addSource("/my_template.html", "");
     contextHelper.addSource("/my_styles.css", "");
-    String mainContent = createAngularModuleSource(//
-        formatLines(//
-            "@NgComponent(publishAs: 'ctrl', selector: '~myComp',",
-            "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css')",
-            "class MyComponent {",
-            "}"),
-        formatLines("MyComponent"));
+    String mainContent = createAngularSource(//
+        "@NgComponent(publishAs: 'ctrl', selector: '~myComp',",
+        "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css')",
+        "class MyComponent {",
+        "}");
     resolveMainSource(mainContent);
     // has error
     assertMainErrors(AngularCode.CANNOT_PARSE_SELECTOR);
@@ -371,13 +187,11 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
   public void test_NgComponent_bad_missingCss() throws Exception {
     contextHelper.addSource("/my_template.html", "");
     contextHelper.addSource("/my_styles.css", "");
-    String mainContent = createAngularModuleSource(//
-        formatLines(//
-            "@NgComponent(publishAs: 'ctrl', selector: 'myComp',",
-            "             templateUrl: 'my_template.html'/*, cssUrl: 'my_styles.css'*/)",
-            "class MyComponent {",
-            "}"),
-        formatLines("MyComponent"));
+    String mainContent = createAngularSource(//
+        "@NgComponent(publishAs: 'ctrl', selector: 'myComp',",
+        "             templateUrl: 'my_template.html'/*, cssUrl: 'my_styles.css'*/)",
+        "class MyComponent {",
+        "}");
     resolveMainSource(mainContent);
     // has error
     assertMainErrors(AngularCode.MISSING_CSS_URL);
@@ -386,13 +200,11 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
   public void test_NgComponent_bad_missingPublishAs() throws Exception {
     contextHelper.addSource("/my_template.html", "");
     contextHelper.addSource("/my_styles.css", "");
-    String mainContent = createAngularModuleSource(//
-        formatLines(//
-            "@NgComponent(/*publishAs: 'ctrl',*/ selector: 'myComp',",
-            "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css')",
-            "class MyComponent {",
-            "}"),
-        formatLines("MyComponent"));
+    String mainContent = createAngularSource(//
+        "@NgComponent(/*publishAs: 'ctrl',*/ selector: 'myComp',",
+        "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css')",
+        "class MyComponent {",
+        "}");
     resolveMainSource(mainContent);
     // has error
     assertMainErrors(AngularCode.MISSING_PUBLISH_AS);
@@ -401,13 +213,11 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
   public void test_NgComponent_bad_missingSelector() throws Exception {
     contextHelper.addSource("/my_template.html", "");
     contextHelper.addSource("/my_styles.css", "");
-    String mainContent = createAngularModuleSource(//
-        formatLines(//
-            "@NgComponent(publishAs: 'ctrl', /*selector: 'myComp',*/",
-            "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css')",
-            "class MyComponent {",
-            "}"),
-        formatLines("MyComponent"));
+    String mainContent = createAngularSource(//
+        "@NgComponent(publishAs: 'ctrl', /*selector: 'myComp',*/",
+        "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css')",
+        "class MyComponent {",
+        "}");
     resolveMainSource(mainContent);
     // has error
     assertMainErrors(AngularCode.MISSING_SELECTOR);
@@ -416,13 +226,11 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
   public void test_NgComponent_bad_missingTemplate() throws Exception {
     contextHelper.addSource("/my_template.html", "");
     contextHelper.addSource("/my_styles.css", "");
-    String mainContent = createAngularModuleSource(//
-        formatLines(//
-            "@NgComponent(publishAs: 'ctrl', selector: 'myComp',",
-            "             /*templateUrl: 'my_template.html',*/ cssUrl: 'my_styles.css')",
-            "class MyComponent {",
-            "}"),
-        formatLines("MyComponent"));
+    String mainContent = createAngularSource(//
+        "@NgComponent(publishAs: 'ctrl', selector: 'myComp',",
+        "             /*templateUrl: 'my_template.html',*/ cssUrl: 'my_styles.css')",
+        "class MyComponent {",
+        "}");
     resolveMainSource(mainContent);
     // has error
     assertMainErrors(AngularCode.MISSING_TEMPLATE_URL);
@@ -431,14 +239,12 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
   public void test_NgComponent_bad_properties_invalidBinding() throws Exception {
     contextHelper.addSource("/my_template.html", "");
     contextHelper.addSource("/my_styles.css", "");
-    String mainContent = createAngularModuleSource(//
-        formatLines(//
-            "@NgComponent(publishAs: 'ctrl', selector: 'myComp',",
-            "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
-            "             map: const {'name' : '?field'})",
-            "class MyComponent {",
-            "}"),
-        formatLines("MyComponent"));
+    String mainContent = createAngularSource(//
+        "@NgComponent(publishAs: 'ctrl', selector: 'myComp',",
+        "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
+        "             map: const {'name' : '?field'})",
+        "class MyComponent {",
+        "}");
     resolveMainSource(mainContent);
     // has error
     assertMainErrors(AngularCode.INVALID_PROPERTY_KIND);
@@ -447,14 +253,12 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
   public void test_NgComponent_bad_properties_nameNotStringLiteral() throws Exception {
     contextHelper.addSource("/my_template.html", "");
     contextHelper.addSource("/my_styles.css", "");
-    String mainContent = createAngularModuleSource(//
-        formatLines(//
-            "@NgComponent(publishAs: 'ctrl', selector: 'myComp',",
-            "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
-            "             map: const {null : 'field'})",
-            "class MyComponent {",
-            "}"),
-        formatLines("MyComponent"));
+    String mainContent = createAngularSource(//
+        "@NgComponent(publishAs: 'ctrl', selector: 'myComp',",
+        "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
+        "             map: const {null : 'field'})",
+        "class MyComponent {",
+        "}");
     resolveMainSource(mainContent);
     // has error
     assertMainErrors(AngularCode.INVALID_PROPERTY_NAME);
@@ -463,14 +267,12 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
   public void test_NgComponent_bad_properties_noSuchField() throws Exception {
     contextHelper.addSource("/my_template.html", "");
     contextHelper.addSource("/my_styles.css", "");
-    String mainContent = createAngularModuleSource(//
-        formatLines(//
-            "@NgComponent(publishAs: 'ctrl', selector: 'myComp',",
-            "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
-            "             map: const {'name' : '=>field'})",
-            "class MyComponent {",
-            "}"),
-        formatLines("MyComponent"));
+    String mainContent = createAngularSource(//
+        "@NgComponent(publishAs: 'ctrl', selector: 'myComp',",
+        "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
+        "             map: const {'name' : '=>field'})",
+        "class MyComponent {",
+        "}");
     resolveMainSource(mainContent);
     // has error
     assertMainErrors(AngularCode.INVALID_PROPERTY_FIELD);
@@ -479,14 +281,12 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
   public void test_NgComponent_bad_properties_notMapLiteral() throws Exception {
     contextHelper.addSource("/my_template.html", "");
     contextHelper.addSource("/my_styles.css", "");
-    String mainContent = createAngularModuleSource(//
-        formatLines(//
-            "@NgComponent(publishAs: 'ctrl', selector: 'myComp',",
-            "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
-            "             map: null)",
-            "class MyComponent {",
-            "}"),
-        formatLines("MyComponent"));
+    String mainContent = createAngularSource(//
+        "@NgComponent(publishAs: 'ctrl', selector: 'myComp',",
+        "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
+        "             map: null)",
+        "class MyComponent {",
+        "}");
     resolveMainSource(mainContent);
     // has error
     assertMainErrors(AngularCode.INVALID_PROPERTY_MAP);
@@ -495,14 +295,12 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
   public void test_NgComponent_bad_properties_specNotStringLiteral() throws Exception {
     contextHelper.addSource("/my_template.html", "");
     contextHelper.addSource("/my_styles.css", "");
-    String mainContent = createAngularModuleSource(//
-        formatLines(//
-            "@NgComponent(publishAs: 'ctrl', selector: 'myComp',",
-            "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
-            "             map: const {'name' : null})",
-            "class MyComponent {",
-            "}"),
-        formatLines("MyComponent"));
+    String mainContent = createAngularSource(//
+        "@NgComponent(publishAs: 'ctrl', selector: 'myComp',",
+        "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
+        "             map: const {'name' : null})",
+        "class MyComponent {",
+        "}");
     resolveMainSource(mainContent);
     // has error
     assertMainErrors(AngularCode.INVALID_PROPERTY_SPEC);
@@ -511,23 +309,21 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
   public void test_NgComponent_properties_fromFields() throws Exception {
     contextHelper.addSource("/my_template.html", "");
     contextHelper.addSource("/my_styles.css", "");
-    resolveMainSourceNoErrors(createAngularModuleSource(//
-        formatLines(//
-            "@NgComponent(publishAs: 'ctrl', selector: 'myComp',",
-            "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css')",
-            "class MyComponent {",
-            "  @NgAttr('prop-a')",
-            "  var myPropA;",
-            "  @NgCallback('prop-b')",
-            "  var myPropB;",
-            "  @NgOneWay('prop-c')",
-            "  var myPropC;",
-            "  @NgOneWayOneTime('prop-d')",
-            "  var myPropD;",
-            "  @NgTwoWay('prop-e')",
-            "  var myPropE;",
-            "}"),
-        formatLines("MyComponent")));
+    resolveMainSourceNoErrors(createAngularSource(//
+        "@NgComponent(publishAs: 'ctrl', selector: 'myComp',",
+        "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css')",
+        "class MyComponent {",
+        "  @NgAttr('prop-a')",
+        "  var myPropA;",
+        "  @NgCallback('prop-b')",
+        "  var myPropB;",
+        "  @NgOneWay('prop-c')",
+        "  var myPropC;",
+        "  @NgOneWayOneTime('prop-d')",
+        "  var myPropD;",
+        "  @NgTwoWay('prop-e')",
+        "  var myPropE;",
+        "}"));
     // prepare AngularComponentElement
     ClassElement classElement = mainUnitElement.getType("MyComponent");
     AngularComponentElement component = getAngularElement(
@@ -577,25 +373,23 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
   public void test_NgComponent_properties_fromMap() throws Exception {
     contextHelper.addSource("/my_template.html", "");
     contextHelper.addSource("/my_styles.css", "");
-    resolveMainSourceNoErrors(createAngularModuleSource(//
-        formatLines(//
-            "@NgComponent(publishAs: 'ctrl', selector: 'myComp',",
-            "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
-            "             map: const {",
-            "               'prop-a' : '@myPropA',",
-            "               'prop-b' : '&myPropB',",
-            "               'prop-c' : '=>myPropC',",
-            "               'prop-d' : '=>!myPropD',",
-            "               'prop-e' : '<=>myPropE'",
-            "             })",
-            "class MyComponent {",
-            "  var myPropA;",
-            "  var myPropB;",
-            "  var myPropC;",
-            "  var myPropD;",
-            "  var myPropE;",
-            "}"),
-        formatLines("MyComponent")));
+    resolveMainSourceNoErrors(createAngularSource(//
+        "@NgComponent(publishAs: 'ctrl', selector: 'myComp',",
+        "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
+        "             map: const {",
+        "               'prop-a' : '@myPropA',",
+        "               'prop-b' : '&myPropB',",
+        "               'prop-c' : '=>myPropC',",
+        "               'prop-d' : '=>!myPropD',",
+        "               'prop-e' : '<=>myPropE'",
+        "             })",
+        "class MyComponent {",
+        "  var myPropA;",
+        "  var myPropB;",
+        "  var myPropC;",
+        "  var myPropD;",
+        "  var myPropE;",
+        "}"));
     // prepare AngularComponentElement
     ClassElement classElement = mainUnitElement.getType("MyComponent");
     AngularComponentElement component = getAngularElement(
@@ -645,13 +439,11 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
   public void test_NgComponent_properties_no() throws Exception {
     contextHelper.addSource("/my_template.html", "");
     contextHelper.addSource("/my_styles.css", "");
-    String mainContent = createAngularModuleSource(//
-        formatLines(//
-            "@NgComponent(publishAs: 'ctrl', selector: 'myComp',",
-            "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css')",
-            "class MyComponent {",
-            "}"),
-        formatLines("MyComponent"));
+    String mainContent = createAngularSource(//
+        "@NgComponent(publishAs: 'ctrl', selector: 'myComp',",
+        "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css')",
+        "class MyComponent {",
+        "}");
     resolveMainSourceNoErrors(mainContent);
     // prepare AngularComponentElement
     ClassElement classElement = mainUnitElement.getType("MyComponent");
@@ -671,12 +463,10 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
   }
 
   public void test_NgController() throws Exception {
-    String mainContent = createAngularModuleSource(//
-        formatLines(//
-            "@NgController(publishAs: 'ctrl', selector: '[myApp]')",
-            "class MyController {",
-            "}"),
-        formatLines("MyController"));
+    String mainContent = createAngularSource(//
+        "@NgController(publishAs: 'ctrl', selector: '[myApp]')",
+        "class MyController {",
+        "}");
     resolveMainSourceNoErrors(mainContent);
     // prepare AngularControllerElement
     ClassElement classElement = mainUnitElement.getType("MyController");
@@ -691,65 +481,55 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
   }
 
   public void test_NgController_cannotParseSelector() throws Exception {
-    String mainContent = createAngularModuleSource(//
-        formatLines(//
-            "@NgController(publishAs: 'ctrl', selector: '~unknown')",
-            "class MyController {",
-            "}"),
-        formatLines("MyController"));
+    String mainContent = createAngularSource(//
+        "@NgController(publishAs: 'ctrl', selector: '~unknown')",
+        "class MyController {",
+        "}");
     resolveMainSource(mainContent);
     // has error
     assertMainErrors(AngularCode.CANNOT_PARSE_SELECTOR);
   }
 
   public void test_NgController_missingPublishAs() throws Exception {
-    String mainContent = createAngularModuleSource(//
-        formatLines(//
-            "@NgController(selector: '[myApp]')",
-            "class MyController {",
-            "}"),
-        formatLines("MyController"));
+    String mainContent = createAngularSource(//
+        "@NgController(selector: '[myApp]')",
+        "class MyController {",
+        "}");
     resolveMainSource(mainContent);
     // has error
     assertMainErrors(AngularCode.MISSING_PUBLISH_AS);
   }
 
   public void test_NgController_missingSelector() throws Exception {
-    String mainContent = createAngularModuleSource(//
-        formatLines(//
-            "@NgController(publishAs: 'ctrl')",
-            "class MyController {",
-            "}"),
-        formatLines("MyController"));
+    String mainContent = createAngularSource(//
+        "@NgController(publishAs: 'ctrl')",
+        "class MyController {",
+        "}");
     resolveMainSource(mainContent);
     // has error
     assertMainErrors(AngularCode.MISSING_SELECTOR);
   }
 
   public void test_NgController_noAnnotationArguments() throws Exception {
-    String mainContent = createAngularModuleSource(//
-        formatLines(//
-            "@NgController",
-            "class MyController {",
-            "}"),
-        formatLines("MyController"));
+    String mainContent = createAngularSource(//
+        "@NgController",
+        "class MyController {",
+        "}");
     resolveMainSource(mainContent);
     // ignore errors, but there should be no exceptions
   }
 
   public void test_NgDirective() throws Exception {
-    String mainContent = createAngularModuleSource(//
-        formatLines(//
-            "@NgDirective(selector: '[my-dir]',",
-            "             map: const {",
-            "               'my-dir' : '=>myPropA',",
-            "               '.' : '&myPropB',",
-            "             })",
-            "class MyDirective {",
-            "  set myPropA(value) {}",
-            "  set myPropB(value) {}",
-            "}"),
-        formatLines("MyDirective"));
+    String mainContent = createAngularSource(//
+        "@NgDirective(selector: '[my-dir]',",
+        "             map: const {",
+        "               'my-dir' : '=>myPropA',",
+        "               '.' : '&myPropB',",
+        "             })",
+        "class MyDirective {",
+        "  set myPropA(value) {}",
+        "  set myPropB(value) {}",
+        "}");
     resolveMainSourceNoErrors(mainContent);
     // prepare AngularDirectiveElement
     ClassElement classElement = mainUnitElement.getType("MyDirective");
@@ -781,49 +561,43 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
   }
 
   public void test_NgDirective_bad_cannotParseSelector() throws Exception {
-    String mainContent = createAngularModuleSource(//
-        formatLines(//
-            "@NgDirective(selector: '~bad-selector',",
-            "             map: const {",
-            "               'my-dir' : '=>myPropA',",
-            "               '.' : '&myPropB',",
-            "             })",
-            "class MyDirective {",
-            "  set myPropA(value) {}",
-            "  set myPropB(value) {}",
-            "}"),
-        formatLines("MyDirective"));
+    String mainContent = createAngularSource(//
+        "@NgDirective(selector: '~bad-selector',",
+        "             map: const {",
+        "               'my-dir' : '=>myPropA',",
+        "               '.' : '&myPropB',",
+        "             })",
+        "class MyDirective {",
+        "  set myPropA(value) {}",
+        "  set myPropB(value) {}",
+        "}");
     resolveMainSource(mainContent);
     // has error
     assertMainErrors(AngularCode.CANNOT_PARSE_SELECTOR);
   }
 
   public void test_NgDirective_bad_missingSelector() throws Exception {
-    String mainContent = createAngularModuleSource(//
-        formatLines(//
-            "@NgDirective(/*selector: '[my-dir]',*/",
-            "             map: const {",
-            "               'my-dir' : '=>myPropA',",
-            "               '.' : '&myPropB',",
-            "             })",
-            "class MyDirective {",
-            "  set myPropA(value) {}",
-            "  set myPropB(value) {}",
-            "}"),
-        formatLines("MyDirective"));
+    String mainContent = createAngularSource(//
+        "@NgDirective(/*selector: '[my-dir]',*/",
+        "             map: const {",
+        "               'my-dir' : '=>myPropA',",
+        "               '.' : '&myPropB',",
+        "             })",
+        "class MyDirective {",
+        "  set myPropA(value) {}",
+        "  set myPropB(value) {}",
+        "}");
     resolveMainSource(mainContent);
     // has error
     assertMainErrors(AngularCode.MISSING_SELECTOR);
   }
 
   public void test_NgFilter() throws Exception {
-    String mainContent = createAngularModuleSource(//
-        formatLines(//
-            "@NgFilter(name: 'myFilter')",
-            "class MyFilter {",
-            "  call(p1, p2) {}",
-            "}"),
-        formatLines("MyFilter"));
+    String mainContent = createAngularSource(//
+        "@NgFilter(name: 'myFilter')",
+        "class MyFilter {",
+        "  call(p1, p2) {}",
+        "}");
     resolveMainSourceNoErrors(mainContent);
     // prepare AngularFilterElement
     ClassElement classElement = mainUnitElement.getType("MyFilter");
@@ -835,13 +609,11 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
   }
 
   public void test_NgFilter_missingName() throws Exception {
-    String mainContent = createAngularModuleSource(//
-        formatLines(//
-            "@NgFilter()",
-            "class MyFilter {",
-            "  call(p1, p2) {}",
-            "}"),
-        formatLines("MyFilter"));
+    String mainContent = createAngularSource(//
+        "@NgFilter()",
+        "class MyFilter {",
+        "  call(p1, p2) {}",
+        "}");
     resolveMainSource(mainContent);
     // has error
     assertMainErrors(AngularCode.MISSING_NAME);

@@ -18,6 +18,7 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementLocation;
 import com.google.dart.engine.element.HtmlElement;
 import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.element.angular.AngularElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.source.Source;
@@ -276,6 +277,16 @@ public interface AnalysisContext {
    * @return the sources for the libraries that depend on the given library
    */
   public Source[] getLibrariesDependingOn(Source librarySource);
+
+  /**
+   * Return the {@link AngularElement}s accessible in the library defined by the given source, or
+   * and empty array if given source is not a library, not resolved or cannot be analyzed for some
+   * reason.
+   * 
+   * @param source the source defining the library whose {@link AngularElement}s is to be returned
+   * @return the {@link AngularElement}s accessible in the library defined by the given source
+   */
+  public AngularElement[] getLibraryAngularElements(Source source);
 
   /**
    * Return the element model corresponding to the library defined by the given source, or

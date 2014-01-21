@@ -16,27 +16,21 @@ package com.google.dart.engine.internal.builder;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.Annotation;
 import com.google.dart.engine.ast.ArgumentList;
-import com.google.dart.engine.ast.CascadeExpression;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.ClassMember;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.CompilationUnitMember;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.FieldDeclaration;
-import com.google.dart.engine.ast.FunctionDeclaration;
-import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.ast.MapLiteral;
 import com.google.dart.engine.ast.MapLiteralEntry;
-import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.NamedExpression;
 import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.SimpleStringLiteral;
 import com.google.dart.engine.ast.VariableDeclaration;
-import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
@@ -45,13 +39,10 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
-import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.element.ToolkitObjectElement;
-import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.element.angular.AngularComponentElement;
 import com.google.dart.engine.element.angular.AngularDirectiveElement;
 import com.google.dart.engine.element.angular.AngularElement;
-import com.google.dart.engine.element.angular.AngularModuleElement;
 import com.google.dart.engine.element.angular.AngularPropertyElement;
 import com.google.dart.engine.element.angular.AngularPropertyKind;
 import com.google.dart.engine.element.angular.AngularSelectorElement;
@@ -60,26 +51,22 @@ import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.error.AngularCode;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.internal.element.ClassElementImpl;
-import com.google.dart.engine.internal.element.LocalVariableElementImpl;
 import com.google.dart.engine.internal.element.angular.AngularComponentElementImpl;
 import com.google.dart.engine.internal.element.angular.AngularControllerElementImpl;
 import com.google.dart.engine.internal.element.angular.AngularDirectiveElementImpl;
 import com.google.dart.engine.internal.element.angular.AngularFilterElementImpl;
-import com.google.dart.engine.internal.element.angular.AngularModuleElementImpl;
 import com.google.dart.engine.internal.element.angular.AngularPropertyElementImpl;
 import com.google.dart.engine.internal.element.angular.HasAttributeSelectorElementImpl;
 import com.google.dart.engine.internal.element.angular.IsTagSelectorElementImpl;
 import com.google.dart.engine.internal.scope.Namespace;
 import com.google.dart.engine.internal.scope.NamespaceBuilder;
 import com.google.dart.engine.source.Source;
-import com.google.dart.engine.type.InterfaceType;
-import com.google.dart.engine.type.Type;
 import com.google.dart.engine.utilities.general.StringUtilities;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Instances of the class {@code AngularCompilationUnitBuilder} build an Angular specific element
@@ -114,7 +101,11 @@ public class AngularCompilationUnitBuilder {
   public static AngularElement[] getAngularElements(LibraryElement libraryElement) {
     List<AngularElement> angularElements = Lists.newArrayList();
     // add Angular elements from current library
-    for (CompilationUnitElement unit : libraryElement.getParts()) {
+    // TODO(scheglov) use LibraryElement.getUnits()
+    List<CompilationUnitElement> libraryUnits = Lists.newArrayList();
+    libraryUnits.add(libraryElement.getDefiningCompilationUnit());
+    Collections.addAll(libraryUnits, libraryElement.getParts());
+    for (CompilationUnitElement unit : libraryUnits) {
       for (ClassElement type : unit.getTypes()) {
         addAngularElements(angularElements, type);
       }
@@ -182,33 +173,6 @@ public class AngularCompilationUnitBuilder {
   }
 
   /**
-   * Checks if given {@link Type} is an Angular <code>Module</code> or its subclass.
-   */
-  @VisibleForTesting
-  public static boolean isModule(Type type) {
-    if (!(type instanceof InterfaceType)) {
-      return false;
-    }
-    InterfaceType interfaceType = (InterfaceType) type;
-    // check hierarchy
-    Set<Type> seenTypes = Sets.newHashSet();
-    while (interfaceType != null) {
-      // check for recursion
-      if (!seenTypes.add(interfaceType)) {
-        return false;
-      }
-      // check for "Module"
-      if (interfaceType.getElement().getName().equals("Module")) {
-        return true;
-      }
-      // try supertype
-      interfaceType = interfaceType.getSuperclass();
-    }
-    // no
-    return false;
-  }
-
-  /**
    * Parses given selector text and returns {@link AngularSelectorElement}. May be {@code null} if
    * cannot parse.
    */
@@ -269,14 +233,6 @@ public class AngularCompilationUnitBuilder {
       }
     }
     return nameLiteral;
-  }
-
-  /**
-   * Checks if given {@link LocalVariableElement} is an Angular <code>Module</code>.
-   */
-  private static boolean isModule(VariableDeclaration node) {
-    Type type = node.getName().getBestType();
-    return isModule(type);
   }
 
   /**
@@ -348,7 +304,6 @@ public class AngularCompilationUnitBuilder {
         this.classDeclaration = (ClassDeclaration) unitMember;
         this.classElement = (ClassElementImpl) classDeclaration.getElement();
         this.classToolkitObjects.clear();
-        parseModuleClass();
         // process annotations
         NodeList<Annotation> annotations = classDeclaration.getMetadata();
         for (Annotation annotation : annotations) {
@@ -385,19 +340,6 @@ public class AngularCompilationUnitBuilder {
         }
       }
     }
-    // process modules in variables
-    parseModuleVariables(unit);
-  }
-
-  /**
-   * Creates {@link AngularModuleElementImpl} for given information.
-   */
-  private AngularModuleElementImpl createModuleElement(List<AngularModuleElement> childModules,
-      List<ClassElement> keyTypes) {
-    AngularModuleElementImpl module = new AngularModuleElementImpl();
-    module.setChildModules(childModules.toArray(new AngularModuleElement[childModules.size()]));
-    module.setKeyTypes(keyTypes.toArray(new ClassElement[keyTypes.size()]));
-    return module;
   }
 
   /**
@@ -466,143 +408,6 @@ public class AngularCompilationUnitBuilder {
    */
   private boolean isAngularAnnotation(String name) {
     return isAngularAnnotation(annotation, name);
-  }
-
-  /**
-   * Checks if {@link #classElement} is an Angular <code>Module</code>.
-   */
-  private boolean isModule() {
-    InterfaceType supertype = classElement.getSupertype();
-    return isModule(supertype);
-  }
-
-  /**
-   * Analyzes {@link #classDeclaration} and if it is a module, creates {@link AngularModuleElement}
-   * model for it.
-   */
-  private void parseModuleClass() {
-    if (!isModule()) {
-      return;
-    }
-    // check install(), type() and value() invocations
-    final List<AngularModuleElement> childModules = Lists.newArrayList();
-    final List<ClassElement> keyTypes = Lists.newArrayList();
-    classDeclaration.accept(new RecursiveASTVisitor<Void>() {
-      @Override
-      public Void visitMethodInvocation(MethodInvocation node) {
-        if (node.getTarget() == null) {
-          parseModuleInvocation(node, childModules, keyTypes);
-        }
-        return null;
-      }
-    });
-    // set module element
-    AngularModuleElementImpl module = createModuleElement(childModules, keyTypes);
-    classToolkitObjects.add(module);
-  }
-
-  /**
-   * Checks if given {@link MethodInvocation} is an interesting <code>Module</code> method
-   * invocation and remembers corresponding elements into lists.
-   */
-  private void parseModuleInvocation(MethodInvocation node,
-      List<AngularModuleElement> childModules, List<ClassElement> keyTypes) {
-    String methodName = node.getMethodName().getName();
-    NodeList<Expression> arguments = node.getArgumentList().getArguments();
-    // install()
-    if (arguments.size() == 1 && methodName.equals("install")) {
-      Type argType = arguments.get(0).getBestType();
-      if (argType instanceof InterfaceType) {
-        ClassElement argElement = ((InterfaceType) argType).getElement();
-        ToolkitObjectElement[] toolkitObjects = argElement.getToolkitObjects();
-        for (ToolkitObjectElement toolkitObject : toolkitObjects) {
-          if (toolkitObject instanceof AngularModuleElement) {
-            childModules.add((AngularModuleElement) toolkitObject);
-          }
-        }
-      }
-      return;
-    }
-    // type() and value()
-    if (arguments.size() >= 1 && (methodName.equals("type") || methodName.equals("value"))) {
-      Expression arg = arguments.get(0);
-      if (arg instanceof Identifier) {
-        Element argElement = ((Identifier) arg).getStaticElement();
-        if (argElement instanceof ClassElement) {
-          keyTypes.add((ClassElement) argElement);
-        }
-      }
-      return;
-    }
-  }
-
-  /**
-   * Checks every local variable in the given unit to see if it is a <code>Module</code> and creates
-   * {@link AngularModuleElement} for it.
-   */
-  private void parseModuleVariables(CompilationUnit unit) {
-    unit.accept(new RecursiveASTVisitor<Void>() {
-      LocalVariableElementImpl variable = null;
-      Expression variableInit = null;
-      List<AngularModuleElement> childModules = Lists.newArrayList();
-      List<ClassElement> keyTypes = Lists.newArrayList();
-
-      @Override
-      public Void visitClassDeclaration(ClassDeclaration node) {
-        // Don't visit class declarations to save time.
-        // Remove this method if we will need to search for module variables in classes.
-        return null;
-      }
-
-      @Override
-      public Void visitFunctionDeclaration(FunctionDeclaration node) {
-        childModules.clear();
-        keyTypes.clear();
-        super.visitFunctionDeclaration(node);
-        if (variable != null) {
-          AngularModuleElementImpl module = createModuleElement(childModules, keyTypes);
-          variable.setToolkitObjects(new ToolkitObjectElement[] {module});
-        }
-        return null;
-      }
-
-      @Override
-      public Void visitMethodInvocation(MethodInvocation node) {
-        if (variable != null) {
-          if (isVariableInvocation(node)) {
-            parseModuleInvocation(node, childModules, keyTypes);
-          }
-        }
-        return null;
-      }
-
-      @Override
-      public Void visitVariableDeclaration(VariableDeclaration node) {
-        VariableElement element = node.getElement();
-        if (element instanceof LocalVariableElementImpl && isModule(node)) {
-          variable = (LocalVariableElementImpl) element;
-          variableInit = node.getInitializer();
-        }
-        return super.visitVariableDeclaration(node);
-      }
-
-      private boolean isVariableInvocation(MethodInvocation node) {
-        Expression target = node.getRealTarget();
-        // var module = new Module()..type(t1)..type(t2);
-        if (variableInit instanceof CascadeExpression && target != null
-            && target.getParent() == variableInit) {
-          return true;
-        }
-        // var module = new Module();
-        // module.type(t);
-        if (target instanceof Identifier) {
-          Element targetElement = ((Identifier) target).getStaticElement();
-          return targetElement == variable;
-        }
-        // no
-        return false;
-      }
-    });
   }
 
   private void parseNgComponent() {

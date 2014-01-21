@@ -21,7 +21,9 @@ import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
 import com.google.dart.engine.internal.context.RecordingErrorListener;
 import com.google.dart.engine.internal.context.ResolvableHtmlUnit;
+import com.google.dart.engine.internal.html.angular.AngularHtmlUnitResolver;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.utilities.source.LineInfo;
 
 /**
  * Instances of the class {@code ResolveAngularComponentTemplateTask} resolve HTML template
@@ -113,15 +115,15 @@ public class ResolveAngularComponentTemplateTask extends AnalysisTask {
     modificationTime = resolvableHtmlUnit.getModificationTime();
     // prepare for resolution
     RecordingErrorListener errorListener = new RecordingErrorListener();
-//    LineInfo lineInfo = getContext().getLineInfo(source);
-    // TODO(scheglov) actually perform component template resolution
-//    new AngularHtmlUnitResolver(getContext(), errorListener, source, lineInfo).resolve(unit);
-//    errorListener.onError(new AnalysisError(
-//        source,
-//        10,
-//        5,
-//        AngularCode.CANNOT_PARSE_SELECTOR,
-//        component));
+    LineInfo lineInfo = getContext().getLineInfo(source);
+    // do resolve
+    AngularHtmlUnitResolver resolver = new AngularHtmlUnitResolver(
+        getContext(),
+        errorListener,
+        source,
+        lineInfo,
+        unit);
+    resolver.resolveComponentTemplate(angularElements, component);
     // remember errors
     resolutionErrors = errorListener.getErrors(source);
   }

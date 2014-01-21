@@ -26,7 +26,30 @@ import com.google.dart.engine.html.ast.XmlAttributeNode;
 import com.google.dart.engine.html.ast.XmlTagNode;
 
 public class AngularHtmlUnitResolverTest extends AngularTest {
-  public void test_component_use_resolveAttributes() throws Exception {
+  public void test_NgComponent_resolveTemplateFile() throws Exception {
+    addMainSource(createSource("",//
+        "import 'angular.dart';",
+        "",
+        "@NgComponent(",
+        "    templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
+        "    publishAs: 'ctrl',",
+        "    selector: 'myComponent')",
+        "class MyComponent {",
+        "  String field;",
+        "}"));
+    addIndexSource("/my_template.html", createSource(//
+        "    <div>",
+        "      {{ctrl.field}}",
+        "    </div>"));
+    contextHelper.addSource("/my_styles.css", "");
+    contextHelper.runTasks();
+    resolveIndex();
+    assertNoErrors();
+    assertResolvedIdentifier("ctrl.", "MyComponent");
+    assertResolvedIdentifier("field}}", "String");
+  }
+
+  public void test_NgComponent_use_resolveAttributes() throws Exception {
     addMainSource(createSource("",//
         "import 'angular.dart';",
         "",
@@ -38,12 +61,6 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
         "class MyComponent {",
         "  set setA(value) {}",
         "  set setB(value) {}",
-        "}",
-        "",
-        "main() {",
-        "  var module = new Module();",
-        "  module.type(MyComponent);",
-        "  ngBootstrap(module: module);",
         "}"));
     resolveIndex(createHtmlWithMyController(//
         "<input type='text' ng-model='someModel'/>",
@@ -76,7 +93,7 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
     }
   }
 
-  public void test_directive_resolvedExpression_attrString() throws Exception {
+  public void test_NgDirective_resolvedExpression_attrString() throws Exception {
     addMainSource(createSource("",//
         "import 'angular.dart';",
         "",
@@ -85,12 +102,6 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
         "    map: const {'my-directive' : '@condition'})",
         "class MyDirective {",
         "  set condition(value) {}",
-        "}",
-        "",
-        "main() {",
-        "  var module = new Module();",
-        "  module.type(MyDirective);",
-        "  ngBootstrap(module: module);",
         "}"));
     resolveIndex(createHtmlWithMyController(//
         "<input type='text' ng-model='name'>",
@@ -110,7 +121,7 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
     assertSame(AngularPropertyKind.ATTR, propertyElement.getPropertyKind());
   }
 
-  public void test_directive_resolvedExpression_dotAsName() throws Exception {
+  public void test_NgDirective_resolvedExpression_dotAsName() throws Exception {
     addMainSource(createSource("",//
         "import 'angular.dart';",
         "",
@@ -119,12 +130,6 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
         "    map: const {'.' : '=>condition'})",
         "class MyDirective {",
         "  set condition(value) {}",
-        "}",
-        "",
-        "main() {",
-        "  var module = new Module();",
-        "  module.type(MyDirective);",
-        "  ngBootstrap(module: module);",
         "}"));
     resolveIndex(createHtmlWithMyController(//
         "<input type='text' ng-model='name'>",
@@ -136,7 +141,7 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
     assertNotNull(findIdentifier("name != null"));
   }
 
-  public void test_directive_resolvedExpression_oneWay() throws Exception {
+  public void test_NgDirective_resolvedExpression_oneWay() throws Exception {
     addMainSource(createSource("",//
         "import 'angular.dart';",
         "",
@@ -145,12 +150,6 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
         "    map: const {'my-directive' : '=>condition'})",
         "class MyDirective {",
         "  set condition(value) {}",
-        "}",
-        "",
-        "main() {",
-        "  var module = new Module();",
-        "  module.type(MyDirective);",
-        "  ngBootstrap(module: module);",
         "}"));
     resolveIndex(createHtmlWithMyController(//
         "<input type='text' ng-model='name'>",
@@ -169,50 +168,6 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
     assertNotNull(propertyElement);
     assertSame(AngularPropertyKind.ONE_WAY, propertyElement.getPropertyKind());
     assertEquals("condition", propertyElement.getField().getName());
-  }
-
-  public void test_moduleAsLocalVariable_inInitializer() throws Exception {
-    addMainSource(createSource("",//
-        "import 'angular.dart';",
-        "",
-        "@NgController(",
-        "    selector: '[my-controller]',",
-        "    publishAs: 'ctrl')",
-        "class MyController {",
-        "  String field;",
-        "}",
-        "",
-        "main() {",
-        "  var module = new Module()",
-        "    ..type(MyController);",
-        "  ngBootstrap(module: module);",
-        "}"));
-    resolveIndex(createHtmlWithMyController("{{ctrl.field}}"));
-    assertNoErrors();
-    verify(indexSource);
-    assertResolvedIdentifier("ctrl", "MyController");
-  }
-
-  public void test_moduleAsLocalVariable_inStatements() throws Exception {
-    addMainSource(createSource("",//
-        "import 'angular.dart';",
-        "",
-        "@NgController(",
-        "    selector: '[my-controller]',",
-        "    publishAs: 'ctrl')",
-        "class MyController {",
-        "  String field;",
-        "}",
-        "",
-        "main() {",
-        "  var module = new Module();",
-        "  module.type(MyController);",
-        "  ngBootstrap(module: module);",
-        "}"));
-    resolveIndex(createHtmlWithMyController("{{ctrl.field}}"));
-    assertNoErrors();
-    verify(indexSource);
-    assertResolvedIdentifier("ctrl", "MyController");
   }
 
   public void test_ngModel_modelAfterUsage() throws Exception {
@@ -277,23 +232,6 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
     assertResolvedIdentifier("name}}", "String");
   }
 
-  public void test_notResolved_no_ngBootstrap_invocation() throws Exception {
-    contextHelper.addSource("/main.dart", "// just empty script");
-    resolveIndex(createSource(//
-        "<html ng-app>",
-        "  <body>",
-        "    <div my-marker>",
-        "      {{ctrl.field}}",
-        "    </div>",
-        "    <script type='application/dart' src='main.dart'></script>",
-        "  </body>",
-        "</html>"));
-    assertNoErrors();
-    // Angular is not initialized, so "ctrl" is not parsed
-    Expression expression = HtmlUnitUtils.getExpression(indexUnit, findOffset("ctrl"));
-    assertNull(expression);
-  }
-
   public void test_notResolved_noDartScript() throws Exception {
     resolveIndex(createSource(//
         "<html ng-app>",
@@ -339,6 +277,29 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
     // "ctrl" is not resolved
     SimpleIdentifier identifier = findIdentifier("ctrl");
     assertNull(identifier.getBestElement());
+  }
+
+  public void test_resolveExpression_evenWithout_ngBootstrap() throws Exception {
+    resolveMainSource(createSource("",//
+        "import 'angular.dart';",
+        "",
+        "@NgController(",
+        "    selector: '[my-controller]',",
+        "    publishAs: 'ctrl')",
+        "class MyController {",
+        "  String field;",
+        "}"));
+    resolveIndex(createSource(//
+        "<html ng-app>",
+        "  <body>",
+        "    <div my-controller>",
+        "      {{ctrl.field}}",
+        "    </div>",
+        "    <script type='application/dart' src='main.dart'></script>",
+        "  </body>",
+        "</html>"));
+    assertNoErrors();
+    assertResolvedIdentifier("ctrl.", "MyController");
   }
 
   public void test_resolveExpression_inAttribute() throws Exception {

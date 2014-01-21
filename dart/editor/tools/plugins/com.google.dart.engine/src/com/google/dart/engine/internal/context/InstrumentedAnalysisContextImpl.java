@@ -12,6 +12,7 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementLocation;
 import com.google.dart.engine.element.HtmlElement;
 import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.element.angular.AngularElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.internal.cache.SourceEntry;
@@ -375,6 +376,17 @@ public class InstrumentedAnalysisContextImpl implements InternalAnalysisContext 
         instrumentation.metric("Source-count", ret.length);
       }
       return ret;
+    } finally {
+      instrumentation.log();
+    }
+  }
+
+  @Override
+  public AngularElement[] getLibraryAngularElements(Source source) {
+    InstrumentationBuilder instrumentation = Instrumentation.builder("Analysis-getLibraryAngularElements");
+    try {
+      instrumentation.metric("contextId", contextId);
+      return basis.getLibraryAngularElements(source);
     } finally {
       instrumentation.log();
     }

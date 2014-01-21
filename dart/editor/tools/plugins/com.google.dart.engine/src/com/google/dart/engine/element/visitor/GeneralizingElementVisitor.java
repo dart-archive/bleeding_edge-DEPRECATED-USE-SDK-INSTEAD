@@ -49,7 +49,6 @@ import com.google.dart.engine.element.angular.AngularDirectiveElement;
 import com.google.dart.engine.element.angular.AngularElement;
 import com.google.dart.engine.element.angular.AngularFilterElement;
 import com.google.dart.engine.element.angular.AngularHasSelectorElement;
-import com.google.dart.engine.element.angular.AngularModuleElement;
 import com.google.dart.engine.element.angular.AngularPropertyElement;
 import com.google.dart.engine.element.angular.AngularSelectorElement;
 
@@ -140,15 +139,11 @@ public class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
   }
 
   @Override
-  public R visitAngularModuleElement(AngularModuleElement element) {
-    return visitAngularElement(element);
-  }
-
-  @Override
   public R visitAngularPropertyElement(AngularPropertyElement element) {
     return visitAngularElement(element);
   }
 
+  @Override
   public R visitAngularSelectorElement(AngularSelectorElement element) {
     return visitAngularElement(element);
   }

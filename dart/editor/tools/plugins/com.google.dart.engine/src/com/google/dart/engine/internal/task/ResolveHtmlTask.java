@@ -127,7 +127,7 @@ public class ResolveHtmlTask extends AnalysisTask {
     element = builder.buildHtmlElement(source, modificationTime, unit);
     // resolve toolkit-specific features
     LineInfo lineInfo = getContext().getLineInfo(source);
-    new AngularHtmlUnitResolver(getContext(), builder.getErrorListener(), source, lineInfo).resolve(unit);
+    new AngularHtmlUnitResolver(getContext(), builder.getErrorListener(), source, lineInfo, unit).resolveEntryPoint();
     // record all resolution errors
     resolutionErrors = builder.getErrorListener().getErrors(source);
     // remember resolved unit

@@ -17,28 +17,20 @@ package com.google.dart.engine.internal.html.angular;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.dart.engine.ast.ASTNode;
-import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.Expression;
-import com.google.dart.engine.ast.InstanceCreationExpression;
-import com.google.dart.engine.ast.MethodInvocation;
-import com.google.dart.engine.ast.NamedExpression;
 import com.google.dart.engine.ast.SimpleIdentifier;
-import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.ClassElement;
-import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExternalHtmlScriptElement;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.HtmlScriptElement;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
-import com.google.dart.engine.element.LocalVariableElement;
-import com.google.dart.engine.element.ToolkitObjectElement;
 import com.google.dart.engine.element.angular.AngularComponentElement;
 import com.google.dart.engine.element.angular.AngularControllerElement;
 import com.google.dart.engine.element.angular.AngularDirectiveElement;
-import com.google.dart.engine.element.angular.AngularModuleElement;
+import com.google.dart.engine.element.angular.AngularElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.error.ErrorCode;
@@ -63,12 +55,12 @@ import com.google.dart.engine.internal.scope.Scope;
 import com.google.dart.engine.scanner.StringToken;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
 import com.google.dart.engine.utilities.general.StringUtilities;
 import com.google.dart.engine.utilities.source.LineInfo;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -89,7 +81,6 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
   private static final int CLOSING_DELIMITER_LENGTH = CLOSING_DELIMITER.length();
 
   private static final String NG_APP = "ng-app";
-  private static final String NG_BOOTSTRAP = "ngBootstrap";
 
   /**
    * @return {@code true} if the given {@link HtmlUnit} has <code>ng-app</code> annotation.
@@ -120,26 +111,12 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
     return new StringToken(TokenType.IDENTIFIER, name, 0);
   }
 
-  /**
-   * If given {@link Expression} is a {@link NamedExpression} and its name is the same as given,
-   * then returns its "value" {@link Expression}. Otherwise returns {@code null}.
-   */
-  private static Expression getNamedExpression(Expression expression, String name) {
-    if (expression instanceof NamedExpression) {
-      NamedExpression namedExpression = (NamedExpression) expression;
-      String actualName = namedExpression.getName().getLabel().getName();
-      if (actualName.equals(name)) {
-        return namedExpression.getExpression();
-      }
-    }
-    return null;
-  }
-
   private final InternalAnalysisContext context;
   private final TypeProvider typeProvider;
   private final AnalysisErrorListener errorListener;
   private final Source source;
   private final LineInfo lineInfo;
+  private final HtmlUnit unit;
   private final List<NgProcessor> processors = Lists.newArrayList();
 
   private LibraryElementImpl libraryElement;
@@ -154,55 +131,52 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
   private Scope nameScope;
 
   public AngularHtmlUnitResolver(InternalAnalysisContext context,
-      AnalysisErrorListener errorListener, Source source, LineInfo lineInfo)
+      AnalysisErrorListener errorListener, Source source, LineInfo lineInfo, HtmlUnit unit)
       throws AnalysisException {
     this.context = context;
-    this.lineInfo = lineInfo;
     this.typeProvider = context.getTypeProvider();
     this.errorListener = errorListener;
     this.source = source;
+    this.lineInfo = lineInfo;
+    this.unit = unit;
   }
 
   /**
-   * Resolves Angular specific expressions and elements.
+   * Resolves {@link #source} as an {@link AngularComponentElement} template file.
    * 
-   * @param unit the {@link HtmlUnit} to resolve
+   * @param angularElements the {@link AngularElement}s accessible in the component's library, not
+   *          {@code null}
+   * @param component the {@link AngularComponentElement} to resolve template for, not {@code null}
    */
-  public void resolve(HtmlUnit unit) throws AnalysisException {
+  public void resolveComponentTemplate(AngularElement[] angularElements,
+      AngularComponentElement component) throws AnalysisException {
+    isAngular = true;
+    resolveInternal(angularElements, component);
+  }
+
+  /**
+   * Resolves {@link #source} as an entry-point HTML file, that references an external Dart script.
+   */
+  public void resolveEntryPoint() throws AnalysisException {
     // check if Angular at all
     if (!hasAngularAnnotation(unit)) {
       return;
     }
-    // prepare injects
-    boolean success = prepareInjects(unit);
-    if (!success) {
-      return;
-    }
-    // add built-in processors
-    processors.add(NgModelProcessor.INSTANCE);
-    processors.add(NgRepeatProcessor.INSTANCE);
-    // prepare Dart library
-    createLibraryElement();
-    unit.setCompilationUnitElement(libraryElement.getDefiningCompilationUnit());
-    // prepare Dart resolver
-    createResolver();
-    // run this HTML visitor
-    unit.accept(this);
-    functionElement.setLocalVariables(definedVariables.toArray(new LocalVariableElementImpl[definedVariables.size()]));
-    // simulate imports for injects
+    // prepare accessible Angular elements
+    AngularElement[] angularElements;
     {
-      List<ImportElement> imports = Lists.newArrayList();
-      for (LibraryElement injectedLibrary : injectedLibraries) {
-        ImportElementImpl importElement = new ImportElementImpl(-1);
-        importElement.setImportedLibrary(injectedLibrary);
-        imports.add(importElement);
+      // prepare external Dart script source
+      Source dartSource = getDartSource(unit);
+      if (dartSource == null) {
+        return;
       }
-      libraryElement.setImports(imports.toArray(new ImportElement[imports.size()]));
+      // ensure resolved
+      context.resolveCompilationUnit(dartSource, dartSource);
+      // get cached Angular elements
+      angularElements = context.getLibraryAngularElements(dartSource);
     }
-    // push conditional errors 
-    for (ProxyConditionalAnalysisError conditionalCode : resolver.getProxyConditionalAnalysisErrors()) {
-      resolver.reportError(conditionalCode.getAnalysisError());
-    }
+    // perform resolution
+    resolveInternal(angularElements, null);
   }
 
   @Override
@@ -354,23 +328,21 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
   }
 
   /**
-   * Creates new {@link NgProcessor} for the given {@link ClassElement}, maybe {@code null} if it
-   * doesn't have a supported Angular feature.
+   * Creates new {@link NgProcessor} for the given {@link AngularElement}, maybe {@code null} if not
+   * supported.
    */
-  private NgProcessor createProcessor(ClassElement classElement) {
-    for (ToolkitObjectElement toolkitObject : classElement.getToolkitObjects()) {
-      if (toolkitObject instanceof AngularComponentElement) {
-        AngularComponentElement component = (AngularComponentElement) toolkitObject;
-        return new NgComponentElementProcessor(component);
-      }
-      if (toolkitObject instanceof AngularControllerElement) {
-        AngularControllerElement controller = (AngularControllerElement) toolkitObject;
-        return new NgControllerElementProcessor(controller);
-      }
-      if (toolkitObject instanceof AngularDirectiveElement) {
-        AngularDirectiveElement directive = (AngularDirectiveElement) toolkitObject;
-        return new NgDirectiveElementProcessor(directive);
-      }
+  private NgProcessor createProcessor(AngularElement element) {
+    if (element instanceof AngularComponentElement) {
+      AngularComponentElement component = (AngularComponentElement) element;
+      return new NgComponentElementProcessor(component);
+    }
+    if (element instanceof AngularControllerElement) {
+      AngularControllerElement controller = (AngularControllerElement) element;
+      return new NgControllerElementProcessor(controller);
+    }
+    if (element instanceof AngularDirectiveElement) {
+      AngularDirectiveElement directive = (AngularDirectiveElement) element;
+      return new NgDirectiveElementProcessor(directive);
     }
     return null;
   }
@@ -391,94 +363,18 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
   }
 
   /**
-   * Returns the only invocation of Angular's <code>ngBootstrap</code>.
+   * Returns the external Dart script {@link Source} referenced by the given {@link HtmlUnit}.
    */
-  private MethodInvocation getBootstrapInvocation(CompilationUnit dartUnit) {
-    final MethodInvocation[] result = {null};
-    dartUnit.accept(new RecursiveASTVisitor<Void>() {
-      @Override
-      public Void visitMethodInvocation(MethodInvocation node) {
-        if (node.getMethodName().getName().equals(NG_BOOTSTRAP)) {
-          result[0] = node;
-        }
-        return null;
-      }
-    });
-    return result[0];
-  }
-
-  /**
-   * Returns the external Dart {@link CompilationUnit} referenced by the given {@link HtmlUnit}.
-   */
-  private CompilationUnit getDartUnit(HtmlUnit unit) throws AnalysisException {
+  private Source getDartSource(HtmlUnit unit) throws AnalysisException {
     for (HtmlScriptElement script : unit.getElement().getScripts()) {
       if (script instanceof ExternalHtmlScriptElement) {
         Source scriptSource = ((ExternalHtmlScriptElement) script).getScriptSource();
         if (scriptSource != null) {
-          return context.resolveCompilationUnit(scriptSource, scriptSource);
+          return scriptSource;
         }
       }
     }
     return null;
-  }
-
-  /**
-   * Returns {@link ClassElement}s injected into the given module.
-   * 
-   * @param element a Dart {@link Element} used as an argument for <code>bootstrap</code> invocation
-   *          - class or variable.
-   */
-  private List<ClassElement> getInjectedClasses(Element element) throws AnalysisException {
-    ToolkitObjectElement[] toolkitObjects = ToolkitObjectElement.EMPTY_ARRAY;
-    // ClassElement
-    if (element instanceof ClassElement) {
-      ClassElement classElement = (ClassElement) element;
-      toolkitObjects = classElement.getToolkitObjects();
-    }
-    // LocalVariableElement
-    if (element instanceof LocalVariableElement) {
-      LocalVariableElement variableElement = (LocalVariableElement) element;
-      toolkitObjects = variableElement.getToolkitObjects();
-    }
-    // prepare injected classes
-    List<ClassElement> injectedClasses = Lists.newArrayList();
-    for (ToolkitObjectElement toolkitObject : toolkitObjects) {
-      if (toolkitObject instanceof AngularModuleElement) {
-        AngularModuleElement moduleElement = (AngularModuleElement) toolkitObject;
-        Collections.addAll(injectedClasses, moduleElement.getKeyTypes());
-      }
-    }
-    // done
-    return injectedClasses;
-  }
-
-  /**
-   * Finds all Angular modules references by the given <code>ngBootstrap</code> invocation.
-   * 
-   * @param bootInvocation the <code>ngBootstrap</code> invocation
-   * @return the module {@link Element}s - classes or local variables
-   */
-  private List<Element> getModules(MethodInvocation bootInvocation) throws AnalysisException {
-    List<Element> modules = Lists.newArrayList();
-    List<Expression> arguments = bootInvocation.getArgumentList().getArguments();
-    for (Expression argument : arguments) {
-      // TODO(scheglov) limitation - only one module, add support for "modules"
-      {
-        Expression moduleExpression = getNamedExpression(argument, "module");
-        if (moduleExpression != null) {
-          Element element = null;
-          if (moduleExpression instanceof InstanceCreationExpression) {
-            element = moduleExpression.getBestType().getElement();
-          } else if (moduleExpression instanceof SimpleIdentifier) {
-            element = ((SimpleIdentifier) moduleExpression).getBestElement();
-          }
-          if (element != null) {
-            modules.add(element);
-          }
-        }
-      }
-    }
-    return modules;
   }
 
   /**
@@ -553,40 +449,6 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
   }
 
   /**
-   * Analyzes given {@link HtmlUnit} and fills {@link #processors}.
-   * 
-   * @param unit the {@link HtmlUnit} to analyze
-   * @return {@code true} if analysis for successful or {@code false} otherwise.
-   */
-  private boolean prepareInjects(HtmlUnit unit) throws AnalysisException {
-    // prepare CompilationUnit
-    CompilationUnit dartUnit = getDartUnit(unit);
-    if (dartUnit == null) {
-      return false;
-    }
-    // find "ngBootstrap" invocation
-    MethodInvocation bootInvocation = getBootstrapInvocation(dartUnit);
-    if (bootInvocation == null) {
-      return false;
-    }
-    // prepare modules
-    List<Element> modules = getModules(bootInvocation);
-    for (Element module : modules) {
-      // prepare injected classes
-      List<ClassElement> injectedClasses = getInjectedClasses(module);
-      // prepare processors
-      for (ClassElement injectedType : injectedClasses) {
-        NgProcessor processor = createProcessor(injectedType);
-        if (processor != null) {
-          processors.add(processor);
-        }
-      }
-    }
-    // OK
-    return true;
-  }
-
-  /**
    * When we inject variable, we give access to the library of its type.
    */
   private void recordTypeLibraryInjected(LocalVariableElementImpl variable) {
@@ -598,6 +460,56 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
     for (EmbeddedExpression embeddedExpression : expressions) {
       Expression expression = embeddedExpression.getExpression();
       resolveNode(expression);
+    }
+  }
+
+  /**
+   * Resolves Angular specific expressions and elements in the {@link #source}.
+   * 
+   * @param angularElements the {@link AngularElement}s accessible in the component's library, not
+   *          {@code null}
+   * @param component the {@link AngularComponentElement} to resolve template for, maybe
+   *          {@code null} if not a component template
+   */
+  private void resolveInternal(AngularElement[] angularElements, AngularComponentElement component)
+      throws AnalysisException {
+    // add built-in processors
+    processors.add(NgModelProcessor.INSTANCE);
+    processors.add(NgRepeatProcessor.INSTANCE);
+    // add accessible processors
+    for (AngularElement angularElement : angularElements) {
+      NgProcessor processor = createProcessor(angularElement);
+      if (processor != null) {
+        processors.add(processor);
+      }
+    }
+    // prepare Dart library
+    createLibraryElement();
+    unit.setCompilationUnitElement(libraryElement.getDefiningCompilationUnit());
+    // prepare Dart resolver
+    createResolver();
+    // may be resolving component template
+    if (component != null) {
+      ClassElement componentClassElement = (ClassElement) component.getEnclosingElement();
+      InterfaceType componentType = componentClassElement.getType();
+      defineTopVariable(createLocalVariable(componentType, component.getName()));
+    }
+    // run this HTML visitor
+    unit.accept(this);
+    functionElement.setLocalVariables(definedVariables.toArray(new LocalVariableElementImpl[definedVariables.size()]));
+    // simulate imports for injects
+    {
+      List<ImportElement> imports = Lists.newArrayList();
+      for (LibraryElement injectedLibrary : injectedLibraries) {
+        ImportElementImpl importElement = new ImportElementImpl(-1);
+        importElement.setImportedLibrary(injectedLibrary);
+        imports.add(importElement);
+      }
+      libraryElement.setImports(imports.toArray(new ImportElement[imports.size()]));
+    }
+    // push conditional errors 
+    for (ProxyConditionalAnalysisError conditionalCode : resolver.getProxyConditionalAnalysisErrors()) {
+      resolver.reportError(conditionalCode.getAnalysisError());
     }
   }
 

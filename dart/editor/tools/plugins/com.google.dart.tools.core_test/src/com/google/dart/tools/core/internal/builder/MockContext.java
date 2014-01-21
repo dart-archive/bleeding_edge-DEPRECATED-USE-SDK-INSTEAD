@@ -11,6 +11,7 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementLocation;
 import com.google.dart.engine.element.HtmlElement;
 import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.element.angular.AngularElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.internal.context.AnalysisErrorInfoImpl;
@@ -288,6 +289,11 @@ public class MockContext implements AnalysisContext {
   @Override
   public Source[] getLibrariesDependingOn(Source librarySource) {
     throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public AngularElement[] getLibraryAngularElements(Source source) {
+    return AngularElement.EMPTY_ARRAY;
   }
 
   @Override

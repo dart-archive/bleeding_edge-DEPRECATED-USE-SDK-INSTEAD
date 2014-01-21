@@ -138,6 +138,14 @@ abstract public class AngularTest extends EngineTestCase {
   protected CompilationUnitElement indexDartUnitElement;
 
   /**
+   * Fills {@link #indexContent} and {@link #indexSource}.
+   */
+  protected final void addIndexSource(String name, String content) {
+    indexContent = content;
+    indexSource = contextHelper.addSource(name, indexContent);
+  }
+
+  /**
    * Fills {@link #mainContent} and {@link #mainSource}.
    */
   protected final void addMainSource(String content) {
@@ -155,16 +163,6 @@ abstract public class AngularTest extends EngineTestCase {
         "class MyController {",
         "  String field;",
         "  List<String> names;",
-        "}",
-        "",
-        "class MyModule extends Module {",
-        "  MyModule() {",
-        "    type(MyController);",
-        "  }",
-        "}",
-        "",
-        "main() {",
-        "  ngBootstrap(module: new MyModule());",
         "}"));
   }
 
@@ -282,12 +280,15 @@ abstract public class AngularTest extends EngineTestCase {
     return findOffset(indexContent, search);
   }
 
-  protected final void resolveIndex(String content) throws Exception {
-    indexContent = content;
-    indexSource = contextHelper.addSource("/index.html", indexContent);
+  protected final void resolveIndex() throws AnalysisException {
     indexUnit = context.resolveHtmlUnit(indexSource);
     indexHtmlUnit = indexUnit.getElement();
     indexDartUnitElement = indexUnit.getCompilationUnitElement();
+  }
+
+  protected final void resolveIndex(String content) throws Exception {
+    addIndexSource("/index.html", content);
+    resolveIndex();
   }
 
   protected final void resolveMainSource(String content) throws Exception {

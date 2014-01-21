@@ -716,6 +716,15 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @Override
+  public AngularElement[] getLibraryAngularElements(Source source) {
+    SourceEntry sourceEntry = getReadableSourceEntry(source);
+    if (sourceEntry instanceof DartEntry) {
+      return ((DartEntry) sourceEntry).getValue(DartEntry.ANGULAR_ELEMENTS);
+    }
+    return AngularElement.EMPTY_ARRAY;
+  }
+
+  @Override
   public LibraryElement getLibraryElement(Source source) {
     SourceEntry sourceEntry = getReadableSourceEntry(source);
     if (sourceEntry instanceof DartEntry) {

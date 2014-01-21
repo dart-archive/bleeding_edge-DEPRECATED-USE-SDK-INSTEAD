@@ -104,12 +104,6 @@ public class AngularRenameRefactoringTest extends AngularTest {
         "    map: const {'test' : '@field'})",
         "class MyDirective {",
         "  set field(value) {}",
-        "}",
-        "",
-        "main() {",
-        "  var module = new Module();",
-        "  module.type(MyDirective);",
-        "  ngBootstrap(module: module);",
         "}"));
     resolveIndex(createHtmlWithAngular("<div test='null'/>"));
     indexUnit(indexUnit);
@@ -198,12 +192,6 @@ public class AngularRenameRefactoringTest extends AngularTest {
         "    map: const {'test' : '=>field', 'other' : '=>field'})",
         "class MyComponent {",
         "  set field(value) {}",
-        "}",
-        "",
-        "main() {",
-        "  var module = new Module();",
-        "  module.type(MyComponent);",
-        "  ngBootstrap(module: module);",
         "}"));
   }
 
