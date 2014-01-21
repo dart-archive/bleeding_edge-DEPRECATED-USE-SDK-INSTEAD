@@ -733,6 +733,13 @@ public class DartIndenter {
     // also account for a dangling else
     if (offset < fDocument.getLength()) {
       try {
+        boolean matchCascade = false;
+        if (fScanner.isCurrentTokenCascade()) {
+          matchCascade = true;
+          cascadeIndent = 2;
+          fAlign = -1;
+        }
+
         IRegion line = fDocument.getLineInformationOfOffset(offset);
         int lineOffset = line.getOffset();
         int prevPos = Math.max(offset - 1, 0);
@@ -741,6 +748,10 @@ public class DartIndenter {
         boolean bracelessBlockStart = fScanner.isBracelessBlockStart(
             prevPos,
             DartHeuristicScanner.UNBOUND);
+
+        if (fScanner.isCurrentTokenCascade() && matchCascade) {
+          return fScanner.getPosition();
+        }
 
         switch (nextToken) {
           case Symbols.TokenELSE:
@@ -773,9 +784,9 @@ public class DartIndenter {
             }
             break;
           case Symbols.TokenOTHER:
-            if (fScanner.isCurrentTokenCascade()) {
-              cascadeIndent = 1;
-            }
+//            if (fScanner.isCurrentTokenCascade()) {
+//              cascadeIndent = 1;
+//            }
             break;
         }
       } catch (BadLocationException e) {
@@ -798,6 +809,15 @@ public class DartIndenter {
 
   public String getBlockIndent() {
     extraIndent = 1;
+    try {
+      return createIndent(0, 0, false).toString();
+    } finally {
+      extraIndent = 0;
+    }
+  }
+
+  public String getCascadeIndent() {
+    extraIndent = 2;
     try {
       return createIndent(0, 0, false).toString();
     } finally {
@@ -1156,6 +1176,17 @@ public class DartIndenter {
         return fToken == Symbols.TokenDO;
     }
     return false;
+  }
+
+  private boolean isCascadeLine(int offset) {
+    try {
+      IRegion line = fDocument.getLineInformationOfOffset(offset);
+      String lineStr = fDocument.get(line.getOffset(), line.getLength());
+      lineStr = lineStr.trim();
+      return lineStr.startsWith("..");
+    } catch (BadLocationException e) {
+      return false;
+    }
   }
 
   /**

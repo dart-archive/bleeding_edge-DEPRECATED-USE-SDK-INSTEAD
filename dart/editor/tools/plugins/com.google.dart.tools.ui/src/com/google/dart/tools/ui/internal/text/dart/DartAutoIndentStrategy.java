@@ -44,6 +44,7 @@ import com.google.dart.tools.ui.internal.text.functions.Symbols;
 import com.google.dart.tools.ui.internal.util.CodeFormatterUtil;
 import com.google.dart.tools.ui.text.DartPartitions;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.text.BadLocationException;
@@ -754,7 +755,7 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
         if (prevLine2.startsWith("..")) {
           return prevIndent;
         }
-        return prevIndent + indenter.getBlockIndent();
+        return prevIndent + indenter.getCascadeIndent();
       }
     }
     // don't force
@@ -1483,6 +1484,7 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
       if (refOffset == DartHeuristicScanner.NOT_FOUND) {
         return;
       }
+
       int peerOffset = getPeerPosition(document, command);
       peerOffset = indenter.findReferencePosition(peerOffset);
       if (peerOffset != DartHeuristicScanner.NOT_FOUND) {
@@ -1521,12 +1523,11 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
       // indent all other lines.
       StringBuffer addition = new StringBuffer();
       int insertLength = 0;
-      int firstLineInsertLength = 0;
+      int firstLineOriginalIndent = 0;
       int firstLineIndent = 0;
       int first = document.computeNumberOfLines(prefix) + firstLine; // don't format first line
       int lines = temp.getNumberOfLines();
       int tabLength = getVisualTabLengthPreference();
-      boolean changed = false;
       for (int l = first; l < lines; l++) { // we don't change the number of lines while adding indents
 
         IRegion r = temp.getLineInformation(l);
@@ -1539,42 +1540,32 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
 
         // indent the first pasted line
         String current = getCurrentIndent(temp, l);
+        if (l == first) {
+          firstLineOriginalIndent = computeVisualLength(current, tabLength);
+        }
         // unless it is a line comment
         if (current.startsWith(LINE_COMMENT)) {
           continue;
         }
-        StringBuffer correct = indenter.computeIndentation(lineOffset);
-        if (l == first && forcedCascadePrefix != null) {
-          correct = new StringBuffer(forcedCascadePrefix);
+        StringBuffer correct;
+        if (l == first) {
+          if (forcedCascadePrefix != null) {
+            correct = new StringBuffer(forcedCascadePrefix);
+          } else {
+            correct = indenter.computeIndentation(lineOffset);
+          }
+          firstLineIndent = computeVisualLength(correct, tabLength);
+        } else {
+          correct = new StringBuffer();
+          int secondIndent = firstLineIndent + computeVisualLength(current, tabLength)
+              - firstLineOriginalIndent;
+          correct.append(StringUtils.repeat(' ', secondIndent));
         }
         if (correct == null) {
           return; // bail out
         }
 
         insertLength = subtractIndent(correct, current, addition, tabLength);
-        if (l == first) {
-          firstLineInsertLength = insertLength;
-          firstLineIndent = current.length();
-        }
-        if (l != first && temp.get(lineOffset, lineLength).trim().length() != 0) {
-          if (firstLineIndent >= current.length()) {
-            insertLength = firstLineInsertLength;
-          }
-          if (insertLength == 0) {
-            // no adjustment needed, bail out
-            if (firstLine == 0) {
-              // but we still need to adjust the first line
-              command.offset = newOffset;
-              command.length = newLength;
-              if (changed) {
-                break; // still need to get the leading indent of the first line
-              }
-            }
-            return;
-          }
-        } else {
-          changed = insertLength != 0;
-        }
 
         // relatively indent all pasted lines
         if (insertLength > 0) {
@@ -1596,7 +1587,7 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
         command.text = newText;
       }
 
-    } catch (BadLocationException e) {
+    } catch (Throwable e) {
       DartToolsPlugin.log(e);
     }
 

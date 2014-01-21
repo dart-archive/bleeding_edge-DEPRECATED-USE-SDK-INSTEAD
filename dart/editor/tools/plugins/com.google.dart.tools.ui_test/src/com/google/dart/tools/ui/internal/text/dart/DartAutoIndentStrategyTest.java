@@ -211,16 +211,16 @@ public class DartAutoIndentStrategyTest extends EngineTestCase {
     assertSmartPaste(createSource(//
         "main() {",
         "  a",
-        "    ..b = 100",
-        "!    ..c()",
-        "    ..d();",
+        "      ..b = 100",
+        "!      ..c()",
+        "      ..d();",
         "}"), "..x()" + EOL, createSource(//
         "main() {",
         "  a",
-        "    ..b = 100",
-        "    ..x()",
-        "!    ..c()",
-        "    ..d();",
+        "      ..b = 100",
+        "      ..x()",
+        "!      ..c()",
+        "      ..d();",
         "}"));
   }
 
@@ -228,17 +228,51 @@ public class DartAutoIndentStrategyTest extends EngineTestCase {
     assertSmartPaste(createSource(//
         "main() {",
         "  a",
-        "!    ..b = 100",
-        "    ..c()",
-        "    ..d();",
+        "!      ..b = 100",
+        "      ..c()",
+        "      ..d();",
         "}"), "..x()" + EOL, createSource(//
         "main() {",
         "  a",
-        "    ..x()",
-        "!    ..b = 100",
-        "    ..c()",
-        "    ..d();",
+        "      ..x()",
+        "!      ..b = 100",
+        "      ..c()",
+        "      ..d();",
         "}"));
+  }
+
+  /**
+   * We should keep original difference between first and following lines.
+   */
+  public void test_smartPaste_cascade_complete_onlyAssignments() throws Exception {
+    assertSmartPaste(createSource(//
+        "main() {",
+        "!}"), createSource(//
+        "    aaa",
+        "       ..bbb = 1",
+        "      ..ccc = 2;"), createSource(//
+        "main() {",
+        "  aaa",
+        "     ..bbb = 1",
+        "    ..ccc = 2;",
+        "!}"));
+  }
+
+  /**
+   * We should keep original difference between first and following lines.
+   */
+  public void test_smartPaste_cascade_complete_withInvocation() throws Exception {
+    assertSmartPaste(createSource(//
+        "main() {",
+        "!}"), createSource(//
+        "    aaa",
+        "       ..bbb()",
+        "      ..ccc = 2;"), createSource(//
+        "main() {",
+        "  aaa",
+        "     ..bbb()",
+        "    ..ccc = 2;",
+        "!}"));
   }
 
   public void test_useTabs() throws Exception {
