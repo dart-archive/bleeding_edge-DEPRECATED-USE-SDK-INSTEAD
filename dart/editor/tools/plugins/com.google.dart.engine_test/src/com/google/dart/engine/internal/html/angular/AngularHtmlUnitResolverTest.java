@@ -15,6 +15,7 @@ package com.google.dart.engine.internal.html.angular;
 
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.SimpleIdentifier;
+import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.angular.AngularPropertyElement;
 import com.google.dart.engine.element.angular.AngularPropertyKind;
@@ -26,6 +27,15 @@ import com.google.dart.engine.html.ast.XmlAttributeNode;
 import com.google.dart.engine.html.ast.XmlTagNode;
 
 public class AngularHtmlUnitResolverTest extends AngularTest {
+  /**
+   * Test that we resolve "ng-click" expression.
+   */
+  public void test_ngClick() throws Exception {
+    addMyController();
+    resolveIndexNoErrors(createHtmlWithMyController("<button ng-click='ctrl.doSomething()'/>"));
+    assertResolvedIdentifier("doSomething");
+  }
+
   public void test_NgComponent_resolveTemplateFile() throws Exception {
     addMainSource(createSource("",//
         "import 'angular.dart';",
@@ -170,6 +180,15 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
     assertEquals("condition", propertyElement.getField().getName());
   }
 
+  /**
+   * Test that we resolve "ng-if" expression.
+   */
+  public void test_ngIf() throws Exception {
+    addMyController();
+    resolveIndexNoErrors(createHtmlWithMyController("<div ng-if='ctrl.field != null'/>"));
+    assertResolvedIdentifier("field");
+  }
+
   public void test_ngModel_modelAfterUsage() throws Exception {
     addMyController();
     resolveIndex(createHtmlWithMyController(//
@@ -202,6 +221,15 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
     assertResolvedIdentifier("field'>", "String");
   }
 
+  /**
+   * Test that we resolve "ng-mouseout" expression.
+   */
+  public void test_ngMouseOut() throws Exception {
+    addMyController();
+    resolveIndexNoErrors(createHtmlWithMyController("<button ng-mouseout='ctrl.doSomething()'/>"));
+    assertResolvedIdentifier("doSomething");
+  }
+
   public void test_ngRepeat_bad_expectedIdentifier() throws Exception {
     addMyController();
     resolveIndex(createHtmlWithMyController(//
@@ -230,6 +258,15 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
     assertResolvedIdentifier("ctrl.", "MyController");
     assertResolvedIdentifier("names'", "List<String>");
     assertResolvedIdentifier("name}}", "String");
+  }
+
+  /**
+   * Test that we resolve "ng-show" expression.
+   */
+  public void test_ngShow() throws Exception {
+    addMyController();
+    resolveIndexNoErrors(createHtmlWithMyController("<div ng-show='ctrl.field != null'/>"));
+    assertResolvedIdentifier("field");
   }
 
   public void test_notResolved_noDartScript() throws Exception {
@@ -332,5 +369,11 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
     assertNoErrors();
     verify(indexSource);
     assertResolvedIdentifier("ctrl", "MyController");
+  }
+
+  private void resolveIndexNoErrors(String content) throws Exception, AnalysisException {
+    resolveIndex(content);
+    assertNoErrors();
+    verify(indexSource);
   }
 }

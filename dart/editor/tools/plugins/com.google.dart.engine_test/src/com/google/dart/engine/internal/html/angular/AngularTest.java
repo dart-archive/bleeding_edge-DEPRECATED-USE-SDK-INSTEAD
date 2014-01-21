@@ -163,6 +163,7 @@ abstract public class AngularTest extends EngineTestCase {
         "class MyController {",
         "  String field;",
         "  List<String> names;",
+        "  doSomething() {}",
         "}"));
   }
 
@@ -203,6 +204,19 @@ abstract public class AngularTest extends EngineTestCase {
 
   protected final void assertNoErrors(Source source) throws AnalysisException {
     assertErrors(source);
+  }
+
+  /**
+   * Checks that {@link #indexHtmlUnit} has {@link SimpleIdentifier} with given name, resolved to
+   * not {@code null} {@link Element}.
+   */
+  protected final Element assertResolvedIdentifier(String name) {
+    SimpleIdentifier identifier = findIdentifier(name);
+    // check Element
+    Element element = identifier.getBestElement();
+    assertNotNull(element);
+    // return Element for further analysis
+    return element;
   }
 
   protected final Element assertResolvedIdentifier(String name, String expectedTypeName) {
@@ -431,6 +445,22 @@ abstract public class AngularTest extends EngineTestCase {
             "             map: map,",
             "             exportExpressions: exportExpressions,",
             "             exportExpressionAttrs: exportExpressionAttrs);",
+            "}",
+            "",
+            "@NgDirective(selector: '[ng-click]', map: const {'ng-click': '&onEvent'})",
+            "@NgDirective(selector: '[ng-mouseout]', map: const {'ng-mouseout': '&onEvent'})",
+            "class NgEventDirective {",
+            "  set onEvent(value) {}",
+            "}",
+            "",
+            "@NgDirective(selector: '[ng-if]', map: const {'ng-if': '=>condition'})",
+            "class NgIfDirective {",
+            "  set condition(value) {}",
+            "}",
+            "",
+            "@NgDirective(selector: '[ng-show]', map: const {'ng-show': '=>show'})",
+            "class NgShowDirective {",
+            "  set show(value) {}",
             "}",
             "",
             "class Module {",
