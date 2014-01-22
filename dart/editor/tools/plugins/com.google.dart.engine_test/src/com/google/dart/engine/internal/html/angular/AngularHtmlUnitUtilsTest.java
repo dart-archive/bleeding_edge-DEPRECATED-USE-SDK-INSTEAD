@@ -14,10 +14,10 @@
 package com.google.dart.engine.internal.html.angular;
 
 import com.google.dart.engine.ast.Expression;
-import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.VariableElement;
+import com.google.dart.engine.element.angular.AngularControllerElement;
 import com.google.dart.engine.html.ast.HtmlUnitUtils;
 
 /**
@@ -66,8 +66,8 @@ public class AngularHtmlUnitUtilsTest extends AngularTest {
     Expression expression = HtmlUnitUtils.getExpression(indexUnit, offset);
     // get element
     Element element = HtmlUnitUtils.getElementToOpen(indexUnit, expression);
-    assertInstanceOf(ClassElement.class, element);
-    assertEquals("MyController", element.getName());
+    assertInstanceOf(AngularControllerElement.class, element);
+    assertEquals("ctrl", element.getName());
   }
 
   public void test_getElementToOpen_field() throws Exception {
@@ -94,18 +94,6 @@ public class AngularHtmlUnitUtilsTest extends AngularTest {
     assertNotNull(HtmlUnitUtils.getExpression(indexUnit, offset + 2));
     // try without unit
     assertNull(HtmlUnitUtils.getExpression(null, offset));
-  }
-
-  public void test_isAngular_false() throws Exception {
-    addMyController();
-    resolveIndex("<html/>");
-    assertFalse(HtmlUnitUtils.isAngular(indexUnit));
-  }
-
-  public void test_isAngular_true() throws Exception {
-    addMyController();
-    resolveSimpleCtrlFieldHtml();
-    assertTrue(HtmlUnitUtils.isAngular(indexUnit));
   }
 
   private void resolveSimpleCtrlFieldHtml() throws Exception {

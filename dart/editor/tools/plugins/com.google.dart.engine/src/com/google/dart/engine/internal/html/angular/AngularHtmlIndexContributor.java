@@ -18,12 +18,14 @@ import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.HtmlElement;
+import com.google.dart.engine.element.angular.AngularElement;
 import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.html.ast.XmlAttributeNode;
 import com.google.dart.engine.html.ast.XmlTagNode;
 import com.google.dart.engine.html.scanner.Token;
 import com.google.dart.engine.index.IndexStore;
 import com.google.dart.engine.index.Location;
+import com.google.dart.engine.index.Relationship;
 import com.google.dart.engine.internal.index.IndexConstants;
 import com.google.dart.engine.internal.index.IndexContributor;
 
@@ -52,7 +54,23 @@ public class AngularHtmlIndexContributor extends ExpressionVisitor {
    */
   public AngularHtmlIndexContributor(IndexStore store) {
     this.store = store;
-    indexContributor = new IndexContributor(store);
+    indexContributor = new IndexContributor(store) {
+      @Override
+      public Element peekElement() {
+        return htmlUnitElement;
+      }
+
+      @Override
+      protected void recordRelationship(Element element, Relationship relationship,
+          Location location) {
+        AngularElement angularElement = AngularHtmlUnitResolver.getAngularElement(element);
+        if (angularElement != null) {
+          element = angularElement;
+          relationship = IndexConstants.IS_REFERENCED_BY;
+        }
+        super.recordRelationship(element, relationship, location);
+      }
+    };
   }
 
   @Override

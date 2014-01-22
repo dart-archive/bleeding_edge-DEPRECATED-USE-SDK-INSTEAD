@@ -791,6 +791,15 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
   }
 
   /**
+   * Record the given relationship between the given {@link Element} and {@link Location}.
+   */
+  protected void recordRelationship(Element element, Relationship relationship, Location location) {
+    if (element != null && location != null) {
+      store.recordRelationship(element, relationship, location);
+    }
+  }
+
+  /**
    * @return the {@link Location} representing location of the {@link ASTNode}.
    */
   private Location createLocation(ASTNode node) {
@@ -931,15 +940,6 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
           ? IndexConstants.IS_REFERENCED_BY_QUALIFIED_RESOLVED
           : IndexConstants.IS_REFERENCED_BY_QUALIFIED_UNRESOLVED;
       recordRelationship(nameElement, relationship, location);
-    }
-  }
-
-  /**
-   * Record the given relationship between the given {@link Element} and {@link Location}.
-   */
-  private void recordRelationship(Element element, Relationship relationship, Location location) {
-    if (element != null && location != null) {
-      store.recordRelationship(element, relationship, location);
     }
   }
 

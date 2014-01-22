@@ -331,9 +331,6 @@ public class CompilationUnitElementImpl extends ElementImpl implements Compilati
    * @param objects the toolkit objects to associate
    */
   void setToolkitObjects(Element element, ToolkitObjectElement[] objects) {
-    for (ToolkitObjectElement toolkitObject : objects) {
-      ((ToolkitObjectElementImpl) toolkitObject).setEnclosingElement(element);
-    }
     toolkitObjects.put(element, objects);
   }
 }

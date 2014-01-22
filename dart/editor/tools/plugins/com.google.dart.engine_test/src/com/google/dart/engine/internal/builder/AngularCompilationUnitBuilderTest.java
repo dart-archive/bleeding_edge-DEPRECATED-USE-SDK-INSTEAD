@@ -68,6 +68,20 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
     assertNull(filter);
   }
 
+  public void test_getElement_component_name() throws Exception {
+    resolveMainSource(createAngularSource(//
+        "@NgComponent(publishAs: 'ctrl', selector: 'myComp',",
+        "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css')",
+        "class MyComponent {}",
+        "  var field;",
+        "}"));
+    SimpleStringLiteral node = findMainNode("ctrl'", SimpleStringLiteral.class);
+    int offset = node.getOffset();
+    // find AngularComponentElement
+    Element element = AngularCompilationUnitBuilder.getElement(node, offset);
+    assertInstanceOf(AngularComponentElement.class, element);
+  }
+
   public void test_getElement_component_property_fromFieldAnnotation() throws Exception {
     resolveMainSource(createAngularSource(//
         "@NgComponent(publishAs: 'ctrl', selector: 'myComp',",
@@ -119,6 +133,18 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
       FieldElement field = (FieldElement) element;
       assertEquals("field", field.getName());
     }
+  }
+
+  public void test_getElement_controller_name() throws Exception {
+    resolveMainSource(createAngularSource(//
+        "@NgController(publishAs: 'ctrl', selector: '[myApp]')",
+        "class MyController {",
+        "}"));
+    SimpleStringLiteral node = findMainNode("ctrl'", SimpleStringLiteral.class);
+    int offset = node.getOffset();
+    // find AngularControllerElement
+    Element element = AngularCompilationUnitBuilder.getElement(node, offset);
+    assertInstanceOf(AngularControllerElement.class, element);
   }
 
   public void test_getElement_directive_property() throws Exception {

@@ -294,6 +294,9 @@ abstract public class AngularTest extends EngineTestCase {
     return findOffset(indexContent, search);
   }
 
+  /**
+   * Resolves {@link #indexSource}.
+   */
   protected final void resolveIndex() throws AnalysisException {
     indexUnit = context.resolveHtmlUnit(indexSource);
     indexHtmlUnit = indexUnit.getElement();
@@ -305,10 +308,17 @@ abstract public class AngularTest extends EngineTestCase {
     resolveIndex();
   }
 
-  protected final void resolveMainSource(String content) throws Exception {
-    addMainSource(content);
+  /**
+   * Resolves {@link #mainSource}.
+   */
+  protected final void resolveMain() throws Exception {
     mainUnit = contextHelper.resolveDefiningUnit(mainSource);
     mainUnitElement = mainUnit.getElement();
+  }
+
+  protected final void resolveMainSource(String content) throws Exception {
+    addMainSource(content);
+    resolveMain();
   }
 
   protected final void resolveMainSourceNoErrors(String content) throws Exception {

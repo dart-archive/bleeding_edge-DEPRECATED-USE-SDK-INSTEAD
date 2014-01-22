@@ -2904,6 +2904,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         if (thrownException == null) {
           htmlCopy.setValue(HtmlEntry.ANGULAR_ERRORS, task.getResolutionErrors());
           ChangeNoticeImpl notice = getNotice(source);
+          notice.setHtmlUnit(task.getResolvedUnit());
           notice.setErrors(htmlCopy.getAllErrors(), htmlCopy.getValue(SourceEntry.LINE_INFO));
         } else {
           htmlCopy.recordResolutionError();

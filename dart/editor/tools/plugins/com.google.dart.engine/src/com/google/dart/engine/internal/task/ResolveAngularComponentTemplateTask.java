@@ -51,6 +51,11 @@ public class ResolveAngularComponentTemplateTask extends AnalysisTask {
   private long modificationTime = -1L;
 
   /**
+   * The {@link HtmlUnit} that was resolved by this task.
+   */
+  private HtmlUnit resolvedUnit;
+
+  /**
    * The resolution errors that were discovered while resolving the source.
    */
   private AnalysisError[] resolutionErrors = AnalysisError.NO_ERRORS;
@@ -91,6 +96,15 @@ public class ResolveAngularComponentTemplateTask extends AnalysisTask {
   }
 
   /**
+   * Return the {@link HtmlUnit} that was resolved by this task.
+   * 
+   * @return the {@link HtmlUnit} that was resolved by this task
+   */
+  public HtmlUnit getResolvedUnit() {
+    return resolvedUnit;
+  }
+
+  /**
    * Return the source that was or is to be resolved.
    * 
    * @return the source was or is to be resolved
@@ -126,5 +140,7 @@ public class ResolveAngularComponentTemplateTask extends AnalysisTask {
     resolver.resolveComponentTemplate(angularElements, component);
     // remember errors
     resolutionErrors = errorListener.getErrors(source);
+    // remember resolved unit
+    resolvedUnit = unit;
   }
 }

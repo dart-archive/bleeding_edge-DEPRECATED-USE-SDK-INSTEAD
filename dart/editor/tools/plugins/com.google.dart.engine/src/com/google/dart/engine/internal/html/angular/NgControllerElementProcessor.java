@@ -16,6 +16,7 @@ package com.google.dart.engine.internal.html.angular;
 
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.angular.AngularControllerElement;
+import com.google.dart.engine.element.angular.AngularElement;
 import com.google.dart.engine.html.ast.XmlTagNode;
 import com.google.dart.engine.internal.element.LocalVariableElementImpl;
 import com.google.dart.engine.type.InterfaceType;
@@ -36,6 +37,7 @@ class NgControllerElementProcessor extends NgProcessor {
     String name = element.getName();
     LocalVariableElementImpl variable = resolver.createLocalVariable(type, name);
     resolver.defineVariable(variable);
+    variable.setToolkitObjects(new AngularElement[] {element});
   }
 
   @Override

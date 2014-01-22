@@ -15,6 +15,8 @@ package com.google.dart.engine.internal.html.angular;
 
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.FieldElement;
+import com.google.dart.engine.element.PropertyAccessorElement;
+import com.google.dart.engine.element.angular.AngularComponentElement;
 import com.google.dart.engine.element.angular.AngularPropertyElement;
 import com.google.dart.engine.element.angular.AngularSelectorElement;
 import com.google.dart.engine.index.IndexStore;
@@ -33,7 +35,107 @@ public class AngularHtmlIndexContributorTest extends AngularTest {
   private IndexStore store = mock(IndexStore.class);
   private AngularHtmlIndexContributor index = new AngularHtmlIndexContributor(store);
 
-  public void test_component_use() throws Exception {
+  public void test_expression_inAttribute() throws Exception {
+    addMyController();
+    resolveIndex(createHtmlWithMyController(//
+        "  <button title='{{ctrl.field}}'>Remove</button>",
+        ""));
+    // prepare elements
+    Element fieldGetter = ((FieldElement) findMainElement("field")).getGetter();
+    // index
+    indexUnit.accept(index);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    assertRecordedRelation(
+        relations,
+        fieldGetter,
+        IndexConstants.IS_REFERENCED_BY_QUALIFIED,
+        new ExpectedLocation(indexHtmlUnit, findOffset("field}}"), "field"));
+  }
+
+  public void test_expression_inContent() throws Exception {
+    addMyController();
+    resolveIndex(createHtmlWithMyController(//
+        "      {{ctrl.field}}",
+        ""));
+    // prepare elements
+    Element fieldGetter = ((FieldElement) findMainElement("field")).getGetter();
+    // index
+    indexUnit.accept(index);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    assertRecordedRelation(
+        relations,
+        fieldGetter,
+        IndexConstants.IS_REFERENCED_BY_QUALIFIED,
+        new ExpectedLocation(indexHtmlUnit, findOffset("field}}"), "field"));
+  }
+
+  public void test_expression_ngRepeat() throws Exception {
+    addMyController();
+    resolveIndex(createHtmlWithMyController(//
+        "  <li ng-repeat='name in ctrl.names'>",
+        "    {{name}}",
+        "  </li>",
+        ""));
+    // prepare elements
+    Element namesElement = ((FieldElement) findMainElement("names")).getGetter();
+    Element nameElement = findIndexElement("name");
+    // index
+    indexUnit.accept(index);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    assertRecordedRelation(
+        relations,
+        namesElement,
+        IndexConstants.IS_REFERENCED_BY_QUALIFIED,
+        new ExpectedLocation(indexHtmlUnit, findOffset("names'>"), "names"));
+    assertRecordedRelation(relations, nameElement, IndexConstants.IS_READ_BY, new ExpectedLocation(
+        indexHtmlUnit,
+        findOffset("name}}"),
+        "name"));
+  }
+
+  public void test_NgComponent_templateFile() throws Exception {
+    addMainSource(createSource("",//
+        "import 'angular.dart';",
+        "",
+        "@NgComponent(",
+        "    templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
+        "    publishAs: 'ctrl',",
+        "    selector: 'myComponent')",
+        "class MyComponent {",
+        "  String field;",
+        "}"));
+    addIndexSource("/my_template.html", createSource(//
+        "    <div>",
+        "      {{ctrl.field}}",
+        "    </div>"));
+    contextHelper.addSource("/my_styles.css", "");
+    contextHelper.runTasks();
+    resolveMain();
+    resolveIndex();
+    // prepare elements
+    AngularComponentElement componentElement = findMainElement("ctrl");
+    FieldElement field = findMainElement("field");
+    PropertyAccessorElement fieldGetter = field.getGetter();
+    // index
+    indexUnit.accept(index);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    assertRecordedRelation(
+        relations,
+        componentElement,
+        IndexConstants.IS_REFERENCED_BY,
+        new ExpectedLocation(indexHtmlUnit, findOffset("ctrl.field"), "ctrl"));
+    assertRecordedRelation(
+        relations,
+        fieldGetter,
+        IndexConstants.IS_REFERENCED_BY_QUALIFIED,
+        new ExpectedLocation(indexHtmlUnit, findOffset("field}}"), "field"));
+  }
+
+  public void test_NgComponent_use() throws Exception {
     resolveMainSource(createSource("",//
         "import 'angular.dart';",
         "",
@@ -45,12 +147,6 @@ public class AngularHtmlIndexContributorTest extends AngularTest {
         "class MyComponent {",
         "  set setA(value) {}",
         "  set setB(value) {}",
-        "}",
-        "",
-        "main() {",
-        "  var module = new Module();",
-        "  module.type(MyComponent);",
-        "  ngBootstrap(module: module);",
         "}"));
     resolveIndex(createHtmlWithMyController(//
     "<myComponent attrA='null' attrB='str'/>"));
@@ -75,67 +171,6 @@ public class AngularHtmlIndexContributorTest extends AngularTest {
         indexHtmlUnit,
         findOffset("attrB='str"),
         "attrB"));
-  }
-
-  public void test_expression_inAttribute() throws Exception {
-    addMyController();
-    resolveIndex(createHtmlWithMyController(//
-        "  <button title='{{ctrl.field}}'>Remove</button>",
-        ""));
-    // prepare elements
-    Element fieldGetter = ((FieldElement) findMainElement("field")).getGetter();
-    // index
-    indexUnit.accept(index);
-    // verify
-    List<RecordedRelation> relations = captureRecordedRelations();
-    assertRecordedRelation(
-        relations,
-        fieldGetter,
-        IndexConstants.IS_REFERENCED_BY_QUALIFIED,
-        new ExpectedLocation(indexDartUnitElement, findOffset("field}}"), "field"));
-  }
-
-  public void test_expression_inContent() throws Exception {
-    addMyController();
-    resolveIndex(createHtmlWithMyController(//
-        "      {{ctrl.field}}",
-        ""));
-    // prepare elements
-    Element fieldGetter = ((FieldElement) findMainElement("field")).getGetter();
-    // index
-    indexUnit.accept(index);
-    // verify
-    List<RecordedRelation> relations = captureRecordedRelations();
-    assertRecordedRelation(
-        relations,
-        fieldGetter,
-        IndexConstants.IS_REFERENCED_BY_QUALIFIED,
-        new ExpectedLocation(indexDartUnitElement, findOffset("field}}"), "field"));
-  }
-
-  public void test_expression_ngRepeat() throws Exception {
-    addMyController();
-    resolveIndex(createHtmlWithMyController(//
-        "  <li ng-repeat='name in ctrl.names'>",
-        "    {{name}}",
-        "  </li>",
-        ""));
-    // prepare elements
-    Element namesElement = ((FieldElement) findMainElement("names")).getGetter();
-    Element nameElement = findIndexElement("name");
-    // index
-    indexUnit.accept(index);
-    // verify
-    List<RecordedRelation> relations = captureRecordedRelations();
-    assertRecordedRelation(
-        relations,
-        namesElement,
-        IndexConstants.IS_REFERENCED_BY_QUALIFIED,
-        new ExpectedLocation(indexDartUnitElement, findOffset("names'>"), "names"));
-    assertRecordedRelation(relations, nameElement, IndexConstants.IS_READ_BY, new ExpectedLocation(
-        indexDartUnitElement,
-        findOffset("name}}"),
-        "name"));
   }
 
   private List<RecordedRelation> captureRecordedRelations() {

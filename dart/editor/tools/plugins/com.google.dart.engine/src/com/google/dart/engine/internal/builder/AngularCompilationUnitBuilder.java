@@ -41,6 +41,7 @@ import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.ToolkitObjectElement;
 import com.google.dart.engine.element.angular.AngularComponentElement;
+import com.google.dart.engine.element.angular.AngularControllerElement;
 import com.google.dart.engine.element.angular.AngularDirectiveElement;
 import com.google.dart.engine.element.angular.AngularElement;
 import com.google.dart.engine.element.angular.AngularPropertyElement;
@@ -137,7 +138,23 @@ public class AngularCompilationUnitBuilder {
       // try properties of AngularComponentElement
       if (toolkitObject instanceof AngularComponentElement) {
         AngularComponentElement component = (AngularComponentElement) toolkitObject;
+        // maybe name
+        int nameOffset = component.getNameOffset();
+        int nameEnd = nameOffset + component.getName().length();
+        if (node.getOffset() <= nameOffset && nameEnd < node.getEnd()) {
+          return component;
+        }
+        // try properties
         properties = component.getProperties();
+      }
+      // try AngularControllerElement
+      if (toolkitObject instanceof AngularControllerElement) {
+        AngularControllerElement controller = (AngularControllerElement) toolkitObject;
+        int nameOffset = controller.getNameOffset();
+        int nameEnd = nameOffset + controller.getName().length();
+        if (node.getOffset() <= nameOffset && nameEnd < node.getEnd()) {
+          return controller;
+        }
       }
       // try properties of AngularDirectiveElement
       if (toolkitObject instanceof AngularDirectiveElement) {

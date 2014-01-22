@@ -17,6 +17,9 @@ import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.FunctionElement;
+import com.google.dart.engine.element.LocalVariableElement;
+import com.google.dart.engine.element.angular.AngularElement;
 import com.google.dart.engine.element.angular.AngularPropertyElement;
 import com.google.dart.engine.element.angular.AngularPropertyKind;
 import com.google.dart.engine.element.angular.AngularSelectorElement;
@@ -25,8 +28,40 @@ import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.html.ast.HtmlUnitUtils;
 import com.google.dart.engine.html.ast.XmlAttributeNode;
 import com.google.dart.engine.html.ast.XmlTagNode;
+import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
+import com.google.dart.engine.internal.element.FunctionElementImpl;
+import com.google.dart.engine.internal.element.LocalVariableElementImpl;
+import com.google.dart.engine.internal.element.angular.AngularControllerElementImpl;
+
+import static com.google.dart.engine.element.ElementFactory.classElement;
+import static com.google.dart.engine.element.ElementFactory.compilationUnit;
+import static com.google.dart.engine.element.ElementFactory.functionElement;
+import static com.google.dart.engine.element.ElementFactory.localVariableElement;
 
 public class AngularHtmlUnitResolverTest extends AngularTest {
+  public void test_getAngularElement_isAngular() throws Exception {
+    // prepare local variable "name" in compilation unit
+    CompilationUnitElementImpl unit = compilationUnit(context, "test.dart");
+    FunctionElementImpl function = functionElement("main");
+    unit.setFunctions(new FunctionElement[] {function});
+    LocalVariableElementImpl local = localVariableElement("name");
+    function.setLocalVariables(new LocalVariableElement[] {local});
+    // set AngularElement
+    AngularElement angularElement = new AngularControllerElementImpl("ctrl", 0);
+    local.setToolkitObjects(new AngularElement[] {angularElement});
+    assertSame(angularElement, AngularHtmlUnitResolver.getAngularElement(local));
+  }
+
+  public void test_getAngularElement_notAngular() throws Exception {
+    Element element = localVariableElement("name");
+    assertNull(AngularHtmlUnitResolver.getAngularElement(element));
+  }
+
+  public void test_getAngularElement_notLocal() throws Exception {
+    Element element = classElement("Test");
+    assertNull(AngularHtmlUnitResolver.getAngularElement(element));
+  }
+
   /**
    * Test that we resolve "ng-click" expression.
    */

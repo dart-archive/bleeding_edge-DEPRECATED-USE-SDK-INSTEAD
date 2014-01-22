@@ -336,6 +336,8 @@ public class SearchEngineImpl implements SearchEngine {
         element = ((Member) element).getBaseElement();
       }
       switch (element.getKind()) {
+        case ANGULAR_COMPONENT:
+        case ANGULAR_CONTROLLER:
         case ANGULAR_PROPERTY:
           searchReferences((AngularElement) element, scope, filter, listener);
           return;

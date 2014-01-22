@@ -19,12 +19,10 @@ import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.visitor.ElementLocator;
 import com.google.dart.engine.ast.visitor.NodeLocator;
 import com.google.dart.engine.element.Element;
-import com.google.dart.engine.element.VariableElement;
+import com.google.dart.engine.element.angular.AngularElement;
 import com.google.dart.engine.html.ast.visitor.RecursiveXmlVisitor;
 import com.google.dart.engine.html.scanner.Token;
 import com.google.dart.engine.internal.html.angular.AngularHtmlUnitResolver;
-import com.google.dart.engine.type.InterfaceType;
-import com.google.dart.engine.type.Type;
 
 /**
  * Utilities locating {@link Expression}s and {@link Element}s in {@link HtmlUnit}.
@@ -90,18 +88,12 @@ public class HtmlUnitUtils {
    */
   public static Element getElementToOpen(HtmlUnit htmlUnit, Expression expression) {
     Element element = getElement(expression);
-    // special cases for Angular
-    if (isAngular(htmlUnit)) {
-      // replace artificial controller variable Element with controller ClassElement
-      if (element instanceof VariableElement) {
-        VariableElement variable = (VariableElement) element;
-        Type type = variable.getType();
-        if (variable.getNameOffset() == 0 && type instanceof InterfaceType) {
-          element = ((InterfaceType) type).getElement();
-        }
+    {
+      AngularElement angularElement = AngularHtmlUnitResolver.getAngularElement(element);
+      if (angularElement != null) {
+        return angularElement;
       }
     }
-    // done
     return element;
   }
 
@@ -172,13 +164,6 @@ public class HtmlUnitUtils {
       return result[0];
     }
     return null;
-  }
-
-  /**
-   * Returns {@code true} if the given {@link HtmlUnit} has Angular annotation.
-   */
-  public static boolean isAngular(HtmlUnit htmlUnit) {
-    return AngularHtmlUnitResolver.hasAngularAnnotation(htmlUnit);
   }
 
   /**
