@@ -141,7 +141,6 @@ public class NewDartElementImageProvider {
       case ANGULAR_CONTROLLER:
       case ANGULAR_DIRECTIVE:
       case ANGULAR_FILTER:
-      case ANGULAR_MODULE:
       case ANGULAR_PROPERTY:
       case ANGULAR_SELECTOR:
         return DartPluginImages.DESC_ANGULAR;

@@ -23,7 +23,6 @@ public enum ElementKind {
   ANGULAR_COMPONENT("Angular component"),
   ANGULAR_CONTROLLER("Angular controller"),
   ANGULAR_DIRECTIVE("Angular directive"),
-  ANGULAR_MODULE("Angular module"),
   ANGULAR_PROPERTY("Angular property"),
   ANGULAR_SELECTOR("Angular selector"),
   CLASS("class"),
