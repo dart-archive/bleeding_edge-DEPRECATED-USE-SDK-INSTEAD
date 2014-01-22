@@ -22,6 +22,7 @@ import com.google.dart.engine.internal.element.ExportElementImpl;
 import com.google.dart.engine.internal.element.FieldElementImpl;
 import com.google.dart.engine.internal.element.FieldFormalParameterElementImpl;
 import com.google.dart.engine.internal.element.FunctionElementImpl;
+import com.google.dart.engine.internal.element.HtmlElementImpl;
 import com.google.dart.engine.internal.element.ImportElementImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
 import com.google.dart.engine.internal.element.LocalVariableElementImpl;
@@ -287,6 +288,15 @@ public final class ElementFactory {
     getter.setType(getterType);
 
     return getter;
+  }
+
+  public static HtmlElementImpl htmlUnit(AnalysisContext context, String fileName) {
+    FileBasedSource source = new FileBasedSource(
+        context.getSourceFactory().getContentCache(),
+        createFile(fileName));
+    HtmlElementImpl unit = new HtmlElementImpl(context, fileName);
+    unit.setSource(source);
+    return unit;
   }
 
   public static ImportElementImpl importFor(LibraryElement importedLibrary, PrefixElement prefix,

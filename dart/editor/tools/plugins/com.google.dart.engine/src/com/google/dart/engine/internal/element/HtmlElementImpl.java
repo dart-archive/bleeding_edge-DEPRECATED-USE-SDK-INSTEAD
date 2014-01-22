@@ -64,8 +64,13 @@ public class HtmlElementImpl extends ElementImpl implements HtmlElement {
 
   @Override
   public boolean equals(Object object) {
-    return getClass() == object.getClass()
-        && source.equals(((CompilationUnitElementImpl) object).getSource());
+    if (object == this) {
+      return true;
+    }
+    if (object == null) {
+      return false;
+    }
+    return getClass() == object.getClass() && source.equals(((HtmlElementImpl) object).getSource());
   }
 
   @Override

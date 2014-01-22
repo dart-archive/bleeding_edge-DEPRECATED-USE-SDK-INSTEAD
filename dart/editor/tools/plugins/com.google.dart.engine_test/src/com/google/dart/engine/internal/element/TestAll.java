@@ -24,6 +24,7 @@ public class TestAll {
     suite.addTestSuite(ClassElementImplTest.class);
     suite.addTestSuite(ElementLocationImplTest.class);
     suite.addTestSuite(ElementImplTest.class);
+    suite.addTestSuite(HtmlElementImplTest.class);
     suite.addTestSuite(LibraryElementImplTest.class);
     suite.addTestSuite(MultiplyDefinedElementImplTest.class);
     return suite;
