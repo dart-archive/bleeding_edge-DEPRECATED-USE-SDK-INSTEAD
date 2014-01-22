@@ -696,6 +696,12 @@ public class SearchEngineImplTest extends EngineTestCase {
         new ExpectedMatch(elementD, MatchKind.METHOD_REFERENCE, 4, 40, true));
   }
 
+  public void test_searchReferences_notSupported() throws Exception {
+    Element referencedElement = mockElement(Element.class, ElementKind.UNIVERSE);
+    List<SearchMatch> matches = searchReferencesSync(Element.class, referencedElement);
+    assertThat(matches).isEmpty();
+  }
+
   public void test_searchReferences_ParameterElement() throws Exception {
     ParameterElement referencedElement = mockElement(ParameterElement.class, ElementKind.PARAMETER);
     {

@@ -331,60 +331,64 @@ public class SearchEngineImpl implements SearchEngine {
   @Override
   public void searchReferences(Element element, SearchScope scope, SearchFilter filter,
       SearchListener listener) {
-    if (element != null) {
-      if (element instanceof Member) {
-        element = ((Member) element).getBaseElement();
-      }
-      switch (element.getKind()) {
-        case ANGULAR_COMPONENT:
-        case ANGULAR_CONTROLLER:
-        case ANGULAR_PROPERTY:
-          searchReferences((AngularElement) element, scope, filter, listener);
-          return;
-        case CLASS:
-          searchReferences((ClassElement) element, scope, filter, listener);
-          return;
-        case COMPILATION_UNIT:
-          searchReferences((CompilationUnitElement) element, scope, filter, listener);
-          return;
-        case CONSTRUCTOR:
-          searchReferences((ConstructorElement) element, scope, filter, listener);
-          return;
-        case FIELD:
-        case TOP_LEVEL_VARIABLE:
-          searchReferences((PropertyInducingElement) element, scope, filter, listener);
-          return;
-        case FUNCTION:
-          searchReferences((FunctionElement) element, scope, filter, listener);
-          return;
-        case GETTER:
-        case SETTER:
-          searchReferences((PropertyAccessorElement) element, scope, filter, listener);
-          return;
-        case IMPORT:
-          searchReferences((ImportElement) element, scope, filter, listener);
-          return;
-        case LIBRARY:
-          searchReferences((LibraryElement) element, scope, filter, listener);
-          return;
-        case LOCAL_VARIABLE:
-          searchReferences((LocalVariableElement) element, scope, filter, listener);
-          return;
-        case METHOD:
-          searchReferences((MethodElement) element, scope, filter, listener);
-          return;
-        case PARAMETER:
-          searchReferences((ParameterElement) element, scope, filter, listener);
-          return;
-        case FUNCTION_TYPE_ALIAS:
-          searchReferences((FunctionTypeAliasElement) element, scope, filter, listener);
-          return;
-        case TYPE_PARAMETER:
-          searchReferences((TypeParameterElement) element, scope, filter, listener);
-          return;
-      }
+    if (element == null) {
+      listener.searchComplete();
+      return;
     }
-    listener.searchComplete();
+    if (element instanceof Member) {
+      element = ((Member) element).getBaseElement();
+    }
+    switch (element.getKind()) {
+      case ANGULAR_COMPONENT:
+      case ANGULAR_CONTROLLER:
+      case ANGULAR_PROPERTY:
+        searchReferences((AngularElement) element, scope, filter, listener);
+        return;
+      case CLASS:
+        searchReferences((ClassElement) element, scope, filter, listener);
+        return;
+      case COMPILATION_UNIT:
+        searchReferences((CompilationUnitElement) element, scope, filter, listener);
+        return;
+      case CONSTRUCTOR:
+        searchReferences((ConstructorElement) element, scope, filter, listener);
+        return;
+      case FIELD:
+      case TOP_LEVEL_VARIABLE:
+        searchReferences((PropertyInducingElement) element, scope, filter, listener);
+        return;
+      case FUNCTION:
+        searchReferences((FunctionElement) element, scope, filter, listener);
+        return;
+      case GETTER:
+      case SETTER:
+        searchReferences((PropertyAccessorElement) element, scope, filter, listener);
+        return;
+      case IMPORT:
+        searchReferences((ImportElement) element, scope, filter, listener);
+        return;
+      case LIBRARY:
+        searchReferences((LibraryElement) element, scope, filter, listener);
+        return;
+      case LOCAL_VARIABLE:
+        searchReferences((LocalVariableElement) element, scope, filter, listener);
+        return;
+      case METHOD:
+        searchReferences((MethodElement) element, scope, filter, listener);
+        return;
+      case PARAMETER:
+        searchReferences((ParameterElement) element, scope, filter, listener);
+        return;
+      case FUNCTION_TYPE_ALIAS:
+        searchReferences((FunctionTypeAliasElement) element, scope, filter, listener);
+        return;
+      case TYPE_PARAMETER:
+        searchReferences((TypeParameterElement) element, scope, filter, listener);
+        return;
+      default:
+        listener.searchComplete();
+        return;
+    }
   }
 
   @Override
