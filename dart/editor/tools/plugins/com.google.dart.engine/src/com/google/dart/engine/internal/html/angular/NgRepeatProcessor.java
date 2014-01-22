@@ -31,6 +31,7 @@ import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.KeywordToken;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
+import com.google.dart.engine.type.InterfaceType;
 
 import java.util.ArrayList;
 
@@ -84,14 +85,35 @@ class NgRepeatProcessor extends NgDirectiveProcessor {
     // remember expressions
     attribute.setExpressions(new EmbeddedExpression[] {
         newEmbeddedExpression(varExpression), newEmbeddedExpression(iterableExpr)});
-    // define variable
-    LocalVariableElementImpl variable = (LocalVariableElementImpl) varName.getStaticElement();
-    variable.setType(varName.getBestType());
-    resolver.defineVariable(variable);
+    // define item variable
+    {
+      LocalVariableElementImpl variable = (LocalVariableElementImpl) varName.getStaticElement();
+      variable.setType(varName.getBestType());
+      resolver.defineVariable(variable);
+    }
+    // define additional variables
+    defineLocalVariable_int(resolver, "$index");
+    defineLocalVariable_bool(resolver, "$first");
+    defineLocalVariable_bool(resolver, "$middle");
+    defineLocalVariable_bool(resolver, "$last");
+    defineLocalVariable_bool(resolver, "$even");
+    defineLocalVariable_bool(resolver, "$odd");
   }
 
   @Override
   public boolean canApply(XmlTagNode node) {
     return node.getAttribute(NG_REPEAT) != null;
+  }
+
+  private void defineLocalVariable_bool(AngularHtmlUnitResolver resolver, String name) {
+    InterfaceType type = resolver.getTypeProvider().getBoolType();
+    LocalVariableElementImpl variable = resolver.createLocalVariable(type, name);
+    resolver.defineVariable(variable);
+  }
+
+  private void defineLocalVariable_int(AngularHtmlUnitResolver resolver, String name) {
+    InterfaceType type = resolver.getTypeProvider().getIntType();
+    LocalVariableElementImpl variable = resolver.createLocalVariable(type, name);
+    resolver.defineVariable(variable);
   }
 }

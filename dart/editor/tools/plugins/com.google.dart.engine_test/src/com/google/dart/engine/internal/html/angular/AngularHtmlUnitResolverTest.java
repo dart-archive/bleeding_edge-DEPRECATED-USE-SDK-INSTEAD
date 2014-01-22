@@ -107,11 +107,9 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
         "  set setA(value) {}",
         "  set setB(value) {}",
         "}"));
-    resolveIndex(createHtmlWithMyController(//
+    resolveIndexNoErrors(createHtmlWithMyController(//
         "<input type='text' ng-model='someModel'/>",
         "<myComponent attrA='someModel' attrB='bbb'/>"));
-    assertNoErrors();
-    verify(indexSource);
     // "attrA" attribute expression was resolved
     assertNotNull(findIdentifier("someModel"));
     // "myComponent" tag was resolved
@@ -148,12 +146,10 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
         "class MyDirective {",
         "  set condition(value) {}",
         "}"));
-    resolveIndex(createHtmlWithMyController(//
+    resolveIndexNoErrors(createHtmlWithMyController(//
         "<input type='text' ng-model='name'>",
         "<div my-directive='name != null'>",
         "</div>"));
-    assertNoErrors();
-    verify(indexSource);
     // @condition means "string attribute", which we don't parse
     assertNull(findIdentifierMaybe("name != null"));
     // "my-directive" attribute was resolved
@@ -176,12 +172,10 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
         "class MyDirective {",
         "  set condition(value) {}",
         "}"));
-    resolveIndex(createHtmlWithMyController(//
+    resolveIndexNoErrors(createHtmlWithMyController(//
         "<input type='text' ng-model='name'>",
         "<div my-directive='name != null'>",
         "</div>"));
-    assertNoErrors();
-    verify(indexSource);
     // "name" attribute was resolved
     assertNotNull(findIdentifier("name != null"));
   }
@@ -196,12 +190,10 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
         "class MyDirective {",
         "  set condition(value) {}",
         "}"));
-    resolveIndex(createHtmlWithMyController(//
+    resolveIndexNoErrors(createHtmlWithMyController(//
         "<input type='text' ng-model='name'>",
         "<div my-directive='name != null'>",
         "</div>"));
-    assertNoErrors();
-    verify(indexSource);
     // "name" expression was resolved
     assertNotNull(findIdentifier("name != null"));
     // "my-directive" attribute was resolved
@@ -226,22 +218,18 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
 
   public void test_ngModel_modelAfterUsage() throws Exception {
     addMyController();
-    resolveIndex(createHtmlWithMyController(//
+    resolveIndexNoErrors(createHtmlWithMyController(//
         "<h3>Hello {{name}}!</h3>",
         "<input type='text' ng-model='name'>"));
-    assertNoErrors();
-    verify(indexSource);
     assertResolvedIdentifier("name}}!", "String");
     assertResolvedIdentifier("name'>", "String");
   }
 
   public void test_ngModel_modelBeforeUsage() throws Exception {
     addMyController();
-    resolveIndex(createHtmlWithMyController(//
+    resolveIndexNoErrors(createHtmlWithMyController(//
         "<input type='text' ng-model='name'>",
         "<h3>Hello {{name}}!</h3>"));
-    assertNoErrors();
-    verify(indexSource);
     assertResolvedIdentifier("name}}!", "String");
     Element element = assertResolvedIdentifier("name'>", "String");
     assertEquals("name", element.getName());
@@ -250,9 +238,7 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
 
   public void test_ngModel_notIdentifier() throws Exception {
     addMyController();
-    resolveIndex(createHtmlWithMyController("<input type='text' ng-model='ctrl.field'>"));
-    assertNoErrors();
-    verify(indexSource);
+    resolveIndexNoErrors(createHtmlWithMyController("<input type='text' ng-model='ctrl.field'>"));
     assertResolvedIdentifier("field'>", "String");
   }
 
@@ -263,6 +249,20 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
     addMyController();
     resolveIndexNoErrors(createHtmlWithMyController("<button ng-mouseout='ctrl.doSomething()'/>"));
     assertResolvedIdentifier("doSomething");
+  }
+
+  public void test_ngRepeat_additionalVariables() throws Exception {
+    addMyController();
+    resolveIndexNoErrors(createHtmlWithMyController(//
+        "<li ng-repeat='name in ctrl.names'>",
+        "  {{$index}} {{$first}} {{$middle}} {{$last}} {{$even}} {{$odd}}",
+        "</li>"));
+    assertResolvedIdentifier("$index", "int");
+    assertResolvedIdentifier("$first", "bool");
+    assertResolvedIdentifier("$middle", "bool");
+    assertResolvedIdentifier("$last", "bool");
+    assertResolvedIdentifier("$even", "bool");
+    assertResolvedIdentifier("$odd", "bool");
   }
 
   public void test_ngRepeat_bad_expectedIdentifier() throws Exception {
@@ -283,12 +283,10 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
 
   public void test_ngRepeat_resolvedExpressions() throws Exception {
     addMyController();
-    resolveIndex(createHtmlWithMyController(//
+    resolveIndexNoErrors(createHtmlWithMyController(//
         "<li ng-repeat='name in ctrl.names'>",
         "  {{name}}",
         "</li>"));
-    assertNoErrors();
-    verify(indexSource);
     assertResolvedIdentifier("name in", "String");
     assertResolvedIdentifier("ctrl.", "MyController");
     assertResolvedIdentifier("names'", "List<String>");
@@ -361,7 +359,7 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
         "class MyController {",
         "  String field;",
         "}"));
-    resolveIndex(createSource(//
+    resolveIndexNoErrors(createSource(//
         "<html ng-app>",
         "  <body>",
         "    <div my-controller>",
@@ -370,29 +368,24 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
         "    <script type='application/dart' src='main.dart'></script>",
         "  </body>",
         "</html>"));
-    assertNoErrors();
     assertResolvedIdentifier("ctrl.", "MyController");
   }
 
   public void test_resolveExpression_inAttribute() throws Exception {
     addMyController();
-    resolveIndex(createHtmlWithMyController("<button title='{{ctrl.field}}'></button>"));
-    assertNoErrors();
-    verify(indexSource);
+    resolveIndexNoErrors(createHtmlWithMyController("<button title='{{ctrl.field}}'></button>"));
     assertResolvedIdentifier("ctrl", "MyController");
   }
 
   public void test_resolveExpression_inTag() throws Exception {
     addMyController();
-    resolveIndex(createHtmlWithMyController("{{ctrl.field}}"));
-    assertNoErrors();
-    verify(indexSource);
+    resolveIndexNoErrors(createHtmlWithMyController("{{ctrl.field}}"));
     assertResolvedIdentifier("ctrl", "MyController");
   }
 
   public void test_resolveExpression_ngApp_onBody() throws Exception {
     addMyController();
-    resolveIndex(createSource(//
+    resolveIndexNoErrors(createSource(//
         "<html>",
         "  <body ng-app>",
         "    <div my-controller>",
@@ -401,8 +394,6 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
         "    <script type='application/dart' src='main.dart'></script>",
         "  </body>",
         "</html>"));
-    assertNoErrors();
-    verify(indexSource);
     assertResolvedIdentifier("ctrl", "MyController");
   }
 
