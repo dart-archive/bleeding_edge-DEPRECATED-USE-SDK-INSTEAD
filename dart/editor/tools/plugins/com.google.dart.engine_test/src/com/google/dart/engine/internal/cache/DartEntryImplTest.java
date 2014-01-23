@@ -247,6 +247,14 @@ public class DartEntryImplTest extends EngineTestCase {
     assertSame(CacheState.VALID, entry.getState(DartEntry.IS_LAUNCHABLE));
   }
 
+  public void test_recordDependenciesInProcess() throws Exception {
+    DartEntryImpl entry = new DartEntryImpl();
+    entry.recordDependencyInProcess();
+    assertSame(CacheState.IN_PROCESS, entry.getState(DartEntry.EXPORTED_LIBRARIES));
+    assertSame(CacheState.IN_PROCESS, entry.getState(DartEntry.IMPORTED_LIBRARIES));
+    assertSame(CacheState.IN_PROCESS, entry.getState(DartEntry.INCLUDED_PARTS));
+  }
+
   public void test_recordParseError() throws Exception {
     DartEntryImpl entry = new DartEntryImpl();
     entry.recordParseError();
@@ -265,9 +273,6 @@ public class DartEntryImplTest extends EngineTestCase {
   public void test_recordParseInProcess() throws Exception {
     DartEntryImpl entry = new DartEntryImpl();
     entry.recordParseInProcess();
-    assertSame(CacheState.IN_PROCESS, entry.getState(DartEntry.EXPORTED_LIBRARIES));
-    assertSame(CacheState.IN_PROCESS, entry.getState(DartEntry.IMPORTED_LIBRARIES));
-    assertSame(CacheState.IN_PROCESS, entry.getState(DartEntry.INCLUDED_PARTS));
     assertSame(CacheState.IN_PROCESS, entry.getState(SourceEntry.LINE_INFO));
     assertSame(CacheState.IN_PROCESS, entry.getState(DartEntry.PARSE_ERRORS));
     assertSame(CacheState.IN_PROCESS, entry.getState(DartEntry.PARSED_UNIT));

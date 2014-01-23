@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, the Dart project authors.
+ * Copyright (c) 2014, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -24,56 +24,47 @@ import com.google.dart.engine.source.TestSource;
 
 import java.io.IOException;
 
-public class ParseDartTaskTest extends EngineTestCase {
+public class ResolveDartDependenciesTaskTest extends EngineTestCase {
   public void test_accept() throws AnalysisException {
-    ParseDartTask task = new ParseDartTask(null, null);
+    ResolveDartDependenciesTask task = new ResolveDartDependenciesTask(null, null);
     assertTrue(task.accept(new TestTaskVisitor<Boolean>() {
       @Override
-      public Boolean visitParseDartTask(ParseDartTask task) throws AnalysisException {
+      public Boolean visitResolveDartDependenciesTask(ResolveDartDependenciesTask task)
+          throws AnalysisException {
         return true;
       }
     }));
   }
 
-  public void test_getCompilationUnit() {
-    ParseDartTask task = new ParseDartTask(null, null);
-    assertNull(task.getCompilationUnit());
-  }
-
-  public void test_getErrors() {
-    ParseDartTask task = new ParseDartTask(null, null);
-    assertLength(0, task.getErrors());
-  }
-
   public void test_getException() {
-    ParseDartTask task = new ParseDartTask(null, null);
+    ResolveDartDependenciesTask task = new ResolveDartDependenciesTask(null, null);
     assertNull(task.getException());
   }
 
-  public void test_getLineInfo() {
-    ParseDartTask task = new ParseDartTask(null, null);
-    assertNull(task.getLineInfo());
+  public void test_getExportedSources() {
+    ResolveDartDependenciesTask task = new ResolveDartDependenciesTask(null, null);
+    assertLength(0, task.getExportedSources());
+  }
+
+  public void test_getImportedSources() {
+    ResolveDartDependenciesTask task = new ResolveDartDependenciesTask(null, null);
+    assertLength(0, task.getImportedSources());
+  }
+
+  public void test_getIncludedSources() {
+    ResolveDartDependenciesTask task = new ResolveDartDependenciesTask(null, null);
+    assertLength(0, task.getIncludedSources());
   }
 
   public void test_getModificationTime() {
-    ParseDartTask task = new ParseDartTask(null, null);
+    ResolveDartDependenciesTask task = new ResolveDartDependenciesTask(null, null);
     assertEquals(-1L, task.getModificationTime());
   }
 
   public void test_getSource() {
     Source source = new TestSource("");
-    ParseDartTask task = new ParseDartTask(null, source);
+    ResolveDartDependenciesTask task = new ResolveDartDependenciesTask(null, source);
     assertSame(source, task.getSource());
-  }
-
-  public void test_hasLibraryDirective() {
-    ParseDartTask task = new ParseDartTask(null, null);
-    assertFalse(task.hasLibraryDirective());
-  }
-
-  public void test_hasPartOfDirective() {
-    ParseDartTask task = new ParseDartTask(null, null);
-    assertFalse(task.hasPartOfDirective());
   }
 
   public void test_perform_exception() throws AnalysisException {
@@ -85,10 +76,11 @@ public class ParseDartTaskTest extends EngineTestCase {
     };
     InternalAnalysisContext context = new AnalysisContextImpl();
     context.setSourceFactory(new SourceFactory(new FileUriResolver()));
-    ParseDartTask task = new ParseDartTask(context, source);
+    ResolveDartDependenciesTask task = new ResolveDartDependenciesTask(context, source);
     task.perform(new TestTaskVisitor<Boolean>() {
       @Override
-      public Boolean visitParseDartTask(ParseDartTask task) throws AnalysisException {
+      public Boolean visitResolveDartDependenciesTask(ResolveDartDependenciesTask task)
+          throws AnalysisException {
         assertNotNull(task.getException());
         return true;
       }
@@ -105,21 +97,20 @@ public class ParseDartTaskTest extends EngineTestCase {
         ";"));
     InternalAnalysisContext context = new AnalysisContextImpl();
     context.setSourceFactory(new SourceFactory(new FileUriResolver()));
-    ParseDartTask task = new ParseDartTask(context, source);
+    ResolveDartDependenciesTask task = new ResolveDartDependenciesTask(context, source);
     task.perform(new TestTaskVisitor<Boolean>() {
       @Override
-      public Boolean visitParseDartTask(ParseDartTask task) throws AnalysisException {
+      public Boolean visitResolveDartDependenciesTask(ResolveDartDependenciesTask task)
+          throws AnalysisException {
         AnalysisException exception = task.getException();
         if (exception != null) {
           throw exception;
         }
-        assertNotNull(task.getCompilationUnit());
-        assertLength(1, task.getErrors());
-        assertNotNull(task.getLineInfo());
+        assertLength(1, task.getExportedSources());
+        assertLength(1, task.getImportedSources());
+        assertLength(1, task.getIncludedSources());
         assertEquals(source.getModificationStamp(), task.getModificationTime());
         assertSame(source, task.getSource());
-        assertTrue(task.hasLibraryDirective());
-        assertFalse(task.hasPartOfDirective());
         return true;
       }
     });
@@ -127,25 +118,27 @@ public class ParseDartTaskTest extends EngineTestCase {
 
   public void test_perform_part() throws AnalysisException {
     final Source source = new TestSource(createSource(//
-        "part of lib;",
-        "class B {}"));
+        "library lib;",
+        "import 'a.dart';",
+        "export 'b.dart';",
+        "part 'c.dart';",
+        "class D {}"));
     InternalAnalysisContext context = new AnalysisContextImpl();
     context.setSourceFactory(new SourceFactory(new FileUriResolver()));
-    ParseDartTask task = new ParseDartTask(context, source);
+    ResolveDartDependenciesTask task = new ResolveDartDependenciesTask(context, source);
     task.perform(new TestTaskVisitor<Boolean>() {
       @Override
-      public Boolean visitParseDartTask(ParseDartTask task) throws AnalysisException {
+      public Boolean visitResolveDartDependenciesTask(ResolveDartDependenciesTask task)
+          throws AnalysisException {
         AnalysisException exception = task.getException();
         if (exception != null) {
           throw exception;
         }
-        assertNotNull(task.getCompilationUnit());
-        assertLength(0, task.getErrors());
-        assertNotNull(task.getLineInfo());
+        assertLength(1, task.getExportedSources());
+        assertLength(1, task.getImportedSources());
+        assertLength(1, task.getIncludedSources());
         assertEquals(source.getModificationStamp(), task.getModificationTime());
         assertSame(source, task.getSource());
-        assertFalse(task.hasLibraryDirective());
-        assertTrue(task.hasPartOfDirective());
         return true;
       }
     });

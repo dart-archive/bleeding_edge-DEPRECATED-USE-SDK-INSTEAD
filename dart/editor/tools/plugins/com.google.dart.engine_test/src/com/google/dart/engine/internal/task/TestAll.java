@@ -26,6 +26,7 @@ public class TestAll {
     suite.addTestSuite(IncrementalAnalysisTaskTest.class);
     suite.addTestSuite(ParseDartTaskTest.class);
     suite.addTestSuite(ParseHtmlTaskTest.class);
+    suite.addTestSuite(ResolveDartDependenciesTaskTest.class);
     suite.addTestSuite(ResolveDartLibraryTaskTest.class);
     suite.addTestSuite(ResolveDartUnitTaskTest.class);
     suite.addTestSuite(ResolveHtmlTaskTest.class);

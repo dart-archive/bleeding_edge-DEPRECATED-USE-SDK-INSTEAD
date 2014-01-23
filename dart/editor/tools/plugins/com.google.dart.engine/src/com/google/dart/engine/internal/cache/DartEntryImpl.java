@@ -690,6 +690,53 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
   }
 
   /**
+   * Record that the information related to resolving dependencies for the associated source is
+   * about to be computed by the current thread.
+   */
+  public void recordDependencyInProcess() {
+    if (exportedLibrariesState != CacheState.VALID) {
+      exportedLibrariesState = CacheState.IN_PROCESS;
+    }
+    if (importedLibrariesState != CacheState.VALID) {
+      importedLibrariesState = CacheState.IN_PROCESS;
+    }
+    if (includedPartsState != CacheState.VALID) {
+      includedPartsState = CacheState.IN_PROCESS;
+    }
+  }
+
+  /**
+   * Record that an error occurred while attempting to resolve the directives in the source
+   * represented by this entry.
+   */
+  public void recordDependencyError() {
+    exportedLibraries = Source.EMPTY_ARRAY;
+    exportedLibrariesState = CacheState.ERROR;
+
+    importedLibraries = Source.EMPTY_ARRAY;
+    importedLibrariesState = CacheState.ERROR;
+
+    includedParts = Source.EMPTY_ARRAY;
+    includedPartsState = CacheState.ERROR;
+  }
+
+  /**
+   * Record that an in-process dependency resolution has stopped without recording results because
+   * the results were invalidated before they could be recorded.
+   */
+  public void recordDependencyNotInProcess() {
+    if (exportedLibrariesState == CacheState.IN_PROCESS) {
+      exportedLibrariesState = CacheState.INVALID;
+    }
+    if (importedLibrariesState == CacheState.IN_PROCESS) {
+      importedLibrariesState = CacheState.INVALID;
+    }
+    if (includedPartsState == CacheState.IN_PROCESS) {
+      includedPartsState = CacheState.INVALID;
+    }
+  }
+
+  /**
    * Record that an error occurred while attempting to scan or parse the entry represented by this
    * entry. This will set the state of all information, including any resolution-based information,
    * as being in error.
@@ -707,15 +754,7 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     parsedUnitAccessed = false;
     parsedUnitState = CacheState.ERROR;
 
-    exportedLibraries = Source.EMPTY_ARRAY;
-    exportedLibrariesState = CacheState.ERROR;
-
-    importedLibraries = Source.EMPTY_ARRAY;
-    importedLibrariesState = CacheState.ERROR;
-
-    includedParts = Source.EMPTY_ARRAY;
-    includedPartsState = CacheState.ERROR;
-
+    recordDependencyError();
     recordResolutionError();
   }
 
@@ -736,15 +775,6 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     if (parsedUnitState != CacheState.VALID) {
       parsedUnitState = CacheState.IN_PROCESS;
     }
-    if (exportedLibrariesState != CacheState.VALID) {
-      exportedLibrariesState = CacheState.IN_PROCESS;
-    }
-    if (importedLibrariesState != CacheState.VALID) {
-      importedLibrariesState = CacheState.IN_PROCESS;
-    }
-    if (includedPartsState != CacheState.VALID) {
-      includedPartsState = CacheState.IN_PROCESS;
-    }
   }
 
   /**
@@ -763,15 +793,6 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     }
     if (parsedUnitState == CacheState.IN_PROCESS) {
       parsedUnitState = CacheState.INVALID;
-    }
-    if (exportedLibrariesState == CacheState.IN_PROCESS) {
-      exportedLibrariesState = CacheState.INVALID;
-    }
-    if (importedLibrariesState == CacheState.IN_PROCESS) {
-      importedLibrariesState = CacheState.INVALID;
-    }
-    if (includedPartsState == CacheState.IN_PROCESS) {
-      includedPartsState = CacheState.INVALID;
     }
   }
 
