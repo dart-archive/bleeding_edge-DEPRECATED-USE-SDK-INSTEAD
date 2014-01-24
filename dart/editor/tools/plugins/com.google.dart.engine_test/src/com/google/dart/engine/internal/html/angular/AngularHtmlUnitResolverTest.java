@@ -20,6 +20,7 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.element.angular.AngularElement;
+import com.google.dart.engine.element.angular.AngularFilterElement;
 import com.google.dart.engine.element.angular.AngularPropertyElement;
 import com.google.dart.engine.element.angular.AngularPropertyKind;
 import com.google.dart.engine.element.angular.AngularSelectorElement;
@@ -270,7 +271,7 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
     resolveIndex(createHtmlWithMyController(//
         "<li ng-repeat='name + 42 in ctrl.names'>",
         "</li>"));
-    assertErrors(indexSource, AngularCode.EXPECTED_IDENTIFIER);
+    assertErrors(indexSource, AngularCode.INVALID_REPEAT_ITEM_SYNTAX);
   }
 
   public void test_ngRepeat_bad_expectedIn() throws Exception {
@@ -278,7 +279,85 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
     resolveIndex(createHtmlWithMyController(//
         "<li ng-repeat='name : ctrl.names'>",
         "</li>"));
-    assertErrors(indexSource, AngularCode.EXPECTED_IN);
+    assertErrors(indexSource, AngularCode.INVALID_REPEAT_SYNTAX);
+  }
+
+  public void test_ngRepeat_filters_missingColon() throws Exception {
+    addMyController();
+    resolveIndex(createHtmlWithMyController(//
+        "<li ng-repeat=\"item in ctrl.items | orderBy:'' true\"/>",
+        "</li>"));
+    assertErrors(indexSource, AngularCode.MISSING_FILTER_COLON);
+  }
+
+  public void test_ngRepeat_filters_noArgs() throws Exception {
+    addMyController();
+    resolveIndexNoErrors(createHtmlWithMyController(//
+        "<li ng-repeat=\"item in ctrl.items | orderBy\"/>",
+        "</li>"));
+    // filter "orderBy" is resolved
+    Element filterElement = assertResolvedIdentifier("orderBy");
+    assertInstanceOf(AngularFilterElement.class, filterElement);
+  }
+
+  public void test_ngRepeat_filters_orderBy_emptyString() throws Exception {
+    addMyController();
+    resolveIndexNoErrors(createHtmlWithMyController(//
+        "<li ng-repeat=\"item in ctrl.items | orderBy:'':true\"/>",
+        "</li>"));
+    // filter "orderBy" is resolved
+    Element filterElement = assertResolvedIdentifier("orderBy");
+    assertInstanceOf(AngularFilterElement.class, filterElement);
+  }
+
+  public void test_ngRepeat_filters_orderBy_propertyList() throws Exception {
+    addMyController();
+    resolveIndexNoErrors(createHtmlWithMyController(//
+        "<li ng-repeat=\"item in ctrl.items | orderBy:['name', 'done']\"/>",
+        "</li>"));
+    assertResolvedIdentifier("name'", "String");
+    assertResolvedIdentifier("done'", "bool");
+  }
+
+  public void test_ngRepeat_filters_orderBy_propertyName() throws Exception {
+    addMyController();
+    resolveIndexNoErrors(createHtmlWithMyController(//
+        "<li ng-repeat=\"item in ctrl.items | orderBy:'name'\"/>",
+        "</li>"));
+    assertResolvedIdentifier("name'", "String");
+  }
+
+  public void test_ngRepeat_filters_orderBy_propertyName_minus() throws Exception {
+    addMyController();
+    resolveIndexNoErrors(createHtmlWithMyController(//
+        "<li ng-repeat=\"item in ctrl.items | orderBy:'-name'\"/>",
+        "</li>"));
+    assertResolvedIdentifier("name'", "String");
+  }
+
+  public void test_ngRepeat_filters_orderBy_propertyName_plus() throws Exception {
+    addMyController();
+    resolveIndexNoErrors(createHtmlWithMyController(//
+        "<li ng-repeat=\"item in ctrl.items | orderBy:'+name'\"/>",
+        "</li>"));
+    assertResolvedIdentifier("name'", "String");
+  }
+
+  public void test_ngRepeat_filters_orderBy_propertyName_untypedItems() throws Exception {
+    addMyController();
+    resolveIndexNoErrors(createHtmlWithMyController(//
+        "<li ng-repeat=\"item in ctrl.untypedItems | orderBy:'name'\"/>",
+        "</li>"));
+    assertResolvedIdentifier("name'", "dynamic");
+  }
+
+  public void test_ngRepeat_filters_two() throws Exception {
+    addMyController();
+    resolveIndexNoErrors(createHtmlWithMyController(//
+        "<li ng-repeat=\"item in ctrl.items | orderBy:'+' | orderBy:'-'\"/>",
+        "</li>"));
+    assertInstanceOf(AngularFilterElement.class, assertResolvedIdentifier("orderBy:'+'"));
+    assertInstanceOf(AngularFilterElement.class, assertResolvedIdentifier("orderBy:'-'"));
   }
 
   public void test_ngRepeat_resolvedExpressions() throws Exception {
@@ -291,6 +370,14 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
     assertResolvedIdentifier("ctrl.", "MyController");
     assertResolvedIdentifier("names'", "List<String>");
     assertResolvedIdentifier("name}}", "String");
+  }
+
+  public void test_ngRepeat_trackBy() throws Exception {
+    addMyController();
+    resolveIndexNoErrors(createHtmlWithMyController(//
+        "<li ng-repeat='name in ctrl.names track by name.length'/>",
+        "</li>"));
+    assertResolvedIdentifier("length'", "int");
   }
 
   /**

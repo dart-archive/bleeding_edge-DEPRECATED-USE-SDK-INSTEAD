@@ -115,6 +115,22 @@ public class AngularRenameRefactoringTest extends AngularTest {
     assertMainChangeResult(mainContent.replace("'test' :", "'newName' :"));
   }
 
+  public void test_dart_renameField_updateFilterArg_orderBy() throws Exception {
+    addMyController();
+    resolveIndex(createHtmlWithMyController(//
+        "<li ng-repeat=\"item in ctrl.items | orderBy:'-name'\"/>",
+        "</li>"));
+    indexUnit(mainUnit);
+    indexUnit(indexUnit);
+    // prepare refactoring
+    Element field = findMainElement("name");
+    prepareRenameChange(field, "newName");
+    // check results
+    assertIndexChangeResult(createHtmlWithMyController(//
+        "<li ng-repeat=\"item in ctrl.items | orderBy:'-newName'\"/>",
+        "</li>"));
+  }
+
   public void test_dart_renameField_updateHtmlExpression() throws Exception {
     addMyController();
     resolveIndex(createHtmlWithMyController(//

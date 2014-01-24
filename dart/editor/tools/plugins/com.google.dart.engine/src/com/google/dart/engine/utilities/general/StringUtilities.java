@@ -373,6 +373,49 @@ public final class StringUtilities {
   }
 
   /**
+   * <p>
+   * Gets the substring after the first occurrence of a separator. The separator is not returned.
+   * </p>
+   * <p>
+   * A {@code null} string input will return {@code null}. An empty ("") string input will return
+   * the empty string. A {@code null} separator will return the empty string if the input string is
+   * not {@code null}.
+   * </p>
+   * <p>
+   * If nothing is found, the empty string is returned.
+   * </p>
+   * 
+   * <pre>
+   * StringUtils.substringAfter(null, *)      = null
+   * StringUtils.substringAfter("", *)        = ""
+   * StringUtils.substringAfter(*, null)      = ""
+   * StringUtils.substringAfter("abc", "a")   = "bc"
+   * StringUtils.substringAfter("abcba", "b") = "cba"
+   * StringUtils.substringAfter("abc", "c")   = ""
+   * StringUtils.substringAfter("abc", "d")   = ""
+   * StringUtils.substringAfter("abc", "")    = "abc"
+   * </pre>
+   * 
+   * @param str the String to get a substring from, may be null
+   * @param separator the String to search for, may be null
+   * @return the substring after the first occurrence of the separator, {@code null} if null String
+   *         input
+   */
+  public static String substringAfter(String str, String separator) {
+    if (isEmpty(str)) {
+      return str;
+    }
+    if (separator == null) {
+      return EMPTY;
+    }
+    int pos = str.indexOf(separator);
+    if (pos == -1) {
+      return EMPTY;
+    }
+    return str.substring(pos + separator.length());
+  }
+
+  /**
    * Return the substring before the first occurrence of a separator. The separator is not returned.
    * <p>
    * A {@code null} string input will return {@code null}. An empty ("") string input will return
@@ -403,7 +446,7 @@ public final class StringUtilities {
       return EMPTY;
     }
     int pos = str.indexOf(separator);
-    if (pos < 0) {
+    if (pos == -1) {
       return str;
     }
     return str.substring(0, pos);

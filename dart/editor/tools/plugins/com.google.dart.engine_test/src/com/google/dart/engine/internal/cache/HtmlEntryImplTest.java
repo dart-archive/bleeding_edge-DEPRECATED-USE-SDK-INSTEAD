@@ -45,7 +45,7 @@ public class HtmlEntryImplTest extends EngineTestCase {
         "-")});
     entry.setValue(HtmlEntry.ANGULAR_ERRORS, new AnalysisError[] {new AnalysisError(
         source,
-        AngularCode.EXPECTED_IDENTIFIER,
+        AngularCode.INVALID_REPEAT_SYNTAX,
         "-")});
     entry.setValue(HtmlEntry.HINTS, new AnalysisError[] {new AnalysisError(
         source,
@@ -108,7 +108,7 @@ public class HtmlEntryImplTest extends EngineTestCase {
   public void test_setValue_angularErrors() {
     setValue(HtmlEntry.ANGULAR_ERRORS, new AnalysisError[] {new AnalysisError(
         null,
-        AngularCode.EXPECTED_IDENTIFIER,
+        AngularCode.INVALID_REPEAT_SYNTAX,
         "-")});
   }
 

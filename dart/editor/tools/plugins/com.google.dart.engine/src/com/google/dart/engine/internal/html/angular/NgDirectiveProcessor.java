@@ -14,10 +14,13 @@
 
 package com.google.dart.engine.internal.html.angular;
 
+import com.google.common.collect.Lists;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.html.ast.EmbeddedExpression;
 import com.google.dart.engine.html.ast.XmlAttributeNode;
 import com.google.dart.engine.scanner.Token;
+
+import java.util.List;
 
 /**
  * {@link NgDirectiveProcessor} describes any <code>NgDirective</code> annotation instance.
@@ -39,5 +42,16 @@ abstract class NgDirectiveProcessor extends NgProcessor {
    */
   protected final void setExpression(XmlAttributeNode attribute, Expression expression) {
     attribute.setExpressions(new EmbeddedExpression[] {newEmbeddedExpression(expression)});
+  }
+
+  /**
+   * Sets {@link Expression}s for {@link XmlAttributeNode}.
+   */
+  protected final void setExpressions(XmlAttributeNode attribute, List<Expression> expressions) {
+    List<EmbeddedExpression> embExpressions = Lists.newArrayList();
+    for (Expression expression : expressions) {
+      embExpressions.add(newEmbeddedExpression(expression));
+    }
+    attribute.setExpressions(embExpressions.toArray(new EmbeddedExpression[embExpressions.size()]));
   }
 }

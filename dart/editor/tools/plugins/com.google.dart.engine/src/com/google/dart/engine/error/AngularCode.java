@@ -18,16 +18,17 @@ package com.google.dart.engine.error;
  */
 public enum AngularCode implements ErrorCode {
   CANNOT_PARSE_SELECTOR("The selector '%s' cannot be parsed"),
-  EXPECTED_IDENTIFIER("Expected an identifier"),
-  EXPECTED_IN("Expected 'in' keyword"),
   INVALID_PROPERTY_KIND(
       "Unknown property binding kind '%s', use one of the '@', '=>', '=>!' or '<=>'"),
   INVALID_PROPERTY_FIELD("Unknown property field '%s'"),
   INVALID_PROPERTY_MAP("Argument 'map' must be a constant map literal"),
   INVALID_PROPERTY_NAME("Property name must be a string literal"),
   INVALID_PROPERTY_SPEC("Property binding specification must be a string literal"),
+  INVALID_REPEAT_SYNTAX("Expected statement in form '_item_ in _collection_ [tracked by _id_]'"),
+  INVALID_REPEAT_ITEM_SYNTAX("Item must by identifier or in '(_key_, _value_)' pair."),
   INVALID_URI("Invalid URI syntax: '%s'"),
   MISSING_CSS_URL("Argument 'cssUrl' must be provided"),
+  MISSING_FILTER_COLON("Missing ':' before filter argument"),
   MISSING_NAME("Argument 'name' must be provided"),
   MISSING_PUBLISH_AS("Argument 'publishAs' must be provided"),
   MISSING_TEMPLATE_URL("Argument 'templateUrl' must be provided"),
@@ -40,10 +41,9 @@ public enum AngularCode implements ErrorCode {
   private final String message;
 
   /**
-   * The template used to create the correction to be displayed for this error, or {@code null} if
-   * there is no correction information for this error.
+   * The severity of the problem.
    */
-  public String correction;
+  private final ErrorSeverity severity;
 
   /**
    * Initialize a newly created error code to have the given message.
@@ -51,28 +51,28 @@ public enum AngularCode implements ErrorCode {
    * @param message the message template used to create the message to be displayed for the error
    */
   private AngularCode(String message) {
-    this.message = message;
+    this(message, ErrorSeverity.WARNING);
   }
 
   /**
-   * Initialize a newly created error code to have the given message and correction.
+   * Initialize a newly created error code to have the given message.
    * 
-   * @param message the template used to create the message to be displayed for the error
-   * @param correction the template used to create the correction to be displayed for the error
+   * @param message the message template used to create the message to be displayed for the error
+   * @param severity the severity of the problem
    */
-  private AngularCode(String message, String correction) {
+  private AngularCode(String message, ErrorSeverity severity) {
     this.message = message;
-    this.correction = correction;
+    this.severity = severity;
   }
 
   @Override
   public String getCorrection() {
-    return correction;
+    return null;
   }
 
   @Override
   public ErrorSeverity getErrorSeverity() {
-    return ErrorType.TOOLKIT.getSeverity();
+    return severity;
   }
 
   @Override

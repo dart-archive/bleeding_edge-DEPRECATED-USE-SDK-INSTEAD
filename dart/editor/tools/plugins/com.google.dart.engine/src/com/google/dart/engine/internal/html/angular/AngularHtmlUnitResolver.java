@@ -75,12 +75,13 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
   }
 
   private static final int OPENING_DELIMITER_CHAR = '{';
+
   private static final int CLOSING_DELIMITER_CHAR = '}';
-
   private static final String OPENING_DELIMITER = "{{";
-  private static final String CLOSING_DELIMITER = "}}";
 
+  private static final String CLOSING_DELIMITER = "}}";
   private static final int OPENING_DELIMITER_LENGTH = OPENING_DELIMITER.length();
+
   private static final int CLOSING_DELIMITER_LENGTH = CLOSING_DELIMITER.length();
 
   private static final String NG_APP = "ng-app";
@@ -122,13 +123,14 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
     return false;
   }
 
-  static SimpleIdentifier createIdentifier(String name) {
-    StringToken token = createStringToken(name);
+  static SimpleIdentifier createIdentifier(String name, int offset) {
+    StringToken token = createStringToken(name, offset);
     return new SimpleIdentifier(token);
   }
 
-  private static StringToken createStringToken(String name) {
-    return new StringToken(TokenType.IDENTIFIER, name, 0);
+  // TODO(scheglov) rename to: createIdentifierToken
+  private static StringToken createStringToken(String name, int offset) {
+    return new StringToken(TokenType.IDENTIFIER, name, offset);
   }
 
   private final InternalAnalysisContext context;
@@ -136,17 +138,19 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
   private final AnalysisErrorListener errorListener;
   private final Source source;
   private final LineInfo lineInfo;
-  private final HtmlUnit unit;
 
+  private final HtmlUnit unit;
+  private AngularElement[] angularElements;
   private final List<NgProcessor> processors = Lists.newArrayList();
   private LibraryElementImpl libraryElement;
   private CompilationUnitElementImpl unitElement;
-  private FunctionElementImpl functionElement;
 
+  private FunctionElementImpl functionElement;
   private ResolverVisitor resolver;
   private boolean isAngular = false;
   private List<LocalVariableElementImpl> definedVariables = Lists.newArrayList();
   private Set<LibraryElement> injectedLibraries = Sets.newHashSet();
+
   private Scope topNameScope;
 
   private Scope nameScope;
@@ -264,7 +268,7 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
    * @return the new {@link LocalVariableElementImpl}
    */
   LocalVariableElementImpl createLocalVariable(Type type, String name) {
-    SimpleIdentifier identifier = createIdentifier(name);
+    SimpleIdentifier identifier = createIdentifier(name, 0);
     return createLocalVariable(type, identifier);
   }
 
@@ -287,6 +291,18 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
   }
 
   /**
+   * @return the {@link AngularElement} with the given name, maybe {@code null}.
+   */
+  AngularElement findAngularElement(String name) {
+    for (AngularElement element : angularElements) {
+      if (name.equals(element.getName())) {
+        return element;
+      }
+    }
+    return null;
+  }
+
+  /**
    * @return the {@link TypeProvider} of the {@link AnalysisContext}.
    */
   TypeProvider getTypeProvider() {
@@ -295,6 +311,13 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
 
   Expression parseExpression(com.google.dart.engine.scanner.Token token) {
     return HtmlParser.parseEmbeddedExpression(source, token, errorListener);
+  }
+
+  /**
+   * Parses given {@link String} as an {@link Expression} at the given offset.
+   */
+  Expression parseExpression(String contents, int offset) {
+    return parseExpression(contents, 0, contents.length(), offset);
   }
 
   Expression parseExpression(String contents, int startIndex, int endIndex, int offset) {
@@ -306,12 +329,14 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
    * Reports given {@link ErrorCode} at the given {@link ASTNode}.
    */
   void reportError(ASTNode node, ErrorCode errorCode, Object... arguments) {
-    errorListener.onError(new AnalysisError(
-        source,
-        node.getOffset(),
-        node.getLength(),
-        errorCode,
-        arguments));
+    reportError(node.getOffset(), node.getLength(), errorCode, arguments);
+  }
+
+  /**
+   * Reports given {@link ErrorCode} at the given position.
+   */
+  void reportError(int offset, int length, ErrorCode errorCode, Object... arguments) {
+    errorListener.onError(new AnalysisError(source, offset, length, errorCode, arguments));
   }
 
   /**
@@ -499,6 +524,7 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
    */
   private void resolveInternal(AngularElement[] angularElements, AngularComponentElement component)
       throws AnalysisException {
+    this.angularElements = angularElements;
     // add built-in processors
     processors.add(NgModelProcessor.INSTANCE);
     processors.add(NgRepeatProcessor.INSTANCE);

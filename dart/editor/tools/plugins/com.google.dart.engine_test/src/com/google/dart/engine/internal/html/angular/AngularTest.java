@@ -140,6 +140,13 @@ abstract public class AngularTest extends EngineTestCase {
   /**
    * Fills {@link #indexContent} and {@link #indexSource}.
    */
+  protected final void addIndexSource(String content) {
+    addIndexSource("/index.html", content);
+  }
+
+  /**
+   * Fills {@link #indexContent} and {@link #indexSource}.
+   */
   protected final void addIndexSource(String name, String content) {
     indexContent = content;
     indexSource = contextHelper.addSource(name, indexContent);
@@ -157,12 +164,19 @@ abstract public class AngularTest extends EngineTestCase {
     resolveMainSource(createSource("",//
         "import 'angular.dart';",
         "",
+        "class Item {",
+        "  String name;",
+        "  bool done;",
+        "}",
+        "",
         "@NgController(",
         "    selector: '[my-controller]',",
         "    publishAs: 'ctrl')",
         "class MyController {",
         "  String field;",
         "  List<String> names;",
+        "  List<Item> items;",
+        "  var untypedItems;",
         "  doSomething() {}",
         "}"));
   }
@@ -246,6 +260,14 @@ abstract public class AngularTest extends EngineTestCase {
   protected final SimpleIdentifier findIdentifier(String search) {
     SimpleIdentifier identifier = findIdentifierMaybe(search);
     assertNotNull(search + " in " + indexContent, identifier);
+    // check that offset/length of the identifier is valid
+    {
+      int offset = identifier.getOffset();
+      int end = identifier.getEnd();
+      String contentStr = indexContent.substring(offset, end);
+      assertEquals(identifier.getName(), contentStr);
+    }
+    // done
     return identifier;
   }
 
@@ -304,7 +326,7 @@ abstract public class AngularTest extends EngineTestCase {
   }
 
   protected final void resolveIndex(String content) throws Exception {
-    addIndexSource("/index.html", content);
+    addIndexSource(content);
     resolveIndex();
   }
 
@@ -472,6 +494,12 @@ abstract public class AngularTest extends EngineTestCase {
             "class NgShowDirective {",
             "  set show(value) {}",
             "}",
+            "",
+            "@NgFilter(name: 'orderBy')",
+            "class OrderByFilter {}",
+            "",
+            "@NgFilter(name: 'filter')",
+            "class FilterFilter {}",
             "",
             "class Module {",
             "  install(Module m) {}",
