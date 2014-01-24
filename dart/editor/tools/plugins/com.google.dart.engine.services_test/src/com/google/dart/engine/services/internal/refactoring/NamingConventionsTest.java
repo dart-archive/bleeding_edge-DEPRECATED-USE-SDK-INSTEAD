@@ -18,6 +18,7 @@ import com.google.dart.engine.services.internal.correction.AbstractDartTest;
 import com.google.dart.engine.services.refactoring.NamingConventions;
 import com.google.dart.engine.services.status.RefactoringStatusSeverity;
 
+import static com.google.dart.engine.services.refactoring.NamingConventions.validateAngularFilterName;
 import static com.google.dart.engine.services.refactoring.NamingConventions.validateAngularPropertyName;
 import static com.google.dart.engine.services.refactoring.NamingConventions.validateClassName;
 import static com.google.dart.engine.services.refactoring.NamingConventions.validateConstantName;
@@ -35,6 +36,49 @@ import static com.google.dart.engine.services.refactoring.NamingConventions.vali
  * Test for {@link NamingConventions}.
  */
 public class NamingConventionsTest extends AbstractDartTest {
+  public void test_validateAngularFilterName_blank() throws Exception {
+    assertRefactoringStatus(
+        validateAngularFilterName(" name"),
+        RefactoringStatusSeverity.ERROR,
+        "Filter name must not start or end with a blank.");
+    assertRefactoringStatus(
+        validateAngularFilterName("name "),
+        RefactoringStatusSeverity.ERROR,
+        "Filter name must not start or end with a blank.");
+  }
+
+  public void test_validateAngularFilterName_hasBlank() throws Exception {
+    assertRefactoringStatus(
+        validateAngularFilterName("my name"),
+        RefactoringStatusSeverity.ERROR,
+        "Filter name must not contain ' '.");
+  }
+
+  public void test_validateAngularFilterName_hasDot() throws Exception {
+    assertRefactoringStatus(
+        validateAngularFilterName("my.bad.name"),
+        RefactoringStatusSeverity.ERROR,
+        "Filter name must not contain '.'.");
+  }
+
+  public void test_validateAngularFilterName_notIdentifierStart() throws Exception {
+    assertRefactoringStatus(
+        validateAngularFilterName("2my-bad-name"),
+        RefactoringStatusSeverity.ERROR,
+        "Filter name must not start with '2'.");
+  }
+
+  public void test_validateAngularFilterName_null() throws Exception {
+    assertRefactoringStatus(
+        validateAngularFilterName(null),
+        RefactoringStatusSeverity.ERROR,
+        "Filter name must not be null.");
+  }
+
+  public void test_validateAngularFilterName_OK() throws Exception {
+    assertRefactoringStatusOK(validateAngularFilterName("name"));
+  }
+
   public void test_validateAngularPropertyName_blank() throws Exception {
     assertRefactoringStatus(
         validateAngularPropertyName(" "),

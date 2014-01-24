@@ -18,6 +18,7 @@ import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementKind;
+import com.google.dart.engine.element.angular.AngularFilterElement;
 import com.google.dart.engine.element.angular.AngularPropertyElement;
 import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.index.Index;
@@ -47,6 +48,65 @@ public class AngularRenameRefactoringTest extends AngularTest {
   private SearchEngine searchEngine;
   private RenameRefactoring refactoring;
   private Change refactoringChange;
+
+  public void test_angular_renameFilter() throws Exception {
+    prepareMyFilter();
+    resolveIndex(createHtmlWithMyController(//
+        "  <li ng-repeat=\"item in ctrl.items | test:true\">",
+        "  </li>",
+        ""));
+    indexUnit(indexUnit);
+    // prepare refactoring
+    AngularFilterElement property = findMainElement("test");
+    prepareRenameChange(property, "newName");
+    // check results
+    assertIndexChangeResult(createHtmlWithMyController(//
+        "  <li ng-repeat=\"item in ctrl.items | newName:true\">",
+        "  </li>",
+        ""));
+    assertMainChangeResult(mainContent.replace("'test')", "'newName')"));
+  }
+
+  public void test_angular_renameFilter_checkNewName() throws Exception {
+    prepareMyFilter();
+    resolveIndex(createHtmlWithMyController(//
+        "  <li ng-repeat=\"item in ctrl.items | test:true\">",
+        "  </li>",
+        ""));
+    indexUnit(indexUnit);
+    // prepare refactoring
+    AngularFilterElement property = findMainElement("test");
+    createRenameRefactoring(property);
+    // "newName"
+    {
+      RefactoringStatus status = refactoring.checkNewName("newName");
+      assertRefactoringStatusOK(status);
+    }
+    // "new-name" - bad
+    {
+      RefactoringStatus status = refactoring.checkNewName("new-name");
+      assertRefactoringStatus(
+          status,
+          RefactoringStatusSeverity.ERROR,
+          "Filter name must not contain '-'.");
+    }
+    // "new.name" - bad
+    {
+      RefactoringStatus status = refactoring.checkNewName("new.name");
+      assertRefactoringStatus(
+          status,
+          RefactoringStatusSeverity.ERROR,
+          "Filter name must not contain '.'.");
+    }
+    // there is already "existingFilter" filter
+    {
+      RefactoringStatus status = refactoring.checkNewName("existingFilter");
+      assertRefactoringStatus(
+          status,
+          RefactoringStatusSeverity.ERROR,
+          "Library already defines filter with name 'existingFilter'.");
+    }
+  }
 
   public void test_angular_renameProperty_checkNewName() throws Exception {
     prepareMyComponent();
@@ -208,6 +268,31 @@ public class AngularRenameRefactoringTest extends AngularTest {
         "    map: const {'test' : '=>field', 'other' : '=>field'})",
         "class MyComponent {",
         "  set field(value) {}",
+        "}"));
+  }
+
+  private void prepareMyFilter() throws Exception {
+    resolveMainSource(createSource("",//
+        "import 'angular.dart';",
+        "",
+        "@NgFilter(name: 'test')",
+        "class MyFilter {",
+        "}",
+        "",
+        "@NgFilter(name: 'existingFilter')",
+        "class ExistingFilter {",
+        "}",
+        "",
+        "class Item {",
+        "  String name;",
+        "  bool done;",
+        "}",
+        "",
+        "@NgController(",
+        "    selector: '[my-controller]',",
+        "    publishAs: 'ctrl')",
+        "class MyController {",
+        "  List<Item> items;",
         "}"));
   }
 
