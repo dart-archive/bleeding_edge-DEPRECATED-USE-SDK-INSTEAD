@@ -140,6 +140,12 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
       }
     }
 
+    public boolean hasErrorState() {
+      return resolvedUnitState == CacheState.ERROR || resolutionErrorsState == CacheState.ERROR
+          || verificationErrorsState == CacheState.ERROR || hintsState == CacheState.ERROR
+          || (nextState != null && nextState.hasErrorState());
+    }
+
     /**
      * Invalidate all of the resolution information associated with the compilation unit.
      */
@@ -229,17 +235,6 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
   }
 
   /**
-   * The state of the cached {@link angularElements}.
-   */
-  private CacheState angularElementsState = CacheState.INVALID;
-
-  /**
-   * The array of Angular elements accessible in the library, or an empty array if the elements are
-   * not currently cached.
-   */
-  private AngularElement[] angularElements = AngularElement.EMPTY_ARRAY;
-
-  /**
    * The state of the cached source kind.
    */
   private CacheState sourceKindState = CacheState.INVALID;
@@ -325,6 +320,17 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
    * The element representing the library, or {@code null} if the element is not currently cached.
    */
   private LibraryElement element;
+
+  /**
+   * The state of the cached {@link angularElements}.
+   */
+  private CacheState angularElementsState = CacheState.INVALID;
+
+  /**
+   * The array of Angular elements accessible in the library, or an empty array if the elements are
+   * not currently cached.
+   */
+  private AngularElement[] angularElements = AngularElement.EMPTY_ARRAY;
 
   /**
    * The state of the cached public namespace.
@@ -690,6 +696,21 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
   }
 
   /**
+   * Record that an error occurred while attempting to resolve the directives in the source
+   * represented by this entry.
+   */
+  public void recordDependencyError() {
+    exportedLibraries = Source.EMPTY_ARRAY;
+    exportedLibrariesState = CacheState.ERROR;
+
+    importedLibraries = Source.EMPTY_ARRAY;
+    importedLibrariesState = CacheState.ERROR;
+
+    includedParts = Source.EMPTY_ARRAY;
+    includedPartsState = CacheState.ERROR;
+  }
+
+  /**
    * Record that the information related to resolving dependencies for the associated source is
    * about to be computed by the current thread.
    */
@@ -703,21 +724,6 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     if (includedPartsState != CacheState.VALID) {
       includedPartsState = CacheState.IN_PROCESS;
     }
-  }
-
-  /**
-   * Record that an error occurred while attempting to resolve the directives in the source
-   * represented by this entry.
-   */
-  public void recordDependencyError() {
-    exportedLibraries = Source.EMPTY_ARRAY;
-    exportedLibrariesState = CacheState.ERROR;
-
-    importedLibraries = Source.EMPTY_ARRAY;
-    importedLibrariesState = CacheState.ERROR;
-
-    includedParts = Source.EMPTY_ARRAY;
-    includedPartsState = CacheState.ERROR;
   }
 
   /**
@@ -1068,6 +1074,17 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     angularElementsState = other.angularElementsState;
     angularElements = other.angularElements;
     bitmask = other.bitmask;
+  }
+
+  @Override
+  protected boolean hasErrorState() {
+    return super.hasErrorState() || sourceKindState == CacheState.ERROR
+        || parsedUnitState == CacheState.ERROR || parseErrorsState == CacheState.ERROR
+        || importedLibrariesState == CacheState.ERROR || exportedLibrariesState == CacheState.ERROR
+        || includedPartsState == CacheState.ERROR || elementState == CacheState.ERROR
+        || angularElementsState == CacheState.ERROR || publicNamespaceState == CacheState.ERROR
+        || clientServerState == CacheState.ERROR || launchableState == CacheState.ERROR
+        || resolutionState.hasErrorState();
   }
 
   @Override

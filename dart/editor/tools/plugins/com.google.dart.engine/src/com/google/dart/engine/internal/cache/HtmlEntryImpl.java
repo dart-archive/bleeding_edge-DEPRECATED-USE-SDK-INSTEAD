@@ -28,17 +28,6 @@ import java.util.ArrayList;
  */
 public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
   /**
-   * The state of the Angular resolution errors.
-   */
-  private CacheState angularErrorsState = CacheState.INVALID;
-
-  /**
-   * The hints produced while performing Angular resolution, or an empty array if the error are not
-   * currently cached.
-   */
-  private AnalysisError[] angularErrors = AnalysisError.NO_ERRORS;
-
-  /**
    * The state of the cached parsed (but not resolved) HTML unit.
    */
   private CacheState parsedUnitState = CacheState.INVALID;
@@ -90,6 +79,17 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
    * The element representing the HTML file, or {@code null} if the element is not currently cached.
    */
   private HtmlElement element;
+
+  /**
+   * The state of the Angular resolution errors.
+   */
+  private CacheState angularErrorsState = CacheState.INVALID;
+
+  /**
+   * The hints produced while performing Angular resolution, or an empty array if the error are not
+   * currently cached.
+   */
+  private AnalysisError[] angularErrors = AnalysisError.NO_ERRORS;
 
   /**
    * The state of the cached hints.
@@ -320,6 +320,14 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
     element = other.element;
     hints = other.hints;
     hintsState = other.hintsState;
+  }
+
+  @Override
+  protected boolean hasErrorState() {
+    return super.hasErrorState() || parsedUnitState == CacheState.ERROR
+        || parseErrorsState == CacheState.ERROR || resolutionErrorsState == CacheState.ERROR
+        || referencedLibrariesState == CacheState.ERROR || elementState == CacheState.ERROR
+        || angularErrorsState == CacheState.ERROR || hintsState == CacheState.ERROR;
   }
 
   @Override

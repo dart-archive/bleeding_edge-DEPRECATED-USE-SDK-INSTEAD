@@ -108,6 +108,7 @@ public class AnalysisCache {
    * @param entry the entry to be associated with the source
    */
   public void put(Source source, SourceEntry entry) {
+    ((SourceEntryImpl) entry).fixExceptionState();
     sourceMap.put(source, entry);
   }
 

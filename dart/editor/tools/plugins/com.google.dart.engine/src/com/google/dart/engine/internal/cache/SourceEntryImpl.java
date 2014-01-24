@@ -53,6 +53,23 @@ public abstract class SourceEntryImpl implements SourceEntry {
   }
 
   /**
+   * Fix the state of the {@link #exception} to match the current state of the entry.
+   */
+  public void fixExceptionState() {
+    if (hasErrorState()) {
+      if (exception == null) {
+        //
+        // This code should never be reached, but is a fail-safe in case an exception is not
+        // recorded when it should be.
+        //
+        exception = new AnalysisException("State set to ERROR without setting an exception");
+      }
+    } else {
+      exception = null;
+    }
+  }
+
+  /**
    * Return the exception that caused one or more values to have a state of {@link CacheState#ERROR}
    * .
    * 
@@ -159,8 +176,18 @@ public abstract class SourceEntryImpl implements SourceEntry {
    */
   protected void copyFrom(SourceEntryImpl entry) {
     modificationTime = entry.modificationTime;
+    exception = entry.exception;
     lineInfoState = entry.lineInfoState;
     lineInfo = entry.lineInfo;
+  }
+
+  /**
+   * Return {@code true} if the state of any data value is {@link CacheState#ERROR}.
+   * 
+   * @return {@code true} if the state of any data value is {@link CacheState#ERROR}
+   */
+  protected boolean hasErrorState() {
+    return lineInfoState == CacheState.ERROR;
   }
 
   /**
