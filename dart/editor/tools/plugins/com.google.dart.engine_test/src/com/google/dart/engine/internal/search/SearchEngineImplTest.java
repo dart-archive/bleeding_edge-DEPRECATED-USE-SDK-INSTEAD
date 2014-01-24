@@ -35,6 +35,7 @@ import com.google.dart.engine.element.TopLevelVariableElement;
 import com.google.dart.engine.element.TypeParameterElement;
 import com.google.dart.engine.element.angular.AngularComponentElement;
 import com.google.dart.engine.element.angular.AngularControllerElement;
+import com.google.dart.engine.element.angular.AngularFilterElement;
 import com.google.dart.engine.element.angular.AngularPropertyElement;
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.index.IndexFactory;
@@ -371,6 +372,26 @@ public class SearchEngineImplTest extends EngineTestCase {
     AngularControllerElement referencedElement = mockElement(
         AngularControllerElement.class,
         ElementKind.ANGULAR_CONTROLLER);
+    {
+      Location locationA = new Location(elementA, 1, 2);
+      indexStore.recordRelationship(referencedElement, IndexConstants.IS_REFERENCED_BY, locationA);
+    }
+    {
+      Location locationB = new Location(elementB, 10, 20);
+      indexStore.recordRelationship(referencedElement, IndexConstants.IS_REFERENCED_BY, locationB);
+    }
+    // search matches
+    List<SearchMatch> matches = searchReferencesSync(Element.class, referencedElement);
+    assertMatches(
+        matches,
+        new ExpectedMatch(elementA, MatchKind.ANGULAR_REFERENCE, 1, 2),
+        new ExpectedMatch(elementB, MatchKind.ANGULAR_REFERENCE, 10, 20));
+  }
+
+  public void test_searchReferences_AngularFilterElement() throws Exception {
+    AngularFilterElement referencedElement = mockElement(
+        AngularFilterElement.class,
+        ElementKind.ANGULAR_FILTER);
     {
       Location locationA = new Location(elementA, 1, 2);
       indexStore.recordRelationship(referencedElement, IndexConstants.IS_REFERENCED_BY, locationA);

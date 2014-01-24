@@ -72,9 +72,7 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
     resolveMainSource(createAngularSource(//
         "@NgComponent(publishAs: 'ctrl', selector: 'myComp',",
         "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css')",
-        "class MyComponent {}",
-        "  var field;",
-        "}"));
+        "class MyComponent {}"));
     SimpleStringLiteral node = findMainNode("ctrl'", SimpleStringLiteral.class);
     int offset = node.getOffset();
     // find AngularComponentElement
@@ -165,6 +163,19 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
     // check AngularPropertyElement
     AngularPropertyElement property = (AngularPropertyElement) element;
     assertEquals("my-dir", property.getName());
+  }
+
+  public void test_getElement_filter_name() throws Exception {
+    resolveMainSource(createAngularSource(//
+        "@NgFilter(name: 'myFilter')",
+        "class MyFilter {",
+        "  call(p1, p2) {}",
+        "}"));
+    SimpleStringLiteral node = findMainNode("myFilter'", SimpleStringLiteral.class);
+    int offset = node.getOffset();
+    // find FilterElement
+    Element element = AngularCompilationUnitBuilder.getElement(node, offset);
+    assertInstanceOf(AngularFilterElement.class, element);
   }
 
   public void test_getElement_noClassDeclaration() throws Exception {

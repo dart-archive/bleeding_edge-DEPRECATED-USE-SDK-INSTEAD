@@ -17,6 +17,7 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.angular.AngularComponentElement;
+import com.google.dart.engine.element.angular.AngularFilterElement;
 import com.google.dart.engine.element.angular.AngularPropertyElement;
 import com.google.dart.engine.element.angular.AngularSelectorElement;
 import com.google.dart.engine.index.IndexStore;
@@ -171,6 +172,42 @@ public class AngularHtmlIndexContributorTest extends AngularTest {
         indexHtmlUnit,
         findOffset("attrB='str"),
         "attrB"));
+  }
+
+  public void test_NgFilter_use() throws Exception {
+    resolveMainSource(createSource("",//
+        "import 'angular.dart';",
+        "",
+        "@NgFilter(name: 'myFilter')",
+        "class MyFilter {",
+        "}",
+        "",
+        "class Item {",
+        "  String name;",
+        "  bool done;",
+        "}",
+        "",
+        "@NgController(",
+        "    selector: '[my-controller]',",
+        "    publishAs: 'ctrl')",
+        "class MyController {",
+        "  List<Item> items;",
+        "}"));
+    resolveIndex(createHtmlWithMyController(//
+        "  <li ng-repeat=\"item in ctrl.items | myFilter:true\">",
+        "  </li>",
+        ""));
+    // prepare elements
+    AngularFilterElement filterElement = findMainElement("myFilter");
+    // index
+    indexUnit.accept(index);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    assertRecordedRelation(
+        relations,
+        filterElement,
+        IndexConstants.IS_REFERENCED_BY,
+        new ExpectedLocation(indexHtmlUnit, findOffset("myFilter:true"), "myFilter"));
   }
 
   private List<RecordedRelation> captureRecordedRelations() {

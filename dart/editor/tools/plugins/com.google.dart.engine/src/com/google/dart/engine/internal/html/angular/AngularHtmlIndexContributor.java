@@ -15,6 +15,7 @@
 package com.google.dart.engine.internal.html.angular;
 
 import com.google.dart.engine.ast.Expression;
+import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.HtmlElement;
@@ -75,6 +76,19 @@ public class AngularHtmlIndexContributor extends ExpressionVisitor {
 
   @Override
   public void visitExpression(Expression expression) {
+    // NgFilter
+    if (expression instanceof SimpleIdentifier) {
+      SimpleIdentifier identifier = (SimpleIdentifier) expression;
+      Element element = identifier.getBestElement();
+      if (element instanceof AngularElement) {
+        store.recordRelationship(
+            element,
+            IndexConstants.IS_REFERENCED_BY,
+            createLocation(identifier));
+        return;
+      }
+    }
+    // index as a normal Dart expression
     expression.accept(indexContributor);
   }
 
@@ -106,6 +120,10 @@ public class AngularHtmlIndexContributor extends ExpressionVisitor {
       store.recordRelationship(element, IndexConstants.IS_REFERENCED_BY, location);
     }
     return super.visitXmlTagNode(node);
+  }
+
+  private Location createLocation(SimpleIdentifier identifier) {
+    return new Location(htmlUnitElement, identifier.getOffset(), identifier.getLength());
   }
 
   private Location createLocation(Token token) {
