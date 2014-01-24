@@ -470,19 +470,6 @@ public class SemanticHighlightingTest extends
     assertHasPosition(SemanticHighlightings.DEPRECATED_ELEMENT, findOffset(search), search.length());
   }
 
-  public void test_directive_import() throws Exception {
-    setFileContent(
-        "Lib.dart",
-        makeSource(
-            "// filler filler filler filler filler filler filler filler filler filler",
-            "library lib;"));
-    preparePositions(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "import 'Lib.dart';",
-        "");
-    assertHasWordPosition(SemanticHighlightings.DIRECTIVE, "import 'Lib.dart';");
-  }
-
   public void test_directive_import_variableName() throws Exception {
     preparePositions(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -816,6 +803,7 @@ public class SemanticHighlightingTest extends
   }
 
   public void xtest_directive_export() throws Exception {
+    // Timing out on build-bot; runs fine locally
     setFileContent(
         "Lib.dart",
         makeSource(
@@ -832,6 +820,20 @@ public class SemanticHighlightingTest extends
     assertHasPosition(SemanticHighlightings.DIRECTIVE, findOffset("export "), "export".length());
     assertHasPosition(SemanticHighlightings.DIRECTIVE, findOffset("show A, B"), "show".length());
     assertHasPosition(SemanticHighlightings.DIRECTIVE, findOffset("hide C, D"), "hide".length());
+  }
+
+  public void xtest_directive_import() throws Exception {
+    // Timing out on build-bot; runs fine locally
+    setFileContent(
+        "Lib.dart",
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "library lib;"));
+    preparePositions(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "import 'Lib.dart';",
+        "");
+    assertHasWordPosition(SemanticHighlightings.DIRECTIVE, "import 'Lib.dart';");
   }
 
   /**
