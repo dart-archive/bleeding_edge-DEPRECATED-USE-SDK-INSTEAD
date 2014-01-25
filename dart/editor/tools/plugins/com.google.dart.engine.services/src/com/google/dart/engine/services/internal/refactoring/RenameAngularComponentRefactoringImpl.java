@@ -21,7 +21,7 @@ import com.google.dart.engine.services.refactoring.Refactoring;
 import com.google.dart.engine.services.status.RefactoringStatus;
 
 /**
- * {@link Refactoring} for renaming {@link AngularComponentElement} in its template.
+ * {@link Refactoring} for renaming an {@link AngularComponentElement} in its template.
  */
 public class RenameAngularComponentRefactoringImpl extends RenameAngularElementRefactoringImpl {
   public RenameAngularComponentRefactoringImpl(SearchEngine searchEngine,

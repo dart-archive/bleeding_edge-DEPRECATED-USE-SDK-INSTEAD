@@ -117,8 +117,8 @@ public class AngularCompilationUnitBuilder {
   }
 
   public static Element getElement(ASTNode node, int offset) {
-    // maybe no node
-    if (node == null) {
+    // maybe node is not SimpleStringLiteral
+    if (!(node instanceof SimpleStringLiteral)) {
       return null;
     }
     // prepare enclosing ClassDeclaration
@@ -136,18 +136,21 @@ public class AngularCompilationUnitBuilder {
       AngularPropertyElement[] properties = AngularPropertyElement.EMPTY_ARRAY;
       // maybe name
       if (toolkitObject instanceof AngularElement) {
-        String name = toolkitObject.getName();
-        if (name != null) {
-          int nameOffset = toolkitObject.getNameOffset();
-          int nameEnd = nameOffset + name.length();
-          if (node.getOffset() <= nameOffset && nameEnd < node.getEnd()) {
-            return toolkitObject;
-          }
+        if (isNameCoveredByLiteral(toolkitObject, node)) {
+          return toolkitObject;
         }
       }
       // try properties of AngularComponentElement
       if (toolkitObject instanceof AngularComponentElement) {
         AngularComponentElement component = (AngularComponentElement) toolkitObject;
+        // try selector
+        {
+          AngularSelectorElement selector = component.getSelector();
+          if (isNameCoveredByLiteral(selector, node)) {
+            return selector;
+          }
+        }
+        // try properties
         properties = component.getProperties();
       }
       // try properties of AngularDirectiveElement
@@ -158,9 +161,7 @@ public class AngularCompilationUnitBuilder {
       // check properties
       for (AngularPropertyElement property : properties) {
         // property name (use complete node range)
-        int propertyOffset = property.getNameOffset();
-        int propertyEnd = propertyOffset + property.getName().length();
-        if (node.getOffset() <= propertyOffset && propertyEnd < node.getEnd()) {
+        if (isNameCoveredByLiteral(property, node)) {
           return property;
         }
         // field name (use complete node range, including @, => and <=>)
@@ -239,6 +240,22 @@ public class AngularCompilationUnitBuilder {
       }
     }
     return nameLiteral;
+  }
+
+  /**
+   * Checks if the name range of the given {@link Element} is completely covered by the given
+   * {@link SimpleStringLiteral}.
+   */
+  private static boolean isNameCoveredByLiteral(Element element, ASTNode node) {
+    if (element != null) {
+      String name = element.getName();
+      if (name != null) {
+        int nameOffset = element.getNameOffset();
+        int nameEnd = nameOffset + name.length();
+        return node.getOffset() <= nameOffset && nameEnd < node.getEnd();
+      }
+    }
+    return false;
   }
 
   /**

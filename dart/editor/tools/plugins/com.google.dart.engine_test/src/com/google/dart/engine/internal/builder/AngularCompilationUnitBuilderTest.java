@@ -15,7 +15,6 @@ package com.google.dart.engine.internal.builder;
 
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.ClassDeclaration;
-import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.SimpleStringLiteral;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
@@ -34,9 +33,6 @@ import com.google.dart.engine.error.AngularCode;
 import com.google.dart.engine.internal.element.angular.HasAttributeSelectorElementImpl;
 import com.google.dart.engine.internal.element.angular.IsTagSelectorElementImpl;
 import com.google.dart.engine.internal.html.angular.AngularTest;
-
-import static com.google.dart.engine.ast.ASTFactory.classDeclaration;
-import static com.google.dart.engine.ast.ASTFactory.compilationUnit;
 
 public class AngularCompilationUnitBuilderTest extends AngularTest {
   private static void assertHasAttributeSelector(AngularSelectorElement selector, String name) {
@@ -133,6 +129,18 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
     }
   }
 
+  public void test_getElement_component_selector() throws Exception {
+    resolveMainSource(createAngularSource(//
+        "@NgComponent(publishAs: 'ctrl', selector: 'myComp',",
+        "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css')",
+        "class MyComponent {}"));
+    SimpleStringLiteral node = findMainNode("myComp'", SimpleStringLiteral.class);
+    int offset = node.getOffset();
+    // find AngularSelectorElement
+    Element element = AngularCompilationUnitBuilder.getElement(node, offset);
+    assertInstanceOf(AngularSelectorElement.class, element);
+  }
+
   public void test_getElement_controller_name() throws Exception {
     resolveMainSource(createAngularSource(//
         "@NgController(publishAs: 'ctrl', selector: '[myApp]')",
@@ -179,14 +187,25 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
   }
 
   public void test_getElement_noClassDeclaration() throws Exception {
-    CompilationUnit unit = compilationUnit();
-    Element element = AngularCompilationUnitBuilder.getElement(unit, 0);
+    resolveMainSource("var foo = 'bar';");
+    SimpleStringLiteral node = findMainNode("bar'", SimpleStringLiteral.class);
+    Element element = AngularCompilationUnitBuilder.getElement(node, 0);
     assertNull(element);
   }
 
   public void test_getElement_noClassElement() throws Exception {
-    ClassDeclaration classDeclaration = classDeclaration(null, "Test", null, null, null, null);
-    Element element = AngularCompilationUnitBuilder.getElement(classDeclaration, 0);
+    resolveMainSource(createSource(//
+        "class A {",
+        "  const A(p);",
+        "}",
+        "",
+        "@A('bar')",
+        "class B {}"));
+    SimpleStringLiteral node = findMainNode("bar'", SimpleStringLiteral.class);
+    // reset B element
+    node.getAncestor(ClassDeclaration.class).getName().setStaticElement(null);
+    // class is not resolved - no element
+    Element element = AngularCompilationUnitBuilder.getElement(node, 0);
     assertNull(element);
   }
 
