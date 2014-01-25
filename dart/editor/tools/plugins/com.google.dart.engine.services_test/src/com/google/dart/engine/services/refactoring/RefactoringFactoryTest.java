@@ -27,6 +27,7 @@ import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
+import com.google.dart.engine.element.angular.AngularComponentElement;
 import com.google.dart.engine.element.angular.AngularControllerElement;
 import com.google.dart.engine.element.angular.AngularFilterElement;
 import com.google.dart.engine.element.angular.AngularPropertyElement;
@@ -39,6 +40,7 @@ import com.google.dart.engine.services.internal.refactoring.ExtractLocalRefactor
 import com.google.dart.engine.services.internal.refactoring.ExtractMethodRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.InlineLocalRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.InlineMethodRefactoringImpl;
+import com.google.dart.engine.services.internal.refactoring.RenameAngularComponentRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.RenameAngularControllerRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.RenameAngularFilterRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.RenameAngularPropertyRefactoringImpl;
@@ -108,6 +110,13 @@ public class RefactoringFactoryTest extends AbstractDartTest {
     AssistContext context = new AssistContext(searchEngine, analysisContext, testUnit, 0, 0);
     InlineMethodRefactoring refactoring = createInlineMethodRefactoring(context);
     assertThat(refactoring).isInstanceOf(InlineMethodRefactoringImpl.class);
+  }
+
+  public void test_createRenameRefactoring_AngularComponentElement() throws Exception {
+    AngularComponentElement element = mock(AngularComponentElement.class);
+    // create refactoring
+    Refactoring refactoring = createRenameRefactoring(searchEngine, element);
+    assertThat(refactoring).isInstanceOf(RenameAngularComponentRefactoringImpl.class);
   }
 
   public void test_createRenameRefactoring_AngularControllerElement() throws Exception {

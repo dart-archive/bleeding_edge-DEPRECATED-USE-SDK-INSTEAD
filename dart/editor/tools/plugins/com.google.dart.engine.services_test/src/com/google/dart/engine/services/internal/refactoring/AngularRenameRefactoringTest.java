@@ -18,6 +18,7 @@ import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementKind;
+import com.google.dart.engine.element.angular.AngularComponentElement;
 import com.google.dart.engine.element.angular.AngularControllerElement;
 import com.google.dart.engine.element.angular.AngularFilterElement;
 import com.google.dart.engine.element.angular.AngularPropertyElement;
@@ -50,13 +51,59 @@ public class AngularRenameRefactoringTest extends AngularTest {
   private RenameRefactoring refactoring;
   private Change refactoringChange;
 
+  public void test_angular_renameComponentDecl() throws Exception {
+    prepareMyComponent();
+    addIndexSource("/my_template.html", createSource("<div> {{ctrl.field}} </div>"));
+    contextHelper.runTasks();
+    resolveIndex();
+    indexUnit(indexUnit);
+    // prepare refactoring
+    AngularComponentElement component = findMainElement("ctrl");
+    prepareRenameChange(component, "newName");
+    // check results
+    assertIndexChangeResult(createSource("<div> {{newName.field}} </div>"));
+    assertMainChangeResult(mainContent.replace("'ctrl',", "'newName',"));
+  }
+
+  public void test_angular_renameComponentDecl_checkNewName() throws Exception {
+    prepareMyComponent();
+    addIndexSource("/my_template.html", createSource("<div> {{ctrl.field}} </div>"));
+    contextHelper.runTasks();
+    resolveIndex();
+    indexUnit(indexUnit);
+    // prepare refactoring
+    AngularComponentElement component = findMainElement("ctrl");
+    createRenameRefactoring(component);
+    // "newName"
+    {
+      RefactoringStatus status = refactoring.checkNewName("newName");
+      assertRefactoringStatusOK(status);
+    }
+    // "new-name" - bad
+    {
+      RefactoringStatus status = refactoring.checkNewName("new-name");
+      assertRefactoringStatus(
+          status,
+          RefactoringStatusSeverity.ERROR,
+          "Component name must not contain '-'.");
+    }
+    // "new.name" - bad
+    {
+      RefactoringStatus status = refactoring.checkNewName("new.name");
+      assertRefactoringStatus(
+          status,
+          RefactoringStatusSeverity.ERROR,
+          "Component name must not contain '.'.");
+    }
+  }
+
   public void test_angular_renameController() throws Exception {
     prepareMyController();
     resolveIndex(createHtmlWithMyController("<div> {{test.name}} </div>"));
     indexUnit(indexUnit);
     // prepare refactoring
-    AngularControllerElement property = findMainElement("test");
-    prepareRenameChange(property, "newName");
+    AngularControllerElement controller = findMainElement("test");
+    prepareRenameChange(controller, "newName");
     // check results
     assertIndexChangeResult(createHtmlWithMyController("<div> {{newName.name}} </div>"));
     assertMainChangeResult(mainContent.replace("'test')", "'newName')"));
@@ -67,8 +114,8 @@ public class AngularRenameRefactoringTest extends AngularTest {
     resolveIndex(createHtmlWithMyController("<div> {{test.name}} </div>"));
     indexUnit(indexUnit);
     // prepare refactoring
-    AngularControllerElement property = findMainElement("test");
-    createRenameRefactoring(property);
+    AngularControllerElement controller = findMainElement("test");
+    createRenameRefactoring(controller);
     // "newName"
     {
       RefactoringStatus status = refactoring.checkNewName("newName");
@@ -105,8 +152,8 @@ public class AngularRenameRefactoringTest extends AngularTest {
         ""));
     indexUnit(indexUnit);
     // prepare refactoring
-    AngularFilterElement property = findMainElement("test");
-    prepareRenameChange(property, "newName");
+    AngularFilterElement filter = findMainElement("test");
+    prepareRenameChange(filter, "newName");
     // check results
     assertIndexChangeResult(createHtmlWithMyController(//
         "  <li ng-repeat=\"item in ctrl.items | newName:true\">",
@@ -123,8 +170,8 @@ public class AngularRenameRefactoringTest extends AngularTest {
         ""));
     indexUnit(indexUnit);
     // prepare refactoring
-    AngularFilterElement property = findMainElement("test");
-    createRenameRefactoring(property);
+    AngularFilterElement filter = findMainElement("test");
+    createRenameRefactoring(filter);
     // "newName"
     {
       RefactoringStatus status = refactoring.checkNewName("newName");

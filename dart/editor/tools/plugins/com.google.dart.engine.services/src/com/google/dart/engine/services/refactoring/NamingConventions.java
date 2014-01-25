@@ -30,6 +30,15 @@ public final class NamingConventions {
    *         valid, {@link RefactoringStatusSeverity#WARNING} if the name is discouraged, or
    *         {@link RefactoringStatusSeverity#ERROR} if the name is illegal.
    */
+  public static RefactoringStatus validateAngularComponentName(String name) {
+    return validateLowerCamelCase(name, "Component");
+  }
+
+  /**
+   * @return the {@link RefactoringStatus} with {@link RefactoringStatusSeverity#OK} if the name is
+   *         valid, {@link RefactoringStatusSeverity#WARNING} if the name is discouraged, or
+   *         {@link RefactoringStatusSeverity#ERROR} if the name is illegal.
+   */
   public static RefactoringStatus validateAngularControllerName(String name) {
     return validateLowerCamelCase(name, "Controller");
   }

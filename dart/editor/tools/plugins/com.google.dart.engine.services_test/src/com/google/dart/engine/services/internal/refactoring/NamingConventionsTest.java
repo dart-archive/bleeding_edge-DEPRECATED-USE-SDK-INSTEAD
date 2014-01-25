@@ -18,6 +18,7 @@ import com.google.dart.engine.services.internal.correction.AbstractDartTest;
 import com.google.dart.engine.services.refactoring.NamingConventions;
 import com.google.dart.engine.services.status.RefactoringStatusSeverity;
 
+import static com.google.dart.engine.services.refactoring.NamingConventions.validateAngularComponentName;
 import static com.google.dart.engine.services.refactoring.NamingConventions.validateAngularControllerName;
 import static com.google.dart.engine.services.refactoring.NamingConventions.validateAngularFilterName;
 import static com.google.dart.engine.services.refactoring.NamingConventions.validateAngularPropertyName;
@@ -37,6 +38,49 @@ import static com.google.dart.engine.services.refactoring.NamingConventions.vali
  * Test for {@link NamingConventions}.
  */
 public class NamingConventionsTest extends AbstractDartTest {
+  public void test_validateAngularComponentName_blank() throws Exception {
+    assertRefactoringStatus(
+        validateAngularComponentName(" name"),
+        RefactoringStatusSeverity.ERROR,
+        "Component name must not start or end with a blank.");
+    assertRefactoringStatus(
+        validateAngularComponentName("name "),
+        RefactoringStatusSeverity.ERROR,
+        "Component name must not start or end with a blank.");
+  }
+
+  public void test_validateAngularComponentName_hasBlank() throws Exception {
+    assertRefactoringStatus(
+        validateAngularComponentName("my name"),
+        RefactoringStatusSeverity.ERROR,
+        "Component name must not contain ' '.");
+  }
+
+  public void test_validateAngularComponentName_hasDot() throws Exception {
+    assertRefactoringStatus(
+        validateAngularComponentName("my.bad.name"),
+        RefactoringStatusSeverity.ERROR,
+        "Component name must not contain '.'.");
+  }
+
+  public void test_validateAngularComponentName_notIdentifierStart() throws Exception {
+    assertRefactoringStatus(
+        validateAngularComponentName("2my-bad-name"),
+        RefactoringStatusSeverity.ERROR,
+        "Component name must not start with '2'.");
+  }
+
+  public void test_validateAngularComponentName_null() throws Exception {
+    assertRefactoringStatus(
+        validateAngularComponentName(null),
+        RefactoringStatusSeverity.ERROR,
+        "Component name must not be null.");
+  }
+
+  public void test_validateAngularComponentName_OK() throws Exception {
+    assertRefactoringStatusOK(validateAngularComponentName("name"));
+  }
+
   public void test_validateAngularControllerName_blank() throws Exception {
     assertRefactoringStatus(
         validateAngularControllerName(" name"),
