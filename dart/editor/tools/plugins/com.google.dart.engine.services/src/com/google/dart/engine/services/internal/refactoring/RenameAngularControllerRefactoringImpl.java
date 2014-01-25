@@ -14,49 +14,35 @@
 
 package com.google.dart.engine.services.internal.refactoring;
 
-import com.google.dart.engine.element.Element;
-import com.google.dart.engine.element.angular.AngularComponentElement;
-import com.google.dart.engine.element.angular.AngularPropertyElement;
+import com.google.dart.engine.element.angular.AngularControllerElement;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.services.refactoring.NamingConventions;
 import com.google.dart.engine.services.refactoring.Refactoring;
 import com.google.dart.engine.services.status.RefactoringStatus;
 
-import java.text.MessageFormat;
-
 /**
- * {@link Refactoring} for renaming {@link AngularPropertyElement}.
+ * {@link Refactoring} for renaming {@link AngularControllerElement}.
  */
-public class RenameAngularPropertyRefactoringImpl extends RenameAngularElementRefactoringImpl {
-  public RenameAngularPropertyRefactoringImpl(SearchEngine searchEngine,
-      AngularPropertyElement element) {
+public class RenameAngularControllerRefactoringImpl extends RenameAngularElementRefactoringImpl {
+  public RenameAngularControllerRefactoringImpl(SearchEngine searchEngine,
+      AngularControllerElement element) {
     super(searchEngine, element);
   }
 
   @Override
   public String getRefactoringName() {
-    return "Rename Angular Property";
+    return "Rename Angular Controller";
   }
 
   @Override
   protected RefactoringStatus checkNameConflicts(String newName) {
-    Element enclosing = element.getEnclosingElement();
-    if (enclosing instanceof AngularComponentElement) {
-      AngularComponentElement component = (AngularComponentElement) enclosing;
-      for (AngularPropertyElement otherProperty : component.getProperties()) {
-        if (otherProperty.getName().equals(newName)) {
-          String message = MessageFormat.format(
-              "Component already defines property with name ''{0}''.",
-              newName);
-          return RefactoringStatus.createErrorStatus(message);
-        }
-      }
-    }
+    // It is OK to have several controllers with the same name.
+    // What we should check is that selector is unique.
     return new RefactoringStatus();
   }
 
   @Override
   protected RefactoringStatus checkNameSyntax(String newName) {
-    return NamingConventions.validateAngularPropertyName(newName);
+    return NamingConventions.validateAngularControllerName(newName);
   }
 }

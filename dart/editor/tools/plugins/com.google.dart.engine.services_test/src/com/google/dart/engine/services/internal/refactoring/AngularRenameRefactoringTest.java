@@ -18,6 +18,7 @@ import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementKind;
+import com.google.dart.engine.element.angular.AngularControllerElement;
 import com.google.dart.engine.element.angular.AngularFilterElement;
 import com.google.dart.engine.element.angular.AngularPropertyElement;
 import com.google.dart.engine.html.ast.HtmlUnit;
@@ -48,6 +49,53 @@ public class AngularRenameRefactoringTest extends AngularTest {
   private SearchEngine searchEngine;
   private RenameRefactoring refactoring;
   private Change refactoringChange;
+
+  public void test_angular_renameController() throws Exception {
+    prepareMyController();
+    resolveIndex(createHtmlWithMyController("<div> {{test.name}} </div>"));
+    indexUnit(indexUnit);
+    // prepare refactoring
+    AngularControllerElement property = findMainElement("test");
+    prepareRenameChange(property, "newName");
+    // check results
+    assertIndexChangeResult(createHtmlWithMyController("<div> {{newName.name}} </div>"));
+    assertMainChangeResult(mainContent.replace("'test')", "'newName')"));
+  }
+
+  public void test_angular_renameController_checkNewName() throws Exception {
+    prepareMyController();
+    resolveIndex(createHtmlWithMyController("<div> {{test.name}} </div>"));
+    indexUnit(indexUnit);
+    // prepare refactoring
+    AngularControllerElement property = findMainElement("test");
+    createRenameRefactoring(property);
+    // "newName"
+    {
+      RefactoringStatus status = refactoring.checkNewName("newName");
+      assertRefactoringStatusOK(status);
+    }
+    // "new-name" - bad
+    {
+      RefactoringStatus status = refactoring.checkNewName("new-name");
+      assertRefactoringStatus(
+          status,
+          RefactoringStatusSeverity.ERROR,
+          "Controller name must not contain '-'.");
+    }
+    // "new.name" - bad
+    {
+      RefactoringStatus status = refactoring.checkNewName("new.name");
+      assertRefactoringStatus(
+          status,
+          RefactoringStatusSeverity.ERROR,
+          "Controller name must not contain '.'.");
+    }
+    // there is already "otherController", but that's OK
+    {
+      RefactoringStatus status = refactoring.checkNewName("otherController");
+      assertRefactoringStatusOK(status);
+    }
+  }
 
   public void test_angular_renameFilter() throws Exception {
     prepareMyFilter();
@@ -268,6 +316,25 @@ public class AngularRenameRefactoringTest extends AngularTest {
         "    map: const {'test' : '=>field', 'other' : '=>field'})",
         "class MyComponent {",
         "  set field(value) {}",
+        "}"));
+  }
+
+  private void prepareMyController() throws Exception {
+    resolveMainSource(createSource("",//
+        "import 'angular.dart';",
+        "",
+        "@NgController(",
+        "    selector: '[other-controller]',",
+        "    publishAs: 'otherController')",
+        "class OtherController {",
+        "  String name;",
+        "}",
+        "",
+        "@NgController(",
+        "    selector: '[my-controller]',",
+        "    publishAs: 'test')",
+        "class MyController {",
+        "  String name;",
         "}"));
   }
 

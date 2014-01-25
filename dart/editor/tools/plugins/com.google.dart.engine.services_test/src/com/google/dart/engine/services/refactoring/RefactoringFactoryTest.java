@@ -27,6 +27,8 @@ import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
+import com.google.dart.engine.element.angular.AngularControllerElement;
+import com.google.dart.engine.element.angular.AngularFilterElement;
 import com.google.dart.engine.element.angular.AngularPropertyElement;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.services.assist.AssistContext;
@@ -37,6 +39,8 @@ import com.google.dart.engine.services.internal.refactoring.ExtractLocalRefactor
 import com.google.dart.engine.services.internal.refactoring.ExtractMethodRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.InlineLocalRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.InlineMethodRefactoringImpl;
+import com.google.dart.engine.services.internal.refactoring.RenameAngularControllerRefactoringImpl;
+import com.google.dart.engine.services.internal.refactoring.RenameAngularFilterRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.RenameAngularPropertyRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.RenameClassMemberRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.RenameConstructorRefactoringImpl;
@@ -104,6 +108,20 @@ public class RefactoringFactoryTest extends AbstractDartTest {
     AssistContext context = new AssistContext(searchEngine, analysisContext, testUnit, 0, 0);
     InlineMethodRefactoring refactoring = createInlineMethodRefactoring(context);
     assertThat(refactoring).isInstanceOf(InlineMethodRefactoringImpl.class);
+  }
+
+  public void test_createRenameRefactoring_AngularControllerElement() throws Exception {
+    AngularControllerElement element = mock(AngularControllerElement.class);
+    // create refactoring
+    Refactoring refactoring = createRenameRefactoring(searchEngine, element);
+    assertThat(refactoring).isInstanceOf(RenameAngularControllerRefactoringImpl.class);
+  }
+
+  public void test_createRenameRefactoring_AngularFilterElement() throws Exception {
+    AngularFilterElement element = mock(AngularFilterElement.class);
+    // create refactoring
+    Refactoring refactoring = createRenameRefactoring(searchEngine, element);
+    assertThat(refactoring).isInstanceOf(RenameAngularFilterRefactoringImpl.class);
   }
 
   public void test_createRenameRefactoring_AngularPropertyElement() throws Exception {
