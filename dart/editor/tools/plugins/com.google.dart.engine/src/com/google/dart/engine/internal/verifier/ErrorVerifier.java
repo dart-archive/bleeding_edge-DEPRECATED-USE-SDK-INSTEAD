@@ -280,6 +280,12 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   private boolean isInSystemLibrary;
 
   /**
+   * A flag indicating whether the current library contains at least one import directive with a URI
+   * that uses the "dart-ext" scheme.
+   */
+  private boolean hasExtUri;
+
+  /**
    * The class containing the AST nodes being visited, or {@code null} if we are not in the scope of
    * a class.
    */
@@ -350,6 +356,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     this.errorReporter = errorReporter;
     this.currentLibrary = currentLibrary;
     this.isInSystemLibrary = currentLibrary.getSource().isInSystemLibrary();
+    this.hasExtUri = currentLibrary.hasExtUri();
     this.typeProvider = typeProvider;
     this.inheritanceManager = inheritanceManager;
     isEnclosingConstructorConst = false;
@@ -3846,8 +3853,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * @see ParserErrorCode#NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE
    */
   private boolean checkForNativeFunctionBodyInNonSDKCode(NativeFunctionBody node) {
-    // TODO(brianwilkerson) Figure out the right rule for when 'native' is allowed.
-    if (!isInSystemLibrary) {
+    if (!isInSystemLibrary && !hasExtUri) {
       errorReporter.reportError(ParserErrorCode.NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE, node);
       return true;
     }

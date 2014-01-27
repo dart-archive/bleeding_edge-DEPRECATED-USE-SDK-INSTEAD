@@ -99,6 +99,11 @@ public class LibraryElementHandle extends ElementHandle implements LibraryElemen
   }
 
   @Override
+  public boolean hasExtUri() {
+    return getActualElement().hasExtUri();
+  }
+
+  @Override
   public boolean isBrowserApplication() {
     return getActualElement().isBrowserApplication();
   }

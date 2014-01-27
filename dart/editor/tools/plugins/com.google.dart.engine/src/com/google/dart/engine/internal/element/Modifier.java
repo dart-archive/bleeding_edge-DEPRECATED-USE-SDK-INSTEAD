@@ -20,15 +20,57 @@ package com.google.dart.engine.internal.element;
  * @coverage dart.engine.element
  */
 public enum Modifier {
+  /**
+   * Indicates that the modifier 'abstract' was applied to the element.
+   */
   ABSTRACT,
+
+  /**
+   * Indicates that the modifier 'const' was applied to the element.
+   */
   CONST,
+
+  /**
+   * Indicates that the modifier 'factory' was applied to the element.
+   */
   FACTORY,
+
+  /**
+   * Indicates that the modifier 'final' was applied to the element.
+   */
   FINAL,
+
+  /**
+   * Indicates that the pseudo-modifier 'get' was applied to the element.
+   */
   GETTER,
+
+  /**
+   * A flag used for libraries indicating that the defining compilation unit contains at least one
+   * import directive whose URI uses the "dart-ext" scheme.
+   */
+  HAS_EXT_URI,
+
   MIXIN,
+
   REFERENCES_SUPER,
+
+  /**
+   * Indicates that the pseudo-modifier 'set' was applied to the element.
+   */
   SETTER,
+
+  /**
+   * Indicates that the modifier 'static' was applied to the element.
+   */
   STATIC,
+
+  /**
+   * Indicates that the element does not appear in the source code but was implicitly created. For
+   * example, if a class does not define any constructors, an implicit zero-argument constructor
+   * will be created and it will be marked as being synthetic.
+   */
   SYNTHETIC,
+
   TYPEDEF;
 }

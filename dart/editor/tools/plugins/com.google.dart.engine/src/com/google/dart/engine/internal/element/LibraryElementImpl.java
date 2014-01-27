@@ -279,6 +279,11 @@ public class LibraryElementImpl extends ElementImpl implements LibraryElement {
   }
 
   @Override
+  public boolean hasExtUri() {
+    return hasModifier(Modifier.HAS_EXT_URI);
+  }
+
+  @Override
   public int hashCode() {
     return definingCompilationUnit.hashCode();
   }
@@ -334,6 +339,15 @@ public class LibraryElementImpl extends ElementImpl implements LibraryElement {
       ((ExportElementImpl) exportElement).setEnclosingElement(this);
     }
     this.exports = exports;
+  }
+
+  /**
+   * Set whether this library has an import of a "dart-ext" URI to the given value.
+   * 
+   * @param hasExtUri {@code true} if this library has an import of a "dart-ext" URI
+   */
+  public void setHasExtUri(boolean hasExtUri) {
+    setModifier(Modifier.HAS_EXT_URI, hasExtUri);
   }
 
   /**

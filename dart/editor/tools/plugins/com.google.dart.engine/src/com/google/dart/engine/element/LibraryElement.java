@@ -107,6 +107,12 @@ public interface LibraryElement extends Element {
   public LibraryElement[] getVisibleLibraries();
 
   /**
+   * Return {@code true} if the defining compilation unit of this library contains at least one
+   * import directive whose URI uses the "dart-ext" scheme.
+   */
+  public boolean hasExtUri();
+
+  /**
    * Answer {@code true} if this library is an application that can be run in the browser.
    * 
    * @return {@code true} if this library is an application that can be run in the browser

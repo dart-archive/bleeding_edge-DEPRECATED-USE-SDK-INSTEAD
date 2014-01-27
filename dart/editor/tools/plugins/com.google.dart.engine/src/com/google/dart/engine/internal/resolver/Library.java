@@ -346,6 +346,7 @@ public class Library {
           }
         }
       }
+      libraryElement.setHasExtUri(true);
       return null;
     }
     try {

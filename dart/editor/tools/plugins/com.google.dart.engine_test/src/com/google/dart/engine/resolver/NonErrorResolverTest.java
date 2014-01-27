@@ -2256,6 +2256,17 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_nativeFunctionBodyInNonSDKCode_function() throws Exception {
+    Source source = addSource(createSource(//
+        "import 'dart-ext:x';",
+        "int m(a) native 'string';"));
+    resolve(source);
+    // There's no good way to fool the file system into believing that the referenced file exists,
+    // but the test still verifies that the native function body is allowed because of the import.
+    assertErrors(source, CompileTimeErrorCode.URI_DOES_NOT_EXIST);
+    // Cannot verify the AST because the import's URI cannot be resolved.
+  }
+
   public void test_newWithAbstractClass_factory() throws Exception {
     Source source = addSource(createSource(//
         "abstract class A {",
