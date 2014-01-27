@@ -40,7 +40,11 @@ end isWindows
 
 to activateEditor
 	(*selectMenuItem "Navigate", "Activate Editor"*)
-	dokeyCmd(F12)
+	if isMacOSX() then
+		typetext commandKey,F12
+	else
+		typetext F12
+	end if
 end activateEditor
 
 to openWelcomePage
@@ -110,6 +114,7 @@ end deleteOutput
 
 (* Delete the project identified by the given image. *)
 to deleteProject project
+	set the SearchRectangle to ((0,100),(300,1200))
 	Click "dart sdk"
 	Wait 0.2
 	put ImageLocation(project) into loc
@@ -122,7 +127,7 @@ to deleteProject project
 	Wait 0.2
 	Click(Text:"Delete",CaseSensitive:"Yes",ValidCharacters:"*") (* delete it *)
 	set the SearchRectangle to ()
-	WaitFor 0.5, "info icon" (* wait for the Delete Resources confirmation *)
+	WaitFor 1, "info icon" (* wait for the Delete Resources confirmation *)
 	put ImageRectangle("info icon") into loc
 	put the bottomLeft of loc into TL
 	put TL + (250,75) into BR
@@ -170,6 +175,15 @@ to selectContextImageMenuItem with contextLocator, menuItem
 	set the SearchRectangle to origRect
 end selectContextImageMenuItem
 
+(* Enter term (slowly) and wait a bit *)
+to typeSlowly with term
+	SetOption KeyDownDelay, 0.002
+	TypeText term
+	SetOption KeyDownDelay, 0.001
+	Wait 0.5
+end typeSlowly
+
+(* Stop debugging and close the debugger, if it is open *)
 to closeDebugger
 	put ImageFound("debugger tab") into bug
 	if bug
@@ -291,3 +305,11 @@ end endOfLine
 to quickOutline
 	TypeText optionKey,o
 end quickOutline
+
+to newline
+	if isMacOSX() then
+		TypeText enter
+	else
+		TypeText return
+	end if
+end newline

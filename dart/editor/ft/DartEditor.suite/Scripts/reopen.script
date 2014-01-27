@@ -2,13 +2,13 @@ Click(Text:"web")
 RightClick "sample project"
 Click (Text:"Close Folder")
 Wait 2
-Run util's openFileDialog
+util.openFileDialog
 Wait 2
 DoubleClick "dart folder icon"
 Wait 2
 Click "sample folder icon"
 Wait 1
-TypeText enter
+util.newline
 Run util's isLinux
 If the result is true
 	TypeText enter
@@ -18,15 +18,15 @@ Click "dart sdk"
 Wait 1
 RightClick "sample project"
 Click(Text:"Delete")
-TypeText enter
+util.newline
 Wait 2
-Run util's openFileDialog
-TypeText enter
+util.openFileDialog
+util.newline
 Wait 1
-Run util's expandTreeNode (* expand sample *)
+util.expandTreeNode (* expand sample *)
 TypeText downArrow
 TypeText downArrow
 TypeText downArrow
 TypeText downArrow
-Run util's expandTreeNode (* expand web *)
+util.expandTreeNode (* expand web *)
 TypeText downArrow

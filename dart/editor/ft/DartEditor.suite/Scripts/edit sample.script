@@ -3,8 +3,8 @@ Wait 2
 DoubleClick(Text:"import")
 TypeText leftArrow (* now at top of file *)
 TypeText "library lib;" (* define library and part *)
-TypeText enter
+util.newline
 TypeText downArrow
 TypeText "part 'other.dart';"
-TypeText enter
-Run util's saveFile
+util.newline
+util.saveFile

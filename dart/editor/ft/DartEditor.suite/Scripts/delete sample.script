@@ -4,4 +4,4 @@ Click(Text:"Delete",CaseSensitive:"Yes") (* delete it *)
 WaitFor 0.5, "info icon" (* wait for the Delete Resources confirmation *)
 Click(Text:"Delete project contents") (* select the option to clear disk *)
 Wait 0.2
-TypeText enter
+util.newline
