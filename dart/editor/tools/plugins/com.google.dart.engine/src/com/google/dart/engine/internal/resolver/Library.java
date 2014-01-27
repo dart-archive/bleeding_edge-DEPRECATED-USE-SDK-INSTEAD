@@ -330,22 +330,6 @@ public class Library {
     directiveUris.put(directive, uriContent);
     uriContent = UriUtilities.encode(uriContent);
     if (directive instanceof ImportDirective && uriContent.startsWith(DART_EXT_SCHEME)) {
-      String uriBase = uriContent.substring(DART_EXT_SCHEME.length());
-      Source source = analysisContext.getSourceFactory().resolveUri(librarySource, uriBase + ".dll");
-      if (source == null || !source.exists()) {
-        source = analysisContext.getSourceFactory().resolveUri(librarySource, uriBase + ".so");
-        if (source == null || !source.exists()) {
-          source = analysisContext.getSourceFactory().resolveUri(librarySource, uriBase + ".dylib");
-          if (source == null || !source.exists()) {
-            errorListener.onError(new AnalysisError(
-                librarySource,
-                uriLiteral.getOffset(),
-                uriLiteral.getLength(),
-                CompileTimeErrorCode.URI_DOES_NOT_EXIST,
-                uriContent));
-          }
-        }
-      }
       libraryElement.setHasExtUri(true);
       return null;
     }
