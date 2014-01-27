@@ -87,6 +87,11 @@ public class FindReferencesAction extends AbstractDartSelectionAction {
         }
 
         @Override
+        protected IProject getCurrentProject() {
+          return findCurrentProject();
+        }
+
+        @Override
         protected String getQueryElementName() {
           return name;
         }
@@ -111,7 +116,7 @@ public class FindReferencesAction extends AbstractDartSelectionAction {
   /**
    * Finds the "current" project. That is the project of the active editor.
    */
-  private static IProject findCurrentProject() {
+  static IProject findCurrentProject() {
     IEditorPart editor = DartToolsPlugin.getActiveEditor();
     if (editor != null) {
       IEditorInput input = editor.getEditorInput();
@@ -202,7 +207,6 @@ public class FindReferencesAction extends AbstractDartSelectionAction {
       final SearchEngine searchEngine = DartCore.getProjectManager().newSearchEngine();
       final Element searchElement = element;
       final String searchName = name;
-      final IProject currentProject = findCurrentProject();
       SearchView view = (SearchView) DartToolsPlugin.getActivePage().showView(SearchView.ID);
       view.showPage(new SearchMatchPage(view, "Searching for references...") {
         Map<LibraryElement, Set<LibraryElement>> cachedVisibleLibraries = Maps.newHashMap();
@@ -220,7 +224,7 @@ public class FindReferencesAction extends AbstractDartSelectionAction {
 
         @Override
         protected IProject getCurrentProject() {
-          return currentProject;
+          return findCurrentProject();
         }
 
         @Override

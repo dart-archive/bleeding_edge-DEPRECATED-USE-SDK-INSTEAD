@@ -40,6 +40,7 @@ import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.internal.text.editor.DartSelection;
 import com.google.dart.tools.ui.internal.util.ExceptionHandler;
 
+import org.eclipse.core.resources.IProject;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.ui.IWorkbenchSite;
@@ -66,6 +67,11 @@ public class FindDeclarationsAction extends AbstractDartSelectionAction {
         @Override
         protected boolean canUseFilterPotential() {
           return false;
+        }
+
+        @Override
+        protected IProject getCurrentProject() {
+          return FindReferencesAction.findCurrentProject();
         }
 
         @Override

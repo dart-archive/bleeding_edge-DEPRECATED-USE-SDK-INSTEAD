@@ -54,8 +54,10 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IWindowListener;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.editors.text.EditorsUI;
 import org.eclipse.ui.editors.text.templates.ContributionContextTypeRegistry;
 import org.eclipse.ui.editors.text.templates.ContributionTemplateStore;
@@ -111,6 +113,8 @@ public class DartToolsPlugin extends AbstractUIPlugin {
   };
 
   private static Map<ImageDescriptor, Image> imageCache = new HashMap<ImageDescriptor, Image>();
+
+  private static IWorkbenchWindow activeWindow;
 
   /**
    * Create an error Status object with the given message and this plugin's ID.
@@ -180,9 +184,11 @@ public class DartToolsPlugin extends AbstractUIPlugin {
   }
 
   public static IEditorPart getActiveEditor() {
-    IWorkbenchPage page = getActivePage();
-    if (page != null) {
-      return page.getActiveEditor();
+    if (activeWindow != null) {
+      IWorkbenchPage page = activeWindow.getActivePage();
+      if (page != null) {
+        return page.getActiveEditor();
+      }
     }
     return null;
   }
@@ -816,6 +822,8 @@ public class DartToolsPlugin extends AbstractUIPlugin {
 //      }
 //    };
 //    PlatformUI.getWorkbench().getThemeManager().addPropertyChangeListener(fThemeListener);
+
+    trackActiveWindow();
   }
 
   @SuppressWarnings("deprecation")
@@ -921,6 +929,31 @@ public class DartToolsPlugin extends AbstractUIPlugin {
       imageDescriptorRegistry = new ImageDescriptorRegistry();
     }
     return imageDescriptorRegistry;
+  }
+
+  /**
+   * {@link #getActiveWorkbenchWindow()} works only in UI thread, but we need to know
+   * {@link #getActiveEditor()} from non-UI.
+   */
+  private void trackActiveWindow() {
+    PlatformUI.getWorkbench().addWindowListener(new IWindowListener() {
+      @Override
+      public void windowActivated(IWorkbenchWindow window) {
+        activeWindow = window;
+      }
+
+      @Override
+      public void windowClosed(IWorkbenchWindow window) {
+      }
+
+      @Override
+      public void windowDeactivated(IWorkbenchWindow window) {
+      }
+
+      @Override
+      public void windowOpened(IWorkbenchWindow window) {
+      }
+    });
   }
 
   /**

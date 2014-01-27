@@ -1112,6 +1112,7 @@ public abstract class SearchMatchPage extends SearchPage {
     filteredCountSdk = 0;
     filteredCountPotential = 0;
     filteredCountProject = 0;
+    IProject currentProject = getCurrentProject();
     List<SearchMatch> filtered = Lists.newArrayList();
     for (SearchMatch match : matches) {
       // SDK filter
@@ -1131,7 +1132,7 @@ public abstract class SearchMatchPage extends SearchPage {
         }
       }
       // project filter
-      if (getCurrentProject() != null) {
+      if (currentProject != null) {
         if (FILTER_PROJECT.apply(match)) {
           filteredCountProject++;
         } else if (filterEnabledProject) {
