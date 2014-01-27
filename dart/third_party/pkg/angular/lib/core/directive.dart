@@ -245,18 +245,19 @@ class NgComponent extends NgAnnotation {
 
   NgAnnotation cloneWithNewMap(newMap) =>
       new NgComponent(
-          template: this.template,
-          templateUrl: this.templateUrl,
-          cssUrls: this.cssUrls,
-          applyAuthorStyles: this.applyAuthorStyles,
-          resetStyleInheritance: this.resetStyleInheritance,
-          publishAs: this.publishAs,
+          template: template,
+          templateUrl: templateUrl,
+          cssUrl: cssUrl,
+          cssUrls: cssUrls,
+          applyAuthorStyles: applyAuthorStyles,
+          resetStyleInheritance: resetStyleInheritance,
+          publishAs: publishAs,
           map: newMap,
-          selector: this.selector,
-          visibility: this.visibility,
-          publishTypes: this.publishTypes,
-          exportExpressions: this.exportExpressions,
-          exportExpressionAttrs: this.exportExpressionAttrs);
+          selector: selector,
+          visibility: visibility,
+          publishTypes: publishTypes,
+          exportExpressions: exportExpressions,
+          exportExpressionAttrs: exportExpressionAttrs);
 }
 
 RegExp _ATTR_NAME = new RegExp(r'\[([^\]]+)\]$');
@@ -295,20 +296,20 @@ class NgDirective extends NgAnnotation {
 
   NgAnnotation cloneWithNewMap(newMap) =>
       new NgDirective(
-          children: this.children,
-          publishAs: this.publishAs,
+          children: children,
+          publishAs: publishAs,
           map: newMap,
-          selector: this.selector,
-          visibility: this.visibility,
-          publishTypes: this.publishTypes,
-          exportExpressions: this.exportExpressions,
-          exportExpressionAttrs: this.exportExpressionAttrs);
+          selector: selector,
+          visibility: visibility,
+          publishTypes: publishTypes,
+          exportExpressions: exportExpressions,
+          exportExpressionAttrs: exportExpressionAttrs);
 }
 
 /**
  * Meta-data marker placed on a class which should act as a controller for your application.
  *
- * Controllers are essentially [NgDirectives] with few key differences:
+ * Controllers are essentially [NgDirective]s with few key differences:
  *
  * * Controllers create a new scope at the element.
  * * Controllers should not do any DOM manipulation.
@@ -342,14 +343,14 @@ class NgController extends NgDirective {
 
   NgAnnotation cloneWithNewMap(newMap) =>
       new NgController(
-          children: this.children,
-          publishAs: this.publishAs,
+          children: children,
+          publishAs: publishAs,
           map: newMap,
-          selector: this.selector,
-          visibility: this.visibility,
-          publishTypes: this.publishTypes,
-          exportExpressions: this.exportExpressions,
-          exportExpressionAttrs: this.exportExpressionAttrs);
+          selector: selector,
+          visibility: visibility,
+          publishTypes: publishTypes,
+          exportExpressions: exportExpressions,
+          exportExpressionAttrs: exportExpressionAttrs);
 }
 
 abstract class AttrFieldAnnotation {
@@ -432,11 +433,11 @@ abstract class NgDetachAware {
 }
 
 @NgInjectableService()
-class DirectiveMap extends AnnotationMap<NgAnnotation> {
+class DirectiveMap extends AnnotationsMap<NgAnnotation> {
   DirectiveMap(Injector injector, MetadataExtractor metadataExtractor,
       FieldMetadataExtractor fieldMetadataExtractor)
       : super(injector, metadataExtractor) {
-    Map<NgAnnotation, Type> directives = {};
+    Map<NgAnnotation, List<Type>> directives = {};
     forEach((NgAnnotation annotation, Type type) {
       var match;
       var fieldMetadata = fieldMetadataExtractor(type);
@@ -452,7 +453,7 @@ class DirectiveMap extends AnnotationMap<NgAnnotation> {
         });
         annotation = annotation.cloneWithNewMap(newMap);
       }
-      directives[annotation] = type;
+      directives.putIfAbsent(annotation, () => []).add(type);
     });
     _map.clear();
     _map.addAll(directives);

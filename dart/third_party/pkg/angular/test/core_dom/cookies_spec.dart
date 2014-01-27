@@ -30,7 +30,12 @@ main() => describe('cookies', () {
   describe('browser cookies', () {
     var cookies;
 
+    beforeEach(module((Module module) {
+      module.type(ExceptionHandler, implementedBy: LoggingExceptionHandler);
+    }));
+
     beforeEach(inject((BrowserCookies iCookies) {
+      iCookies.cookiePath = '/';
       deleteAllCookies();
       expect(document.cookie).toEqual('');
 
@@ -60,7 +65,7 @@ main() => describe('cookies', () {
 
     describe('put via cookies(cookieName, string)', () {
 
-      it('should create and store a cookie', () {
+    it('should create and store a cookie', () {
         cookies['cookieName'] = 'cookie=Value';
         expect(document.cookie).toEqual('cookieName=cookie%3DValue');
         expect(cookies.all).toEqual({'cookieName':'cookie=Value'});
@@ -87,7 +92,8 @@ main() => describe('cookies', () {
         expect(rawCookies).toContain('cookie2%3Dbar%3Bbaz=val%3Due');
       });
 
-      it('should log warnings when 4kb per cookie storage limit is reached', () {
+      it('should log warnings when 4kb per cookie storage limit is reached',
+          inject((ExceptionHandler exceptionHandler) {
         var i, longVal = '', cookieStr;
 
         for(i=0; i<4083; i++) {
@@ -99,7 +105,6 @@ main() => describe('cookies', () {
         expect(document.cookie).not.toEqual(cookieStr);
         expect(cookies['x']).toEqual(longVal);
         //expect(logs.warn).toEqual([]);
-
         var overflow = 'xxxxxxxxxxxxxxxxxxxx';
         cookies['x'] = longVal + overflow; //total size 4097-4099, a warning should be logged
         //expect(logs.warn).toEqual(
@@ -119,7 +124,14 @@ main() => describe('cookies', () {
         }
 
         expect(cookies['x']).toEqual('shortVal');
-      });
+        var errors = (exceptionHandler as LoggingExceptionHandler).errors;
+        expect(errors.length).toEqual(2);
+        expect(errors[0].error).
+        toEqual("Cookie 'x' possibly not set or overflowed because it was too large (4113 > 4096 bytes)!");
+        expect(errors[1].error).
+        toEqual("Cookie 'x' possibly not set or overflowed because it was too large (12259 > 4096 bytes)!");
+        errors.clear();
+      }));
     });
 
     xdescribe('put via cookies(cookieName, string), if no <base href> ', () {
@@ -198,11 +210,6 @@ main() => describe('cookies', () {
       expect(cookies.all).toEqual({'existingCookie':'existingValue'});
     });
   });
-
-  beforeEach(module((Module module) {
-    var cookies = new BrowserCookies()..cookiePath = '/';
-    module.value(Cookies, new Cookies(cookies));
-  }));
 
   describe('cookies service', () {
     var cookiesService;

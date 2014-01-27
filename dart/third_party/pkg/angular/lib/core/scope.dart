@@ -2,18 +2,50 @@ part of angular.core;
 
 
 /**
- * Used by [Scope.$on] to notify the listeners of events.
+ * Injected into the listener function within [Scope.$on] to provide event-specific
+ * details to the scope listener.
  */
 class ScopeEvent {
+
+  /**
+   * The name of the intercepted scope event.
+   */
   String name;
+
+  /**
+   * The origin scope that triggered the event (via $broadcast or $emit).
+   */
   Scope targetScope;
+
+  /**
+   * The destination scope that intercepted the event.
+   */
   Scope currentScope;
+
+  /**
+   * true or false depending on if stopPropagation() was executed.
+   */
   bool propagationStopped = false;
+
+  /**
+   * true or false depending on if preventDefault() was executed.
+   */
   bool defaultPrevented = false;
 
+  /**
+   ** [name] - The name of the scope event.
+   ** [targetScope] - The destination scope that is listening on the event.
+   */
   ScopeEvent(this.name, this.targetScope);
 
+  /**
+   * Prevents the intercepted event from propagating further to successive scopes.
+   */
   stopPropagation () => propagationStopped = true;
+
+  /**
+   * Sets the defaultPrevented flag to true.
+   */
   preventDefault() => defaultPrevented = true;
 }
 
@@ -50,9 +82,20 @@ class Scope implements Map {
   final bool _isolate;
   final bool _lazy;
   final Profiler _perf;
+
+  /**
+   * The direct parent scope that created this scope (this can also be the $rootScope)
+   */
   final Scope $parent;
 
+  /**
+   * The auto-incremented ID of the scope
+   */
   String $id;
+
+  /**
+   * The topmost scope of the application (same as $rootScope).
+   */
   Scope $root;
   num _nextId = 0;
   String _phase;
@@ -62,10 +105,16 @@ class Scope implements Map {
   bool _skipAutoDigest = false;
   bool _disabled = false;
 
+  _set$Properties() {
+    _properties[r'this'] = this;
+    _properties[r'$id'] = this.$id;
+    _properties[r'$parent'] = this.$parent;
+    _properties[r'$root'] = this.$root;
+  }
+
   Scope(this._exceptionHandler, this._parser, ScopeDigestTTL ttl,
       this._zone, this._perf):
         $parent = null, _isolate = false, _lazy = false, _ttl = ttl.ttl {
-    _properties[r'this']= this;
     $root = this;
     $id = '_${$root._nextId++}';
     _innerAsyncQueue = [];
@@ -74,12 +123,12 @@ class Scope implements Map {
     // Set up the zone to auto digest this scope.
     _zone.onTurnDone = _autoDigestOnTurnDone;
     _zone.onError = (e, s, ls) => _exceptionHandler(e, s);
+    _set$Properties();
   }
 
   Scope._child(Scope parent, bool this._isolate, bool this._lazy, Profiler this._perf):
       $parent = parent, _ttl = parent._ttl, _parser = parent._parser,
       _exceptionHandler = parent._exceptionHandler, _zone = parent._zone {
-    _properties[r'this'] = this;
     $root = $parent.$root;
     $id = '_${$root._nextId++}';
     _innerAsyncQueue = $parent._innerAsyncQueue;
@@ -92,11 +141,12 @@ class Scope implements Map {
     } else {
       $parent._childHead = $parent._childTail = this;
     }
+    _set$Properties();
   }
 
   _autoDigestOnTurnDone() {
-    if (_skipAutoDigest) {
-      _skipAutoDigest = false;
+    if ($root._skipAutoDigest) {
+      $root._skipAutoDigest = false;
     } else {
       $digest();
     }
@@ -107,23 +157,27 @@ class Scope implements Map {
     (a is String && b is String && a == b) ||
     (a is num && b is num && a.isNaN && b.isNaN);
 
-  containsKey(String name) => this[name] != null;
+  containsKey(String name) {
+    for (var scope = this; scope != null; scope = scope.$parent) {
+      if (scope._properties.containsKey(name)) {
+        return true;
+      } else if(scope._isolate) {
+        break;
+      }
+    }
+    return false;
+  }
+
   remove(String name) => this._properties.remove(name);
   operator []=(String name, value) => _properties[name] = value;
   operator [](String name) {
-    if (name == r'$id') return this.$id;
-    if (name == r'$parent') return this.$parent;
-    if (name == r'$root') return this.$root;
-    var scope = this;
-    do {
+    for (var scope = this; scope != null; scope = scope.$parent) {
       if (scope._properties.containsKey(name)) {
         return scope._properties[name];
-      } else if (!scope._isolate) {
-        scope = scope.$parent;
-      } else {
-        return null;
+      } else if(scope._isolate) {
+        break;
       }
-    } while(scope != null);
+    }
     return null;
   }
 
@@ -382,7 +436,7 @@ class Scope implements Map {
    * auto-digesting scope.
    */
   $$verifyDigestWillRun() {
-    assert(!_skipAutoDigest);
+    assert(!$root._skipAutoDigest);
     _zone.assertInTurn();
   }
 
@@ -398,6 +452,21 @@ class Scope implements Map {
     this._disabled = false;
   }
 
+  /**
+   * Processes all of the watchers of the current scope and its children.
+   * Because a watcher's listener can change the model, the `$digest()` operation keeps calling
+   * the watchers no further response data has changed. This means that it is possible to get
+   * into an infinite loop. This function will throw `'Maximum iteration limit exceeded.'`
+   * if the number of iterations exceeds 10.
+   *
+   * There should really be no need to call $digest() in production code since everything is
+   * handled behind the scenes with zones and object mutation events. However, in testing
+   * both $digest and [$apply] are useful to control state and simulate the scope life cycle in
+   * a step-by-step manner.
+   *
+   * Refer to [$watch], [$watchSet] or [$watchCollection] to see how to register watchers that
+   * are executed during the digest cycle.
+   */
   $digest() {
     try {
       _beginPhase('\$digest');
@@ -589,6 +658,21 @@ class Scope implements Map {
   }
 
 
+  /**
+   * Removes the current scope (and all of its children) from the parent scope. Removal implies
+   * that calls to $digest() will no longer propagate to the current scope and its children.
+   * Removal also implies that the current scope is eligible for garbage collection.
+   *
+   * The `$destroy()` operation is usually used within directives that perform transclusion on
+   * multiple child elements (like ngRepeat) which create multiple child scopes.
+   *
+   * Just before a scope is destroyed, a `$destroy` event is broadcasted on this scope. This is
+   * a great way for child scopes (such as shared directives or controllers) to detect to and
+   * perform any necessary cleanup before the scope is removed from the application.
+   *
+   * Note that, in AngularDart, there is also a `$destroy` jQuery DOM event, which can be used to
+   * clean up DOM bindings before an element is removed from the DOM.
+   */
   $destroy() {
     if ($root == this) return; // we can't remove the root node;
 
@@ -601,11 +685,32 @@ class Scope implements Map {
   }
 
 
+  /**
+   * Evaluates the expression against the current scope and returns the result. Note that, the
+   * expression data is relative to the data within the scope. Therefore an expression such as
+   * `a + b` will deference variables `a` and `b` and return a result so long as `a` and `b`
+   * exist on the scope.
+   *
+   * * [expr] - The expression that will be evaluated. This can be both a Function or a String.
+   * * [locals] - An optional Map of key/value data that will override any matching scope members
+   *   for the purposes of the evaluation.
+   */
   $eval(expr, [locals]) {
     return relaxFnArgs(_compileToFn(expr))(locals == null ? this : new ScopeLocals(this, locals));
   }
 
 
+  /**
+   * Evaluates the expression against the current scope at a later point in time. The $evalAsync
+   * operation may not get run right away (depending if an existing digest cycle is going on) and
+   * may therefore be issued later on (by a follow-up digest cycle). Note that at least one digest
+   * cycle will be performed after the expression is evaluated. However, If triggering an additional
+   * digest cycle is not desired then this can be avoided by placing `{outsideDigest: true}` as
+   * the 2nd parameter to the function.
+   *
+   * * [expr] - The expression that will be evaluated. This can be both a Function or a String.
+   * * [outsideDigest] - Whether or not to trigger a follow-up digest after evaluation.
+   */
   $evalAsync(expr, {outsideDigest: false}) {
     if (outsideDigest) {
       _outerAsyncQueue.add(expr);
@@ -621,12 +726,12 @@ class Scope implements Map {
    * you just scheduled or are otherwise certain of an impending VM turn and the
    * digest at the end of that turn is sufficient.  You should be able to answer
    * "No" to the question "Is there any other code that is aware that this VM
-   * turn occured and therefore expected a digest?".  If your answer is "Yes",
+   * turn occurred and therefore expected a digest?".  If your answer is "Yes",
    * then you run the risk that the very next VM turn is not for your event and
    * now that other code runs in that turn and sees stale values.
    *
    * You might call this function, for instance, from an event listener where,
-   * though the event occured, you need to wait for another event before you can
+   * though the event occurred, you need to wait for another event before you can
    * perform something meaningful.  You might schedule that other event,
    * set a flag for the handler of the other event to recognize, etc. and then
    * call this method to skip the digest this cycle.  Note that you should call
@@ -636,10 +741,20 @@ class Scope implements Map {
    */
   $skipAutoDigest() {
     _zone.assertInTurn();
-    _skipAutoDigest = true;
+    $root._skipAutoDigest = true;
   }
 
 
+  /**
+   * Triggers a digest operation much like [$digest] does, however, also accepts an
+   * optional expression to evaluate alongside the digest operation. The result of that
+   * expression will be returned afterwards. Much like with $digest, $apply should only be
+   * used within unit tests to simulate the life cycle of a scope. See [$digest] to learn
+   * more.
+   *
+   * * [expr] - optional expression which will be evaluated after the digest is performed. See [$eval]
+   *   to learn more about expressions.
+   */
   $apply([expr]) {
     return _zone.run(() {
       var timerId;
@@ -655,6 +770,23 @@ class Scope implements Map {
   }
 
 
+  /**
+   * Registers a scope-based event listener to intercept events triggered by
+   * [$broadcast] (from any parent scopes) or [$emit] (from child scopes) that
+   * match the given event name. $on accepts two arguments:
+   * 
+   * * [name] - Refers to the event name that the scope will listen on. 
+   * * [listener] - Refers to the callback function which is executed when the event
+   *   is intercepted.
+   *
+   *
+   * When the listener function is executed, an instance of [ScopeEvent] will be passed
+   * as the first parameter to the function.
+   *
+   * Any additional parameters available within the listener callback function are those that
+   * are set by the $broadcast or $emit scope methods (which are set by the origin scope which
+   * is the scope that first triggered the scope event).
+   */
   $on(name, listener) {
     var namedListeners = _listeners[name];
     if (!_listeners.containsKey(name)) {
@@ -668,6 +800,16 @@ class Scope implements Map {
   }
 
 
+  /**
+   * Triggers a scope event referenced by the [name] parameters upwards towards the root of the
+   * scope tree. If intercepted, by a parent scope containing a matching scope event listener
+   * (which is registered via the [$on] scope method), then the event listener callback function
+   * will be executed.
+   *
+   * * [name] - The scope event name that will be triggered.
+   * * [args] - An optional list of arguments that will be fed into the listener callback function
+   *   for any event listeners that are registered via [$on]. 
+   */
   $emit(name, [List args]) {
     var empty = [],
         namedListeners,
@@ -702,6 +844,16 @@ class Scope implements Map {
   }
 
 
+  /**
+   * Triggers a scope event referenced by the [name] parameters dowards towards the leaf nodes of the
+   * scope tree. If intercepted, by a child scope containing a matching scope event listener
+   * (which is registered via the [$on] scope method), then the event listener callback function
+   * will be executed.
+   *
+   * * [name] - The scope event name that will be triggered.
+   * * [listenerArgs] - An optional list of arguments that will be fed into the listener callback function
+   *   for any event listeners that are registered via [$on]. 
+   */
   $broadcast(String name, [List listenerArgs]) {
     var target = this,
         current = target,
@@ -767,7 +919,8 @@ class Scope implements Map {
     if (exp == null) {
       return () => null;
     } else if (exp is String) {
-      return _parser(exp).eval;
+      Expression expression = _parser(exp);
+      return expression.eval;
     } else if (exp is Function) {
       return exp;
     } else {
@@ -858,7 +1011,9 @@ _toJson(obj) {
         // work-around dartbug.com/14130
         try {
           ret = mirror.function.source;
-        } on NoSuchMethodError catch (e) {}
+        } on NoSuchMethodError catch (e) {
+        } on UnimplementedError catch (e) {
+        }
       }
       return true;
     })());
