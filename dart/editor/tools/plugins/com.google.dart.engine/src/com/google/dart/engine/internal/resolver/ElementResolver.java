@@ -41,6 +41,7 @@ import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.FunctionExpression;
 import com.google.dart.engine.ast.FunctionExpressionInvocation;
 import com.google.dart.engine.ast.FunctionTypeAlias;
+import com.google.dart.engine.ast.FunctionTypedFormalParameter;
 import com.google.dart.engine.ast.HideCombinator;
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.ast.ImportDirective;
@@ -51,6 +52,7 @@ import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.NamedExpression;
 import com.google.dart.engine.ast.NodeList;
+import com.google.dart.engine.ast.NormalFormalParameter;
 import com.google.dart.engine.ast.NullLiteral;
 import com.google.dart.engine.ast.PartDirective;
 import com.google.dart.engine.ast.PartOfDirective;
@@ -60,6 +62,7 @@ import com.google.dart.engine.ast.PrefixedIdentifier;
 import com.google.dart.engine.ast.PropertyAccess;
 import com.google.dart.engine.ast.RedirectingConstructorInvocation;
 import com.google.dart.engine.ast.ShowCombinator;
+import com.google.dart.engine.ast.SimpleFormalParameter;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.SuperConstructorInvocation;
 import com.google.dart.engine.ast.SuperExpression;
@@ -759,6 +762,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
 //    // TODO(jwren) Report error, constructor initializer variable is a top level element
 //    // (Either here or in ErrorVerifier#checkForAllFinalInitializedErrorCodes)
 //    }
+    setMetadata(node.getElement(), node);
     return super.visitFieldFormalParameter(node);
   }
 
@@ -789,6 +793,12 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
 
   @Override
   public Void visitFunctionTypeAlias(FunctionTypeAlias node) {
+    setMetadata(node.getElement(), node);
+    return null;
+  }
+
+  @Override
+  public Void visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
     setMetadata(node.getElement(), node);
     return null;
   }
@@ -1292,6 +1302,12 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     if (parameters != null) {
       argumentList.setCorrespondingStaticParameters(parameters);
     }
+    return null;
+  }
+
+  @Override
+  public Void visitSimpleFormalParameter(SimpleFormalParameter node) {
+    setMetadata(node.getElement(), node);
     return null;
   }
 
@@ -2876,6 +2892,25 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
         addAnnotations(annotationList, variableDeclaration.getMetadata());
       }
     }
+    if (!annotationList.isEmpty()) {
+      ((ElementImpl) element).setMetadata(annotationList.toArray(new ElementAnnotationImpl[annotationList.size()]));
+    }
+  }
+
+  /**
+   * Given a node that can have annotations associated with it and the element to which that node
+   * has been resolved, create the annotations in the element model representing the annotations on
+   * the node.
+   * 
+   * @param element the element to which the node has been resolved
+   * @param node the node that can have annotations associated with it
+   */
+  private void setMetadata(Element element, NormalFormalParameter node) {
+    if (!(element instanceof ElementImpl)) {
+      return;
+    }
+    ArrayList<ElementAnnotationImpl> annotationList = new ArrayList<ElementAnnotationImpl>();
+    addAnnotations(annotationList, node.getMetadata());
     if (!annotationList.isEmpty()) {
       ((ElementImpl) element).setMetadata(annotationList.toArray(new ElementAnnotationImpl[annotationList.size()]));
     }

@@ -27,8 +27,10 @@ import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
+import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.ElementAnnotation;
 import com.google.dart.engine.element.FieldElement;
+import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
@@ -581,6 +583,63 @@ public class SimpleResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_metadata_fieldFormalParameter() throws Exception {
+    Source source = addSource(createSource(//
+        "const A = null;",
+        "class C {",
+        "  int f;",
+        "  C(@A this.f);",
+        "}"));
+    LibraryElement library = resolve(source);
+    assertNotNull(library);
+    CompilationUnitElement unit = library.getDefiningCompilationUnit();
+    assertNotNull(unit);
+    ClassElement[] classes = unit.getTypes();
+    assertLength(1, classes);
+    ConstructorElement[] constructors = classes[0].getConstructors();
+    assertLength(1, constructors);
+    ParameterElement[] parameters = constructors[0].getParameters();
+    assertLength(1, parameters);
+    ElementAnnotation[] annotations = parameters[0].getMetadata();
+    assertLength(1, annotations);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_metadata_function() throws Exception {
+    Source source = addSource(createSource(//
+        "const A = null;",
+        "@A f() {}"));
+    LibraryElement library = resolve(source);
+    assertNotNull(library);
+    CompilationUnitElement unit = library.getDefiningCompilationUnit();
+    assertNotNull(unit);
+    FunctionElement[] functions = unit.getFunctions();
+    assertLength(1, functions);
+    ElementAnnotation[] annotations = functions[0].getMetadata();
+    assertLength(1, annotations);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_metadata_functionTypedParameter() throws Exception {
+    Source source = addSource(createSource(//
+        "const A = null;",
+        "f(@A int p(int x)) {}"));
+    LibraryElement library = resolve(source);
+    assertNotNull(library);
+    CompilationUnitElement unit = library.getDefiningCompilationUnit();
+    assertNotNull(unit);
+    FunctionElement[] functions = unit.getFunctions();
+    assertLength(1, functions);
+    ParameterElement[] parameters = functions[0].getParameters();
+    assertLength(1, parameters);
+    ElementAnnotation[] annotations1 = parameters[0].getMetadata();
+    assertLength(1, annotations1);
+    assertNoErrors(source);
+    verify(source);
+  }
+
   public void test_metadata_libraryDirective() throws Exception {
     Source source = addSource(createSource(//
         "@A library lib;",
@@ -608,6 +667,62 @@ public class SimpleResolverTest extends ResolverTestCase {
     MethodElement method = classes[0].getMethods()[0];
     ElementAnnotation[] annotations = method.getMetadata();
     assertLength(1, annotations);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_metadata_namedParameter() throws Exception {
+    Source source = addSource(createSource(//
+        "const A = null;",
+        "f({@A int p : 0}) {}"));
+    LibraryElement library = resolve(source);
+    assertNotNull(library);
+    CompilationUnitElement unit = library.getDefiningCompilationUnit();
+    assertNotNull(unit);
+    FunctionElement[] functions = unit.getFunctions();
+    assertLength(1, functions);
+    ParameterElement[] parameters = functions[0].getParameters();
+    assertLength(1, parameters);
+    ElementAnnotation[] annotations1 = parameters[0].getMetadata();
+    assertLength(1, annotations1);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_metadata_positionalParameter() throws Exception {
+    Source source = addSource(createSource(//
+        "const A = null;",
+        "f([@A int p = 0]) {}"));
+    LibraryElement library = resolve(source);
+    assertNotNull(library);
+    CompilationUnitElement unit = library.getDefiningCompilationUnit();
+    assertNotNull(unit);
+    FunctionElement[] functions = unit.getFunctions();
+    assertLength(1, functions);
+    ParameterElement[] parameters = functions[0].getParameters();
+    assertLength(1, parameters);
+    ElementAnnotation[] annotations1 = parameters[0].getMetadata();
+    assertLength(1, annotations1);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_metadata_simpleParameter() throws Exception {
+    Source source = addSource(createSource(//
+        "const A = null;",
+        "f(@A p1, @A int p2) {}"));
+    LibraryElement library = resolve(source);
+    assertNotNull(library);
+    CompilationUnitElement unit = library.getDefiningCompilationUnit();
+    assertNotNull(unit);
+    FunctionElement[] functions = unit.getFunctions();
+    assertLength(1, functions);
+    ParameterElement[] parameters = functions[0].getParameters();
+    assertLength(2, parameters);
+    ElementAnnotation[] annotations1 = parameters[0].getMetadata();
+    assertLength(1, annotations1);
+    ElementAnnotation[] annotations2 = parameters[1].getMetadata();
+    assertLength(1, annotations2);
     assertNoErrors(source);
     verify(source);
   }
