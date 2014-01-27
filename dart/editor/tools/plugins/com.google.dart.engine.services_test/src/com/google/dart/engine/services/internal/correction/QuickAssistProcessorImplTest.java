@@ -67,7 +67,6 @@ public class QuickAssistProcessorImplTest extends RefactoringImplTest {
   }
 
   private int selectionOffset = 0;
-
   private int selectionLength = 0;
 
   private SourceCorrectionProposal resultProposal;
@@ -138,6 +137,7 @@ public class QuickAssistProcessorImplTest extends RefactoringImplTest {
         "  }",
         "}");
     assert_addJson(initial, "class Unit", expected);
+    assert_addJson(initial, "Unit extends", expected);
   }
 
   public void test_addJson_noFields() throws Exception {

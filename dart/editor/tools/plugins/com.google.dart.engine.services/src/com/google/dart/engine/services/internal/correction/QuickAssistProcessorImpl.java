@@ -296,10 +296,15 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
   }
 
   void addProposal_addJson() throws Exception {
-    if (!(node instanceof ClassDeclaration)) {
+    // prepare enclosing ClassDeclaration
+    ClassDeclaration classDeclaration = node.getAncestor(ClassDeclaration.class);
+    if (classDeclaration == null) {
       return;
     }
-    ClassDeclaration classDeclaration = (ClassDeclaration) node;
+    if (selectionOffset >= classDeclaration.getName().getEnd()) {
+      return;
+    }
+    // process ClassElement
     ClassElement element = classDeclaration.getElement();
     if (element != null) {
       // prepare all types
