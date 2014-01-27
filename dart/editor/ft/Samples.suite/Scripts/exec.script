@@ -1,6 +1,6 @@
 params sutName
 
 Connect connectionInfo(sutName)
-Run util's startDartEditor
+util.startDartEditor
 RunWithNewResults  "do it"
-Run util's stopDartEditor
+util.stopDartEditor

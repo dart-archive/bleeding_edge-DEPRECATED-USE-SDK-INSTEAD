@@ -1,5 +1,5 @@
 (* Exercise basic editing features *)
-Run util's init
+util.init
 Run "create sample"
 Run "completion"
 Run "do file edit"
@@ -8,7 +8,7 @@ Run "reopen"
 Run "create sunflower"
 Run "launch sunflower"
 Run "search box"
-Run util's deleteProject "sample project"
-Run util's deleteProject "sunflower project"
-Run util's closeDebugger
+util.deleteProject "sample project"
+util.deleteProject "sunflower project"
+util.closeDebugger
 Run "test create button"

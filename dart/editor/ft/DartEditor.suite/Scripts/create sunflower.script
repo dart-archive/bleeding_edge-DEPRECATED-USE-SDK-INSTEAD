@@ -1,4 +1,4 @@
-Run util's init
-Run util's openWelcomePage
+util.init
+util.openWelcomePage
 Click "sunflower icon"
 Wait 3

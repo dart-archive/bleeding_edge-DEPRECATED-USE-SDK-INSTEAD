@@ -16,7 +16,7 @@ Wait 0.5
 util.newline
 Wait 0.5
 WaitFor 2, "some check"
-Run util's exitChromium
-(*Run util's checkProblems -- disabled until html analysis bug is fixed*)
-Run util's deleteProject "angular project"
-Run util's deleteOutput
+util.exitChromium
+(*util.checkProblems -- disabled until html analysis bug is fixed*)
+util.deleteProject "angular project"
+util.deleteOutput

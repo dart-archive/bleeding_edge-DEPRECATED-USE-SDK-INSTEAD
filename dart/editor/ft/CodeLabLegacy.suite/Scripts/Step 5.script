@@ -1,35 +1,38 @@
 openLab 5
 TypeText downArrow,downArrow,downArrow,downArrow,downArrow
-Run util's expandTreeNode (* expand web *)
+util.expandTreeNode (* expand web *)
 Wait 1
 
-Run util's selectContextImageMenuItem "lib expando", "New File"
+util.selectContextImageMenuItem "lib expando", "New File"
 TypeText "storage"
-TypeText enter
+util.newline
 Wait 5
 
 DoubleClick (Text:"for_later",CaseSensitive:"yes",IgnoreSpaces:"yes",IgnoreUnderscores:"no",ValidCharacters:"*",dpi:94)
-TypeText downArrow,enter
-Run util's selectAll
-Run util's copyText
-Run util's closeTab
-Run util's selectAll
-Run util's pasteText
+TypeText downArrow
+util.newline
+util.selectAll
+util.copyText
+util.closeTab
+util.selectAll
+util.pasteText
 
 TypeText upArrow,upArrow,upArrow,upArrow
 Wait 1
-Run util's quickOutline(* Navigate to saveDocument() *)
+util.quickOutline(* Navigate to saveDocument() *)
 TypeText upArrow
 TypeText upArrow
 TypeText upArrow
 TypeText upArrow
-TypeText enter
+util.newline
 
-TypeText downArrow,downArrow,leftArrow,enter
+TypeText downArrow,downArrow,leftArrow
+util.newline
 TypeText {{
 window.localStorage[doc.id] = doc.toJson();
 }}
-TypeText downArrow,downArrow,downArrow,leftArrow,enter
+TypeText downArrow,downArrow,downArrow,leftArrow
+util.newline
 TypeText {{
 if (!_storedIds.contains(doc.id)
 }}
@@ -39,13 +42,13 @@ TypeText {{
 _storedIds.add(doc.id);
 }}
 TypeText downArrow,downArrow,downArrow
-Run util's endOfLine
-TypeText enter
+util.endOfLine
+util.newline
 TypeText {{
 window.localStorage[DOCUMENT_ID_KEY] = JSON.encode(_storedIds);
 }}
 TypeText downArrow,downArrow,downArrow,downArrow,downArrow
-TypeText enter
+util.newline
 TypeText {{
 _storedIds.remove(doc.id);
 window.localStorage.remove(doc.id);
@@ -53,12 +56,12 @@ window.localStorage[DOCUMENT_ID_KEY] = JSON.encode(_storedIds);
 }}
 Wait 5
 
-Run util's quickOutline
+util.quickOutline
 TypeText downArrow, downArrow
-TypeText enter
+util.newline
 TypeText downArrow
-Run util's endOfLine
-TypeText enter
+util.endOfLine
+util.newline
 TypeText {{
 if (window.localStorage[DOCUMENT_ID_KEY] != null) {
 _storedIds = JSON.decode(window.localStorage[DOCUMENT_ID_KEY]
@@ -66,38 +69,38 @@ _storedIds = JSON.decode(window.localStorage[DOCUMENT_ID_KEY]
 TypeText rightArrow
 TypeText ";"
 TypeText downArrow,downArrow,downArrow
-Run util's endOfLine
-TypeText enter
+util.endOfLine
+util.newline
 TypeText {{
 return _storedIds.map(_fetchDocument);
 }}
 Wait 5
 
-Run util's quickOutline
+util.quickOutline
 TypeText downArrow,downArrow
-TypeText enter
+util.newline
 TypeText downArrow
-Run util's endOfLine
-TypeText enter
+util.endOfLine
+util.newline
 TypeText {{
 return new Document.fromJson(window.localStorage[id]
 }}
 TypeText rightArrow
 TypeText ";"
-Run util's saveFile
+util.saveFile
 Wait 5
 
 DoubleClick "index html icon"
 Wait 2
-Run util's activateEditor
+util.activateEditor
 
-Run util's openFind
+util.openFind
 TypeText "save the active"
 TypeText escape
 TypeText downArrow
-Run util's endOfLine
+util.endOfLine
 TypeText backspace
-TypeText enter
+util.newline
 TypeText tab
 TypeText {{
 on-key-up="saveDocument(activeDocument)
@@ -106,41 +109,41 @@ TypeText rightArrow
 TypeText " />"
 
 TypeText downArrow,downArrow,downArrow,downArrow
-Run util's openFind
+util.openFind
 TypeText ".content"
 TypeText escape
 TypeText rightArrow,rightArrow
-TypeText enter
+util.newline
 TypeText tab
 TypeText {{
 on-key-up="saveDocument(activeDocument)
 }}
 
-Run util's saveFile
+util.saveFile
 Wait 5
 
 DoubleClick (Text:"app.dart",CaseSensitive:"yes",IgnoreSpaces:"yes",IgnoreUnderscores:"yes",dpi:94)
 Wait 2
-Run util's activateEditor
+util.activateEditor
 
-Run util's openFind
+util.openFind
 TypeText "Import storage"
 TypeText escape
 TypeText downArrow
 TypeText {{
 import 'package:writer/storage.dart';
 }}
-TypeText enter
+util.newline
 Wait 5
 
-Run util's quickOutline
+util.quickOutline
 TypeText downArrow,downArrow,downArrow,downArrow
 Wait 1
 TypeText downArrow,downArrow,downArrow,downArrow
 Wait 1
 TypeText downArrow,downArrow
 Wait 1
-TypeText enter (* Navigate to main() *)
+util.newline (* Navigate to main() *)
 
 TypeText downArrow
 TypeText downArrow
@@ -150,24 +153,24 @@ documents.addAll(fetchDocuments()
 }}
 TypeText rightArrow
 TypeText ";"
-TypeText enter
+util.newline
 Wait 5
 
-Run util's quickOutline
+util.quickOutline
 TypeText upArrow,upArrow,upArrow
-TypeText enter
+util.newline
 
 TypeText downArrow,downArrow,downArrow
-Run util's endOfLine
-TypeText enter
+util.endOfLine
+util.newline
 TypeText {{
 removeDocument(doc);
 }}
 
-Run util's saveFile
+util.saveFile
 Wait 5
 
-Run util's selectContextMenuItem "out/index.html","Run in Dartium"
+util.selectContextMenuItem "out/index.html","Run in Dartium"
 Wait 2
 WaitFor 10,"browser right arrow button"
 WaitFor 10, "filter box"
@@ -187,10 +190,10 @@ TypeText tab
 TypeText "sake sakee sakeen"
 Wait 1
 
-Run util's exitChromium
+util.exitChromium
 Wait 30
 
-Run util's selectContextMenuItem "out/index.html","Run in Dartium"
+util.selectContextMenuItem "out/index.html","Run in Dartium"
 Wait 2
 WaitFor 10,"browser right arrow button"
 WaitFor 10, "filter box"
@@ -198,10 +201,10 @@ WaitFor 10, (Text:"tabemono",CaseSensitive:"yes",IgnoreSpaces:"yes",IgnoreUnders
 Click (Text:"tabemono",CaseSensitive:"yes",IgnoreSpaces:"yes",IgnoreUnderscores:"yes",dpi:94)
 put ImageLocation("delete file X") into pos
 Click "delete file X"
-click (pos - (30,40))
+Click (pos - (30,40))
 Click "red stripe"
 Click "delete file X"
 
-Run util's exitChromium
-Run util's selectContextMenuItem "io-2013-codelab", "Close Folder"
-Run util's deleteOutput
+util.exitChromium
+util.selectContextMenuItem "io-2013-codelab", "Close Folder"
+util.deleteOutput

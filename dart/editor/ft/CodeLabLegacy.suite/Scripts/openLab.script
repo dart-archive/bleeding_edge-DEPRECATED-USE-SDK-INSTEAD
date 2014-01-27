@@ -1,4 +1,4 @@
-Run util's init
+util.init
 Run "open codelab file search"
 put param(1) into n
 repeat n
@@ -6,10 +6,10 @@ repeat n
 	TypeText downArrow
 end repeat
 Wait 0.5
-TypeText enter
+util.newline
 if (util's isLinux) then
 	Wait 0.5
-	TypeText enter
+	TypeText return
 end if
 Wait 30
 (* Sometimes the Output view gets focus; select the new project *)
@@ -19,6 +19,6 @@ put UL + (200,200) into BR
 set the SearchRectangle to (UL,BR)
 Click (Text:"io-2012-codelab",CaseSensitive:"yes",ValidCharacters:"*")
 set the SearchRectangle to ()
-Run util's expandTreeNode
+util.expandTreeNode
 WaitFor 30, "pubspec lock"
 (* Do not run "check problems" here because analysis may not have finished *)

@@ -17,7 +17,7 @@ Wait 0.5
 Click "check mark"
 WaitFor 5, (Text:"Clear",CaseSensitive:"yes",ValidCharacters:"*",dpi:94)
 Click (Text:"Clear",CaseSensitive:"yes",ValidCharacters:"*",dpi:94)
-Run util's exitChromium
-Run util's checkProblems
-Run util's deleteProject "todo project"
-Run util's deleteOutput
+util.exitChromium
+util.checkProblems
+util.deleteProject "todo project"
+util.deleteOutput

@@ -1,6 +1,6 @@
 openLab 0
 TypeText downArrow,downArrow,downArrow,downArrow,downArrow
-Run util's expandTreeNode
+util.expandTreeNode
 TypeText downArrow,downArrow,downArrow,downArrow,downArrow
 (*Run "check problems"*)
 
@@ -10,14 +10,14 @@ Click (Text:"Untitled",CaseSensitive:"yes")
 Click "plus file"
 Click "red stripe"
 Click "delete file X"
-Run util's exitChromium
+util.exitChromium
 
-Run util's selectContextMenuItem "app.dart", "Run as JavaScript"
+util.selectContextMenuItem "app.dart", "Run as JavaScript"
 Wait 2
 WaitFor 20,"plus file"
 Click (Text:"Untitled",CaseSensitive:"yes")
-Run util's closeTab
-if (util's isMacOSX) then
+util.closeTab
+if (util.isMacOSX) then
 	Wait 1
 	TypeText CommandKey,Tab
 end if
@@ -46,5 +46,5 @@ Wait 2
 Click "stop debug button"
 
 DoubleClick (ImageLocation(Text:"void createDocument",CaseSensitive:"yes",ValidCharacters:"*",dpi:94)) + (offset,0)
-Run util's selectContextMenuItem "io-2013-codelab-finished", "Close Folder"
-Run util's deleteOutput
+util.selectContextMenuItem "io-2013-codelab-finished", "Close Folder"
+util.deleteOutput

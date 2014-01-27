@@ -1,15 +1,15 @@
 openLab 1
 TypeText downArrow,downArrow,downArrow,downArrow,downArrow
-Run util's expandTreeNode
+util.expandTreeNode
 TypeText downArrow,downArrow,downArrow,downArrow
 Run "check problems"
 (* Don't bother running it now.
-Run util's selectContextMenuItem "index.html", "Run in Dartium"
+util.selectContextMenuItem "index.html", "Run in Dartium"
 WaitFor 10,"browser right arrow button"
 *)
 DoubleClick "lib expando"
 TypeText downArrow
-TypeText enter
+util.newline
 
 put (325,200) into TopLeft
 put (700,500) into BottomRight
@@ -19,7 +19,7 @@ set the SearchRectangle to ()
 
 TypeText downArrow
 TypeText "import 'package:web_ui/web_ui.dart';"
-TypeText enter
+util.newline
 
 put (325,300) into TopLeft
 put (700,550) into BottomRight
@@ -28,11 +28,11 @@ Click (Text:"Mark the class",CaseSensitive:"yes",IgnoreSpaces:"no",IgnoreUndersc
 set the SearchRectangle to ()
 
 TypeText downArrow, rightArrow, upArrow
-TypeText enter
+util.newline
 TypeText upArrow
 TypeText "@observable"
 
-Run util's openFind
+util.openFind
 TypeText "STEP 1"
 TypeText escape
 TypeText downArrow
@@ -42,29 +42,30 @@ repeat 10 times
 end repeat
 TypeText deleteKey,deleteKey
 
-Run util's saveFile
+util.saveFile
 Wait 10
 
 DoubleClick (Text:"index.html",CaseSensitive:"yes",IgnoreSpaces:"no",IgnoreUnderscores:"no",ValidCharacters:"*")
-Run util's activateEditor
+util.activateEditor
 
-Run util's openFind
+util.openFind
 TypeText "STEP 1"
 TypeText escape
 TypeText downArrow,leftArrow
-TypeText enter
+util.newline
 TypeText "{{activeDocument.wordCount}}"
 
-Run util's saveFile
+util.saveFile
 Wait 10
 
 Click "run button"
 WaitFor 10,"browser right arrow button"
 Click (Text:"Try typing",CaseSensitive:"yes",IgnoreSpaces:"no",IgnoreUnderscores:"no",ValidCharacters:"*",dpi:94)
-TypeText downArrow,enter
+TypeText downArrow
+util.newline
 TypeText "Lorem ipsum dolor sit amet"
 WaitFor 2, "10words"
 
-Run util's exitChromium
-Run util's selectContextMenuItem "io-2013-codelab", "Close Folder"
-Run util's deleteOutput
+util.exitChromium
+util.selectContextMenuItem "io-2013-codelab", "Close Folder"
+util.deleteOutput

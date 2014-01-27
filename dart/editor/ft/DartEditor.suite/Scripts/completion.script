@@ -11,5 +11,5 @@ TypeText escape (* dismiss proposal list *)
 TypeText ControlKey,space (* manually request completion *)
 WaitFor 0.5, (Text:"isEmpty",CaseSensitive:"yes",ValidCharacters:"*") (* check for type-specific member *)(* Mac has return type *)
 TypeText escape (* dismiss proposal list *)
-Run util's selectMenuItem "File", "Revert" (* revert to saved *)
+util.selectMenuItem "File", "Revert" (* revert to saved *)
 Wait 4

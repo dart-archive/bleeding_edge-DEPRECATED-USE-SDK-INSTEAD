@@ -1,6 +1,5 @@
 Click(Text:"web")
-RightClick "sample project"
-Click (Text:"Close Folder")
+util.selectContextImageMenuItem "sample project", "Close Folder"
 Wait 2
 util.openFileDialog
 Wait 2
@@ -9,15 +8,13 @@ Wait 2
 Click "sample folder icon"
 Wait 1
 util.newline
-Run util's isLinux
-If the result is true
-	TypeText enter
+if (util.isLinux) then
+	TypeText return
 end if
 Wait 2
 Click "dart sdk"
 Wait 1
-RightClick "sample project"
-Click(Text:"Delete")
+util.selectContextImageMenuItem "sample project", "Delete"
 util.newline
 Wait 2
 util.openFileDialog
