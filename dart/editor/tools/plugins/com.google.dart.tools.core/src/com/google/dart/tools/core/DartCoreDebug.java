@@ -60,7 +60,7 @@ public class DartCoreDebug {
   public static final boolean ENABLE_THEMES = true; //isOptionTrue("experimental/themes");
   public static final boolean ENABLE_TAB_COLORING = isOptionTrue("experimental/tabColors");
   public static final boolean ENABLE_HTML_VALIDATION = isOptionTrue("experimental/validateHtml");
-  public static final boolean ENABLE_PUB_SERVE_LAUNCH = isOptionTrue("experimental/pubserve");
+  public static final boolean ENABLE_PUB_SERVE_LAUNCH = true;//isOptionTrue("experimental/pubserve");
 
   // Verify that dartc has not been specified and that the new analyzer is not explicitly disabled
   public static final boolean ENABLE_NEW_ANALYSIS = true;
