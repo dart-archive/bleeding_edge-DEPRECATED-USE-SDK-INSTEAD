@@ -1,5 +1,5 @@
 (* if the debugger is open, close it after stopping it*)
-Run util's closeDebugger
+util.closeDebugger
 (* close the project folder, discarding changes *)
 put ImageFound("project icon") into proj
 if proj then
@@ -12,7 +12,7 @@ if proj then
 	Wait 0.5
 	put ImageFound("info icon") into res
 	if res then
-		TypeText enter
+		util.newline
 	end if
 	put ImageFound("continue button") into cont
 	if cont then (* yes, delete resources *)
@@ -20,4 +20,4 @@ if proj then
 	end if
 end if
 (* close output tab, if any *)
-Run util's deleteOutput
+util.deleteOutput

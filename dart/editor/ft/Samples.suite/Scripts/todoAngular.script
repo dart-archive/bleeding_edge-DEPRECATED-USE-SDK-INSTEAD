@@ -1,5 +1,5 @@
-Run util's init
-Run util's openWelcomePage
+util.init
+util.openWelcomePage
 Click "angularMVC icon"
 WaitFor 60, "pubspec lock"
 Wait 5 (* let analysis finish *)
@@ -13,7 +13,7 @@ WaitFor 2, "two checks"
 Click "text field"
 TypeText "something"
 Wait 0.5
-TypeText enter
+util.newline
 Wait 0.5
 WaitFor 2, "some check"
 Run util's exitChromium

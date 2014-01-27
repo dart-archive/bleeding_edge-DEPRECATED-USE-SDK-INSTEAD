@@ -1,5 +1,5 @@
-Run util's init
-Run util's openWelcomePage
+util.init
+util.openWelcomePage
 Click "todoMVC icon"
 WaitFor 60, "pubspec lock"
 Wait 5 (* let analysis finish *)
@@ -12,7 +12,7 @@ Click (Text:"needs to",CaseSensitive:"yes",ValidCharacters:"*")
 Wait 0.5
 TypeText "something"
 Wait 0.5
-TypeText enter
+util.newline
 Wait 0.5
 Click "check mark"
 WaitFor 5, (Text:"Clear",CaseSensitive:"yes",ValidCharacters:"*",dpi:94)

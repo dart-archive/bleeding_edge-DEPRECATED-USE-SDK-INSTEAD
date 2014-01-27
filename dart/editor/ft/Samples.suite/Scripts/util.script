@@ -135,7 +135,7 @@ to deleteProject project
 	Click(Text:"Delete project contents",ValidCharacters:"*",dpi:94) (* select the option to clear disk *)
 	set the SearchRectangle to ()
 	Wait 0.2
-	TypeText enter
+	newline
 end deleteProject
 
 (* Select the menuItem from the menu named menuName on the menu bar *)
@@ -291,7 +291,11 @@ to saveFile
 end saveFile
 
 to expandTreeNode
-	TypeText enter
+	if isMacOSX() then
+		TypeText enter
+	else
+		TypeText return
+	end if
 end expandTreeNode
 
 to endOfLine
@@ -300,7 +304,7 @@ to endOfLine
 	else
 		TypeText EndKey
 	end if
-end endOfLine
+	end endOfLine
 
 to quickOutline
 	TypeText optionKey,o
