@@ -59,6 +59,7 @@ import com.google.dart.engine.internal.element.angular.AngularDirectiveElementIm
 import com.google.dart.engine.internal.element.angular.AngularFilterElementImpl;
 import com.google.dart.engine.internal.element.angular.AngularPropertyElementImpl;
 import com.google.dart.engine.internal.element.angular.HasAttributeSelectorElementImpl;
+import com.google.dart.engine.internal.element.angular.IsTagHasAttributeSelectorElementImpl;
 import com.google.dart.engine.internal.element.angular.IsTagSelectorElementImpl;
 import com.google.dart.engine.internal.scope.Namespace;
 import com.google.dart.engine.internal.scope.NamespaceBuilder;
@@ -187,12 +188,25 @@ public class AngularCompilationUnitBuilder {
    */
   @VisibleForTesting
   public static AngularSelectorElement parseSelector(int offset, String text) {
+    // [attribute]
     if (StringUtilities.startsWithChar(text, '[') && StringUtilities.endsWithChar(text, ']')) {
       int nameOffset = offset + "[".length();
       String attributeName = text.substring(1, text.length() - 1);
       // TODO(scheglov) report warning if there are spaces between [ and identifier
       return new HasAttributeSelectorElementImpl(attributeName, nameOffset);
     }
+    // tag[attribute]
+    if (StringUtilities.endsWithChar(text, ']')) {
+      int index = StringUtilities.indexOf1(text, 0, '[');
+      if (index != -1) {
+        String tagName = text.substring(0, index);
+        String attributeName = text.substring(index + 1, text.length() - 1);
+        if (StringUtilities.isTagName(tagName)) {
+          return new IsTagHasAttributeSelectorElementImpl(tagName, attributeName);
+        }
+      }
+    }
+    // tag
     if (StringUtilities.isTagName(text)) {
       return new IsTagSelectorElementImpl(text, offset);
     }

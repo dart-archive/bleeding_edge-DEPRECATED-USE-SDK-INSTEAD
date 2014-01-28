@@ -52,10 +52,15 @@ class NgDirectiveElementProcessor extends NgDirectiveProcessor {
         attribute.setElement(property);
         // resolve if binding
         if (property.getPropertyKind() != AngularPropertyKind.ATTR) {
-          onNgEventDirective(resolver);
-          Expression expression = parseExpression(resolver, attribute);
-          resolver.resolveNode(expression);
-          setExpression(attribute, expression);
+          resolver.pushNameScope();
+          try {
+            onNgEventDirective(resolver);
+            Expression expression = parseExpression(resolver, attribute);
+            resolver.resolveNode(expression);
+            setExpression(attribute, expression);
+          } finally {
+            resolver.popNameScope();
+          }
         }
       }
     }

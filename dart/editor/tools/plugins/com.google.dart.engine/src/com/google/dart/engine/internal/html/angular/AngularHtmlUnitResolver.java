@@ -225,7 +225,7 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
         return super.visitXmlTagNode(node);
       }
       // process node in separate name scope
-      nameScope = resolver.pushNameScope();
+      pushNameScope();
       try {
         parseEmbeddedExpressions(node);
         // apply processors
@@ -239,7 +239,7 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
         // process children
         return super.visitXmlTagNode(node);
       } finally {
-        resolver.popNameScope();
+        popNameScope();
       }
     } finally {
       isAngular = wasAngular;
@@ -323,6 +323,14 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
 
   Expression parseExpression(Token token) {
     return HtmlParser.parseEmbeddedExpression(source, token, errorListener);
+  }
+
+  void popNameScope() {
+    nameScope = resolver.popNameScope();
+  }
+
+  void pushNameScope() {
+    nameScope = resolver.pushNameScope();
   }
 
   /**

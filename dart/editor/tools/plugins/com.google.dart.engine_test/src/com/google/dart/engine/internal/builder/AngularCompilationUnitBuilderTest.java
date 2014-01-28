@@ -31,6 +31,7 @@ import com.google.dart.engine.element.angular.AngularPropertyKind;
 import com.google.dart.engine.element.angular.AngularSelectorElement;
 import com.google.dart.engine.error.AngularCode;
 import com.google.dart.engine.internal.element.angular.HasAttributeSelectorElementImpl;
+import com.google.dart.engine.internal.element.angular.IsTagHasAttributeSelectorElementImpl;
 import com.google.dart.engine.internal.element.angular.IsTagSelectorElementImpl;
 import com.google.dart.engine.internal.html.angular.AngularTest;
 
@@ -762,6 +763,15 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
     AngularSelectorElement selector = AngularCompilationUnitBuilder.parseSelector(42, "name");
     assertIsTagSelector(selector, "name");
     assertEquals(42, selector.getNameOffset());
+  }
+
+  public void test_parseSelector_isTag_hasAttribute() throws Exception {
+    AngularSelectorElement selector = AngularCompilationUnitBuilder.parseSelector(42, "tag[attr]");
+    assertInstanceOf(IsTagHasAttributeSelectorElementImpl.class, selector);
+    assertEquals(null, selector.getName());
+    assertEquals(-1, selector.getNameOffset());
+    assertEquals("tag", ((IsTagHasAttributeSelectorElementImpl) selector).getTagName());
+    assertEquals("attr", ((IsTagHasAttributeSelectorElementImpl) selector).getAttributeName());
   }
 
   public void test_parseSelector_unknown() throws Exception {
