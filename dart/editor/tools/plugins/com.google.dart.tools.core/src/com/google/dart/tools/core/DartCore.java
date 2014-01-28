@@ -173,6 +173,8 @@ public class DartCore extends Plugin implements DartSdkListener {
 
   public static final String PROJECT_PREF_PACKAGE_ROOT = "projectPackageRoot";
 
+  public static final String PREFS_DART2JS_FLAGS = "dart2jsFlags";
+
   /**
    * Preference to control if "not a member" warnings should be reported for inferred types.
    */
@@ -1332,6 +1334,14 @@ public class DartCore extends Plugin implements DartSdkListener {
     return DartSdkManager.getManager().hasSdk();
   }
 
+  public String getDart2jsFlags() {
+    return getPrefs().get(PREFS_DART2JS_FLAGS, "");
+  }
+
+  public String[] getDart2jsFlagsAsArray() {
+    return StringUtilities.parseArgumentString(getDart2jsFlags());
+  }
+
   public boolean getDisableDartBasedBuilder(IProject project) {
     return getProjectPreferences(project).getBoolean(PROJECT_PREF_DISABLE_DART_BASED_BUILDER, false);
   }
@@ -1424,6 +1434,17 @@ public class DartCore extends Plugin implements DartSdkListener {
     Job job = new CleanLibrariesJob();
 
     job.schedule();
+  }
+
+  public void setDart2JsPreferences(String args) {
+    IEclipsePreferences prefs = getPrefs();
+    prefs.put(PREFS_DART2JS_FLAGS, args);
+
+    try {
+      getPrefs().flush();
+    } catch (BackingStoreException exception) {
+      logError(exception);
+    }
   }
 
   public void setDisableDartBasedBuilder(IProject project, boolean value) throws CoreException {

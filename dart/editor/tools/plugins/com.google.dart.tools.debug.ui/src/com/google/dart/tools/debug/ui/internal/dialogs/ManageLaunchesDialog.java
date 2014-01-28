@@ -15,7 +15,6 @@
 package com.google.dart.tools.debug.ui.internal.dialogs;
 
 import com.google.dart.tools.core.DartCoreDebug;
-import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 import com.google.dart.tools.debug.ui.internal.DartUtil;
 import com.google.dart.tools.debug.ui.internal.DebugErrorHandler;
@@ -352,11 +351,6 @@ public class ManageLaunchesDialog extends TitleAreaDialog implements ILaunchConf
 
     IDialogSettings workbenchSettings = WorkbenchPlugin.getDefault().getDialogSettings();
     IDialogSettings section = workbenchSettings.getSection(settingsName);
-
-    if (DartDebugCorePlugin.getPlugin().getClearDialogSettings()) {
-      section = null;
-      DartDebugCorePlugin.getPlugin().setClearLaunchesDialogSettings(false);
-    }
 
     if (section == null) {
       section = workbenchSettings.addNewSection(settingsName);

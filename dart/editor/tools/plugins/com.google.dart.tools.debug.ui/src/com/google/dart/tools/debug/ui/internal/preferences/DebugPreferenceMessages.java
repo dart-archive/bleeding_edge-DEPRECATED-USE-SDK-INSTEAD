@@ -32,6 +32,7 @@ public class DebugPreferenceMessages extends NLS {
   public static String DebugPreferencePage_DefaultBrowserMessage;
   public static String DebugPreferencePage_BrowserLabel;
   public static String DebugPreferencePage_Select;
+  public static String DebugPreferencePage_Dart2js;
 
   static {
     // initialize resource bundle

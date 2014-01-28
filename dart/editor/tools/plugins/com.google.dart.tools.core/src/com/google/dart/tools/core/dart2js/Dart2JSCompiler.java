@@ -131,8 +131,11 @@ public class Dart2JSCompiler {
 
     Dart2JSCompiler compiler = new Dart2JSCompiler();
 
-    console.printSeparator("Running dart2js...");
-
+    if (compilerFlags != null && compilerFlags.length > 0) {
+      console.printSeparator("Running dart2js " + printFlags(compilerFlags));
+    } else {
+      console.printSeparator("Running dart2js...");
+    }
     try {
       CompilationResult result = compiler.compile(
           inputPath,
@@ -209,6 +212,14 @@ public class Dart2JSCompiler {
     }
 
     console.print(builder.toString());
+  }
+
+  private static String printFlags(String[] compilerFlags) {
+    StringBuffer sb = new StringBuffer();
+    for (String string : compilerFlags) {
+      sb.append(string).append(" ");
+    }
+    return sb.toString();
   }
 
   /**

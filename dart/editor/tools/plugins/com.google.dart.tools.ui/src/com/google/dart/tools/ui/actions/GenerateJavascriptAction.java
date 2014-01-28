@@ -76,7 +76,11 @@ public class GenerateJavascriptAction extends InstrumentedAction implements IWor
               IProgressMonitor.UNKNOWN);
 
           instrumentation.data("Library", file.getName());
-          Dart2JSCompiler.compileLibrary(file, monitor, DartCore.getConsole());
+          Dart2JSCompiler.compileLibrary(
+              file,
+              DartCore.getPlugin().getDart2jsFlagsAsArray(),
+              monitor,
+              DartCore.getConsole());
 
           instrumentation.metric("GenerateJavascript", "Complete");
 

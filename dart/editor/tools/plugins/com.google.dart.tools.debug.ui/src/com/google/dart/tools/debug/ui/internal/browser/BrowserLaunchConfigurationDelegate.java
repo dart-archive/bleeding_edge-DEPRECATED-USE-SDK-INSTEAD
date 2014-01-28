@@ -129,7 +129,7 @@ public class BrowserLaunchConfigurationDelegate extends DartLaunchConfigurationD
       }
 
       if (wrapper.getRunDart2js()) {
-        compileJavascript(resource, wrapper.getDart2jsFlagsAsArray(), monitor);
+        compileJavascript(resource, DartCore.getPlugin().getDart2jsFlagsAsArray(), monitor);
       }
 
       try {
