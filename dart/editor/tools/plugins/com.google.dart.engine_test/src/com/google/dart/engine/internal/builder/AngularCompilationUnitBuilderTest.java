@@ -292,6 +292,22 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
     assertMainErrors(AngularCode.MISSING_TEMPLATE_URL);
   }
 
+  /**
+   * <p>
+   * https://code.google.com/p/dart/issues/detail?id=16346
+   */
+  public void test_NgComponent_bad_notHtmlTemplate() throws Exception {
+    contextHelper.addSource("/my_template", "");
+    contextHelper.addSource("/my_styles.css", "");
+    addMainSource(createAngularSource(//
+        "@NgComponent(publishAs: 'ctrl', selector: 'myComp',",
+        "             templateUrl: 'my_template', cssUrl: 'my_styles.css')",
+        "class MyComponent {",
+        "}"));
+    contextHelper.runTasks();
+    // no exceptions, even though "my_template" is not an HTML file
+  }
+
   public void test_NgComponent_bad_properties_invalidBinding() throws Exception {
     contextHelper.addSource("/my_template.html", "");
     contextHelper.addSource("/my_styles.css", "");

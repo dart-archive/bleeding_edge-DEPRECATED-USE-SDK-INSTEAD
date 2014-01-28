@@ -16,6 +16,7 @@ package com.google.dart.engine.internal.builder;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
+import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.Annotation;
 import com.google.dart.engine.ast.ArgumentList;
@@ -488,7 +489,9 @@ public class AngularCompilationUnitBuilder {
           if (templateSource == null || !templateSource.exists()) {
             reportErrorForArgument(TEMPLATE_URL, AngularCode.URI_DOES_NOT_EXIST, templateUri);
           }
-          element.setTemplateSource(templateSource);
+          if (AnalysisEngine.isHtmlFileName(templateUri)) {
+            element.setTemplateSource(templateSource);
+          }
         } catch (URISyntaxException exception) {
           reportErrorForArgument(TEMPLATE_URL, AngularCode.INVALID_URI, templateUri);
         }
