@@ -288,13 +288,13 @@ public class ToSourceVisitorTest extends EngineTestCase {
 
   public void test_visitClassTypeAlias_abstract() {
     assertSource(
-        "class C = abstract S with M1;",
+        "abstract class C = S with M1;",
         classTypeAlias("C", null, Keyword.ABSTRACT, typeName("S"), withClause(typeName("M1")), null));
   }
 
   public void test_visitClassTypeAlias_abstract_implements() {
     assertSource(
-        "class C = abstract S with M1 implements I;",
+        "abstract class C = S with M1 implements I;",
         classTypeAlias(
             "C",
             null,
@@ -336,7 +336,7 @@ public class ToSourceVisitorTest extends EngineTestCase {
 
   public void test_visitClassTypeAlias_parameters_abstract() {
     assertSource(
-        "class C<E> = abstract S with M1;",
+        "abstract class C<E> = S with M1;",
         classTypeAlias(
             "C",
             typeParameterList("E"),
@@ -348,7 +348,7 @@ public class ToSourceVisitorTest extends EngineTestCase {
 
   public void test_visitClassTypeAlias_parameters_abstract_implements() {
     assertSource(
-        "class C<E> = abstract S with M1 implements I;",
+        "abstract class C<E> = S with M1 implements I;",
         classTypeAlias(
             "C",
             typeParameterList("E"),

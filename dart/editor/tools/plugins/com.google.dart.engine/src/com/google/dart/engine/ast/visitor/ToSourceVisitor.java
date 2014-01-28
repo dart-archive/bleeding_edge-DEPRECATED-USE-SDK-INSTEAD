@@ -177,13 +177,13 @@ public class ToSourceVisitor implements ASTVisitor<Void> {
 
   @Override
   public Void visitClassTypeAlias(ClassTypeAlias node) {
+    if (node.getAbstractKeyword() != null) {
+      writer.print("abstract ");
+    }
     writer.print("class ");
     visit(node.getName());
     visit(node.getTypeParameters());
     writer.print(" = ");
-    if (node.getAbstractKeyword() != null) {
-      writer.print("abstract ");
-    }
     visit(node.getSuperclass());
     visit(" ", node.getWithClause());
     visit(" ", node.getImplementsClause());
