@@ -24,4 +24,9 @@ public interface AngularDirectiveElement extends AngularHasSelectorElement {
    * Return an array containing all of the properties declared by this directive.
    */
   AngularPropertyElement[] getProperties();
+
+  /**
+   * Checks if this directive is implemented by the class with given name.
+   */
+  boolean isClass(String name);
 }

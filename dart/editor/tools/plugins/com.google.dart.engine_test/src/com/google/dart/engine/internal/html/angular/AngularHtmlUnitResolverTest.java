@@ -40,6 +40,19 @@ import static com.google.dart.engine.element.ElementFactory.functionElement;
 import static com.google.dart.engine.element.ElementFactory.localVariableElement;
 
 public class AngularHtmlUnitResolverTest extends AngularTest {
+  public void test_contextProperties() throws Exception {
+    addMyController();
+    resolveIndexNoErrors(createHtmlWithAngular(//
+        "<div>",
+        "  {{$id}}",
+        "  {{$parent}}",
+        "  {{$root}}",
+        "</div>"));
+    assertResolvedIdentifier("$id");
+    assertResolvedIdentifier("$parent");
+    assertResolvedIdentifier("$root");
+  }
+
   public void test_getAngularElement_isAngular() throws Exception {
     // prepare local variable "name" in compilation unit
     CompilationUnitElementImpl unit = compilationUnit(context, "test.dart");
@@ -68,7 +81,7 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
    */
   public void test_ngClick() throws Exception {
     addMyController();
-    resolveIndexNoErrors(createHtmlWithMyController("<button ng-click='ctrl.doSomething()'/>"));
+    resolveIndexNoErrors(createHtmlWithMyController("<button ng-click='ctrl.doSomething($event)'/>"));
     assertResolvedIdentifier("doSomething");
   }
 
@@ -248,7 +261,7 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
    */
   public void test_ngMouseOut() throws Exception {
     addMyController();
-    resolveIndexNoErrors(createHtmlWithMyController("<button ng-mouseout='ctrl.doSomething()'/>"));
+    resolveIndexNoErrors(createHtmlWithMyController("<button ng-mouseout='ctrl.doSomething($event)'/>"));
     assertResolvedIdentifier("doSomething");
   }
 

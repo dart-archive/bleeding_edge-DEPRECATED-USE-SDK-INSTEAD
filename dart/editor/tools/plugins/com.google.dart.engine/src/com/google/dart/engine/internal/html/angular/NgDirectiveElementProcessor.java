@@ -22,6 +22,7 @@ import com.google.dart.engine.element.angular.AngularSelectorElement;
 import com.google.dart.engine.html.ast.XmlAttributeNode;
 import com.google.dart.engine.html.ast.XmlTagNode;
 import com.google.dart.engine.internal.element.angular.HasAttributeSelectorElementImpl;
+import com.google.dart.engine.type.Type;
 
 /**
  * {@link NgDirectiveElementProcessor} applies {@link AngularDirectiveElement} by parsing mapped
@@ -51,6 +52,7 @@ class NgDirectiveElementProcessor extends NgDirectiveProcessor {
         attribute.setElement(property);
         // resolve if binding
         if (property.getPropertyKind() != AngularPropertyKind.ATTR) {
+          onNgEventDirective(resolver);
           Expression expression = parseExpression(resolver, attribute);
           resolver.resolveNode(expression);
           setExpression(attribute, expression);
@@ -62,5 +64,15 @@ class NgDirectiveElementProcessor extends NgDirectiveProcessor {
   @Override
   public boolean canApply(XmlTagNode node) {
     return element.getSelector().apply(node);
+  }
+
+  /**
+   * Support for <code>$event</code> variable in <code>NgEventDirective</code>.
+   */
+  private void onNgEventDirective(AngularHtmlUnitResolver resolver) {
+    if (element.isClass("NgEventDirective")) {
+      Type dynamicType = resolver.getTypeProvider().getDynamicType();
+      resolver.defineVariable(resolver.createLocalVariable(dynamicType, "$event"));
+    }
   }
 }

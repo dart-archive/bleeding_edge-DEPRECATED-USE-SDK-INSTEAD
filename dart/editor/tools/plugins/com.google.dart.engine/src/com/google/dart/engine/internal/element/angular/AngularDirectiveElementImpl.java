@@ -14,6 +14,8 @@
 
 package com.google.dart.engine.internal.element.angular;
 
+import com.google.dart.engine.element.ClassElement;
+import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.ElementVisitor;
 import com.google.dart.engine.element.angular.AngularDirectiveElement;
@@ -64,6 +66,12 @@ public class AngularDirectiveElementImpl extends AngularHasSelectorElementImpl i
   @Override
   public AngularPropertyElement[] getProperties() {
     return properties;
+  }
+
+  @Override
+  public boolean isClass(String name) {
+    Element enclosing = getEnclosingElement();
+    return enclosing instanceof ClassElement && enclosing.getName().equals(name);
   }
 
   /**

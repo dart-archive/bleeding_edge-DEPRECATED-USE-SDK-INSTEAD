@@ -405,6 +405,13 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
         inheritanceManager,
         errorListener);
     topNameScope = resolver.pushNameScope();
+    // add Scope variables - no type, no location, just to avoid warnings
+    {
+      Type type = typeProvider.getDynamicType();
+      topNameScope.define(createLocalVariable(type, "$id"));
+      topNameScope.define(createLocalVariable(type, "$parent"));
+      topNameScope.define(createLocalVariable(type, "$root"));
+    }
   }
 
   /**

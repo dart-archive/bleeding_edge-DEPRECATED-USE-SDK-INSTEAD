@@ -177,7 +177,7 @@ abstract public class AngularTest extends EngineTestCase {
         "  List<String> names;",
         "  List<Item> items;",
         "  var untypedItems;",
-        "  doSomething() {}",
+        "  doSomething(event) {}",
         "}"));
   }
 
