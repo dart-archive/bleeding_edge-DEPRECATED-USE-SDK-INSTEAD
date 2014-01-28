@@ -52,8 +52,8 @@ public class AngularRenameRefactoringTest extends AngularTest {
   private Change refactoringChange;
 
   public void test_angular_renameComponentDecl() throws Exception {
-    prepareMyComponent();
     addIndexSource("/my_template.html", createSource("<div> {{ctrl.field}} </div>"));
+    prepareMyComponent();
     contextHelper.runTasks();
     resolveIndex();
     indexUnit(indexUnit);
@@ -66,8 +66,8 @@ public class AngularRenameRefactoringTest extends AngularTest {
   }
 
   public void test_angular_renameComponentDecl_checkNewName() throws Exception {
-    prepareMyComponent();
     addIndexSource("/my_template.html", createSource("<div> {{ctrl.field}} </div>"));
+    prepareMyComponent();
     contextHelper.runTasks();
     resolveIndex();
     indexUnit(indexUnit);

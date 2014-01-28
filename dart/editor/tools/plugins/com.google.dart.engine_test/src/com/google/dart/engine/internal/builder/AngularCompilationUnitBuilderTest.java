@@ -240,32 +240,6 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
     assertMainErrors(AngularCode.CANNOT_PARSE_SELECTOR);
   }
 
-  public void test_NgComponent_bad_missingCss() throws Exception {
-    contextHelper.addSource("/my_template.html", "");
-    contextHelper.addSource("/my_styles.css", "");
-    String mainContent = createAngularSource(//
-        "@NgComponent(publishAs: 'ctrl', selector: 'myComp',",
-        "             templateUrl: 'my_template.html'/*, cssUrl: 'my_styles.css'*/)",
-        "class MyComponent {",
-        "}");
-    resolveMainSource(mainContent);
-    // has error
-    assertMainErrors(AngularCode.MISSING_CSS_URL);
-  }
-
-  public void test_NgComponent_bad_missingPublishAs() throws Exception {
-    contextHelper.addSource("/my_template.html", "");
-    contextHelper.addSource("/my_styles.css", "");
-    String mainContent = createAngularSource(//
-        "@NgComponent(/*publishAs: 'ctrl',*/ selector: 'myComp',",
-        "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css')",
-        "class MyComponent {",
-        "}");
-    resolveMainSource(mainContent);
-    // has error
-    assertMainErrors(AngularCode.MISSING_PUBLISH_AS);
-  }
-
   public void test_NgComponent_bad_missingSelector() throws Exception {
     contextHelper.addSource("/my_template.html", "");
     contextHelper.addSource("/my_styles.css", "");
@@ -277,19 +251,6 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
     resolveMainSource(mainContent);
     // has error
     assertMainErrors(AngularCode.MISSING_SELECTOR);
-  }
-
-  public void test_NgComponent_bad_missingTemplate() throws Exception {
-    contextHelper.addSource("/my_template.html", "");
-    contextHelper.addSource("/my_styles.css", "");
-    String mainContent = createAngularSource(//
-        "@NgComponent(publishAs: 'ctrl', selector: 'myComp',",
-        "             /*templateUrl: 'my_template.html',*/ cssUrl: 'my_styles.css')",
-        "class MyComponent {",
-        "}");
-    resolveMainSource(mainContent);
-    // has error
-    assertMainErrors(AngularCode.MISSING_TEMPLATE_URL);
   }
 
   /**
@@ -376,6 +337,102 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
     resolveMainSource(mainContent);
     // has error
     assertMainErrors(AngularCode.INVALID_PROPERTY_SPEC);
+  }
+
+  public void test_NgComponent_no_cssUrl() throws Exception {
+    contextHelper.addSource("/my_template.html", "");
+    contextHelper.addSource("/my_styles.css", "");
+    String mainContent = createAngularSource(//
+        "@NgComponent(publishAs: 'ctrl', selector: 'myComp',",
+        "             templateUrl: 'my_template.html'/*, cssUrl: 'my_styles.css'*/)",
+        "class MyComponent {",
+        "}");
+    resolveMainSource(mainContent);
+    // prepare AngularComponentElement
+    ClassElement classElement = mainUnitElement.getType("MyComponent");
+    AngularComponentElement component = getAngularElement(
+        classElement,
+        AngularComponentElement.class);
+    assertNotNull(component);
+    // no CSS
+    assertEquals(null, component.getStyleUri());
+    assertEquals(-1, component.getStyleUriOffset());
+  }
+
+  public void test_NgComponent_no_publishAs() throws Exception {
+    contextHelper.addSource("/my_template.html", "");
+    contextHelper.addSource("/my_styles.css", "");
+    String mainContent = createAngularSource(//
+        "@NgComponent(/*publishAs: 'ctrl',*/ selector: 'myComp',",
+        "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css')",
+        "class MyComponent {",
+        "}");
+    resolveMainSource(mainContent);
+    // prepare AngularComponentElement
+    ClassElement classElement = mainUnitElement.getType("MyComponent");
+    AngularComponentElement component = getAngularElement(
+        classElement,
+        AngularComponentElement.class);
+    assertNotNull(component);
+    // no name
+    assertEquals(null, component.getName());
+    assertEquals(-1, component.getNameOffset());
+  }
+
+  public void test_NgComponent_no_templateUrl() throws Exception {
+    contextHelper.addSource("/my_template.html", "");
+    contextHelper.addSource("/my_styles.css", "");
+    String mainContent = createAngularSource(//
+        "@NgComponent(publishAs: 'ctrl', selector: 'myComp',",
+        "             /*templateUrl: 'my_template.html',*/ cssUrl: 'my_styles.css')",
+        "class MyComponent {",
+        "}");
+    resolveMainSource(mainContent);
+    // prepare AngularComponentElement
+    ClassElement classElement = mainUnitElement.getType("MyComponent");
+    AngularComponentElement component = getAngularElement(
+        classElement,
+        AngularComponentElement.class);
+    assertNotNull(component);
+    // no template
+    assertEquals(null, component.getTemplateUri());
+    assertEquals(null, component.getTemplateSource());
+    assertEquals(-1, component.getTemplateUriOffset());
+  }
+
+  public void test_NgComponent_properties_fieldFromSuper() throws Exception {
+    contextHelper.addSource("/my_template.html", "");
+    contextHelper.addSource("/my_styles.css", "");
+    resolveMainSourceNoErrors(createAngularSource(//
+        "class MySuper {",
+        "  var myPropA;",
+        "}",
+        "",
+        "",
+        "",
+        "@NgComponent(publishAs: 'ctrl', selector: 'myComp',",
+        "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
+        "             map: const {",
+        "               'prop-a' : '@myPropA'",
+        "             })",
+        "class MyComponent extends MySuper {",
+        "}"));
+    // prepare AngularComponentElement
+    ClassElement classElement = mainUnitElement.getType("MyComponent");
+    AngularComponentElement component = getAngularElement(
+        classElement,
+        AngularComponentElement.class);
+    assertNotNull(component);
+    // verify
+    AngularPropertyElement[] properties = component.getProperties();
+    assertLength(1, properties);
+    assertProperty(
+        properties[0],
+        "prop-a",
+        findMainOffset("prop-a' :"),
+        AngularPropertyKind.ATTR,
+        "myPropA",
+        findMainOffset("myPropA'"));
   }
 
   public void test_NgComponent_properties_fromFields() throws Exception {

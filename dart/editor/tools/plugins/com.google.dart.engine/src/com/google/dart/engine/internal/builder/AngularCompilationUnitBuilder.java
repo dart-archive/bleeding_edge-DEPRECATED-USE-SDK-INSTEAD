@@ -40,6 +40,7 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.ToolkitObjectElement;
 import com.google.dart.engine.element.angular.AngularComponentElement;
 import com.google.dart.engine.element.angular.AngularDirectiveElement;
@@ -437,9 +438,11 @@ public class AngularCompilationUnitBuilder {
   private void parseNgComponent() {
     boolean isValid = true;
     // publishAs
-    if (!hasStringArgument(PUBLISH_AS)) {
-      reportErrorForAnnotation(AngularCode.MISSING_PUBLISH_AS);
-      isValid = false;
+    String name = null;
+    int nameOffset = -1;
+    if (hasStringArgument(PUBLISH_AS)) {
+      name = getStringArgument(PUBLISH_AS);
+      nameOffset = getStringArgumentOffset(PUBLISH_AS);
     }
     // selector
     AngularSelectorElement selector = null;
@@ -455,30 +458,28 @@ public class AngularCompilationUnitBuilder {
       }
     }
     // templateUrl
-    if (!hasStringArgument(TEMPLATE_URL)) {
-      reportErrorForAnnotation(AngularCode.MISSING_TEMPLATE_URL);
-      isValid = false;
+    String templateUri = null;
+    int templateUriOffset = -1;
+    if (hasStringArgument(TEMPLATE_URL)) {
+      templateUri = getStringArgument(TEMPLATE_URL);
+      templateUriOffset = getStringArgumentOffset(TEMPLATE_URL);
     }
     // cssUrl
-    if (!hasStringArgument(CSS_URL)) {
-      reportErrorForAnnotation(AngularCode.MISSING_CSS_URL);
-      isValid = false;
+    String styleUri = null;
+    int styleUriOffset = -1;
+    if (hasStringArgument(CSS_URL)) {
+      styleUri = getStringArgument(CSS_URL);
+      styleUriOffset = getStringArgumentOffset(CSS_URL);
     }
     // create
     if (isValid) {
-      String name = getStringArgument(PUBLISH_AS);
-      int nameOffset = getStringArgumentOffset(PUBLISH_AS);
-      String templateUri = getStringArgument(TEMPLATE_URL);
-      int templateUriOffset = getStringArgumentOffset(TEMPLATE_URL);
-      String styleUri = getStringArgument(CSS_URL);
-      int styleUriOffset = getStringArgumentOffset(CSS_URL);
       AngularComponentElementImpl element = new AngularComponentElementImpl(name, nameOffset);
       element.setSelector(selector);
       element.setTemplateUri(templateUri);
       element.setTemplateUriOffset(templateUriOffset);
       // resolve template URI
       // TODO(scheglov) resolve to HtmlElement to allow F3 ?
-      {
+      if (templateUri != null) {
         try {
           new URI(templateUri);
           // TODO(scheglov) think if there is better solution
@@ -486,6 +487,9 @@ public class AngularCompilationUnitBuilder {
             templateUri = "package:" + templateUri.substring("packages/".length());
           }
           Source templateSource = context.getSourceFactory().resolveUri(source, templateUri);
+          if (templateSource == null || !templateSource.exists()) {
+            templateSource = context.getSourceFactory().resolveUri(source, "package:" + templateUri);
+          }
           if (templateSource == null || !templateSource.exists()) {
             reportErrorForArgument(TEMPLATE_URL, AngularCode.URI_DOES_NOT_EXIST, templateUri);
           }
@@ -614,8 +618,10 @@ public class AngularCompilationUnitBuilder {
       String fieldName = spec.substring(fieldNameOffset);
       fieldNameOffset += specLiteral.getValueOffset();
       // prepare field
-      FieldElement field = classElement.getField(fieldName);
-      if (field == null) {
+      PropertyAccessorElement setter = classElement.getType().lookUpSetter(
+          fieldName,
+          classElement.getLibrary());
+      if (setter == null) {
         reportError(
             fieldNameOffset,
             fieldName.length(),
@@ -623,6 +629,7 @@ public class AngularCompilationUnitBuilder {
             fieldName);
         continue;
       }
+      FieldElement field = (FieldElement) setter.getVariable();
       // add property
       AngularPropertyElementImpl property = new AngularPropertyElementImpl(name, nameOffset);
       property.setField(field);
