@@ -106,6 +106,8 @@ to deleteOutput
 		if out
 			Click (Text:"Close",CaseSensitive:"yes",ValidCharacters:"*")
 		end if
+		Click outLoc
+		Wait 0.2
 		RightClick outLoc
 	end repeat
 	Click outLoc - (10,10)

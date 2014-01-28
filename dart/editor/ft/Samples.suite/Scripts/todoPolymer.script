@@ -7,7 +7,12 @@ Click "run button"
 WaitFor 20, "browser right arrow button"
 Click "browser right arrow button"
 WaitFor 20,"todo title"
-Click "todo title"
+put ImageRectangle("todo title") into todoRect
+Click center(todoRect)
+(*Click "todo title"*)
+put bottomLeft(todoRect) - (200,0) into UL
+put UL + (500,400) into BR
+set the searchRectangle to (UL,BR)
 Click (Text:"needs to",CaseSensitive:"yes",ValidCharacters:"*")
 Wait 0.5
 TypeText "something"
@@ -17,6 +22,7 @@ Wait 0.5
 Click "check mark"
 WaitFor 5, (Text:"Clear",CaseSensitive:"yes",ValidCharacters:"*",dpi:94)
 Click (Text:"Clear",CaseSensitive:"yes",ValidCharacters:"*",dpi:94)
+set the searchRectangle to ()
 util.exitChromium
 util.checkProblems
 util.deleteProject "todo project"
