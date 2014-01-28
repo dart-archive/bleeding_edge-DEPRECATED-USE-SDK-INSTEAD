@@ -4,7 +4,7 @@ set the SearchRectangle to ((200,150),(700,350))
 Click "create app button"
 TypeText "sample"
 set the SearchRectangle to ((500,400),(1400,700))
-Click (Text:"Command-line application",CaseSensitive:"yes",ValidCharacters:"*",dpi:94)
+Click (Text:"mmand-line application",CaseSensitive:"yes",ValidCharacters:"*",dpi:94)
 set the SearchRectangle to ()
 util.newline
 WaitFor 10.0, "pubspec lock" (* confirm file creation *)
