@@ -17,7 +17,7 @@ Click (200,200)
 put (0,0) into UL
 put UL + (200,200) into BR
 set the SearchRectangle to (UL,BR)
-Click (Text:"io-2012-codelab",CaseSensitive:"yes",ValidCharacters:"*")
+Click (Text:"io-2013-codelab",CaseSensitive:"yes",ValidCharacters:"*")
 set the SearchRectangle to ()
 util.expandTreeNode
 WaitFor 30, "pubspec lock"

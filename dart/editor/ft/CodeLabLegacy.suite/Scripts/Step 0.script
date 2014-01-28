@@ -36,6 +36,7 @@ DoubleClick (ImageLocation(Text:"void createDocument",CaseSensitive:"yes",ValidC
 Click "run button"
 set the SearchRectangle to ((100,400),(500,800))
 WaitFor 10,"debug line indicator"
+set the SearchRectangle to ()
 
 Click "step into icon"
 Wait 2
