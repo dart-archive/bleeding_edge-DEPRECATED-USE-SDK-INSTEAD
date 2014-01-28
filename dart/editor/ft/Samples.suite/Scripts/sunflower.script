@@ -3,7 +3,7 @@ util.openWelcomePage
 Click "sunflower icon"
 Wait 10
 Click "run button"
-WaitFor 10, "browser right arrow button"
+WaitFor 30, "browser right arrow button" (* extra-long wait to allow for paging *)
 Click "browser right arrow button"
 WaitFor 10,"sunflower slider"
 Click "sunflower slider"

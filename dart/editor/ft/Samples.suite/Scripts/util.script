@@ -71,7 +71,7 @@ to checkProblems
 	set the SearchRectangle to ((0,800),(1920,1200))
 	Wait 2
 	ClIck (600,500)
-	Wait 1
+	Wait 2
 	Click "problems tab"
 	WaitFor 1,"empty problems"
 	set the SearchRectangle to origRect
@@ -101,20 +101,20 @@ to deleteOutput
 	Wait 0.2
 	RightClick outLoc
 	Wait 0.2
-	if ImageFound("problems unselected") then
+	repeat while ImageFound("problems unselected")
 		put ImageFound(Text:"Close",CaseSensitive:"yes",ValidCharacters:"*") into out
 		if out
 			Click (Text:"Close",CaseSensitive:"yes",ValidCharacters:"*")
 		end if
-	else
-		Click outLoc - (10,10)
-	end if
+		RightClick outLoc
+	end repeat
+	Click outLoc - (10,10)
 	set the SearchRectangle to origRect
 end deleteOutput
 
 (* Delete the project identified by the given image. *)
 to deleteProject project
-	set the SearchRectangle to ((0,100),(300,1200))
+	set the SearchRectangle to ((0,75),(300,1200))
 	Click "dart sdk"
 	Wait 0.2
 	put ImageLocation(project) into loc
@@ -200,7 +200,7 @@ to startDartEditor
 	init()
 	set the SearchRectangle to ((0,0),(200,200))
 	DoubleClick "StartDartEditor"
-	WaitFor 20,"MaximizeWindowIcon"
+	WaitFor 40,"MaximizeWindowIcon"
 	Click "MaximizeWindowIcon"
 	set the SearchRectangle to ()
 	if isMacOSX()
@@ -304,7 +304,7 @@ to endOfLine
 	else
 		TypeText EndKey
 	end if
-	end endOfLine
+end endOfLine
 
 to quickOutline
 	TypeText optionKey,o

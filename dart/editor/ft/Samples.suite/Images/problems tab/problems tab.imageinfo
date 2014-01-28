@@ -1,36 +1,20 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-	<key>CaptureDate</key>
-	<date>2013-08-06T22:23:10Z</date>
-	<key>CaptureHost</key>
-	<string>Mac Pro</string>
-	<key>CaptureScreenSize</key>
-	<array>
-		<integer>1920</integer>
-		<integer>1200</integer>
-	</array>
-	<key>HasAlpha</key>
-	<true/>
-	<key>HonorAlpha</key>
-	<true/>
-	<key>HotSpotX</key>
-	<integer>33</integer>
-	<key>HotSpotY</key>
-	<integer>6</integer>
-	<key>ImageDescription</key>
-	<data>
-	</data>
-	<key>LastKnownLocationX</key>
-	<integer>0</integer>
-	<key>LastKnownLocationY</key>
-	<integer>0</integer>
-	<key>OriginalLocationX</key>
-	<integer>311</integer>
-	<key>OriginalLocationY</key>
-	<integer>966</integer>
-	<key>Pulsing</key>
-	<false/>
-</dict>
-</plist>
+{
+    CaptureDate = <*D2013-08-07 05:23:10 +0000>;
+    CaptureHost = "Mac Pro";
+    CaptureScreenSize = (
+	<*I1920>,
+	<*I1200>
+    );
+    HasAlpha = <*BY>;
+    HonorAlpha = <*BY>;
+    HotSpotX = <*R33>;
+    HotSpotY = <*R6>;
+    ImageDescription = <>;
+    LastKnownLocationX = <*I0>;
+    LastKnownLocationY = <*I0>;
+    OriginalLocationX = <*I311>;
+    OriginalLocationY = <*I966>;
+    Pulsing = <*BN>;
+    Scale = <*R1>;
+    SearchAlgorithm = TextSmoothSquare;
+}
