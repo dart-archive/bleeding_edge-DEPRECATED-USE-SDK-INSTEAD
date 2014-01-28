@@ -417,6 +417,23 @@ public class EngineSemanticProcessor extends SemanticProcessor {
       final String prefixName, final String[] packageNames) {
     rootNode.accept(new RecursiveASTVisitor<Void>() {
       @Override
+      public Void visitMethodInvocation(MethodInvocation node) {
+        super.visitMethodInvocation(node);
+        Expression target = node.getTarget();
+        Object binding0 = context.getNodeBinding(target);
+        if (binding0 instanceof ITypeBinding) {
+          ITypeBinding binding = (ITypeBinding) binding0;
+          String shortName = binding.getName();
+          shortName = StringUtils.substringBefore(shortName, "<");
+          if (isPrefixPackage(binding)) {
+            SemanticProcessor.replaceNode(target, identifier(prefixName, shortName));
+            return null;
+          }
+        }
+        return null;
+      }
+
+      @Override
       public Void visitPropertyAccess(PropertyAccess node) {
         super.visitPropertyAccess(node);
         Expression target = node.getTarget();

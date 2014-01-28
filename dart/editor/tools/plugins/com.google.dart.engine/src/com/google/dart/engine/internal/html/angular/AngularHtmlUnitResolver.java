@@ -43,7 +43,6 @@ import com.google.dart.engine.html.ast.XmlAttributeNode;
 import com.google.dart.engine.html.ast.XmlTagNode;
 import com.google.dart.engine.html.ast.visitor.RecursiveXmlVisitor;
 import com.google.dart.engine.html.parser.HtmlParser;
-import com.google.dart.engine.html.scanner.Token;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
 import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
 import com.google.dart.engine.internal.element.FunctionElementImpl;
@@ -56,6 +55,7 @@ import com.google.dart.engine.internal.resolver.ResolverVisitor;
 import com.google.dart.engine.internal.resolver.TypeProvider;
 import com.google.dart.engine.internal.scope.Scope;
 import com.google.dart.engine.scanner.StringToken;
+import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.type.InterfaceType;
@@ -309,10 +309,6 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
     return typeProvider;
   }
 
-  Expression parseExpression(com.google.dart.engine.scanner.Token token) {
-    return HtmlParser.parseEmbeddedExpression(source, token, errorListener);
-  }
-
   /**
    * Parses given {@link String} as an {@link Expression} at the given offset.
    */
@@ -321,8 +317,12 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
   }
 
   Expression parseExpression(String contents, int startIndex, int endIndex, int offset) {
-    com.google.dart.engine.scanner.Token token = scanDart(contents, startIndex, endIndex, offset);
+    Token token = scanDart(contents, startIndex, endIndex, offset);
     return parseExpression(token);
+  }
+
+  Expression parseExpression(Token token) {
+    return HtmlParser.parseEmbeddedExpression(source, token, errorListener);
   }
 
   /**
@@ -346,8 +346,7 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
     node.accept(resolver);
   }
 
-  com.google.dart.engine.scanner.Token scanDart(String contents, int startIndex, int endIndex,
-      int offset) {
+  Token scanDart(String contents, int startIndex, int endIndex, int offset) {
     return HtmlParser.scanDartSource(
         source,
         lineInfo,
@@ -430,7 +429,8 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
    * @param expressions the list to which embedded expressions are to be added
    * @param token the token whose value is to be parsed
    */
-  private void parseEmbeddedExpressions(ArrayList<EmbeddedExpression> expressions, Token token) {
+  private void parseEmbeddedExpressions(ArrayList<EmbeddedExpression> expressions,
+      com.google.dart.engine.html.scanner.Token token) {
     // prepare Token information
     String lexeme = token.getLexeme();
     int offset = token.getOffset();
@@ -472,8 +472,8 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
 
   private void parseEmbeddedExpressions(XmlTagNode node) {
     ArrayList<EmbeddedExpression> expressions = new ArrayList<EmbeddedExpression>();
-    Token token = node.getAttributeEnd();
-    Token endToken = node.getEndToken();
+    com.google.dart.engine.html.scanner.Token token = node.getAttributeEnd();
+    com.google.dart.engine.html.scanner.Token endToken = node.getEndToken();
     boolean inChild = false;
     while (token != endToken) {
       for (XmlTagNode child : node.getTagNodes()) {

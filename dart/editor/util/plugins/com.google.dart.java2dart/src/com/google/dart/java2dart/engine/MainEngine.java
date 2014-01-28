@@ -395,11 +395,6 @@ public class MainEngine {
     {
       CompilationUnit library = buildHtmlLibrary();
       String source = getFormattedSource(library);
-      // TODO(scheglov) restore HTML support
-      {
-        String s = "AngularHtmlUnitResolver.hasAngularAnnotation(htmlUnit);";
-        source = replaceSourceFragment(source, s, "false; // " + s);
-      }
       Files.write(source, new File(targetFolder + "/html.dart"), Charsets.UTF_8);
     }
     {
@@ -481,11 +476,11 @@ public class MainEngine {
       CompilationUnit library = buildEngineLibrary();
       String source = getFormattedSource(library);
       source = replaceSourceFragment(source, "OSUtilities.LINE_SEPARATOR", "'\\n'");
-      // TODO(scheglov) restore Angular support
-      {
-        String s = "    new AngularHtmlUnitResolver(context, builder.errorListener, source, lineInfo).resolve(unit);";
-        source = replaceSourceFragment(source, s, "//" + s);
-      }
+      // TODO(scheglov) restore NgRepeatProcessor
+      source = replaceSourceFragment(
+          source,
+          "_processors.add(NgRepeatProcessor.INSTANCE);",
+          "// _processors.add(NgRepeatProcessor.INSTANCE);");
       Files.write(source, new File(targetFolder + "/engine.dart"), Charsets.UTF_8);
     }
     {
@@ -763,44 +758,38 @@ public class MainEngine {
     unit.getDirectives().add(importDirective("instrumentation.dart", null));
     unit.getDirectives().add(importDirective("error.dart", null));
     unit.getDirectives().add(importDirective("source.dart", null));
-    unit.getDirectives().add(
-        importDirective(
-            "scanner.dart",
-            null,
-            importShowCombinator(
-                "Token",
-                "Scanner",
-                "CharSequenceReader",
-                "CharacterReader",
-                "IncrementalScanner")));
+    unit.getDirectives().add(importDirective("scanner.dart", null));
     unit.getDirectives().add(importDirective("ast.dart", null));
     unit.getDirectives().add(
         importDirective("parser.dart", null, importShowCombinator("Parser", "IncrementalParser")));
     unit.getDirectives().add(importDirective("sdk.dart", null, importShowCombinator("DartSdk")));
     unit.getDirectives().add(importDirective("element.dart", null));
     unit.getDirectives().add(importDirective("resolver.dart", null));
-    unit.getDirectives().add(
-        importDirective(
-            "html.dart",
-            null,
-            importShowCombinator(
-                "XmlTagNode",
-                "XmlAttributeNode",
-                "RecursiveXmlVisitor",
-                "HtmlScanner",
-                "HtmlScanResult",
-                "HtmlParser",
-                "HtmlParseResult",
-                "HtmlScriptTagNode",
-                "HtmlUnit")));
+    unit.getDirectives().add(importDirective("html.dart", "ht"));
     for (CompilationUnitMember member : dartUnit.getDeclarations()) {
       File file = context.getMemberToFile().get(member);
+      // ignore, part of index
+      if (isEnginePath(file, "internal/html/angular/AngularDartIndexContributor.java")
+          || isEnginePath(file, "internal/html/angular/AngularHtmlIndexContributor.java")) {
+        continue;
+      }
+      // add
       if (isEnginePath(file, "AnalysisEngine.java") || isEnginePath(file, "utilities/logging/")
           || isEnginePath(file, "context/") || isEnginePath(file, "internal/cache/")
-          || isEnginePath(file, "internal/context/") || isEnginePath(file, "internal/task/")) {
+          || isEnginePath(file, "internal/context/") || isEnginePath(file, "internal/html/angular")
+          || isEnginePath(file, "internal/task/")) {
         unit.getDeclarations().add(member);
       }
     }
+    // TODO(scheglov) restore NgRepeatProcessor
+    {
+      removeClass(unit, "NgRepeatProcessor");
+    }
+    EngineSemanticProcessor.useImportPrefix(
+        context,
+        unit,
+        "ht",
+        new String[] {"com.google.dart.engine.html."});
     return unit;
   }
 
@@ -839,7 +828,10 @@ public class MainEngine {
     unit.getDirectives().add(importDirective("ast.dart", null));
     unit.getDirectives().add(importDirective("element.dart", null));
     unit.getDirectives().add(
-        importDirective("engine.dart", null, importShowCombinator("AnalysisEngine")));
+        importDirective(
+            "engine.dart",
+            null,
+            importShowCombinator("AnalysisEngine", "AngularHtmlUnitResolver")));
     for (Entry<File, List<CompilationUnitMember>> entry : context.getFileToMembers().entrySet()) {
       File file = entry.getKey();
       if (isEnginePath(file, "html/scanner/") || isEnginePath(file, "html/ast/")
@@ -861,6 +853,7 @@ public class MainEngine {
     unit.getDirectives().add(
         importDirective("dart:collection", null, importShowCombinator("Queue")));
     unit.getDirectives().add(importDirective("java_core.dart", null));
+    unit.getDirectives().add(importDirective("java_engine.dart", null));
     unit.getDirectives().add(importDirective("source.dart", null));
     unit.getDirectives().add(importDirective("scanner.dart", null, importShowCombinator("Token")));
     unit.getDirectives().add(importDirective("ast.dart", null));
@@ -877,7 +870,8 @@ public class MainEngine {
             importShowCombinator(
                 "AnalysisEngine",
                 "AnalysisContext",
-                "InstrumentedAnalysisContextImpl")));
+                "InstrumentedAnalysisContextImpl",
+                "AngularHtmlUnitResolver")));
     unit.getDirectives().add(importDirective("html.dart", "ht"));
     for (Entry<File, List<CompilationUnitMember>> entry : context.getFileToMembers().entrySet()) {
       File file = entry.getKey();
@@ -993,6 +987,7 @@ public class MainEngine {
     unit.getDirectives().add(libraryDirective("engine", "parser"));
     unit.getDirectives().add(importDirective("dart:collection", null));
     unit.getDirectives().add(importDirective("java_core.dart", null));
+    unit.getDirectives().add(importDirective("java_engine.dart", null));
     unit.getDirectives().add(importDirective("instrumentation.dart", null));
     unit.getDirectives().add(importDirective("error.dart", null));
     unit.getDirectives().add(importDirective("source.dart", null));

@@ -1381,7 +1381,11 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
 
   @Override
   public boolean visit(org.eclipse.jdt.core.dom.ThisExpression node) {
-    return done(thisExpression());
+    ITypeBinding binding = node.resolveTypeBinding();
+    ThisExpression thisExpression = thisExpression();
+    context.putNodeBinding(thisExpression, binding);
+    context.putNodeTypeBinding(thisExpression, binding);
+    return done(thisExpression);
   }
 
   @Override
@@ -1738,6 +1742,29 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
     return ref;
   }
 
+  /**
+   * There is a bug in the JDT, sometimes it produces wrong offsets for comments.
+   */
+  private String fixJdtCommentLine(String line) {
+    line = StringUtils.stripEnd(line, null);
+    String trimmed = line.trim();
+    if (!trimmed.startsWith("//") && !trimmed.startsWith("/*")) {
+      StringBuilder sb = new StringBuilder();
+      int i = 0;
+      while (i < line.length()) {
+        char c = line.charAt(i++);
+        if (Character.isWhitespace(c)) {
+          sb.append(c);
+        } else if (c == '/') {
+          return sb.toString() + "//" + line.substring(i);
+        } else {
+          return sb.toString() + "// " + c + line.substring(i);
+        }
+      }
+    }
+    return line;
+  }
+
   private String getJavaSource(org.eclipse.jdt.core.dom.ASTNode node) {
     int offset = node.getStartPosition();
     return javaSource.substring(offset, offset + node.getLength());
@@ -1817,6 +1844,16 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
             }
             return super.visitSimpleIdentifier(node);
           }
+
+          @Override
+          public Void visitThisExpression(ThisExpression node) {
+            ITypeBinding binding = context.getNodeTypeBinding(node);
+            if (JavaUtils.isSubtype(enclosingTypeBinding, binding)) {
+              addEnclosingTypeRef.set(true);
+              replaceNode(node.getParent(), node, enclosingTypeRef);
+            }
+            return super.visitThisExpression(node);
+          }
         });
       } else {
         enclosingTypeRef = null;
@@ -1870,7 +1907,9 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
           if (comment.getStartPosition() > node.getStartPosition()) {
             break;
           }
-          commentLines.add(getJavaSource(comment));
+          String commentLine = getJavaSource(comment);
+          commentLine = fixJdtCommentLine(commentLine);
+          commentLines.add(commentLine);
         }
         result.setProperty(ToFormattedSourceVisitor.COMMENTS_KEY, commentLines);
       }

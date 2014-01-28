@@ -379,12 +379,15 @@ public class SemanticTest extends AbstractSemanticTest {
             "    void test() {",
             "      A.this.outerField = 5;",
             "      A.this.outerMethod();",
+            "      test3(A.this);",
             "    }",
             "  }",
             "  int outerField;",
             "  void outerMethod() {}",
             "  B test2() {",
             "    return new B();",
+            "  }",
+            "  void test3(A) {",
             "  }",
             "}"));
     Context context = new Context();
@@ -399,6 +402,8 @@ public class SemanticTest extends AbstractSemanticTest {
             "  void outerMethod() {",
             "  }",
             "  A_B test2() => new A_B(this);",
+            "  void test3() {",
+            "  }",
             "}",
             "class A_B {",
             "  final A A_this;",
@@ -406,6 +411,7 @@ public class SemanticTest extends AbstractSemanticTest {
             "  void test() {",
             "    A_this.outerField = 5;",
             "    A_this.outerMethod();",
+            "    A_this.test3(A_this);",
             "  }",
             "}"),
         getFormattedSource(unit));
