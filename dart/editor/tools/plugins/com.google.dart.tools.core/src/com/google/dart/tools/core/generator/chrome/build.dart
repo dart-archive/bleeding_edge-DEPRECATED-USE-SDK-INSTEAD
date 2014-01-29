@@ -1,5 +1,5 @@
 
-import 'package:chrome_gen/build/build.dart';
+import 'package:chrome/build/build.dart';
 
 /**
  * This build script watches for changes to any .dart files and copies the root

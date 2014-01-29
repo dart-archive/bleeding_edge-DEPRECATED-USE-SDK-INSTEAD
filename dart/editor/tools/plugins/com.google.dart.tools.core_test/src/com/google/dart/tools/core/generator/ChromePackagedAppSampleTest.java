@@ -42,7 +42,7 @@ public class ChromePackagedAppSampleTest extends TestCase {
 
       IFile buildFile = parent.getParent().getFile(new Path("build.dart"));
       assertTrue(buildFile.exists());
-      // TODO(devoncarew): moving to chrome_gen means we loose the ability to analyze this sample
+      // TODO(devoncarew): moving to package:chrome means we loose the ability to analyze this sample
       //GeneratorUtils.assertNoAnalysisErrors(buildFile);
 
       IFile fooDartFile = parent.getFile(new Path("foo.dart"));

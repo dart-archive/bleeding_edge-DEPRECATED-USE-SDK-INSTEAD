@@ -1,13 +1,13 @@
 
 import 'dart:html';
 
-import 'package:chrome_gen/chrome_app.dart' as chrome;
+import 'package:chrome/chrome_app.dart' as chrome;
 
 int boundsChange = 100;
 
 /**
  * For non-trivial uses of the Chrome Apps API, please see the
- * [chrome_gen](http://pub.dartlang.org/packages/chrome_gen).
+ * [chrome](http://pub.dartlang.org/packages/chrome).
  * 
  * * http://developer.chrome.com/apps/api_index.html
  */

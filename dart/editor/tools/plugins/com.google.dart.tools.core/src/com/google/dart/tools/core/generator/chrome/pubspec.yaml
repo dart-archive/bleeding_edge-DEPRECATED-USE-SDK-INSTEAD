@@ -2,4 +2,4 @@ name: {name}
 description: A sample Chrome packaged application
 dependencies:
   browser: any
-  chrome_gen: any
+  chrome: any
