@@ -377,6 +377,12 @@ public class ChromeAppLaunchConfigurationDelegate extends DartLaunchConfiguratio
         ChromiumTabInfo targetTab = findTargetTab(tabs);
 
         if (targetTab != null) {
+          for (ChromiumTabInfo tab : tabs) {
+            DartDebugCorePlugin.log("Found: " + tab.toString());
+          }
+
+          DartDebugCorePlugin.log("Choosing: " + targetTab);
+
           return targetTab;
         }
       } catch (IOException exception) {

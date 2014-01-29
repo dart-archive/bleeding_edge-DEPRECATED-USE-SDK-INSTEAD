@@ -478,6 +478,12 @@ public class BrowserManager {
     ChromiumTabInfo chromeTab = tabChooser.chooseTab(tabs);
 
     if (chromeTab != null) {
+      for (ChromiumTabInfo tab : tabs) {
+        DartDebugCorePlugin.log("Found: " + tab.toString());
+      }
+
+      DartDebugCorePlugin.log("Choosing: " + chromeTab);
+
       return chromeTab;
     }
 
