@@ -141,7 +141,10 @@ FunctionLookup function_list[] = {
     {NULL, NULL}};
 
 
-FunctionLookup no_scope_function_list[] = {{"NoScopeSystemRand", SystemRand}};
+FunctionLookup no_scope_function_list[] = {
+  {"NoScopeSystemRand", SystemRand},
+  {NULL, NULL}
+};
 
 Dart_NativeFunction ResolveName(Dart_Handle name,
                                 int argc,
