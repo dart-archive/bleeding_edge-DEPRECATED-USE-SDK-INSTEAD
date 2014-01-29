@@ -49,6 +49,7 @@ TypeText upArrow,upArrow
 util.newline
 Wait 5
 WaitFor 10.0, "pubspec lock" (* confirm file creation *)
+Click(Text:"Run as Chr",CaseSensitive:"yes",ValidCharacters:"*",IgnoreSpaces:"yes",dpi:94)
 util.selectContextImageMenuItem "manifest", "Run as Chrome App"
 if util.isMacOSX() then
 	set the SearchRectangle to ((700,350),(1300,850))
