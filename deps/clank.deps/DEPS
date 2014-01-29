@@ -9,7 +9,7 @@ execfile(os.path.join(path, 'clank.deps', 'DEPS.chromium')) # Include proper Chr
 vars.update({
   "chromium_url": "http://src.chromium.org/svn",
   "dartium_chromium_url": "http://src.chromium.org/chrome/branches/dart/1700/src",
-  "dartium_chromium_revision": "243199",
+  "dartium_chromium_revision": "247491",
   "clank_url": "https://chrome-internal.googlesource.com/clank/",
   # This revision number should be kept in sync with the version of clank that
   # uses a similar chromium revision to that mentioned just above in
