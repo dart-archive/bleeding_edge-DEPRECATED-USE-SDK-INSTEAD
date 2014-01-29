@@ -17,11 +17,11 @@ import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.AsExpression;
 import com.google.dart.engine.ast.CatchClause;
 import com.google.dart.engine.ast.ClassDeclaration;
+import com.google.dart.engine.ast.ClassMember;
 import com.google.dart.engine.ast.ClassTypeAlias;
 import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.ConstructorName;
 import com.google.dart.engine.ast.DeclaredIdentifier;
-import com.google.dart.engine.ast.DefaultFormalParameter;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.ExtendsClause;
 import com.google.dart.engine.ast.FieldFormalParameter;
@@ -42,11 +42,15 @@ import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.SuperExpression;
 import com.google.dart.engine.ast.TypeArgumentList;
 import com.google.dart.engine.ast.TypeName;
+import com.google.dart.engine.ast.TypeParameter;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationList;
 import com.google.dart.engine.ast.WithClause;
+import com.google.dart.engine.ast.visitor.UnifyingASTVisitor;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.FieldElement;
+import com.google.dart.engine.element.FieldFormalParameterElement;
 import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MultiplyDefinedElement;
@@ -68,6 +72,7 @@ import com.google.dart.engine.internal.element.LocalVariableElementImpl;
 import com.google.dart.engine.internal.element.ParameterElementImpl;
 import com.google.dart.engine.internal.element.PropertyAccessorElementImpl;
 import com.google.dart.engine.internal.element.PropertyInducingElementImpl;
+import com.google.dart.engine.internal.element.TypeParameterElementImpl;
 import com.google.dart.engine.internal.element.VariableElementImpl;
 import com.google.dart.engine.internal.scope.Scope;
 import com.google.dart.engine.internal.type.DynamicTypeImpl;
@@ -214,6 +219,7 @@ public class TypeResolverVisitor extends ScopedVisitor {
   public Void visitClassDeclaration(ClassDeclaration node) {
     hasReferenceToSuper = false;
     super.visitClassDeclaration(node);
+
     ClassElementImpl classElement = getClassElement(node.getName());
     InterfaceType superclassType = null;
     ExtendsClause extendsClause = node.getExtendsClause();
@@ -283,23 +289,6 @@ public class TypeResolverVisitor extends ScopedVisitor {
   }
 
   @Override
-  public Void visitDefaultFormalParameter(DefaultFormalParameter node) {
-    super.visitDefaultFormalParameter(node);
-//    Expression defaultValue = node.getDefaultValue();
-//    if (defaultValue != null) {
-//      Type valueType = getType(defaultValue);
-//      Type parameterType = getType(node.getParameter());
-//      if (!valueType.isAssignableTo(parameterType)) {
-    // TODO(brianwilkerson) Determine whether this is really an error. I can't find in the spec
-    // anything that says it is, but a side comment from Gilad states that it should be a static
-    // warning.
-//        resolver.reportError(ResolverErrorCode.?, defaultValue);
-//      }
-//    }
-    return null;
-  }
-
-  @Override
   public Void visitFieldFormalParameter(FieldFormalParameter node) {
     super.visitFieldFormalParameter(node);
     Element element = node.getIdentifier().getStaticElement();
@@ -310,8 +299,13 @@ public class TypeResolverVisitor extends ScopedVisitor {
         Type type;
         TypeName typeName = node.getType();
         if (typeName == null) {
-          // TODO(brianwilkerson) Find the field's declaration and use it's type.
           type = dynamicType;
+          if (parameter instanceof FieldFormalParameterElement) {
+            FieldElement fieldElement = ((FieldFormalParameterElement) parameter).getField();
+            if (fieldElement != null) {
+              type = fieldElement.getType();
+            }
+          }
         } else {
           type = getType(typeName);
         }
@@ -664,6 +658,19 @@ public class TypeResolverVisitor extends ScopedVisitor {
   }
 
   @Override
+  public Void visitTypeParameter(TypeParameter node) {
+    super.visitTypeParameter(node);
+    TypeName bound = node.getBound();
+    if (bound != null) {
+      TypeParameterElementImpl typeParameter = (TypeParameterElementImpl) node.getName().getStaticElement();
+      if (typeParameter != null) {
+        typeParameter.setBound(bound.getType());
+      }
+    }
+    return null;
+  }
+
+  @Override
   public Void visitVariableDeclaration(VariableDeclaration node) {
     super.visitVariableDeclaration(node);
     Type declaredType;
@@ -705,6 +712,37 @@ public class TypeResolverVisitor extends ScopedVisitor {
       // TODO(brianwilkerson) Report the internal error.
     }
     return null;
+  }
+
+  @Override
+  protected void visitClassDeclarationInScope(ClassDeclaration node) {
+    //
+    // Process field declarations before constructors and methods so that the types of field formal
+    // parameters can be correctly resolved.
+    //
+    final ArrayList<ClassMember> nonFields = new ArrayList<ClassMember>();
+    node.visitChildren(new UnifyingASTVisitor<Void>() {
+      @Override
+      public Void visitConstructorDeclaration(ConstructorDeclaration node) {
+        nonFields.add(node);
+        return null;
+      }
+
+      @Override
+      public Void visitMethodDeclaration(MethodDeclaration node) {
+        nonFields.add(node);
+        return null;
+      }
+
+      @Override
+      public Void visitNode(ASTNode node) {
+        return node.accept(TypeResolverVisitor.this);
+      }
+    });
+    int count = nonFields.size();
+    for (int i = 0; i < count; i++) {
+      nonFields.get(i).accept(this);
+    }
   }
 
   /**

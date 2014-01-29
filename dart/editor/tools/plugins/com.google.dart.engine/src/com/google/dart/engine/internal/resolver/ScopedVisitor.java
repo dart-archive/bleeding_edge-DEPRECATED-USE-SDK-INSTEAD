@@ -245,7 +245,7 @@ public abstract class ScopedVisitor extends UnifyingASTVisitor<Void> {
     Scope outerScope = nameScope;
     try {
       nameScope = new ClassScope(nameScope, node.getElement());
-      super.visitClassDeclaration(node);
+      visitClassDeclarationInScope(node);
     } finally {
       nameScope = outerScope;
     }
@@ -573,6 +573,10 @@ public abstract class ScopedVisitor extends UnifyingASTVisitor<Void> {
     if (node != null) {
       node.accept(this);
     }
+  }
+
+  protected void visitClassDeclarationInScope(ClassDeclaration node) {
+    super.visitClassDeclaration(node);
   }
 
   /**

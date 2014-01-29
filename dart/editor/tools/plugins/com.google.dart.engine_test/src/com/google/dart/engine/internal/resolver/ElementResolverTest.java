@@ -50,6 +50,8 @@ import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
 import com.google.dart.engine.internal.element.ConstructorElementImpl;
+import com.google.dart.engine.internal.element.FieldElementImpl;
+import com.google.dart.engine.internal.element.FieldFormalParameterElementImpl;
 import com.google.dart.engine.internal.element.LabelElementImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
 import com.google.dart.engine.internal.element.MethodElementImpl;
@@ -309,13 +311,17 @@ public class ElementResolverTest extends EngineTestCase {
   }
 
   public void test_visitFieldFormalParameter() throws Exception {
-    InterfaceType intType = typeProvider.getIntType();
     String fieldName = "f";
+    InterfaceType intType = typeProvider.getIntType();
+    FieldElementImpl fieldElement = fieldElement(fieldName, false, false, false, intType);
     ClassElementImpl classA = classElement("A");
-    classA.setFields(new FieldElement[] {fieldElement(fieldName, false, false, false, intType)});
+    classA.setFields(new FieldElement[] {fieldElement});
 
     FieldFormalParameter parameter = fieldFormalParameter(fieldName);
-    parameter.getIdentifier().setStaticElement(fieldFormalParameter(parameter.getIdentifier()));
+    FieldFormalParameterElementImpl parameterElement = fieldFormalParameter(parameter.getIdentifier());
+    parameterElement.setField(fieldElement);
+    parameterElement.setType(intType);
+    parameter.getIdentifier().setStaticElement(parameterElement);
 
     resolveInClass(parameter, classA);
     assertSame(intType, parameter.getElement().getType());

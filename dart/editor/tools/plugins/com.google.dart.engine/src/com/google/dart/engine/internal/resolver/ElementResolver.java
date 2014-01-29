@@ -67,7 +67,6 @@ import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.SuperConstructorInvocation;
 import com.google.dart.engine.ast.SuperExpression;
 import com.google.dart.engine.ast.TopLevelVariableDeclaration;
-import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.TypeParameter;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationList;
@@ -104,7 +103,6 @@ import com.google.dart.engine.internal.element.ElementImpl;
 import com.google.dart.engine.internal.element.FieldFormalParameterElementImpl;
 import com.google.dart.engine.internal.element.LabelElementImpl;
 import com.google.dart.engine.internal.element.MultiplyDefinedElementImpl;
-import com.google.dart.engine.internal.element.TypeParameterElementImpl;
 import com.google.dart.engine.internal.scope.LabelScope;
 import com.google.dart.engine.internal.scope.Namespace;
 import com.google.dart.engine.internal.scope.NamespaceBuilder;
@@ -708,7 +706,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     ClassElement classElement = resolver.getEnclosingClass();
     if (classElement != null) {
       FieldElement fieldElement = classElement.getField(fieldName);
-      if (fieldElement == null) {
+      if (fieldElement == null || fieldElement.isSynthetic()) {
         resolver.reportError(
             CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTANT_FIELD,
             node,
@@ -717,12 +715,8 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
         ParameterElement parameterElement = node.getElement();
         if (parameterElement instanceof FieldFormalParameterElementImpl) {
           FieldFormalParameterElementImpl fieldFormal = (FieldFormalParameterElementImpl) parameterElement;
-          fieldFormal.setField(fieldElement);
           Type declaredType = fieldFormal.getType();
           Type fieldType = fieldElement.getType();
-          if (node.getType() == null) {
-            fieldFormal.setType(fieldType);
-          }
           if (fieldElement.isSynthetic()) {
             resolver.reportError(
                 CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTANT_FIELD,
@@ -735,8 +729,6 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
                 fieldName);
           } else if (declaredType != null && fieldType != null
               && !declaredType.isAssignableTo(fieldType)) {
-            // TODO(brianwilkerson) We should implement a displayName() method for types that will
-            // work nicely with function types and then use that below.
             resolver.reportError(
                 StaticWarningCode.FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE,
                 node,
@@ -1439,13 +1431,6 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
 
   @Override
   public Void visitTypeParameter(TypeParameter node) {
-    TypeName bound = node.getBound();
-    if (bound != null) {
-      TypeParameterElementImpl typeParameter = (TypeParameterElementImpl) node.getName().getStaticElement();
-      if (typeParameter != null) {
-        typeParameter.setBound(bound.getType());
-      }
-    }
     setMetadata(node.getElement(), node);
     return null;
   }

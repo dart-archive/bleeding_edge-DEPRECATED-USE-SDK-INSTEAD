@@ -192,6 +192,14 @@ public class ElementHolder {
     return result;
   }
 
+  public FieldElement[] getFieldsWithoutFlushing() {
+    if (fields == null) {
+      return FieldElementImpl.EMPTY_ARRAY;
+    }
+    FieldElement[] result = fields.toArray(new FieldElement[fields.size()]);
+    return result;
+  }
+
   public FunctionElement[] getFunctions() {
     if (functions == null) {
       return FunctionElementImpl.EMPTY_ARRAY;

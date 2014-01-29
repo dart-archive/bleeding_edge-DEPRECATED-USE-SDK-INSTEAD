@@ -17,6 +17,7 @@ import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.Block;
 import com.google.dart.engine.ast.CatchClause;
 import com.google.dart.engine.ast.ClassDeclaration;
+import com.google.dart.engine.ast.ClassMember;
 import com.google.dart.engine.ast.ClassTypeAlias;
 import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.DeclaredIdentifier;
@@ -36,6 +37,7 @@ import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.ast.Label;
 import com.google.dart.engine.ast.LabeledStatement;
 import com.google.dart.engine.ast.MethodDeclaration;
+import com.google.dart.engine.ast.NormalFormalParameter;
 import com.google.dart.engine.ast.SimpleFormalParameter;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.SuperExpression;
@@ -46,7 +48,9 @@ import com.google.dart.engine.ast.TypeParameter;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationList;
 import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
+import com.google.dart.engine.ast.visitor.UnifyingASTVisitor;
 import com.google.dart.engine.element.ConstructorElement;
+import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.TypeParameterElement;
 import com.google.dart.engine.internal.element.ClassElementImpl;
@@ -80,6 +84,7 @@ import com.google.dart.engine.type.Type;
 import com.google.dart.engine.utilities.dart.ParameterKind;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
  * Instances of the class {@code ElementBuilder} traverse an AST structure and build the element
@@ -114,6 +119,12 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
    * currently processing nodes within a class.
    */
   private ArrayList<FunctionTypeImpl> functionTypesToFix = null;
+
+  /**
+   * A table mapping field names to field elements for the fields defined in the current class, or
+   * {@code null} if we are not in the scope of a class.
+   */
+  private HashMap<String, FieldElement> fieldMap;
 
   /**
    * Initialize a newly created element builder to build the elements for a compilation unit.
@@ -161,7 +172,40 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
     ElementHolder holder = new ElementHolder();
     isValidMixin = true;
     functionTypesToFix = new ArrayList<FunctionTypeImpl>();
-    visitChildren(holder, node);
+    //
+    // Process field declarations before constructors and methods so that field formal parameters
+    // can be correctly resolved to their fields.
+    //
+    ElementHolder previousHolder = currentHolder;
+    currentHolder = holder;
+    try {
+      final ArrayList<ClassMember> nonFields = new ArrayList<ClassMember>();
+      node.visitChildren(new UnifyingASTVisitor<Void>() {
+        @Override
+        public Void visitConstructorDeclaration(ConstructorDeclaration node) {
+          nonFields.add(node);
+          return null;
+        }
+
+        @Override
+        public Void visitMethodDeclaration(MethodDeclaration node) {
+          nonFields.add(node);
+          return null;
+        }
+
+        @Override
+        public Void visitNode(ASTNode node) {
+          return node.accept(ElementBuilder.this);
+        }
+      });
+      buildFieldMap(holder.getFieldsWithoutFlushing());
+      int count = nonFields.size();
+      for (int i = 0; i < count; i++) {
+        nonFields.get(i).accept(this);
+      }
+    } finally {
+      currentHolder = previousHolder;
+    }
 
     SimpleIdentifier className = node.getName();
     ClassElementImpl element = new ClassElementImpl(className);
@@ -194,6 +238,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
     functionTypesToFix = null;
     currentHolder.addType(element);
     className.setStaticElement(element);
+    fieldMap = null;
     holder.validate();
     return null;
   }
@@ -288,10 +333,15 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
   public Void visitDefaultFormalParameter(DefaultFormalParameter node) {
     ElementHolder holder = new ElementHolder();
 
-    SimpleIdentifier parameterName = node.getParameter().getIdentifier();
+    NormalFormalParameter normalParameter = node.getParameter();
+    SimpleIdentifier parameterName = normalParameter.getIdentifier();
     ParameterElementImpl parameter;
-    if (node.getParameter() instanceof FieldFormalParameter) {
+    if (normalParameter instanceof FieldFormalParameter) {
       parameter = new DefaultFieldFormalParameterElementImpl(parameterName);
+      FieldElement field = fieldMap == null ? null : fieldMap.get(parameterName.getName());
+      if (field != null) {
+        ((DefaultFieldFormalParameterElementImpl) parameter).setField(field);
+      }
     } else {
       parameter = new DefaultParameterElementImpl(parameterName);
     }
@@ -321,7 +371,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
 
     currentHolder.addParameter(parameter);
     parameterName.setStaticElement(parameter);
-    node.getParameter().accept(this);
+    normalParameter.accept(this);
     holder.validate();
     return null;
   }
@@ -342,10 +392,14 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
   public Void visitFieldFormalParameter(FieldFormalParameter node) {
     if (!(node.getParent() instanceof DefaultFormalParameter)) {
       SimpleIdentifier parameterName = node.getIdentifier();
+      FieldElement field = fieldMap == null ? null : fieldMap.get(parameterName.getName());
       FieldFormalParameterElementImpl parameter = new FieldFormalParameterElementImpl(parameterName);
       parameter.setConst(node.isConst());
       parameter.setFinal(node.isFinal());
       parameter.setParameterKind(node.getKind());
+      if (field != null) {
+        parameter.setField(field);
+      }
 
       currentHolder.addParameter(parameter);
       parameterName.setStaticElement(parameter);
@@ -781,6 +835,21 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
       }
     }
     return null;
+  }
+
+  /**
+   * Build the table mapping field names to field elements for the fields defined in the current
+   * class.
+   * 
+   * @param fields the field elements defined in the current class
+   */
+  private void buildFieldMap(FieldElement[] fields) {
+    fieldMap = new HashMap<String, FieldElement>();
+    int count = fields.length;
+    for (int i = 0; i < count; i++) {
+      FieldElement field = fields[i];
+      fieldMap.put(field.getName(), field);
+    }
   }
 
   /**
