@@ -7,23 +7,33 @@
 #include "include/dart_api.h"
 #include "include/dart_native_api.h"
 
+
 Dart_NativeFunction ResolveName(Dart_Handle name,
                                 int argc,
                                 bool* auto_setup_scope);
 
+
 DART_EXPORT Dart_Handle sample_extension_Init(Dart_Handle parent_library) {
-  if (Dart_IsError(parent_library)) { return parent_library; }
+  if (Dart_IsError(parent_library)) {
+    return parent_library;
+  }
 
   Dart_Handle result_code = Dart_SetNativeResolver(parent_library, ResolveName);
-  if (Dart_IsError(result_code)) return result_code;
+  if (Dart_IsError(result_code)) {
+    return result_code;
+  }
 
   return Dart_Null();
 }
 
+
 Dart_Handle HandleError(Dart_Handle handle) {
-  if (Dart_IsError(handle)) Dart_PropagateError(handle);
+  if (Dart_IsError(handle)) {
+    Dart_PropagateError(handle);
+  }
   return handle;
 }
+
 
 void SystemRand(Dart_NativeArguments arguments) {
   Dart_EnterScope();
@@ -31,6 +41,7 @@ void SystemRand(Dart_NativeArguments arguments) {
   Dart_SetReturnValue(arguments, result);
   Dart_ExitScope();
 }
+
 
 void SystemSrand(Dart_NativeArguments arguments) {
   Dart_EnterScope();
@@ -50,16 +61,22 @@ void SystemSrand(Dart_NativeArguments arguments) {
   Dart_ExitScope();
 }
 
+
 uint8_t* randomArray(int seed, int length) {
-  if (length <= 0 || length > 10000000) return NULL;
+  if (length <= 0 || length > 10000000) {
+    return NULL;
+  }
   uint8_t* values = reinterpret_cast<uint8_t*>(malloc(length));
-  if (NULL == values) return NULL;
+  if (NULL == values) {
+    return NULL;
+  }
   srand(seed);
   for (int i = 0; i < length; ++i) {
     values[i] = rand() % 256;
   }
   return values;
 }
+
 
 void wrappedRandomArray(Dart_Port dest_port_id,
                         Dart_CObject* message) {
@@ -97,6 +114,7 @@ void wrappedRandomArray(Dart_Port dest_port_id,
   Dart_PostCObject(reply_port_id, &result);
 }
 
+
 void randomArrayServicePort(Dart_NativeArguments arguments) {
   Dart_EnterScope();
   Dart_SetReturnValue(arguments, Dart_Null());
@@ -115,29 +133,52 @@ struct FunctionLookup {
   Dart_NativeFunction function;
 };
 
+
 FunctionLookup function_list[] = {
     {"SystemRand", SystemRand},
     {"SystemSrand", SystemSrand},
     {"RandomArray_ServicePort", randomArrayServicePort},
     {NULL, NULL}};
 
+
+FunctionLookup no_scope_function_list[] = {{"NoScopeSystemRand", SystemRand}};
+
 Dart_NativeFunction ResolveName(Dart_Handle name,
                                 int argc,
                                 bool* auto_setup_scope) {
-  if (!Dart_IsString(name)) return NULL;
+  if (!Dart_IsString(name)) {
+    return NULL;
+  }
   Dart_NativeFunction result = NULL;
-  if (auto_setup_scope == NULL) return NULL;
-  *auto_setup_scope = true;
+  if (auto_setup_scope == NULL) {
+    return NULL;
+  }
+
   Dart_EnterScope();
   const char* cname;
   HandleError(Dart_StringToCString(name, &cname));
 
   for (int i=0; function_list[i].name != NULL; ++i) {
     if (strcmp(function_list[i].name, cname) == 0) {
+      *auto_setup_scope = true;
       result = function_list[i].function;
       break;
     }
   }
+
+  if (result != NULL) {
+    Dart_ExitScope();
+    return result;
+  }
+
+  for (int i=0; no_scope_function_list[i].name != NULL; ++i) {
+    if (strcmp(no_scope_function_list[i].name, cname) == 0) {
+      *auto_setup_scope = false;
+      result = no_scope_function_list[i].function;
+      break;
+    }
+  }
+
   Dart_ExitScope();
   return result;
 }
