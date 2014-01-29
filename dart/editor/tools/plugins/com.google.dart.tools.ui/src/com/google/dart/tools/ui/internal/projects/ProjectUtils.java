@@ -33,6 +33,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.operation.IRunnableContext;
 import org.eclipse.jface.operation.IRunnableWithProgress;
@@ -91,6 +92,14 @@ public class ProjectUtils {
           if (status.isOK() && projectType != ProjectType.NONE) {
             createProjectContent(newProjectHandle, projectType);
           }
+        } catch (OperationCanceledException e) {
+          try {
+            newProjectHandle.close(new NullProgressMonitor());
+            newProjectHandle.delete(false, true, new NullProgressMonitor());
+          } catch (CoreException exceptionDuringClose) {
+            DartCore.logError(exceptionDuringClose);
+          }
+          throw e;
         } catch (ExecutionException e) {
           throw new InvocationTargetException(e);
         } catch (CoreException e) {
