@@ -965,6 +965,16 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
     assertErrors(source, StaticTypeWarningCode.UNDEFINED_GETTER);
   }
 
+  public void test_undefinedGetter_void() throws Exception {
+    Source source = addSource(createSource(//
+        "class T {",
+        "  void m() {}",
+        "}",
+        "f(T e) { return e.m().f; }"));
+    resolve(source);
+    assertErrors(source, StaticTypeWarningCode.UNDEFINED_GETTER);
+  }
+
   public void test_undefinedMethod() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
@@ -1094,6 +1104,16 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
         "class A {}",
         "f() { A.B = 0;}"));
+    resolve(source);
+    assertErrors(source, StaticTypeWarningCode.UNDEFINED_SETTER);
+  }
+
+  public void test_undefinedSetter_void() throws Exception {
+    Source source = addSource(createSource(//
+        "class T {",
+        "  void m() {}",
+        "}",
+        "f(T e) { e.m().f = 0; }"));
     resolve(source);
     assertErrors(source, StaticTypeWarningCode.UNDEFINED_SETTER);
   }

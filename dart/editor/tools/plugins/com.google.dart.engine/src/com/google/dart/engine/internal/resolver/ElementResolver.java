@@ -2730,6 +2730,30 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     }
 
     if (shouldReportMissingMember_static || shouldReportMissingMember_propagated) {
+      if (staticType.isVoid()) {
+        if (propertyName.inSetterContext()) {
+          ErrorCode errorCode = shouldReportMissingMember_static
+              ? StaticTypeWarningCode.UNDEFINED_SETTER : HintCode.UNDEFINED_SETTER;
+          resolver.reportError(
+              errorCode,
+              propertyName,
+              propertyName.getName(),
+              staticType.getDisplayName());
+        } else if (propertyName.inGetterContext()) {
+          ErrorCode errorCode = shouldReportMissingMember_static
+              ? StaticTypeWarningCode.UNDEFINED_GETTER : HintCode.UNDEFINED_GETTER;
+          resolver.reportError(
+              errorCode,
+              propertyName,
+              propertyName.getName(),
+              staticType.getDisplayName());
+        } else {
+          resolver.reportError(
+              StaticWarningCode.UNDEFINED_IDENTIFIER,
+              propertyName,
+              propertyName.getName());
+        }
+      }
       Element staticOrPropagatedEnclosingElt = shouldReportMissingMember_static
           ? staticType.getElement() : propagatedType.getElement();
       if (staticOrPropagatedEnclosingElt != null) {
