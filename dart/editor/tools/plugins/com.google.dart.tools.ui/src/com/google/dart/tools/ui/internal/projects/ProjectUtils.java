@@ -35,9 +35,12 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.operation.IRunnableContext;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.osgi.util.NLS;
+import org.eclipse.swt.events.ShellAdapter;
+import org.eclipse.swt.events.ShellEvent;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.ide.undo.CreateProjectOperation;
@@ -62,6 +65,30 @@ import java.text.MessageFormat;
 @SuppressWarnings("restriction")
 public class ProjectUtils {
 
+  private static final class ShellCloseListener extends ShellAdapter {
+    private IProgressMonitor monitor;
+    private final Shell shell;
+
+    public ShellCloseListener(Shell shell) {
+      this.shell = shell;
+    }
+
+    public void setMonitor(IProgressMonitor monitor) {
+      this.monitor = monitor;
+    }
+
+    @Override
+    public void shellClosed(ShellEvent e) {
+      if (monitor != null) {
+        monitor.setCanceled(true);
+        MessageDialog.openInformation(
+            shell,
+            "Operation Canceled",
+            "The Open Folder operation has been canceled");
+      }
+    }
+  }
+
   /**
    * Creates a new project resource.
    * 
@@ -77,16 +104,19 @@ public class ProjectUtils {
       final ProjectType projectType, URI location, final IRunnableContext runnableContext,
       final Shell shell) {
 
+    final ShellCloseListener shellListener = new ShellCloseListener(shell);
+
     final IProjectDescription description = createProjectDescription(newProjectHandle, location);
 
     // create the new project operation
     IRunnableWithProgress op = new IRunnableWithProgress() {
       @Override
-      public void run(IProgressMonitor monitor) throws InvocationTargetException {
+      public void run(final IProgressMonitor monitor) throws InvocationTargetException {
         CreateProjectOperation op = new CreateProjectOperation(
             description,
             ResourceMessages.NewProject_windowTitle);
         try {
+          shellListener.setMonitor(monitor);
           IStatus status = op.execute(monitor, WorkspaceUndoUtil.getUIInfoAdapter(shell));
 
           if (status.isOK() && projectType != ProjectType.NONE) {
@@ -108,6 +138,7 @@ public class ProjectUtils {
       }
     };
 
+    shell.addShellListener(shellListener);
     try {
       runnableContext.run(true, true, op);
     } catch (InterruptedException e) {
@@ -147,6 +178,8 @@ public class ProjectUtils {
         StatusManager.getManager().handle(status, StatusManager.LOG | StatusManager.BLOCK);
       }
       return null;
+    } finally {
+      shell.removeShellListener(shellListener);
     }
     try {
       IProjectUtilities.configurePackagesFilter(newProjectHandle);
