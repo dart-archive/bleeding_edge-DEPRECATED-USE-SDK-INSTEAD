@@ -22,7 +22,6 @@ import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.services.refactoring.NamingConventions;
 import com.google.dart.engine.services.refactoring.Refactoring;
 import com.google.dart.engine.services.status.RefactoringStatus;
-import com.google.dart.engine.source.Source;
 
 import java.text.MessageFormat;
 
@@ -43,8 +42,7 @@ public class RenameAngularFilterRefactoringImpl extends RenameAngularElementRefa
   protected RefactoringStatus checkNameConflicts(String newName) {
     LibraryElement library = element.getLibrary();
     AnalysisContext context = library.getContext();
-    Source librarySource = library.getSource();
-    AngularElement[] angularElements = context.getLibraryAngularElements(librarySource);
+    AngularElement[] angularElements = context.getAngularElements();
     for (AngularElement angularElement : angularElements) {
       if (angularElement instanceof AngularFilterElement) {
         if (angularElement.getName().equals(newName)) {

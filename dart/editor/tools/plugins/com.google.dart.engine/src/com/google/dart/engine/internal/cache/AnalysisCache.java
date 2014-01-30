@@ -157,7 +157,7 @@ public class AnalysisCache {
     SourceEntry sourceEntry = sourceMap.get(removedSource);
     if (sourceEntry instanceof HtmlEntry) {
       HtmlEntryImpl htmlCopy = ((HtmlEntry) sourceEntry).getWritableCopy();
-      htmlCopy.setState(HtmlEntry.PARSED_UNIT, CacheState.FLUSHED);
+      htmlCopy.flushAstStructures();
       sourceMap.put(removedSource, htmlCopy);
     } else if (sourceEntry instanceof DartEntry) {
       DartEntryImpl dartCopy = ((DartEntry) sourceEntry).getWritableCopy();

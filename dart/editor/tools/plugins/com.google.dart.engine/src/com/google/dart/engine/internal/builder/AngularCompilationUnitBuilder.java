@@ -38,7 +38,6 @@ import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.FieldElement;
-import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.ToolkitObjectElement;
@@ -61,8 +60,6 @@ import com.google.dart.engine.internal.element.angular.AngularPropertyElementImp
 import com.google.dart.engine.internal.element.angular.HasAttributeSelectorElementImpl;
 import com.google.dart.engine.internal.element.angular.IsTagHasAttributeSelectorElementImpl;
 import com.google.dart.engine.internal.element.angular.IsTagSelectorElementImpl;
-import com.google.dart.engine.internal.scope.Namespace;
-import com.google.dart.engine.internal.scope.NamespaceBuilder;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.general.StringUtilities;
 
@@ -95,27 +92,22 @@ public class AngularCompilationUnitBuilder {
   private static final String NG_TWO_WAY = "NgTwoWay";
 
   /**
-   * Returns the array of all top-level Angular elements that could be used in this library.
+   * Returns the array of all top-level Angular elements that are defined in this library.
    * 
    * @param libraryElement the {@link LibraryElement} to analyze
-   * @return the array of all top-level Angular elements that could be used in this library
+   * @return the array of all top-level Angular elements that are defined in this library
    */
   public static AngularElement[] getAngularElements(LibraryElement libraryElement) {
     List<AngularElement> angularElements = Lists.newArrayList();
-    // add Angular elements from current library
     for (CompilationUnitElement unit : libraryElement.getUnits()) {
       for (ClassElement type : unit.getTypes()) {
-        addAngularElements(angularElements, type);
+        for (ToolkitObjectElement toolkitObject : type.getToolkitObjects()) {
+          if (toolkitObject instanceof AngularElement) {
+            angularElements.add((AngularElement) toolkitObject);
+          }
+        }
       }
     }
-    // handle imports
-    for (ImportElement importElement : libraryElement.getImports()) {
-      Namespace namespace = new NamespaceBuilder().createImportNamespace(importElement);
-      for (Element importedElement : namespace.getDefinedNames().values()) {
-        addAngularElements(angularElements, importedElement);
-      }
-    }
-    // done
     return angularElements.toArray(new AngularElement[angularElements.size()]);
   }
 
@@ -211,24 +203,6 @@ public class AngularCompilationUnitBuilder {
       return new IsTagSelectorElementImpl(text, offset);
     }
     return null;
-  }
-
-  /**
-   * Adds {@link AngularElement} declared by the given top-level {@link Element}.
-   * 
-   * @param angularElements the list to fill with top-level {@link AngularElement}s
-   * @param unitMember the top-level member of unit, such as {@link ClassElement}, to get
-   *          {@link AngularElement}s from
-   */
-  private static void addAngularElements(List<AngularElement> angularElements, Element unitMember) {
-    if (unitMember instanceof ClassElement) {
-      ClassElement type = (ClassElement) unitMember;
-      for (ToolkitObjectElement toolkitObject : type.getToolkitObjects()) {
-        if (toolkitObject instanceof AngularElement) {
-          angularElements.add((AngularElement) toolkitObject);
-        }
-      }
-    }
   }
 
   /**
@@ -487,7 +461,10 @@ public class AngularCompilationUnitBuilder {
     }
     // create
     if (isValid) {
-      AngularComponentElementImpl element = new AngularComponentElementImpl(name, nameOffset);
+      AngularComponentElementImpl element = new AngularComponentElementImpl(
+          name,
+          nameOffset,
+          annotation.getOffset());
       element.setSelector(selector);
       element.setTemplateUri(templateUri);
       element.setTemplateUriOffset(templateUriOffset);

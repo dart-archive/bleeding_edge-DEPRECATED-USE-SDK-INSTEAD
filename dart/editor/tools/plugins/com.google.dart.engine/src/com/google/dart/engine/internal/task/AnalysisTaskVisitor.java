@@ -78,6 +78,16 @@ public interface AnalysisTaskVisitor<E> {
       throws AnalysisException;
 
   /**
+   * Visit a {@link ResolveAngularEntryHtmlTask}.
+   * 
+   * @param task the task to be visited
+   * @return the result of visiting the task
+   * @throws AnalysisException if the visitor throws an exception for some reason
+   */
+  public E visitResolveAngularEntryHtmlTask(ResolveAngularEntryHtmlTask task)
+      throws AnalysisException;
+
+  /**
    * Visit a {@link ResolveDartDependenciesTask}.
    * 
    * @param task the task to be visited

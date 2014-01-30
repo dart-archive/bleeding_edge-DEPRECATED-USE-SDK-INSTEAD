@@ -14,6 +14,7 @@
 package com.google.dart.engine.internal.context;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Lists;
 import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.AnnotatedNode;
@@ -64,6 +65,7 @@ import com.google.dart.engine.internal.task.IncrementalAnalysisTask;
 import com.google.dart.engine.internal.task.ParseDartTask;
 import com.google.dart.engine.internal.task.ParseHtmlTask;
 import com.google.dart.engine.internal.task.ResolveAngularComponentTemplateTask;
+import com.google.dart.engine.internal.task.ResolveAngularEntryHtmlTask;
 import com.google.dart.engine.internal.task.ResolveDartDependenciesTask;
 import com.google.dart.engine.internal.task.ResolveDartLibraryTask;
 import com.google.dart.engine.internal.task.ResolveDartUnitTask;
@@ -81,6 +83,7 @@ import com.google.dart.engine.utilities.source.LineInfo;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -132,6 +135,12 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     public HtmlEntry visitResolveAngularComponentTemplateTask(
         ResolveAngularComponentTemplateTask task) throws AnalysisException {
       return recordResolveAngularComponentTemplateTaskResults(task);
+    }
+
+    @Override
+    public SourceEntry visitResolveAngularEntryHtmlTask(ResolveAngularEntryHtmlTask task)
+        throws AnalysisException {
+      return recordResolveAngularEntryHtmlTaskResults(task);
     }
 
     @Override
@@ -245,6 +254,11 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   private IncrementalAnalysisCache incrementalAnalysisCache;
 
   /**
+   * The cached array of the {@link AngularElement}s declared in all libraries of this context.
+   */
+  private AngularElement[] angularElements;
+
+  /**
    * Initialize a newly created analysis context.
    */
   public AnalysisContextImpl() {
@@ -267,6 +281,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     }
     synchronized (cacheLock) {
       recentTasks.clear();
+      angularElements = null;
       //
       // First, compute the list of sources that have been removed.
       //
@@ -440,6 +455,28 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @Override
+  public ResolvableHtmlUnit computeResolvableAngularComponentHtmlUnit(Source source)
+      throws AnalysisException {
+    HtmlEntry htmlEntry = getReadableHtmlEntry(source);
+    if (htmlEntry == null) {
+      throw new AnalysisException(
+          "computeResolvableAngularComponentHtmlUnit invoked for non-HTML file: "
+              + source.getFullName());
+    }
+    htmlEntry = cacheHtmlResolutionData(source, htmlEntry, HtmlEntry.RESOLVED_UNIT);
+    HtmlUnit unit = htmlEntry.getValue(HtmlEntry.RESOLVED_UNIT);
+    if (unit == null) {
+      AnalysisException cause = htmlEntry.getException();
+      throw new AnalysisException(
+          "Internal error: computeResolvableAngularComponentHtmlUnit could not resolve "
+              + source.getFullName(),
+          cause);
+    }
+    // If the unit is ever modified by resolution then we will need to create a copy of it.
+    return new ResolvableHtmlUnit(htmlEntry.getModificationTime(), unit);
+  }
+
+  @Override
   public ResolvableCompilationUnit computeResolvableCompilationUnit(Source source)
       throws AnalysisException {
     while (true) {
@@ -451,16 +488,10 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         }
         if (dartEntry.getState(DartEntry.PARSED_UNIT) == CacheState.ERROR) {
           AnalysisException cause = dartEntry.getException();
-          if (cause == null) {
-            throw new AnalysisException(
-                "Internal error: computeResolvableCompilationUnit could not parse "
-                    + source.getFullName());
-          } else {
-            throw new AnalysisException(
-                "Internal error: computeResolvableCompilationUnit could not parse "
-                    + source.getFullName(),
-                cause);
-          }
+          throw new AnalysisException(
+              "Internal error: computeResolvableCompilationUnit could not parse "
+                  + source.getFullName(),
+              cause);
         }
         DartEntryImpl dartCopy = dartEntry.getWritableCopy();
         CompilationUnit unit = dartCopy.getResolvableCompilationUnit();
@@ -531,6 +562,23 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   @Override
   public AnalysisOptions getAnalysisOptions() {
     return options;
+  }
+
+  @Override
+  public AngularElement[] getAngularElements() {
+    synchronized (cacheLock) {
+      if (angularElements == null) {
+        List<AngularElement> allElements = Lists.newArrayList();
+        for (Map.Entry<Source, SourceEntry> entry : cache.entrySet()) {
+          SourceEntry sourceEntry = entry.getValue();
+          if (sourceEntry.getKind() == SourceKind.LIBRARY) {
+            Collections.addAll(allElements, sourceEntry.getValue(DartEntry.ANGULAR_ELEMENTS));
+          }
+        }
+        angularElements = allElements.toArray(new AngularElement[allElements.size()]);
+      }
+      return angularElements;
+    }
   }
 
   @Override
@@ -723,15 +771,6 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @Override
-  public AngularElement[] getLibraryAngularElements(Source source) {
-    SourceEntry sourceEntry = getReadableSourceEntry(source);
-    if (sourceEntry instanceof DartEntry) {
-      return ((DartEntry) sourceEntry).getValue(DartEntry.ANGULAR_ELEMENTS);
-    }
-    return AngularElement.EMPTY_ARRAY;
-  }
-
-  @Override
   public LibraryElement getLibraryElement(Source source) {
     SourceEntry sourceEntry = getReadableSourceEntry(source);
     if (sourceEntry instanceof DartEntry) {
@@ -856,9 +895,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     SourceEntry sourceEntry = getReadableSourceEntry(htmlSource);
     if (sourceEntry instanceof HtmlEntry) {
       HtmlEntry htmlEntry = (HtmlEntry) sourceEntry;
-      if (htmlEntry.getValue(HtmlEntry.ELEMENT) != null) {
-        return htmlEntry.getValue(HtmlEntry.PARSED_UNIT);
-      }
+      return htmlEntry.getValue(HtmlEntry.RESOLVED_UNIT);
     }
     return null;
   }
@@ -1593,6 +1630,12 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
    */
   private HtmlEntry cacheHtmlParseData(Source source, HtmlEntry htmlEntry,
       DataDescriptor<?> descriptor) throws AnalysisException {
+    if (descriptor == HtmlEntry.PARSED_UNIT) {
+      HtmlUnit unit = htmlEntry.getAnyParsedUnit();
+      if (unit != null) {
+        return htmlEntry;
+      }
+    }
     //
     // Check to see whether we already have the information being requested.
     //
@@ -1913,6 +1956,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
    * @return the requested data about the given source
    * @throws AnalysisException if data could not be returned because the source could not be parsed
    */
+  @SuppressWarnings("unchecked")
   private <E> E getHtmlParseData(Source source, DataDescriptor<E> descriptor, E defaultValue)
       throws AnalysisException {
     HtmlEntry htmlEntry = getReadableHtmlEntry(source);
@@ -1920,6 +1964,9 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       return defaultValue;
     }
     htmlEntry = cacheHtmlParseData(source, htmlEntry, descriptor);
+    if (descriptor == HtmlEntry.PARSED_UNIT) {
+      return (E) htmlEntry.getAnyParsedUnit();
+    }
     return htmlEntry.getValue(descriptor);
   }
 
@@ -2039,8 +2086,27 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
                 this,
                 templateSource,
                 component,
-                angularElements);
+                getAngularElements());
           }
+        }
+      }
+      //
+      // Look for HTML sources that should be resolved as Angular entry points.
+      //
+      for (Map.Entry<Source, SourceEntry> entry : cache.entrySet()) {
+        SourceEntry sourceEntry = entry.getValue();
+        if (sourceEntry instanceof HtmlEntry) {
+          HtmlEntry htmlEntry = (HtmlEntry) sourceEntry;
+          CacheState angularErrorsState = htmlEntry.getState(HtmlEntry.ANGULAR_ERRORS);
+          if (angularErrorsState != CacheState.INVALID) {
+            continue;
+          }
+          // do Angular resolution
+          Source source = entry.getKey();
+          HtmlEntryImpl htmlCopy = htmlEntry.getWritableCopy();
+          htmlCopy.setState(HtmlEntry.ANGULAR_ERRORS, CacheState.IN_PROCESS);
+          cache.put(source, htmlCopy);
+          return new ResolveAngularEntryHtmlTask(this, source);
         }
       }
       return null;
@@ -2146,18 +2212,28 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       }
     } else if (sourceEntry instanceof HtmlEntry) {
       HtmlEntry htmlEntry = (HtmlEntry) sourceEntry;
-      CacheState parsedUnitState = htmlEntry.getState(HtmlEntry.PARSED_UNIT);
-      if (parsedUnitState == CacheState.INVALID
-          || (isPriority && parsedUnitState == CacheState.FLUSHED)) {
-        HtmlEntryImpl htmlCopy = htmlEntry.getWritableCopy();
-        htmlCopy.setState(HtmlEntry.PARSED_UNIT, CacheState.IN_PROCESS);
-        cache.put(source, htmlCopy);
+      CacheState parseErrorsState = htmlEntry.getState(HtmlEntry.PARSE_ERRORS);
+      if (parseErrorsState == CacheState.INVALID
+          || (isPriority && parseErrorsState == CacheState.FLUSHED)) {
+        HtmlEntryImpl dartCopy = htmlEntry.getWritableCopy();
+        dartCopy.setState(HtmlEntry.PARSE_ERRORS, CacheState.IN_PROCESS);
+        cache.put(source, dartCopy);
         return new ParseHtmlTask(this, source);
       }
-      CacheState elementState = htmlEntry.getState(HtmlEntry.ELEMENT);
-      if (elementState == CacheState.INVALID || (isPriority && elementState == CacheState.FLUSHED)) {
+      if (isPriority && parseErrorsState != CacheState.ERROR) {
+        HtmlUnit parsedUnit = htmlEntry.getAnyParsedUnit();
+        if (parsedUnit == null) {
+          HtmlEntryImpl dartCopy = htmlEntry.getWritableCopy();
+          dartCopy.setState(HtmlEntry.PARSED_UNIT, CacheState.IN_PROCESS);
+          cache.put(source, dartCopy);
+          return new ParseHtmlTask(this, source);
+        }
+      }
+      CacheState resolvedUnitState = htmlEntry.getState(HtmlEntry.RESOLVED_UNIT);
+      if (resolvedUnitState == CacheState.INVALID
+          || (isPriority && resolvedUnitState == CacheState.FLUSHED)) {
         HtmlEntryImpl htmlCopy = htmlEntry.getWritableCopy();
-        htmlCopy.setState(HtmlEntry.ELEMENT, CacheState.IN_PROCESS);
+        htmlCopy.setState(HtmlEntry.RESOLVED_UNIT, CacheState.IN_PROCESS);
         cache.put(source, htmlCopy);
         return new ResolveHtmlTask(this, source);
       }
@@ -2342,8 +2418,9 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         sources.add(source);
         return;
       }
-      CacheState elementState = htmlEntry.getState(HtmlEntry.ELEMENT);
-      if (elementState == CacheState.INVALID || (isPriority && elementState == CacheState.FLUSHED)) {
+      CacheState resolvedUnitState = htmlEntry.getState(HtmlEntry.RESOLVED_UNIT);
+      if (resolvedUnitState == CacheState.INVALID
+          || (isPriority && resolvedUnitState == CacheState.FLUSHED)) {
         sources.add(source);
         return;
       }
@@ -2472,6 +2549,9 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
    */
   private void recordAngularComponents(Library library, DartEntryImpl dartCopy)
       throws AnalysisException {
+    // TODO(scheglov) Use some dependency information to decide which HTML files are affected
+    // by the given changed Library.
+
     // reset old Angular errors
     AngularElement[] oldAngularElements = dartCopy.getValue(DartEntry.ANGULAR_ELEMENTS);
     if (oldAngularElements != null) {
@@ -2927,6 +3007,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
           //
           htmlCopy.setState(SourceEntry.LINE_INFO, CacheState.ERROR);
           htmlCopy.setState(HtmlEntry.PARSED_UNIT, CacheState.ERROR);
+          htmlCopy.setState(HtmlEntry.RESOLVED_UNIT, CacheState.ERROR);
           htmlCopy.setState(HtmlEntry.REFERENCED_LIBRARIES, CacheState.ERROR);
         }
         htmlCopy.setException(thrownException);
@@ -2949,6 +3030,90 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
    */
   private HtmlEntry recordResolveAngularComponentTemplateTaskResults(
       ResolveAngularComponentTemplateTask task) throws AnalysisException {
+    Source source = task.getSource();
+    AnalysisException thrownException = task.getException();
+    HtmlEntry htmlEntry = null;
+    synchronized (cacheLock) {
+      SourceEntry sourceEntry = cache.get(source);
+      if (!(sourceEntry instanceof HtmlEntry)) {
+        // This shouldn't be possible because we should never have performed the task if the source
+        // didn't represent an HTML file, but check to be safe.
+        throw new AnalysisException(
+            "Internal error: attempting to resolve non-HTML file as an HTML file: "
+                + source.getFullName());
+      }
+      htmlEntry = (HtmlEntry) sourceEntry;
+      cache.accessed(source);
+      long sourceTime = source.getModificationStamp();
+      long resultTime = task.getModificationTime();
+      if (sourceTime == resultTime) {
+        if (htmlEntry.getModificationTime() != sourceTime) {
+          // The source has changed without the context being notified. Simulate notification.
+          sourceChanged(source);
+          htmlEntry = getReadableHtmlEntry(source);
+          if (htmlEntry == null) {
+            throw new AnalysisException("An HTML file became a non-HTML file: "
+                + source.getFullName());
+          }
+        }
+        HtmlEntryImpl htmlCopy = htmlEntry.getWritableCopy();
+        if (thrownException == null) {
+          htmlCopy.setValue(HtmlEntry.ANGULAR_ERRORS, task.getResolutionErrors());
+          ChangeNoticeImpl notice = getNotice(source);
+          notice.setHtmlUnit(task.getResolvedUnit());
+          notice.setErrors(htmlCopy.getAllErrors(), htmlCopy.getValue(SourceEntry.LINE_INFO));
+        } else {
+          htmlCopy.recordResolutionError();
+        }
+        htmlCopy.setException(thrownException);
+        cache.put(source, htmlCopy);
+        htmlEntry = htmlCopy;
+      } else {
+        HtmlEntryImpl htmlCopy = htmlEntry.getWritableCopy();
+        if (thrownException == null || resultTime >= 0L) {
+          //
+          // The analysis was performed on out-of-date sources. Mark the cache so that the sources
+          // will be re-analyzed using the up-to-date sources.
+          //
+//          if (htmlCopy.getState(HtmlEntry.ANGULAR_ERRORS) == CacheState.IN_PROCESS) {
+//            htmlCopy.setState(HtmlEntry.ANGULAR_ERRORS, CacheState.INVALID);
+//          }
+//          if (htmlCopy.getState(HtmlEntry.ELEMENT) == CacheState.IN_PROCESS) {
+//            htmlCopy.setState(HtmlEntry.ELEMENT, CacheState.INVALID);
+//          }
+//          if (htmlCopy.getState(HtmlEntry.RESOLUTION_ERRORS) == CacheState.IN_PROCESS) {
+//            htmlCopy.setState(HtmlEntry.RESOLUTION_ERRORS, CacheState.INVALID);
+//          }
+          htmlCopy.invalidateAllInformation();
+          htmlCopy.setModificationTime(sourceTime);
+        } else {
+          //
+          // We could not determine whether the sources were up-to-date or out-of-date. Mark the
+          // cache so that we won't attempt to re-analyze the sources until there's a good chance
+          // that we'll be able to do so without error.
+          //
+          htmlCopy.recordResolutionError();
+        }
+        htmlCopy.setException(thrownException);
+        cache.put(source, htmlCopy);
+        htmlEntry = htmlCopy;
+      }
+    }
+    if (thrownException != null) {
+      throw thrownException;
+    }
+    return htmlEntry;
+  }
+
+  /**
+   * Record the results produced by performing a {@link ResolveAngularEntryHtmlTask}. If the results
+   * were computed from data that is now out-of-date, then the results will not be recorded.
+   * 
+   * @param task the task that was performed
+   * @throws AnalysisException if the results could not be recorded
+   */
+  private HtmlEntry recordResolveAngularEntryHtmlTaskResults(ResolveAngularEntryHtmlTask task)
+      throws AnalysisException {
     Source source = task.getSource();
     AnalysisException thrownException = task.getException();
     HtmlEntry htmlEntry = null;
@@ -3222,6 +3387,8 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         }
         HtmlEntryImpl htmlCopy = htmlEntry.getWritableCopy();
         if (thrownException == null) {
+          htmlCopy.setState(HtmlEntry.PARSED_UNIT, CacheState.FLUSHED);
+          htmlCopy.setValue(HtmlEntry.RESOLVED_UNIT, task.getResolvedUnit());
           htmlCopy.setValue(HtmlEntry.ELEMENT, task.getElement());
           htmlCopy.setValue(HtmlEntry.RESOLUTION_ERRORS, task.getResolutionErrors());
           ChangeNoticeImpl notice = getNotice(source);

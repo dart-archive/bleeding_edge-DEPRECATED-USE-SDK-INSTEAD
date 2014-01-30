@@ -195,6 +195,12 @@ public class InstrumentedAnalysisContextImpl implements InternalAnalysisContext 
   }
 
   @Override
+  public ResolvableHtmlUnit computeResolvableAngularComponentHtmlUnit(Source source)
+      throws AnalysisException {
+    return basis.computeResolvableAngularComponentHtmlUnit(source);
+  }
+
+  @Override
   public ResolvableCompilationUnit computeResolvableCompilationUnit(Source source)
       throws AnalysisException {
     return basis.computeResolvableCompilationUnit(source);
@@ -382,11 +388,11 @@ public class InstrumentedAnalysisContextImpl implements InternalAnalysisContext 
   }
 
   @Override
-  public AngularElement[] getLibraryAngularElements(Source source) {
+  public AngularElement[] getAngularElements() {
     InstrumentationBuilder instrumentation = Instrumentation.builder("Analysis-getLibraryAngularElements");
     try {
       instrumentation.metric("contextId", contextId);
-      return basis.getLibraryAngularElements(source);
+      return basis.getAngularElements();
     } finally {
       instrumentation.log();
     }

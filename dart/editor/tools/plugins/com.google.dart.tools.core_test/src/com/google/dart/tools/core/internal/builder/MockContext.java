@@ -292,7 +292,7 @@ public class MockContext implements AnalysisContext {
   }
 
   @Override
-  public AngularElement[] getLibraryAngularElements(Source source) {
+  public AngularElement[] getAngularElements() {
     return AngularElement.EMPTY_ARRAY;
   }
 

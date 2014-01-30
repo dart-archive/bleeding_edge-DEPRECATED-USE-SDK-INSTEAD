@@ -38,6 +38,16 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
   private HtmlUnit parsedUnit;
 
   /**
+   * The state of the cached resolved HTML unit.
+   */
+  private CacheState resolvedUnitState = CacheState.INVALID;
+
+  /**
+   * The resolved HTML unit, or {@code null} if the resolved HTML unit is not currently cached.
+   */
+  private HtmlUnit resolvedUnit;
+
+  /**
    * The state of the cached parse errors.
    */
   private CacheState parseErrorsState = CacheState.INVALID;
@@ -109,6 +119,20 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
     super();
   }
 
+  /**
+   * Flush any AST structures being maintained by this entry.
+   */
+  public void flushAstStructures() {
+    if (parsedUnitState == CacheState.VALID) {
+      parsedUnitState = CacheState.FLUSHED;
+      parsedUnit = null;
+    }
+    if (resolvedUnitState == CacheState.VALID) {
+      resolvedUnitState = CacheState.FLUSHED;
+      resolvedUnit = null;
+    }
+  }
+
   @Override
   public AnalysisError[] getAllErrors() {
     ArrayList<AnalysisError> errors = new ArrayList<AnalysisError>();
@@ -139,6 +163,19 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
   }
 
   @Override
+  public HtmlUnit getAnyParsedUnit() {
+    if (parsedUnitState == CacheState.VALID) {
+//      parsedUnitAccessed = true;
+      return parsedUnit;
+    }
+    if (resolvedUnitState == CacheState.VALID) {
+//      resovledUnitAccessed = true;
+      return resolvedUnit;
+    }
+    return null;
+  }
+
+  @Override
   public SourceKind getKind() {
     return SourceKind.HTML;
   }
@@ -153,6 +190,8 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
       return parseErrorsState;
     } else if (descriptor == PARSED_UNIT) {
       return parsedUnitState;
+    } else if (descriptor == RESOLVED_UNIT) {
+      return resolvedUnitState;
     } else if (descriptor == REFERENCED_LIBRARIES) {
       return referencedLibrariesState;
     } else if (descriptor == RESOLUTION_ERRORS) {
@@ -174,6 +213,8 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
       return (E) parseErrors;
     } else if (descriptor == PARSED_UNIT) {
       return (E) parsedUnit;
+    } else if (descriptor == RESOLVED_UNIT) {
+      return (E) resolvedUnit;
     } else if (descriptor == REFERENCED_LIBRARIES) {
       return (E) referencedLibraries;
     } else if (descriptor == RESOLUTION_ERRORS) {
@@ -199,6 +240,8 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
     parseErrorsState = CacheState.INVALID;
     parsedUnit = null;
     parsedUnitState = CacheState.INVALID;
+    resolvedUnit = null;
+    resolvedUnitState = CacheState.INVALID;
 
     referencedLibraries = Source.EMPTY_ARRAY;
     referencedLibrariesState = CacheState.INVALID;
@@ -241,6 +284,7 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
    */
   public void recordResolutionError() {
     setState(HtmlEntry.ANGULAR_ERRORS, CacheState.ERROR);
+    setState(HtmlEntry.RESOLVED_UNIT, CacheState.ERROR);
     setState(HtmlEntry.ELEMENT, CacheState.ERROR);
     setState(HtmlEntry.RESOLUTION_ERRORS, CacheState.ERROR);
     setState(HtmlEntry.HINTS, CacheState.ERROR);
@@ -260,6 +304,9 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
     } else if (descriptor == PARSED_UNIT) {
       parsedUnit = updatedValue(state, parsedUnit, null);
       parsedUnitState = state;
+    } else if (descriptor == RESOLVED_UNIT) {
+      resolvedUnit = updatedValue(state, resolvedUnit, null);
+      resolvedUnitState = state;
     } else if (descriptor == REFERENCED_LIBRARIES) {
       referencedLibraries = updatedValue(state, referencedLibraries, Source.EMPTY_ARRAY);
       referencedLibrariesState = state;
@@ -288,6 +335,9 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
     } else if (descriptor == PARSED_UNIT) {
       parsedUnit = (HtmlUnit) value;
       parsedUnitState = CacheState.VALID;
+    } else if (descriptor == RESOLVED_UNIT) {
+      resolvedUnit = (HtmlUnit) value;
+      resolvedUnitState = CacheState.VALID;
     } else if (descriptor == REFERENCED_LIBRARIES) {
       referencedLibraries = value == null ? Source.EMPTY_ARRAY : (Source[]) value;
       referencedLibrariesState = CacheState.VALID;
@@ -312,6 +362,8 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
     parseErrors = other.parseErrors;
     parsedUnitState = other.parsedUnitState;
     parsedUnit = other.parsedUnit;
+    resolvedUnitState = other.resolvedUnitState;
+    resolvedUnit = other.resolvedUnit;
     referencedLibrariesState = other.referencedLibrariesState;
     referencedLibraries = other.referencedLibraries;
     resolutionErrors = other.resolutionErrors;
@@ -325,7 +377,8 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
   @Override
   protected boolean hasErrorState() {
     return super.hasErrorState() || parsedUnitState == CacheState.ERROR
-        || parseErrorsState == CacheState.ERROR || resolutionErrorsState == CacheState.ERROR
+        || resolvedUnitState == CacheState.ERROR || parseErrorsState == CacheState.ERROR
+        || resolutionErrorsState == CacheState.ERROR
         || referencedLibrariesState == CacheState.ERROR || elementState == CacheState.ERROR
         || angularErrorsState == CacheState.ERROR || hintsState == CacheState.ERROR;
   }
@@ -338,6 +391,8 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
     builder.append(parseErrorsState);
     builder.append("; parsedUnit = ");
     builder.append(parsedUnitState);
+    builder.append("; resolvedUnit = ");
+    builder.append(resolvedUnitState);
     builder.append("; resolutionErrors = ");
     builder.append(resolutionErrorsState);
     builder.append("; referencedLibraries = ");

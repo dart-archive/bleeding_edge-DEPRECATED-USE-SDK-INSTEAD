@@ -198,7 +198,7 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
       // ensure resolved
       context.resolveCompilationUnit(dartSource, dartSource);
       // get cached Angular elements
-      angularElements = context.getLibraryAngularElements(dartSource);
+      angularElements = context.getAngularElements();
     }
     // perform resolution
     resolveInternal(angularElements, null);

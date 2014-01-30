@@ -348,6 +348,7 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
     if (element instanceof Member) {
       element = ((Member) element).getBaseElement();
     }
+//    System.out.println(element + " " + relationship + " " + location);
     // prepare information
     AnalysisContext elementContext = element.getContext();
     AnalysisContext locationContext = location.getElement().getContext();

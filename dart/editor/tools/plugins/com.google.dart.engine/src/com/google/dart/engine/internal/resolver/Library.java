@@ -103,7 +103,7 @@ public class Library {
   private LibraryScope libraryScope;
 
   /**
-   * An array of all top-level Angular elements that could be used in this library.
+   * An array of all top-level Angular elements that are defined in this library.
    */
   private AngularElement[] angularElements;
 
@@ -133,9 +133,9 @@ public class Library {
   }
 
   /**
-   * Return an array of all top-level Angular elements that could be used in this library.
+   * Return an array of all top-level Angular elements that are defined in this library.
    * 
-   * @return an array of all top-level Angular elements that could be used in this library
+   * @return an array of all top-level Angular elements that are defined in this library
    */
   public AngularElement[] getAngularElements() {
     return angularElements;
@@ -364,9 +364,9 @@ public class Library {
   }
 
   /**
-   * Set the array of all top-level Angular elements that could be used in this library.
+   * Set the array of all top-level Angular elements that are defined in this library.
    * 
-   * @param angularElements the array of all top-level Angular elements that could be used in this
+   * @param angularElements the array of all top-level Angular elements that are defined in this
    *          library
    */
   public void setAngularElements(AngularElement[] angularElements) {

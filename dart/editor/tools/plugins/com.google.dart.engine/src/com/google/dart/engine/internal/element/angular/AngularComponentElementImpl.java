@@ -28,6 +28,11 @@ import com.google.dart.engine.source.Source;
 public class AngularComponentElementImpl extends AngularHasSelectorElementImpl implements
     AngularComponentElement {
   /**
+   * The offset of the defining <code>NgComponent</code> annotation.
+   */
+  private final int annotationOffset;
+
+  /**
    * The array containing all of the properties declared by this component.
    */
   private AngularPropertyElement[] properties = AngularPropertyElement.EMPTY_ARRAY;
@@ -64,8 +69,9 @@ public class AngularComponentElementImpl extends AngularHasSelectorElementImpl i
    * @param nameOffset the offset of the name of this element in the file that contains the
    *          declaration of this element
    */
-  public AngularComponentElementImpl(String name, int nameOffset) {
+  public AngularComponentElementImpl(String name, int nameOffset, int annotationOffset) {
     super(name, nameOffset);
+    this.annotationOffset = annotationOffset;
   }
 
   @Override
@@ -169,5 +175,10 @@ public class AngularComponentElementImpl extends AngularHasSelectorElementImpl i
   public void visitChildren(ElementVisitor<?> visitor) {
     safelyVisitChildren(properties, visitor);
     super.visitChildren(visitor);
+  }
+
+  @Override
+  protected String getIdentifier() {
+    return "AngularComponent@" + annotationOffset;
   }
 }

@@ -20,9 +20,7 @@ import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.internal.builder.HtmlUnitBuilder;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
 import com.google.dart.engine.internal.context.ResolvableHtmlUnit;
-import com.google.dart.engine.internal.html.angular.AngularHtmlUnitResolver;
 import com.google.dart.engine.source.Source;
-import com.google.dart.engine.utilities.source.LineInfo;
 
 /**
  * Instances of the class {@code ResolveHtmlTask} resolve a specific source as an HTML file.
@@ -125,9 +123,6 @@ public class ResolveHtmlTask extends AnalysisTask {
     // build standard HTML element
     HtmlUnitBuilder builder = new HtmlUnitBuilder(getContext());
     element = builder.buildHtmlElement(source, modificationTime, unit);
-    // resolve toolkit-specific features
-    LineInfo lineInfo = getContext().getLineInfo(source);
-    new AngularHtmlUnitResolver(getContext(), builder.getErrorListener(), source, lineInfo, unit).resolveEntryPoint();
     // record all resolution errors
     resolutionErrors = builder.getErrorListener().getErrors(source);
     // remember resolved unit

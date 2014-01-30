@@ -20,6 +20,7 @@ import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisContextHelper;
+import com.google.dart.engine.context.AnalysisErrorInfo;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
@@ -195,7 +196,8 @@ abstract public class AngularTest extends EngineTestCase {
   protected final void assertErrors(Source source, ErrorCode... expectedErrorCodes)
       throws AnalysisException {
     GatheringErrorListener errorListener = new GatheringErrorListener();
-    for (AnalysisError error : context.computeErrors(source)) {
+    AnalysisErrorInfo errorsInfo = context.getErrors(source);
+    for (AnalysisError error : errorsInfo.getErrors()) {
       errorListener.onError(error);
     }
     errorListener.assertErrors(expectedErrorCodes);
@@ -327,6 +329,7 @@ abstract public class AngularTest extends EngineTestCase {
 
   protected final void resolveIndex(String content) throws Exception {
     addIndexSource(content);
+    contextHelper.runTasks();
     resolveIndex();
   }
 

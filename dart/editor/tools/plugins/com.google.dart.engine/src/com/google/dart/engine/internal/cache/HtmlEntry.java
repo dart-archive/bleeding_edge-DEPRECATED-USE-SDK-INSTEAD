@@ -56,6 +56,12 @@ public interface HtmlEntry extends SourceEntry {
       "HtmlEntry.PARSED_UNIT");
 
   /**
+   * The data descriptor representing the resolved AST structure.
+   */
+  public static final DataDescriptor<HtmlUnit> RESOLVED_UNIT = new DataDescriptor<HtmlUnit>(
+      "HtmlEntry.RESOLVED_UNIT");
+
+  /**
    * The data descriptor representing the list of referenced libraries.
    */
   public static final DataDescriptor<Source[]> REFERENCED_LIBRARIES = new DataDescriptor<Source[]>(
@@ -73,6 +79,14 @@ public interface HtmlEntry extends SourceEntry {
    * @return all of the errors associated with the compilation unit
    */
   public AnalysisError[] getAllErrors();
+
+  /**
+   * Return a valid parsed unit, either an unresolved AST structure or the result of resolving the
+   * AST structure, or {@code null} if there is no parsed unit available.
+   * 
+   * @return a valid parsed unit
+   */
+  public HtmlUnit getAnyParsedUnit();
 
   @Override
   public HtmlEntryImpl getWritableCopy();

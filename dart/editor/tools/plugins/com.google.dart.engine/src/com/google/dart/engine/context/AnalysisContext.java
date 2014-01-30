@@ -279,14 +279,12 @@ public interface AnalysisContext {
   public Source[] getLibrariesDependingOn(Source librarySource);
 
   /**
-   * Return the {@link AngularElement}s accessible in the library defined by the given source, or an
-   * empty array if given source is not a library, not resolved or cannot be analyzed for some
-   * reason.
+   * Return all {@link AngularElement}s accessible in this context, maybe empty array, but not
+   * {@code null}.
    * 
-   * @param source the source defining the library whose {@link AngularElement}s is to be returned
-   * @return the {@link AngularElement}s accessible in the library defined by the given source
+   * @return the {@link AngularElement}s accessible in this context
    */
-  public AngularElement[] getLibraryAngularElements(Source source);
+  public AngularElement[] getAngularElements();
 
   /**
    * Return the element model corresponding to the library defined by the given source, or

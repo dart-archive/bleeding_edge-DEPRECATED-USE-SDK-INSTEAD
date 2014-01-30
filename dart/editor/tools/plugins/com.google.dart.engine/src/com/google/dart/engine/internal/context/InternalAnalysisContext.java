@@ -63,6 +63,17 @@ public interface InternalAnalysisContext extends AnalysisContext {
 
   /**
    * Return an AST structure corresponding to the given source, but ensure that the structure has
+   * not already been resolved and will not be resolved by any other threads.
+   * 
+   * @param source the compilation unit for which an AST structure should be returned
+   * @return the AST structure representing the content of the source
+   * @throws AnalysisException if the analysis could not be performed
+   */
+  public ResolvableHtmlUnit computeResolvableAngularComponentHtmlUnit(Source source)
+      throws AnalysisException;
+
+  /**
+   * Return an AST structure corresponding to the given source, but ensure that the structure has
    * not already been resolved and will not be resolved by any other threads or in any other
    * library.
    * 

@@ -14,8 +14,7 @@
 package com.google.dart.engine.internal.task;
 
 import com.google.dart.engine.context.AnalysisException;
-import com.google.dart.engine.element.angular.AngularComponentElement;
-import com.google.dart.engine.element.angular.AngularElement;
+import com.google.dart.engine.element.HtmlElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
@@ -26,24 +25,14 @@ import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.source.LineInfo;
 
 /**
- * Instances of the class {@code ResolveAngularComponentTemplateTask} resolve HTML template
- * referenced by {@link AngularComponentElement}.
+ * Instances of the class {@code ResolveAngularEntryHtmlTask} resolve a specific HTML file as an
+ * Angular entry point.
  */
-public class ResolveAngularComponentTemplateTask extends AnalysisTask {
-  /**
-   * The {@link AngularComponentElement} to resolve template for.
-   */
-  private final AngularComponentElement component;
-
-  /**
-   * All Angular elements accessible in the component library.
-   */
-  private final AngularElement[] angularElements;
-
+public class ResolveAngularEntryHtmlTask extends AnalysisTask {
   /**
    * The source to be resolved.
    */
-  private final Source source;
+  private Source source;
 
   /**
    * The time at which the contents of the source were last modified.
@@ -56,6 +45,11 @@ public class ResolveAngularComponentTemplateTask extends AnalysisTask {
   private HtmlUnit resolvedUnit;
 
   /**
+   * The element produced by resolving the source.
+   */
+  private HtmlElement element = null;
+
+  /**
    * The resolution errors that were discovered while resolving the source.
    */
   private AnalysisError[] resolutionErrors = AnalysisError.NO_ERRORS;
@@ -65,20 +59,19 @@ public class ResolveAngularComponentTemplateTask extends AnalysisTask {
    * 
    * @param context the context in which the task is to be performed
    * @param source the source to be resolved
-   * @param component the component that uses this HTML template, not {@code null}
-   * @param angularElements all Angular elements accessible in the component library
    */
-  public ResolveAngularComponentTemplateTask(InternalAnalysisContext context, Source source,
-      AngularComponentElement component, AngularElement[] angularElements) {
+  public ResolveAngularEntryHtmlTask(InternalAnalysisContext context, Source source) {
     super(context);
     this.source = source;
-    this.component = component;
-    this.angularElements = angularElements;
   }
 
   @Override
   public <E> E accept(AnalysisTaskVisitor<E> visitor) throws AnalysisException {
-    return visitor.visitResolveAngularComponentTemplateTask(this);
+    return visitor.visitResolveAngularEntryHtmlTask(this);
+  }
+
+  public HtmlElement getElement() {
+    return element;
   }
 
   /**
@@ -115,7 +108,10 @@ public class ResolveAngularComponentTemplateTask extends AnalysisTask {
 
   @Override
   protected String getTaskDescription() {
-    return "resolving Angular template " + source;
+    if (source == null) {
+      return "resolve as Angular entry point null source";
+    }
+    return "resolve as Angular entry point " + source.getFullName();
   }
 
   @Override
@@ -132,13 +128,7 @@ public class ResolveAngularComponentTemplateTask extends AnalysisTask {
     RecordingErrorListener errorListener = new RecordingErrorListener();
     LineInfo lineInfo = getContext().getLineInfo(source);
     // do resolve
-    AngularHtmlUnitResolver resolver = new AngularHtmlUnitResolver(
-        getContext(),
-        errorListener,
-        source,
-        lineInfo,
-        unit);
-    resolver.resolveComponentTemplate(angularElements, component);
+    new AngularHtmlUnitResolver(getContext(), errorListener, source, lineInfo, unit).resolveEntryPoint();
     // remember errors
     resolutionErrors = errorListener.getErrors(source);
     // remember resolved unit

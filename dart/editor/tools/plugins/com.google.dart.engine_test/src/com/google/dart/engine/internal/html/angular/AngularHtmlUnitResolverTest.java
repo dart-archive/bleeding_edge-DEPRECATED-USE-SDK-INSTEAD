@@ -15,7 +15,6 @@ package com.google.dart.engine.internal.html.angular;
 
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.SimpleIdentifier;
-import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.LocalVariableElement;
@@ -434,7 +433,7 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
 
   public void test_notResolved_wrongControllerMarker() throws Exception {
     addMyController();
-    resolveIndex(createSource(//
+    addIndexSource(createSource(//
         "<html ng-app>",
         "  <body>",
         "    <div not-my-marker>",
@@ -443,6 +442,8 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
         "    <script type='application/dart' src='main.dart'></script>",
         "  </body>",
         "</html>"));
+    contextHelper.runTasks();
+    resolveIndex();
     assertErrors(indexSource, StaticWarningCode.UNDEFINED_IDENTIFIER);
     // "ctrl" is not resolved
     SimpleIdentifier identifier = findIdentifier("ctrl");
@@ -497,7 +498,7 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
     assertResolvedIdentifier("ctrl", "MyController");
   }
 
-  private void resolveIndexNoErrors(String content) throws Exception, AnalysisException {
+  private void resolveIndexNoErrors(String content) throws Exception {
     resolveIndex(content);
     assertNoErrors();
     verify(indexSource);
