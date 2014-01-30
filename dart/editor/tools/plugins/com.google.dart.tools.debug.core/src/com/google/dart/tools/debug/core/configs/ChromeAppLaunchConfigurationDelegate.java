@@ -348,6 +348,12 @@ public class ChromeAppLaunchConfigurationDelegate extends DartLaunchConfiguratio
         continue;
       }
 
+      // chrome-extension://nkeimhogjdpnpccoofpliimaahmaaome/background.html
+      if (tab.getUrl().endsWith("_generated_background_page.html")
+          || tab.getUrl().endsWith("/background.html")) {
+        continue;
+      }
+
       if (tab.getUrl().startsWith("chrome-extension://") && tab.getTitle().length() > 0) {
         return tab;
       }
