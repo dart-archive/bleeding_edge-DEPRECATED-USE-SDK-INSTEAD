@@ -492,6 +492,16 @@
    <extension
          point="org.eclipse.ui.editors.annotationTypes">
       <type
+            name="com.google.dart.tools.ui.angular_error"
+            super="org.eclipse.ui.workbench.texteditor.error"
+            markerType="com.google.dart.tools.core.angular_error"
+            markerSeverity="2"/>
+      <type
+            name="com.google.dart.tools.ui.angular_warning"
+            super="org.eclipse.ui.workbench.texteditor.warning"
+            markerType="com.google.dart.tools.core.angular_warning"
+            markerSeverity="1"/>
+      <type
             name="com.google.dart.tools.ui.error"
             super="org.eclipse.ui.workbench.texteditor.error"
             markerType="com.google.dart.tools.core.problem"
@@ -522,6 +532,36 @@
    
    <extension
          point="org.eclipse.ui.editors.markerAnnotationSpecification">
+       <specification
+           annotationType="com.google.dart.tools.ui.angular_error"
+           label="Angular Error"
+           icon="icons/full/dart16/angular_14_red.png"
+           contributesToHeader="true"
+           overviewRulerPreferenceKey="angularErrorIndicationInOverviewRuler"
+           overviewRulerPreferenceValue="true"
+           presentationLayer="4"
+           textPreferenceKey="angularErrorIndication"
+           textPreferenceValue="true"
+           textStylePreferenceKey="angularErrorTextStyle"
+           textStylePreferenceValue="PROBLEM_UNDERLINE"
+           verticalRulerPreferenceKey="abgularErrorIndicationInVerticalRuler"
+           verticalRulerPreferenceValue="true">
+       </specification>
+       <specification
+           annotationType="com.google.dart.tools.ui.angular_warning"
+           label="Angular Warning"
+           icon="icons/full/dart16/angular_14_yellow.png"
+           contributesToHeader="true"
+           overviewRulerPreferenceKey="angularWarningIndicationInOverviewRuler"
+           overviewRulerPreferenceValue="true"
+           presentationLayer="4"
+           textPreferenceKey="angularErrorIndication"
+           textPreferenceValue="true"
+           textStylePreferenceKey="angularWarningTextStyle"
+           textStylePreferenceValue="PROBLEM_UNDERLINE"
+           verticalRulerPreferenceKey="abgularWarningIndicationInVerticalRuler"
+           verticalRulerPreferenceValue="true">
+       </specification>
        <specification
            annotationType="com.google.dart.tools.ui.error"
            annotationImageProvider="com.google.dart.tools.ui.internal.text.editor.DartAnnotationImageProvider">

@@ -152,6 +152,16 @@ public class DartCore extends Plugin implements DartSdkListener {
   public static final String DART_TASK_MARKER_TYPE = PLUGIN_ID + ".task";
 
   /**
+   * Eclipse problem marker type used to Angular error markers
+   */
+  public static final String ANGULAR_ERROR_MARKER_TYPE = PLUGIN_ID + ".angular_error";
+
+  /**
+   * Eclipse problem marker type used to Angular warning markers
+   */
+  public static final String ANGULAR_WARNING_MARKER_TYPE = PLUGIN_ID + ".angular_warning";
+
+  /**
    * Extension for single unit compiled into JavaScript.
    */
   public static final String EXTENSION_JS = "js";

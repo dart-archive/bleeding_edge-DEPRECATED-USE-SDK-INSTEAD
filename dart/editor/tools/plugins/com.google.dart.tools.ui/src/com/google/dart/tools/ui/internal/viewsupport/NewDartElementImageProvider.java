@@ -143,7 +143,7 @@ public class NewDartElementImageProvider {
       case ANGULAR_FILTER:
       case ANGULAR_PROPERTY:
       case ANGULAR_SELECTOR:
-        return DartPluginImages.DESC_ANGULAR;
+        return DartPluginImages.DESC_ANGULAR_BLUE;
 
       case HTML:
         return DartPluginImages.DESC_DART_HTML_FILE;

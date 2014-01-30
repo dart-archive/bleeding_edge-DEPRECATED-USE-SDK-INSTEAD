@@ -60,9 +60,9 @@ public enum ErrorType {
   SYNTACTIC_ERROR(ErrorSeverity.ERROR),
 
   /**
-   * Toolkit specific semantic problems.
+   * Angular specific semantic problems.
    */
-  TOOLKIT(ErrorSeverity.INFO);
+  ANGULAR(ErrorSeverity.INFO);
 
   /**
    * The severity of this type of error.

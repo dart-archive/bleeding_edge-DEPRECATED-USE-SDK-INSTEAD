@@ -190,10 +190,20 @@ public class DartPluginImages {
   public static final String IMG_OBJS_SEARCH_OCCURRENCE = NAME_PREFIX + "occ_match.gif"; //$NON-NLS-1$
 
   public static final String IMG_OBJS_HELP = NAME_PREFIX + "help.gif"; //$NON-NLS-1$
+
   /*
    * Set of predefined Angular Image Descriptors.
    */
-  public static final ImageDescriptor DESC_ANGULAR = createUnManaged(T_DART, "angular_16.png");
+  public static final ImageDescriptor DESC_ANGULAR_BLUE = createUnManaged(
+      T_DART,
+      "angular_16_blue.png");
+  public static final ImageDescriptor DESC_ANGULAR_RED = createUnManaged(
+      T_DART,
+      "angular_16_red.png");
+  public static final ImageDescriptor DESC_ANGULAR_YELLOW = createUnManaged(
+      T_DART,
+      "angular_16_yellow.png");
+
   /*
    * Set of predefined Image Descriptors.
    */
