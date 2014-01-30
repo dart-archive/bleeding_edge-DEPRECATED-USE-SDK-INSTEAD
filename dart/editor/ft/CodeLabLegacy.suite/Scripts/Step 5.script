@@ -76,9 +76,10 @@ return _storedIds.map(_fetchDocument);
 }}
 Wait 5
 
-util.quickOutline
-TypeText downArrow,downArrow
-util.newline
+util.openFind
+TypeText "_fetch"
+TypeText escape
+Wait 5 (* Allow for scrolling and screen updating *)
 TypeText downArrow
 util.endOfLine
 util.newline
@@ -144,6 +145,7 @@ Wait 1
 TypeText downArrow,downArrow
 Wait 1
 util.newline (* Navigate to main() *)
+Wait 5 (* Allow for scrolling and screen updating *)
 
 TypeText downArrow
 TypeText downArrow
