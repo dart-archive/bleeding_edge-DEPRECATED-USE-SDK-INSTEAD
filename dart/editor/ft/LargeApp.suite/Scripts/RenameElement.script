@@ -1,0 +1,21 @@
+(* Rename a popular class and ensure it has the same number of refs after *)
+util.searchBox
+TypeText "Element"
+TypeText downArrow
+TypeText downArrow
+util.newline
+set the SearchRectangle to ((0,800),(1920,1200))
+DoubleClick (Text:"abstract class",CaseSensitive:"yes",ValidCharacters:"*")
+set the SearchRectangle to ()
+util.selectContextImageMenuItem "class element", "Find Uses"
+WaitFor 10, "1839 References"
+util.selectContextImageMenuItem "class element", "Rename"
+util.endOfLine
+TypeText "Object"
+TypeText enter
+util.selectContextImageMenuItem "class elementobject", "Find Uses"
+WaitFor 10, "1839 References"
+util.activateEditor
+util.undo
+TypeText enter
+util.deleteOutput

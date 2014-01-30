@@ -1,0 +1,22 @@
+(* Test Extract Method and outline-based nav *)
+util.selectMenuItem "Tools", "Outline"
+set the SearchRectangle to ((0,0),(300,300))
+DoubleClick (Text:"modelx.dart",CaseSensitive:"yes",ValidCharacters:"*",IgnoreSpaces:"yes",dpi:94)
+set the SearchRectangle to ()
+util.activateEditor
+util.openFind
+TypeText "non-nullness"
+TypeText escape
+Wait 5
+TypeText downArrow,downArrow,downArrow
+TypeText rightArrow
+TypeText shiftKey,downArrow
+TypeText shiftKey,downArrow
+TypeText shiftKey,downArrow
+TypeText shiftKey,downArrow
+util.selectMenuItem "Refactor", "Extract Method"
+TypeText "makeString"
+TypeText enter
+Wait 5
+Click "makeString item"
+WaitFor 2, "makeString selection"

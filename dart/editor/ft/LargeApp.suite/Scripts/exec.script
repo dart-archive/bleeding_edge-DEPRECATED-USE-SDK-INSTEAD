@@ -1,0 +1,6 @@
+params sutName
+
+Connect connectionInfo(sutName)
+util.startDartEditor
+RunWithNewResults "doit"
+util.stopDartEditor

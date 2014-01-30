@@ -1,0 +1,24 @@
+{
+    EPVersionNumber = 1311131500;
+    Schedules =     (
+    );
+    ScriptMetaData =     {
+        ExtractExpr =         {
+        };
+        OpenCompiler =         {
+        };
+        RenameElement =         {
+        };
+        Untitled =         {
+        };
+        doit =         {
+        };
+        exec =         {
+        };
+    };
+    helperSuitesInfo =     (
+                {
+            filePath = "/Users/messick/src/dart-git/dart/editor/ft/Samples.suite";
+        }
+    );
+}

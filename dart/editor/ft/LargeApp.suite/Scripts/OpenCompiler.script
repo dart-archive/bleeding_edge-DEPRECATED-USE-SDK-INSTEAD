@@ -1,0 +1,34 @@
+(* Open dart2js and make sure it is analyzed correctly *)
+util.init
+util.openFileDialog
+WaitFor 2, "file search icon"
+if (util.isMacOSX) then
+	Click "homedir icon"
+	Wait .05
+	Click "file search icon"
+	Wait 0.5
+	TypeText "_internal"
+	TypeText enter
+	Wait 1
+	Click(Text:"compiler",CaseSensitive:"yes")
+	TypeText enter
+else if (util.isLinux) then
+	Click "file search icon"
+	Wait 0.5
+	TypeText "_internal"
+	TypeText return
+	Wait 1
+	TypeText downArrow
+	TypeText return
+	Wait 0.5
+	TypeText downArrow
+	TypeText return
+	TypeText return
+end if
+util.expandTreeNode
+util.selectContextImageMenuItem "samples folder", "Don't Analyze"
+util.checkProblems
+Click "compiler project"
+TypeText downArrow
+util.expandTreeNode
+Wait 1

@@ -1,0 +1,5 @@
+(* Open a large Dart program and do some refactoring *)
+util.init
+Run OpenCompiler
+Run RenameElement
+Run ExtractExpr
