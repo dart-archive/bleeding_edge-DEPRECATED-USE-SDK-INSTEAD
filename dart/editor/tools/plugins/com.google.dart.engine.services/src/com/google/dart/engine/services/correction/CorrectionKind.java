@@ -18,7 +18,6 @@ package com.google.dart.engine.services.correction;
  * Identifier of {@link CorrectionProposal}.
  */
 public enum CorrectionKind {
-  QA_ADD_JSON(30, "Add toJson() / fromJson()"),
   QA_ADD_PART_DIRECTIVE(30, "Add 'part' directive"),
   QA_ADD_TYPE_ANNOTATION(30, "Add type annotation"),
   QA_ASSIGN_TO_LOCAL_VARIABLE(30, "Assign value to new local variable"),
