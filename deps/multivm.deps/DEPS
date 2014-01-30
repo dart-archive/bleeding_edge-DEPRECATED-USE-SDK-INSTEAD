@@ -1,0 +1,42 @@
+import gclient_utils
+import os
+
+path = gclient_utils.FindGclientRoot(os.getcwd())
+execfile(os.path.join(path, 'multivm.deps', 'DEPS.chromium')) # Include proper Chromium DEPS.
+
+# Now we need to override some settings and add some new ones.
+
+vars.update({
+  "chromium_url": "http://src.chromium.org/svn",
+  "multivm_base": "http://src.chromium.org",
+  "multivm_chromium_branch": "/chrome/trunk/src",
+  "multivm_chromium_revision": "247380",
+  "multivm_blink_branch": "/blink/branches/dart/multivm",
+  "multivm_blink_revision": "166054",
+})
+
+def massage_deps(deps):
+  for key, value in deps.items():
+    if value is None: continue
+
+    if value.startswith('/trunk'):
+      deps[key] = Var("chromium_url") + value
+      continue
+
+    if value.startswith(Var("webkit_trunk")):
+      path, revision = value.split('@') # and svn revision.
+      path = path[len(Var("webkit_trunk")):]  # Strip WebKit repo.
+      value = (Var("multivm_base") + Var("multivm_blink_branch") + path +
+               '@' + Var("multivm_blink_revision"))
+      deps[key] = value
+      continue
+
+massage_deps(deps)
+for os_deps in deps_os.values():
+  massage_deps(os_deps)
+
+deps.update({
+  "src":
+    Var("multivm_base") + Var("multivm_chromium_branch") + "@" +
+        Var("multivm_chromium_revision"),
+})
