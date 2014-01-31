@@ -73,6 +73,10 @@ public class HtmlReconcilerHook implements ISourceValidator, IValidator {
   @Override
   public void connect(IDocument document) {
     this.document = document;
+    // TODO(scheglov) disabled because of the problems with big Angular project
+    if (true) {
+      return;
+    }
     // prepare File
     ITextFileBufferManager fileManager = FileBuffers.getTextFileBufferManager();
     ITextFileBuffer fileBuffer = fileManager.getTextFileBuffer(document);
