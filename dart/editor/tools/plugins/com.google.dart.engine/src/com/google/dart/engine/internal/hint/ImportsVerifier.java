@@ -257,6 +257,9 @@ public class ImportsVerifier extends RecursiveASTVisitor<Void> {
 
   @Override
   public Void visitPrefixedIdentifier(PrefixedIdentifier node) {
+    if (unusedImports.isEmpty()) {
+      return null;
+    }
     // If the prefixed identifier references some A.B, where A is a library prefix, then we can
     // lookup the associated ImportDirective in prefixElementMap and remove it from the
     // unusedImports list.
@@ -272,6 +275,9 @@ public class ImportsVerifier extends RecursiveASTVisitor<Void> {
 
   @Override
   public Void visitSimpleIdentifier(SimpleIdentifier node) {
+    if (unusedImports.isEmpty()) {
+      return null;
+    }
     return visitIdentifier(node.getStaticElement(), node.getName());
   }
 
