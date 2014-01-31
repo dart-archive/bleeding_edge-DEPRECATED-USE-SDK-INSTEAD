@@ -24,6 +24,7 @@ import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.PrefixedIdentifier;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
+import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
@@ -341,6 +342,7 @@ public class ImportsVerifier extends RecursiveASTVisitor<Void> {
     if (element == null) {
       return null;
     }
+
     // If the element is multiply defined then call this method recursively for each of the conflicting elements.
     if (element instanceof MultiplyDefinedElement) {
       MultiplyDefinedElement multiplyDefinedElement = (MultiplyDefinedElement) element;
@@ -350,6 +352,11 @@ public class ImportsVerifier extends RecursiveASTVisitor<Void> {
       return null;
     } else if (element instanceof PrefixElement) {
       unusedImports.remove(prefixElementMap.get(element));
+      return null;
+    } else if (!(element.getEnclosingElement() instanceof CompilationUnitElement)) {
+      // Identifiers that aren't a prefix element and whose enclosing element isn't a
+      // CompilationUnit are ignored- this covers the case the identifier is a relative-reference,
+      // a reference to an identifier not imported by this library.
       return null;
     }
     LibraryElement containingLibrary = element.getLibrary();
