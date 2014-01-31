@@ -135,14 +135,16 @@ public class RunPubJob extends Job {
       }
       // add flags for pub build
       if (command.equals(BUILD_COMMAND)) {
-        if (sourceFolder != null) {
-          String folderName = getPubDirectoryParent(sourceFolder);
-          if (folderName != null) {
-            args.add(folderName);
-          }
-        } else {
-          args.add("--all");
-        }
+        // TODO(keertip): figure out why build fails when passing in folder name.
+        args.add("--all");
+//        if (sourceFolder != null) {
+//          String folderName = getPubDirectoryParent(sourceFolder);
+//          if (folderName != null) {
+//            args.add(folderName);
+//          }
+//        } else {
+//          args.add("--all");
+//        }
       }
 
       builder.command(args);
