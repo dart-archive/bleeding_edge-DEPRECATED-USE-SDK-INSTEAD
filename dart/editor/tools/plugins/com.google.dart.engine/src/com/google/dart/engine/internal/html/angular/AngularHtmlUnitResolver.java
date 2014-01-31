@@ -195,8 +195,6 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
       if (dartSource == null) {
         return;
       }
-      // ensure resolved
-      context.resolveCompilationUnit(dartSource, dartSource);
       // get cached Angular elements
       angularElements = context.getAngularElements();
     }

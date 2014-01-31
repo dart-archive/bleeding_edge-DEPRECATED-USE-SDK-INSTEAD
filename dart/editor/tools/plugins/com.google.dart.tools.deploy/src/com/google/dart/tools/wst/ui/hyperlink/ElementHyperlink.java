@@ -12,7 +12,7 @@
  * the License.
  */
 
-package org.eclipse.wst.html.ui.internal.hyperlink;
+package com.google.dart.tools.wst.ui.hyperlink;
 
 import com.google.dart.engine.element.Element;
 import com.google.dart.tools.ui.DartToolsPlugin;

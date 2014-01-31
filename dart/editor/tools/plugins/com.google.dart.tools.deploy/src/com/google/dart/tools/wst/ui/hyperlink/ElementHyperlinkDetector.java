@@ -12,34 +12,24 @@
  * the License.
  */
 
-package org.eclipse.wst.html.ui.internal.hyperlink;
+package com.google.dart.tools.wst.ui.hyperlink;
 
 import com.google.dart.engine.ast.Expression;
-import com.google.dart.engine.context.AnalysisContext;
-import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.html.ast.HtmlUnitUtils;
 import com.google.dart.engine.html.ast.XmlAttributeNode;
 import com.google.dart.engine.html.ast.XmlTagNode;
 import com.google.dart.engine.html.scanner.Token;
-import com.google.dart.engine.source.Source;
-import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.wst.ui.HtmlReconcilerHook;
+import com.google.dart.tools.wst.ui.HtmlReconcilerManager;
 
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.hyperlink.AbstractHyperlinkDetector;
 import org.eclipse.jface.text.hyperlink.IHyperlink;
-import org.eclipse.wst.sse.core.StructuredModelManager;
-import org.eclipse.wst.sse.core.internal.provisional.IModelManager;
-import org.eclipse.wst.sse.core.internal.provisional.IStructuredModel;
 
 public class ElementHyperlinkDetector extends AbstractHyperlinkDetector {
   @Override
@@ -87,20 +77,8 @@ public class ElementHyperlinkDetector extends AbstractHyperlinkDetector {
   }
 
   private HtmlUnit getHtmlUnit(ITextViewer textViewer) {
-    IFile file = getFile(textViewer);
-    if (file == null) {
-      return null;
-    }
-    Source source = DartCore.getProjectManager().getSource(file);
-    AnalysisContext context = DartCore.getProjectManager().getContext(file);
-    return context.getResolvedHtmlUnit(source);
-  }
-
-  private IFile getFile(ITextViewer textViewer) {
     IDocument document = textViewer.getDocument();
-    IModelManager modelManager = StructuredModelManager.getModelManager();
-    IStructuredModel model = modelManager.getExistingModelForRead(document);
-    IPath filePath = new Path(model.getBaseLocation());
-    return (IFile) ResourcesPlugin.getWorkspace().getRoot().findMember(filePath);
+    HtmlReconcilerHook reconciler = HtmlReconcilerManager.getInstance().reconcilerFor(document);
+    return reconciler.getResolvedUnit();
   }
 }

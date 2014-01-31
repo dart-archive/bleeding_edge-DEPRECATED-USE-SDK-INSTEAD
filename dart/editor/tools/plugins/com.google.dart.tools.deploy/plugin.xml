@@ -770,6 +770,22 @@
       </contentTypeIdentifier>
     </validator>
   </extension>
+
+  <extension point="org.eclipse.wst.sse.ui.sourcevalidation">
+    <validator
+      scope="partial"
+      class="com.google.dart.tools.wst.ui.HtmlReconcilerHook"
+      id="com.google.dart.tools.wst.ui.HtmlReconcilerHook">
+      <contentTypeIdentifier
+        id="org.eclipse.wst.html.core.htmlsource">
+        <partitionType id="org.eclipse.wst.html.HTML_DEFAULT"/>
+        <partitionType id="org.eclipse.wst.html.HTML_DECLARATION"/>
+        <partitionType id="org.eclipse.wst.html.HTML_COMMENT"/>
+        <partitionType id="org.eclipse.wst.xml.XML_DEFAULT"/>
+        <partitionType id="org.eclipse.wst.sse.ST_DEFAULT"/>
+      </contentTypeIdentifier>
+    </validator>
+  </extension>
   
   <extension point="org.eclipse.ui.workbench.texteditor.hyperlinkDetectorTargets">
     <target
@@ -787,7 +803,12 @@
       name="%hyperlinkDetector.identifier.name"
       targetId="org.eclipse.wst.html.SCRIPT.type.APPLICATION/DART">
     </hyperlinkDetector>
-    
+    <hyperlinkDetector
+      class="com.google.dart.tools.wst.ui.hyperlink.ElementHyperlinkDetector"
+      id="com.google.dart.tools.wst.ui.hyperlink.ElementHyperlinkDetector"
+      name="%hyperlinkDetector.angular.name"
+      targetId="org.eclipse.wst.html.core.htmlsource">
+    </hyperlinkDetector>
    </extension>
 
 </plugin>
