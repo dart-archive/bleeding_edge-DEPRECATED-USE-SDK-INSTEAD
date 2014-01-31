@@ -37,15 +37,12 @@ class CallbackData {
 class AnimationScheduler {
   static const FRAMES_PER_SECOND = 60;
   static const MS_PER_FRAME = 1000 ~/ FRAMES_PER_SECOND;
-  static const USE_INTERVALS = false;
 
   /** List of callbacks to be executed next animation frame. */
   List<CallbackData> _callbacks;
-  Timer _timer;
   bool _isMobileSafari = false;
   CssStyleDeclaration _safariHackStyle;
   int _frameCount = 0;
-  bool _webkitAnimationFrameMaybeAvailable = true;
 
   AnimationScheduler()
     : _callbacks = new List<CallbackData>() {
@@ -84,46 +81,19 @@ class AnimationScheduler {
 
   void _requestAnimationFrameHelper(CallbackData callbackData) {
     _callbacks.add(callbackData);
-    if (_timer == null) {
-      _setupInterval();
-    }
+    _setupInterval();
   }
 
   void _setupInterval() {
-    // Assert that we never schedule multiple frames at once.
-    assert(__timer == null);
-    if (USE_INTERVALS) {
-      _timer = new Timer.periodic(const Duration(milliseconds: MS_PER_FRAME),
-          (_) { _step(); });
-    } else {
-      if (_webkitAnimationFrameMaybeAvailable) {
-        try {
-          // TODO(jacobr): passing in document should not be required.
-          window.webkitRequestAnimationFrame(
-              (int ignored) { _step(); });
-              // TODO(jacobr) fix this odd type error.
-        } catch (e) {
-          _webkitAnimationFrameMaybeAvailable = false;
-        }
-      }
-      if (!_webkitAnimationFrameMaybeAvailable) {
-        _timer = new Timer(const Duration(milliseconds: MS_PER_FRAME),
-             _step());
-      }
-    }
+    window.requestAnimationFrame(
+        (num ignored) { _step(); });
   }
 
   void _step() {
     if (_callbacks.isEmpty) {
       // Cancel the interval on the first frame where there aren't actually
       // any available callbacks.
-      assert(_timer != null);
-      if (USE_INTERVALS) {
-        _timer.cancel();
-      }
-      _timer = null;
-    } else if (USE_INTERVALS == false) {
-      _timer = null;
+    } else {
       _setupInterval();
     }
     int numRemaining = 0;

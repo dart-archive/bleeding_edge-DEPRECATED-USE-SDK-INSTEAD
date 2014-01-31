@@ -42,6 +42,8 @@ class Coordinate {
     return other != null && x == other.x && y == other.y;
   }
 
+  int get hashCode => throw new UnimplementedError();
+
   static num squaredDistance(Coordinate a, Coordinate b) {
     final dx = a.x - b.x;
     final dy = a.y - b.y;
@@ -77,6 +79,8 @@ class Interval {
   bool operator ==(Interval other) {
     return other != null && other.start == start && other.end == end;
   }
+
+  int get hashCode => throw new UnimplementedError();
 
   Interval union(Interval other) {
     return new Interval(Math.min(start, other.start),

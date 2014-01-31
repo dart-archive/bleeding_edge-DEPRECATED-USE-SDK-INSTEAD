@@ -298,7 +298,6 @@ class ObservableList<T>
   // Iterable<T>:
   Iterator<T> get iterator => _internal.iterator;
 
-  // Collection<T>:
   Iterable<T> where(bool f(T element)) => _internal.where(f);
   Iterable map(f(T element)) => _internal.map(f);
   Iterable expand(Iterable f(T element)) => _internal.expand(f);
@@ -314,6 +313,16 @@ class ObservableList<T>
   dynamic lastWhere(bool test(T value), {Object orElse()}) {
     return _internal.lastWhere(test, orElse: orElse);
   }
+
+  void shuffle([random]) => throw new UnimplementedError();
+  void remove(T element) => throw new UnimplementedError();
+  void removeWhere(bool test(T element)) => throw new UnimplementedError();
+  void retainWhere(bool test(T element)) => throw new UnimplementedError();
+  List<T> toList({bool growable:true}) => throw new UnimplementedError();
+  Set<T> toSet() => throw new UnimplementedError();
+  Iterable<T> takeWhile(bool test(T value)) => throw new UnimplementedError();
+  Iterable<T> skipWhile(bool test(T value)) => throw new UnimplementedError();
+
   T singleWhere(bool test(T value)) {
     return _internal.singleWhere(test);
   }
@@ -323,6 +332,7 @@ class ObservableList<T>
   Map<int, T> asMap() {
     return _internal.asMap();
   }
+
 
   bool get isEmpty => length == 0;
 

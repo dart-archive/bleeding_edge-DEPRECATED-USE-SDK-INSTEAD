@@ -172,6 +172,8 @@ class MockTouch implements Touch {
 
   int get clientY => wrapped.client.y;
 
+  get client => wrapped.client;
+
   int get identifier => 0;
 
   int get pageX => wrapped.page.x;
@@ -234,7 +236,8 @@ class MockTouchEvent implements TouchEvent {
 
   int get detail => wrapped.detail;
 
-  int get keyCode => wrapped.keyCode;
+  // TODO(sra): keyCode is not on MouseEvent.
+  //int get keyCode => (wrapped as KeyboardEvent).keyCode;
 
   int get layerX => wrapped.layer.x;
 

@@ -16,7 +16,7 @@ class EventUtil {
    * If [removeHandlerOnFocus] is true the handler is removed when there is any
    * focus event, and added back on blur events.
    */
-  static void observe(Element element,
+  static void observe(/*Element or Document*/ element,
                       Stream stream, Function handler,
                       [bool removeHandlerOnFocus = false]) {
     var subscription = stream.listen(handler);

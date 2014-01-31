@@ -34,7 +34,6 @@ class Env {
    * Cancel the pending callback callback matching the specified [id].
    */
   static void cancelRequestAnimationFrame(int id) {
-    window.clearTimeout(id);
     _animationScheduler.cancelRequestAnimationFrame(id);
   }
 }

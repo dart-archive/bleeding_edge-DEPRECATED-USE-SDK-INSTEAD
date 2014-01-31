@@ -96,9 +96,9 @@ class ClickBuster {
     final coord = new Coordinate.fromClient(te.touches[0]);
     _coordinates.add(coord.x);
     _coordinates.add(coord.y);
-    window.setTimeout(() {
-      _removeCoordinate(coord.x, coord.y);
-    }, _TIME_THRESHOLD);
+    new Timer(
+        const Duration(milliseconds: _TIME_THRESHOLD),
+        () { _removeCoordinate(coord.x, coord.y); });
     _toggleTapHighlights(true);
   }
 

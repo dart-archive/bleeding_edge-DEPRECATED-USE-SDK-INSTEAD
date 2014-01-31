@@ -111,7 +111,9 @@ class View implements Positionable {
    * document or not.
    */
   bool get isInDocument {
-    return _node != null && node.ownerDocument.body.contains(node);
+    return _node != null
+        && node.ownerDocument is HtmlDocument
+        && (node.ownerDocument as HtmlDocument).body.contains(node);
   }
 
   /**

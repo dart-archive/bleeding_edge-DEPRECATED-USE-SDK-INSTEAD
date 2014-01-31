@@ -18,6 +18,8 @@ class Size {
     return other != null && width == other.width && height == other.height;
   }
 
+  int get hashCode => throw new UnimplementedError();
+
   /**
    * Returns the area of the size (width * height).
    */
