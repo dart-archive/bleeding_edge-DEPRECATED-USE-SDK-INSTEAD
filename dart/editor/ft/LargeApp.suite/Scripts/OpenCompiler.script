@@ -3,14 +3,12 @@ util.init
 util.openFileDialog
 WaitFor 2, "file search icon"
 if (util.isMacOSX) then
-	Click "homedir icon"
-	Wait .05
-	Click "file search icon"
+	Click "dart folder icon"
 	Wait 0.5
-	TypeText "_internal"
-	TypeText enter
-	Wait 1
-	Click(Text:"compiler",CaseSensitive:"yes")
+	set the SearchRectangle to ((500,0),(1000,300))
+	DoubleClick (Text: "internal",CaseSensitive:"yes",ValidCharacters:"*")
+	set the SearchRectangle to ()
+	Click mouseLocation()
 	TypeText enter
 else if (util.isLinux) then
 	Click "file search icon"

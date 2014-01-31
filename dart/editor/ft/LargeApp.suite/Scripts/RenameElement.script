@@ -8,14 +8,16 @@ set the SearchRectangle to ((0,800),(1920,1200))
 DoubleClick (Text:"abstract class",CaseSensitive:"yes",ValidCharacters:"*")
 set the SearchRectangle to ()
 util.selectContextImageMenuItem "class element", "Find Uses"
-WaitFor 10, "1839 References"
+WaitFor 10, "1839 references"
 util.selectContextImageMenuItem "class element", "Rename"
 util.endOfLine
 TypeText "Object"
 TypeText enter
+Wait 5
 util.selectContextImageMenuItem "class elementobject", "Find Uses"
-WaitFor 10, "1839 References"
+WaitFor 10, "1839 references"
 util.activateEditor
 util.undo
 TypeText enter
+Wait 5
 util.deleteOutput
