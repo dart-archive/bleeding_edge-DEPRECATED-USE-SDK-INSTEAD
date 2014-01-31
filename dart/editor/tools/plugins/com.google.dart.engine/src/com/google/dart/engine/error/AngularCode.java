@@ -71,7 +71,8 @@ public enum AngularCode implements ErrorCode {
 
   @Override
   public ErrorSeverity getErrorSeverity() {
-    return severity;
+    return ErrorSeverity.INFO;
+//    return severity;
   }
 
   @Override
