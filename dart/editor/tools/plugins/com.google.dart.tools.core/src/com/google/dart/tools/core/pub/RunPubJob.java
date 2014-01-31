@@ -55,6 +55,11 @@ public class RunPubJob extends Job {
   private final boolean autorun;
 
   /**
+   * The directory which contains the sources to build, used only for pub build command
+   */
+  private final IContainer sourceFolder;
+
+  /**
    * Construct a new job for running a pub command
    * 
    * @param container the directory in which the cmd will be run (not {@code null})
@@ -63,10 +68,24 @@ public class RunPubJob extends Job {
    * @param autorun indicate whether pub was run by editor without user interaction
    */
   public RunPubJob(IContainer container, String command, boolean autorun) {
+    this(container, command, autorun, null);
+  }
+
+  /**
+   * Construct a new job for running a pub command
+   * 
+   * @param container the directory in which the cmd will be run (not {@code null})
+   * @param command the command to be run... either {@link #INSTALL_COMMAND} or
+   *          {@link #UPDATE_COMMAND}
+   * @param autorun indicate whether pub was run by editor without user interaction
+   * @param the folder containing the sources to build, used only for pub build commands
+   */
+  public RunPubJob(IContainer container, String command, boolean autorun, IContainer sourceFolder) {
     super(NLS.bind(PubMessages.RunPubJob_name, command));
     this.command = command;
     this.container = container;
     this.autorun = autorun;
+    this.sourceFolder = sourceFolder;
     // TODO(keertip): comment out for now, on windows pub install takes long time and blocks builder
     //   setRule(container);
   }
@@ -78,13 +97,13 @@ public class RunPubJob extends Job {
    */
   @Override
   public IStatus run(IProgressMonitor monitor) {
-    IStatus status = runSilent(monitor);
     MessageConsole console = DartCore.getConsole();
     if (autorun) {
       console.printSeparator(NLS.bind(PubMessages.RunPubJob_auto_running, command));
     } else {
       console.printSeparator(NLS.bind(PubMessages.RunPubJob_running, command));
     }
+    IStatus status = runSilent(monitor);
     console.println(status.getMessage());
 
     return status;
@@ -107,20 +126,25 @@ public class RunPubJob extends Job {
       builder.redirectErrorStream(true);
 
       List<String> args = new ArrayList<String>();
-      if (DartCore.isMac()) {
-        args.add("/bin/bash");
-        args.add("--login");
-        args.add("-c");
-        args.add("\"" + pubFile.getAbsolutePath() + "\"" + " " + command);
+      args.add(pubFile.getAbsolutePath());
+      if (command.contains(" ")) {
+        String[] strings = command.split(" ");
+        args.addAll(Arrays.asList(strings));
       } else {
-        args.add(pubFile.getAbsolutePath());
-        if (command.contains(" ")) {
-          String[] strings = command.split(" ");
-          args.addAll(Arrays.asList(strings));
+        args.add(command);
+      }
+      // add flags for pub build
+      if (command.equals(BUILD_COMMAND)) {
+        if (sourceFolder != null) {
+          String folderName = getPubDirectoryParent(sourceFolder);
+          if (folderName != null) {
+            args.add(folderName);
+          }
         } else {
-          args.add(command);
+          args.add("--all");
         }
       }
+
       builder.command(args);
 
       // Run the pub command as an external process.
@@ -184,6 +208,16 @@ public class RunPubJob extends Job {
    */
   protected ProcessRunner newProcessRunner(ProcessBuilder builder) {
     return new ProcessRunner(builder);
+  }
+
+  private String getPubDirectoryParent(IContainer folder) {
+    while (folder != null) {
+      if (DartCore.pubDirectories.contains(folder.getName())) {
+        return folder.getName();
+      }
+      folder = folder.getParent();
+    }
+    return null;
   }
 
 }

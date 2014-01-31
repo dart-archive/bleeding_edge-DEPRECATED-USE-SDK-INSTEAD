@@ -26,9 +26,9 @@
       </propertyTester>
        <propertyTester
             class="com.google.dart.tools.debug.ui.launch.RunInBrowserPropertyTester"
-            id="com.google.dart.tools.debug.ui.run.deployPolymerPropertyTester"
+            id="com.google.dart.tools.debug.ui.run.pubBuildPropertyTester"
             namespace="com.google.dart.tools.debug.ui.launch"
-            properties=" canDeployPolymer"
+            properties=" canPubBuild"
             type="org.eclipse.jface.viewers.ISelection">
       </propertyTester>
        <propertyTester
@@ -420,7 +420,7 @@
       <command
             categoryId="org.eclipse.ui.category.window"
             defaultHandler="com.google.dart.tools.debug.ui.launch.RunInBrowserHandler"
-            description="Run as JavaScript"
+            description="Run in Browser"
             id="com.google.dart.tools.debug.ui.run.browser"
             name="%runBrowserName">
       </command>
@@ -472,10 +472,10 @@
       </command>
       <command
             categoryId="org.eclipse.ui.category.window"
-            defaultHandler="com.google.dart.tools.debug.ui.launch.DeployPolymerAppHandler"
-            description="Generate JavaScript for Polymer App"
-            id="com.google.dart.tools.debug.ui.run.deploypolymer"
-            name="Build Polymer App">
+            defaultHandler="com.google.dart.tools.debug.ui.launch.RunPubBuildHandler"
+            description="Run as JavaScript"
+            id="com.google.dart.tools.debug.ui.run.pubbuild"
+            name="Run as JavaScript">
       </command>
    </extension>
    
@@ -592,8 +592,9 @@
             allPopups="false"
             locationURI="popup:com.google.dart.tools.ui.FileExplorer?after=additions">
          <command
-               commandId="com.google.dart.tools.debug.ui.run.deploypolymer"
+               commandId="com.google.dart.tools.debug.ui.run.pubbuild"
                icon="icons/obj16/run_exc.png"
+               label="Run as JavaScript"
                style="push">
             <visibleWhen
                   checkEnabled="false">
@@ -605,7 +606,7 @@
                   <and>
                      <test
                            forcePluginActivation="true"
-                           property="com.google.dart.tools.debug.ui.launch.canDeployPolymer">
+                           property="com.google.dart.tools.debug.ui.launch.canPubBuild">
                      </test>
                   </and>
                </with>

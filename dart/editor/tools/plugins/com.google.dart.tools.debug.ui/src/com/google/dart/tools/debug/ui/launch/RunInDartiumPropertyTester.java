@@ -35,7 +35,8 @@ public class RunInDartiumPropertyTester extends PropertyTester {
         Object o = ((IStructuredSelection) receiver).getFirstElement();
         if (o instanceof IFile) {
           IFile file = (IFile) o;
-          if (DartCore.isHtmlLikeFileName(((IFile) o).getName())) {
+          if (DartCore.isHtmlLikeFileName(file.getName())
+              && !DartCore.isInBuildDirectory(file.getParent())) {
             return true;
           }
 

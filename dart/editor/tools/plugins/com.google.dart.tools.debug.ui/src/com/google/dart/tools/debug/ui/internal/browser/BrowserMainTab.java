@@ -21,16 +21,12 @@ import com.google.dart.tools.debug.ui.internal.util.LaunchTargetComposite;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.debug.ui.AbstractLaunchConfigurationTab;
-import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Listener;
 
 /**
@@ -38,7 +34,6 @@ import org.eclipse.swt.widgets.Listener;
  */
 public class BrowserMainTab extends AbstractLaunchConfigurationTab {
 
-  private Button runDart2jsButton;
   private LaunchTargetComposite launchTargetGroup;
 
   @Override
@@ -54,17 +49,6 @@ public class BrowserMainTab extends AbstractLaunchConfigurationTab {
         notifyPanelChanged();
       }
     });
-
-    // dart2js group
-    Group dart2jsGroup = new Group(composite, SWT.NONE);
-    dart2jsGroup.setText(Messages.BrowserMainTab_Dart2js);
-    GridDataFactory.fillDefaults().grab(true, false).applyTo(dart2jsGroup);
-    GridLayoutFactory.swtDefaults().numColumns(3).applyTo(dart2jsGroup);
-    ((GridLayout) dart2jsGroup.getLayout()).marginBottom = 5;
-
-    runDart2jsButton = new Button(dart2jsGroup, SWT.CHECK);
-    runDart2jsButton.setText("Compile before launch");
-    GridDataFactory.swtDefaults().span(3, 1).applyTo(runDart2jsButton);
 
     setControl(composite);
   }
@@ -124,12 +108,10 @@ public class BrowserMainTab extends AbstractLaunchConfigurationTab {
 
     if (wrapper.getShouldLaunchFile()) {
       launchTargetGroup.setHtmlButtonSelection(true);
-      updateEnablements(true);
     } else {
       launchTargetGroup.setHtmlButtonSelection(false);
-      updateEnablements(false);
     }
-    runDart2jsButton.setSelection(wrapper.getRunDart2js());
+
   }
 
   /**
@@ -156,8 +138,6 @@ public class BrowserMainTab extends AbstractLaunchConfigurationTab {
     wrapper.setUrl(launchTargetGroup.getUrlString());
     wrapper.setSourceDirectoryName(launchTargetGroup.getSourceDirectory());
 
-    wrapper.setRunDart2js(runDart2jsButton.getSelection());
-
   }
 
   @Override
@@ -170,7 +150,6 @@ public class BrowserMainTab extends AbstractLaunchConfigurationTab {
 
   private void notifyPanelChanged() {
     setDirty(true);
-    updateEnablements(launchTargetGroup.getHtmlButtonSelection());
     updateLaunchConfigurationDialog();
   }
 
@@ -183,7 +162,4 @@ public class BrowserMainTab extends AbstractLaunchConfigurationTab {
     }
   }
 
-  private void updateEnablements(boolean isFile) {
-    runDart2jsButton.setEnabled(isFile);
-  }
 }

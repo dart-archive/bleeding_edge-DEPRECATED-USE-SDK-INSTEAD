@@ -26,7 +26,7 @@ import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.ui.IWorkbenchWindow;
 
 /**
- * Action to generate JavaScript and launch in default browser
+ * Action to launch in default browser
  */
 public class RunInBrowserAction extends DartRunAbstractAction {
 
@@ -39,7 +39,7 @@ public class RunInBrowserAction extends DartRunAbstractAction {
   }
 
   public RunInBrowserAction(IWorkbenchWindow window, boolean noMenu) {
-    super(window, "Run as JavaScript", noMenu ? IAction.AS_PUSH_BUTTON : IAction.AS_DROP_DOWN_MENU);
+    super(window, "Run in Browser", noMenu ? IAction.AS_PUSH_BUTTON : IAction.AS_DROP_DOWN_MENU);
 
     setActionDefinitionId("com.google.dart.tools.debug.ui.run.browser");
     setImageDescriptor(DartDebugUIPlugin.getImageDescriptor("obj16/run_exc.png"));
