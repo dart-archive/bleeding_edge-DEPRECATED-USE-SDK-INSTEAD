@@ -21,6 +21,7 @@ import com.google.dart.tools.debug.core.webkit.ChromiumTabInfo;
 import com.google.dart.tools.debug.core.webkit.DefaultChromiumTabChooser;
 import com.google.dart.tools.debug.core.webkit.IChromiumTabChooser;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
+import com.google.dart.tools.debug.ui.internal.view.DebuggerView;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -48,6 +49,8 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IWorkbench;
+import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.dialogs.ListDialog;
 
@@ -72,8 +75,21 @@ public class RemoteConnectionDialog extends TitleAreaDialog {
         return null;
       }
 
-      if (tabs.size() == 1) {
-        return tabs.get(0);
+      int tabCount = 0;
+
+      for (ChromiumTabInfo tab : tabs) {
+        if (!tab.isChromeExtension()) {
+          tabCount++;
+        }
+      }
+
+      // If there is exactly one tab that is not a Chrome extension.
+      if (tabCount == 1) {
+        for (ChromiumTabInfo tab : tabs) {
+          if (!tab.isChromeExtension()) {
+            return tab;
+          }
+        }
       }
 
       final ChromiumTabInfo[] result = new ChromiumTabInfo[1];
@@ -118,6 +134,19 @@ public class RemoteConnectionDialog extends TitleAreaDialog {
     protected IStatus run(IProgressMonitor monitor) {
       try {
         connectionDelegate.performRemoteConnection(host, port, monitor);
+
+        // Show the debugger view.
+        Display.getDefault().asyncExec(new Runnable() {
+          @Override
+          public void run() {
+            try {
+              IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+              window.getActivePage().showView(DebuggerView.ID);
+            } catch (PartInitException ex) {
+              DartDebugUIPlugin.logError(ex);
+            }
+          }
+        });
       } catch (CoreException ce) {
         displayError(ce);
       }

@@ -40,18 +40,10 @@ public class DefaultChromiumTabChooser implements IChromiumTabChooser {
       }
     }
 
-    if (tabs.size() == 0) {
-      // If no tabs, return null.
-      return null;
-    } else if (tabs.size() == 1) {
-      // If one tab, return that.
-      return tabs.get(0);
-    } else {
-      // If more then one tab, return the first visible, non-Chrome extension tab.
-      for (ChromiumTabInfo tab : tabs) {
-        if (!tab.isChromeExtension()) {
-          return tab;
-        }
+    // Return the first visible, non-Chrome extension tab.
+    for (ChromiumTabInfo tab : tabs) {
+      if (!tab.isChromeExtension()) {
+        return tab;
       }
     }
 
