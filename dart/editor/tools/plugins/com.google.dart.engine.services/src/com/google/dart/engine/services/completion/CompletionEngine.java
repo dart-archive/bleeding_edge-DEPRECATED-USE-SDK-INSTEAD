@@ -490,8 +490,12 @@ public class CompletionEngine {
     @Override
     public Void visitArgumentList(ArgumentList node) {
       if (completionNode instanceof SimpleIdentifier) {
-        analyzeLocalName(completionNode);
-        analyzeNamedParameter(node, completionNode);
+        if (isCompletionBetween(
+            node.getLeftParenthesis().getEnd(),
+            node.getRightParenthesis().getOffset())) {
+          analyzeLocalName(completionNode);
+          analyzeNamedParameter(node, completionNode);
+        }
       }
       return null;
     }
@@ -876,7 +880,13 @@ public class CompletionEngine {
             }
           }
         }
-        analyzeLocalName(new Ident(node));
+      }
+      if (isCompletionBetween(
+          node.getLeftParenthesis().getEnd(),
+          node.getRightParenthesis().getOffset())) {
+        Ident ident = new Ident(node);
+        analyzeLocalName(ident);
+        analyzeNamedParameter(node, ident);
       }
       return null;
     }

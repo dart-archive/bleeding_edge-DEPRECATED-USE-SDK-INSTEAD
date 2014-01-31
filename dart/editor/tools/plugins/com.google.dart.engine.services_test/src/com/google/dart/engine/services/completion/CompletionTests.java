@@ -578,6 +578,21 @@ public class CompletionTests extends CompletionTestCase {
     test("class X{}var x = null as !1X;", "1+X", "1-void");
   }
 
+  public void test040() throws Exception {
+    // test arg lists with named params
+    test("m(){f(a, b, {x1, x2, y}) {};f(1, 2, !1)!2;}", "1+x1", "2-x2");
+  }
+
+  public void test041() throws Exception {
+    // test arg lists with named params
+    test("m(){f(a, b, {x1, x2, y}) {};f(1, 2, !1", "1+x1", "1+x2", "1+y");
+  }
+
+  public void test042() throws Exception {
+    // test arg lists with named params
+    test("m(){f(a, b, {x1, x2, y}) {};f(1, 2, !1;!2", "1+x1", "1+x2", "2-y");
+  }
+
   public void testCommentSnippets001() throws Exception {
     test(
         "class X {static final num MAX = 0;num yc,xc;mth() {xc = yc = MA!1X;x!2c.abs();num f = M!3AX;}}",
