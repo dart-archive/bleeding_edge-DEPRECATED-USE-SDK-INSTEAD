@@ -65,6 +65,6 @@ public class Dart2JSAnalysisTest extends LibraryAnalysisTest {
     //
     // Validate that there were no errors.
     //
-    assertValid();
+    assertValid(context);
   }
 }

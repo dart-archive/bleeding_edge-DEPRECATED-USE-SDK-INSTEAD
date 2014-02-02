@@ -98,6 +98,20 @@ public class DartEntryImplTest extends EngineTestCase {
     }
   }
 
+  public void test_getValue_containingLibraries() {
+    Source testSource = new TestSource();
+    DartEntryImpl entry = new DartEntryImpl();
+    Source[] value = entry.getValue(DartEntry.CONTAINING_LIBRARIES);
+    assertLength(0, value);
+    entry.addContainingLibrary(testSource);
+    value = entry.getValue(DartEntry.CONTAINING_LIBRARIES);
+    assertLength(1, value);
+    assertEquals(testSource, value[0]);
+    entry.removeContainingLibrary(testSource);
+    value = entry.getValue(DartEntry.CONTAINING_LIBRARIES);
+    assertLength(0, value);
+  }
+
   public void test_getValue_invalid_element() {
     DartEntryImpl entry = new DartEntryImpl();
     try {

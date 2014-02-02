@@ -66,6 +66,6 @@ public class DartEngineAnalysisTest extends LibraryAnalysisTest {
     //
     // Validate that there were no errors.
     //
-    assertValid();
+    assertValid(context);
   }
 }

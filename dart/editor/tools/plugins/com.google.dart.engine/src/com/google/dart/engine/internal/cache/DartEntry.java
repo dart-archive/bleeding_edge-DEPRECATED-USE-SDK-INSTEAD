@@ -36,6 +36,12 @@ public interface DartEntry extends SourceEntry {
       "DartEntry.ANGULAR_ELEMENTS");
 
   /**
+   * The data descriptor representing the list of libraries that contain this compilation unit.
+   */
+  public static final DataDescriptor<Source[]> CONTAINING_LIBRARIES = new DataDescriptor<Source[]>(
+      "DartEntry.CONTAINING_LIBRARIES");
+
+  /**
    * The data descriptor representing the library element for the library. This data is only
    * available for Dart files that are the defining compilation unit of a library.
    */

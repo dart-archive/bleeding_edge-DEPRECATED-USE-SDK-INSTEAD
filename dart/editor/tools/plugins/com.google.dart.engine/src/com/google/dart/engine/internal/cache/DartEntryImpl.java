@@ -306,6 +306,12 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
   private Source[] includedParts = Source.EMPTY_ARRAY;
 
   /**
+   * The list of libraries that contain this compilation unit. The list will be empty if there are
+   * no known libraries that contain this compilation unit.
+   */
+  private ArrayList<Source> containingLibraries = new ArrayList<Source>();
+
+  /**
    * The information known as a result of resolving this compilation unit as part of the library
    * that contains this unit. This field will never be {@code null}.
    */
@@ -375,6 +381,16 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
    */
   public DartEntryImpl() {
     super();
+  }
+
+  /**
+   * Add the given library to the list of libraries that contain this part. This method should only
+   * be invoked on entries that represent a part.
+   * 
+   * @param librarySource the source of the library to be added
+   */
+  public void addContainingLibrary(Source librarySource) {
+    containingLibraries.add(librarySource);
   }
 
   /**
@@ -543,6 +559,8 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
   public <E> E getValue(DataDescriptor<E> descriptor) {
     if (descriptor == ANGULAR_ELEMENTS) {
       return (E) angularElements;
+    } else if (descriptor == CONTAINING_LIBRARIES) {
+      return (E) containingLibraries.toArray(new Source[containingLibraries.size()]);
     } else if (descriptor == ELEMENT) {
       return (E) element;
     } else if (descriptor == EXPORTED_LIBRARIES) {
@@ -848,6 +866,16 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
   }
 
   /**
+   * Remove the given library from the list of libraries that contain this part. This method should
+   * only be invoked on entries that represent a part.
+   * 
+   * @param librarySource the source of the library to be removed
+   */
+  public void removeContainingLibrary(Source librarySource) {
+    containingLibraries.remove(librarySource);
+  }
+
+  /**
    * Remove any resolution information associated with this compilation unit being part of the given
    * library, presumably because it is no longer part of the library.
    * 
@@ -875,6 +903,17 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
         }
       }
     }
+  }
+
+  /**
+   * Set the list of libraries that contain this compilation unit to contain only the given source.
+   * This method should only be invoked on entries that represent a library.
+   * 
+   * @param librarySource the source of the single library that the list should contain
+   */
+  public void setContainingLibrary(Source librarySource) {
+    containingLibraries.clear();
+    containingLibraries.add(librarySource);
   }
 
   /**
@@ -1064,6 +1103,7 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     exportedLibraries = other.exportedLibraries;
     importedLibrariesState = other.importedLibrariesState;
     importedLibraries = other.importedLibraries;
+    containingLibraries = new ArrayList<Source>(other.containingLibraries);
     resolutionState.copyFrom(other.resolutionState);
     elementState = other.elementState;
     element = other.element;

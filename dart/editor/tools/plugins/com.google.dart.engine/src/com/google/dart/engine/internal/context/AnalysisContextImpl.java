@@ -311,9 +311,12 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         // only re-analyze those libraries.
         logInformation("Added Dart sources, invalidating all resolution information");
         for (Map.Entry<Source, SourceEntry> mapEntry : cache.entrySet()) {
+          Source source = mapEntry.getKey();
           SourceEntry sourceEntry = mapEntry.getValue();
-          if (!mapEntry.getKey().isInSystemLibrary() && sourceEntry instanceof DartEntry) {
-            DartEntryImpl dartCopy = ((DartEntry) sourceEntry).getWritableCopy();
+          if (!source.isInSystemLibrary() && sourceEntry instanceof DartEntry) {
+            DartEntry dartEntry = (DartEntry) sourceEntry;
+            DartEntryImpl dartCopy = dartEntry.getWritableCopy();
+            removeFromParts(source, dartEntry);
             dartCopy.invalidateAllResolutionInformation();
             mapEntry.setValue(dartCopy);
           }
@@ -723,25 +726,11 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
 
   @Override
   public Source[] getLibrariesContaining(Source source) {
-    synchronized (cacheLock) {
-      SourceEntry sourceEntry = cache.get(source);
-      if (sourceEntry == null || sourceEntry.getKind() != SourceKind.PART) {
-        return new Source[] {source};
-      }
-      ArrayList<Source> librarySources = new ArrayList<Source>();
-      for (Map.Entry<Source, SourceEntry> entry : cache.entrySet()) {
-        sourceEntry = entry.getValue();
-        if (sourceEntry.getKind() == SourceKind.LIBRARY) {
-          if (contains(((DartEntry) sourceEntry).getValue(DartEntry.INCLUDED_PARTS), source)) {
-            librarySources.add(entry.getKey());
-          }
-        }
-      }
-      if (librarySources.isEmpty()) {
-        return Source.EMPTY_ARRAY;
-      }
-      return librarySources.toArray(new Source[librarySources.size()]);
+    DartEntry dartEntry = getReadableDartEntry(source);
+    if (dartEntry == null) {
+      return Source.EMPTY_ARRAY;
     }
+    return dartEntry.getValue(DartEntry.CONTAINING_LIBRARIES);
   }
 
   @Override
@@ -1102,7 +1091,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         DartEntry dartEntry = getReadableDartEntry(librarySource);
         if (dartEntry != null) {
           DartEntryImpl dartCopy = dartEntry.getWritableCopy();
-          recordElementData(dartCopy, library, htmlSource);
+          recordElementData(dartEntry, dartCopy, library, library.getSource(), htmlSource);
           cache.put(librarySource, dartCopy);
         }
       }
@@ -1334,7 +1323,12 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
                 dartCopy.setValue(DartEntry.RESOLVED_UNIT, librarySource, unit);
                 dartCopy.setValue(DartEntry.RESOLUTION_ERRORS, librarySource, errors);
                 if (source == librarySource) {
-                  recordElementData(dartCopy, library.getLibraryElement(), htmlSource);
+                  recordElementData(
+                      dartEntry,
+                      dartCopy,
+                      library.getLibraryElement(),
+                      librarySource,
+                      htmlSource);
                   recordAngularComponents(library, dartCopy);
                 }
               } else {
@@ -2434,13 +2428,16 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
    */
   private void invalidateAllResolutionInformation() {
     for (Map.Entry<Source, SourceEntry> mapEntry : cache.entrySet()) {
+      Source source = mapEntry.getKey();
       SourceEntry sourceEntry = mapEntry.getValue();
       if (sourceEntry instanceof HtmlEntry) {
         HtmlEntryImpl htmlCopy = ((HtmlEntry) sourceEntry).getWritableCopy();
         htmlCopy.invalidateAllResolutionInformation();
         mapEntry.setValue(htmlCopy);
       } else if (sourceEntry instanceof DartEntry) {
-        DartEntryImpl dartCopy = ((DartEntry) sourceEntry).getWritableCopy();
+        DartEntry dartEntry = (DartEntry) sourceEntry;
+        removeFromParts(source, dartEntry);
+        DartEntryImpl dartCopy = dartEntry.getWritableCopy();
         dartCopy.invalidateAllResolutionInformation();
         mapEntry.setValue(dartCopy);
       }
@@ -2452,6 +2449,9 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
    * invalidate any results that are dependent on the result of resolving that library.
    * <p>
    * <b>Note:</b> This method must only be invoked while we are synchronized on {@link #cacheLock}.
+   * <p>
+   * <b>Note:</b> Any cache entries that were accessed before this method was invoked must be
+   * re-accessed after this method returns.
    * 
    * @param librarySource the source of the library being invalidated
    * @param writer the writer to which debugging information should be written
@@ -2466,7 +2466,6 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       DartEntryImpl libraryCopy = libraryEntry.getWritableCopy();
       long oldTime = libraryCopy.getModificationTime();
       libraryCopy.invalidateAllResolutionInformation();
-      libraryCopy.setState(DartEntry.INCLUDED_PARTS, CacheState.INVALID);
       cache.put(librarySource, libraryCopy);
       if (writer != null) {
         writer.println("  Invalidated library source: " + debuggingString(librarySource)
@@ -2477,6 +2476,9 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         if (partEntry instanceof DartEntry) {
           DartEntryImpl partCopy = ((DartEntry) partEntry).getWritableCopy();
           oldTime = partCopy.getModificationTime();
+          if (partEntry != libraryCopy) {
+            partCopy.removeContainingLibrary(librarySource);
+          }
           partCopy.invalidateAllResolutionInformation();
           cache.put(partSource, partCopy);
           if (writer != null) {
@@ -2593,26 +2595,38 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
    * Given a cache entry and a library element, record the library element and other information
    * gleaned from the element in the cache entry.
    * 
+   * @param dartEntry the original cache entry from which the copy was made
    * @param dartCopy the cache entry in which data is to be recorded
    * @param library the library element used to record information
+   * @param librarySource the source for the library used to record information
    * @param htmlSource the source for the HTML library
    */
-  private void recordElementData(DartEntryImpl dartCopy, LibraryElement library, Source htmlSource) {
+  private void recordElementData(DartEntry dartEntry, DartEntryImpl dartCopy,
+      LibraryElement library, Source librarySource, Source htmlSource) {
     dartCopy.setValue(DartEntry.ELEMENT, library);
     dartCopy.setValue(DartEntry.IS_LAUNCHABLE, library.getEntryPoint() != null);
     dartCopy.setValue(
         DartEntry.IS_CLIENT,
         isClient(library, htmlSource, new HashSet<LibraryElement>()));
-    ArrayList<Source> unitSources = new ArrayList<Source>();
-    unitSources.add(library.getDefiningCompilationUnit().getSource());
     // TODO(brianwilkerson) Understand why we're doing this both here and in
     // ResolveDartDependenciesTask and whether we should also be capturing the imported and exported
     // sources here.
-    for (CompilationUnitElement part : library.getParts()) {
-      Source partSource = part.getSource();
-      unitSources.add(partSource);
+    removeFromParts(librarySource, dartEntry);
+    CompilationUnitElement[] parts = library.getParts();
+    int count = parts.length;
+    Source[] unitSources = new Source[count + 1];
+    unitSources[0] = library.getDefiningCompilationUnit().getSource();
+    for (int i = 0; i < count; i++) {
+      Source unitSource = parts[i].getSource();
+      unitSources[i + 1] = unitSource;
+      DartEntry unitEntry = getReadableDartEntry(unitSource);
+      if (unitSource != null) {
+        DartEntryImpl unitCopy = unitEntry.getWritableCopy();
+        unitCopy.addContainingLibrary(librarySource);
+        cache.put(unitSource, unitCopy);
+      }
     }
-    dartCopy.setValue(DartEntry.INCLUDED_PARTS, unitSources.toArray(new Source[unitSources.size()]));
+    dartCopy.setValue(DartEntry.INCLUDED_PARTS, unitSources);
   }
 
   /**
@@ -2674,6 +2688,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
           // will be re-verified using the up-to-date sources.
           //
 //          dartCopy.setState(DartEntry.VERIFICATION_ERRORS, librarySource, CacheState.INVALID);
+          removeFromParts(source, dartEntry);
           dartCopy.invalidateAllInformation();
           dartCopy.setModificationTime(sourceTime);
         } else {
@@ -2785,6 +2800,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
               // will be re-analyzed using the up-to-date sources.
               //
 //              dartCopy.setState(DartEntry.HINTS, librarySource, CacheState.INVALID);
+              removeFromParts(unitSource, dartEntry);
               dartCopy.invalidateAllInformation();
               dartCopy.setModificationTime(sourceTime);
             } else {
@@ -2871,6 +2887,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
             dartCopy.setValue(DartEntry.SOURCE_KIND, SourceKind.PART);
           } else {
             dartCopy.setValue(DartEntry.SOURCE_KIND, SourceKind.LIBRARY);
+            dartCopy.setContainingLibrary(source);
           }
           dartCopy.setValue(DartEntry.PARSED_UNIT, task.getCompilationUnit());
           dartCopy.setValue(DartEntry.PARSE_ERRORS, task.getErrors());
@@ -2885,6 +2902,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
               source,
               task.getCompilationUnit());
         } else {
+          removeFromParts(source, dartEntry);
           dartCopy.recordParseError();
         }
         dartCopy.setException(thrownException);
@@ -2903,6 +2921,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
           // will be re-analyzed using the up-to-date sources.
           //
 //          dartCopy.recordParseNotInProcess();
+          removeFromParts(source, dartEntry);
           dartCopy.invalidateAllInformation();
           dartCopy.setModificationTime(sourceTime);
         } else {
@@ -3225,11 +3244,22 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
                 + source.getFullName());
           }
         }
+        removeFromParts(source, dartEntry);
         DartEntryImpl dartCopy = dartEntry.getWritableCopy();
         if (thrownException == null) {
+          Source[] newParts = task.getIncludedSources();
+          for (int i = 0; i < newParts.length; i++) {
+            Source partSource = newParts[i];
+            DartEntry partEntry = getReadableDartEntry(partSource);
+            if (partEntry != null && partEntry != dartEntry) {
+              DartEntryImpl partCopy = partEntry.getWritableCopy();
+              partCopy.addContainingLibrary(source);
+              cache.put(partSource, partCopy);
+            }
+          }
           dartCopy.setValue(DartEntry.EXPORTED_LIBRARIES, task.getExportedSources());
           dartCopy.setValue(DartEntry.IMPORTED_LIBRARIES, task.getImportedSources());
-          dartCopy.setValue(DartEntry.INCLUDED_PARTS, task.getIncludedSources());
+          dartCopy.setValue(DartEntry.INCLUDED_PARTS, newParts);
         } else {
           dartCopy.recordDependencyError();
         }
@@ -3247,6 +3277,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
           // will be re-analyzed using the up-to-date sources.
           //
 //          dartCopy.recordDependencyNotInProcess();
+          removeFromParts(source, dartEntry);
           dartCopy.invalidateAllInformation();
           dartCopy.setModificationTime(sourceTime);
         } else {
@@ -3329,6 +3360,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
 //          if (dartCopy.getState(DartEntry.RESOLVED_UNIT) == CacheState.IN_PROCESS) {
 //            dartCopy.setState(DartEntry.RESOLVED_UNIT, librarySource, CacheState.INVALID);
 //          }
+          removeFromParts(unitSource, dartEntry);
           dartCopy.invalidateAllInformation();
           dartCopy.setModificationTime(sourceTime);
         } else {
@@ -3438,6 +3470,28 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
+   * Remove the given library from the list of containing libraries for all of the parts referenced
+   * by the given entry.
+   * <p>
+   * <b>Note:</b> This method must only be invoked while we are synchronized on {@link #cacheLock}.
+   * 
+   * @param librarySource the library to be removed
+   * @param dartEntry the entry containing the list of included parts
+   */
+  private void removeFromParts(Source librarySource, DartEntry dartEntry) {
+    Source[] oldParts = dartEntry.getValue(DartEntry.INCLUDED_PARTS);
+    for (int i = 0; i < oldParts.length; i++) {
+      Source partSource = oldParts[i];
+      DartEntry partEntry = getReadableDartEntry(partSource);
+      if (partEntry != null && partEntry != dartEntry) {
+        DartEntryImpl partCopy = partEntry.getWritableCopy();
+        partCopy.removeContainingLibrary(librarySource);
+        cache.put(partSource, partCopy);
+      }
+    }
+  }
+
+  /**
    * Create an entry for the newly added source. Return {@code true} if the new source is a Dart
    * file.
    * <p>
@@ -3508,6 +3562,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         invalidateLibraryResolution(library, writer);
       }
 
+      removeFromParts(source, ((DartEntry) sourceEntry));
       DartEntryImpl dartCopy = ((DartEntry) sourceEntry).getWritableCopy();
       dartCopy.setModificationTime(source.getModificationStamp());
       dartCopy.invalidateAllInformation();

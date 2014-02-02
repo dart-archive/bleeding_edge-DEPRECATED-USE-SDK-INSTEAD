@@ -74,14 +74,22 @@ public abstract class LibraryAnalysisTest extends TestCase {
   private ElementStructureVerifier elementVerifier = new ElementStructureVerifier();
 
   /**
+   * The object used to verify that the containing libraries of the sources were correctly computed.
+   */
+  private ContainingLibrariesVerifier librariesVerifier = new ContainingLibrariesVerifier();
+
+  /**
    * Assert that the results of analyzing the libraries (as computed by {#link
    * {@link #verify(LibraryElement)}) were as expected.
+   * 
+   * @param context the analysis context used to get additional information
    */
-  protected void assertValid() {
+  protected void assertValid(AnalysisContext context) {
     assertErrors();
     elementVerifier.assertValid();
     staticTypeVerifier.assertResolved();
     resolutionVerifier.assertResolved();
+    librariesVerifier.assertValid(context);
   }
 
   protected void printStatistics() {
@@ -129,9 +137,12 @@ public abstract class LibraryAnalysisTest extends TestCase {
     }
     visitedLibraries.add(library);
     library.accept(elementVerifier);
-    verify(library.getDefiningCompilationUnit());
+    CompilationUnitElement definingUnit = library.getDefiningCompilationUnit();
+    verify(definingUnit);
+    librariesVerifier.addLibrary(definingUnit);
     for (CompilationUnitElement part : library.getParts()) {
       verify(part);
+      librariesVerifier.addPart(part, definingUnit);
     }
     for (LibraryElement importedLibrary : library.getImportedLibraries()) {
       verify(importedLibrary);
