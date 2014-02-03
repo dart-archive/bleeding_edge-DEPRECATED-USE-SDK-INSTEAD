@@ -114,8 +114,10 @@ public class PubspecModel {
   public void add(DependencyObject[] objs, String eventType) {
     if (objs.length > 0) {
       for (int i = 0; i < objs.length; i++) {
-        dependencies.add(objs[i]);
-        objs[i].setModel(this);
+        if (objs[i] != null) {
+          dependencies.add(objs[i]);
+          objs[i].setModel(this);
+        }
       }
       fireModelChanged(objs, eventType);
     }
