@@ -303,6 +303,7 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
   public void createPartControl(Composite parent) {
     preferences = DartToolsPlugin.getDefault().getCombinedPreferenceStore();
     treeViewer = new TreeViewer(parent);
+    treeViewer.setUseHashlookup(true);
     resourceContentProvider = new ResourceContentProvider();
     treeViewer.setContentProvider(resourceContentProvider);
     resourceLabelProvider = ResourceLabelProvider.createInstance();

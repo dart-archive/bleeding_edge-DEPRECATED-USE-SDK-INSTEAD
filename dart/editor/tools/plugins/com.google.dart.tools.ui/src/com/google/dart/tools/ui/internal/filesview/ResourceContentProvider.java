@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.ui.internal.filesview;
 
+import com.google.common.collect.Lists;
+import com.google.dart.tools.ui.DartToolsPlugin;
 
 import org.eclipse.core.filesystem.EFS;
 import org.eclipse.core.filesystem.IFileStore;
@@ -20,10 +22,13 @@ import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
+import org.eclipse.core.resources.IResourceDelta;
+import org.eclipse.core.resources.IResourceDeltaVisitor;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.viewers.ITreeContentProvider;
+import org.eclipse.jface.viewers.StructuredViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.widgets.Display;
 
@@ -39,7 +44,7 @@ import java.util.Map;
 public class ResourceContentProvider implements ITreeContentProvider, IResourceChangeListener {
   private static final IResource[] NO_CHILDREN = new IResource[0];
 
-  private Viewer viewer;
+  private StructuredViewer viewer;
 
   private DartSdkNode sdkNode;
 
@@ -129,16 +134,20 @@ public class ResourceContentProvider implements ITreeContentProvider, IResourceC
 
   @Override
   public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
-    this.viewer = viewer;
+    this.viewer = (StructuredViewer) viewer;
   }
 
   @Override
   public void resourceChanged(IResourceChangeEvent event) {
+    final List<IResource> changedResources = getChangedResources(event);
     Display.getDefault().asyncExec(new Runnable() {
       @Override
       public void run() {
         if (viewer != null && !viewer.getControl().isDisposed()) {
-          viewer.refresh();
+          viewer.refresh(false);
+          for (IResource resource : changedResources) {
+            viewer.update(resource, null);
+          }
         }
       }
     });
@@ -166,6 +175,31 @@ public class ResourceContentProvider implements ITreeContentProvider, IResourceC
     }
 
     return children;
+  }
+
+  /**
+   * Returns {@link IResource} changed by this {@link IResourceChangeEvent}.
+   */
+  private List<IResource> getChangedResources(IResourceChangeEvent event) {
+    final List<IResource> updatedResources = Lists.newArrayList();
+    IResourceDelta delta = event.getDelta();
+    if (delta != null) {
+      try {
+        delta.accept(new IResourceDeltaVisitor() {
+          @Override
+          public boolean visit(IResourceDelta delta) throws CoreException {
+            IResource resource = delta.getResource();
+            if (resource != null) {
+              updatedResources.add(resource);
+            }
+            return true;
+          }
+        });
+      } catch (Throwable e) {
+        DartToolsPlugin.log(e);
+      }
+    }
+    return updatedResources;
   }
 
   private DartLibraryNode getSdkParent(IFileStore fileStore) {
