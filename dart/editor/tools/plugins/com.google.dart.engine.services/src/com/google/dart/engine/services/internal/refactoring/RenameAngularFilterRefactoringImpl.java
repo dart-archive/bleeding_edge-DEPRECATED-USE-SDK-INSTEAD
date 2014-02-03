@@ -14,16 +14,11 @@
 
 package com.google.dart.engine.services.internal.refactoring;
 
-import com.google.dart.engine.context.AnalysisContext;
-import com.google.dart.engine.element.LibraryElement;
-import com.google.dart.engine.element.angular.AngularElement;
 import com.google.dart.engine.element.angular.AngularFilterElement;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.services.refactoring.NamingConventions;
 import com.google.dart.engine.services.refactoring.Refactoring;
 import com.google.dart.engine.services.status.RefactoringStatus;
-
-import java.text.MessageFormat;
 
 /**
  * {@link Refactoring} for renaming {@link AngularFilterElement}.
@@ -40,19 +35,20 @@ public class RenameAngularFilterRefactoringImpl extends RenameAngularElementRefa
 
   @Override
   protected RefactoringStatus checkNameConflicts(String newName) {
-    LibraryElement library = element.getLibrary();
-    AnalysisContext context = library.getContext();
-    AngularElement[] angularElements = context.getAngularElements();
-    for (AngularElement angularElement : angularElements) {
-      if (angularElement instanceof AngularFilterElement) {
-        if (angularElement.getName().equals(newName)) {
-          String message = MessageFormat.format(
-              "Library already defines filter with name ''{0}''.",
-              newName);
-          return RefactoringStatus.createErrorStatus(message);
-        }
-      }
-    }
+    // TODO(scheglov)
+//    LibraryElement library = element.getLibrary();
+//    AnalysisContext context = library.getContext();
+//    AngularElement[] angularElements = context.getAngularElements();
+//    for (AngularElement angularElement : angularElements) {
+//      if (angularElement instanceof AngularFilterElement) {
+//        if (angularElement.getName().equals(newName)) {
+//          String message = MessageFormat.format(
+//              "Library already defines filter with name ''{0}''.",
+//              newName);
+//          return RefactoringStatus.createErrorStatus(message);
+//        }
+//      }
+//    }
     return new RefactoringStatus();
   }
 

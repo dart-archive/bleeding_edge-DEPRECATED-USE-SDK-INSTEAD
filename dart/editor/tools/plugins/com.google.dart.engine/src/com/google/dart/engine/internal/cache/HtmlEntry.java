@@ -14,6 +14,7 @@
 package com.google.dart.engine.internal.cache;
 
 import com.google.dart.engine.element.HtmlElement;
+import com.google.dart.engine.element.angular.AngularComponentElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.source.Source;
@@ -25,6 +26,27 @@ import com.google.dart.engine.source.Source;
  * @coverage dart.engine
  */
 public interface HtmlEntry extends SourceEntry {
+  /**
+   * The data descriptor representing the information about an Angular application this source is
+   * used in.
+   */
+  public static final DataDescriptor<AngularApplicationInfo> ANGULAR_APPLICATION = new DataDescriptor<AngularApplicationInfo>(
+      "HtmlEntry.ANGULAR_APPLICATION");
+
+  /**
+   * The data descriptor representing the information about an Angular component this source is used
+   * as template for.
+   */
+  public static final DataDescriptor<AngularComponentElement> ANGULAR_COMPONENT = new DataDescriptor<AngularComponentElement>(
+      "HtmlEntry.ANGULAR_COMPONENT");
+
+  /**
+   * The data descriptor representing the information about an Angular application this source is
+   * entry point for.
+   */
+  public static final DataDescriptor<AngularApplicationInfo> ANGULAR_ENTRY = new DataDescriptor<AngularApplicationInfo>(
+      "HtmlEntry.ANGULAR_ENTRY");
+
   /**
    * The data descriptor representing the errors reported during Angular resolution.
    */

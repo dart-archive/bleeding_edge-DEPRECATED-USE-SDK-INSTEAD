@@ -16,12 +16,15 @@ package com.google.dart.engine.internal.html.angular;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.ClassElement;
+import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExternalHtmlScriptElement;
 import com.google.dart.engine.element.FunctionElement;
@@ -36,6 +39,7 @@ import com.google.dart.engine.element.angular.AngularDirectiveElement;
 import com.google.dart.engine.element.angular.AngularElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
+import com.google.dart.engine.error.AngularCode;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.html.ast.EmbeddedExpression;
 import com.google.dart.engine.html.ast.HtmlUnit;
@@ -43,12 +47,14 @@ import com.google.dart.engine.html.ast.XmlAttributeNode;
 import com.google.dart.engine.html.ast.XmlTagNode;
 import com.google.dart.engine.html.ast.visitor.RecursiveXmlVisitor;
 import com.google.dart.engine.html.parser.HtmlParser;
+import com.google.dart.engine.internal.cache.AngularApplicationInfo;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
 import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
 import com.google.dart.engine.internal.element.FunctionElementImpl;
 import com.google.dart.engine.internal.element.ImportElementImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
 import com.google.dart.engine.internal.element.LocalVariableElementImpl;
+import com.google.dart.engine.internal.element.angular.AngularComponentElementImpl;
 import com.google.dart.engine.internal.resolver.InheritanceManager;
 import com.google.dart.engine.internal.resolver.ProxyConditionalAnalysisError;
 import com.google.dart.engine.internal.resolver.ResolverVisitor;
@@ -63,6 +69,8 @@ import com.google.dart.engine.type.Type;
 import com.google.dart.engine.utilities.general.StringUtilities;
 import com.google.dart.engine.utilities.source.LineInfo;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -104,6 +112,22 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
   }
 
   /**
+   * Returns the array of all top-level Angular elements that could be used in the application with
+   * this entry point. Maybe {@code null} of not an Angular entry point.
+   */
+  public static AngularElement[] getAngularElements(AnalysisContext context, HtmlUnit unit)
+      throws AnalysisException {
+    if (hasAngularAnnotation(unit)) {
+      CompilationUnit dartUnit = getDartUnit(context, unit);
+      if (dartUnit != null) {
+        LibraryElement libraryElement = dartUnit.getElement().getLibrary();
+        return getAngularElements(libraryElement);
+      }
+    }
+    return null;
+  }
+
+  /**
    * @return {@code true} if the given {@link HtmlUnit} has <code>ng-app</code> annotation.
    */
   public static boolean hasAngularAnnotation(HtmlUnit htmlUnit) {
@@ -128,27 +152,95 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
     return new SimpleIdentifier(token);
   }
 
+  /**
+   * Adds {@link AngularElement} declared by the given top-level {@link Element}.
+   * 
+   * @param angularElements the list to fill with top-level {@link AngularElement}s
+   * @param classElement the {@link ClassElement} to get {@link AngularElement}s from
+   */
+  private static void addAngularElements(Set<AngularElement> angularElements,
+      ClassElement classElement) {
+    for (ToolkitObjectElement toolkitObject : classElement.getToolkitObjects()) {
+      if (toolkitObject instanceof AngularElement) {
+        angularElements.add((AngularElement) toolkitObject);
+      }
+    }
+  }
+
+  /**
+   * Returns the array of all top-level Angular elements that could be used in this library.
+   * 
+   * @param libraryElement the {@link LibraryElement} to analyze
+   * @return the array of all top-level Angular elements that could be used in this library
+   */
+  private static void addAngularElements(Set<AngularElement> angularElements,
+      LibraryElement library, Set<LibraryElement> visited) {
+    if (!visited.add(library)) {
+      return;
+    }
+    // add Angular elements from current library
+    for (CompilationUnitElement unit : library.getUnits()) {
+      for (ClassElement type : unit.getTypes()) {
+        addAngularElements(angularElements, type);
+      }
+    }
+    // handle imports
+    for (ImportElement importElement : library.getImports()) {
+      LibraryElement importedLibrary = importElement.getImportedLibrary();
+      addAngularElements(angularElements, importedLibrary, visited);
+    }
+  }
+
   // TODO(scheglov) rename to: createIdentifierToken
   private static StringToken createStringToken(String name, int offset) {
     return new StringToken(TokenType.IDENTIFIER, name, offset);
+  }
+
+  /**
+   * Returns the array of all top-level Angular elements that could be used in this library.
+   * 
+   * @param libraryElement the {@link LibraryElement} to analyze
+   * @return the array of all top-level Angular elements that could be used in this library
+   */
+  private static AngularElement[] getAngularElements(LibraryElement libraryElement) {
+    Set<AngularElement> angularElements = Sets.newHashSet();
+    addAngularElements(angularElements, libraryElement, Sets.<LibraryElement> newHashSet());
+    return angularElements.toArray(new AngularElement[angularElements.size()]);
+  }
+
+  /**
+   * Returns the external Dart {@link CompilationUnit} referenced by the given {@link HtmlUnit}.
+   */
+  private static CompilationUnit getDartUnit(AnalysisContext context, HtmlUnit unit)
+      throws AnalysisException {
+    for (HtmlScriptElement script : unit.getElement().getScripts()) {
+      if (script instanceof ExternalHtmlScriptElement) {
+        Source scriptSource = ((ExternalHtmlScriptElement) script).getScriptSource();
+        if (scriptSource != null) {
+          return context.resolveCompilationUnit(scriptSource, scriptSource);
+        }
+      }
+    }
+    return null;
   }
 
   private final InternalAnalysisContext context;
   private final TypeProvider typeProvider;
   private final AnalysisErrorListener errorListener;
   private final Source source;
-  private final LineInfo lineInfo;
 
+  private final LineInfo lineInfo;
   private final HtmlUnit unit;
   private AngularElement[] angularElements;
   private final List<NgProcessor> processors = Lists.newArrayList();
   private LibraryElementImpl libraryElement;
-  private CompilationUnitElementImpl unitElement;
 
+  private CompilationUnitElementImpl unitElement;
   private FunctionElementImpl functionElement;
   private ResolverVisitor resolver;
   private boolean isAngular = false;
   private List<LocalVariableElementImpl> definedVariables = Lists.newArrayList();
+
   private Set<LibraryElement> injectedLibraries = Sets.newHashSet();
 
   private Scope topNameScope;
@@ -167,39 +259,78 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
   }
 
   /**
-   * Resolves {@link #source} as an {@link AngularComponentElement} template file.
-   * 
-   * @param angularElements the {@link AngularElement}s accessible in the component's library, not
-   *          {@code null}
-   * @param component the {@link AngularComponentElement} to resolve template for, not {@code null}
+   * The {@link AngularApplicationInfo} for the Web application with this entry point, may be
+   * {@code null} if not an entry point.
    */
-  public void resolveComponentTemplate(AngularElement[] angularElements,
-      AngularComponentElement component) throws AnalysisException {
-    isAngular = true;
-    resolveInternal(angularElements, component);
+  public AngularApplicationInfo calculateAngularApplication() throws AnalysisException {
+    // check if Angular at all
+    if (!hasAngularAnnotation(unit)) {
+      return null;
+    }
+    // prepare resolved Dart unit
+    CompilationUnit dartUnit = getDartUnit(context, unit);
+    if (dartUnit == null) {
+      return null;
+    }
+    // prepare accessible Angular elements
+    LibraryElement libraryElement = dartUnit.getElement().getLibrary();
+    AngularElement[] angularElements = getAngularElements(libraryElement);
+    // resolve template URIs
+    // TODO(scheglov) resolve to HtmlElement to allow F3 ?
+    for (AngularElement angularElement : angularElements) {
+      if (angularElement instanceof AngularComponentElement) {
+        AngularComponentElement component = (AngularComponentElement) angularElement;
+        String templateUri = component.getTemplateUri();
+        if (templateUri == null) {
+          continue;
+        }
+        try {
+          Source templateSource = source.resolveRelative(new URI(templateUri));
+          if (templateSource == null || !templateSource.exists()) {
+            templateSource = context.getSourceFactory().resolveUri(source, "package:" + templateUri);
+            if (templateSource == null || !templateSource.exists()) {
+              reportError(
+                  component.getTemplateUriOffset(),
+                  templateUri.length(),
+                  AngularCode.URI_DOES_NOT_EXIST,
+                  templateUri);
+              continue;
+            }
+          }
+          if (!AnalysisEngine.isHtmlFileName(templateUri)) {
+            continue;
+          }
+          ((AngularComponentElementImpl) component).setTemplateSource(templateSource);
+        } catch (URISyntaxException exception) {
+          reportError(
+              component.getTemplateUriOffset(),
+              templateUri.length(),
+              AngularCode.INVALID_URI,
+              templateUri);
+        }
+      }
+    }
+    // done
+    return new AngularApplicationInfo(source, angularElements);
   }
 
   /**
-   * Resolves {@link #source} as an entry-point HTML file, that references an external Dart script.
+   * Resolves {@link #source} as an {@link AngularComponentElement} template file.
+   * 
+   * @param application the Angular application we are resolving for
+   * @param component the {@link AngularComponentElement} to resolve template for, not {@code null}
    */
-  public void resolveEntryPoint() throws AnalysisException {
-    // check if Angular at all
-    if (!hasAngularAnnotation(unit)) {
-      return;
-    }
-    // prepare accessible Angular elements
-    AngularElement[] angularElements;
-    {
-      // prepare external Dart script source
-      Source dartSource = getDartSource(unit);
-      if (dartSource == null) {
-        return;
-      }
-      // get cached Angular elements
-      angularElements = context.getAngularElements();
-    }
-    // perform resolution
-    resolveInternal(angularElements, null);
+  public void resolveComponentTemplate(AngularApplicationInfo application,
+      AngularComponentElement component) throws AnalysisException {
+    isAngular = true;
+    resolveInternal(application.getElements(), component);
+  }
+
+  /**
+   * Resolves {@link #source} as an Angular application entry point.
+   */
+  public void resolveEntryPoint(AngularApplicationInfo application) throws AnalysisException {
+    resolveInternal(application.getElements(), null);
   }
 
   @Override
@@ -418,21 +549,6 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
       topNameScope.define(createLocalVariable(type, "$parent"));
       topNameScope.define(createLocalVariable(type, "$root"));
     }
-  }
-
-  /**
-   * Returns the external Dart script {@link Source} referenced by the given {@link HtmlUnit}.
-   */
-  private Source getDartSource(HtmlUnit unit) throws AnalysisException {
-    for (HtmlScriptElement script : unit.getElement().getScripts()) {
-      if (script instanceof ExternalHtmlScriptElement) {
-        Source scriptSource = ((ExternalHtmlScriptElement) script).getScriptSource();
-        if (scriptSource != null) {
-          return scriptSource;
-        }
-      }
-    }
-    return null;
   }
 
   /**

@@ -14,6 +14,7 @@
 package com.google.dart.engine.internal.cache;
 
 import com.google.dart.engine.element.HtmlElement;
+import com.google.dart.engine.element.angular.AngularComponentElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.source.Source;
@@ -89,6 +90,36 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
    * The element representing the HTML file, or {@code null} if the element is not currently cached.
    */
   private HtmlElement element;
+
+  /**
+   * The state of the {@link #angularApplication}.
+   */
+  private CacheState angularApplicationState = CacheState.VALID;
+
+  /**
+   * Information about the Angular Application this unit is used in.
+   */
+  private AngularApplicationInfo angularApplication;
+
+  /**
+   * The state of the {@link #angularEntry}.
+   */
+  private CacheState angularEntryState = CacheState.VALID;
+
+  /**
+   * Information about the Angular Application this unit is entry point for.
+   */
+  private AngularApplicationInfo angularEntry = null;
+
+  /**
+   * The state of the {@link #angularComponent}.
+   */
+  private CacheState angularComponentState = CacheState.VALID;
+
+  /**
+   * Information about the {@link AngularComponentElement} this unit is used as template for.
+   */
+  private AngularComponentElement angularComponent = null;
 
   /**
    * The state of the Angular resolution errors.
@@ -182,7 +213,13 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
 
   @Override
   public CacheState getState(DataDescriptor<?> descriptor) {
-    if (descriptor == ANGULAR_ERRORS) {
+    if (descriptor == ANGULAR_APPLICATION) {
+      return angularApplicationState;
+    } else if (descriptor == ANGULAR_COMPONENT) {
+      return angularComponentState;
+    } else if (descriptor == ANGULAR_ENTRY) {
+      return angularEntryState;
+    } else if (descriptor == ANGULAR_ERRORS) {
       return angularErrorsState;
     } else if (descriptor == ELEMENT) {
       return elementState;
@@ -205,7 +242,13 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
   @Override
   @SuppressWarnings("unchecked")
   public <E> E getValue(DataDescriptor<E> descriptor) {
-    if (descriptor == ANGULAR_ERRORS) {
+    if (descriptor == ANGULAR_APPLICATION) {
+      return (E) angularApplication;
+    } else if (descriptor == ANGULAR_COMPONENT) {
+      return (E) angularComponent;
+    } else if (descriptor == ANGULAR_ENTRY) {
+      return (E) angularEntry;
+    } else if (descriptor == ANGULAR_ERRORS) {
       return (E) angularErrors;
     } else if (descriptor == ELEMENT) {
       return (E) element;
@@ -292,7 +335,16 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
 
   @Override
   public void setState(DataDescriptor<?> descriptor, CacheState state) {
-    if (descriptor == ANGULAR_ERRORS) {
+    if (descriptor == ANGULAR_APPLICATION) {
+      angularApplication = updatedValue(state, angularApplication, null);
+      angularApplicationState = state;
+    } else if (descriptor == ANGULAR_COMPONENT) {
+      angularComponent = updatedValue(state, angularComponent, null);
+      angularComponentState = state;
+    } else if (descriptor == ANGULAR_ENTRY) {
+      angularEntry = updatedValue(state, angularEntry, null);
+      angularEntryState = state;
+    } else if (descriptor == ANGULAR_ERRORS) {
       angularErrors = updatedValue(state, angularErrors, null);
       angularErrorsState = state;
     } else if (descriptor == ELEMENT) {
@@ -323,7 +375,16 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
 
   @Override
   public <E> void setValue(DataDescriptor<E> descriptor, E value) {
-    if (descriptor == ANGULAR_ERRORS) {
+    if (descriptor == ANGULAR_APPLICATION) {
+      angularApplication = (AngularApplicationInfo) value;
+      angularApplicationState = CacheState.VALID;
+    } else if (descriptor == ANGULAR_COMPONENT) {
+      angularComponent = (AngularComponentElement) value;
+      angularComponentState = CacheState.VALID;
+    } else if (descriptor == ANGULAR_ENTRY) {
+      angularEntry = (AngularApplicationInfo) value;
+      angularEntryState = CacheState.VALID;
+    } else if (descriptor == ANGULAR_ERRORS) {
       angularErrors = (AnalysisError[]) value;
       angularErrorsState = CacheState.VALID;
     } else if (descriptor == ELEMENT) {
@@ -356,6 +417,12 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
   protected void copyFrom(SourceEntryImpl entry) {
     super.copyFrom(entry);
     HtmlEntryImpl other = (HtmlEntryImpl) entry;
+    angularApplicationState = other.angularApplicationState;
+    angularApplication = other.angularApplication;
+    angularComponentState = other.angularComponentState;
+    angularComponent = other.angularComponent;
+    angularEntryState = other.angularEntryState;
+    angularEntry = other.angularEntry;
     angularErrorsState = other.angularErrorsState;
     angularErrors = other.angularErrors;
     parseErrorsState = other.parseErrorsState;
@@ -399,6 +466,12 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
     builder.append(referencedLibrariesState);
     builder.append("; element = ");
     builder.append(elementState);
+    builder.append("; angularApplication = ");
+    builder.append(angularApplicationState);
+    builder.append("; angularComponent = ");
+    builder.append(angularComponentState);
+    builder.append("; angularEntry = ");
+    builder.append(angularEntryState);
     builder.append("; angularErrors = ");
     builder.append(angularErrorsState);
   }

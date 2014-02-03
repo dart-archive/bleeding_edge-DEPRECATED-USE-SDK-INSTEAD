@@ -16,7 +16,6 @@ package com.google.dart.engine.internal.builder;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
-import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.Annotation;
 import com.google.dart.engine.ast.ArgumentList;
@@ -32,13 +31,10 @@ import com.google.dart.engine.ast.NamedExpression;
 import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.SimpleStringLiteral;
 import com.google.dart.engine.ast.VariableDeclaration;
-import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.ClassElement;
-import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.FieldElement;
-import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.ToolkitObjectElement;
 import com.google.dart.engine.element.angular.AngularComponentElement;
@@ -63,8 +59,6 @@ import com.google.dart.engine.internal.element.angular.IsTagSelectorElementImpl;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.general.StringUtilities;
 
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.List;
 
 /**
@@ -90,26 +84,6 @@ public class AngularCompilationUnitBuilder {
   private static final String NG_ONE_WAY = "NgOneWay";
   private static final String NG_ONE_WAY_ONE_TIME = "NgOneWayOneTime";
   private static final String NG_TWO_WAY = "NgTwoWay";
-
-  /**
-   * Returns the array of all top-level Angular elements that are defined in this library.
-   * 
-   * @param libraryElement the {@link LibraryElement} to analyze
-   * @return the array of all top-level Angular elements that are defined in this library
-   */
-  public static AngularElement[] getAngularElements(LibraryElement libraryElement) {
-    List<AngularElement> angularElements = Lists.newArrayList();
-    for (CompilationUnitElement unit : libraryElement.getUnits()) {
-      for (ClassElement type : unit.getTypes()) {
-        for (ToolkitObjectElement toolkitObject : type.getToolkitObjects()) {
-          if (toolkitObject instanceof AngularElement) {
-            angularElements.add((AngularElement) toolkitObject);
-          }
-        }
-      }
-    }
-    return angularElements.toArray(new AngularElement[angularElements.size()]);
-  }
 
   public static Element getElement(ASTNode node, int offset) {
     // maybe node is not SimpleStringLiteral
@@ -258,11 +232,6 @@ public class AngularCompilationUnitBuilder {
   }
 
   /**
-   * The {@link AnalysisContext} that performs analysis.
-   */
-  private final AnalysisContext context;
-
-  /**
    * The listener to which errors will be reported.
    */
   private final AnalysisErrorListener errorListener;
@@ -298,9 +267,7 @@ public class AngularCompilationUnitBuilder {
    * @param errorListener the listener to which errors will be reported.
    * @param source the source containing the unit that will be analyzed
    */
-  public AngularCompilationUnitBuilder(AnalysisContext context,
-      AnalysisErrorListener errorListener, Source source) {
-    this.context = context;
+  public AngularCompilationUnitBuilder(AnalysisErrorListener errorListener, Source source) {
     this.errorListener = errorListener;
     this.source = source;
   }
@@ -468,29 +435,6 @@ public class AngularCompilationUnitBuilder {
       element.setSelector(selector);
       element.setTemplateUri(templateUri);
       element.setTemplateUriOffset(templateUriOffset);
-      // resolve template URI
-      // TODO(scheglov) resolve to HtmlElement to allow F3 ?
-      if (templateUri != null) {
-        try {
-          new URI(templateUri);
-          // TODO(scheglov) think if there is better solution
-          if (templateUri.startsWith("packages/")) {
-            templateUri = "package:" + templateUri.substring("packages/".length());
-          }
-          Source templateSource = context.getSourceFactory().resolveUri(source, templateUri);
-          if (templateSource == null || !templateSource.exists()) {
-            templateSource = context.getSourceFactory().resolveUri(source, "package:" + templateUri);
-          }
-          if (templateSource == null || !templateSource.exists()) {
-            reportErrorForArgument(TEMPLATE_URL, AngularCode.URI_DOES_NOT_EXIST, templateUri);
-          }
-          if (AnalysisEngine.isHtmlFileName(templateUri)) {
-            element.setTemplateSource(templateSource);
-          }
-        } catch (URISyntaxException exception) {
-          reportErrorForArgument(TEMPLATE_URL, AngularCode.INVALID_URI, templateUri);
-        }
-      }
       element.setStyleUri(styleUri);
       element.setStyleUriOffset(styleUriOffset);
       element.setProperties(parseNgComponentProperties(true));

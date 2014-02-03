@@ -15,7 +15,6 @@ package com.google.dart.engine.internal.cache;
 
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.element.LibraryElement;
-import com.google.dart.engine.element.angular.AngularElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.internal.scope.Namespace;
 import com.google.dart.engine.source.Source;
@@ -328,17 +327,6 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
   private LibraryElement element;
 
   /**
-   * The state of the cached {@link angularElements}.
-   */
-  private CacheState angularElementsState = CacheState.INVALID;
-
-  /**
-   * The array of Angular elements accessible in the library, or an empty array if the elements are
-   * not currently cached.
-   */
-  private AngularElement[] angularElements = AngularElement.EMPTY_ARRAY;
-
-  /**
    * The state of the cached public namespace.
    */
   private CacheState publicNamespaceState = CacheState.INVALID;
@@ -500,9 +488,7 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
 
   @Override
   public CacheState getState(DataDescriptor<?> descriptor) {
-    if (descriptor == ANGULAR_ELEMENTS) {
-      return angularElementsState;
-    } else if (descriptor == ELEMENT) {
+    if (descriptor == ELEMENT) {
       return elementState;
     } else if (descriptor == EXPORTED_LIBRARIES) {
       return exportedLibrariesState;
@@ -557,9 +543,7 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
   @Override
   @SuppressWarnings("unchecked")
   public <E> E getValue(DataDescriptor<E> descriptor) {
-    if (descriptor == ANGULAR_ELEMENTS) {
-      return (E) angularElements;
-    } else if (descriptor == CONTAINING_LIBRARIES) {
+    if (descriptor == CONTAINING_LIBRARIES) {
       return (E) containingLibraries.toArray(new Source[containingLibraries.size()]);
     } else if (descriptor == ELEMENT) {
       return (E) element;
@@ -826,9 +810,6 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
    * not change the state of any parse results.
    */
   public void recordResolutionError() {
-    angularElements = AngularElement.EMPTY_ARRAY;
-    angularElementsState = CacheState.ERROR;
-
     element = null;
     elementState = CacheState.ERROR;
 
@@ -847,9 +828,6 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
    * invalidated before they could be recorded.
    */
   public void recordResolutionNotInProcess() {
-    if (angularElementsState == CacheState.IN_PROCESS) {
-      angularElementsState = CacheState.INVALID;
-    }
     if (elementState == CacheState.IN_PROCESS) {
       elementState = CacheState.INVALID;
     }
@@ -943,10 +921,7 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
 
   @Override
   public void setState(DataDescriptor<?> descriptor, CacheState state) {
-    if (descriptor == ANGULAR_ELEMENTS) {
-      angularElements = updatedValue(state, angularElements, AngularElement.EMPTY_ARRAY);
-      angularElementsState = state;
-    } else if (descriptor == ELEMENT) {
+    if (descriptor == ELEMENT) {
       element = updatedValue(state, element, null);
       elementState = state;
     } else if (descriptor == EXPORTED_LIBRARIES) {
@@ -1021,10 +996,7 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
 
   @Override
   public <E> void setValue(DataDescriptor<E> descriptor, E value) {
-    if (descriptor == ANGULAR_ELEMENTS) {
-      angularElements = (AngularElement[]) value;
-      angularElementsState = CacheState.VALID;
-    } else if (descriptor == ELEMENT) {
+    if (descriptor == ELEMENT) {
       element = (LibraryElement) value;
       elementState = CacheState.VALID;
     } else if (descriptor == EXPORTED_LIBRARIES) {
@@ -1111,8 +1083,6 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     publicNamespace = other.publicNamespace;
     clientServerState = other.clientServerState;
     launchableState = other.launchableState;
-    angularElementsState = other.angularElementsState;
-    angularElements = other.angularElements;
     bitmask = other.bitmask;
   }
 
@@ -1122,9 +1092,8 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
         || parsedUnitState == CacheState.ERROR || parseErrorsState == CacheState.ERROR
         || importedLibrariesState == CacheState.ERROR || exportedLibrariesState == CacheState.ERROR
         || includedPartsState == CacheState.ERROR || elementState == CacheState.ERROR
-        || angularElementsState == CacheState.ERROR || publicNamespaceState == CacheState.ERROR
-        || clientServerState == CacheState.ERROR || launchableState == CacheState.ERROR
-        || resolutionState.hasErrorState();
+        || publicNamespaceState == CacheState.ERROR || clientServerState == CacheState.ERROR
+        || launchableState == CacheState.ERROR || resolutionState.hasErrorState();
   }
 
   @Override
@@ -1154,7 +1123,6 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     builder.append("; launchable = ");
     builder.append(launchableState);
     builder.append("; angularElements = ");
-    builder.append(angularElementsState);
     resolutionState.writeOn(builder);
   }
 
@@ -1162,9 +1130,6 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
    * Invalidate all of the resolution information associated with the compilation unit.
    */
   private void discardCachedResolutionInformation() {
-    angularElements = AngularElement.EMPTY_ARRAY;
-    angularElementsState = CacheState.INVALID;
-
     element = null;
     elementState = CacheState.INVALID;
 

@@ -95,6 +95,7 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
         "class MyComponent {",
         "  String field;",
         "}"));
+    contextHelper.addSource("/entry-point.html", createHtmlWithAngular());
     addIndexSource("/my_template.html", createSource(//
         "    <div>",
         "      {{ctrl.field}}",
@@ -108,6 +109,10 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
   }
 
   public void test_NgComponent_use_resolveAttributes() throws Exception {
+    contextHelper.addSource("/my_template.html", createSource(//
+        "    <div>",
+        "      {{ctrl.field}}",
+        "    </div>"));
     addMainSource(createSource("",//
         "import 'angular.dart';",
         "",

@@ -108,6 +108,7 @@ public class AngularHtmlIndexContributorTest extends AngularTest {
         "class MyComponent {",
         "  String field;",
         "}"));
+    contextHelper.addSource("/entry-point.html", createHtmlWithAngular());
     addIndexSource("/my_template.html", createSource(//
         "    <div>",
         "      {{ctrl.field}}",

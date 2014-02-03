@@ -15,9 +15,9 @@ package com.google.dart.engine.internal.task;
 
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.angular.AngularComponentElement;
-import com.google.dart.engine.element.angular.AngularElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.html.ast.HtmlUnit;
+import com.google.dart.engine.internal.cache.AngularApplicationInfo;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
 import com.google.dart.engine.internal.context.RecordingErrorListener;
 import com.google.dart.engine.internal.context.ResolvableHtmlUnit;
@@ -36,9 +36,9 @@ public class ResolveAngularComponentTemplateTask extends AnalysisTask {
   private final AngularComponentElement component;
 
   /**
-   * All Angular elements accessible in the component library.
+   * The Angular application to resolve in context of.
    */
-  private final AngularElement[] angularElements;
+  private final AngularApplicationInfo application;
 
   /**
    * The source to be resolved.
@@ -66,14 +66,14 @@ public class ResolveAngularComponentTemplateTask extends AnalysisTask {
    * @param context the context in which the task is to be performed
    * @param source the source to be resolved
    * @param component the component that uses this HTML template, not {@code null}
-   * @param angularElements all Angular elements accessible in the component library
+   * @param application the Angular application to resolve in context of
    */
   public ResolveAngularComponentTemplateTask(InternalAnalysisContext context, Source source,
-      AngularComponentElement component, AngularElement[] angularElements) {
+      AngularComponentElement component, AngularApplicationInfo application) {
     super(context);
     this.source = source;
     this.component = component;
-    this.angularElements = angularElements;
+    this.application = application;
   }
 
   @Override
@@ -138,7 +138,7 @@ public class ResolveAngularComponentTemplateTask extends AnalysisTask {
         source,
         lineInfo,
         unit);
-    resolver.resolveComponentTemplate(angularElements, component);
+    resolver.resolveComponentTemplate(application, component);
     // remember errors
     resolutionErrors = errorListener.getErrors(source);
     // remember resolved unit

@@ -806,11 +806,8 @@ public class LibraryResolver {
     try {
       for (Source source : library.getCompilationUnitSources()) {
         CompilationUnit ast = library.getAST(source);
-        new AngularCompilationUnitBuilder(analysisContext, errorListener, source).build(ast);
+        new AngularCompilationUnitBuilder(errorListener, source).build(ast);
       }
-      // remember accessible Angular elements
-      LibraryElementImpl libraryElement = library.getLibraryElement();
-      library.setAngularElements(AngularCompilationUnitBuilder.getAngularElements(libraryElement));
     } finally {
       timeCounter.stop();
     }

@@ -17,6 +17,7 @@ import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.HtmlElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.html.ast.HtmlUnit;
+import com.google.dart.engine.internal.cache.AngularApplicationInfo;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
 import com.google.dart.engine.internal.context.RecordingErrorListener;
 import com.google.dart.engine.internal.context.ResolvableHtmlUnit;
@@ -32,7 +33,12 @@ public class ResolveAngularEntryHtmlTask extends AnalysisTask {
   /**
    * The source to be resolved.
    */
-  private Source source;
+  private final Source source;
+
+  /**
+   * The Angular application to resolve in context of.
+   */
+  private final AngularApplicationInfo application;
 
   /**
    * The time at which the contents of the source were last modified.
@@ -59,10 +65,13 @@ public class ResolveAngularEntryHtmlTask extends AnalysisTask {
    * 
    * @param context the context in which the task is to be performed
    * @param source the source to be resolved
+   * @param application the Angular application to resolve in context of
    */
-  public ResolveAngularEntryHtmlTask(InternalAnalysisContext context, Source source) {
+  public ResolveAngularEntryHtmlTask(InternalAnalysisContext context, Source source,
+      AngularApplicationInfo application) {
     super(context);
     this.source = source;
+    this.application = application;
   }
 
   @Override
@@ -128,7 +137,7 @@ public class ResolveAngularEntryHtmlTask extends AnalysisTask {
     RecordingErrorListener errorListener = new RecordingErrorListener();
     LineInfo lineInfo = getContext().getLineInfo(source);
     // do resolve
-    new AngularHtmlUnitResolver(getContext(), errorListener, source, lineInfo, unit).resolveEntryPoint();
+    new AngularHtmlUnitResolver(getContext(), errorListener, source, lineInfo, unit).resolveEntryPoint(application);
     // remember errors
     resolutionErrors = errorListener.getErrors(source);
     // remember resolved unit
