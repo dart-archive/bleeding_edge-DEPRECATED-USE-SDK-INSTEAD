@@ -1,11 +1,11 @@
 /*
  * Copyright (c) 2013, the Dart project authors.
- *
+ * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- *
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -68,7 +68,7 @@ import java.util.Set;
 
 /**
  * Represents an Eclipse project that has a Dart nature.
- *
+ * 
  * @coverage dart.tools.core.model
  */
 public class ProjectImpl extends ContextManagerImpl implements Project {
@@ -90,14 +90,13 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
    * Answer the package roots for the specified project with the given options. May return an empty
    * array if no package roots are specified either at the project level or in the command line
    * options.
-   *
+   * 
    * @param core the instance of DartCore used to access project preferences
    * @param options the command line options (not {@code null})
    * @param container the container for which package roots are to be returned
    * @return the package roots (not {@code null}, contains no {@code null}s)
    */
-  public static File[] getPackageRoots(
-      DartCore core, CmdLineOptions options, IContainer container) {
+  public static File[] getPackageRoots(DartCore core, CmdLineOptions options, IContainer container) {
     if (container instanceof IProject) {
       IEclipsePreferences prefs = core.getProjectPreferences((IProject) container);
       String setting = prefs.get(DartCore.PROJECT_PREF_PACKAGE_ROOT, "");
@@ -127,7 +126,7 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
 
   /**
    * The project resource location on disk or {@code null} if it has not yet been initialized.
-   *
+   * 
    * @see #getResourceLocation()
    */
   private IPath projectResourceLocation;
@@ -168,7 +167,7 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
 
   /**
    * Construct a new instance representing a Dart project
-   *
+   * 
    * @param resource the Eclipse project associated with this Dart project (not {@code null})
    * @param sdk the Dart SDK to use when initializing contexts (not {@code null})
    */
@@ -178,7 +177,7 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
 
   /**
    * Construct a new instance representing a Dart project
-   *
+   * 
    * @param resource the Eclipse project associated with this Dart project (not {@code null})
    * @param sdk the Dart SDK to use when initializing contexts (not {@code null})
    * @param index the index to be updated when contexts are discarded (not {@code null})
@@ -393,8 +392,7 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
       }
 
       // Merge any overlapping pub folders
-      for (Iterator<Entry<IPath, PubFolder>> iter = pubFolders.entrySet().iterator();
-          iter.hasNext();) {
+      for (Iterator<Entry<IPath, PubFolder>> iter = pubFolders.entrySet().iterator(); iter.hasNext();) {
         Entry<IPath, PubFolder> entry = iter.next();
         PubFolder parent = getParentPubFolder(entry.getKey());
         if (parent != null) {
@@ -460,7 +458,7 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
     if (source != null && map != null) {
       IFile resource = map.getResource(source);
       if (resource != null) {
-        return new FileInfo(resource);
+        return new FileInfo(new File(source.getFullName()), resource);
       }
     }
     if (source != null) {
@@ -502,7 +500,7 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
    * Answer the {@link AnalysisContext} for the specified container, creating one if necessary. Must
    * synchronize against {@link #pubFolders} before calling this method and either call
    * {@link #initialize()} or check that {@link #isInitialized()} returns {@code true}.
-   *
+   * 
    * @param container the container with sources to be analyzed (not {@code null})
    * @param sdk the Dart SDK to use when initializing the context (not {@code null})
    * @return the context (not {@code null})
@@ -527,7 +525,7 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
    * Create pub folders for any pubspec files found within the specified container. Must synchronize
    * against {@link #pubFolders} before calling this method and either call {@link #initialize()} or
    * check that {@link #isInitialized()} returns {@code true}.
-   *
+   * 
    * @param container the container (not {@code null})
    */
   private void createPubFolders(IContainer container) {
@@ -541,9 +539,11 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
         if (getParentPubFolder(path) == null) {
           DartSdk sdk = getSdk();
           UriResolver pkgResolver = getPackageUriResolver(container, sdk, true);
-          pubFolders.put(
-              path,
-              new PubFolderImpl(container, createContext(container, sdk), sdk, pkgResolver));
+          pubFolders.put(path, new PubFolderImpl(
+              container,
+              createContext(container, sdk),
+              sdk,
+              pkgResolver));
         }
       }
     });
@@ -568,7 +568,7 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
    * Answer all the {@link AnalysisContext} for this project. Must synchronize against
    * {@link #pubFolders} before calling this method and either call {@link #initialize()} or check
    * that {@link #isInitialized()} returns {@code true}.
-   *
+   * 
    * @return all the analysis contexts in the project
    */
   private AnalysisContext[] getAnalysisContexts() {
@@ -583,7 +583,7 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
   /**
    * Find the most appropriate package resolver for the given container, based on presence of
    * pubspec, package roots etc.
-   *
+   * 
    * @return UriResolver used to resolve package: uris.
    */
   private UriResolver getPackageUriResolver(IContainer container, DartSdk sdk, boolean hasPubspec) {
@@ -615,7 +615,7 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
    * Find the {@link PubFolder} defined for an ancestor. Must synchronize against
    * {@link #pubFolders} before calling this method and either call {@link #initialize()} or check
    * that {@link #isInitialized()} returns {@code true}.
-   *
+   * 
    * @param path the resource's full path
    * @return the containing pub folder or {@code null} if none
    */
@@ -627,7 +627,7 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
    * Answer the {@link PubFolder} for the specified resource path. Must synchronize against
    * {@link #pubFolders} before calling this method and either call {@link #initialize()} or check
    * that {@link #isInitialized()} returns {@code true}.
-   *
+   * 
    * @param path the resource full path (not {@code null})
    * @return the folder or {@code null} if none is found
    */
@@ -658,15 +658,15 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
    * Initialize the context for analyzing sources in the specified directory. Must synchronize
    * against {@link #pubFolders} before calling this method and either call {@link #initialize()} or
    * check that {@link #isInitialized()} returns {@code true}.
-   *
+   * 
    * @param context the context to be initialized (not {@code null})
    * @param container the container with sources to be analyzed
    * @param sdk the Dart SDK to use when initializing the context (not {@code null})
    * @param hasPubspec {@code true} if the container has a pubspec file
    * @return the context (not {@code null})
    */
-  private AnalysisContext initContext(
-      AnalysisContext context, IContainer container, DartSdk sdk, UriResolver pkgResolver) {
+  private AnalysisContext initContext(AnalysisContext context, IContainer container, DartSdk sdk,
+      UriResolver pkgResolver) {
     DartUriResolver dartResolver = new DartUriResolver(sdk);
 
     FileUriResolver fileResolver = new FileUriResolver();
@@ -714,7 +714,7 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
   /**
    * Answer true if {@link #defaultContext} and {@link #pubFolders} have been initialized. Must
    * synchronize against {@link #pubFolders} before calling this method.
-   *
+   * 
    * @return {@code true} if initialized, else {@code false}
    */
   private boolean isInitialized() {

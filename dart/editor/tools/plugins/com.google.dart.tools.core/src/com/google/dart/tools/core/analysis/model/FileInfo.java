@@ -29,9 +29,9 @@ public class FileInfo implements IFileInfo {
     this.file = file;
   }
 
-  public FileInfo(IFile resource) {
+  public FileInfo(File file, IFile resource) {
+    this.file = file;
     this.resource = resource;
-    this.file = resource.getLocation().toFile();
   }
 
   @Override

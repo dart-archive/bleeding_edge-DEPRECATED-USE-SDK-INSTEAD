@@ -18,6 +18,9 @@ import com.google.dart.tools.core.analysis.model.IFileInfo;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 
 import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunchConfiguration;
@@ -53,6 +56,20 @@ public class DartiumPackageSourceContainer extends AbstractSourceContainer {
     IFileInfo fileInfo = DartCore.getProjectManager().resolveUriToFileInfo(parent, name);
 
     if (fileInfo != null) {
+      // check to see if there is another project with the same file
+      String filePath = fileInfo.getFile().getAbsolutePath();
+      for (IProject project : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
+        String projectLocation = project.getLocation().toString();
+
+        if (!project.equals(wrapper.getProject()) && filePath.startsWith(projectLocation)) {
+          // /mydir/myproject/lib/lib.dart => lib/lib.dart
+          String path = filePath.substring(projectLocation.length() + 1);
+          IResource resource = project.findMember(path);
+          if (resource != null) {
+            return new Object[] {resource};
+          }
+        }
+      }
       if (fileInfo.getResource() != null) {
         return new Object[] {fileInfo.getResource()};
       } else {

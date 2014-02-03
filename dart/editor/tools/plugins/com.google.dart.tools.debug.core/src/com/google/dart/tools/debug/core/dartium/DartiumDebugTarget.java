@@ -36,7 +36,6 @@ import com.google.dart.tools.debug.core.webkit.WebkitResult;
 import com.google.dart.tools.debug.core.webkit.WebkitScript;
 
 import org.eclipse.core.resources.IMarkerDelta;
-import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.DebugPlugin;
@@ -68,7 +67,6 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
   private String debugTargetName;
   private WebkitConnection connection;
   private ILaunch launch;
-  private IProject currentProject;
   private DartiumProcess process;
   private IResourceResolver resourceResolver;
   private boolean enableBreakpoints;
@@ -134,8 +132,6 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
     }
 
     DartLaunchConfigWrapper wrapper = new DartLaunchConfigWrapper(launch.getLaunchConfiguration());
-
-    currentProject = wrapper.getProject();
 
     if (wrapper.getProject() != null) {
       sourceMapManager = new SourceMapManager(wrapper.getProject());
@@ -448,11 +444,7 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
       return false;
     }
 
-    if (currentProject == null) {
-      return true;
-    } else {
-      return currentProject.equals(((DartBreakpoint) breakpoint).getFile().getProject());
-    }
+    return true;
   }
 
   public boolean supportsSetScriptSource() {
