@@ -15,6 +15,7 @@ package com.google.dart.engine.internal.element;
 
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.ElementVisitor;
 import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.FunctionElement;
@@ -225,37 +226,39 @@ public abstract class ExecutableElementImpl extends ElementImpl implements Execu
 
   @Override
   protected void appendTo(StringBuilder builder) {
-    builder.append("(");
-    String closing = null;
-    ParameterKind kind = ParameterKind.REQUIRED;
-    int parameterCount = parameters.length;
-    for (int i = 0; i < parameterCount; i++) {
-      if (i > 0) {
-        builder.append(", ");
-      }
-      ParameterElementImpl parameter = (ParameterElementImpl) parameters[i];
-      ParameterKind parameterKind = parameter.getParameterKind();
-      if (parameterKind != kind) {
-        if (closing != null) {
-          builder.append(closing);
+    if (getKind() != ElementKind.GETTER) {
+      builder.append("(");
+      String closing = null;
+      ParameterKind kind = ParameterKind.REQUIRED;
+      int parameterCount = parameters.length;
+      for (int i = 0; i < parameterCount; i++) {
+        if (i > 0) {
+          builder.append(", ");
         }
-        if (parameterKind == ParameterKind.POSITIONAL) {
-          builder.append("[");
-          closing = "]";
-        } else if (parameterKind == ParameterKind.NAMED) {
-          builder.append("{");
-          closing = "}";
-        } else {
-          closing = null;
+        ParameterElementImpl parameter = (ParameterElementImpl) parameters[i];
+        ParameterKind parameterKind = parameter.getParameterKind();
+        if (parameterKind != kind) {
+          if (closing != null) {
+            builder.append(closing);
+          }
+          if (parameterKind == ParameterKind.POSITIONAL) {
+            builder.append("[");
+            closing = "]";
+          } else if (parameterKind == ParameterKind.NAMED) {
+            builder.append("{");
+            closing = "}";
+          } else {
+            closing = null;
+          }
         }
+        kind = parameterKind;
+        parameter.appendToWithoutDelimiters(builder);
       }
-      kind = parameterKind;
-      parameter.appendToWithoutDelimiters(builder);
+      if (closing != null) {
+        builder.append(closing);
+      }
+      builder.append(")");
     }
-    if (closing != null) {
-      builder.append(closing);
-    }
-    builder.append(")");
     if (type != null) {
       builder.append(Element.RIGHT_ARROW);
       builder.append(type.getReturnType());
