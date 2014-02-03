@@ -2148,7 +2148,8 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         cache.put(source, dartCopy);
         return new ResolveDartDependenciesTask(this, source);
       }
-      for (Source librarySource : getLibrariesContaining(source)) {
+      Source[] librariesContaining = dartEntry.getValue(DartEntry.CONTAINING_LIBRARIES);
+      for (Source librarySource : librariesContaining) {
         SourceEntry libraryEntry = cache.get(librarySource);
         if (libraryEntry instanceof DartEntry) {
           CacheState elementState = libraryEntry.getState(DartEntry.ELEMENT);
