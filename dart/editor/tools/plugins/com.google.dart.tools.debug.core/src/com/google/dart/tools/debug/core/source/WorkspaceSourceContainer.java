@@ -17,6 +17,7 @@ package com.google.dart.tools.debug.core.source;
 import com.google.dart.tools.core.internal.util.ResourceUtil2;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
@@ -57,6 +58,13 @@ public class WorkspaceSourceContainer extends AbstractSourceContainer {
       return resource;
     }
 
+    // Look for something which could potentially resolve to a resource in the workspace.
+    resource = findPotentialWorkspaceMatch(path);
+
+    if (resource != null) {
+      return resource;
+    }
+
     // Look for a file system reference.
     File file = new File(path);
 
@@ -72,6 +80,24 @@ public class WorkspaceSourceContainer extends AbstractSourceContainer {
 
       if (resource != null) {
         return resource;
+      }
+    }
+
+    return null;
+  }
+
+  private static IResource findPotentialWorkspaceMatch(String path) {
+    // file:///foo/bar/baz/projects/dart/samples/solar/web/solar.dart
+    //   ==>
+    // solar/web/solar.dart
+
+    for (IProject project : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
+      String str = "/" + project.getName() + "/";
+
+      if (path.contains(str)) {
+        int index = path.lastIndexOf(str);
+        String localPath = path.substring(index);
+        return ResourcesPlugin.getWorkspace().getRoot().findMember(localPath);
       }
     }
 
