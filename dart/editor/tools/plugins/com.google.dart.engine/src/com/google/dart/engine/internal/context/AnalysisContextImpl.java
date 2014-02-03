@@ -482,28 +482,23 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   @Override
   public ResolvableCompilationUnit computeResolvableCompilationUnit(Source source)
       throws AnalysisException {
-    while (true) {
-      synchronized (cacheLock) {
-        DartEntry dartEntry = getReadableDartEntry(source);
-        if (dartEntry == null) {
-          throw new AnalysisException("computeResolvableCompilationUnit for non-Dart: "
-              + source.getFullName());
-        }
-        if (dartEntry.getState(DartEntry.PARSED_UNIT) == CacheState.ERROR) {
-          AnalysisException cause = dartEntry.getException();
-          throw new AnalysisException(
-              "Internal error: computeResolvableCompilationUnit could not parse "
-                  + source.getFullName(),
-              cause);
-        }
-        DartEntryImpl dartCopy = dartEntry.getWritableCopy();
-        CompilationUnit unit = dartCopy.getResolvableCompilationUnit();
-        if (unit != null) {
-          cache.put(source, dartCopy);
-          return new ResolvableCompilationUnit(dartCopy.getModificationTime(), unit);
-        }
+    synchronized (cacheLock) {
+      DartEntry dartEntry = getReadableDartEntry(source);
+      if (dartEntry == null) {
+        throw new AnalysisException("computeResolvableCompilationUnit for non-Dart: "
+            + source.getFullName());
       }
-      cacheDartParseData(source, getReadableDartEntry(source), DartEntry.PARSED_UNIT);
+      dartEntry = cacheDartParseData(source, dartEntry, DartEntry.PARSED_UNIT);
+      DartEntryImpl dartCopy = dartEntry.getWritableCopy();
+      CompilationUnit unit = dartCopy.getResolvableCompilationUnit();
+      if (unit == null) {
+        throw new AnalysisException(
+            "Internal error: computeResolvableCompilationUnit could not parse "
+                + source.getFullName(),
+            dartEntry.getException());
+      }
+      cache.put(source, dartCopy);
+      return new ResolvableCompilationUnit(dartCopy.getModificationTime(), unit);
     }
   }
 
@@ -896,7 +891,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
 
   /**
    * Return a list of the sources that would be processed by {@link #performAnalysisTask()}. This
-   * method duplicates, and must therefore be kept in sync with, {@link #getNextTaskAnalysisTask()}.
+   * method duplicates, and must therefore be kept in sync with, {@link #getNextAnalysisTask()}.
    * This method is intended to be used for testing purposes only.
    * 
    * @return a list of the sources that would be processed by {@link #performAnalysisTask()}
@@ -1046,10 +1041,10 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   @Override
   public AnalysisResult performAnalysisTask() {
     long getStart = System.currentTimeMillis();
-    AnalysisTask task = getNextTaskAnalysisTask();
+    AnalysisTask task = getNextAnalysisTask();
     long getEnd = System.currentTimeMillis();
     if (task == null && validateCacheConsistency()) {
-      task = getNextTaskAnalysisTask();
+      task = getNextAnalysisTask();
     }
     if (task == null) {
       return new AnalysisResult(getChangeNotices(true), getEnd - getStart, null, -1L);
@@ -1452,9 +1447,10 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
-   * Given a source for a Dart file, return a cache entry in which the data represented by the given
-   * descriptor is available. This method assumes that the data can be produced by resolving the
-   * directives in the source if they are not already cached.
+   * Given a source for a Dart file, return a cache entry in which the state of the data represented
+   * by the given descriptor is either {@link CacheState#VALID} or {@link CacheState#ERROR}. This
+   * method assumes that the data can be produced by resolving the directives in the source if they
+   * are not already cached.
    * 
    * @param source the source representing the Dart file
    * @param dartEntry the cache entry associated with the Dart file
@@ -1482,8 +1478,9 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
 
   /**
    * Given a source for a Dart file and the library that contains it, return a cache entry in which
-   * the data represented by the given descriptor is available. This method assumes that the data
-   * can be produced by generating hints for the library if the data is not already cached.
+   * the state of the data represented by the given descriptor is either {@link CacheState#VALID} or
+   * {@link CacheState#ERROR}. This method assumes that the data can be produced by generating hints
+   * for the library if the data is not already cached.
    * 
    * @param unitSource the source representing the Dart file
    * @param librarySource the source representing the library containing the Dart file
@@ -1510,9 +1507,9 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
-   * Given a source for a Dart file, return a cache entry in which the data represented by the given
-   * descriptor is available. This method assumes that the data can be produced by parsing the
-   * source if it is not already cached.
+   * Given a source for a Dart file, return a cache entry in which the state of the data represented
+   * by the given descriptor is either {@link CacheState#VALID} or {@link CacheState#ERROR}. This
+   * method assumes that the data can be produced by parsing the source if it is not already cached.
    * 
    * @param source the source representing the Dart file
    * @param dartEntry the cache entry associated with the Dart file
@@ -1546,9 +1543,9 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
 
   /**
    * Given a source for a Dart file and the library that contains it, return a cache entry in which
-   * the data represented by the given descriptor is available. This method assumes that the data
-   * can be produced by resolving the source in the context of the library if it is not already
-   * cached.
+   * the state of the data represented by the given descriptor is either {@link CacheState#VALID} or
+   * {@link CacheState#ERROR}. This method assumes that the data can be produced by resolving the
+   * source in the context of the library if it is not already cached.
    * 
    * @param unitSource the source representing the Dart file
    * @param librarySource the source representing the library containing the Dart file
@@ -1580,8 +1577,9 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
 
   /**
    * Given a source for a Dart file and the library that contains it, return a cache entry in which
-   * the data represented by the given descriptor is available. This method assumes that the data
-   * can be produced by verifying the source in the given library if the data is not already cached.
+   * the state of the data represented by the given descriptor is either {@link CacheState#VALID} or
+   * {@link CacheState#ERROR}. This method assumes that the data can be produced by verifying the
+   * source in the given library if the data is not already cached.
    * 
    * @param unitSource the source representing the Dart file
    * @param librarySource the source representing the library containing the Dart file
@@ -1612,8 +1610,9 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
 
   /**
    * Given a source for an HTML file, return a cache entry in which all of the data represented by
-   * the given descriptors is available. This method assumes that the data can be produced by
-   * parsing the source if it is not already cached.
+   * the state of the given descriptors is either {@link CacheState#VALID} or
+   * {@link CacheState#ERROR}. This method assumes that the data can be produced by parsing the
+   * source if it is not already cached.
    * 
    * @param source the source representing the HTML file
    * @param htmlEntry the cache entry associated with the HTML file
@@ -1646,9 +1645,10 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
-   * Given a source for an HTML file, return a cache entry in which the the data represented by the
-   * given descriptor is available. This method assumes that the data can be produced by resolving
-   * the source if it is not already cached.
+   * Given a source for an HTML file, return a cache entry in which the state of the data
+   * represented by the given descriptor is either {@link CacheState#VALID} or
+   * {@link CacheState#ERROR}. This method assumes that the data can be produced by resolving the
+   * source if it is not already cached.
    * 
    * @param source the source representing the HTML file
    * @param dartEntry the cache entry associated with the HTML file
@@ -2010,7 +2010,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
    * 
    * @return the next task that needs to be performed
    */
-  private AnalysisTask getNextTaskAnalysisTask() {
+  private AnalysisTask getNextAnalysisTask() {
     synchronized (cacheLock) {
       boolean hintsEnabled = options.getHint();
       //
@@ -2025,7 +2025,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       // Look for a priority source that needs to be analyzed.
       //
       for (Source source : priorityOrder) {
-        AnalysisTask task = getNextTaskAnalysisTask(source, cache.get(source), true, hintsEnabled);
+        AnalysisTask task = getNextAnalysisTask(source, cache.get(source), true, hintsEnabled);
         if (task != null) {
           return task;
         }
@@ -2034,7 +2034,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       // Look for a non-priority source that needs to be analyzed.
       //
       for (Map.Entry<Source, SourceEntry> entry : cache.entrySet()) {
-        AnalysisTask task = getNextTaskAnalysisTask(
+        AnalysisTask task = getNextAnalysisTask(
             entry.getKey(),
             entry.getValue(),
             false,
@@ -2120,7 +2120,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
    * @param hintsEnabled {@code true} if hints are currently enabled
    * @return the next task that needs to be performed for the given source
    */
-  private AnalysisTask getNextTaskAnalysisTask(Source source, SourceEntry sourceEntry,
+  private AnalysisTask getNextAnalysisTask(Source source, SourceEntry sourceEntry,
       boolean isPriority, boolean hintsEnabled) {
     if (sourceEntry instanceof DartEntry) {
       DartEntry dartEntry = (DartEntry) sourceEntry;
@@ -2335,8 +2335,8 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
    * Look at the given source to see whether a task needs to be performed related to it. If so, add
    * the source to the set of sources that need to be processed. This method duplicates, and must
    * therefore be kept in sync with,
-   * {@link #getNextTaskAnalysisTask(Source, SourceEntry, boolean, boolean)}. This method is
-   * intended to be used for testing purposes only.
+   * {@link #getNextAnalysisTask(Source, SourceEntry, boolean, boolean)}. This method is intended to
+   * be used for testing purposes only.
    * <p>
    * <b>Note:</b> This method must only be invoked while we are synchronized on {@link #cacheLock}.
    * 
