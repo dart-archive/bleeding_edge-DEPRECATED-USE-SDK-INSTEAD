@@ -90,7 +90,7 @@ public class FileBasedSource implements Source {
 
   @Override
   public boolean exists() {
-    return contentCache.getContents(this) != null || (file.exists() && !file.isDirectory());
+    return contentCache.getContents(this) != null || file.isFile();
   }
 
   @Override
