@@ -1201,22 +1201,33 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
   @Override
   public Void visitPropertyAccess(PropertyAccess node) {
     SimpleIdentifier propertyName = node.getPropertyName();
-    Element element = propertyName.getStaticElement();
+    Element staticElement = propertyName.getStaticElement();
     Type staticType = dynamicType;
-    if (element instanceof MethodElement) {
-      staticType = ((MethodElement) element).getType();
-    } else if (element instanceof PropertyAccessorElement) {
-      staticType = getType((PropertyAccessorElement) element, node.getTarget() != null
-          ? getStaticType(node.getTarget()) : null);
+    if (staticElement instanceof MethodElement) {
+      staticType = ((MethodElement) staticElement).getType();
+    } else if (staticElement instanceof PropertyAccessorElement) {
+      Expression realTarget = node.getRealTarget();
+      staticType = getType((PropertyAccessorElement) staticElement, realTarget != null
+          ? getStaticType(realTarget) : null);
     } else {
       // TODO(brianwilkerson) Report this internal error.
     }
     recordStaticType(propertyName, staticType);
     recordStaticType(node, staticType);
-    // TODO(brianwilkerson) I think we want to repeat the logic above using the propagated element
-    // to get another candidate for the propagated type.
-    Type propagatedType = overrideManager.getType(element);
+
+    Element propagatedElement = propertyName.getPropagatedElement();
+    Type propagatedType = overrideManager.getType(propagatedElement);
+    if (propagatedElement instanceof MethodElement) {
+      propagatedType = ((MethodElement) propagatedElement).getType();
+    } else if (propagatedElement instanceof PropertyAccessorElement) {
+      Expression realTarget = node.getRealTarget();
+      propagatedType = getType((PropertyAccessorElement) propagatedElement, realTarget != null
+          ? realTarget.getBestType() : null);
+    } else {
+      // TODO(brianwilkerson) Report this internal error.
+    }
     if (propagatedType != null && propagatedType.isMoreSpecificThan(staticType)) {
+      recordPropagatedType(propertyName, propagatedType);
       recordPropagatedType(node, propagatedType);
     }
     return null;
