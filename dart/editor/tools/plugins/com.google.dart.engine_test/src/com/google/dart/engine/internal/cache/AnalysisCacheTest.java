@@ -67,7 +67,7 @@ public class AnalysisCacheTest extends EngineTestCase {
       DartEntryImpl entry = new DartEntryImpl();
       entry.setValue(DartEntry.PARSED_UNIT, null);
       cache.put(source, entry);
-      cache.accessed(source);
+      cache.accessedAst(source);
     }
     assertNonFlushedCount(size, cache);
     int newSize = size - 2;
@@ -81,7 +81,7 @@ public class AnalysisCacheTest extends EngineTestCase {
     for (int i = 0; i < size; i++) {
       Source source = new TestSource(null, createFile("/test" + i + ".dart"), "");
       cache.put(source, new DartEntryImpl());
-      cache.accessed(source);
+      cache.accessedAst(source);
     }
     assertEquals(size, cache.size());
   }

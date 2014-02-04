@@ -1371,6 +1371,18 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
+   * Record that we have accessed the AST structure associated with the given source. At the moment,
+   * there is no differentiation between the parsed and resolved forms of the AST.
+   * 
+   * @param source the source whose AST structure was accessed
+   */
+  private void accessedAst(Source source) {
+    synchronized (cacheLock) {
+      cache.accessedAst(source);
+    }
+  }
+
+  /**
    * Add all of the sources contained in the given source container to the given list of sources.
    * <p>
    * Note: This method must only be invoked while we are synchronized on {@link #cacheLock}.
@@ -1825,6 +1837,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       throws AnalysisException {
     dartEntry = cacheDartParseData(source, dartEntry, descriptor);
     if (descriptor == DartEntry.PARSED_UNIT) {
+      accessedAst(source);
       return (E) dartEntry.getAnyParsedCompilationUnit();
     }
     return dartEntry.getValue(descriptor);
@@ -1868,6 +1881,8 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     dartEntry = cacheDartResolutionData(unitSource, librarySource, dartEntry, descriptor);
     if (descriptor == DartEntry.ELEMENT) {
       return dartEntry.getValue(descriptor);
+    } else if (descriptor == DartEntry.RESOLVED_UNIT) {
+      accessedAst(unitSource);
     }
     return dartEntry.getValue(descriptor, librarySource);
   }
@@ -1934,6 +1949,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     }
     htmlEntry = cacheHtmlParseData(source, htmlEntry, descriptor);
     if (descriptor == HtmlEntry.PARSED_UNIT) {
+      accessedAst(source);
       return (E) htmlEntry.getAnyParsedUnit();
     }
     return htmlEntry.getValue(descriptor);
@@ -1976,6 +1992,9 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   private <E> E getHtmlResolutionData(Source source, HtmlEntry htmlEntry,
       DataDescriptor<E> descriptor) throws AnalysisException {
     htmlEntry = cacheHtmlResolutionData(source, htmlEntry, descriptor);
+    if (descriptor == HtmlEntry.RESOLVED_UNIT) {
+      accessedAst(source);
+    }
     return htmlEntry.getValue(descriptor);
   }
 
@@ -2238,7 +2257,6 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         sourceEntry = createSourceEntry(source);
       }
       if (sourceEntry instanceof DartEntry) {
-        cache.accessed(source);
         return (DartEntry) sourceEntry;
       }
       return null;
@@ -2259,7 +2277,6 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         sourceEntry = createSourceEntry(source);
       }
       if (sourceEntry instanceof HtmlEntry) {
-        cache.accessed(source);
         return (HtmlEntry) sourceEntry;
       }
       return null;
@@ -2278,9 +2295,6 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       SourceEntry sourceEntry = cache.get(source);
       if (sourceEntry == null) {
         sourceEntry = createSourceEntry(source);
-      }
-      if (sourceEntry != null) {
-        cache.accessed(source);
       }
       return sourceEntry;
     }
@@ -2632,7 +2646,6 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
                 + source.getFullName());
       }
       dartEntry = (DartEntry) sourceEntry;
-      cache.accessed(source);
       long sourceTime = source.getModificationStamp();
       long resultTime = task.getModificationTime();
       if (sourceTime == resultTime) {
@@ -2670,6 +2683,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
           removeFromParts(source, dartEntry);
           dartCopy.invalidateAllInformation();
           dartCopy.setModificationTime(sourceTime);
+          cache.removedAst(source);
         } else {
           //
           // We could not determine whether the sources were up-to-date or out-of-date. Mark the
@@ -2743,7 +2757,6 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         if (unitSource.equals(librarySource)) {
           libraryEntry = dartEntry;
         }
-        cache.accessed(unitSource);
         long sourceTime = unitSource.getModificationStamp();
         long resultTime = results.getModificationTime();
         if (sourceTime == resultTime) {
@@ -2782,6 +2795,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
               removeFromParts(unitSource, dartEntry);
               dartCopy.invalidateAllInformation();
               dartCopy.setModificationTime(sourceTime);
+              cache.removedAst(unitSource);
             } else {
               //
               // We could not determine whether the sources were up-to-date or out-of-date. Mark the
@@ -2845,7 +2859,6 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
                 + source.getFullName());
       }
       dartEntry = (DartEntry) sourceEntry;
-      cache.accessed(source);
       long sourceTime = source.getModificationStamp();
       long resultTime = task.getModificationTime();
       if (sourceTime == resultTime) {
@@ -2870,6 +2883,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
           }
           dartCopy.setValue(DartEntry.PARSED_UNIT, task.getCompilationUnit());
           dartCopy.setValue(DartEntry.PARSE_ERRORS, task.getErrors());
+          cache.storedAst(source);
 
           ChangeNoticeImpl notice = getNotice(source);
           notice.setErrors(dartEntry.getAllErrors(), lineInfo);
@@ -2883,6 +2897,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         } else {
           removeFromParts(source, dartEntry);
           dartCopy.recordParseError();
+          cache.removedAst(source);
         }
         dartCopy.setException(thrownException);
         cache.put(source, dartCopy);
@@ -2903,6 +2918,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
           removeFromParts(source, dartEntry);
           dartCopy.invalidateAllInformation();
           dartCopy.setModificationTime(sourceTime);
+          cache.removedAst(source);
         } else {
           //
           // We could not determine whether the sources were up-to-date or out-of-date. Mark the
@@ -2944,7 +2960,6 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
                 + source.getFullName());
       }
       htmlEntry = (HtmlEntry) sourceEntry;
-      cache.accessed(source);
       long sourceTime = source.getModificationStamp();
       long resultTime = task.getModificationTime();
       if (sourceTime == resultTime) {
@@ -2965,11 +2980,13 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
           htmlCopy.setValue(HtmlEntry.PARSED_UNIT, unit);
           htmlCopy.setValue(HtmlEntry.PARSE_ERRORS, task.getErrors());
           htmlCopy.setValue(HtmlEntry.REFERENCED_LIBRARIES, task.getReferencedLibraries());
+          cache.storedAst(source);
 
           ChangeNoticeImpl notice = getNotice(source);
           notice.setErrors(htmlEntry.getAllErrors(), lineInfo);
         } else {
           htmlCopy.recordParseError();
+          cache.removedAst(source);
         }
         htmlCopy.setException(thrownException);
         cache.put(source, htmlCopy);
@@ -2997,6 +3014,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
 //          }
           htmlCopy.invalidateAllInformation();
           htmlCopy.setModificationTime(sourceTime);
+          cache.removedAst(source);
         } else {
           //
           // We could not determine whether the sources were up-to-date or out-of-date. Mark the
@@ -3041,7 +3059,6 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
                 + source.getFullName());
       }
       htmlEntry = (HtmlEntry) sourceEntry;
-      cache.accessed(source);
       long sourceTime = source.getModificationStamp();
       long resultTime = task.getModificationTime();
       if (sourceTime == resultTime) {
@@ -3084,6 +3101,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
 //          }
           htmlCopy.invalidateAllInformation();
           htmlCopy.setModificationTime(sourceTime);
+          cache.removedAst(source);
         } else {
           //
           // We could not determine whether the sources were up-to-date or out-of-date. Mark the
@@ -3125,7 +3143,6 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
                 + source.getFullName());
       }
       htmlEntry = (HtmlEntry) sourceEntry;
-      cache.accessed(source);
       long sourceTime = source.getModificationStamp();
       long resultTime = task.getModificationTime();
       if (sourceTime == resultTime) {
@@ -3168,6 +3185,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
 //          }
           htmlCopy.invalidateAllInformation();
           htmlCopy.setModificationTime(sourceTime);
+          cache.removedAst(source);
         } else {
           //
           // We could not determine whether the sources were up-to-date or out-of-date. Mark the
@@ -3210,7 +3228,6 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
                 + source.getFullName());
       }
       dartEntry = (DartEntry) sourceEntry;
-      cache.accessed(source);
       long sourceTime = source.getModificationStamp();
       long resultTime = task.getModificationTime();
       if (sourceTime == resultTime) {
@@ -3259,6 +3276,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
           removeFromParts(source, dartEntry);
           dartCopy.invalidateAllInformation();
           dartCopy.setModificationTime(sourceTime);
+          cache.removedAst(source);
         } else {
           //
           // We could not determine whether the sources were up-to-date or out-of-date. Mark the
@@ -3304,7 +3322,6 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
                 + unitSource.getFullName());
       }
       dartEntry = (DartEntry) sourceEntry;
-      cache.accessed(unitSource);
       long sourceTime = unitSource.getModificationStamp();
       long resultTime = task.getModificationTime();
       if (sourceTime == resultTime) {
@@ -3320,10 +3337,13 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         DartEntryImpl dartCopy = dartEntry.getWritableCopy();
         if (thrownException == null) {
           dartCopy.setValue(DartEntry.RESOLVED_UNIT, librarySource, task.getResolvedUnit());
+          cache.storedAst(unitSource);
         } else {
           dartCopy.setState(DartEntry.RESOLVED_UNIT, librarySource, CacheState.ERROR);
+          cache.removedAst(unitSource);
         }
         dartCopy.setException(thrownException);
+
         cache.put(unitSource, dartCopy);
         dartEntry = dartCopy;
       } else {
@@ -3342,6 +3362,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
           removeFromParts(unitSource, dartEntry);
           dartCopy.invalidateAllInformation();
           dartCopy.setModificationTime(sourceTime);
+          cache.removedAst(unitSource);
         } else {
           //
           // We could not determine whether the sources were up-to-date or out-of-date. Mark the
@@ -3383,7 +3404,6 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
                 + source.getFullName());
       }
       htmlEntry = (HtmlEntry) sourceEntry;
-      cache.accessed(source);
       long sourceTime = source.getModificationStamp();
       long resultTime = task.getModificationTime();
       if (sourceTime == resultTime) {
@@ -3402,11 +3422,14 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
           htmlCopy.setValue(HtmlEntry.RESOLVED_UNIT, task.getResolvedUnit());
           htmlCopy.setValue(HtmlEntry.ELEMENT, task.getElement());
           htmlCopy.setValue(HtmlEntry.RESOLUTION_ERRORS, task.getResolutionErrors());
+          cache.storedAst(source);
+
           ChangeNoticeImpl notice = getNotice(source);
           notice.setHtmlUnit(task.getResolvedUnit());
           notice.setErrors(htmlCopy.getAllErrors(), htmlCopy.getValue(SourceEntry.LINE_INFO));
         } else {
           htmlCopy.recordResolutionError();
+          cache.removedAst(source);
         }
         htmlCopy.setException(thrownException);
         recordAngularComponents(htmlCopy, task.getAngularApplication());
@@ -3430,6 +3453,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
 //          }
           htmlCopy.invalidateAllInformation();
           htmlCopy.setModificationTime(sourceTime);
+          cache.removedAst(source);
         } else {
           //
           // We could not determine whether the sources were up-to-date or out-of-date. Mark the
@@ -3520,6 +3544,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       htmlCopy.setModificationTime(source.getModificationStamp());
       htmlCopy.invalidateAllInformation();
       cache.put(source, htmlCopy);
+      cache.removedAst(source);
       logInformation("Modified HTML source: " + debuggingString(source)
           + " (previously modified at " + oldTime + ")");
     } else if (sourceEntry instanceof DartEntry) {
@@ -3547,6 +3572,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       dartCopy.setModificationTime(source.getModificationStamp());
       dartCopy.invalidateAllInformation();
       cache.put(source, dartCopy);
+      cache.removedAst(source);
 
       logInformation(writer.toString());
     }
