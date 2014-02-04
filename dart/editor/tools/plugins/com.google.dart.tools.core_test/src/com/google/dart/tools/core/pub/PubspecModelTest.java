@@ -40,6 +40,11 @@ public class PubspecModelTest extends TestCase {
   private static final String YAML_NO_ERRORS2 = "name: Yes\n"
       + "description: A sample command-line application\n#dependencies: \n#  browser: any";
 
+  private static final String YAML_HOSTED_DEP = "name:  yes\n" + "dependencies:\n"
+      + "  transmogrify: \n"
+      + "    hosted:\n      name: transmogrify\n      url: http://some-package-server.com\n"
+      + "    version: '>=1.0.0 <2.0.0'";
+
   // Assert dependency can be added/removed to model
   public void test_addDependency() {
     PubspecModel pubspecModel = new PubspecModel(null);
@@ -109,6 +114,15 @@ public class PubspecModelTest extends TestCase {
     List<Object> list2 = Arrays.asList(pubspecModel2.getDependecies());
     assertEquals(list1.size(), list2.size());
     assertTrue(list1.containsAll(list2));
+  }
+
+  public void test_getContents_hosted() {
+    PubspecModel pubspecModel = new PubspecModel(YAML_HOSTED_DEP);
+    String pubspecModelString = pubspecModel.getContents();
+    assertTrue(pubspecModelString.contains("hosted:"));
+    assertTrue(pubspecModelString.contains("url:"));
+    assertTrue(pubspecModelString.contains("http://some-package-server.com"));
+    assertTrue(pubspecModelString.contains("name: transmogrify"));
   }
 
   // Assert model can be initialized from pubspec yaml string

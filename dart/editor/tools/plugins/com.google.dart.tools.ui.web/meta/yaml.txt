@@ -14,3 +14,5 @@ documentation
 dependency_overrides
 transformers
 sdk
+hosted
+

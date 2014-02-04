@@ -40,5 +40,6 @@ public interface PubspecConstants {
 
   public static final String PACKAGES = "packages";
   public static final String LOCATION = "location";
+  public static final String HOSTED = "hosted";
 
 }

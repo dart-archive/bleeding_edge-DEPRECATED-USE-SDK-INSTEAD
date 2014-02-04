@@ -341,6 +341,17 @@ public class PubspecModel {
                 }
               }
             }
+            if (key.endsWith(PubspecConstants.HOSTED)) {
+              Object fields = values.get(key);
+              if (fields instanceof Map) {
+                Map<String, Object> map = (Map<String, Object>) fields;
+                for (String mapKey : map.keySet()) {
+                  if (mapKey.equals(PubspecConstants.URL)) {
+                    d.setPath((String) map.get(mapKey));
+                  }
+                }
+              }
+            }
           }
         }
         deps.add(d);
@@ -447,17 +458,33 @@ public class PubspecModel {
       Map<String, Object> devDependenciesMap = new HashMap<String, Object>();
       for (DependencyObject dep : dependencies) {
         if (dep.getType().equals(Type.HOSTED)) {
-          if (dep.getVersion().isEmpty()) {
+          if (dep.getPath() != null && !dep.getPath().isEmpty()) {
+            Map<String, Object> map = new HashMap<String, Object>();
+            map.put(PubspecConstants.NAME, dep.getName());
+            map.put(PubspecConstants.URL, dep.getPath());
+            Map<String, Object> dMap = new HashMap<String, Object>();
+            dMap.put(PubspecConstants.HOSTED, map);
+            if (!dep.getVersion().isEmpty()) {
+              dMap.put(PubspecConstants.VERSION, dep.getVersion());
+            }
             if (dep.isForDevelopment()) {
-              devDependenciesMap.put(dep.getName(), PubspecConstants.ANY);
+              devDependenciesMap.put(dep.getName(), dMap);
             } else {
-              dependenciesMap.put(dep.getName(), PubspecConstants.ANY);
+              dependenciesMap.put(dep.getName(), dMap);
             }
           } else {
-            if (dep.isForDevelopment()) {
-              devDependenciesMap.put(dep.getName(), dep.getVersion());
+            if (dep.getVersion().isEmpty()) {
+              if (dep.isForDevelopment()) {
+                devDependenciesMap.put(dep.getName(), PubspecConstants.ANY);
+              } else {
+                dependenciesMap.put(dep.getName(), PubspecConstants.ANY);
+              }
             } else {
-              dependenciesMap.put(dep.getName(), dep.getVersion());
+              if (dep.isForDevelopment()) {
+                devDependenciesMap.put(dep.getName(), dep.getVersion());
+              } else {
+                dependenciesMap.put(dep.getName(), dep.getVersion());
+              }
             }
           }
         } else if (dep.getType().equals(Type.GIT)) {
