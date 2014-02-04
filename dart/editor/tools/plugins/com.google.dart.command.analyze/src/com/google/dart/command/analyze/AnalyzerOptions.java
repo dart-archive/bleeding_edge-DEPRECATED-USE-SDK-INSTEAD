@@ -273,6 +273,34 @@ public class AnalyzerOptions {
     return warningsAreFatal;
   }
 
+  /**
+   * Initialize the SDK path.
+   */
+  public void initializeSdkPath() {
+    // current directory, one level up, and a "sdk" directory below us
+    final String[] searchPath = new String[] {".", "..", "sdk"};
+
+    if (dartSdkPath == null) {
+      try {
+        File cwd = new File(".").getCanonicalFile();
+
+        for (String path : searchPath) {
+          File dir = new File(cwd, path);
+
+          dir = dir.getCanonicalFile();
+
+          if (isSDKPath(dir)) {
+            dartSdkPath = dir;
+
+            return;
+          }
+        }
+      } catch (IOException ioe) {
+        ioe.printStackTrace();
+      }
+    }
+  }
+
   public void setDartSdkPath(File dartSdkPath) {
     this.dartSdkPath = dartSdkPath;
   }
@@ -296,34 +324,6 @@ public class AnalyzerOptions {
    */
   public boolean showHelp() {
     return showHelp;
-  }
-
-  /**
-   * Initialize the SDK path.
-   */
-  protected void initializeSdkPath() {
-    // current directory, one level up, and a "sdk" directory below us
-    final String[] searchPath = new String[] {".", "..", "sdk"};
-
-    if (dartSdkPath == null) {
-      try {
-        File cwd = new File(".").getCanonicalFile();
-
-        for (String path : searchPath) {
-          File dir = new File(cwd, path);
-
-          dir = dir.getCanonicalFile();
-
-          if (isSDKPath(dir)) {
-            dartSdkPath = dir;
-
-            return;
-          }
-        }
-      } catch (IOException ioe) {
-        ioe.printStackTrace();
-      }
-    }
   }
 
   private boolean isSDKPath(File sdkDirectory) {

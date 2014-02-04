@@ -50,25 +50,13 @@ import java.util.Set;
 /**
  * Scans, parses, and analyzes a library.
  */
-class AnalyzerImpl {
+public class AnalyzerImpl {
   /**
    * The maximum number of sources for which AST structures should be kept in the cache.
    */
   private static final int MAX_CACHE_SIZE = 256;
 
   private static final HashMap<File, DirectoryBasedDartSdk> sdkMap = new HashMap<File, DirectoryBasedDartSdk>();
-
-  private static ErrorSeverity getMaxErrorSeverity(List<AnalysisError> errors) {
-    ErrorSeverity status = ErrorSeverity.NONE;
-
-    for (AnalysisError error : errors) {
-      ErrorSeverity severity = error.getErrorCode().getErrorSeverity();
-
-      status = status.max(severity);
-    }
-
-    return status;
-  }
 
   /**
    * @return the new or cached instance of the {@link DartSdk} with the given directory.
@@ -83,6 +71,7 @@ class AnalyzerImpl {
   }
 
   private AnalyzerOptions options;
+
   private DirectoryBasedDartSdk sdk;
 
   public AnalyzerImpl(AnalyzerOptions options) {
@@ -146,6 +135,24 @@ class AnalyzerImpl {
     UriKind uriKind = getUriKind(sourceFile);
     Source librarySource = new FileBasedSource(sourceFactory.getContentCache(), sourceFile, uriKind);
 
+    return performAnalysis(context, librarySource, sourceFile, lineInfoMap, errors);
+  }
+
+  protected ErrorSeverity getMaxErrorSeverity(List<AnalysisError> errors) {
+    ErrorSeverity status = ErrorSeverity.NONE;
+
+    for (AnalysisError error : errors) {
+      ErrorSeverity severity = error.getErrorCode().getErrorSeverity();
+
+      status = status.max(severity);
+    }
+
+    return status;
+  }
+
+  protected ErrorSeverity performAnalysis(AnalysisContext context, Source librarySource,
+      File sourceFile, Map<Source, LineInfo> lineInfoMap, List<AnalysisError> errors)
+      throws AnalysisException {
     // don't try to analyze parts
     CompilationUnit unit = context.parseCompilationUnit(librarySource);
     boolean hasLibraryDirective = false;

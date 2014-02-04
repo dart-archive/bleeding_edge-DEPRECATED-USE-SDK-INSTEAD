@@ -34,8 +34,6 @@ import java.util.Map;
  * Entry point for the Dart command line analyzer.
  */
 public class AnalyzerMain {
-  public static final String PROGRAM_NAME = "dartanalyzer";
-
   /**
    * @return the version of the dart-analyzer tool
    */
@@ -51,7 +49,40 @@ public class AnalyzerMain {
     }
   }
 
-  public static void main(final String[] args) {
+  public static void main(String[] args) {
+    new AnalyzerMain().run(args);
+  }
+
+  /**
+   * Return the return code appropriate for the given severity.
+   * 
+   * @param severity the severity of the most severe error that was reported
+   * @return the return code that should be used returned by the analyzer
+   */
+  private static int getReturnCode(ErrorSeverity severity) {
+    if (severity == ErrorSeverity.WARNING) {
+      return 1;
+    } else if (severity == ErrorSeverity.ERROR) {
+      return 2;
+    }
+    return 0;
+  }
+
+  protected void crashAndExit() {
+    // Our test scripts look for 253 to signal a "crash".
+
+    System.exit(253);
+  }
+
+  protected String getProgramName() {
+    return "dartanalyzer";
+  }
+
+  protected AnalyzerImpl newAnalyzer(AnalyzerOptions options) {
+    return new AnalyzerImpl(options);
+  }
+
+  protected void run(final String[] args) {
     final AnalyzerOptions options = AnalyzerOptions.createFromArgs(args);
 
     options.initializeSdkPath();
@@ -70,13 +101,13 @@ public class AnalyzerMain {
     }
 
     if (options.getDartSdkPath() == null) {
-      System.out.println(PROGRAM_NAME + ": no Dart SDK found.");
+      System.out.println(getProgramName() + ": no Dart SDK found.");
       showUsage(System.out);
       System.exit(1);
     }
 
     if (!options.getDartSdkPath().exists()) {
-      System.out.println(PROGRAM_NAME + ": invalid Dart SDK path: " + options.getDartSdkPath());
+      System.out.println(getProgramName() + ": invalid Dart SDK path: " + options.getDartSdkPath());
       showUsage(System.out);
       System.exit(1);
     }
@@ -108,7 +139,7 @@ public class AnalyzerMain {
         String sourceFilePath = options.getSourceFile();
 
         if (sourceFilePath == null) {
-          System.out.println(PROGRAM_NAME + ": no source files were specified.");
+          System.out.println(getProgramName() + ": no source files were specified.");
           showUsage(System.out);
           System.exit(1);
         }
@@ -130,19 +161,13 @@ public class AnalyzerMain {
     }
   }
 
-  protected static void crashAndExit() {
-    // Our test scripts look for 253 to signal a "crash".
-
-    System.exit(253);
-  }
-
   /**
-   * Invoke the compiler to build all of the files passed on the command line
+   * Invoke the analyzer to analyze all of the files passed on the command line
    * 
    * @param analyzerOptions parsed command line arguments
    * @return {@code  true} on success, {@code false} on failure.
    */
-  protected static ErrorSeverity runAnalyzer(AnalyzerOptions options) throws IOException,
+  protected ErrorSeverity runAnalyzer(AnalyzerOptions options) throws IOException,
       AnalysisException {
     File sourceFile = new File(options.getSourceFile());
 
@@ -170,7 +195,7 @@ public class AnalyzerMain {
     formatter.startAnalysis();
 
     long startTime = System.currentTimeMillis();
-    AnalyzerImpl analyzer = new AnalyzerImpl(options);
+    AnalyzerImpl analyzer = newAnalyzer(options);
     ErrorSeverity status = analyzer.analyze(sourceFile, errors, lineInfoMap);
 
     formatter.formatErrors(errors);
@@ -180,44 +205,33 @@ public class AnalyzerMain {
     }
 
     if (options.getPerf()) {
-      long totalTime = System.currentTimeMillis() - startTime;
-      long scanTime = PerformanceStatistics.scan.getResult();
-      long parseTime = PerformanceStatistics.parse.getResult();
-      long resolveTime = PerformanceStatistics.resolve.getResult();
-      long errorsTime = PerformanceStatistics.errors.getResult();
-      long hintsTime = PerformanceStatistics.hints.getResult();
-      long angularTime = PerformanceStatistics.angular.getResult();
-      System.out.println("scan:" + scanTime);
-      System.out.println("parse:" + parseTime);
-      System.out.println("resolve:" + resolveTime);
-      System.out.println("errors:" + errorsTime);
-      System.out.println("hints:" + hintsTime);
-      System.out.println("angular:" + angularTime);
-      System.out.println("other:"
-          + (totalTime - (scanTime + parseTime + resolveTime + errorsTime + hintsTime + angularTime)));
-      System.out.println("total:" + totalTime);
+      showPerformanceResults(startTime);
     }
 
     return status;
   }
 
-  /**
-   * Return the return code appropriate for the given severity.
-   * 
-   * @param severity the severity of the most severe error that was reported
-   * @return the return code that should be used returned by the analyzer
-   */
-  private static int getReturnCode(ErrorSeverity severity) {
-    if (severity == ErrorSeverity.WARNING) {
-      return 1;
-    } else if (severity == ErrorSeverity.ERROR) {
-      return 2;
-    }
-    return 0;
+  protected void showPerformanceResults(long startTime) {
+    long totalTime = System.currentTimeMillis() - startTime;
+    long scanTime = PerformanceStatistics.scan.getResult();
+    long parseTime = PerformanceStatistics.parse.getResult();
+    long resolveTime = PerformanceStatistics.resolve.getResult();
+    long errorsTime = PerformanceStatistics.errors.getResult();
+    long hintsTime = PerformanceStatistics.hints.getResult();
+    long angularTime = PerformanceStatistics.angular.getResult();
+    System.out.println("scan:" + scanTime);
+    System.out.println("parse:" + parseTime);
+    System.out.println("resolve:" + resolveTime);
+    System.out.println("errors:" + errorsTime);
+    System.out.println("hints:" + hintsTime);
+    System.out.println("angular:" + angularTime);
+    System.out.println("other:"
+        + (totalTime - (scanTime + parseTime + resolveTime + errorsTime + hintsTime + angularTime)));
+    System.out.println("total:" + totalTime);
   }
 
-  private static void showUsage(PrintStream out) {
-    out.println("Usage: " + PROGRAM_NAME + " [<options>] <dart-script>");
+  private void showUsage(PrintStream out) {
+    out.println("Usage: " + getProgramName() + " [<options>] <dart-script>");
     out.println();
     out.println("Options:");
     AnalyzerOptions.printUsage(out);
@@ -229,8 +243,8 @@ public class AnalyzerMain {
     out.println();
   }
 
-  private static void showVersion(AnalyzerOptions options, PrintStream out) {
-    out.println(PROGRAM_NAME + " version " + getBuildVersion());
+  private void showVersion(AnalyzerOptions options, PrintStream out) {
+    out.println(getProgramName() + " version " + getBuildVersion());
   }
 
 }
