@@ -979,4 +979,84 @@ public class HintCodeTest extends ResolverTestCase {
     verify(source, source2);
   }
 
+  public void test_useOfVoidResult_assignmentExpression_function() throws Exception {
+    Source source = addSource(createSource(//
+        "void f() {}",
+        "class A {",
+        "  n() {",
+        "    var a;",
+        "    a = f();",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(source, HintCode.USE_OF_VOID_RESULT);
+    verify(source);
+  }
+
+  public void test_useOfVoidResult_assignmentExpression_method() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  void m() {}",
+        "  n() {",
+        "    var a;",
+        "    a = m();",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(source, HintCode.USE_OF_VOID_RESULT);
+    verify(source);
+  }
+
+  public void test_useOfVoidResult_inForLoop() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  void m() {}",
+        "  n() {",
+        "    for(var a = m();;) {}",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(source, HintCode.USE_OF_VOID_RESULT);
+    verify(source);
+  }
+
+  public void test_useOfVoidResult_variableDeclaration_function() throws Exception {
+    Source source = addSource(createSource(//
+        "void f() {}",
+        "class A {",
+        "  n() {",
+        "    var a = f();",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(source, HintCode.USE_OF_VOID_RESULT);
+    verify(source);
+  }
+
+  public void test_useOfVoidResult_variableDeclaration_method() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  void m() {}",
+        "  n() {",
+        "    var a = m();",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(source, HintCode.USE_OF_VOID_RESULT);
+    verify(source);
+  }
+
+  public void test_useOfVoidResult_variableDeclaration_method2() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  void m() {}",
+        "  n() {",
+        "    var a = m(), b = m();",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(source, HintCode.USE_OF_VOID_RESULT, HintCode.USE_OF_VOID_RESULT);
+    verify(source);
+  }
+
 }

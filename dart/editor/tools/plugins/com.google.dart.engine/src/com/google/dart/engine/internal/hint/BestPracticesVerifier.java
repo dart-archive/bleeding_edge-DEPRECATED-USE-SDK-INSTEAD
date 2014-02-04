@@ -40,6 +40,7 @@ import com.google.dart.engine.ast.RedirectingConstructorInvocation;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.SuperConstructorInvocation;
 import com.google.dart.engine.ast.TypeName;
+import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.ConstructorElement;
@@ -50,6 +51,7 @@ import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.error.HintCode;
 import com.google.dart.engine.internal.error.ErrorReporter;
+import com.google.dart.engine.internal.type.VoidTypeImpl;
 import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.type.InterfaceType;
@@ -126,6 +128,8 @@ public class BestPracticesVerifier extends RecursiveASTVisitor<Void> {
     TokenType operatorType = node.getOperator().getType();
     if (operatorType != TokenType.EQ) {
       checkForDeprecatedMemberUse(node.getBestElement(), node);
+    } else {
+      checkForUseOfVoidResult(node.getRightHandSide());
     }
     return super.visitAssignmentExpression(node);
   }
@@ -222,6 +226,12 @@ public class BestPracticesVerifier extends RecursiveASTVisitor<Void> {
   public Void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     checkForDeprecatedMemberUse(node.getStaticElement(), node);
     return super.visitSuperConstructorInvocation(node);
+  }
+
+  @Override
+  public Void visitVariableDeclaration(VariableDeclaration node) {
+    checkForUseOfVoidResult(node.getInitializer());
+    return super.visitVariableDeclaration(node);
   }
 
   /**
@@ -533,6 +543,30 @@ public class BestPracticesVerifier extends RecursiveASTVisitor<Void> {
         && !(lhsType instanceof TypeParameterType) && !(rhsType instanceof TypeParameterType)
         && lhsType.isSubtypeOf(rhsType)) {
       errorReporter.reportError(HintCode.UNNECESSARY_CAST, node);
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Check for situations where the result of a method or function is used, when it returns 'void'.
+   * <p>
+   * TODO(jwren) Many other situations of use could be covered. We currently cover the cases var x =
+   * m() and x = m(), but we could also cover cases such as m().x, m()[k], a + m(), f(m()), return
+   * m().
+   * 
+   * @param node expression on the RHS of some assignment
+   * @return {@code true} if and only if a hint code is generated on the passed node
+   * @see HintCode#USE_OF_VOID_RESULT
+   */
+  private boolean checkForUseOfVoidResult(Expression expression) {
+    if (expression == null || !(expression instanceof MethodInvocation)) {
+      return false;
+    }
+    MethodInvocation methodInvocation = (MethodInvocation) expression;
+    if (methodInvocation.getStaticType() == VoidTypeImpl.getInstance()) {
+      SimpleIdentifier methodName = methodInvocation.getMethodName();
+      errorReporter.reportError(HintCode.USE_OF_VOID_RESULT, methodName, methodName.getName());
       return true;
     }
     return false;

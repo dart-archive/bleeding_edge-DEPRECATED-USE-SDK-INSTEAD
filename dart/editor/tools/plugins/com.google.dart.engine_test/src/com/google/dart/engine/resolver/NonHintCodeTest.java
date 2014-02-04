@@ -637,4 +637,28 @@ public class NonHintCodeTest extends ResolverTestCase {
     assertNoErrors(source);
     verify(source);
   }
+
+  public void test_useOfVoidResult_implicitReturnValue() throws Exception {
+    Source source = addSource(createSource(//
+        "f() {}",
+        "class A {",
+        "  n() {",
+        "    var a = f();",
+        "  }",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_useOfVoidResult_nonVoidReturnValue() throws Exception {
+    Source source = addSource(createSource(//
+        "int f() => 1;",
+        "g() {",
+        "  var a = f();",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
 }

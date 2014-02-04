@@ -183,7 +183,15 @@ public enum HintCode implements ErrorCode {
   /**
    * Unused imports are imports which are never not used.
    */
-  UNUSED_IMPORT("Unused import");
+  UNUSED_IMPORT("Unused import"),
+
+  /**
+   * Hint for cases where the source expects a method or function to return a non-void result, but
+   * the method or function signature returns void.
+   * 
+   * @param name the name of the method or function that returns void
+   */
+  USE_OF_VOID_RESULT("The result of '%s' is being used, even though it is declared to be 'void'");
 
   /**
    * The template used to create the message to be displayed for this error.
