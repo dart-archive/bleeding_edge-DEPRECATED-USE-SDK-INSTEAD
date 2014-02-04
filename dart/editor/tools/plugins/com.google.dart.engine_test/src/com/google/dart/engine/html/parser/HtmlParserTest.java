@@ -15,9 +15,7 @@ package com.google.dart.engine.html.parser;
 
 import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.error.GatheringErrorListener;
-import com.google.dart.engine.html.ast.EmbeddedExpression;
 import com.google.dart.engine.html.ast.HtmlUnit;
-import com.google.dart.engine.html.ast.XmlAttributeNode;
 import com.google.dart.engine.html.ast.XmlTagNode;
 import com.google.dart.engine.html.parser.XmlValidator.Attributes;
 import com.google.dart.engine.html.parser.XmlValidator.Tag;
@@ -86,15 +84,6 @@ public class HtmlParserTest extends EngineTestCase {
     XmlTagNode htmlNode = htmlUnit.getTagNodes().get(0);
     XmlTagNode bodyNode = htmlNode.getTagNodes().get(0);
     assertEquals("sdfsdf", bodyNode.getAttributes().get(0).getText());
-  }
-
-  public void test_parse_attribute_withEmbeddedExpression_empty() throws Exception {
-    HtmlUnit htmlUnit = parse("<html><body foo='{{}}'></body></html>").getHtmlUnit();
-    XmlTagNode htmlNode = htmlUnit.getTagNodes().get(0);
-    XmlTagNode bodyNode = htmlNode.getTagNodes().get(0);
-    XmlAttributeNode attribute = bodyNode.getAttributes().get(0);
-    EmbeddedExpression[] expressions = attribute.getExpressions();
-    assertLength(0, expressions);
   }
 
   public void test_parse_comment_embedded() throws Exception {

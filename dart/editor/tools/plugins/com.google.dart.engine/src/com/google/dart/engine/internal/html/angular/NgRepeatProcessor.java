@@ -26,12 +26,11 @@ import com.google.dart.engine.ast.Statement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.error.AngularCode;
 import com.google.dart.engine.html.ast.XmlAttributeNode;
+import com.google.dart.engine.html.ast.XmlExpression;
 import com.google.dart.engine.html.ast.XmlTagNode;
 import com.google.dart.engine.internal.builder.ElementBuilder;
 import com.google.dart.engine.internal.builder.ElementHolder;
 import com.google.dart.engine.internal.element.LocalVariableElementImpl;
-import com.google.dart.engine.scanner.Token;
-import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
 import com.google.dart.engine.utilities.general.StringUtilities;
@@ -48,7 +47,6 @@ class NgRepeatProcessor extends NgDirectiveProcessor {
   private static final String NG_REPEAT = "ng-repeat";
   private static final Pattern SYNTAX_PATTERN = Pattern.compile("^\\s*(.+)\\s+in\\s+(.+?)\\s*(\\s+track\\s+by\\s+(.+)\\s*)?(\\s+lazily\\s*)?$");
   private static final Pattern LHS_PATTERN = Pattern.compile("^(?:([\\$\\w]+)|\\(([\\$\\w]+)\\s*,\\s*([\\$\\w]+)\\))$");
-  private static final Pattern FILTER_PATTERN = Pattern.compile("^(.*)\\s*\\|\\s*(.+?)(:(.+))?\\s*$");
 
   public static final NgRepeatProcessor INSTANCE = new NgRepeatProcessor();
 
@@ -72,7 +70,7 @@ class NgRepeatProcessor extends NgDirectiveProcessor {
     int lhsOffset = offset + syntaxMatcher.start(1);
     int iterableOffset = offset + syntaxMatcher.start(2);
     int idOffset = offset + syntaxMatcher.start(4);
-    List<Expression> expressions = Lists.newArrayList();
+    List<XmlExpression> expressions = Lists.newArrayList();
     // check LHS syntax
     Matcher lhsMatcher = LHS_PATTERN.matcher(lhsSpec);
     if (!lhsMatcher.matches()) {
@@ -80,19 +78,10 @@ class NgRepeatProcessor extends NgDirectiveProcessor {
       return;
     }
     // parse item name
-    Expression varExpression = resolver.parseExpression(lhsSpec, lhsOffset);
+    Expression varExpression = resolver.parseDartExpression(lhsSpec, lhsOffset);
     SimpleIdentifier varName = (SimpleIdentifier) varExpression;
-    // cut off filters
-    int barIndex = StringUtilities.indexOf1(iterableSpec, 0, '|');
-    String filtersSpec = "";
-    int filtersOffset = -1;
-    if (barIndex != -1) {
-      filtersSpec = iterableSpec.substring(barIndex);
-      iterableSpec = iterableSpec.substring(0, barIndex);
-      filtersOffset = iterableOffset + barIndex;
-    }
     // parse iterable
-    Expression iterableExpr = resolver.parseExpression(iterableSpec, iterableOffset);
+    AngularExpression iterableExpr = resolver.parseAngularExpression(iterableSpec, iterableOffset);
     // resolve as: for (name in iterable) {}
     DeclaredIdentifier loopVariable = new DeclaredIdentifier(null, null, null, null, varName);
     Block loopBody = new Block(null, new ArrayList<Statement>(), null);
@@ -101,7 +90,7 @@ class NgRepeatProcessor extends NgDirectiveProcessor {
         null,
         loopVariable,
         null,
-        iterableExpr,
+        iterableExpr.getExpression(),
         null,
         loopBody);
     new ElementBuilder(new ElementHolder()).visitDeclaredIdentifier(loopVariable);
@@ -114,13 +103,13 @@ class NgRepeatProcessor extends NgDirectiveProcessor {
       resolver.defineVariable(variable);
     }
     // resolve filters
-    resolveFilters(resolver, expressions, filtersSpec, filtersOffset, itemType);
+    resolveFilters(resolver, iterableExpr, itemType);
     // remember expressions
-    expressions.add(varExpression);
-    expressions.add(iterableExpr);
+    expressions.add(newRawXmlExpression(varExpression));
+    expressions.add(newAngularRawXmlExpression(iterableExpr));
     if (idSpec != null) {
-      Expression idExpression = resolver.parseExpression(idSpec, idOffset);
-      expressions.add(idExpression);
+      AngularExpression idExpression = resolver.parseAngularExpression(idSpec, idOffset);
+      expressions.add(newAngularRawXmlExpression(idExpression));
     }
     setExpressions(attribute, expressions);
     // define additional variables
@@ -156,6 +145,7 @@ class NgRepeatProcessor extends NgDirectiveProcessor {
       List<Expression> expressions, Type itemType, Expression arg, int argIndex) {
     // only first argument is special for "orderBy"
     if (argIndex != 0) {
+      resolver.resolveNode(arg);
       expressions.add(arg);
       return;
     }
@@ -185,7 +175,7 @@ class NgRepeatProcessor extends NgDirectiveProcessor {
         return;
       }
       // resolve property name
-      arg = resolver.parseExpression(exprSource, argOffset);
+      arg = resolver.parseDartExpression(exprSource, argOffset);
       if (arg instanceof SimpleIdentifier) {
         SimpleIdentifier propertyNode = (SimpleIdentifier) arg;
         // if known type - resolve, otherwise keep it 'dynamic'
@@ -206,66 +196,47 @@ class NgRepeatProcessor extends NgDirectiveProcessor {
     }
   }
 
-  private void resolveFilterArguments(AngularHtmlUnitResolver resolver,
-      List<Expression> expressions, Type itemType, String filterName, String argsSpec,
-      int argsOffset) {
-    Token argsToken = resolver.scanDart(argsSpec, 0, argsSpec.length(), argsOffset);
-    int argIndex = 0;
-    while (argsToken != null && argsToken.getType() != TokenType.EOF) {
-      Expression arg = resolver.parseExpression(argsToken);
+  /**
+   * Resolves an argument for "orderBy" filter.
+   */
+  private void resolveFilterArgument_orderBy(AngularHtmlUnitResolver resolver, Type itemType,
+      AngularFilterArgument argument, int argIndex) {
+    Expression arg = argument.getExpression();
+    // only first argument is special for "orderBy"
+    if (argIndex != 0) {
+      resolver.resolveNode(arg);
+      return;
+    }
+    //
+    List<Expression> expressions = Lists.newArrayList();
+    resolveFilterArgument_orderBy(resolver, expressions, itemType, arg, 0);
+    // set resolved sub-expressions
+    argument.setSubExpressions(expressions.toArray(new Expression[expressions.size()]));
+  }
+
+  private void resolveFilterArguments(AngularHtmlUnitResolver resolver, Type itemType,
+      String filterName, List<AngularFilterArgument> arguments) {
+    int index = 0;
+    for (AngularFilterArgument argument : arguments) {
       if ("orderBy".equals(filterName)) {
-        resolveFilterArgument_orderBy(resolver, expressions, itemType, arg, argIndex);
+        resolveFilterArgument_orderBy(resolver, itemType, argument, index);
       }
-      // next argument
-      argsToken = arg.getEndToken().getNext();
-      argIndex++;
-      // stop if EOF
-      if (argsToken.getType() == TokenType.EOF) {
-        break;
-      }
-      // ":" is expected
-      if (argsToken.getType() == TokenType.COLON) {
-        argsToken = argsToken.getNext();
-      } else {
-        resolver.reportError(
-            argsToken.getOffset(),
-            argsToken.getLength(),
-            AngularCode.MISSING_FILTER_COLON);
-      }
+      index++;
     }
   }
 
   /**
    * Resolves sequence of filters.
-   * 
-   * @param filtersSpec the string of format "| filterNameA:arg0[:arg1]| filterNameB:arg0[:arg1]"
    */
-  private void resolveFilters(AngularHtmlUnitResolver resolver, List<Expression> expressions,
-      String filtersSpec, int filtersOffset, Type itemType) {
-    while (true) {
-      Matcher filterMatcher = FILTER_PATTERN.matcher(filtersSpec);
-      if (!filterMatcher.matches()) {
-        break;
-      }
-      filtersSpec = filterMatcher.group(1);
+  private void resolveFilters(AngularHtmlUnitResolver resolver,
+      AngularExpression angularExpression, Type itemType) {
+    for (AngularFilterNode filter : angularExpression.getFilters()) {
+      SimpleIdentifier filterNameNode = filter.getName();
+      String filterName = filterNameNode.getName();
       // resolve filter name
-      String filterName = filterMatcher.group(2);
-      {
-        int filterOffset = filtersOffset + filterMatcher.start(2);
-        SimpleIdentifier filterNode = AngularHtmlUnitResolver.createIdentifier(
-            filterName,
-            filterOffset);
-        expressions.add(filterNode);
-        filterNode.setStaticElement(resolver.findAngularElement(filterName));
-      }
-      // prepare filter arguments
-      String argsSpec = filterMatcher.group(4);
-      int argsOffset = filtersOffset + filterMatcher.start(4);
-      if (argsSpec == null) {
-        continue;
-      }
+      filterNameNode.setStaticElement(resolver.findAngularElement(filterName));
       // resolve filter arguments
-      resolveFilterArguments(resolver, expressions, itemType, filterName, argsSpec, argsOffset);
+      resolveFilterArguments(resolver, itemType, filterName, filter.getArguments());
     }
   }
 }

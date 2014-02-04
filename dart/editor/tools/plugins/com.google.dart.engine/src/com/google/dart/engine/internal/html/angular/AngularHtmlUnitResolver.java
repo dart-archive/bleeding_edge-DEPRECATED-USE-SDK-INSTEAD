@@ -37,13 +37,14 @@ import com.google.dart.engine.element.angular.AngularComponentElement;
 import com.google.dart.engine.element.angular.AngularControllerElement;
 import com.google.dart.engine.element.angular.AngularDirectiveElement;
 import com.google.dart.engine.element.angular.AngularElement;
+import com.google.dart.engine.element.angular.AngularFilterElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.error.AngularCode;
 import com.google.dart.engine.error.ErrorCode;
-import com.google.dart.engine.html.ast.EmbeddedExpression;
 import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.html.ast.XmlAttributeNode;
+import com.google.dart.engine.html.ast.XmlExpression;
 import com.google.dart.engine.html.ast.XmlTagNode;
 import com.google.dart.engine.html.ast.visitor.RecursiveXmlVisitor;
 import com.google.dart.engine.html.parser.HtmlParser;
@@ -60,6 +61,7 @@ import com.google.dart.engine.internal.resolver.ProxyConditionalAnalysisError;
 import com.google.dart.engine.internal.resolver.ResolverVisitor;
 import com.google.dart.engine.internal.resolver.TypeProvider;
 import com.google.dart.engine.internal.scope.Scope;
+import com.google.dart.engine.parser.Parser;
 import com.google.dart.engine.scanner.StringToken;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
@@ -69,9 +71,13 @@ import com.google.dart.engine.type.Type;
 import com.google.dart.engine.utilities.general.StringUtilities;
 import com.google.dart.engine.utilities.source.LineInfo;
 
+import static com.google.dart.engine.internal.html.angular.AngularMoustacheXmlExpression.CLOSING_DELIMITER_CHAR;
+import static com.google.dart.engine.internal.html.angular.AngularMoustacheXmlExpression.CLOSING_DELIMITER_LENGTH;
+import static com.google.dart.engine.internal.html.angular.AngularMoustacheXmlExpression.OPENING_DELIMITER_CHAR;
+import static com.google.dart.engine.internal.html.angular.AngularMoustacheXmlExpression.OPENING_DELIMITER_LENGTH;
+
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -81,16 +87,6 @@ import java.util.Set;
 public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
   private static class FoundAppError extends Error {
   }
-
-  private static final int OPENING_DELIMITER_CHAR = '{';
-
-  private static final int CLOSING_DELIMITER_CHAR = '}';
-  private static final String OPENING_DELIMITER = "{{";
-
-  private static final String CLOSING_DELIMITER = "}}";
-  private static final int OPENING_DELIMITER_LENGTH = OPENING_DELIMITER.length();
-
-  private static final int CLOSING_DELIMITER_LENGTH = CLOSING_DELIMITER.length();
 
   private static final String NG_APP = "ng-app";
 
@@ -439,19 +435,66 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
   }
 
   /**
+   * Parses given {@link String} as an {@link AngularExpression} at the given offset.
+   */
+  AngularExpression parseAngularExpression(String contents, int offset) {
+    return parseAngularExpression(contents, 0, contents.length(), offset);
+  }
+
+  AngularExpression parseAngularExpression(String contents, int startIndex, int endIndex, int offset) {
+    Token token = scanDart(contents, startIndex, endIndex, offset);
+    return parseAngularExpression(token);
+  }
+
+  AngularExpression parseAngularExpression(Token token) {
+    List<Token> tokens = splitAtBar(token);
+    Expression mainExpression = parseDartExpression(tokens.get(0));
+    // parse filters
+    List<AngularFilterNode> filters = Lists.newArrayList();
+    for (int i = 1; i < tokens.size(); i++) {
+      Token filterToken = tokens.get(i);
+      Token barToken = filterToken;
+      filterToken = filterToken.getNext();
+      // TODO(scheglov) report missing identifier
+      SimpleIdentifier name = (SimpleIdentifier) parseDartExpression(filterToken);
+      filterToken = name.getEndToken().getNext();
+      // parse arguments
+      List<AngularFilterArgument> arguments = Lists.newArrayList();
+      while (filterToken.getType() != TokenType.EOF) {
+        // skip ":"
+        Token colonToken = filterToken;
+        if (colonToken.getType() == TokenType.COLON) {
+          filterToken = filterToken.getNext();
+        } else {
+          reportError(colonToken, AngularCode.MISSING_FILTER_COLON);
+        }
+        // parse argument
+        Expression argument = parseDartExpression(filterToken);
+        arguments.add(new AngularFilterArgument(colonToken, argument));
+        // next token
+        filterToken = argument.getEndToken().getNext();
+      }
+      filters.add(new AngularFilterNode(barToken, name, arguments));
+    }
+    // done
+    return new AngularExpression(mainExpression, filters);
+  }
+
+  /**
    * Parses given {@link String} as an {@link Expression} at the given offset.
    */
-  Expression parseExpression(String contents, int offset) {
-    return parseExpression(contents, 0, contents.length(), offset);
+  Expression parseDartExpression(String contents, int offset) {
+    return parseDartExpression(contents, 0, contents.length(), offset);
   }
 
-  Expression parseExpression(String contents, int startIndex, int endIndex, int offset) {
+  Expression parseDartExpression(String contents, int startIndex, int endIndex, int offset) {
     Token token = scanDart(contents, startIndex, endIndex, offset);
-    return parseExpression(token);
+    return parseDartExpression(token);
   }
 
-  Expression parseExpression(Token token) {
-    return HtmlParser.parseEmbeddedExpression(source, token, errorListener);
+  Expression parseDartExpression(Token token) {
+    Parser parser = new Parser(source, errorListener);
+    return parser.parseExpression(token);
   }
 
   void popNameScope() {
@@ -474,6 +517,20 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
    */
   void reportError(int offset, int length, ErrorCode errorCode, Object... arguments) {
     errorListener.onError(new AnalysisError(source, offset, length, errorCode, arguments));
+  }
+
+  /**
+   * Reports given {@link ErrorCode} at the given {@link Token}.
+   */
+  void reportError(Token token, ErrorCode errorCode, Object... arguments) {
+    reportError(token.getOffset(), token.getLength(), errorCode, arguments);
+  }
+
+  void resolveExpression(AngularExpression angularExpression) {
+    List<Expression> dartExpressions = angularExpression.getExpressions();
+    for (Expression dartExpression : dartExpressions) {
+      resolveNode(dartExpression);
+    }
   }
 
   /**
@@ -552,13 +609,24 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
   }
 
   /**
+   * Defines variable for the given {@link AngularElement}.
+   */
+  private void defineTopElementVariable(AngularElement element) {
+    ClassElement classElement = (ClassElement) element.getEnclosingElement();
+    InterfaceType type = classElement.getType();
+    LocalVariableElementImpl variable = createLocalVariable(type, element.getName());
+    defineTopVariable(variable);
+    variable.setToolkitObjects(new AngularElement[] {element});
+  }
+
+  /**
    * Parse the value of the given token for embedded expressions, and add any embedded expressions
    * that are found to the given list of expressions.
    * 
    * @param expressions the list to which embedded expressions are to be added
    * @param token the token whose value is to be parsed
    */
-  private void parseEmbeddedExpressions(ArrayList<EmbeddedExpression> expressions,
+  private void parseEmbeddedExpressions(List<AngularMoustacheXmlExpression> expressions,
       com.google.dart.engine.html.scanner.Token token) {
     // prepare Token information
     String lexeme = token.getLexeme();
@@ -580,8 +648,8 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
         return;
       } else if (startIndex + OPENING_DELIMITER_LENGTH < endIndex) {
         startIndex += OPENING_DELIMITER_LENGTH;
-        Expression expression = parseExpression(lexeme, startIndex, endIndex, offset);
-        expressions.add(new EmbeddedExpression(startIndex, expression, endIndex));
+        AngularExpression expression = parseAngularExpression(lexeme, startIndex, endIndex, offset);
+        expressions.add(new AngularMoustacheXmlExpression(startIndex, endIndex, expression));
       }
       startIndex = StringUtilities.indexOf2(
           lexeme,
@@ -592,15 +660,15 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
   }
 
   private void parseEmbeddedExpressions(XmlAttributeNode node) {
-    ArrayList<EmbeddedExpression> expressions = new ArrayList<EmbeddedExpression>();
+    List<AngularMoustacheXmlExpression> expressions = Lists.newArrayList();
     parseEmbeddedExpressions(expressions, node.getValueToken());
     if (!expressions.isEmpty()) {
-      node.setExpressions(expressions.toArray(new EmbeddedExpression[expressions.size()]));
+      node.setExpressions(expressions.toArray(new AngularMoustacheXmlExpression[expressions.size()]));
     }
   }
 
   private void parseEmbeddedExpressions(XmlTagNode node) {
-    ArrayList<EmbeddedExpression> expressions = new ArrayList<EmbeddedExpression>();
+    List<AngularMoustacheXmlExpression> expressions = Lists.newArrayList();
     com.google.dart.engine.html.scanner.Token token = node.getAttributeEnd();
     com.google.dart.engine.html.scanner.Token endToken = node.getEndToken();
     boolean inChild = false;
@@ -620,7 +688,7 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
       }
       token = token.getNext();
     }
-    node.setExpressions(expressions.toArray(new EmbeddedExpression[expressions.size()]));
+    node.setExpressions(expressions.toArray(new AngularMoustacheXmlExpression[expressions.size()]));
   }
 
   private void recordDefinedVariable(LocalVariableElementImpl variable) {
@@ -636,10 +704,17 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
     injectedLibraries.add(typeLibrary);
   }
 
-  private void resolveExpressions(EmbeddedExpression[] expressions) {
-    for (EmbeddedExpression embeddedExpression : expressions) {
-      Expression expression = embeddedExpression.getExpression();
-      resolveNode(expression);
+  private void resolveExpression(AngularXmlExpression angularXmlExpression) {
+    AngularExpression angularExpression = angularXmlExpression.getExpression();
+    resolveExpression(angularExpression);
+  }
+
+  private void resolveExpressions(XmlExpression[] expressions) {
+    for (XmlExpression xmlExpression : expressions) {
+      if (xmlExpression instanceof AngularXmlExpression) {
+        AngularXmlExpression angularXmlExpression = (AngularXmlExpression) xmlExpression;
+        resolveExpression(angularXmlExpression);
+      }
     }
   }
 
@@ -669,14 +744,15 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
     unit.setCompilationUnitElement(libraryElement.getDefiningCompilationUnit());
     // prepare Dart resolver
     createResolver();
-    // may be resolving component template
-    LocalVariableElementImpl componentVariable = null;
+    // maybe resolving component template
     if (component != null) {
-      ClassElement componentClassElement = (ClassElement) component.getEnclosingElement();
-      InterfaceType componentType = componentClassElement.getType();
-      componentVariable = createLocalVariable(componentType, component.getName());
-      defineTopVariable(componentVariable);
-      componentVariable.setToolkitObjects(new AngularElement[] {component});
+      defineTopElementVariable(component);
+    }
+    // define filters
+    for (AngularElement angularElement : angularElements) {
+      if (angularElement instanceof AngularFilterElement) {
+        defineTopElementVariable(angularElement);
+      }
     }
     // run this HTML visitor
     unit.accept(this);
@@ -694,6 +770,21 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
     for (ProxyConditionalAnalysisError conditionalCode : resolver.getProxyConditionalAnalysisErrors()) {
       resolver.reportError(conditionalCode.getAnalysisError());
     }
+  }
+
+  // XXX
+  private List<Token> splitAtBar(Token token) {
+    List<Token> tokens = Lists.newArrayList();
+    tokens.add(token);
+    while (token.getType() != TokenType.EOF) {
+      if (token.getType() == TokenType.BAR) {
+        tokens.add(token);
+        Token eofToken = new Token(TokenType.EOF, 0);
+        token.getPrevious().setNext(eofToken);
+      }
+      token = token.getNext();
+    }
+    return tokens;
   }
 
   /**

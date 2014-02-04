@@ -32,6 +32,11 @@ import com.google.dart.engine.type.Type;
  */
 public abstract class Expression extends ASTNode {
   /**
+   * An empty array of expressions.
+   */
+  public static final Expression[] EMPTY_ARRAY = new Expression[0];
+
+  /**
    * The static type of this expression, or {@code null} if the AST structure has not been resolved.
    */
   private Type staticType;

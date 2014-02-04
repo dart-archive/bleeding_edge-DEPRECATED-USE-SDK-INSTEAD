@@ -15,13 +15,11 @@ package com.google.dart.engine.internal.builder;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.dart.engine.AnalysisEngine;
-import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.HtmlScriptElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.error.HtmlWarningCode;
-import com.google.dart.engine.html.ast.EmbeddedExpression;
 import com.google.dart.engine.html.ast.HtmlScriptTagNode;
 import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.html.ast.XmlAttributeNode;
@@ -38,7 +36,6 @@ import com.google.dart.engine.internal.resolver.Library;
 import com.google.dart.engine.internal.resolver.LibraryResolver;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.io.UriUtilities;
-import com.google.dart.engine.utilities.source.LineInfo;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -66,12 +63,6 @@ public class HtmlUnitBuilder implements XmlVisitor<Void> {
    * The modification time of the source for which an element is being built.
    */
   private long modificationStamp;
-
-  /**
-   * The line information associated with the source for which an element is being built, or
-   * {@code null} if we are not building an element.
-   */
-  private LineInfo lineInfo;
 
   /**
    * The HTML element being built.
@@ -127,7 +118,6 @@ public class HtmlUnitBuilder implements XmlVisitor<Void> {
   public HtmlElementImpl buildHtmlElement(Source source, long modificationStamp, HtmlUnit unit)
       throws AnalysisException {
     this.modificationStamp = modificationStamp;
-    lineInfo = context.computeLineInfo(source);
     HtmlElementImpl result = new HtmlElementImpl(context, source.getShortName());
     result.setSource(source);
     htmlElement = result;
@@ -230,9 +220,6 @@ public class HtmlUnitBuilder implements XmlVisitor<Void> {
 
   @Override
   public Void visitXmlAttributeNode(XmlAttributeNode node) {
-    for (EmbeddedExpression expression : node.getExpressions()) {
-      resolveExpression(expression.getExpression());
-    }
     return null;
   }
 
@@ -243,9 +230,6 @@ public class HtmlUnitBuilder implements XmlVisitor<Void> {
     }
     parentNodes.add(node);
     try {
-      for (EmbeddedExpression expression : node.getExpressions()) {
-        resolveExpression(expression.getExpression());
-      }
       node.visitChildren(this);
     } finally {
       parentNodes.remove(node);
@@ -328,10 +312,5 @@ public class HtmlUnitBuilder implements XmlVisitor<Void> {
     int offset = attribute.getValueToken().getOffset() + 1;
     int length = attribute.getValueToken().getLength() - 2;
     reportError(errorCode, offset, length, arguments);
-  }
-
-  private void resolveExpression(Expression expression) {
-    // TODO(brianwilkerson) Implement this. We need to figure out the right context in which to
-    // resolve the expression.
   }
 }

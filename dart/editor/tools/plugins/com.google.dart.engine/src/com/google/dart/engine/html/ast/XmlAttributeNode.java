@@ -26,7 +26,7 @@ public class XmlAttributeNode extends XmlNode {
   private final Token name;
   private final Token equals;
   private final Token value;
-  private EmbeddedExpression[] expressions = EmbeddedExpression.EMPTY_ARRAY;
+  private XmlExpression[] expressions = XmlExpression.EMPTY_ARRAY;
 
   /**
    * Construct a new instance representing an XML attribute.
@@ -72,7 +72,7 @@ public class XmlAttributeNode extends XmlNode {
    * 
    * @return the expressions that are embedded in the attribute's value
    */
-  public EmbeddedExpression[] getExpressions() {
+  public XmlExpression[] getExpressions() {
     return expressions;
   }
 
@@ -140,7 +140,7 @@ public class XmlAttributeNode extends XmlNode {
    * 
    * @param expressions expressions that are embedded in the attribute's value
    */
-  public void setExpressions(EmbeddedExpression[] expressions) {
+  public void setExpressions(XmlExpression[] expressions) {
     this.expressions = expressions;
   }
 

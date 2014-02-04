@@ -30,11 +30,8 @@ import com.google.dart.engine.element.visitor.GeneralizingElementVisitor;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.error.GatheringErrorListener;
-import com.google.dart.engine.html.ast.EmbeddedExpression;
 import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.html.ast.HtmlUnitUtils;
-import com.google.dart.engine.html.ast.XmlTagNode;
-import com.google.dart.engine.html.ast.visitor.RecursiveXmlVisitor;
 import com.google.dart.engine.internal.resolver.ResolutionVerifier;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.type.Type;
@@ -359,11 +356,9 @@ abstract public class AngularTest extends EngineTestCase {
   }
 
   /**
-   * Verify that all of the identifiers in the compilation units associated with the given sources
-   * have been resolved.
+   * Verify that all of the identifiers in the HTML units associated with the given sources have
+   * been resolved.
    * 
-   * @param resolvedElementMap a table mapping the AST nodes that have been resolved to the element
-   *          to which they were resolved
    * @param sources the sources identifying the compilation units to be verified
    * @throws Exception if the contents of the compilation unit cannot be accessed
    */
@@ -371,14 +366,10 @@ abstract public class AngularTest extends EngineTestCase {
     final ResolutionVerifier verifier = new ResolutionVerifier();
     for (Source source : sources) {
       HtmlUnit htmlUnit = context.getResolvedHtmlUnit(source);
-      htmlUnit.accept(new RecursiveXmlVisitor<Void>() {
+      htmlUnit.accept(new ExpressionVisitor() {
         @Override
-        public Void visitXmlTagNode(XmlTagNode node) {
-          for (EmbeddedExpression embeddedExpression : node.getExpressions()) {
-            Expression expression = embeddedExpression.getExpression();
-            expression.accept(verifier);
-          }
-          return super.visitXmlTagNode(node);
+        public void visitExpression(Expression expression) {
+          expression.accept(verifier);
         }
       });
     }
@@ -498,11 +489,14 @@ abstract public class AngularTest extends EngineTestCase {
             "  set show(value) {}",
             "}",
             "",
+            "@NgFilter(name: 'filter')",
+            "class FilterFilter {}",
+            "",
             "@NgFilter(name: 'orderBy')",
             "class OrderByFilter {}",
             "",
-            "@NgFilter(name: 'filter')",
-            "class FilterFilter {}",
+            "@NgFilter(name: 'uppercase')",
+            "class UppercaseFilter {}",
             "",
             "class Module {",
             "  install(Module m) {}",

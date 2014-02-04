@@ -14,7 +14,6 @@
 
 package com.google.dart.engine.internal.html.angular;
 
-import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.element.angular.AngularDirectiveElement;
 import com.google.dart.engine.element.angular.AngularPropertyElement;
 import com.google.dart.engine.element.angular.AngularPropertyKind;
@@ -55,8 +54,8 @@ class NgDirectiveElementProcessor extends NgDirectiveProcessor {
           resolver.pushNameScope();
           try {
             onNgEventDirective(resolver);
-            Expression expression = parseExpression(resolver, attribute);
-            resolver.resolveNode(expression);
+            AngularExpression expression = parseAngularExpression(resolver, attribute);
+            resolver.resolveExpression(expression);
             setExpression(attribute, expression);
           } finally {
             resolver.popNameScope();

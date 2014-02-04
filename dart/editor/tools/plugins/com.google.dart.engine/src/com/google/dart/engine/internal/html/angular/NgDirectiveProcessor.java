@@ -14,10 +14,10 @@
 
 package com.google.dart.engine.internal.html.angular;
 
-import com.google.common.collect.Lists;
 import com.google.dart.engine.ast.Expression;
-import com.google.dart.engine.html.ast.EmbeddedExpression;
+import com.google.dart.engine.html.ast.RawXmlExpression;
 import com.google.dart.engine.html.ast.XmlAttributeNode;
+import com.google.dart.engine.html.ast.XmlExpression;
 import com.google.dart.engine.scanner.Token;
 
 import java.util.List;
@@ -26,32 +26,62 @@ import java.util.List;
  * {@link NgDirectiveProcessor} describes any <code>NgDirective</code> annotation instance.
  */
 abstract class NgDirectiveProcessor extends NgProcessor {
-  protected static EmbeddedExpression newEmbeddedExpression(Expression e) {
-    return new EmbeddedExpression(e.getOffset(), e, e.getEnd());
+  protected static AngularRawXmlExpression newAngularRawXmlExpression(AngularExpression e) {
+    return new AngularRawXmlExpression(e);
   }
 
-  protected Expression parseExpression(AngularHtmlUnitResolver resolver, XmlAttributeNode attribute) {
-    int offset = attribute.getValueToken().getOffset() + 1;
-    String value = attribute.getText();
-    Token token = resolver.scanDart(value, 0, value.length(), offset);
-    return resolver.parseExpression(token);
+  protected static RawXmlExpression newRawXmlExpression(Expression e) {
+    return new RawXmlExpression(e);
+  }
+
+  protected AngularExpression parseAngularExpression(AngularHtmlUnitResolver resolver,
+      XmlAttributeNode attribute) {
+    Token token = scanAttribute(resolver, attribute);
+    return resolver.parseAngularExpression(token);
+  }
+
+  protected Expression parseDartExpression(AngularHtmlUnitResolver resolver,
+      XmlAttributeNode attribute) {
+    Token token = scanAttribute(resolver, attribute);
+    return resolver.parseDartExpression(token);
+  }
+
+  /**
+   * Sets single {@link AngularExpression} for {@link XmlAttributeNode}.
+   */
+  protected final void setExpression(XmlAttributeNode attribute, AngularExpression expression) {
+    setExpression(attribute, newAngularRawXmlExpression(expression));
   }
 
   /**
    * Sets single {@link Expression} for {@link XmlAttributeNode}.
    */
   protected final void setExpression(XmlAttributeNode attribute, Expression expression) {
-    attribute.setExpressions(new EmbeddedExpression[] {newEmbeddedExpression(expression)});
+    setExpression(attribute, newRawXmlExpression(expression));
   }
 
-  /**
-   * Sets {@link Expression}s for {@link XmlAttributeNode}.
-   */
-  protected final void setExpressions(XmlAttributeNode attribute, List<Expression> expressions) {
-    List<EmbeddedExpression> embExpressions = Lists.newArrayList();
-    for (Expression expression : expressions) {
-      embExpressions.add(newEmbeddedExpression(expression));
-    }
-    attribute.setExpressions(embExpressions.toArray(new EmbeddedExpression[embExpressions.size()]));
+  protected void setExpressions(XmlAttributeNode attribute, List<XmlExpression> xmlExpressions) {
+    attribute.setExpressions(xmlExpressions.toArray(new XmlExpression[xmlExpressions.size()]));
+  }
+
+//  /**
+//   * Sets {@link Expression}s for {@link XmlAttributeNode}.
+//   */
+//  protected final void setExpressions(XmlAttributeNode attribute, List<Expression> expressions) {
+//    List<EmbeddedExpression> embExpressions = Lists.newArrayList();
+//    for (Expression expression : expressions) {
+//      embExpressions.add(newEmbeddedExpression(expression));
+//    }
+//    attribute.setExpressions(embExpressions.toArray(new EmbeddedExpression[embExpressions.size()]));
+//  }
+
+  private Token scanAttribute(AngularHtmlUnitResolver resolver, XmlAttributeNode attribute) {
+    int offset = attribute.getValueToken().getOffset() + 1;
+    String value = attribute.getText();
+    return resolver.scanDart(value, 0, value.length(), offset);
+  }
+
+  private void setExpression(XmlAttributeNode attribute, XmlExpression xmlExpression) {
+    attribute.setExpressions(new XmlExpression[] {xmlExpression});
   }
 }

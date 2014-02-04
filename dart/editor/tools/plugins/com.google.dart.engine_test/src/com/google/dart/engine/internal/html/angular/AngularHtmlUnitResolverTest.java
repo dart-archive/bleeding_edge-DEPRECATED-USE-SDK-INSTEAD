@@ -483,12 +483,6 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
     assertResolvedIdentifier("ctrl", "MyController");
   }
 
-  public void test_resolveExpression_inTag() throws Exception {
-    addMyController();
-    resolveIndexNoErrors(createHtmlWithMyController("{{ctrl.field}}"));
-    assertResolvedIdentifier("ctrl", "MyController");
-  }
-
   public void test_resolveExpression_ngApp_onBody() throws Exception {
     addMyController();
     resolveIndexNoErrors(createSource(//
@@ -501,6 +495,13 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
         "  </body>",
         "</html>"));
     assertResolvedIdentifier("ctrl", "MyController");
+  }
+
+  public void test_resolveExpression_withFilter() throws Exception {
+    addMyController();
+    resolveIndexNoErrors(createHtmlWithMyController("{{ctrl.field | uppercase}}"));
+    assertResolvedIdentifier("ctrl", "MyController");
+    assertResolvedIdentifier("uppercase");
   }
 
   private void resolveIndexNoErrors(String content) throws Exception {

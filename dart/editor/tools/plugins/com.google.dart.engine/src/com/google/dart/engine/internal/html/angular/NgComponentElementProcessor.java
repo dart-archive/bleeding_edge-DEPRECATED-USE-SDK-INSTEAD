@@ -14,7 +14,6 @@
 
 package com.google.dart.engine.internal.html.angular;
 
-import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.element.angular.AngularComponentElement;
 import com.google.dart.engine.element.angular.AngularPropertyElement;
 import com.google.dart.engine.element.angular.AngularPropertyKind;
@@ -42,8 +41,8 @@ class NgComponentElementProcessor extends NgDirectiveProcessor {
         attribute.setElement(property);
         // resolve if binding
         if (property.getPropertyKind() != AngularPropertyKind.ATTR) {
-          Expression expression = parseExpression(resolver, attribute);
-          resolver.resolveNode(expression);
+          AngularExpression expression = parseAngularExpression(resolver, attribute);
+          resolver.resolveExpression(expression);
           setExpression(attribute, expression);
         }
       }

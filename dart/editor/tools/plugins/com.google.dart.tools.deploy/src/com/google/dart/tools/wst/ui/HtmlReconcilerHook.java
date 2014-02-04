@@ -73,10 +73,6 @@ public class HtmlReconcilerHook implements ISourceValidator, IValidator {
   @Override
   public void connect(IDocument document) {
     this.document = document;
-    // TODO(scheglov) disabled because of the problems with big Angular project
-    if (true) {
-      return;
-    }
     // prepare File
     ITextFileBufferManager fileManager = FileBuffers.getTextFileBufferManager();
     ITextFileBuffer fileBuffer = fileManager.getTextFileBuffer(document);
@@ -99,12 +95,16 @@ public class HtmlReconcilerHook implements ISourceValidator, IValidator {
     // prepare model Project
     IProject resourceProject = resource.getProject();
     project = DartCore.getProjectManager().getProject(resourceProject);
+    // TODO(scheglov) disabled because of the problems with big Angular project
+    if (true) {
+      return;
+    }
     // track changes
-    document.addDocumentListener(documentListener);
-    HtmlReconcilerManager.getInstance().reconcileWith(document, this);
-    // force reconcile
-    sourceChanged(document.get());
-    performAnalysisInBackground();
+//    document.addDocumentListener(documentListener);
+//    HtmlReconcilerManager.getInstance().reconcileWith(document, this);
+//    // force reconcile
+//    sourceChanged(document.get());
+//    performAnalysisInBackground();
   }
 
   @Override

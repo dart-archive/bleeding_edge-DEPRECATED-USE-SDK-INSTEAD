@@ -36,7 +36,7 @@ class NgModelProcessor extends NgDirectiveProcessor {
   @Override
   public void apply(AngularHtmlUnitResolver resolver, XmlTagNode node) {
     XmlAttributeNode attribute = node.getAttribute(NG_MODEL);
-    Expression expression = parseExpression(resolver, attribute);
+    Expression expression = parseDartExpression(resolver, attribute);
     // identifiers have been already handled by "apply top"
     if (expression instanceof SimpleIdentifier) {
       return;
@@ -58,7 +58,7 @@ class NgModelProcessor extends NgDirectiveProcessor {
    */
   void applyTopDeclarations(AngularHtmlUnitResolver resolver, XmlTagNode node) {
     XmlAttributeNode attribute = node.getAttribute(NG_MODEL);
-    Expression expression = parseExpression(resolver, attribute);
+    Expression expression = parseDartExpression(resolver, attribute);
     // if not identifier, then not a top-level model, delay until "apply"
     if (!(expression instanceof SimpleIdentifier)) {
       return;

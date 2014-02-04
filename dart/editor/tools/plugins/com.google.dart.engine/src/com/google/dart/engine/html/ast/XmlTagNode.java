@@ -92,7 +92,7 @@ public class XmlTagNode extends XmlNode {
   /**
    * The expressions that are embedded in the tag's content.
    */
-  private EmbeddedExpression[] expressions = EmbeddedExpression.EMPTY_ARRAY;
+  private XmlExpression[] expressions = XmlExpression.EMPTY_ARRAY;
 
   /**
    * Construct a new instance representing an XML or HTML element
@@ -273,7 +273,7 @@ public class XmlTagNode extends XmlNode {
    * 
    * @return the expressions that are embedded in the tag's content
    */
-  public EmbeddedExpression[] getExpressions() {
+  public XmlExpression[] getExpressions() {
     return expressions;
   }
 
@@ -328,7 +328,7 @@ public class XmlTagNode extends XmlNode {
    * 
    * @param expressions expressions that are embedded in the tag's content
    */
-  public void setExpressions(EmbeddedExpression[] expressions) {
+  public void setExpressions(XmlExpression[] expressions) {
     this.expressions = expressions;
   }
 

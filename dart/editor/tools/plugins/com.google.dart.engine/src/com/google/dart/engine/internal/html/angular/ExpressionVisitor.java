@@ -15,11 +15,14 @@
 package com.google.dart.engine.internal.html.angular;
 
 import com.google.dart.engine.ast.Expression;
-import com.google.dart.engine.html.ast.EmbeddedExpression;
 import com.google.dart.engine.html.ast.HtmlUnit;
+import com.google.dart.engine.html.ast.RawXmlExpression;
 import com.google.dart.engine.html.ast.XmlAttributeNode;
+import com.google.dart.engine.html.ast.XmlExpression;
 import com.google.dart.engine.html.ast.XmlTagNode;
 import com.google.dart.engine.html.ast.visitor.RecursiveXmlVisitor;
+
+import java.util.List;
 
 /**
  * Recursively visits {@link HtmlUnit} and every embedded {@link Expression}.
@@ -45,12 +48,21 @@ public abstract class ExpressionVisitor extends RecursiveXmlVisitor<Void> {
   }
 
   /**
-   * Visits {@link Expression}s of the given {@link EmbeddedExpression}s.
+   * Visits {@link Expression}s of the given {@link XmlExpression}s.
    */
-  private void visitExpressions(EmbeddedExpression[] expressions) {
-    for (EmbeddedExpression embeddedExpression : expressions) {
-      Expression expression = embeddedExpression.getExpression();
-      visitExpression(expression);
+  private void visitExpressions(XmlExpression[] expressions) {
+    for (XmlExpression xmlExpression : expressions) {
+      if (xmlExpression instanceof AngularXmlExpression) {
+        AngularXmlExpression angularXmlExpression = (AngularXmlExpression) xmlExpression;
+        List<Expression> dartExpressions = angularXmlExpression.getExpression().getExpressions();
+        for (Expression dartExpression : dartExpressions) {
+          visitExpression(dartExpression);
+        }
+      }
+      if (xmlExpression instanceof RawXmlExpression) {
+        RawXmlExpression rawXmlExpression = (RawXmlExpression) xmlExpression;
+        visitExpression(rawXmlExpression.getExpression());
+      }
     }
   }
 }
