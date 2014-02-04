@@ -13,7 +13,6 @@ public class DebugInstrumentationUtilities {
 
   public static void recordLaunchConfiguration(DartLaunchConfigWrapper launch,
       InstrumentationBuilder instrumentation) {
-
     instrumentation.data("LaunchConfig-ApplicationName", launch.getApplicationName());
     instrumentation.data("LaunchConfig-getProjectName", launch.getProjectName());
     instrumentation.data("LaunchConfig-getUrl", launch.getUrl());
@@ -38,7 +37,6 @@ public class DebugInstrumentationUtilities {
         "LaunchConfig-getUseWebComponents",
         String.valueOf(launch.getUseWebComponents()));
     instrumentation.metric("LaunchConfig-getVmArgumentsAsArray", launch.getVmArgumentsAsArray());
-
   }
 
   public static void recordLaunchConfiguration(ILaunchConfiguration launch,
@@ -49,9 +47,8 @@ public class DebugInstrumentationUtilities {
       instrumentation.metric("launchConfig-getClass", launch.getClass().toString());
 
       instrumentation.data("launchConfig-getName", launch.getName());
-
     } catch (Exception e) {
+
     }
   }
-
 }

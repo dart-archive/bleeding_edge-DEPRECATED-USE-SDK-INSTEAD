@@ -212,14 +212,12 @@ public class ChromeAppLaunchConfigurationDelegate extends DartLaunchConfiguratio
     List<String> commandsList = new ArrayList<String>();
 
     commandsList.add(dartium.getAbsolutePath());
-    commandsList.add("--enable-udd-profiles");
     commandsList.add("--user-data-dir="
         + BrowserManager.getCreateUserDataDirectoryPath("chrome-apps"));
-    commandsList.add("--profile-directory=editor");
     commandsList.add("--no-first-run");
     commandsList.add("--no-default-browser-check");
 
-    // This is currently only supported on the mac.
+    // This is currently only supported on the mac. 
     if (DartCore.isMac()) {
       commandsList.add("--no-startup-window");
     }

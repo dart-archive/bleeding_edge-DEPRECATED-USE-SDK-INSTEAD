@@ -222,6 +222,7 @@ public class BrowserLaunchConfigurationDelegate extends DartLaunchConfigurationD
     }
   }
 
+  @SuppressWarnings("unused")
   private IResource locateMappedFile(IResource resourceFile) {
     String mappingPath = DartCore.getResourceRemapping((IFile) resourceFile);
 

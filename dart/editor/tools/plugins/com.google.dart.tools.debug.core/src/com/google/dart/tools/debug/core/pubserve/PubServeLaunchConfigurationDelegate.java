@@ -126,8 +126,8 @@ public class PubServeLaunchConfigurationDelegate extends DartLaunchConfiguration
     cmd.add("--user-data-dir=" + BrowserManager.getCreateUserDataDirectoryPath("pubserve"));
 
     if (launchConfig.getUseWebComponents()) {
-      cmd.add("--enable-experimental-webkit-features");
-      cmd.add("--enable-devtools-experiments");
+      cmd.add("--enable-experimental-web-platform-features");
+      cmd.add("--enable-html-imports");
     }
 
     // Disables the default browser check.
