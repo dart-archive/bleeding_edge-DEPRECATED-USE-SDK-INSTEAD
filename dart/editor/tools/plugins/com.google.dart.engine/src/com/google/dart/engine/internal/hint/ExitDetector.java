@@ -249,10 +249,19 @@ public class ExitDetector extends GeneralizingASTVisitor<Boolean> {
     Expression conditionExpression = node.getCondition();
     Statement thenStatement = node.getThenStatement();
     Statement elseStatement = node.getElseStatement();
-    // TODO(jwren) Do we want to take constant expressions into account, evaluate if(false) {}
-    // differently than if(<condition>), when <condition> evaluates to a constant false value?
     if (conditionExpression.accept(this)) {
       return true;
+    }
+    // TODO(jwren) Do we want to take all constant expressions into account?
+    if (conditionExpression instanceof BooleanLiteral) {
+      BooleanLiteral booleanLiteral = (BooleanLiteral) conditionExpression;
+      if (booleanLiteral.getValue()) {
+        // if(true) ...
+        return thenStatement.accept(this);
+      } else if (elseStatement != null) {
+        // if (false) ...
+        return elseStatement.accept(this);
+      }
     }
     if (thenStatement == null || elseStatement == null) {
       return false;
@@ -359,12 +368,21 @@ public class ExitDetector extends GeneralizingASTVisitor<Boolean> {
   @Override
   public Boolean visitSwitchStatement(SwitchStatement node) {
     boolean hasDefault = false;
-    for (SwitchMember member : node.getMembers()) {
-      if (!member.accept(this)) {
-        return false;
-      }
-      if (member instanceof SwitchDefault) {
+    NodeList<SwitchMember> memberList = node.getMembers();
+    SwitchMember[] members = memberList.toArray(new SwitchMember[memberList.size()]);
+    for (int i = 0; i < members.length; i++) {
+      SwitchMember switchMember = members[i];
+      if (switchMember instanceof SwitchDefault) {
         hasDefault = true;
+        // If this is the last member and there are no statements, return false
+        if (switchMember.getStatements().isEmpty() && i + 1 == members.length) {
+          return false;
+        }
+      }
+      // For switch members with no statements, don't visit the children, otherwise, return false if
+      // no return is found in the children statements
+      if (!switchMember.getStatements().isEmpty() && !switchMember.accept(this)) {
+        return false;
       }
     }
     return hasDefault;

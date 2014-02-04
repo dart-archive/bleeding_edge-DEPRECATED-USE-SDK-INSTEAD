@@ -214,12 +214,32 @@ public class ExitDetectorTest extends ParserTestCase {
     assertFalse("a;");
   }
 
+  public void test_if_false_else_return() throws Exception {
+    assertTrue("if (false) {} else { return 0; }");
+  }
+
+  public void test_if_false_noReturn() throws Exception {
+    assertFalse("if (false) {}");
+  }
+
+  public void test_if_false_return() throws Exception {
+    assertFalse("if (false) { return 0; }");
+  }
+
   public void test_if_noReturn() throws Exception {
     assertFalse("if (c) i++;");
   }
 
   public void test_if_return() throws Exception {
     assertFalse("if (c) return 0;");
+  }
+
+  public void test_if_true_noReturn() throws Exception {
+    assertFalse("if (true) {}");
+  }
+
+  public void test_if_true_return() throws Exception {
+    assertTrue("if (true) { return 0; }");
   }
 
   public void test_ifElse_bothReturn() throws Exception {
@@ -338,6 +358,18 @@ public class ExitDetectorTest extends ParserTestCase {
     assertTrue("switch (i) { case 0: return 0; default: return 1; }");
   }
 
+  public void test_switch_defaultWithNoStatements() throws Exception {
+    assertFalse("switch (i) { case 0: return 0; default: }");
+  }
+
+  public void test_switch_fallThroughToNotReturn() throws Exception {
+    assertFalse("switch (i) { case 0: case 1: break; default: return 1; }");
+  }
+
+  public void test_switch_fallThroughToReturn() throws Exception {
+    assertTrue("switch (i) { case 0: case 1: return 0; default: return 1; }");
+  }
+
   public void test_switch_noDefault() throws Exception {
     assertFalse("switch (i) { case 0: return 0; }");
   }
@@ -388,6 +420,10 @@ public class ExitDetectorTest extends ParserTestCase {
 
   public void test_whileStatement_throwCondition() throws Exception {
     assertTrue("{ while (throw '') {} }");
+  }
+
+  public void test_whileStatement_true_if_return() throws Exception {
+    assertTrue("{ while (true) { if(true) {return null;} } }");
   }
 
   public void test_whileStatement_true_nonReturn() throws Exception {
