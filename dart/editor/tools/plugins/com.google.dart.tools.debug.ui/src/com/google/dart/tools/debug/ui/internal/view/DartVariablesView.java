@@ -117,6 +117,7 @@ public class DartVariablesView extends VariablesView {
   public void refreshDetailPaneContents() {
     super.refreshDetailPaneContents();
     SWTUtil.setColors(getDetailsText(), getPreferences());
+    getDetailsText().setEditable(false);
   }
 
   @Override
