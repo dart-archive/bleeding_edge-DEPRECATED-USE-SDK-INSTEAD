@@ -41,7 +41,9 @@ import com.google.dart.tools.core.model.DartSdkListener;
 import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.core.model.ElementChangedListener;
 import com.google.dart.tools.core.utilities.general.StringUtilities;
+import com.google.dart.tools.core.utilities.io.FileUtilities;
 import com.google.dart.tools.core.utilities.performance.PerformanceManager;
+import com.google.dart.tools.core.utilities.yaml.PubYamlUtils;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
@@ -454,6 +456,30 @@ public class DartCore extends Plugin implements DartSdkListener {
   }
 
   /**
+   * Answer the application directory (a directory that contains a "packages" directory and a
+   * "pubspec.yaml" file) directly or indirectly containing the specified resource or the resource
+   * itself if it is an application directory.
+   * 
+   * @param resource the file or directory
+   * @return the directory with the pubspec for the given file
+   */
+  public static IContainer getApplicationDirectory(IResource resource) {
+    IContainer container;
+    if (resource instanceof IFile) {
+      container = resource.getParent();
+    } else {
+      container = (IContainer) resource;
+    }
+    while (container != null) {
+      if (isApplicationDirectory(container)) {
+        return container;
+      }
+      container = container.getParent();
+    }
+    return null;
+  }
+
+  /**
    * Returns the day (yyyy-MM-dd) the product was built.
    */
   public static String getBuildDate() {
@@ -666,7 +692,23 @@ public class DartCore extends Plugin implements DartSdkListener {
 
     try {
       PubFolder folder = DartCore.getProjectManager().getPubFolder(resource);
-      packageName = folder.getPubspec().getName();
+      IContainer appFolder = getApplicationDirectory(resource);
+      if (appFolder != null && folder != null && !appFolder.equals(folder.getResource())) {
+        // this is a case of nested pubspecs
+        IResource pubspec = appFolder.findMember(DartCore.PUBSPEC_FILE_NAME);
+        if (pubspec != null) {
+          String contents = FileUtilities.getContents(pubspec.getLocation().toFile(), "UTF-8");
+          if (contents != null) {
+            String name = PubYamlUtils.getPubspecName(contents);
+            if (name != null) {
+              return name;
+            }
+          }
+        }
+      }
+      if (folder != null) {
+        packageName = folder.getPubspec().getName();
+      }
     } catch (Exception e) {
       DartCore.logError(e);
     }
