@@ -401,6 +401,9 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
             if (prevToken == Symbols.TokenIDENT && "r".equals(previous)) {
               break; // handle raw strings
             }
+            if (prevToken == Symbols.TokenRBRACE) {
+              return; // "${expression}^
+            }
             if (nextToken == Symbols.TokenIDENT || prevToken == Symbols.TokenIDENT || next != null
                 && next.length() > 1
                 || (previous != null && previous.length() > 1 && !previous.equals("import"))) {
