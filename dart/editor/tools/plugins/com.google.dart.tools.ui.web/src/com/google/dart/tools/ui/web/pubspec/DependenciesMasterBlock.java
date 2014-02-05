@@ -69,7 +69,7 @@ public class DependenciesMasterBlock extends MasterDetailsBlock implements IMode
 
     @Override
     public Object[] getElements(Object inputElement) {
-      if (model != null) {
+      if (model != null && model.getDependecies() != null) {
         return model.getDependecies();
       }
       return new Object[0];
@@ -113,6 +113,15 @@ public class DependenciesMasterBlock extends MasterDetailsBlock implements IMode
       imageLabel.setImage(DartWebPlugin.getImage("pub_package.png"));
       imageLabel.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, false, false));
       return composite;
+    }
+
+    @Override
+    protected void validateInput() {
+      if (getText().getText().isEmpty()) {
+        setErrorMessage("Enter name of package");
+      } else {
+        setErrorMessage(null);
+      }
     }
 
   }

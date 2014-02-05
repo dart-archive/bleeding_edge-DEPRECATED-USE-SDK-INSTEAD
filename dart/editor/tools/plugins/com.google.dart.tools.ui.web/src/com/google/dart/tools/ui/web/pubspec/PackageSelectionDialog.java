@@ -136,7 +136,7 @@ public class PackageSelectionDialog extends ElementListSelectionDialog {
                 null);
           }
         } else {
-          status = new Status(IStatus.OK, PlatformUI.PLUGIN_ID, IStatus.OK, "", //$NON-NLS-1$
+          status = new Status(IStatus.ERROR, PlatformUI.PLUGIN_ID, IStatus.OK, "", //$NON-NLS-1$
               null);
         }
       }
