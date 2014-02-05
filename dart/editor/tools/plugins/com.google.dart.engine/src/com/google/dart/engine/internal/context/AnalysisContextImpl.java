@@ -253,6 +253,11 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   private IncrementalAnalysisCache incrementalAnalysisCache;
 
   /**
+   * The object used to manage the list of sources that need to be analyzed.
+   */
+  private WorkManager workManager = new WorkManager();
+
+  /**
    * Initialize a newly created analysis context.
    */
   public AnalysisContextImpl() {
@@ -312,6 +317,14 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
             removeFromParts(source, dartEntry);
             dartCopy.invalidateAllResolutionInformation();
             mapEntry.setValue(dartCopy);
+            WorkManager.Priority priority = WorkManager.Priority.UNKNOWN;
+            SourceKind kind = dartCopy.getKind();
+            if (kind == SourceKind.LIBRARY) {
+              priority = WorkManager.Priority.LIBRARY;
+            } else if (kind == SourceKind.PART) {
+              priority = WorkManager.Priority.NORMAL_PART;
+            }
+            workManager.add(source, priority);
           }
         }
       }
@@ -1262,6 +1275,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         dartCopy.recordResolutionError();
         dartCopy.setException(thrownException);
         cache.put(unitSource, dartCopy);
+        cache.remove(unitSource);
         if (thrownException != null) {
           throw thrownException;
         }
@@ -1294,7 +1308,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
                 dartCopy.setState(DartEntry.PARSED_UNIT, CacheState.FLUSHED);
                 dartCopy.setValue(DartEntry.RESOLVED_UNIT, librarySource, unit);
                 dartCopy.setValue(DartEntry.RESOLUTION_ERRORS, librarySource, errors);
-                if (source == librarySource) {
+                if (source.equals(librarySource)) {
                   recordElementData(
                       dartEntry,
                       dartCopy,
@@ -1302,11 +1316,16 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
                       librarySource,
                       htmlSource);
                 }
+                cache.storedAst(source);
               } else {
                 dartCopy.recordResolutionError();
+                cache.remove(source);
               }
               dartCopy.setException(thrownException);
               cache.put(source, dartCopy);
+              if (!source.equals(librarySource)) {
+                workManager.add(source, WorkManager.Priority.PRIORITY_PART);
+              }
               if (source.equals(unitSource)) {
                 unitEntry = dartCopy;
               }
@@ -1342,6 +1361,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
                   // good chance that we'll be able to do so without error.
                   //
                   dartCopy.recordResolutionError();
+                  cache.remove(source);
                 }
                 dartCopy.setException(thrownException);
                 cache.put(source, dartCopy);
@@ -2028,74 +2048,26 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       //
       // Look for a non-priority source that needs to be analyzed.
       //
-      for (Map.Entry<Source, SourceEntry> entry : cache.entrySet()) {
-        AnalysisTask task = getNextAnalysisTask(
-            entry.getKey(),
-            entry.getValue(),
-            false,
-            hintsEnabled);
+      Source source = workManager.getNextSource();
+      while (source != null) {
+        AnalysisTask task = getNextAnalysisTask(source, cache.get(source), false, hintsEnabled);
         if (task != null) {
           return task;
         }
+        workManager.remove(source);
+        source = workManager.getNextSource();
       }
-      //
-      // Look for HTML sources that should be resolved as Angular entry points.
-      //
-      for (Map.Entry<Source, SourceEntry> entry : cache.entrySet()) {
-        SourceEntry sourceEntry = entry.getValue();
-        if (sourceEntry instanceof HtmlEntry) {
-          HtmlEntry htmlEntry = (HtmlEntry) sourceEntry;
-          // we need an entry with invalid Angular errors
-          CacheState angularErrorsState = htmlEntry.getState(HtmlEntry.ANGULAR_ERRORS);
-          if (angularErrorsState != CacheState.INVALID) {
-            continue;
-          }
-          // prepare Angular application
-          AngularApplicationInfo app = htmlEntry.getValue(HtmlEntry.ANGULAR_ENTRY);
-          if (app == null) {
-            continue;
-          }
-          // do Angular resolution
-          Source source = entry.getKey();
-          HtmlEntryImpl htmlCopy = htmlEntry.getWritableCopy();
-          htmlCopy.setState(HtmlEntry.ANGULAR_ERRORS, CacheState.IN_PROCESS);
-          cache.put(source, htmlCopy);
-          return new ResolveAngularEntryHtmlTask(this, source, app);
-        }
-      }
-      //
-      // Look for HTML sources that should be resolved as Angular templates.
-      //
-      for (Map.Entry<Source, SourceEntry> entry : cache.entrySet()) {
-        SourceEntry sourceEntry = entry.getValue();
-        if (sourceEntry instanceof HtmlEntry) {
-          Source source = entry.getKey();
-          HtmlEntry htmlEntry = (HtmlEntry) sourceEntry;
-          // we need an entry with invalid Angular errors
-          CacheState angularErrorsState = htmlEntry.getState(HtmlEntry.ANGULAR_ERRORS);
-          if (angularErrorsState != CacheState.INVALID) {
-            continue;
-          }
-          // prepare Angular application
-          AngularApplicationInfo app = htmlEntry.getValue(HtmlEntry.ANGULAR_APPLICATION);
-          if (app == null) {
-            continue;
-          }
-          // prepare Angular component
-          AngularComponentElement component = htmlEntry.getValue(HtmlEntry.ANGULAR_COMPONENT);
-          if (component == null) {
-            HtmlEntryImpl htmlCopy = htmlEntry.getWritableCopy();
-            htmlCopy.setValue(HtmlEntry.ANGULAR_ERRORS, AnalysisError.NO_ERRORS);
-            cache.put(source, htmlCopy);
-            continue;
-          }
-          // do Angular component resolution
-          HtmlEntryImpl htmlCopy = htmlEntry.getWritableCopy();
-          htmlCopy.setState(HtmlEntry.ANGULAR_ERRORS, CacheState.IN_PROCESS);
-          cache.put(source, htmlCopy);
-          return new ResolveAngularComponentTemplateTask(this, source, component, app);
-        }
-      }
+//      //
+//      // Look for a non-priority source that needs to be analyzed and was missed by the loop above.
+//      //
+//      for (Map.Entry<Source, SourceEntry> entry : cache.entrySet()) {
+//        source = entry.getKey();
+//        AnalysisTask task = getNextAnalysisTask(source, entry.getValue(), false, hintsEnabled);
+//        if (task != null) {
+//          System.out.println("Failed to analyze " + source.getFullName());
+//          return task;
+//        }
+//      }
       return null;
     }
   }
@@ -2224,6 +2196,29 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         htmlCopy.setState(HtmlEntry.RESOLVED_UNIT, CacheState.IN_PROCESS);
         cache.put(source, htmlCopy);
         return new ResolveHtmlTask(this, source);
+      }
+      CacheState angularErrorsState = htmlEntry.getState(HtmlEntry.ANGULAR_ERRORS);
+      if (angularErrorsState == CacheState.INVALID) {
+        AngularApplicationInfo entryInfo = htmlEntry.getValue(HtmlEntry.ANGULAR_ENTRY);
+        if (entryInfo != null) {
+          HtmlEntryImpl htmlCopy = htmlEntry.getWritableCopy();
+          htmlCopy.setState(HtmlEntry.ANGULAR_ERRORS, CacheState.IN_PROCESS);
+          cache.put(source, htmlCopy);
+          return new ResolveAngularEntryHtmlTask(this, source, entryInfo);
+        }
+        AngularApplicationInfo applicationInfo = htmlEntry.getValue(HtmlEntry.ANGULAR_APPLICATION);
+        if (applicationInfo != null) {
+          AngularComponentElement component = htmlEntry.getValue(HtmlEntry.ANGULAR_COMPONENT);
+          if (component != null) {
+            HtmlEntryImpl htmlCopy = htmlEntry.getWritableCopy();
+            htmlCopy.setState(HtmlEntry.ANGULAR_ERRORS, CacheState.IN_PROCESS);
+            cache.put(source, htmlCopy);
+            return new ResolveAngularComponentTemplateTask(this, source, component, applicationInfo);
+          }
+        }
+        HtmlEntryImpl htmlCopy = htmlEntry.getWritableCopy();
+        htmlCopy.setValue(HtmlEntry.ANGULAR_ERRORS, AnalysisError.NO_ERRORS);
+        cache.put(source, htmlCopy);
       }
     }
     return null;
@@ -2407,6 +2402,22 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         sources.add(source);
         return;
       }
+      CacheState angularErrorsState = htmlEntry.getState(HtmlEntry.ANGULAR_ERRORS);
+      if (angularErrorsState == CacheState.INVALID) {
+        AngularApplicationInfo entryInfo = htmlEntry.getValue(HtmlEntry.ANGULAR_ENTRY);
+        if (entryInfo != null) {
+          sources.add(source);
+          return;
+        }
+        AngularApplicationInfo applicationInfo = htmlEntry.getValue(HtmlEntry.ANGULAR_APPLICATION);
+        if (applicationInfo != null) {
+          AngularComponentElement component = htmlEntry.getValue(HtmlEntry.ANGULAR_COMPONENT);
+          if (component != null) {
+            sources.add(source);
+            return;
+          }
+        }
+      }
     }
   }
 
@@ -2429,6 +2440,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         DartEntryImpl dartCopy = dartEntry.getWritableCopy();
         dartCopy.invalidateAllResolutionInformation();
         mapEntry.setValue(dartCopy);
+        workManager.add(source, WorkManager.Priority.UNKNOWN);
       }
     }
   }
@@ -2456,6 +2468,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       long oldTime = libraryCopy.getModificationTime();
       libraryCopy.invalidateAllResolutionInformation();
       cache.put(librarySource, libraryCopy);
+      workManager.add(librarySource, WorkManager.Priority.LIBRARY);
       if (writer != null) {
         writer.println("  Invalidated library source: " + debuggingString(librarySource)
             + " (previously modified at " + oldTime + ")");
@@ -2467,6 +2480,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
           oldTime = partCopy.getModificationTime();
           if (partEntry != libraryCopy) {
             partCopy.removeContainingLibrary(librarySource);
+            workManager.add(librarySource, WorkManager.Priority.NORMAL_PART);
           }
           partCopy.invalidateAllResolutionInformation();
           cache.put(partSource, partCopy);
@@ -2576,6 +2590,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
             htmlCopy.setValue(HtmlEntry.ANGULAR_COMPONENT, component);
             htmlCopy.setState(HtmlEntry.ANGULAR_ERRORS, CacheState.INVALID);
             cache.put(templateSource, htmlCopy);
+            workManager.add(templateSource, WorkManager.Priority.HTML);
           }
         }
       }
@@ -2685,6 +2700,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
           dartCopy.invalidateAllInformation();
           dartCopy.setModificationTime(sourceTime);
           cache.removedAst(source);
+          workManager.add(source, WorkManager.Priority.UNKNOWN);
         } else {
           //
           // We could not determine whether the sources were up-to-date or out-of-date. Mark the
@@ -2797,6 +2813,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
               dartCopy.invalidateAllInformation();
               dartCopy.setModificationTime(sourceTime);
               cache.removedAst(unitSource);
+              workManager.add(unitSource, WorkManager.Priority.UNKNOWN);
             } else {
               //
               // We could not determine whether the sources were up-to-date or out-of-date. Mark the
@@ -2878,9 +2895,11 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
           dartCopy.setValue(SourceEntry.LINE_INFO, lineInfo);
           if (task.hasPartOfDirective() && !task.hasLibraryDirective()) {
             dartCopy.setValue(DartEntry.SOURCE_KIND, SourceKind.PART);
+            workManager.add(source, WorkManager.Priority.NORMAL_PART);
           } else {
             dartCopy.setValue(DartEntry.SOURCE_KIND, SourceKind.LIBRARY);
             dartCopy.setContainingLibrary(source);
+            workManager.add(source, WorkManager.Priority.LIBRARY);
           }
           dartCopy.setValue(DartEntry.PARSED_UNIT, task.getCompilationUnit());
           dartCopy.setValue(DartEntry.PARSE_ERRORS, task.getErrors());
@@ -2920,6 +2939,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
           dartCopy.invalidateAllInformation();
           dartCopy.setModificationTime(sourceTime);
           cache.removedAst(source);
+          workManager.add(source, WorkManager.Priority.UNKNOWN);
         } else {
           //
           // We could not determine whether the sources were up-to-date or out-of-date. Mark the
@@ -3278,6 +3298,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
           dartCopy.invalidateAllInformation();
           dartCopy.setModificationTime(sourceTime);
           cache.removedAst(source);
+          workManager.add(source, WorkManager.Priority.UNKNOWN);
         } else {
           //
           // We could not determine whether the sources were up-to-date or out-of-date. Mark the
@@ -3364,6 +3385,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
           dartCopy.invalidateAllInformation();
           dartCopy.setModificationTime(sourceTime);
           cache.removedAst(unitSource);
+          workManager.add(unitSource, WorkManager.Priority.UNKNOWN);
         } else {
           //
           // We could not determine whether the sources were up-to-date or out-of-date. Mark the
@@ -3497,6 +3519,24 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
+   * Remove the given source from the priority order if it is in the list.
+   * 
+   * @param source the source to be removed
+   */
+  private void removeFromPriorityOrder(Source source) {
+    int count = priorityOrder.length;
+    ArrayList<Source> newOrder = new ArrayList<Source>(count);
+    for (int i = 0; i < count; i++) {
+      if (!priorityOrder[i].equals(source)) {
+        newOrder.add(priorityOrder[i]);
+      }
+    }
+    if (newOrder.size() < count) {
+      setAnalysisPriorityOrder(newOrder);
+    }
+  }
+
+  /**
    * Create an entry for the newly added source. Return {@code true} if the new source is a Dart
    * file.
    * <p>
@@ -3518,6 +3558,11 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       cache.put(source, sourceCopy);
       logInformation("Added new source: " + debuggingString(source) + " (previously modified at "
           + oldTime + ")");
+    }
+    if (sourceEntry instanceof HtmlEntry) {
+      workManager.add(source, WorkManager.Priority.HTML);
+    } else {
+      workManager.add(source, WorkManager.Priority.UNKNOWN);
     }
     return sourceEntry instanceof DartEntry;
   }
@@ -3546,6 +3591,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       htmlCopy.invalidateAllInformation();
       cache.put(source, htmlCopy);
       cache.removedAst(source);
+      workManager.add(source, WorkManager.Priority.HTML);
       logInformation("Modified HTML source: " + debuggingString(source)
           + " (previously modified at " + oldTime + ")");
     } else if (sourceEntry instanceof DartEntry) {
@@ -3574,6 +3620,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       dartCopy.invalidateAllInformation();
       cache.put(source, dartCopy);
       cache.removedAst(source);
+      workManager.add(source, WorkManager.Priority.UNKNOWN);
 
       logInformation(writer.toString());
     }
@@ -3602,6 +3649,8 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       }
     }
     cache.remove(source);
+    workManager.remove(source);
+    removeFromPriorityOrder(source);
     logInformation(writer.toString());
   }
 
@@ -3616,6 +3665,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
    */
   private boolean validateCacheConsistency() {
     long consistencyCheckStart = System.nanoTime();
+    ArrayList<Source> missingSources = new ArrayList<Source>();
     int inconsistentCount = 0;
     synchronized (cacheLock) {
       for (Map.Entry<Source, SourceEntry> entry : cache.entrySet()) {
@@ -3626,11 +3676,30 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
           sourceChanged(source);
           inconsistentCount++;
         }
+        if (sourceEntry.getException() != null) {
+          if (!source.exists()) {
+            missingSources.add(source);
+          }
+        }
       }
     }
     long consistencyCheckEnd = System.nanoTime();
-    logInformation("Consistency check found " + inconsistentCount + " inconsistent entries in "
-        + ((consistencyCheckEnd - consistencyCheckStart) / 1000000.0) + " ms");
+    @SuppressWarnings("resource")
+    PrintStringWriter writer = new PrintStringWriter();
+    writer.print("Consistency check took ");
+    writer.print((consistencyCheckEnd - consistencyCheckStart) / 1000000.0);
+    writer.println(" ms and found");
+    writer.print("  ");
+    writer.print(inconsistentCount);
+    writer.println(" inconsistent entries");
+    writer.print("  ");
+    writer.print(missingSources.size());
+    writer.println(" missing sources");
+    for (Source source : missingSources) {
+      writer.print("    ");
+      writer.println(source.getFullName());
+    }
+    logInformation(writer.toString());
     return inconsistentCount > 0;
   }
 }
