@@ -271,7 +271,7 @@ public class ExitDetector extends GeneralizingASTVisitor<Boolean> {
 
   @Override
   public Boolean visitIndexExpression(IndexExpression node) {
-    Expression target = node.getTarget();
+    Expression target = node.getRealTarget();
     if (target != null && target.accept(this)) {
       return true;
     }
@@ -308,7 +308,7 @@ public class ExitDetector extends GeneralizingASTVisitor<Boolean> {
 
   @Override
   public Boolean visitMethodInvocation(MethodInvocation node) {
-    Expression target = node.getTarget();
+    Expression target = node.getRealTarget();
     if (target != null && target.accept(this)) {
       return true;
     }
@@ -337,7 +337,11 @@ public class ExitDetector extends GeneralizingASTVisitor<Boolean> {
 
   @Override
   public Boolean visitPropertyAccess(PropertyAccess node) {
-    return node.getTarget().accept(this);
+    Expression target = node.getRealTarget();
+    if (target != null && target.accept(this)) {
+      return true;
+    }
+    return false;
   }
 
   @Override
