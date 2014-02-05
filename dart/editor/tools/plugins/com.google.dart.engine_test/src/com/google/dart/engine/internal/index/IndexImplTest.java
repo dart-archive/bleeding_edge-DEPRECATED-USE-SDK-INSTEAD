@@ -69,15 +69,15 @@ public class IndexImplTest extends EngineTestCase {
 
   public void test_indexHtmlUnit() throws Exception {
     Source unitSource = mock(Source.class);
+    // Dart CompilationUnitElement
+    CompilationUnitElement unitElement = mock(CompilationUnitElement.class);
     // HtmlElement
     HtmlElement htmlElement = mock(HtmlElement.class);
     when(htmlElement.getSource()).thenReturn(unitSource);
-    // Dart CompilationUnitElement
-    CompilationUnitElement unitElement = mock(CompilationUnitElement.class);
+    when(htmlElement.getAngularCompilationUnit()).thenReturn(unitElement);
     // HtmlUnit
     HtmlUnit unit = mock(HtmlUnit.class);
     when(unit.getElement()).thenReturn(htmlElement);
-    when(unit.getCompilationUnitElement()).thenReturn(unitElement);
     // call index
     index.indexHtmlUnit(context, unit);
     // verify

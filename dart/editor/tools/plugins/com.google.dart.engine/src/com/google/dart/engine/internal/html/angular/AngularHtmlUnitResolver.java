@@ -52,6 +52,7 @@ import com.google.dart.engine.internal.cache.AngularApplicationInfo;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
 import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
 import com.google.dart.engine.internal.element.FunctionElementImpl;
+import com.google.dart.engine.internal.element.HtmlElementImpl;
 import com.google.dart.engine.internal.element.ImportElementImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
 import com.google.dart.engine.internal.element.LocalVariableElementImpl;
@@ -561,6 +562,7 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
     // create LibraryElementImpl
     libraryElement = new LibraryElementImpl(context, null);
     libraryElement.setDefiningCompilationUnit(unitElement);
+    injectedLibraries.add(libraryElement);
     // create FunctionElementImpl
     functionElement = new FunctionElementImpl(0);
     unitElement.setFunctions(new FunctionElement[] {functionElement});
@@ -732,6 +734,10 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
     // add built-in processors
     processors.add(NgModelProcessor.INSTANCE);
     processors.add(NgRepeatProcessor.INSTANCE);
+    // add element's libraries
+    for (AngularElement angularElement : angularElements) {
+      injectedLibraries.add(angularElement.getLibrary());
+    }
     // add accessible processors
     for (AngularElement angularElement : angularElements) {
       NgProcessor processor = createProcessor(angularElement);
@@ -741,7 +747,7 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
     }
     // prepare Dart library
     createLibraryElement();
-    unit.setCompilationUnitElement(libraryElement.getDefiningCompilationUnit());
+    ((HtmlElementImpl) unit.getElement()).setAngularCompilationUnit(unitElement);
     // prepare Dart resolver
     createResolver();
     // maybe resolving component template

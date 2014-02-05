@@ -95,7 +95,7 @@ public class AngularHtmlIndexContributor extends ExpressionVisitor {
   @Override
   public Void visitHtmlUnit(HtmlUnit node) {
     htmlUnitElement = node.getElement();
-    CompilationUnitElement dartUnitElement = node.getCompilationUnitElement();
+    CompilationUnitElement dartUnitElement = htmlUnitElement.getAngularCompilationUnit();
     indexContributor.enterScope(dartUnitElement);
     return super.visitHtmlUnit(node);
   }

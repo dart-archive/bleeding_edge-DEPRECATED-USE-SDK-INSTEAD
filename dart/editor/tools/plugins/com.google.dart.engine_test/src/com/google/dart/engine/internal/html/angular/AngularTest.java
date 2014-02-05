@@ -321,7 +321,7 @@ abstract public class AngularTest extends EngineTestCase {
   protected final void resolveIndex() throws AnalysisException {
     indexUnit = context.resolveHtmlUnit(indexSource);
     indexHtmlUnit = indexUnit.getElement();
-    indexDartUnitElement = indexUnit.getCompilationUnitElement();
+    indexDartUnitElement = indexHtmlUnit.getAngularCompilationUnit();
   }
 
   protected final void resolveIndex(String content) throws Exception {

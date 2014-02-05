@@ -14,14 +14,19 @@
 
 package com.google.dart.engine.services.util;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.ClassMemberElement;
+import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.FieldElement;
+import com.google.dart.engine.element.HtmlElement;
+import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.visitor.GeneralizingElementVisitor;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchMatch;
@@ -30,12 +35,43 @@ import com.google.dart.engine.type.InterfaceType;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
  * Helper for {@link ClassElement} hierarchy.
  */
 public class HierarchyUtils {
+  public static List<SearchMatch> getAccessibleMatches(Element element, List<SearchMatch> matches) {
+    Map<LibraryElement, Set<LibraryElement>> cachedVisibleLibraries = Maps.newHashMap();
+    // just search for name
+    if (element == null) {
+      return matches;
+    }
+    LibraryElement elementLibrary = element.getLibrary();
+    // prepare filtered matches
+    List<SearchMatch> filteredMatches = Lists.newArrayList();
+    for (SearchMatch match : matches) {
+      Element matchElement = match.getElement();
+      // HtmlElement has no enclosing LibraryElement to check, so always keep these matches
+      if (matchElement instanceof HtmlElement) {
+        HtmlElement htmlElement = (HtmlElement) matchElement;
+        CompilationUnitElement angularUnit = htmlElement.getAngularCompilationUnit();
+        if (angularUnit == null) {
+          continue;
+        }
+        matchElement = angularUnit;
+      }
+      // check enclosing LibraryElement
+      LibraryElement matchLibrary = matchElement.getLibrary();
+      if (isImported(cachedVisibleLibraries, elementLibrary, matchLibrary)) {
+        filteredMatches.add(match);
+      }
+    }
+    // done
+    return filteredMatches;
+  }
+
   /**
    * @return direct non-synthetic members of the given {@link ClassElement}. This includes fields,
    *         accessors (if not synthetic). Does not include constructors.
@@ -182,5 +218,24 @@ public class HierarchyUtils {
     // we don't need "seed" itself
     result.remove(seed);
     return result;
+  }
+
+  /**
+   * Checks if "what" is imported into "where" directly or indirectly, so there is a chance that it
+   * has access to an object from "what". Otherwise we find too many "second-order" positive
+   * matches.
+   * <p>
+   * https://code.google.com/p/dart/issues/detail?id=12268
+   */
+  private static boolean isImported(
+      Map<LibraryElement, Set<LibraryElement>> cachedVisibleLibraries, LibraryElement what,
+      LibraryElement where) {
+    Set<LibraryElement> visibleLibraries = cachedVisibleLibraries.get(where);
+    if (visibleLibraries == null) {
+      LibraryElement[] visibleLibrariesArray = where.getVisibleLibraries();
+      visibleLibraries = ImmutableSet.copyOf(visibleLibrariesArray);
+      cachedVisibleLibraries.put(where, visibleLibraries);
+    }
+    return visibleLibraries.contains(what);
   }
 }

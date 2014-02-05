@@ -67,7 +67,7 @@ public class IndexImpl implements Index {
     if (unit.getElement() == null) {
       return;
     }
-    if (unit.getCompilationUnitElement() == null) {
+    if (unit.getElement().getAngularCompilationUnit() == null) {
       return;
     }
     queue.enqueue(new IndexHtmlUnitOperation(store, context, unit));

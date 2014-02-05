@@ -98,8 +98,8 @@ public class IndexHtmlUnitOperationTest extends EngineTestCase {
     super.setUp();
     when(store.aboutToIndex(context, unitSource)).thenReturn(true);
     when(unit.getElement()).thenReturn(htmlElement);
-    when(unit.getCompilationUnitElement()).thenReturn(unitElement);
     when(htmlElement.getSource()).thenReturn(unitSource);
+    when(htmlElement.getAngularCompilationUnit()).thenReturn(unitElement);
     when(unitElement.getSource()).thenReturn(unitSource);
     operation = new IndexHtmlUnitOperation(store, context, unit);
   }

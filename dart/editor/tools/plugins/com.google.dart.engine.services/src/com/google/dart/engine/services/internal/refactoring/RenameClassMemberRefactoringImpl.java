@@ -37,6 +37,7 @@ import com.google.dart.engine.services.refactoring.ProgressMonitor;
 import com.google.dart.engine.services.refactoring.Refactoring;
 import com.google.dart.engine.services.refactoring.SubProgressMonitor;
 import com.google.dart.engine.services.status.RefactoringStatus;
+import com.google.dart.engine.services.util.HierarchyUtils;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceFactory;
 
@@ -199,6 +200,7 @@ public class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
     } else {
       nameReferences = Lists.newArrayList();
     }
+    nameReferences = HierarchyUtils.getAccessibleMatches(element, nameReferences);
   }
 
   private void removeReferencesIfCannotUpdateSource(List<SearchMatch> references) {

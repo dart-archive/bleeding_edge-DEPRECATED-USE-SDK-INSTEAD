@@ -20,6 +20,12 @@ package com.google.dart.engine.element;
  */
 public interface HtmlElement extends Element {
   /**
+   * Return the {@link CompilationUnitElement} associated with this Angular HTML file, maybe
+   * {@code null} if not an Angular file.
+   */
+  public CompilationUnitElement getAngularCompilationUnit();
+
+  /**
    * Return an array containing all of the script elements contained in the HTML file. This includes
    * scripts with libraries that are defined by the content of a script tag as well as libraries
    * that are referenced in the {@core source} attribute of a script tag.

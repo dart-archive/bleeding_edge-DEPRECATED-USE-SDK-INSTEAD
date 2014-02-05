@@ -13,7 +13,6 @@
  */
 package com.google.dart.engine.html.ast;
 
-import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.HtmlElement;
 import com.google.dart.engine.html.ast.visitor.XmlVisitor;
@@ -46,12 +45,6 @@ public class HtmlUnit extends XmlNode {
   private final List<XmlTagNode> tagNodes;
 
   /**
-   * The element associated with Dart pieces in this HTML unit or {@code null} if the receiver is
-   * not resolved.
-   */
-  private CompilationUnitElement compilationUnitElement;
-
-  /**
    * Construct a new instance representing the content of an HTML file.
    * 
    * @param beginToken the first token in the file (not {@code null})
@@ -73,15 +66,6 @@ public class HtmlUnit extends XmlNode {
   @Override
   public Token getBeginToken() {
     return beginToken;
-  }
-
-  /**
-   * Return the element associated with Dart pieces in this HTML unit.
-   * 
-   * @return the element or {@code null} if the receiver is not resolved
-   */
-  public CompilationUnitElement getCompilationUnitElement() {
-    return compilationUnitElement;
   }
 
   /**
@@ -107,15 +91,6 @@ public class HtmlUnit extends XmlNode {
    */
   public List<XmlTagNode> getTagNodes() {
     return tagNodes;
-  }
-
-  /**
-   * Set the element associated with Dart pieces in this HTML unit.
-   * 
-   * @param compilationUnitElement the associated with Dart pieces in this HTML unit
-   */
-  public void setCompilationUnitElement(CompilationUnitElement compilationUnitElement) {
-    this.compilationUnitElement = compilationUnitElement;
   }
 
   @Override
