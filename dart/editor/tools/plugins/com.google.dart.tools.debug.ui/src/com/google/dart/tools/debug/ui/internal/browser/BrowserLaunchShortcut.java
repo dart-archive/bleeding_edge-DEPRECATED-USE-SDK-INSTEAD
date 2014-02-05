@@ -23,6 +23,7 @@ import com.google.dart.tools.debug.ui.internal.util.LaunchUtils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationType;
@@ -77,7 +78,13 @@ public class BrowserLaunchShortcut extends AbstractLaunchShortcut implements ILa
     }
 
     // Launch an existing configuration if one exists
-    ILaunchConfiguration config = findConfig(resource);
+    ILaunchConfiguration config;
+
+    try {
+      config = findConfig(resource);
+    } catch (OperationCanceledException ex) {
+      return;
+    }
 
     if (config != null) {
       LaunchUtils.launch(config, mode);

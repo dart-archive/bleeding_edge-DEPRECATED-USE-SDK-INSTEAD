@@ -13,9 +13,7 @@
  */
 package com.google.dart.tools.debug.ui.internal.server;
 
-import com.google.dart.engine.source.Source;
-import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.analysis.model.ProjectManager;
+import com.google.dart.tools.core.analysis.model.LightweightModel;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.ui.internal.DartUtil;
@@ -23,8 +21,8 @@ import com.google.dart.tools.debug.ui.internal.util.ILaunchShortcutExt;
 import com.google.dart.tools.debug.ui.internal.util.LaunchUtils;
 
 import org.apache.commons.lang3.ObjectUtils;
+import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.DebugPlugin;
@@ -206,7 +204,6 @@ public class DartServerLaunchShortcut implements ILaunchShortcut, ILaunchShortcu
   }
 
   protected boolean testSimilar(IResource resource, ILaunchConfiguration config) {
-
     DartLaunchConfigWrapper launchWrapper = new DartLaunchConfigWrapper(config);
     IResource appResource = launchWrapper.getApplicationResource();
 
@@ -217,29 +214,28 @@ public class DartServerLaunchShortcut implements ILaunchShortcut, ILaunchShortcu
   }
 
   private IResource getPrimaryLaunchTarget(IResource resource) {
+    LightweightModel model = LightweightModel.getModel();
 
-    ProjectManager manager = DartCore.getProjectManager();
-    if (resource instanceof IProject) {
-      Source[] sources = manager.getLibrarySources((IProject) resource);
-      return getServerLibraryResource(sources);
-    }
+    if (resource instanceof IContainer) {
+      List<IFile> targets = model.getServerLaunchTargets((IContainer) resource);
 
-    if (DartCore.isDartLikeFileName(resource.getName())) {
+      if (targets.size() > 0) {
+        return targets.get(0);
+      }
+    } else if (resource instanceof IFile) {
       IFile file = (IFile) resource;
-      Source[] sources = manager.getLibrarySources(file);
-      return getServerLibraryResource(sources);
-    }
-    return null;
-  }
 
-  private IResource getServerLibraryResource(Source[] sources) {
-    ProjectManager manager = DartCore.getProjectManager();
-    for (Source source : sources) {
-      if (manager.isServerLibrary(source) && manager.getHtmlFileForLibrary(source) == null) {
-        return manager.getResource(source);
+      if (model.isServerLibrary(file)) {
+        return file;
+      } else {
+        IFile containingLib = model.getContainingLibrary(file);
+
+        if (containingLib != null && model.isServerLibrary(containingLib)) {
+          return containingLib;
+        }
       }
     }
+
     return null;
   }
-
 }

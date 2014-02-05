@@ -16,7 +16,7 @@ package com.google.dart.tools.debug.ui.launch;
 
 import com.google.dart.engine.source.SourceKind;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.analysis.model.ProjectManager;
+import com.google.dart.tools.core.analysis.model.LightweightModel;
 
 import org.eclipse.core.expressions.PropertyTester;
 import org.eclipse.core.resources.IFile;
@@ -26,7 +26,6 @@ import org.eclipse.jface.viewers.IStructuredSelection;
  * A {@link PropertyTester} for checking whether the resource can be launched. It is used to
  * contribute the Run context menu in the Files view. Defines the property "canLaunch"
  */
-
 public class RunPropertyTester extends PropertyTester {
 
   public RunPropertyTester() {
@@ -35,16 +34,14 @@ public class RunPropertyTester extends PropertyTester {
 
   @Override
   public boolean test(Object receiver, String property, Object[] args, Object expectedValue) {
-
     if ("canLaunch".equalsIgnoreCase(property)) {
       if (receiver instanceof IStructuredSelection) {
         Object o = ((IStructuredSelection) receiver).getFirstElement();
         if (o instanceof IFile && DartCore.isDartLikeFileName(((IFile) o).getName())) {
-
           IFile file = (IFile) o;
-          ProjectManager manager = DartCore.getProjectManager();
-          if (manager.getSourceKind(file) == SourceKind.LIBRARY
-              && manager.isServerLibrary(manager.getSource(file))) {
+          LightweightModel model = LightweightModel.getModel();
+
+          if (model.getSourceKind(file) == SourceKind.LIBRARY && model.isServerLibrary(file)) {
             return true;
           }
         }
@@ -53,5 +50,4 @@ public class RunPropertyTester extends PropertyTester {
 
     return false;
   }
-
 }

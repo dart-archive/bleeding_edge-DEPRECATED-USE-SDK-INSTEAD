@@ -29,6 +29,7 @@ import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunchConfiguration;
@@ -99,7 +100,13 @@ public class ChromeAppLaunchShortcut extends AbstractLaunchShortcut implements I
     }
 
     // Launch an existing configuration if one exists
-    ILaunchConfiguration config = findConfig(resource);
+    ILaunchConfiguration config;
+
+    try {
+      config = findConfig(resource);
+    } catch (OperationCanceledException ex) {
+      return;
+    }
 
     if (config == null) {
       // Create and launch a new configuration

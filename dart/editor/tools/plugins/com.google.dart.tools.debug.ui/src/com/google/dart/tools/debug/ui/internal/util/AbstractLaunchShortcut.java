@@ -13,20 +13,20 @@
  */
 package com.google.dart.tools.debug.ui.internal.util;
 
-import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.analysis.model.ProjectManager;
+import com.google.dart.tools.core.analysis.model.LightweightModel;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.ui.internal.DartUtil;
 import com.google.dart.tools.debug.ui.internal.DebugErrorHandler;
 
 import org.apache.commons.lang3.ObjectUtils;
+import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
+import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationType;
@@ -222,7 +222,8 @@ public abstract class AbstractLaunchShortcut implements ILaunchShortcut2 {
    * @param resource the resource
    * @return the launch configuration or <code>null</code> if none
    */
-  protected final ILaunchConfiguration findConfig(IResource resource) {
+  protected final ILaunchConfiguration findConfig(IResource resource)
+      throws OperationCanceledException {
     List<ILaunchConfiguration> candidateConfigs = Arrays.asList(getAssociatedLaunchConfigurations(resource));
 
     int candidateCount = candidateConfigs.size();
@@ -230,7 +231,12 @@ public abstract class AbstractLaunchShortcut implements ILaunchShortcut2 {
     if (candidateCount == 1) {
       return candidateConfigs.get(0);
     } else if (candidateCount > 1) {
-      return chooseConfiguration(candidateConfigs);
+      ILaunchConfiguration result = chooseConfiguration(candidateConfigs);
+      if (result != null) {
+        return result;
+      } else {
+        throw new OperationCanceledException();
+      }
     }
 
     return null;
@@ -301,39 +307,34 @@ public abstract class AbstractLaunchShortcut implements ILaunchShortcut2 {
     return false;
   }
 
-  private IResource getHtmlFileForLibrarySource(Source[] sources) {
-    ProjectManager manager = DartCore.getProjectManager();
-    for (Source source : sources) {
-      IResource launchResource = manager.getHtmlFileForLibrary(source);
-      if (launchResource != null) {
-        return launchResource;
-      }
-    }
-    return null;
-  }
-
   private IResource getPrimaryLaunchTarget(IResource resource) {
-
-    // html file - is launchable 
+    // Html files are always launchable. 
     if (DartCore.isHtmlLikeFileName(resource.getName())) {
       return resource;
     }
 
-    ProjectManager manager = DartCore.getProjectManager();
+    LightweightModel model = LightweightModel.getModel();
 
-    if (resource instanceof IProject) {
-      Source[] sources = manager.getLibrarySources((IProject) resource);
-      return getHtmlFileForLibrarySource(sources);
-    }
+    if (resource instanceof IContainer) {
+      List<IFile> targets = model.getHtmlLaunchTargets((IContainer) resource);
 
-    // dart file - get library and check if it has html file associated
-    if (DartCore.isDartLikeFileName(resource.getName())) {
+      if (targets.size() > 0) {
+        return targets.get(0);
+      }
+    } else {
       IFile file = (IFile) resource;
-      Source[] sources = manager.getLibrarySources(file);
-      return getHtmlFileForLibrarySource(sources);
+
+      if (model.isClientLibrary(file)) {
+        return model.getHtmlFileForLibrary(file);
+      } else {
+        IFile containingLib = model.getContainingLibrary(file);
+
+        if (containingLib != null && model.isClientLibrary(containingLib)) {
+          return model.getHtmlFileForLibrary(containingLib);
+        }
+      }
     }
-    // TODO(keertip): figure out association for other files like css etc.
+
     return null;
   }
-
 }

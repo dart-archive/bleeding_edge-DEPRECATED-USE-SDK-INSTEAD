@@ -15,7 +15,7 @@ package com.google.dart.tools.debug.ui.launch;
 
 import com.google.dart.engine.source.SourceKind;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.analysis.model.ProjectManager;
+import com.google.dart.tools.core.analysis.model.LightweightModel;
 
 import org.eclipse.core.expressions.PropertyTester;
 import org.eclipse.core.resources.IFile;
@@ -62,17 +62,16 @@ public class RunInBrowserPropertyTester extends PropertyTester {
             return true;
           }
 
-          ProjectManager manager = DartCore.getProjectManager();
-          if (manager.getSourceKind(file) == SourceKind.LIBRARY
-              && manager.isClientLibrary(manager.getSource(file))
+          LightweightModel model = LightweightModel.getModel();
+
+          if (model.getSourceKind(file) == SourceKind.LIBRARY && model.isClientLibrary(file)
               && !DartCore.isInBuildDirectory(file.getParent())) {
             return true;
           }
         }
       }
     }
+
     return false;
-
   }
-
 }

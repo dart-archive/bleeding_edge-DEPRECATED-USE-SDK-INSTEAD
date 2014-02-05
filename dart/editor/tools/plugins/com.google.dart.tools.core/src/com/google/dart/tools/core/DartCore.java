@@ -18,6 +18,7 @@ import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.engine.utilities.logging.Logger;
+import com.google.dart.tools.core.analysis.model.LightweightModel;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
 import com.google.dart.tools.core.analysis.model.PubFolder;
 import com.google.dart.tools.core.internal.MessageConsoleImpl;
@@ -296,11 +297,18 @@ public class DartCore extends Plugin implements DartSdkListener {
       "resourceRemap");
 
   /**
-   * The QualifiedName for the package version
+   * The QualifiedName for the package version.
    */
   public static final QualifiedName PUB_PACKAGE_VERSION = new QualifiedName(
       DartCore.PLUGIN_ID,
       "pub.package.version");
+
+  /**
+   * The QualifiedName for library names.
+   */
+  public static final QualifiedName LIBRARY_NAME = new QualifiedName(
+      DartCore.PLUGIN_ID,
+      "libraryName");
 
   /**
    * The unique project manager used for analysis of anything in the workspace
@@ -1603,6 +1611,7 @@ public class DartCore extends Plugin implements DartSdkListener {
       @Override
       protected IStatus run(IProgressMonitor monitor) {
         getProjectManager().start();
+        LightweightModel.init();
         return Status.OK_STATUS;
       }
     };

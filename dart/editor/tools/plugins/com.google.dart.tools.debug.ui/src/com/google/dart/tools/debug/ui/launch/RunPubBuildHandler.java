@@ -14,7 +14,7 @@
 package com.google.dart.tools.debug.ui.launch;
 
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.analysis.model.ProjectManager;
+import com.google.dart.tools.core.analysis.model.LightweightModel;
 import com.google.dart.tools.core.analysis.model.PubFolder;
 import com.google.dart.tools.core.pub.RunPubJob;
 import com.google.dart.tools.debug.ui.internal.util.LaunchUtils;
@@ -67,7 +67,7 @@ public class RunPubBuildHandler extends AbstractHandler {
       } catch (CoreException e) {
         DartCore.logError("Refreshing " + resource.getProject().getName(), e);
       }
-    
+
       // find resource to launch in build folder and launch
       monitor.subTask("Launching...");
       final IResource launchResource = getLaunchableResource(resource);
@@ -90,6 +90,9 @@ public class RunPubBuildHandler extends AbstractHandler {
     }
 
     private IResource getLaunchableResource(IResource resource) {
+      if (!(resource instanceof IFile)) {
+        return null;
+      }
       IContainer buildDir = (IContainer) workingDir.findMember(DartCore.BUILD_DIRECTORY_NAME);
       IPath path = resource.getFullPath();
       int index = 0;
@@ -98,9 +101,11 @@ public class RunPubBuildHandler extends AbstractHandler {
       }
       if (index < path.segmentCount() && buildDir.exists()) {
         if (DartCore.isDartLikeFileName(resource.getName())) {
-          ProjectManager manager = DartCore.getProjectManager();
-          IResource htmlFile = manager.getHtmlFileForLibrary(manager.getSource((IFile) resource));
-
+          LightweightModel model = LightweightModel.getModel();
+          IFile htmlFile = model.getHtmlFileForLibrary((IFile) resource);
+          if (htmlFile == null) {
+            return null;
+          }
           return buildDir.findMember(path.removeFirstSegments(index).removeLastSegments(1).toString()
               + "/" + htmlFile.getName());
         } else {
@@ -109,7 +114,6 @@ public class RunPubBuildHandler extends AbstractHandler {
       }
       return null;
     }
-
   }
 
   private IContainer workingDir;
@@ -128,7 +132,7 @@ public class RunPubBuildHandler extends AbstractHandler {
         Object selectedObject = ((IStructuredSelection) selection).getFirstElement();
         if (selectedObject instanceof IResource) {
           resource = (IResource) selectedObject;
-          PubFolder folder = DartCore.getProjectManager().getPubFolder((IResource) selectedObject);
+          PubFolder folder = LightweightModel.getModel().getPubFolder((IResource) selectedObject);
           if (folder != null) {
             workingDir = folder.getResource();
             new PubBuildAndLaunchJob().schedule();
