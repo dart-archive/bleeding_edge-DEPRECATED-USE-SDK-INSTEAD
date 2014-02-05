@@ -308,6 +308,13 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
   }
 
   @Override
+  public void hookListeners() {
+    resource.getWorkspace().addResourceChangeListener(resourceChangeListener);
+    ignoreManager.addListener(ignoreListener);
+    AnalysisWorker.addListener(indexNotifier);
+  }
+
+  @Override
   public boolean isClientLibrary(Source librarySource) {
     IResource resource = getResource(librarySource);
     if (resource != null) {
@@ -419,9 +426,6 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
         index.run();
       }
     }.start();
-    resource.getWorkspace().addResourceChangeListener(resourceChangeListener);
-    ignoreManager.addListener(ignoreListener);
-    AnalysisWorker.addListener(indexNotifier);
     new AnalysisWorker(this, getSdkContext()).performAnalysisInBackground();
     analyzeAllProjects();
   }

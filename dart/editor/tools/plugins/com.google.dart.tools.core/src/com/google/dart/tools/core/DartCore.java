@@ -1598,6 +1598,7 @@ public class DartCore extends Plugin implements DartSdkListener {
     DartSdkManager.getManager().addSdkListener(this);
 
     // Perform the project manager initialization in a job.
+    getProjectManager().hookListeners();
     Job job = new Job("Initialize ProjectManager") {
       @Override
       protected IStatus run(IProgressMonitor monitor) {

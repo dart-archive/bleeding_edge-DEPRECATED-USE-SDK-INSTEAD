@@ -1,11 +1,11 @@
 /*
  * Copyright 2012 Dart project authors.
- *
+ * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- *
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -93,8 +93,8 @@ public class ScanTimings extends TestCase {
 
   private final class MockIndexForScan implements Index {
     @Override
-    public void getRelationships(
-        Element element, Relationship relationship, RelationshipCallback callback) {
+    public void getRelationships(Element element, Relationship relationship,
+        RelationshipCallback callback) {
       // ignored
     }
 
@@ -280,6 +280,11 @@ public class ScanTimings extends TestCase {
 
     @Override
     public AnalysisWorker[] getWorkers() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void hookListeners() {
       throw new UnsupportedOperationException();
     }
 
@@ -486,9 +491,8 @@ public class ScanTimings extends TestCase {
         delta[0] = System.currentTimeMillis() - start;
       }
     }, null);
-    System.out.println(
-        "IRes: " + fileCount + " (" + dartCount + ") files in " + delta[0] + " ms in "
-            + contextCount + " contexts");
+    System.out.println("IRes: " + fileCount + " (" + dartCount + ") files in " + delta[0]
+        + " ms in " + contextCount + " contexts");
   }
 
   private void scanFiles(File dir) {
@@ -563,8 +567,8 @@ public class ScanTimings extends TestCase {
       protected DeltaProcessor createProcessor(Project project) {
         return new DeltaProcessor(project) {
           @Override
-          protected boolean visitPackagesProxy(
-              IResourceProxy proxy, String name, File packageDir, IPath packagePath) {
+          protected boolean visitPackagesProxy(IResourceProxy proxy, String name, File packageDir,
+              IPath packagePath) {
             checkName(name);
             return super.visitPackagesProxy(proxy, name, packageDir, packagePath);
           }
