@@ -72,15 +72,18 @@ TypeText downArrow,downArrow,downArrow
 util.endOfLine
 util.newline
 TypeText {{
-return _storedIds.map(_fetchDocument);
+return _storedIds.map(_fetchDocument
 }}
-Wait 5
+TypeText rightArrow
+TypeText ";"
+(*Wait 5*)
 
-util.openFind
-TypeText "_fetch"
-TypeText escape
-Wait 5 (* Allow for scrolling and screen updating *)
-TypeText downArrow
+(*util.openFind*)
+(*TypeText "_fetch"*)
+(*TypeText escape*)
+(*Wait 5*) (* Allow for scrolling and screen updating *)
+(*TypeText downArrow*)
+TypeText downArrow,downArrow,downArrow,downArrow,downArrow
 util.endOfLine
 util.newline
 TypeText {{
@@ -90,6 +93,7 @@ TypeText rightArrow
 TypeText ";"
 util.saveFile
 Wait 5
+util.checkProblems
 
 DoubleClick "index html icon"
 Wait 2
@@ -171,6 +175,7 @@ removeDocument(doc);
 
 util.saveFile
 Wait 5
+util.checkProblems
 
 util.selectContextMenuItem "out/index.html","Run in Dartium"
 Wait 2

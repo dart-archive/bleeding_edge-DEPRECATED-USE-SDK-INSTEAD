@@ -4,3 +4,10 @@ Connect connectionInfo(sutName)
 util.startDartEditor
 Run "doit"
 util.stopDartEditor
+
+(*  For debugging
+util.stopDartEditor
+util.startDartEditor
+Run toggleHints
+RunWithNewResults "Step 5"
+*)
