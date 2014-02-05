@@ -43,7 +43,6 @@ import com.google.dart.tools.core.DartCore;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
-import java.nio.CharBuffer;
 
 /**
  * A utility class for dealing with Dart doc text.
@@ -255,20 +254,12 @@ public final class DartDocUtilities {
 
             final String[] result = new String[1];
             try {
-
               source.getContents(new ContentReceiver() {
-
                 @Override
-                public void accept(CharBuffer contents, long modificationTime) {
+                public void accept(CharSequence contents, long modificationTime) {
                   result[0] = contents.toString();
                 }
-
-                @Override
-                public void accept(String contents, long modificationTime) {
-                  result[0] = contents;
-                }
               });
-
             } catch (Exception e) {
               DartCore.logError(e);
             }

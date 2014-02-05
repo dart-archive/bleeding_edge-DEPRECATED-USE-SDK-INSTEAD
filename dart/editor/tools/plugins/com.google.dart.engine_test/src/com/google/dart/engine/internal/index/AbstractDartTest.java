@@ -46,7 +46,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import static org.fest.assertions.Assertions.assertThat;
 
-import java.nio.CharBuffer;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -93,13 +92,8 @@ public class AbstractDartTest extends TestCase {
     final String result[] = {null};
     source.getContents(new Source.ContentReceiver() {
       @Override
-      public void accept(CharBuffer contents, long modificationTime) {
+      public void accept(CharSequence contents, long modificationTime) {
         result[0] = contents.toString();
-      }
-
-      @Override
-      public void accept(String contents, long modificationTime) {
-        result[0] = contents;
       }
     });
     return result[0];

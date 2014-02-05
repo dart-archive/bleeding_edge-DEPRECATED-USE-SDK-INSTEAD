@@ -62,7 +62,6 @@ import org.eclipse.text.edits.TextEdit;
 import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.CharBuffer;
 import java.util.List;
 
 /**
@@ -78,13 +77,8 @@ public class MoveResourceParticipant extends MoveParticipant {
     final String result[] = {null};
     source.getContents(new Source.ContentReceiver() {
       @Override
-      public void accept(CharBuffer contents, long modificationTime) {
+      public void accept(CharSequence contents, long modificationTime) {
         result[0] = contents.toString();
-      }
-
-      @Override
-      public void accept(String contents, long modificationTime) {
-        result[0] = contents;
       }
     });
     return result[0];

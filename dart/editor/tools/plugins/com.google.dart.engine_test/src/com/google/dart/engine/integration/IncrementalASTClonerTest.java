@@ -32,7 +32,6 @@ import com.google.dart.engine.utilities.source.LineInfo;
 import junit.framework.TestCase;
 
 import java.io.File;
-import java.nio.CharBuffer;
 
 public class IncrementalASTClonerTest extends TestCase {
 
@@ -64,17 +63,7 @@ public class IncrementalASTClonerTest extends TestCase {
     final LineInfo[] lineInfo = new LineInfo[1];
     Source.ContentReceiver receiver = new Source.ContentReceiver() {
       @Override
-      public void accept(CharBuffer contents, long modificationTime) {
-        Scanner scanner = new Scanner(
-            source,
-            new CharSequenceReader(contents),
-            AnalysisErrorListener.NULL_LISTENER);
-        tokens[0] = scanner.tokenize();
-        lineInfo[0] = new LineInfo(scanner.getLineStarts());
-      }
-
-      @Override
-      public void accept(String contents, long modificationTime) {
+      public void accept(CharSequence contents, long modificationTime) {
         Scanner scanner = new Scanner(
             source,
             new CharSequenceReader(contents),

@@ -30,8 +30,6 @@ import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.general.TimeCounter.TimeCounterHandle;
 import com.google.dart.engine.utilities.source.LineInfo;
 
-import java.nio.CharBuffer;
-
 /**
  * Instances of the class {@code ParseDartTask} parse a specific source as a Dart file.
  */
@@ -173,16 +171,7 @@ public class ParseDartTask extends AnalysisTask {
     //
     Source.ContentReceiver receiver = new Source.ContentReceiver() {
       @Override
-      public void accept(CharBuffer contents, long modificationTime) {
-        doScan(contents, modificationTime);
-      }
-
-      @Override
-      public void accept(String contents, long modificationTime) {
-        doScan(contents, modificationTime);
-      }
-
-      private void doScan(CharSequence contents, long modificationTime) {
+      public void accept(CharSequence contents, long modificationTime) {
         ParseDartTask.this.modificationTime = modificationTime;
         TimeCounterHandle timeCounterScan = PerformanceStatistics.scan.start();
         try {

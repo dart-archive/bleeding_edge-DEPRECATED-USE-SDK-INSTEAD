@@ -24,8 +24,6 @@ import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.ltk.core.refactoring.RefactoringStatusContext;
 import org.eclipse.ui.model.IWorkbenchAdapter;
 
-import java.nio.CharBuffer;
-
 /**
  * {@link DartStatusContext} is the wrapper of the {@link Source} and {@link SourceRange} in it
  * where some problem was detected.
@@ -43,13 +41,8 @@ public class DartStatusContext extends RefactoringStatusContext implements IAdap
       public void run() throws Exception {
         source.getContents(new Source.ContentReceiver() {
           @Override
-          public void accept(CharBuffer contents, long modificationTime) {
+          public void accept(CharSequence contents, long modificationTime) {
             result[0] = contents.toString();
-          }
-
-          @Override
-          public void accept(String contents, long modificationTime) {
-            result[0] = contents;
           }
         });
       }

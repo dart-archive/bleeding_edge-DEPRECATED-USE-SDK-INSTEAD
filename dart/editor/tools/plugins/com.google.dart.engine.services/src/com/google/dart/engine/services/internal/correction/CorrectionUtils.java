@@ -89,7 +89,6 @@ import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeSt
 
 import org.apache.commons.lang3.StringUtils;
 
-import java.nio.CharBuffer;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -653,13 +652,8 @@ public class CorrectionUtils {
     final String result[] = {null};
     source.getContents(new Source.ContentReceiver() {
       @Override
-      public void accept(CharBuffer contents, long modificationTime) {
+      public void accept(CharSequence contents, long modificationTime) {
         result[0] = contents.toString();
-      }
-
-      @Override
-      public void accept(String contents, long modificationTime) {
-        result[0] = contents;
       }
     });
     return result[0];

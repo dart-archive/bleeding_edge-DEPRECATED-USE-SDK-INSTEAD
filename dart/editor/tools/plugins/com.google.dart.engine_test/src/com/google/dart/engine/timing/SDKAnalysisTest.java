@@ -30,8 +30,6 @@ import com.google.dart.engine.source.SourceFactory;
 
 import junit.framework.TestCase;
 
-import java.nio.CharBuffer;
-
 public class SDKAnalysisTest extends TestCase {
   private static class ScanResult {
     /**
@@ -113,13 +111,7 @@ public class SDKAnalysisTest extends TestCase {
     final ScanResult result = new ScanResult();
     Source.ContentReceiver receiver = new Source.ContentReceiver() {
       @Override
-      public void accept(CharBuffer contents, long modificationTime) {
-        Scanner scanner = new Scanner(source, new CharSequenceReader(contents), errorListener);
-        result.token = scanner.tokenize();
-      }
-
-      @Override
-      public void accept(String contents, long modificationTime) {
+      public void accept(CharSequence contents, long modificationTime) {
         Scanner scanner = new Scanner(source, new CharSequenceReader(contents), errorListener);
         result.token = scanner.tokenize();
       }
@@ -137,13 +129,7 @@ public class SDKAnalysisTest extends TestCase {
       throws AnalysisException {
     Source.ContentReceiver receiver = new Source.ContentReceiver() {
       @Override
-      public void accept(CharBuffer contents, long modificationTime) {
-        Scanner scanner = new Scanner(source, new CharSequenceReader(contents), errorListener);
-        scanner.tokenize();
-      }
-
-      @Override
-      public void accept(String contents, long modificationTime) {
+      public void accept(CharSequence contents, long modificationTime) {
         Scanner scanner = new Scanner(source, new CharSequenceReader(contents), errorListener);
         scanner.tokenize();
       }

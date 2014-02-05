@@ -14,7 +14,6 @@
 package com.google.dart.engine.source;
 
 import java.net.URI;
-import java.nio.CharBuffer;
 
 /**
  * The interface {@code Source} defines the behavior of objects representing source code that can be
@@ -29,20 +28,12 @@ public interface Source {
    */
   public interface ContentReceiver {
     /**
-     * Accept the contents of a source represented as a character buffer.
+     * Accept the contents of a source.
      * 
      * @param contents the contents of the source
      * @param modificationTime the time at which the contents were last set
      */
-    public void accept(CharBuffer contents, long modificationTime);
-
-    /**
-     * Accept the contents of a source represented as a string.
-     * 
-     * @param contents the contents of the source
-     * @param modificationTime the time at which the contents were last set
-     */
-    public void accept(String contents, long modificationTime);
+    public void accept(CharSequence contents, long modificationTime);
   }
 
   /**

@@ -82,7 +82,6 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.progress.UIJob;
 
-import java.nio.CharBuffer;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -515,13 +514,8 @@ public abstract class SearchMatchPage extends SearchPage {
       final String result[] = {null};
       source.getContents(new Source.ContentReceiver() {
         @Override
-        public void accept(CharBuffer contents, long modificationTime) {
+        public void accept(CharSequence contents, long modificationTime) {
           result[0] = contents.toString();
-        }
-
-        @Override
-        public void accept(String contents, long modificationTime) {
-          result[0] = contents;
         }
       });
       return result[0];

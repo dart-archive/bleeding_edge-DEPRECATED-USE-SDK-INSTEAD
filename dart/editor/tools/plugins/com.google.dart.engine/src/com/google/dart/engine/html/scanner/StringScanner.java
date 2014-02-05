@@ -26,7 +26,7 @@ public class StringScanner extends AbstractScanner {
   /**
    * The string from which characters will be read.
    */
-  private final String string;
+  private final CharSequence string;
 
   /**
    * The number of characters in the string.
@@ -44,7 +44,7 @@ public class StringScanner extends AbstractScanner {
    * @param source the source being scanned
    * @param string the string from which characters will be read
    */
-  public StringScanner(Source source, String string) {
+  public StringScanner(Source source, CharSequence string) {
     super(source);
     this.string = string;
     this.stringLength = string.length();
@@ -71,7 +71,7 @@ public class StringScanner extends AbstractScanner {
 
   @Override
   protected String getString(int start, int endDelta) {
-    return string.substring(start, charOffset + 1 + endDelta);
+    return string.subSequence(start, charOffset + 1 + endDelta).toString();
   }
 
   @Override

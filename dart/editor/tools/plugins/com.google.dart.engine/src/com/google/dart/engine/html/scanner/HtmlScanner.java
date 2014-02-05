@@ -15,8 +15,6 @@ package com.google.dart.engine.html.scanner;
 
 import com.google.dart.engine.source.Source;
 
-import java.nio.CharBuffer;
-
 /**
  * Instances of {@code HtmlScanner} receive and scan HTML content from a {@link Source}.<br/>
  * For example, the following code scans HTML source and returns the result:
@@ -62,15 +60,7 @@ public class HtmlScanner implements Source.ContentReceiver {
   }
 
   @Override
-  public void accept(CharBuffer contents, long modificationTime) {
-    this.modificationTime = modificationTime;
-    scanner = new CharBufferScanner(source, contents);
-    scanner.setPassThroughElements(SCRIPT_TAG);
-    token = scanner.tokenize();
-  }
-
-  @Override
-  public void accept(String contents, long modificationTime) {
+  public void accept(CharSequence contents, long modificationTime) {
     this.modificationTime = modificationTime;
     scanner = new StringScanner(source, contents);
     scanner.setPassThroughElements(SCRIPT_TAG);
