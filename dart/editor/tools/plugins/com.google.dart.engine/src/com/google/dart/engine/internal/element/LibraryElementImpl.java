@@ -119,6 +119,11 @@ public class LibraryElementImpl extends ElementImpl implements LibraryElement {
   private CompilationUnitElement[] parts = CompilationUnitElementImpl.EMPTY_ARRAY;
 
   /**
+   * Is {@code true} if this library is created for Angular analysis.
+   */
+  private boolean isAngularHtml;
+
+  /**
    * Initialize a newly created library element to have the given name.
    * 
    * @param context the analysis context in which the library is defined
@@ -289,6 +294,11 @@ public class LibraryElementImpl extends ElementImpl implements LibraryElement {
   }
 
   @Override
+  public boolean isAngularHtml() {
+    return isAngularHtml;
+  }
+
+  @Override
   public boolean isBrowserApplication() {
     return entryPoint != null && isOrImportsBrowserLibrary();
   }
@@ -308,6 +318,13 @@ public class LibraryElementImpl extends ElementImpl implements LibraryElement {
     Set<LibraryElement> visitedLibraries = Sets.newHashSet();
 
     return isUpToDate(this, timeStamp, visitedLibraries);
+  }
+
+  /**
+   * Specifies if this library is created for Angular analysis.
+   */
+  public void setAngularHtml(boolean isAngularHtml) {
+    this.isAngularHtml = isAngularHtml;
   }
 
   /**

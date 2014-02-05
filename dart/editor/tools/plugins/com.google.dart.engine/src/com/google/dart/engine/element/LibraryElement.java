@@ -113,6 +113,13 @@ public interface LibraryElement extends Element {
   public boolean hasExtUri();
 
   /**
+   * Return {@code true} if this library is created for Angular analysis.
+   * 
+   * @return {@code true} if this library is created for Angular analysis
+   */
+  public boolean isAngularHtml();
+
+  /**
    * Answer {@code true} if this library is an application that can be run in the browser.
    * 
    * @return {@code true} if this library is an application that can be run in the browser

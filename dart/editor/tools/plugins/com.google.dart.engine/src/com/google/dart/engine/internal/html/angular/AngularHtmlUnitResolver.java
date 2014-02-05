@@ -562,6 +562,7 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
     // create LibraryElementImpl
     libraryElement = new LibraryElementImpl(context, null);
     libraryElement.setDefiningCompilationUnit(unitElement);
+    libraryElement.setAngularHtml(true);
     injectedLibraries.add(libraryElement);
     // create FunctionElementImpl
     functionElement = new FunctionElementImpl(0);

@@ -23,6 +23,7 @@ import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.HtmlElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.index.IndexStore;
 import com.google.dart.engine.index.Location;
@@ -137,7 +138,13 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
    */
   private static Source getLibrarySourceOrNull(Element element) {
     LibraryElement library = element.getLibrary();
-    return library != null ? library.getSource() : null;
+    if (library == null) {
+      return null;
+    }
+    if (library.isAngularHtml()) {
+      return null;
+    }
+    return library.getSource();
   }
 
   /**
@@ -231,17 +238,7 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
       libraryToUnits.put(library, newParts);
     }
     // remember libraries in which unit is used
-    Map<Source, Set<Source>> unitToLibraries = contextToUnitToLibraries.get(context);
-    if (unitToLibraries == null) {
-      unitToLibraries = Maps.newHashMap();
-      contextToUnitToLibraries.put(context, unitToLibraries);
-    }
-    Set<Source> libraries = unitToLibraries.get(unit);
-    if (libraries == null) {
-      libraries = Sets.newHashSet();
-      unitToLibraries.put(unit, libraries);
-    }
-    libraries.add(library);
+    recordUnitInLibrary(context, library, unit);
     // remove locations
     removeLocations(context, library, unit);
     // remove keys
@@ -249,7 +246,10 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
       Map<Source2, Set<ElementRelationKey>> sourceToKeys = contextToSourceToKeys.get(context);
       if (sourceToKeys != null) {
         Source2 source2 = new Source2(library, unit);
-        sourceToKeys.remove(source2);
+        boolean hadSource = sourceToKeys.remove(source2) != null;
+        if (hadSource) {
+          sourceCount--;
+        }
       }
     }
     // OK, we can index
@@ -257,22 +257,28 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
   }
 
   @Override
-  public boolean aboutToIndex(AnalysisContext context, Source source) {
+  public boolean aboutToIndex(AnalysisContext context, HtmlElement htmlElement) {
     context = unwrapContext(context);
     // may be already removed in other thread
     if (isRemovedContext(context)) {
       return false;
     }
     // remove locations
-    removeLocations(context, source, source);
+    Source source = htmlElement.getSource();
+    removeLocations(context, null, source);
     // remove keys
     {
       Map<Source2, Set<ElementRelationKey>> sourceToKeys = contextToSourceToKeys.get(context);
       if (sourceToKeys != null) {
-        Source2 source2 = new Source2(source, source);
-        sourceToKeys.remove(source2);
+        Source2 source2 = new Source2(null, source);
+        boolean hadSource = sourceToKeys.remove(source2) != null;
+        if (hadSource) {
+          sourceCount--;
+        }
       }
     }
+    // remember libraries in which unit is used
+    recordUnitInLibrary(context, null, source);
     // OK, we can index
     return true;
   }
@@ -550,6 +556,20 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
    */
   private void markRemovedContext(AnalysisContext context) {
     removedContexts.put(context, WEAK_SET_VALUE);
+  }
+
+  private void recordUnitInLibrary(AnalysisContext context, Source library, Source unit) {
+    Map<Source, Set<Source>> unitToLibraries = contextToUnitToLibraries.get(context);
+    if (unitToLibraries == null) {
+      unitToLibraries = Maps.newHashMap();
+      contextToUnitToLibraries.put(context, unitToLibraries);
+    }
+    Set<Source> libraries = unitToLibraries.get(unit);
+    if (libraries == null) {
+      libraries = Sets.newHashSet();
+      unitToLibraries.put(unit, libraries);
+    }
+    libraries.add(library);
   }
 
   /**

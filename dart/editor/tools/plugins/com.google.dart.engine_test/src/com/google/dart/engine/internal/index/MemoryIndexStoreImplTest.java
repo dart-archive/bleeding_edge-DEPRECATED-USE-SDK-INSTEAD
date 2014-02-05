@@ -21,6 +21,7 @@ import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementLocation;
+import com.google.dart.engine.element.HtmlElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.index.Location;
 import com.google.dart.engine.index.Relationship;
@@ -270,28 +271,42 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
     }
   }
 
-  public void test_aboutToIndex_withSource_removedContext() throws Exception {
+  public void test_aboutToIndex_withHtmlElement_removedContext() throws Exception {
+    // prepare HtmlElement
+    HtmlElement htmlElement = mock(HtmlElement.class);
+    when(htmlElement.getContext()).thenReturn(contextA);
+    when(htmlElement.getSource()).thenReturn(sourceA);
+    // mark context as removed
     store.removeContext(contextA);
-    boolean mayIndex = store.aboutToIndex(contextA, sourceA);
+    // cannot index
+    boolean mayIndex = store.aboutToIndex(contextA, htmlElement);
     assertFalse(mayIndex);
   }
 
-  public void test_aboutToIndex_withSource_shouldRemoveLocations() throws Exception {
-    location = mockLocation(elementB);
-    when(elementB.getSource()).thenReturn(sourceA);
-    when(libraryElement.getSource()).thenReturn(sourceA);
+  public void test_aboutToIndex_withHtmlElement_shouldRemoveLocations() throws Exception {
+    HtmlElement htmlElement = mock(HtmlElement.class);
+    when(htmlElement.getContext()).thenReturn(contextA);
+    when(htmlElement.getSource()).thenReturn(sourceA);
+    location = mockLocation(htmlElement);
+    // record location
     store.recordRelationship(elementA, relationship, location);
+    assertEquals(1, store.internalGetLocationCount(contextA));
     // notify that we are going to re-index "A"
-    store.aboutToIndex(contextA, sourceA);
+    store.aboutToIndex(contextA, htmlElement);
     // all locations in "A" should be removed (and we don't have any other sources)
     assertEquals(0, store.internalGetLocationCount(contextA));
   }
 
-  public void test_aboutToIndex_withSource_shouldRemoveSourceKeys() throws Exception {
-    when(libraryElement.getSource()).thenReturn(sourceA);
-    store.recordRelationship(elementA, relationship, location);
+  public void test_aboutToIndex_withHtmlElement_shouldRemoveSourceKeys() throws Exception {
+    // prepare HtmlElement
+    HtmlElement htmlElement = mock(HtmlElement.class);
+    when(htmlElement.getContext()).thenReturn(contextA);
+    when(htmlElement.getSource()).thenReturn(sourceA);
+    // record with HtmlElement as a key
+    store.recordRelationship(htmlElement, relationship, location);
+    assertEquals(1, store.internalGetSourceKeyCount(contextA));
     // notify that we are going to re-index "A"
-    store.aboutToIndex(contextA, sourceA);
+    store.aboutToIndex(contextA, htmlElement);
     // all keys in "A" should be removed (and we don't have any other sources)
     assertEquals(0, store.internalGetSourceKeyCount(contextA));
   }

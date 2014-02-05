@@ -94,7 +94,7 @@ public class IndexHtmlUnitOperation implements IndexOperation {
   public void performOperation() {
     synchronized (indexStore) {
       try {
-        boolean mayIndex = indexStore.aboutToIndex(context, source);
+        boolean mayIndex = indexStore.aboutToIndex(context, htmlElement);
         if (!mayIndex) {
           return;
         }

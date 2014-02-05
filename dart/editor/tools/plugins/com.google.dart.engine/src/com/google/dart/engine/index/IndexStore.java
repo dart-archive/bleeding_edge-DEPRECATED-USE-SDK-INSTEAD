@@ -17,6 +17,7 @@ package com.google.dart.engine.index;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.HtmlElement;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceContainer;
 
@@ -41,18 +42,14 @@ public interface IndexStore {
   boolean aboutToIndex(AnalysisContext context, CompilationUnitElement unitElement);
 
   /**
-   * Notifies the index store that we are going to index the given {@link Source}.
-   * <p>
-   * This method should be used only for a {@link Source} that cannot be a part of multiple
-   * libraries. Otherwise {@link #aboutToIndex(AnalysisContext, CompilationUnitElement)} should be
-   * used.
+   * Notifies the index store that we are going to index the given {@link HtmlElement}.
    * 
    * @param the {@link AnalysisContext} in which unit being indexed
-   * @param source the {@link Source} being indexed
+   * @param htmlElement the {@link HtmlElement} being indexed
    * @return {@code true} the given {@link AnalysisContext} is active, or {@code false} if it was
    *         removed before, so no any unit may be indexed with it
    */
-  boolean aboutToIndex(AnalysisContext context, Source source);
+  boolean aboutToIndex(AnalysisContext context, HtmlElement htmlElement);
 
   /**
    * Return the locations of the elements that have the given relationship with the given element.
