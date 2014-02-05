@@ -56,11 +56,6 @@ public class TestLogger implements Logger {
   }
 
   @Override
-  public void logError(Throwable exception) {
-    errorCount++;
-  }
-
-  @Override
   public void logInformation(String message) {
     infoCount++;
   }

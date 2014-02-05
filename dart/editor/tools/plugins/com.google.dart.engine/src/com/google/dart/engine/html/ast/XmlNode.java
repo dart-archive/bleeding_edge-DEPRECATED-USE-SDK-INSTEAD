@@ -225,6 +225,7 @@ public abstract class XmlNode {
     while (current != null) {
       if (current == this) {
         AnalysisEngine.getInstance().getLogger().logError(
+            "Circular structure while setting an XML node's parent",
             new IllegalArgumentException(buildRecursiveStructureMessage(newParent)));
         return;
       }

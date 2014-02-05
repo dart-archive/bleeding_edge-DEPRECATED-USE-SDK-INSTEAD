@@ -85,7 +85,7 @@ public class ExecutionUtils {
       runnable.run();
       return true;
     } catch (Throwable e) {
-      AnalysisEngine.getInstance().getLogger().logError(e);
+      AnalysisEngine.getInstance().getLogger().logError("Exception thrown in runnable", e);
       return false;
     }
   }

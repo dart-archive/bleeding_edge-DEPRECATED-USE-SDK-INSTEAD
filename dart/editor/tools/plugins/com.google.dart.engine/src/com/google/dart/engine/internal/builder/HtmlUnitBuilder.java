@@ -169,7 +169,9 @@ public class HtmlUnitBuilder implements XmlVisitor<Void> {
           errorListener.addAll(resolver.getErrorListener());
         } catch (AnalysisException exception) {
           //TODO (danrubel): Handle or forward the exception
-          AnalysisEngine.getInstance().getLogger().logError(exception);
+          AnalysisEngine.getInstance().getLogger().logError(
+              "Could not resolve script tag",
+              exception);
         }
         node.setScriptElement(script);
         scripts.add(script);

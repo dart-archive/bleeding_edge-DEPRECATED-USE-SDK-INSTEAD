@@ -773,6 +773,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         dartEntry = getReadableDartEntry(source);
         if (dartEntry == null) {
           AnalysisEngine.getInstance().getLogger().logError(
+              "Could not compute the public namespace for " + library.getSource().getFullName(),
               new AnalysisException("A Dart file became a non-Dart file: " + source.getFullName()));
           return null;
         }

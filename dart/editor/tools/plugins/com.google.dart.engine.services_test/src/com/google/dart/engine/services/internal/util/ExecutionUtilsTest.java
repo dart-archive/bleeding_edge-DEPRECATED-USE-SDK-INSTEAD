@@ -121,7 +121,7 @@ public class ExecutionUtilsTest extends TestCase {
     try {
       engine.setLogger(new Logger.NullLogger() {
         @Override
-        public void logError(Throwable exception) {
+        public void logError(String message, Throwable exception) {
           loggedErrors.add(exception);
         }
       });

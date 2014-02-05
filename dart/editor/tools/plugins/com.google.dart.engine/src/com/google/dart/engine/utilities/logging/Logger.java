@@ -35,10 +35,6 @@ public interface Logger {
     }
 
     @Override
-    public void logError(Throwable exception) {
-    }
-
-    @Override
     public void logInformation(String message) {
     }
 
@@ -63,13 +59,6 @@ public interface Logger {
    * @param exception the exception being logged
    */
   public void logError(String message, Throwable exception);
-
-  /**
-   * Log the given exception as one representing an error.
-   * 
-   * @param exception the exception being logged
-   */
-  public void logError(Throwable exception);
 
   /**
    * Log the given informational message.

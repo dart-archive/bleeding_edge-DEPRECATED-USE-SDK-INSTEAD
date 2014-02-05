@@ -1588,11 +1588,6 @@ public class DartCore extends Plugin implements DartSdkListener {
       }
 
       @Override
-      public void logError(Throwable exception) {
-        DartCore.logError(exception);
-      }
-
-      @Override
       public void logInformation(String message) {
         DartCore.logInformation(message);
       }
