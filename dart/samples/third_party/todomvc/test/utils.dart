@@ -12,11 +12,10 @@ Future onPropertyInit(Observable obj, String path) {
   if (obs.value != null) return new Future.value(obs.value);
 
   final c = new Completer();
-  StreamSubscription sub;
-  sub = obs.changes.listen((_) {
-    if (obs.value != null) {
-      sub.cancel();
-      c.complete(obs.value);
+  obs.open((value) {
+    if (value != null) {
+      obs.close();
+      c.complete(value);
     }
   });
   return c.future;
