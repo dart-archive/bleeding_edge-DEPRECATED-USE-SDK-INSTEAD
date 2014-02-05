@@ -15,7 +15,6 @@ package com.google.dart.command.analyze.test;
 
 import com.google.dart.command.analyze.AnalyzerImpl;
 import com.google.dart.command.analyze.AnalyzerOptions;
-import com.google.dart.command.analyze.test.PerformanceMonitor.PerformanceMonitorHandle;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.context.AnalysisResult;
@@ -24,6 +23,7 @@ import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.ErrorSeverity;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.utilities.general.TimeCounter.TimeCounterHandle;
 import com.google.dart.engine.utilities.source.LineInfo;
 
 import java.io.File;
@@ -72,7 +72,7 @@ public class BackgroundAnalyzerImpl extends AnalyzerImpl {
 
     client.start(context, librarySource);
     while (true) {
-      PerformanceMonitorHandle timer = performTaskPM.start();
+      TimeCounterHandle timer = performTaskPM.start();
       AnalysisResult taskResult = context.performAnalysisTask();
       timer.stop();
       getTaskPM.recordElapsedMillis(taskResult.getGetTime());

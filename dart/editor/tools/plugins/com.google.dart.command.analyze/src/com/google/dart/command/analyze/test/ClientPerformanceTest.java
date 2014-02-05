@@ -13,9 +13,9 @@
  */
 package com.google.dart.command.analyze.test;
 
-import com.google.dart.command.analyze.test.PerformanceMonitor.PerformanceMonitorHandle;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.utilities.general.TimeCounter.TimeCounterHandle;
 
 /**
  * Simulates a client running on a separate thread requesting information via
@@ -71,7 +71,7 @@ public class ClientPerformanceTest {
   }
 
   private void callContext() {
-    PerformanceMonitorHandle timer = monitor.start();
+    TimeCounterHandle timer = monitor.start();
     context.getKindOf(source);
     timer.stop();
   }

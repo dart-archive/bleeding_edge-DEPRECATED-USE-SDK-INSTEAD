@@ -15,7 +15,9 @@
 package com.google.dart.engine.utilities.general;
 
 /**
- * Helper for measuring how much time is spent doing some operation.
+ * Helper for measuring how much time is spent doing some operation. Each call to
+ * {@link #recordElapsedNanos(long)} or each pair of calls to {@link #start()} and
+ * {@link TimeCounterHandle#stop()} adds the specified time interval to the total recorded time.
  */
 public class TimeCounter {
   /**
@@ -25,22 +27,82 @@ public class TimeCounter {
     final long startTime = System.nanoTime();
 
     /**
-     * Stops counting time and updates counter.
+     * Stops counting time and calls {@link TimeCounter#recordElapsedNanos(long)} to add the elapse
+     * time to the counter.
      */
     public void stop() {
       synchronized (TimeCounter.this) {
-        result += (System.nanoTime() - startTime);
+        recordElapsedNanos(System.nanoTime() - startTime);
       }
     }
   }
 
-  private long result;
+  public static final int NANOS_PER_MILLI = 1000 * 1000;
+
+  private long totalTime = 0L;
+  private long maxInterval = 0L;
+  private long minInterval = Long.MAX_VALUE;
+  private int intervalCount = 0;
+
+  /**
+   * @return the average time interval in milliseconds as recorded by
+   *         {@link #recordElapsedNanos(long)} or {@link #start()} and
+   *         {@link TimeCounterHandle#stop()}
+   */
+  public long getAverage() {
+    if (intervalCount == 0) {
+      return 0;
+    }
+    return totalTime / (NANOS_PER_MILLI * intervalCount);
+  }
+
+  /**
+   * @return the number of times that {@link #recordElapsedNanos(long)} and {@link #start()} and
+   *         {@link TimeCounterHandle#stop()} were called
+   */
+  public int getCount() {
+    return intervalCount;
+  }
+
+  /**
+   * @return the maximum time interval in milliseconds as recorded by
+   *         {@link #recordElapsedNanos(long)} or {@link #start()} and
+   *         {@link TimeCounterHandle#stop()}
+   */
+  public long getMax() {
+    return maxInterval / NANOS_PER_MILLI;
+  }
+
+  /**
+   * @return the minimum time interval in milliseconds as recorded by
+   *         {@link #recordElapsedNanos(long)} or {@link #start()} and
+   *         {@link TimeCounterHandle#stop()}
+   */
+  public long getMin() {
+    if (intervalCount == 0) {
+      return 0;
+    }
+    return minInterval / NANOS_PER_MILLI;
+  }
 
   /**
    * @return the number of milliseconds spent between {@link #start()} and {@link #stop()}.
    */
   public long getResult() {
-    return result / 1000000;
+    return totalTime / NANOS_PER_MILLI;
+  }
+
+  /**
+   * Adds the specified time interval to the total time and updates the minimum, maximum, and
+   * average time intervals.
+   * 
+   * @param delta the number of nanoseconds
+   */
+  public void recordElapsedNanos(long delta) {
+    totalTime += delta;
+    intervalCount++;
+    minInterval = Math.min(minInterval, delta);
+    maxInterval = Math.max(maxInterval, delta);
   }
 
   /**
