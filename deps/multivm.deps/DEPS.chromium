@@ -17,24 +17,25 @@ vars = {
   # If you do not know, use the full path while defining your new deps entry.
   "googlecode_url": "http://%s.googlecode.com/svn",
   "sourceforge_url": "http://svn.code.sf.net/p/%(repo)s/code",
+  "llvm_url": "http://src.chromium.org/llvm-project",
   "llvm_git": "https://llvm.googlesource.com",
   "libcxx_revision": "8f48c23568a122de6088455700e9d197b79bd8f8",
   "libcxxabi_revision": "753a30dd68ae008948d48f16bc942d5963fe65a1",
   "webkit_trunk": "http://src.chromium.org/blink/trunk",
   "nacl_trunk": "http://src.chromium.org/native_client/trunk",
-  "webkit_revision": "165883",
+  "webkit_revision": "166298",
   "chromium_git": "https://chromium.googlesource.com",
   "chromiumos_git": "https://chromium.googlesource.com/chromiumos",
   "skia_git": "https://skia.googlesource.com",
   "swig_revision": "230490",
-  "nacl_revision": "12642",
+  "nacl_revision": "12657",
   # After changing nacl_revision, run 'glient sync' and check native_client/DEPS
   # to update other nacl_*_revision's.
-  "nacl_tools_revision": "12630",  # native_client/DEPS: tools_rev
+  "nacl_tools_revision": "12655",  # native_client/DEPS: tools_rev
   "google_toolbox_for_mac_revision": "616",
   "libaddressinput_revision": "176",
   "libphonenumber_revision": "621",
-  "libvpx_revision": "247061",
+  "libvpx_revision": "248011",
   "lss_revision": "24",
 
   # These two FFmpeg variables must be updated together.  One is used for SVN
@@ -44,22 +45,22 @@ vars = {
 
   "sfntly_revision": "228",
   "lighttpd_revision": "33737",
-  "skia_revision": "13188",
-  "skia_hash": "e8989578cd05d4bf6ebe35f0d49afbc3d3bef2ed",
+  "skia_revision": "13264",
+  "skia_hash": "0a74106aaae65151715482b6d0e35906b8a4c9e5",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and V8 without interference from each other.
-  "v8_revision": "18841",
+  "v8_revision": "18992",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling WebRTC
   # and V8 without interference from each other.
-  "webrtc_revision": "5420",
+  "webrtc_revision": "5444",
   "jsoncpp_revision": "248",
   "nss_revision": "246067",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling swarming_client
   # and whatever else without interference from each other.
-  "swarming_revision": "b39e8cf08c931e8b695482e1fa154574e6259f46",
+  "swarming_revision": "f9538eebbc82bdfed4768cde388c8ae8a1ac3209",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling openssl
   # and whatever else without interference from each other.
@@ -81,7 +82,7 @@ deps = {
 
   "src/third_party/angle":
     Var("chromium_git") +
-    "/angle/angle.git@e1590b895ba9289e91271c901dd6ee46db1ed053",
+    "/angle/angle.git@17918f9a0ba4deca8818b4e11d03e244c631a8e4",
 
   "src/third_party/trace-viewer":
     (Var("googlecode_url") % "trace-viewer") + "/trunk@1091",
@@ -119,9 +120,11 @@ deps = {
   "src/third_party/leveldatabase/src":
     (Var("googlecode_url") % "leveldb") + "/trunk@78",
 
+  # TODO(thakis): Pull from svn instead, http://crbug.com/333071
   "src/third_party/libc++/trunk":
     Var("llvm_git") + "/libcxx.git@" + Var("libcxx_revision"),
 
+  # TODO(thakis): Pull from svn instead, http://crbug.com/333071
   "src/third_party/libc++abi/trunk":
     Var("llvm_git") + "/libcxxabi.git@" + Var("libcxxabi_revision"),
 
@@ -132,7 +135,7 @@ deps = {
     (Var("googlecode_url") % "grit-i18n") + "/trunk@148",
 
   "src/tools/gyp":
-    (Var("googlecode_url") % "gyp") + "/trunk@1842",
+    (Var("googlecode_url") % "gyp") + "/trunk@1846",
 
   "src/tools/swarming_client":
     Var("chromium_git") + "/external/swarming.client.git@" +
@@ -247,7 +250,7 @@ deps = {
         "/trunk/jsoncpp/src/lib_json@" + Var("jsoncpp_revision"),
 
   "src/third_party/libyuv":
-    (Var("googlecode_url") % "libyuv") + "/trunk@975",
+    (Var("googlecode_url") % "libyuv") + "/trunk@978",
 
   "src/third_party/smhasher/src":
     (Var("googlecode_url") % "smhasher") + "/trunk@151",
@@ -270,10 +273,13 @@ deps = {
         Var("libphonenumber_revision"),
 
   "src/tools/deps2git":
-    "/trunk/tools/deps2git@244803",
+    "/trunk/tools/deps2git@248305",
+
+  "src/third_party/clang_format/script":
+    Var("llvm_url") + "/cfe/trunk/tools/clang-format@198831",
 
   "src/third_party/webpagereplay":
-    (Var("googlecode_url") % "web-page-replay") + "/trunk@528",
+    (Var("googlecode_url") % "web-page-replay") + "/trunk@537",
 
   "src/third_party/pywebsocket/src":
     (Var("googlecode_url") % "pywebsocket") + "/trunk/src@662",
@@ -292,7 +298,7 @@ deps = {
 
   "src/chrome/browser/resources/pdf/html_office":
      Var("chromium_git") +
-         "/chromium/html-office-public.git@e7d60b10b04451db34395429134f87d5536912ec",
+         "/chromium/html-office-public.git@6451249cec79299a52083373c9a370ef25471023",
 
   "src/third_party/libwebm/source":
     Var("chromium_git") +
