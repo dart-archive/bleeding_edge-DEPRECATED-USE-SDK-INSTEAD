@@ -19,8 +19,6 @@ import com.google.dart.engine.ast.visitor.ElementLocator;
 import com.google.dart.engine.ast.visitor.NodeLocator;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.html.ast.XmlExpression;
-import com.google.dart.engine.utilities.source.SourceRange;
-import com.google.dart.engine.utilities.source.SourceRangeFactory;
 
 /**
  * Abstract Angular specific {@link XmlExpression}.
@@ -75,8 +73,7 @@ public abstract class AngularXmlExpression extends XmlExpression {
     ASTNode node = new NodeLocator(offset).searchWithin(root);
     if (node != null) {
       Element element = ElementLocator.locate(node);
-      SourceRange range = SourceRangeFactory.rangeNode(node);
-      return new Reference(element, range);
+      return new Reference(element, node.getOffset(), node.getLength());
     }
     return null;
   }

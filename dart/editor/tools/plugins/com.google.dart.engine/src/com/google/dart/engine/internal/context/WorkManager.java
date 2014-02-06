@@ -23,40 +23,6 @@ import java.util.ArrayList;
  */
 public class WorkManager {
   /**
-   * The enumerated type {@code Priority} defines the priority levels used to return sources in an
-   * optimal order.
-   */
-  public enum Priority {
-    /**
-     * Used for a Dart source that is known to be a part contained in a library that was recently
-     * resolved. These parts are given a higher priority because there is a high probability that
-     * their AST structure is still in the cache and therefore would not need to be re-created.
-     */
-    PRIORITY_PART,
-
-    /**
-     * Used for a Dart source that is known to be a library.
-     */
-    LIBRARY,
-
-    /**
-     * Used for a Dart source that is known to be a part but whose library has not yet been
-     * resolved.
-     */
-    NORMAL_PART,
-
-    /**
-     * Used for a Dart source whose kind is unknown.
-     */
-    UNKNOWN,
-
-    /**
-     * Used for an HTML source.
-     */
-    HTML;
-  }
-
-  /**
    * An array containing the various queues is priority order.
    */
   private ArrayList<Source>[] workQueues;
@@ -66,7 +32,7 @@ public class WorkManager {
    */
   @SuppressWarnings("unchecked")
   public WorkManager() {
-    int queueCount = Priority.values().length;
+    int queueCount = WorkManagerPriority.values().length;
     workQueues = new ArrayList[queueCount];
     for (int i = 0; i < queueCount; i++) {
       workQueues[i] = new ArrayList<Source>();
@@ -80,7 +46,7 @@ public class WorkManager {
    * @param source the source that needs to be analyzed
    * @param priority the priority level of the source
    */
-  public void add(Source source, Priority priority) {
+  public void add(Source source, WorkManagerPriority priority) {
     // TODO(brianwilkerson) Optimize the order of the libraries so that libraries that depend on
     // other libraries get analyzed after the other libraries.
     int queueCount = workQueues.length;

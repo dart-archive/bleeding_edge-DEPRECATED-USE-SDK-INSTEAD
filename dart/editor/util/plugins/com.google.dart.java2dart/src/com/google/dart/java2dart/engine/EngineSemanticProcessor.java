@@ -454,9 +454,12 @@ public class EngineSemanticProcessor extends SemanticProcessor {
       public Void visitTypeName(TypeName node) {
         ITypeBinding binding = context.getNodeTypeBinding(node);
         if (binding != null) {
-          String shortName = binding.getName();
-          shortName = StringUtils.substringBefore(shortName, "<");
           if (isPrefixPackage(binding)) {
+            String shortName = node.getName().getName();
+            if (shortName.indexOf('.') != -1) {
+              shortName = StringUtils.substringAfterLast(shortName, ".");
+            }
+            shortName = StringUtils.substringBefore(shortName, "<");
             node.setName(identifier(prefixName, shortName));
             return null;
           }
@@ -588,8 +591,8 @@ public class EngineSemanticProcessor extends SemanticProcessor {
           Block tryCacheBlock = block();
           ExpressionStatement statement = expressionStatement(methodInvocation(
               receiverIdent,
-              "accept2",
-              methodInvocation(identifier("file"), "readAsStringSync"),
+              "accept",
+              methodInvocation(identifier("file"), "readAsCharSequenceSync"),
               methodInvocation(identifier("file"), "lastModified")));
           node.setBody(blockFunctionBody(tryCacheBlock, statement));
           return null;

@@ -14,7 +14,6 @@
 package com.google.dart.engine.html.ast;
 
 import com.google.dart.engine.element.Element;
-import com.google.dart.engine.utilities.source.SourceRange;
 
 /**
  * Instances of the class {@code XmlExpression} represent an abstract expression embedded into
@@ -26,11 +25,13 @@ public abstract class XmlExpression {
    */
   public static final class Reference {
     public final Element element;
-    public final SourceRange range;
+    public final int offset;
+    public final int length;
 
-    public Reference(Element element, SourceRange range) {
+    public Reference(Element element, int offset, int length) {
       this.element = element;
-      this.range = range;
+      this.offset = offset;
+      this.length = length;
     }
   }
 

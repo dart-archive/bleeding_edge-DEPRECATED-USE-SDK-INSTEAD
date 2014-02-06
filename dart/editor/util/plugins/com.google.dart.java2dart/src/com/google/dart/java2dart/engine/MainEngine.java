@@ -831,7 +831,7 @@ public class MainEngine {
         importDirective(
             "engine.dart",
             null,
-            importShowCombinator("AnalysisEngine", "AngularHtmlUnitResolver")));
+            importShowCombinator("AnalysisEngine", "AngularHtmlUnitResolver", "ExpressionVisitor")));
     for (Entry<File, List<CompilationUnitMember>> entry : context.getFileToMembers().entrySet()) {
       File file = entry.getKey();
       if (isEnginePath(file, "html/scanner/") || isEnginePath(file, "html/ast/")
@@ -863,15 +863,7 @@ public class MainEngine {
             "resolver.dart",
             null,
             importShowCombinator("Namespace", "NamespaceBuilder")));
-    unit.getDirectives().add(
-        importDirective(
-            "engine.dart",
-            null,
-            importShowCombinator(
-                "AnalysisEngine",
-                "AnalysisContext",
-                "InstrumentedAnalysisContextImpl",
-                "AngularHtmlUnitResolver")));
+    unit.getDirectives().add(importDirective("engine.dart", null));
     unit.getDirectives().add(importDirective("html.dart", "ht"));
     for (Entry<File, List<CompilationUnitMember>> entry : context.getFileToMembers().entrySet()) {
       File file = entry.getKey();
@@ -985,7 +977,6 @@ public class MainEngine {
   private static CompilationUnit buildParserLibrary() throws Exception {
     CompilationUnit unit = new CompilationUnit(null, null, null, null, null);
     unit.getDirectives().add(libraryDirective("engine", "parser"));
-    unit.getDirectives().add(importDirective("dart:collection", null));
     unit.getDirectives().add(importDirective("java_core.dart", null));
     unit.getDirectives().add(importDirective("java_engine.dart", null));
     unit.getDirectives().add(importDirective("instrumentation.dart", null));

@@ -19,8 +19,6 @@ import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.visitor.ElementLocator;
 import com.google.dart.engine.ast.visitor.NodeLocator;
 import com.google.dart.engine.element.Element;
-import com.google.dart.engine.utilities.source.SourceRange;
-import com.google.dart.engine.utilities.source.SourceRangeFactory;
 
 /**
  * Implementation of {@link XmlExpression} for an {@link Expression} embedded without any wrapping
@@ -60,8 +58,7 @@ public class RawXmlExpression extends XmlExpression {
     ASTNode node = new NodeLocator(offset).searchWithin(expression);
     if (node != null) {
       Element element = ElementLocator.locate(node);
-      SourceRange range = SourceRangeFactory.rangeNode(node);
-      return new Reference(element, range);
+      return new Reference(element, node.getOffset(), node.getLength());
     }
     return null;
   }
