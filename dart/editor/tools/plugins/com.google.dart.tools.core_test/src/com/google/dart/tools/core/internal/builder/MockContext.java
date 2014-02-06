@@ -404,11 +404,6 @@ public class MockContext implements AnalysisContext {
     factory = sourceFactory;
   }
 
-  @Override
-  public Iterable<Source> sourcesToResolve(Source[] changedSources) {
-    throw new UnsupportedOperationException();
-  }
-
   private File[] asFiles(IResource[] resources) {
     if (resources == null) {
       return null;

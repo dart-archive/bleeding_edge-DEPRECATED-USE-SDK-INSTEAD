@@ -515,15 +515,4 @@ public interface AnalysisContext {
    *          context
    */
   public void setSourceFactory(SourceFactory factory);
-
-  /**
-   * Given a collection of sources with content that has changed, return an {@link Iterable}
-   * identifying the sources that need to be resolved.
-   * 
-   * @param changedSources an array of sources (not {@code null}, contains no {@code null}s)
-   * @return An iterable returning the sources to be resolved
-   */
-  // Soon to be deprecated, but the replacement isn't quite ready yet
-  // * @deprecated Use the ChangeResult returned by {@link #changed(ChangeSet)}.
-  public Iterable<Source> sourcesToResolve(Source[] changedSources);
 }

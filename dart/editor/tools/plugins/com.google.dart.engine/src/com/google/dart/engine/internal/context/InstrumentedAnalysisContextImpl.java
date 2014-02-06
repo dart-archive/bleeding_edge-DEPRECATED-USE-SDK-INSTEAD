@@ -681,16 +681,4 @@ public class InstrumentedAnalysisContextImpl implements InternalAnalysisContext 
       instrumentation.log();
     }
   }
-
-  @Override
-  @Deprecated
-  public Iterable<Source> sourcesToResolve(Source[] changedSources) {
-    InstrumentationBuilder instrumentation = Instrumentation.builder("Analysis-sourcesToResolve");
-    try {
-      instrumentation.metric("contextId", contextId);
-      return basis.sourcesToResolve(changedSources);
-    } finally {
-      instrumentation.log();
-    }
-  }
 }

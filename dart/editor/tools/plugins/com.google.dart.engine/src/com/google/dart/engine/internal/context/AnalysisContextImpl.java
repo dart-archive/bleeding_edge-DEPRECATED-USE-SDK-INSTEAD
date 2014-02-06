@@ -1230,18 +1230,6 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     }
   }
 
-  @Override
-  @Deprecated
-  public Iterable<Source> sourcesToResolve(Source[] changedSources) {
-    List<Source> librarySources = new ArrayList<Source>();
-    for (Source source : changedSources) {
-      if (computeKindOf(source) == SourceKind.LIBRARY) {
-        librarySources.add(source);
-      }
-    }
-    return librarySources;
-  }
-
   /**
    * Record the results produced by performing a {@link ResolveDartLibraryTask}. If the results were
    * computed from data that is now out-of-date, then the results will not be recorded.
