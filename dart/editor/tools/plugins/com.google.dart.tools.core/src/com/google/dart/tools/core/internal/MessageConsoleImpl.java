@@ -67,7 +67,7 @@ public class MessageConsoleImpl implements MessageConsole {
 
   @Override
   public void printSeparator(String sectionTitle) {
-    String time = DateFormat.getDateTimeInstance().format(new GregorianCalendar().getTime());
+    String time = DateFormat.getTimeInstance().format(new GregorianCalendar().getTime());
 
     println("\n--- " + time + " " + sectionTitle + " ---");
   }

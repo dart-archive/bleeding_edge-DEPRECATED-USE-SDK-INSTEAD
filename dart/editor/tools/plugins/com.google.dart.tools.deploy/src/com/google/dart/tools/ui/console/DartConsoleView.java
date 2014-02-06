@@ -488,7 +488,7 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
 
       setPartName(process.getLaunch().getLaunchConfiguration().getName());
     } else {
-      setPartName("Output");
+      setPartName("Tools Output");
     }
   }
 
