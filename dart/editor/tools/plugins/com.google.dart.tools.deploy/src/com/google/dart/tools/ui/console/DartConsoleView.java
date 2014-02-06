@@ -48,6 +48,7 @@ import org.eclipse.ui.console.IOConsole;
 import org.eclipse.ui.console.MessageConsole;
 import org.eclipse.ui.console.TextConsole;
 import org.eclipse.ui.dialogs.PreferencesUtil;
+import org.eclipse.ui.internal.console.IOConsolePage;
 import org.eclipse.ui.part.IPageBookViewPage;
 import org.eclipse.ui.part.PageSite;
 import org.eclipse.ui.part.ViewPart;
@@ -87,7 +88,6 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
       };
 
       new Thread(r).start();
-
     }
   }
 
@@ -115,6 +115,23 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
           null);
 
       dialog.open();
+    }
+  }
+
+  private class ScrollLockAction extends Action {
+    public ScrollLockAction() {
+      super("Pin Console");
+
+      setImageDescriptor(Activator.getImageDescriptor("icons/full/eview16/pin.gif"));
+      setChecked(getScrollLock());
+    }
+
+    /**
+     * @see org.eclipse.jface.action.IAction#run()
+     */
+    @Override
+    public void run() {
+      setScrollLock(isChecked());
     }
   }
 
@@ -191,6 +208,7 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
 
   private TerminateAction terminateAction;
   private ClearAction clearAction;
+  private ScrollLockAction pinAction;
   private IAction propertiesAction;
 
   private Display display;
@@ -203,6 +221,8 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
       doPropertyChange(event);
     }
   };
+
+  private boolean scrollLock;
 
   public DartConsoleView() {
     DartConsoleManager.getManager().consoleViewOpened(this);
@@ -219,6 +239,7 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
     getPreferences().addPropertyChangeListener(propertyChangeListener);//background
 
     clearAction = new ClearAction();
+    pinAction = new ScrollLockAction();
     propertiesAction = new PropertiesAction();
     terminateAction = new TerminateAction();
 
@@ -316,7 +337,7 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
 
   @Override
   public boolean getScrollLock() {
-    return false;
+    return scrollLock;
   }
 
   public boolean isDead() {
@@ -374,7 +395,11 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
 
   @Override
   public void setScrollLock(boolean scrollLock) {
+    this.scrollLock = scrollLock;
 
+    if (page instanceof IOConsolePage) {
+      ((IOConsolePage) page).setAutoScroll(!scrollLock);
+    }
   }
 
   @Override
@@ -495,6 +520,7 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
 
     toolbar.add(clearAction);
     toolbar.add(propertiesAction);
+    toolbar.add(pinAction);
     toolbar.add(new Separator());
     toolbar.add(terminateAction);
     toolbar.add(new Separator("outputGroup"));
