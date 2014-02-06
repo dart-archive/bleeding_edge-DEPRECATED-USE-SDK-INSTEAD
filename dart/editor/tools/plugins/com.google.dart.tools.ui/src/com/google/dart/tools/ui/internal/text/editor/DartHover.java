@@ -62,7 +62,6 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.eclipse.ui.forms.widgets.Section;
 import org.eclipse.ui.texteditor.ITextEditor;
@@ -343,14 +342,14 @@ public class DartHover implements ITextHover, ITextHoverExtension, ITextHoverExt
   private static class TextSection {
     private final FormToolkit toolkit;
     private final Section section;
-    private final Text textWidget;
+    private final StyledText textWidget;
 
     public TextSection(Composite parent, String title) {
       toolkit = createToolkit(parent.getDisplay());
       this.section = toolkit.createSection(parent, Section.TITLE_BAR);
       GridDataFactory.create(section).grabHorizontal().fill();
       section.setText(title);
-      textWidget = new Text(section, SWT.MULTI | SWT.READ_ONLY | SWT.WRAP);
+      textWidget = new StyledText(section, SWT.MULTI | SWT.READ_ONLY | SWT.WRAP);
       toolkit.adapt(textWidget, false, false);
       section.setClient(textWidget);
     }
