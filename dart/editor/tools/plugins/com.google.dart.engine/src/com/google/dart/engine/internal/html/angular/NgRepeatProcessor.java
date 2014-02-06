@@ -20,6 +20,8 @@ import com.google.dart.engine.ast.DeclaredIdentifier;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.ForEachStatement;
 import com.google.dart.engine.ast.ListLiteral;
+import com.google.dart.engine.ast.MapLiteral;
+import com.google.dart.engine.ast.MapLiteralEntry;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.SimpleStringLiteral;
 import com.google.dart.engine.ast.Statement;
@@ -139,16 +141,37 @@ class NgRepeatProcessor extends NgDirectiveProcessor {
   }
 
   /**
+   * Resolves an argument for "filter" filter.
+   */
+  private void resolveFilterArgument_filter(AngularHtmlUnitResolver resolver, Type itemType,
+      AngularFilterArgument argument, int argIndex) {
+    Expression arg = argument.getExpression();
+    // only first argument is special for "filter"
+    if (argIndex != 0) {
+      resolver.resolveNode(arg);
+      return;
+    }
+    // Map
+    if (arg instanceof MapLiteral) {
+      List<Expression> expressions = Lists.newArrayList();
+      List<MapLiteralEntry> entries = ((MapLiteral) arg).getEntries();
+      for (MapLiteralEntry mapEntry : entries) {
+        Expression keyExpr = mapEntry.getKey();
+        if (keyExpr instanceof SimpleIdentifier) {
+          SimpleIdentifier propertyNode = (SimpleIdentifier) keyExpr;
+          resolvePropertyNode(resolver, expressions, itemType, propertyNode);
+        }
+      }
+      // set resolved sub-expressions
+      argument.setSubExpressions(expressions.toArray(new Expression[expressions.size()]));
+    }
+  }
+
+  /**
    * Resolves an argument for "orderBy" filter.
    */
   private void resolveFilterArgument_orderBy(AngularHtmlUnitResolver resolver,
       List<Expression> expressions, Type itemType, Expression arg, int argIndex) {
-    // only first argument is special for "orderBy"
-    if (argIndex != 0) {
-      resolver.resolveNode(arg);
-      expressions.add(arg);
-      return;
-    }
     // List of properties
     if (arg instanceof ListLiteral) {
       List<Expression> subArgs = ((ListLiteral) arg).getElements();
@@ -178,20 +201,7 @@ class NgRepeatProcessor extends NgDirectiveProcessor {
       arg = resolver.parseDartExpression(exprSource, argOffset);
       if (arg instanceof SimpleIdentifier) {
         SimpleIdentifier propertyNode = (SimpleIdentifier) arg;
-        // if known type - resolve, otherwise keep it 'dynamic'
-        if (itemType instanceof InterfaceType) {
-          String propertyName = propertyNode.getName();
-          Element propertyElement = ((InterfaceType) itemType).getGetter(propertyName);
-          if (propertyElement != null) {
-            propertyNode.setStaticElement(propertyElement);
-          }
-        } else {
-          Type dynamicType = resolver.getTypeProvider().getDynamicType();
-          propertyNode.setStaticElement(dynamicType.getElement());
-          propertyNode.setStaticType(dynamicType);
-        }
-        // add argument
-        expressions.add(arg);
+        resolvePropertyNode(resolver, expressions, itemType, propertyNode);
       }
     }
   }
@@ -218,6 +228,9 @@ class NgRepeatProcessor extends NgDirectiveProcessor {
       String filterName, List<AngularFilterArgument> arguments) {
     int index = 0;
     for (AngularFilterArgument argument : arguments) {
+      if ("filter".equals(filterName)) {
+        resolveFilterArgument_filter(resolver, itemType, argument, index);
+      }
       if ("orderBy".equals(filterName)) {
         resolveFilterArgument_orderBy(resolver, itemType, argument, index);
       }
@@ -238,5 +251,23 @@ class NgRepeatProcessor extends NgDirectiveProcessor {
       // resolve filter arguments
       resolveFilterArguments(resolver, itemType, filterName, filter.getArguments());
     }
+  }
+
+  private void resolvePropertyNode(AngularHtmlUnitResolver resolver, List<Expression> expressions,
+      Type itemType, SimpleIdentifier propertyNode) {
+    // if known type - resolve, otherwise keep it 'dynamic'
+    if (itemType instanceof InterfaceType) {
+      String propertyName = propertyNode.getName();
+      Element propertyElement = ((InterfaceType) itemType).getGetter(propertyName);
+      if (propertyElement != null) {
+        propertyNode.setStaticElement(propertyElement);
+      }
+    } else {
+      Type dynamicType = resolver.getTypeProvider().getDynamicType();
+      propertyNode.setStaticElement(dynamicType.getElement());
+      propertyNode.setStaticType(dynamicType);
+    }
+    // add argument
+    expressions.add(propertyNode);
   }
 }

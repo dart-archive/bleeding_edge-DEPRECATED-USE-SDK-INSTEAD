@@ -299,6 +299,25 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
     assertErrors(indexSource, AngularCode.INVALID_REPEAT_SYNTAX);
   }
 
+  public void test_ngRepeat_filters_filter_literal() throws Exception {
+    addMyController();
+    resolveIndexNoErrors(createHtmlWithMyController(//
+        "<li ng-repeat='item in ctrl.items | filter:42:null'/>",
+        "</li>"));
+    // filter "filter" is resolved
+    Element filterElement = assertResolvedIdentifier("filter");
+    assertInstanceOf(AngularFilterElement.class, filterElement);
+  }
+
+  public void test_ngRepeat_filters_filter_propertyMap() throws Exception {
+    addMyController();
+    resolveIndexNoErrors(createHtmlWithMyController(//
+        "<li ng-repeat='item in ctrl.items | filter:{name:null, done:false}'/>",
+        "</li>"));
+    assertResolvedIdentifier("name:", "String");
+    assertResolvedIdentifier("done:", "bool");
+  }
+
   public void test_ngRepeat_filters_missingColon() throws Exception {
     addMyController();
     resolveIndex(createHtmlWithMyController(//
