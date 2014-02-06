@@ -271,7 +271,6 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
                     namedExpression("radix", args.get(1))));
           }
         }
-        replaceStringWithCharSequence(binding, args);
         return null;
       }
 
@@ -312,6 +311,7 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
         //
         if (args.isEmpty()) {
           if ("hashCode".equals(name) || isMethodInClass(node, "length", "java.lang.String")
+              || isMethodInClass(node, "length", "java.lang.CharSequence")
               || isMethodInClass(node, "isEmpty", "java.lang.String")
               || isMethodInClass(node, "name", "java.lang.Enum")
               || isMethodInClass(node, "ordinal", "java.lang.Enum")
@@ -441,6 +441,14 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
         }
         if (isMethodInClass(node, "format", "java.lang.String")) {
           replaceNode(target, identifier("JavaString"));
+          return null;
+        }
+        if (isMethodInClass(node, "charAt", "java.lang.CharSequence")) {
+          nameNode.setToken(token("codeUnitAt"));
+          return null;
+        }
+        if (isMethodInClass(node, "subSequence", "java.lang.CharSequence")) {
+          nameNode.setToken(token("substring"));
           return null;
         }
         if (isMethodInClass(node, "compile", "java.util.regex.Pattern")) {
@@ -577,7 +585,6 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
               assignmentExpression(propertyAccess(target, nameNode), TokenType.EQ, args.get(0)));
           return null;
         }
-        replaceStringWithCharSequence(binding, args);
         return null;
       }
 
@@ -664,6 +671,9 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
           if (name.equals("StringBuilder")) {
             replaceNode(nameNode, identifier("JavaStringBuilder"));
           }
+          if (name.equals("CharSequence")) {
+            replaceNode(nameNode, identifier("String"));
+          }
           // java.util.regex.*
           if (JavaUtils.isTypeNamed(typeBinding, "java.util.regex.Pattern")) {
             replaceNode(nameNode, identifier("RegExp"));
@@ -720,23 +730,5 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
         replaceNode(placeholder, x);
       }
     });
-  }
-
-  private void replaceStringWithCharSequence(IMethodBinding methodBinding, List<Expression> args) {
-    if (methodBinding == null) {
-      return;
-    }
-    ITypeBinding[] parameterTypes = methodBinding.getParameterTypes();
-    for (int i = 0; i < parameterTypes.length; i++) {
-      ITypeBinding parameterType = parameterTypes[i];
-      Expression arg = args.get(i);
-      ITypeBinding leftBinding = parameterType;
-      ITypeBinding rightBinding = context.getNodeTypeBinding(arg);
-      if (JavaUtils.isTypeNamed(leftBinding, "java.lang.CharSequence")
-          && JavaUtils.isTypeNamed(rightBinding, "java.lang.String")) {
-        arg = instanceCreationExpression(Keyword.NEW, typeName("CharSequence"), arg);
-        args.set(i, arg);
-      }
-    }
   }
 }

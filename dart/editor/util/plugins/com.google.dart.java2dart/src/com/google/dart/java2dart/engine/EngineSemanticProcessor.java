@@ -592,7 +592,7 @@ public class EngineSemanticProcessor extends SemanticProcessor {
           ExpressionStatement statement = expressionStatement(methodInvocation(
               receiverIdent,
               "accept",
-              methodInvocation(identifier("file"), "readAsCharSequenceSync"),
+              methodInvocation(identifier("file"), "readAsStringSync"),
               methodInvocation(identifier("file"), "lastModified")));
           node.setBody(blockFunctionBody(tryCacheBlock, statement));
           return null;

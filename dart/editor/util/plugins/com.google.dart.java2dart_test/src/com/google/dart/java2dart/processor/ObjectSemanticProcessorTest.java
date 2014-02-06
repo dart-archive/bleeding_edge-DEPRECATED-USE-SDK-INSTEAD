@@ -1061,51 +1061,6 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "}");
   }
 
-  public void test_String_toCharSequence() throws Exception {
-    translateSingleFile(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "package test;",
-        "public class Test {",
-        "  class UseCS {",
-        "    UseCS(CharSequence cs) { ",
-        "    }",
-        "  }",
-        "  void testA(String s) {",
-        "    CharSequence cs;",
-        "    cs = s;",
-        "  }",
-        "  void testB(String s) {",
-        "    CharSequence cs = s;",
-        "  }",
-        "  void testC(String s) {",
-        "    useCS(s);",
-        "    new UseCS(s);",
-        "  }",
-        "  void useCS(CharSequence cs) {",
-        "  }",
-        "}");
-    runProcessor();
-    assertFormattedSource(
-        "class Test {",
-        "  void testA(String s) {",
-        "    CharSequence cs;",
-        "    cs = new CharSequence(s);",
-        "  }",
-        "  void testB(String s) {",
-        "    CharSequence cs = new CharSequence(s);",
-        "  }",
-        "  void testC(String s) {",
-        "    useCS(new CharSequence(s));",
-        "    new Test_UseCS(new CharSequence(s));",
-        "  }",
-        "  void useCS(CharSequence cs) {",
-        "  }",
-        "}",
-        "class Test_UseCS {",
-        "  Test_UseCS(CharSequence cs);",
-        "}");
-  }
-
   public void test_StringBuilder() throws Exception {
     translateSingleFile(
         "// filler filler filler filler filler filler filler filler filler filler",

@@ -32,7 +32,7 @@ public class WorkManager {
    */
   @SuppressWarnings("unchecked")
   public WorkManager() {
-    int queueCount = WorkManagerPriority.values().length;
+    int queueCount = SourcePriority.values().length;
     workQueues = new ArrayList[queueCount];
     for (int i = 0; i < queueCount; i++) {
       workQueues[i] = new ArrayList<Source>();
@@ -46,7 +46,7 @@ public class WorkManager {
    * @param source the source that needs to be analyzed
    * @param priority the priority level of the source
    */
-  public void add(Source source, WorkManagerPriority priority) {
+  public void add(Source source, SourcePriority priority) {
     // TODO(brianwilkerson) Optimize the order of the libraries so that libraries that depend on
     // other libraries get analyzed after the other libraries.
     int queueCount = workQueues.length;

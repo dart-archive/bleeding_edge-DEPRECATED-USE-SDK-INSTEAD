@@ -18,7 +18,7 @@ package com.google.dart.engine.internal.context;
  * The enumerated type {@code Priority} defines the priority levels used to return sources in an
  * optimal order.
  */
-public enum WorkManagerPriority {
+public enum SourcePriority {
   /**
    * Used for a Dart source that is known to be a part contained in a library that was recently
    * resolved. These parts are given a higher priority because there is a high probability that
