@@ -56,10 +56,7 @@
     };
     helperSuitesInfo =     (
                 {
-            filePath = "/usr/local/google/home/messick/src/dart/dart/editor/ft/Samples.suite";
-        },
-                {
-            filePath = "/Users/messick/src/dart-git/dart/editor/ft/Samples.suite";
+            filePath = "./Samples.suite";
         }
     );
 }
