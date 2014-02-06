@@ -101,6 +101,7 @@ public class WebkitConnection {
   private WebkitDomDebugger domDebugger;
   private WebkitWorker worker;
   private WebkitNetwork network;
+  private WebkitObservatory observatory;
 
   private int requestId = 0;
 
@@ -243,6 +244,14 @@ public class WebkitConnection {
     }
 
     return network;
+  }
+
+  public WebkitObservatory getObservatory() {
+    if (observatory == null) {
+      observatory = new WebkitObservatory(this);
+    }
+
+    return observatory;
   }
 
   public WebkitPage getPage() {
