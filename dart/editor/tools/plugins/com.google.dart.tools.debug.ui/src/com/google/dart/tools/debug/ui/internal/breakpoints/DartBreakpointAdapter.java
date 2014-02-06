@@ -22,6 +22,9 @@ import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.model.IBreakpoint;
 import org.eclipse.debug.core.model.ILineBreakpoint;
 import org.eclipse.debug.ui.actions.IToggleBreakpointsTarget;
+import org.eclipse.jface.text.BadLocationException;
+import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.ui.IWorkbenchPart;
@@ -67,6 +70,7 @@ public class DartBreakpointAdapter implements IToggleBreakpointsTarget {
 
       int lineNumber = textSelection.getStartLine() + 1;
 
+      // Remove a breakpoint if one is set on this line.
       IBreakpoint[] breakpoints = DebugPlugin.getDefault().getBreakpointManager().getBreakpoints(
           DartDebugCorePlugin.DEBUG_MODEL_ID);
 
@@ -81,8 +85,28 @@ public class DartBreakpointAdapter implements IToggleBreakpointsTarget {
         }
       }
 
-      DartBreakpoint breakpoint = new DartBreakpoint(resource, lineNumber);
+      // Check for a whitespace line.
+      try {
+        IDocument document = editor.getDocumentProvider().getDocument(editor.getEditorInput());
+        IRegion lineInfo = document.getLineInformation(textSelection.getStartLine());
+        String line = document.get(lineInfo.getOffset(), lineInfo.getLength());
 
+        line = line.trim();
+
+        // Disallow setting breakpoints on whitespace lines.
+        if (line.length() == 0) {
+          return;
+        }
+
+        // Or line comment lines.
+        if (line.startsWith("//")) {
+          return;
+        }
+      } catch (BadLocationException e) {
+
+      }
+
+      DartBreakpoint breakpoint = new DartBreakpoint(resource, lineNumber);
       DebugPlugin.getDefault().getBreakpointManager().addBreakpoint(breakpoint);
     }
   }
