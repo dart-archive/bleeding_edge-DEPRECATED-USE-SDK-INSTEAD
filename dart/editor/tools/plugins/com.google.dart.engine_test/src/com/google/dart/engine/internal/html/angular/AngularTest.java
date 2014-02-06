@@ -382,6 +382,10 @@ abstract public class AngularTest extends EngineTestCase {
         createSource(
             "library angular;",
             "",
+            "class Scope {",
+            "  operator []=(String name, value) {}",
+            "}",
+            "",
             "class NgFilter {",
             "  final String name;",
             "  const NgFilter({this.name});",

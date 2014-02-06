@@ -19,18 +19,21 @@ import com.google.common.collect.Lists;
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.Annotation;
 import com.google.dart.engine.ast.ArgumentList;
+import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.ClassMember;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.CompilationUnitMember;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.FieldDeclaration;
+import com.google.dart.engine.ast.IndexExpression;
 import com.google.dart.engine.ast.MapLiteral;
 import com.google.dart.engine.ast.MapLiteralEntry;
 import com.google.dart.engine.ast.NamedExpression;
 import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.SimpleStringLiteral;
 import com.google.dart.engine.ast.VariableDeclaration;
+import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
@@ -42,6 +45,7 @@ import com.google.dart.engine.element.angular.AngularDirectiveElement;
 import com.google.dart.engine.element.angular.AngularElement;
 import com.google.dart.engine.element.angular.AngularPropertyElement;
 import com.google.dart.engine.element.angular.AngularPropertyKind;
+import com.google.dart.engine.element.angular.AngularScopePropertyElement;
 import com.google.dart.engine.element.angular.AngularSelectorElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
@@ -53,10 +57,13 @@ import com.google.dart.engine.internal.element.angular.AngularControllerElementI
 import com.google.dart.engine.internal.element.angular.AngularDirectiveElementImpl;
 import com.google.dart.engine.internal.element.angular.AngularFilterElementImpl;
 import com.google.dart.engine.internal.element.angular.AngularPropertyElementImpl;
+import com.google.dart.engine.internal.element.angular.AngularScopePropertyElementImpl;
 import com.google.dart.engine.internal.element.angular.HasAttributeSelectorElementImpl;
 import com.google.dart.engine.internal.element.angular.IsTagHasAttributeSelectorElementImpl;
 import com.google.dart.engine.internal.element.angular.IsTagSelectorElementImpl;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.type.InterfaceType;
+import com.google.dart.engine.type.Type;
 import com.google.dart.engine.utilities.general.StringUtilities;
 
 import java.util.List;
@@ -89,6 +96,14 @@ public class AngularCompilationUnitBuilder {
     // maybe node is not SimpleStringLiteral
     if (!(node instanceof SimpleStringLiteral)) {
       return null;
+    }
+    SimpleStringLiteral literal = (SimpleStringLiteral) node;
+    // maybe has AngularElement
+    {
+      Element element = literal.getToolkitElement();
+      if (element instanceof AngularElement) {
+        return element;
+      }
     }
     // prepare enclosing ClassDeclaration
     ClassDeclaration classDeclaration = node.getAncestor(ClassDeclaration.class);
@@ -438,6 +453,7 @@ public class AngularCompilationUnitBuilder {
       element.setStyleUri(styleUri);
       element.setStyleUriOffset(styleUriOffset);
       element.setProperties(parseNgComponentProperties(true));
+      element.setScopeProperties(parseScopeProperties());
       classToolkitObjects.add(element);
     }
   }
@@ -642,6 +658,51 @@ public class AngularCompilationUnitBuilder {
       int nameOffset = getStringArgumentOffset(NAME);
       classToolkitObjects.add(new AngularFilterElementImpl(name, nameOffset));
     }
+  }
+
+  private AngularScopePropertyElement[] parseScopeProperties() {
+    final List<AngularScopePropertyElement> properties = Lists.newArrayList();
+    classDeclaration.accept(new RecursiveASTVisitor<Void>() {
+      @Override
+      public Void visitAssignmentExpression(AssignmentExpression node) {
+        SimpleStringLiteral nameNode = getNameNode(node.getLeftHandSide());
+        if (nameNode != null) {
+          String name = nameNode.getStringValue();
+          int nameOffset = nameNode.getValueOffset();
+          AngularScopePropertyElement property = new AngularScopePropertyElementImpl(
+              name,
+              nameOffset,
+              node.getRightHandSide().getBestType());
+          nameNode.setToolkitElement(property);
+          properties.add(property);
+        }
+        return super.visitAssignmentExpression(node);
+      }
+
+      private SimpleStringLiteral getNameNode(Expression node) {
+        if (node instanceof IndexExpression) {
+          IndexExpression indexExpression = (IndexExpression) node;
+          Expression target = indexExpression.getTarget();
+          Expression index = indexExpression.getIndex();
+          if (index instanceof SimpleStringLiteral && isScope(target)) {
+            return (SimpleStringLiteral) index;
+          }
+        }
+        return null;
+      }
+
+      private boolean isScope(Expression target) {
+        if (target != null) {
+          Type type = target.getBestType();
+          if (type instanceof InterfaceType) {
+            InterfaceType interfaceType = (InterfaceType) type;
+            return interfaceType.getName().equals("Scope");
+          }
+        }
+        return false;
+      }
+    });
+    return properties.toArray(new AngularScopePropertyElement[properties.size()]);
   }
 
   private void reportError(ASTNode node, ErrorCode errorCode, Object... arguments) {

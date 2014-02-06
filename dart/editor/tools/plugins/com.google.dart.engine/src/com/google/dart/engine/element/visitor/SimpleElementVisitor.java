@@ -41,6 +41,7 @@ import com.google.dart.engine.element.angular.AngularControllerElement;
 import com.google.dart.engine.element.angular.AngularDirectiveElement;
 import com.google.dart.engine.element.angular.AngularFilterElement;
 import com.google.dart.engine.element.angular.AngularPropertyElement;
+import com.google.dart.engine.element.angular.AngularScopePropertyElement;
 import com.google.dart.engine.element.angular.AngularSelectorElement;
 
 /**
@@ -74,6 +75,11 @@ public class SimpleElementVisitor<R> implements ElementVisitor<R> {
 
   @Override
   public R visitAngularPropertyElement(AngularPropertyElement element) {
+    return null;
+  }
+
+  @Override
+  public R visitAngularScopePropertyElement(AngularScopePropertyElement element) {
     return null;
   }
 

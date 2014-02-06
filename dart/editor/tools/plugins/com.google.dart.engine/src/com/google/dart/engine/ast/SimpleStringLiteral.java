@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.ast;
 
+import com.google.dart.engine.element.Element;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.utilities.general.StringUtilities;
 
@@ -55,6 +56,11 @@ public class SimpleStringLiteral extends StringLiteral {
   private String value;
 
   /**
+   * The toolkit specific element associated with this literal, or {@code null}.
+   */
+  private Element toolkitElement;
+
+  /**
    * Initialize a newly created simple string literal.
    * 
    * @param literal the token representing the literal
@@ -87,6 +93,15 @@ public class SimpleStringLiteral extends StringLiteral {
    */
   public Token getLiteral() {
     return literal;
+  }
+
+  /**
+   * Return the toolkit specific, non-Dart, element associated with this literal, or {@code null}.
+   * 
+   * @return the element associated with this literal
+   */
+  public Element getToolkitElement() {
+    return toolkitElement;
   }
 
   /**
@@ -151,6 +166,15 @@ public class SimpleStringLiteral extends StringLiteral {
    */
   public void setLiteral(Token literal) {
     this.literal = literal;
+  }
+
+  /**
+   * Set the toolkit specific, non-Dart, element associated with this literal.
+   * 
+   * @param element the toolkit specific element to be associated with this literal
+   */
+  public void setToolkitElement(Element element) {
+    toolkitElement = element;
   }
 
   /**

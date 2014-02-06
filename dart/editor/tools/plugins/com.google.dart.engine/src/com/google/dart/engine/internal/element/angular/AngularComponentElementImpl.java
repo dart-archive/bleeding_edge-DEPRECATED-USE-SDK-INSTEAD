@@ -18,6 +18,7 @@ import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.ElementVisitor;
 import com.google.dart.engine.element.angular.AngularComponentElement;
 import com.google.dart.engine.element.angular.AngularPropertyElement;
+import com.google.dart.engine.element.angular.AngularScopePropertyElement;
 import com.google.dart.engine.source.Source;
 
 /**
@@ -36,6 +37,11 @@ public class AngularComponentElementImpl extends AngularHasSelectorElementImpl i
    * The array containing all of the properties declared by this component.
    */
   private AngularPropertyElement[] properties = AngularPropertyElement.EMPTY_ARRAY;
+
+  /**
+   * The array containing all of the scope properties set by this component.
+   */
+  private AngularScopePropertyElement[] scopeProperties = AngularScopePropertyElement.EMPTY_ARRAY;
 
   /**
    * The the CSS file URI.
@@ -90,6 +96,11 @@ public class AngularComponentElementImpl extends AngularHasSelectorElementImpl i
   }
 
   @Override
+  public AngularScopePropertyElement[] getScopeProperties() {
+    return scopeProperties;
+  }
+
+  @Override
   public String getStyleUri() {
     return styleUri;
   }
@@ -124,6 +135,18 @@ public class AngularComponentElementImpl extends AngularHasSelectorElementImpl i
       encloseElement((AngularPropertyElementImpl) property);
     }
     this.properties = properties;
+  }
+
+  /**
+   * Set an array containing all of the scope properties declared by this component.
+   * 
+   * @param properties the properties to set
+   */
+  public void setScopeProperties(AngularScopePropertyElement[] properties) {
+    for (AngularScopePropertyElement property : properties) {
+      encloseElement((AngularScopePropertyElementImpl) property);
+    }
+    this.scopeProperties = properties;
   }
 
   /**

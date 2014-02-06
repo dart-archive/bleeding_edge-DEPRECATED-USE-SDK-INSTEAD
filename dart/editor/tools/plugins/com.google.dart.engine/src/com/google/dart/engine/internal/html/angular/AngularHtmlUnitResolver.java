@@ -38,6 +38,7 @@ import com.google.dart.engine.element.angular.AngularControllerElement;
 import com.google.dart.engine.element.angular.AngularDirectiveElement;
 import com.google.dart.engine.element.angular.AngularElement;
 import com.google.dart.engine.element.angular.AngularFilterElement;
+import com.google.dart.engine.element.angular.AngularScopePropertyElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.error.AngularCode;
@@ -612,11 +613,22 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
   }
 
   /**
-   * Defines variable for the given {@link AngularElement}.
+   * Defines variable for the given {@link AngularElement} with type of the enclosing
+   * {@link ClassElement}.
    */
-  private void defineTopElementVariable(AngularElement element) {
+  private void defineTopVariable_forClassElement(AngularElement element) {
     ClassElement classElement = (ClassElement) element.getEnclosingElement();
     InterfaceType type = classElement.getType();
+    LocalVariableElementImpl variable = createLocalVariable(type, element.getName());
+    defineTopVariable(variable);
+    variable.setToolkitObjects(new AngularElement[] {element});
+  }
+
+  /**
+   * Defines variable for the given {@link AngularScopePropertyElement}.
+   */
+  private void defineTopVariable_forScopeProperty(AngularScopePropertyElement element) {
+    Type type = element.getType();
     LocalVariableElementImpl variable = createLocalVariable(type, element.getName());
     defineTopVariable(variable);
     variable.setToolkitObjects(new AngularElement[] {element});
@@ -739,13 +751,6 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
     for (AngularElement angularElement : angularElements) {
       injectedLibraries.add(angularElement.getLibrary());
     }
-    // add accessible processors
-    for (AngularElement angularElement : angularElements) {
-      NgProcessor processor = createProcessor(angularElement);
-      if (processor != null) {
-        processors.add(processor);
-      }
-    }
     // prepare Dart library
     createLibraryElement();
     ((HtmlElementImpl) unit.getElement()).setAngularCompilationUnit(unitElement);
@@ -753,12 +758,22 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
     createResolver();
     // maybe resolving component template
     if (component != null) {
-      defineTopElementVariable(component);
+      defineTopVariable_forClassElement(component);
+      for (AngularScopePropertyElement scopeProperty : component.getScopeProperties()) {
+        defineTopVariable_forScopeProperty(scopeProperty);
+      }
+    }
+    // add processors
+    for (AngularElement angularElement : angularElements) {
+      NgProcessor processor = createProcessor(angularElement);
+      if (processor != null) {
+        processors.add(processor);
+      }
     }
     // define filters
     for (AngularElement angularElement : angularElements) {
       if (angularElement instanceof AngularFilterElement) {
-        defineTopElementVariable(angularElement);
+        defineTopVariable_forClassElement(angularElement);
       }
     }
     // run this HTML visitor

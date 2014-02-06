@@ -28,6 +28,12 @@ public interface AngularComponentElement extends AngularHasSelectorElement {
   AngularPropertyElement[] getProperties();
 
   /**
+   * Return an array containing all of the scope properties set in the implementation of this
+   * component.
+   */
+  AngularScopePropertyElement[] getScopeProperties();
+
+  /**
    * Returns the CSS file URI.
    */
   String getStyleUri();

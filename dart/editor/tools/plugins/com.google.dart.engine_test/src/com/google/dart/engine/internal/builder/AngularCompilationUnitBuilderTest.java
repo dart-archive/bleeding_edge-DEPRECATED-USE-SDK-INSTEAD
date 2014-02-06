@@ -28,6 +28,7 @@ import com.google.dart.engine.element.angular.AngularElement;
 import com.google.dart.engine.element.angular.AngularFilterElement;
 import com.google.dart.engine.element.angular.AngularPropertyElement;
 import com.google.dart.engine.element.angular.AngularPropertyKind;
+import com.google.dart.engine.element.angular.AngularScopePropertyElement;
 import com.google.dart.engine.element.angular.AngularSelectorElement;
 import com.google.dart.engine.error.AngularCode;
 import com.google.dart.engine.internal.element.angular.HasAttributeSelectorElementImpl;
@@ -590,6 +591,55 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
     assertEquals("my_styles.css", component.getStyleUri());
     assertEquals(findOffset(mainContent, "my_styles.css'"), component.getStyleUriOffset());
     assertLength(0, component.getProperties());
+  }
+
+  public void test_NgComponent_scopeProperties() throws Exception {
+    contextHelper.addSource("/my_template.html", "");
+    contextHelper.addSource("/my_styles.css", "");
+    String mainContent = createAngularSource(//
+        "@NgComponent(publishAs: 'ctrl', selector: 'myComp',",
+        "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css')",
+        "class MyComponent {",
+        "  MyComponent(Scope scope) {",
+        "    scope['boolProp'] = true;",
+        "    scope['intProp'] = 42;",
+        "    scope['stringProp'] = 'foo';",
+        "    // LHS is not an IndexExpression",
+        "    var v1;",
+        "    v1 = 1;",
+        "    // LHS is not a Scope access",
+        "    var v2;",
+        "    v2['name'] = 2;",
+        "  }",
+        "}");
+    resolveMainSourceNoErrors(mainContent);
+    // prepare AngularComponentElement
+    ClassElement classElement = mainUnitElement.getType("MyComponent");
+    AngularComponentElement component = getAngularElement(
+        classElement,
+        AngularComponentElement.class);
+    assertNotNull(component);
+    // verify
+    AngularScopePropertyElement[] scopeProperties = component.getScopeProperties();
+    assertLength(3, scopeProperties);
+    {
+      AngularScopePropertyElement property = scopeProperties[0];
+      assertEquals("boolProp", property.getName());
+      assertEquals(findOffset(mainContent, "boolProp'"), property.getNameOffset());
+      assertEquals("bool", property.getType().getName());
+    }
+    {
+      AngularScopePropertyElement property = scopeProperties[1];
+      assertEquals("intProp", property.getName());
+      assertEquals(findOffset(mainContent, "intProp'"), property.getNameOffset());
+      assertEquals("int", property.getType().getName());
+    }
+    {
+      AngularScopePropertyElement property = scopeProperties[2];
+      assertEquals("stringProp", property.getName());
+      assertEquals(findOffset(mainContent, "stringProp'"), property.getNameOffset());
+      assertEquals("String", property.getType().getName());
+    }
   }
 
   public void test_NgController() throws Exception {

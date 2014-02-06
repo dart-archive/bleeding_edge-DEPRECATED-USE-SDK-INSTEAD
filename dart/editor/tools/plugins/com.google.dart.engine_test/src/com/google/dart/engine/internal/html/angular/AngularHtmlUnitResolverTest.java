@@ -22,6 +22,7 @@ import com.google.dart.engine.element.angular.AngularElement;
 import com.google.dart.engine.element.angular.AngularFilterElement;
 import com.google.dart.engine.element.angular.AngularPropertyElement;
 import com.google.dart.engine.element.angular.AngularPropertyKind;
+import com.google.dart.engine.element.angular.AngularScopePropertyElement;
 import com.google.dart.engine.element.angular.AngularSelectorElement;
 import com.google.dart.engine.error.AngularCode;
 import com.google.dart.engine.error.StaticWarningCode;
@@ -152,6 +153,36 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
       assertEquals("attrB", element.getName());
       assertEquals("setB", element.getField().getName());
     }
+  }
+
+  public void test_NgComponent_useScopeProperties() throws Exception {
+    addMainSource(createSource("",//
+        "import 'angular.dart';",
+        "",
+        "@NgComponent(",
+        "    templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
+        "    publishAs: 'ctrl',",
+        "    selector: 'myComponent')",
+        "class MyComponent {",
+        "  String field;",
+        "  MyComponent(Scope scope) {",
+        "    scope['scopeProperty'] = 'abc';",
+        "  }",
+        "}"));
+    contextHelper.addSource("/entry-point.html", createHtmlWithAngular());
+    addIndexSource("/my_template.html", createSource(//
+        "    <div>",
+        "      {{scopeProperty}}",
+        "    </div>"));
+    contextHelper.addSource("/my_styles.css", "");
+    contextHelper.runTasks();
+    resolveIndex();
+    assertNoErrors();
+    // "scopeProperty" is resolved
+    Element element = assertResolvedIdentifier("scopeProperty}}", "String");
+    assertInstanceOf(
+        AngularScopePropertyElement.class,
+        AngularHtmlUnitResolver.getAngularElement(element));
   }
 
   public void test_NgDirective_resolvedExpression_attrString() throws Exception {

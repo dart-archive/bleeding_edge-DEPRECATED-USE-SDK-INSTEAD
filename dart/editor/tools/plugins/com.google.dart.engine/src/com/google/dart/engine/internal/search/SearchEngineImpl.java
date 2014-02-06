@@ -343,6 +343,7 @@ public class SearchEngineImpl implements SearchEngine {
       case ANGULAR_CONTROLLER:
       case ANGULAR_FILTER:
       case ANGULAR_PROPERTY:
+      case ANGULAR_SCOPE_PROPERTY:
       case ANGULAR_SELECTOR:
         searchReferences((AngularElement) element, scope, filter, listener);
         return;
