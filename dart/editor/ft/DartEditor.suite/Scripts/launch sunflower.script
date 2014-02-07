@@ -1,6 +1,6 @@
 Click "run button"
 Wait 5
-WaitFor 10, "browser right arrow button"
+WaitFor 20, "browser right arrow button"
 Click "browser right arrow button"
 WaitFor 20,"sunflower slider"
 Click "sunflower slider"
