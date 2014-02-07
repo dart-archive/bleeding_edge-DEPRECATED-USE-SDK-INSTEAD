@@ -20,9 +20,13 @@ import com.google.dart.engine.html.scanner.Token;
 import com.google.dart.engine.html.scanner.TokenType;
 import com.google.dart.engine.source.Source;
 
+import static com.google.dart.engine.html.scanner.TokenType.COMMENT;
+import static com.google.dart.engine.html.scanner.TokenType.DECLARATION;
+import static com.google.dart.engine.html.scanner.TokenType.DIRECTIVE;
 import static com.google.dart.engine.html.scanner.TokenType.EOF;
 import static com.google.dart.engine.html.scanner.TokenType.EQ;
 import static com.google.dart.engine.html.scanner.TokenType.GT;
+import static com.google.dart.engine.html.scanner.TokenType.LT;
 import static com.google.dart.engine.html.scanner.TokenType.LT_SLASH;
 import static com.google.dart.engine.html.scanner.TokenType.SLASH_GT;
 import static com.google.dart.engine.html.scanner.TokenType.STRING;
@@ -126,29 +130,20 @@ public class XmlParser {
   protected List<XmlTagNode> parseTopTagNodes(Token firstToken) {
     currentToken = firstToken;
     List<XmlTagNode> tagNodes = new ArrayList<XmlTagNode>();
-    while (true) {
-      switch (currentToken.getType()) {
-
-        case LT:
-          tagNodes.add(parseTagNode());
-          break;
-
-        case DECLARATION:
-        case DIRECTIVE:
-        case COMMENT:
-          // ignored tokens
-          currentToken = currentToken.getNext();
-          break;
-
-        case EOF:
-          return tagNodes;
-
-        default:
-          reportUnexpectedToken();
-          currentToken = currentToken.getNext();
-          break;
+    TokenType type = currentToken.getType();
+    while (type != EOF) {
+      if (type == LT) {
+        tagNodes.add(parseTagNode());
+      } else if (type == DECLARATION || type == DIRECTIVE || type == COMMENT) {
+        // ignored tokens
+        currentToken = currentToken.getNext();
+      } else {
+        reportUnexpectedToken();
+        currentToken = currentToken.getNext();
       }
+      type = currentToken.getType();
     }
+    return tagNodes;
   }
 
   /**
@@ -220,24 +215,16 @@ public class XmlParser {
       return XmlTagNode.NO_ATTRIBUTES;
     }
     ArrayList<XmlAttributeNode> attributes = new ArrayList<XmlAttributeNode>();
-    while (true) {
-      switch (currentToken.getType()) {
-
-        case GT:
-        case SLASH_GT:
-        case EOF:
-          return attributes;
-
-        case TAG:
-          attributes.add(parseAttribute());
-          break;
-
-        default:
-          reportUnexpectedToken();
-          currentToken = currentToken.getNext();
-          break;
+    while (type != GT && type != SLASH_GT && type != EOF) {
+      if (type == TAG) {
+        attributes.add(parseAttribute());
+      } else {
+        reportUnexpectedToken();
+        currentToken = currentToken.getNext();
       }
+      type = currentToken.getType();
     }
+    return attributes;
   }
 
   /**
@@ -252,28 +239,19 @@ public class XmlParser {
       return XmlTagNode.NO_TAG_NODES;
     }
     ArrayList<XmlTagNode> nodes = new ArrayList<XmlTagNode>();
-    while (true) {
-      switch (currentToken.getType()) {
-
-        case LT:
-          nodes.add(parseTagNode());
-          break;
-
-        case LT_SLASH:
-        case EOF:
-          return nodes;
-
-        case COMMENT:
-          // ignored token
-          currentToken = currentToken.getNext();
-          break;
-
-        default:
-          reportUnexpectedToken();
-          currentToken = currentToken.getNext();
-          break;
+    while (type != LT_SLASH && type != EOF) {
+      if (type == LT) {
+        nodes.add(parseTagNode());
+      } else if (type == COMMENT) {
+        // ignored token
+        currentToken = currentToken.getNext();
+      } else {
+        reportUnexpectedToken();
+        currentToken = currentToken.getNext();
       }
+      type = currentToken.getType();
     }
+    return nodes;
   }
 
   /**
