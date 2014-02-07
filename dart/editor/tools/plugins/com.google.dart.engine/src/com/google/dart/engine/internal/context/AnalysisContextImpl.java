@@ -14,6 +14,7 @@
 package com.google.dart.engine.internal.context;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Sets;
 import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.AnnotatedNode;
@@ -256,6 +257,11 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
    * The object used to manage the list of sources that need to be analyzed.
    */
   private WorkManager workManager = new WorkManager();
+
+  /**
+   * The set of {@link AngularApplication} in this context.
+   */
+  private final Set<AngularApplication> angularApplications = Sets.newHashSet();
 
   /**
    * Initialize a newly created analysis context.
@@ -2497,6 +2503,17 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         }
       }
     }
+    // invalidate Angular applications
+    for (AngularApplication angularApplication : angularApplications) {
+      if (angularApplication.dependsOn(librarySource)) {
+        Source entryPointSource = angularApplication.getEntryPoint();
+        HtmlEntry htmlEntry = getReadableHtmlEntry(entryPointSource);
+        HtmlEntryImpl htmlCopy = htmlEntry.getWritableCopy();
+        htmlCopy.setState(HtmlEntry.ANGULAR_ENTRY, CacheState.INVALID);
+        cache.put(entryPointSource, htmlCopy);
+        workManager.add(entryPointSource, SourcePriority.HTML);
+      }
+    }
   }
 
   /**
@@ -2559,9 +2576,10 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   private void recordAngularEntryPoint(HtmlEntryImpl entry, ResolveAngularEntryHtmlTask task)
       throws AnalysisException {
     // reset old Angular errors
-    AngularApplication oldApp = entry.getValue(HtmlEntry.ANGULAR_ENTRY);
-    if (oldApp != null) {
-      AngularElement[] oldAngularElements = oldApp.getElements();
+    AngularApplication oldApplication = entry.getValue(HtmlEntry.ANGULAR_ENTRY);
+    if (oldApplication != null) {
+      angularApplications.remove(oldApplication);
+      AngularElement[] oldAngularElements = oldApplication.getElements();
       for (AngularElement angularElement : oldAngularElements) {
         if (angularElement instanceof AngularComponentElement) {
           AngularComponentElement component = (AngularComponentElement) angularElement;
@@ -2583,6 +2601,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     // schedule more Angular analysis
     AngularApplication application = task.getApplication();
     if (application != null) {
+      angularApplications.add(application);
       // if this is an entry point, then we already resolved it
       entry.setValue(HtmlEntry.ANGULAR_ERRORS, task.getResolutionErrors());
       // schedule component templates

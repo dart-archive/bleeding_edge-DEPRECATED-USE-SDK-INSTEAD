@@ -17,16 +17,27 @@ package com.google.dart.engine.internal.element.angular;
 import com.google.dart.engine.element.angular.AngularElement;
 import com.google.dart.engine.source.Source;
 
+import java.util.Set;
+
 /**
  * Information about Angular application.
  */
 public class AngularApplication {
   private final Source entryPoint;
+  private final Set<Source> librarySources;
   private final AngularElement[] elements;
 
-  public AngularApplication(Source entryPoint, AngularElement[] elements) {
+  public AngularApplication(Source entryPoint, Set<Source> librarySources, AngularElement[] elements) {
     this.entryPoint = entryPoint;
+    this.librarySources = librarySources;
     this.elements = elements;
+  }
+
+  /**
+   * Checks if this application depends on the library with the given {@link Source}.
+   */
+  public boolean dependsOn(Source librarySource) {
+    return librarySources.contains(librarySource);
   }
 
   /**

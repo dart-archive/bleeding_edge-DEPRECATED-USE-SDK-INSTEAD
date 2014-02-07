@@ -111,22 +111,6 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
   }
 
   /**
-   * Returns the array of all top-level Angular elements that could be used in the application with
-   * this entry point. Maybe {@code null} of not an Angular entry point.
-   */
-  public static AngularElement[] getAngularElements(AnalysisContext context, HtmlUnit unit)
-      throws AnalysisException {
-    if (hasAngularAnnotation(unit)) {
-      CompilationUnit dartUnit = getDartUnit(context, unit);
-      if (dartUnit != null) {
-        LibraryElement libraryElement = dartUnit.getElement().getLibrary();
-        return getAngularElements(libraryElement);
-      }
-    }
-    return null;
-  }
-
-  /**
    * @return {@code true} if the given {@link HtmlUnit} has <code>ng-app</code> annotation.
    */
   public static boolean hasAngularAnnotation(HtmlUnit htmlUnit) {
@@ -201,9 +185,10 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
    * @param libraryElement the {@link LibraryElement} to analyze
    * @return the array of all top-level Angular elements that could be used in this library
    */
-  private static AngularElement[] getAngularElements(LibraryElement libraryElement) {
+  private static AngularElement[] getAngularElements(Set<LibraryElement> libraries,
+      LibraryElement libraryElement) {
     Set<AngularElement> angularElements = Sets.newHashSet();
-    addAngularElements(angularElements, libraryElement, Sets.<LibraryElement> newHashSet());
+    addAngularElements(angularElements, libraryElement, libraries);
     return angularElements.toArray(new AngularElement[angularElements.size()]);
   }
 
@@ -223,21 +208,30 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
     return null;
   }
 
+  private static Set<Source> getLibrarySources(Set<LibraryElement> libraries) {
+    Set<Source> sources = Sets.newHashSet();
+    for (LibraryElement library : libraries) {
+      sources.add(library.getSource());
+    }
+    return sources;
+  }
+
   private final InternalAnalysisContext context;
   private final TypeProvider typeProvider;
   private final AnalysisErrorListener errorListener;
-  private final Source source;
 
+  private final Source source;
   private final LineInfo lineInfo;
   private final HtmlUnit unit;
   private AngularElement[] angularElements;
   private final List<NgProcessor> processors = Lists.newArrayList();
-  private LibraryElementImpl libraryElement;
 
+  private LibraryElementImpl libraryElement;
   private CompilationUnitElementImpl unitElement;
   private FunctionElementImpl functionElement;
   private ResolverVisitor resolver;
   private boolean isAngular = false;
+
   private List<LocalVariableElementImpl> definedVariables = Lists.newArrayList();
 
   private Set<LibraryElement> injectedLibraries = Sets.newHashSet();
@@ -273,13 +267,9 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
     }
     // prepare accessible Angular elements
     LibraryElement libraryElement = dartUnit.getElement().getLibrary();
-    AngularElement[] angularElements = getAngularElements(libraryElement);
-    AngularApplication application = new AngularApplication(source, angularElements);
-    // set AngularApplication for each AngularElement
-    for (AngularElement angularElement : angularElements) {
-      ((AngularElementImpl) angularElement).setApplication(application);
-    }
-    // resolve template URIs
+    Set<LibraryElement> libraries = Sets.newHashSet();
+    AngularElement[] angularElements = getAngularElements(libraries, libraryElement);
+    // resolve AngularComponentElement template URIs
     // TODO(scheglov) resolve to HtmlElement to allow F3 ?
     for (AngularElement angularElement : angularElements) {
       if (angularElement instanceof AngularComponentElement) {
@@ -313,6 +303,15 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
               templateUri);
         }
       }
+    }
+    // create AngularApplication
+    AngularApplication application = new AngularApplication(
+        source,
+        getLibrarySources(libraries),
+        angularElements);
+    // set AngularApplication for each AngularElement
+    for (AngularElement angularElement : angularElements) {
+      ((AngularElementImpl) angularElement).setApplication(application);
     }
     // done
     return application;
