@@ -75,11 +75,17 @@ public class AngularDartIndexContributor extends GeneralizingASTVisitor<Void> {
     indexProperties(directive.getProperties());
   }
 
+  /**
+   * Index {@link FieldElement} references from {@link AngularPropertyElement}s.
+   */
   private void indexProperties(AngularPropertyElement[] properties) {
     for (AngularPropertyElement property : properties) {
       FieldElement field = property.getField();
       if (field != null) {
         int offset = property.getFieldNameOffset();
+        if (offset == -1) {
+          continue;
+        }
         int length = field.getName().length();
         Location location = new Location(property, offset, length);
         // getter reference

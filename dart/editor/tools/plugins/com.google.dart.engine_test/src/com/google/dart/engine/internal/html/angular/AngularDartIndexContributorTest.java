@@ -48,6 +48,7 @@ public class AngularDartIndexContributorTest extends AngularTest {
         "        'propTwoWay' : '<=>field', // two-way",
         "    })",
         "class MyComponent {",
+        "  @NgOneWay('annProp')",
         "  var field;",
         "}",
         "",
@@ -88,6 +89,11 @@ public class AngularDartIndexContributorTest extends AngularTest {
           "field");
       assertRecordedRelation(relations, getter, IS_REFERENCED_BY_QUALIFIED, location);
       assertRecordedRelation(relations, setter, IS_REFERENCED_BY_QUALIFIED, location);
+    }
+    // @NgOneWay('annProp') is ignore - no explicit field reference
+    {
+      ExpectedLocation location = new ExpectedLocation(findMainElement("annProp"), -1, "field");
+      assertNoRecordedRelation(relations, setter, IS_REFERENCED_BY_QUALIFIED, location);
     }
   }
 
