@@ -38,6 +38,7 @@ import com.google.dart.engine.element.angular.AngularControllerElement;
 import com.google.dart.engine.element.angular.AngularDirectiveElement;
 import com.google.dart.engine.element.angular.AngularElement;
 import com.google.dart.engine.element.angular.AngularFilterElement;
+import com.google.dart.engine.element.angular.AngularHasTemplateElement;
 import com.google.dart.engine.element.angular.AngularScopePropertyElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
@@ -59,6 +60,7 @@ import com.google.dart.engine.internal.element.LocalVariableElementImpl;
 import com.google.dart.engine.internal.element.angular.AngularApplication;
 import com.google.dart.engine.internal.element.angular.AngularComponentElementImpl;
 import com.google.dart.engine.internal.element.angular.AngularElementImpl;
+import com.google.dart.engine.internal.element.angular.AngularViewElementImpl;
 import com.google.dart.engine.internal.resolver.InheritanceManager;
 import com.google.dart.engine.internal.resolver.ProxyConditionalAnalysisError;
 import com.google.dart.engine.internal.resolver.ResolverVisitor;
@@ -81,6 +83,7 @@ import static com.google.dart.engine.internal.html.angular.AngularMoustacheXmlEx
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -163,6 +166,7 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
     }
     // add Angular elements from current library
     for (CompilationUnitElement unit : library.getUnits()) {
+      Collections.addAll(angularElements, unit.getAngularViews());
       for (ClassElement type : unit.getTypes()) {
         addAngularElements(angularElements, type);
       }
@@ -272,9 +276,9 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
     // resolve AngularComponentElement template URIs
     // TODO(scheglov) resolve to HtmlElement to allow F3 ?
     for (AngularElement angularElement : angularElements) {
-      if (angularElement instanceof AngularComponentElement) {
-        AngularComponentElement component = (AngularComponentElement) angularElement;
-        String templateUri = component.getTemplateUri();
+      if (angularElement instanceof AngularHasTemplateElement) {
+        AngularHasTemplateElement hasTemplate = (AngularHasTemplateElement) angularElement;
+        String templateUri = hasTemplate.getTemplateUri();
         if (templateUri == null) {
           continue;
         }
@@ -284,7 +288,7 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
             templateSource = context.getSourceFactory().resolveUri(source, "package:" + templateUri);
             if (templateSource == null || !templateSource.exists()) {
               reportError(
-                  component.getTemplateUriOffset(),
+                  hasTemplate.getTemplateUriOffset(),
                   templateUri.length(),
                   AngularCode.URI_DOES_NOT_EXIST,
                   templateUri);
@@ -294,10 +298,15 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
           if (!AnalysisEngine.isHtmlFileName(templateUri)) {
             continue;
           }
-          ((AngularComponentElementImpl) component).setTemplateSource(templateSource);
+          if (hasTemplate instanceof AngularComponentElementImpl) {
+            ((AngularComponentElementImpl) hasTemplate).setTemplateSource(templateSource);
+          }
+          if (hasTemplate instanceof AngularViewElementImpl) {
+            ((AngularViewElementImpl) hasTemplate).setTemplateSource(templateSource);
+          }
         } catch (URISyntaxException exception) {
           reportError(
-              component.getTemplateUriOffset(),
+              hasTemplate.getTemplateUriOffset(),
               templateUri.length(),
               AngularCode.INVALID_URI,
               templateUri);

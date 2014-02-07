@@ -92,7 +92,7 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
   private TypeParameterElement[] typeParameters = TypeParameterElementImpl.EMPTY_ARRAY;
 
   /**
-   * An empty array of type elements.
+   * An empty array of class elements.
    */
   public static final ClassElement[] EMPTY_ARRAY = new ClassElement[0];
 

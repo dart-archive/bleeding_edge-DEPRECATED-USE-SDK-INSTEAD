@@ -554,6 +554,35 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
     assertResolvedIdentifier("uppercase");
   }
 
+  public void test_view_resolveTemplateFile() throws Exception {
+    addMainSource(createSource("",//
+        "import 'angular.dart';",
+        "",
+        "@NgController(",
+        "    selector: '[my-controller]',",
+        "    publishAs: 'ctrl')",
+        "class MyController {",
+        "  String field;",
+        "}",
+        "",
+        "class MyRouteInitializer {",
+        "  init(ViewFactory view) {",
+        "    view('my_template.html');",
+        "  }",
+        "}"));
+    contextHelper.addSource("/entry-point.html", createHtmlWithAngular());
+    addIndexSource("/my_template.html", createSource(//
+        "    <div my-controller>",
+        "      {{ctrl.field}}",
+        "    </div>"));
+    contextHelper.addSource("/my_styles.css", "");
+    contextHelper.runTasks();
+    resolveIndex();
+    assertNoErrors();
+    assertResolvedIdentifier("ctrl.", "MyController");
+    assertResolvedIdentifier("field}}", "String");
+  }
+
   private void resolveIndexNoErrors(String content) throws Exception {
     resolveIndex(content);
     assertNoErrors();

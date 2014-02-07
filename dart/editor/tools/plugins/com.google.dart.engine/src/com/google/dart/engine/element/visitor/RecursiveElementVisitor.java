@@ -43,6 +43,7 @@ import com.google.dart.engine.element.angular.AngularFilterElement;
 import com.google.dart.engine.element.angular.AngularPropertyElement;
 import com.google.dart.engine.element.angular.AngularScopePropertyElement;
 import com.google.dart.engine.element.angular.AngularSelectorElement;
+import com.google.dart.engine.element.angular.AngularViewElement;
 
 /**
  * Instances of the class {@code RecursiveElementVisitor} implement an element visitor that will
@@ -95,6 +96,12 @@ public class RecursiveElementVisitor<R> implements ElementVisitor<R> {
 
   @Override
   public R visitAngularSelectorElement(AngularSelectorElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+
+  @Override
+  public R visitAngularViewElement(AngularViewElement element) {
     element.visitChildren(this);
     return null;
   }

@@ -29,8 +29,10 @@ import com.google.dart.engine.ast.FieldDeclaration;
 import com.google.dart.engine.ast.IndexExpression;
 import com.google.dart.engine.ast.MapLiteral;
 import com.google.dart.engine.ast.MapLiteralEntry;
+import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.NamedExpression;
 import com.google.dart.engine.ast.NodeList;
+import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.SimpleStringLiteral;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
@@ -40,6 +42,7 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.ToolkitObjectElement;
+import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.element.angular.AngularComponentElement;
 import com.google.dart.engine.element.angular.AngularDirectiveElement;
 import com.google.dart.engine.element.angular.AngularElement;
@@ -47,20 +50,23 @@ import com.google.dart.engine.element.angular.AngularPropertyElement;
 import com.google.dart.engine.element.angular.AngularPropertyKind;
 import com.google.dart.engine.element.angular.AngularScopePropertyElement;
 import com.google.dart.engine.element.angular.AngularSelectorElement;
+import com.google.dart.engine.element.angular.AngularViewElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.error.AngularCode;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.internal.element.ClassElementImpl;
+import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
 import com.google.dart.engine.internal.element.angular.AngularComponentElementImpl;
 import com.google.dart.engine.internal.element.angular.AngularControllerElementImpl;
 import com.google.dart.engine.internal.element.angular.AngularDirectiveElementImpl;
 import com.google.dart.engine.internal.element.angular.AngularFilterElementImpl;
 import com.google.dart.engine.internal.element.angular.AngularPropertyElementImpl;
 import com.google.dart.engine.internal.element.angular.AngularScopePropertyElementImpl;
+import com.google.dart.engine.internal.element.angular.AngularTagSelectorElementImpl;
+import com.google.dart.engine.internal.element.angular.AngularViewElementImpl;
 import com.google.dart.engine.internal.element.angular.HasAttributeSelectorElementImpl;
 import com.google.dart.engine.internal.element.angular.IsTagHasAttributeSelectorElementImpl;
-import com.google.dart.engine.internal.element.angular.AngularTagSelectorElementImpl;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
@@ -99,6 +105,7 @@ public class AngularCompilationUnitBuilder {
     }
     SimpleStringLiteral literal = (SimpleStringLiteral) node;
     // maybe has AngularElement
+    // TODO(scheglov) add test
     {
       Element element = literal.getToolkitElement();
       if (element instanceof AngularElement) {
@@ -257,6 +264,11 @@ public class AngularCompilationUnitBuilder {
   private final Source source;
 
   /**
+   * The compilation unit with built Dart element models.
+   */
+  private CompilationUnit unit;
+
+  /**
    * The {@link ClassDeclaration} that is currently being analyzed.
    */
   private ClassDeclaration classDeclaration;
@@ -281,18 +293,20 @@ public class AngularCompilationUnitBuilder {
    * 
    * @param errorListener the listener to which errors will be reported.
    * @param source the source containing the unit that will be analyzed
+   * @param unit the compilation unit with built Dart element models
    */
-  public AngularCompilationUnitBuilder(AnalysisErrorListener errorListener, Source source) {
+  public AngularCompilationUnitBuilder(AnalysisErrorListener errorListener, Source source,
+      CompilationUnit unit) {
     this.errorListener = errorListener;
     this.source = source;
+    this.unit = unit;
   }
 
   /**
    * Builds Angular specific element models and adds them to the existing Dart elements.
-   * 
-   * @param unit the compilation unit with built Dart element models
    */
-  public void build(CompilationUnit unit) {
+  public void build() {
+    parseViews();
     // process classes
     for (CompilationUnitMember unitMember : unit.getDeclarations()) {
       if (unitMember instanceof ClassDeclaration) {
@@ -703,6 +717,67 @@ public class AngularCompilationUnitBuilder {
       }
     });
     return properties.toArray(new AngularScopePropertyElement[properties.size()]);
+  }
+
+  /**
+   * Create {@link AngularViewElement} for each valid <code>view('template.html')</code> invocation,
+   * where <code>view</code> is <code>ViewFactory</code>.
+   */
+  private void parseViews() {
+    final List<AngularViewElement> views = Lists.newArrayList();
+    unit.accept(new RecursiveASTVisitor<Void>() {
+      @Override
+      public Void visitMethodInvocation(MethodInvocation node) {
+        addView(node);
+        return super.visitMethodInvocation(node);
+      }
+
+      private void addView(MethodInvocation node) {
+        // only one argument
+        List<Expression> arguments = node.getArgumentList().getArguments();
+        if (arguments.size() != 1) {
+          return;
+        }
+        // String literal
+        Expression argument = arguments.get(0);
+        if (!(argument instanceof SimpleStringLiteral)) {
+          return;
+        }
+        SimpleStringLiteral literal = (SimpleStringLiteral) argument;
+        // just view('template')
+        if (node.getRealTarget() != null) {
+          return;
+        }
+        // should be ViewFactory
+        if (!isViewFactory(node.getMethodName())) {
+          return;
+        }
+        // add AngularViewElement
+        String templateUri = literal.getStringValue();
+        int templateUriOffset = literal.getValueOffset();
+        views.add(new AngularViewElementImpl(templateUri, templateUriOffset));
+      }
+
+      private boolean isViewFactory(Expression target) {
+        if (target instanceof SimpleIdentifier) {
+          SimpleIdentifier identifier = (SimpleIdentifier) target;
+          Element element = identifier.getStaticElement();
+          if (element instanceof VariableElement) {
+            VariableElement variable = (VariableElement) element;
+            Type type = variable.getType();
+            if (type instanceof InterfaceType) {
+              InterfaceType interfaceType = (InterfaceType) type;
+              return interfaceType.getName().equals("ViewFactory");
+            }
+          }
+        }
+        return false;
+      }
+    });
+    if (!views.isEmpty()) {
+      AngularViewElement[] viewArray = views.toArray(new AngularViewElement[views.size()]);
+      ((CompilationUnitElementImpl) unit.getElement()).setAngularViews(viewArray);
+    }
   }
 
   private void reportError(ASTNode node, ErrorCode errorCode, Object... arguments) {

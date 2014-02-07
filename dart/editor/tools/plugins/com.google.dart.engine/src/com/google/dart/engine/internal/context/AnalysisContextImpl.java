@@ -36,6 +36,7 @@ import com.google.dart.engine.element.HtmlElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.angular.AngularComponentElement;
 import com.google.dart.engine.element.angular.AngularElement;
+import com.google.dart.engine.element.angular.AngularHasTemplateElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.internal.cache.AnalysisCache;
@@ -2220,16 +2221,14 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       // try to resolve as an Angular application part
       CacheState angularErrorsState = htmlEntry.getState(HtmlEntry.ANGULAR_ERRORS);
       if (angularErrorsState == CacheState.INVALID) {
-        AngularApplication applicationInfo = htmlEntry.getValue(HtmlEntry.ANGULAR_APPLICATION);
-        if (applicationInfo != null) {
-          // try to resolve as an Angular component template
+        AngularApplication application = htmlEntry.getValue(HtmlEntry.ANGULAR_APPLICATION);
+        if (application != null) {
+          // try to resolve as an Angular template
           AngularComponentElement component = htmlEntry.getValue(HtmlEntry.ANGULAR_COMPONENT);
-          if (component != null) {
-            HtmlEntryImpl htmlCopy = htmlEntry.getWritableCopy();
-            htmlCopy.setState(HtmlEntry.ANGULAR_ERRORS, CacheState.IN_PROCESS);
-            cache.put(source, htmlCopy);
-            return new ResolveAngularComponentTemplateTask(this, source, component, applicationInfo);
-          }
+          HtmlEntryImpl htmlCopy = htmlEntry.getWritableCopy();
+          htmlCopy.setState(HtmlEntry.ANGULAR_ERRORS, CacheState.IN_PROCESS);
+          cache.put(source, htmlCopy);
+          return new ResolveAngularComponentTemplateTask(this, source, component, application);
         }
       }
     }
@@ -2604,17 +2603,20 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       angularApplications.add(application);
       // if this is an entry point, then we already resolved it
       entry.setValue(HtmlEntry.ANGULAR_ERRORS, task.getResolutionErrors());
-      // schedule component templates
+      // schedule HTML templates analysis
       AngularElement[] newAngularElements = application.getElements();
       for (AngularElement angularElement : newAngularElements) {
-        if (angularElement instanceof AngularComponentElement) {
-          AngularComponentElement component = (AngularComponentElement) angularElement;
-          Source templateSource = component.getTemplateSource();
+        if (angularElement instanceof AngularHasTemplateElement) {
+          AngularHasTemplateElement hasTemplate = (AngularHasTemplateElement) angularElement;
+          Source templateSource = hasTemplate.getTemplateSource();
           if (templateSource != null) {
             HtmlEntry htmlEntry = getReadableHtmlEntry(templateSource);
             HtmlEntryImpl htmlCopy = htmlEntry.getWritableCopy();
             htmlCopy.setValue(HtmlEntry.ANGULAR_APPLICATION, application);
-            htmlCopy.setValue(HtmlEntry.ANGULAR_COMPONENT, component);
+            if (hasTemplate instanceof AngularComponentElement) {
+              AngularComponentElement component = (AngularComponentElement) hasTemplate;
+              htmlCopy.setValue(HtmlEntry.ANGULAR_COMPONENT, component);
+            }
             htmlCopy.setState(HtmlEntry.ANGULAR_ERRORS, CacheState.INVALID);
             cache.put(templateSource, htmlCopy);
             workManager.add(templateSource, SourcePriority.HTML);

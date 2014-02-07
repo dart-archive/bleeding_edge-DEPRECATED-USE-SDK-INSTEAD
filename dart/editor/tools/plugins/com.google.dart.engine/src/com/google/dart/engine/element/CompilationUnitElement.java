@@ -15,6 +15,7 @@ package com.google.dart.engine.element;
 
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisException;
+import com.google.dart.engine.element.angular.AngularViewElement;
 
 /**
  * The interface {@code CompilationUnitElement} defines the behavior of elements representing a
@@ -30,6 +31,13 @@ public interface CompilationUnitElement extends Element, UriReferencedElement {
    * @return the top-level accessors contained in this compilation unit
    */
   public PropertyAccessorElement[] getAccessors();
+
+  /**
+   * Return an array containing all of the Angular views defined in this compilation unit.
+   * 
+   * @return the Angular views defined in this compilation unit.
+   */
+  public AngularViewElement[] getAngularViews();
 
   /**
    * Return the library in which this compilation unit is defined.

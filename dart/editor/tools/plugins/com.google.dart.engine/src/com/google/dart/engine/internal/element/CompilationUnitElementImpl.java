@@ -29,6 +29,8 @@ import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.ToolkitObjectElement;
 import com.google.dart.engine.element.TopLevelVariableElement;
 import com.google.dart.engine.element.VariableElement;
+import com.google.dart.engine.element.angular.AngularViewElement;
+import com.google.dart.engine.internal.element.angular.AngularViewElementImpl;
 import com.google.dart.engine.source.Source;
 
 import java.util.Map;
@@ -88,6 +90,11 @@ public class CompilationUnitElementImpl extends ElementImpl implements Compilati
   private String uri;
 
   /**
+   * An array containing all of the Angular views contained in this compilation unit.
+   */
+  private AngularViewElement[] angularViews = AngularViewElement.EMPTY_ARRAY;
+
+  /**
    * Initialize a newly created compilation unit element to have the given name.
    * 
    * @param name the name of this element
@@ -111,6 +118,11 @@ public class CompilationUnitElementImpl extends ElementImpl implements Compilati
   @Override
   public PropertyAccessorElement[] getAccessors() {
     return accessors;
+  }
+
+  @Override
+  public AngularViewElement[] getAngularViews() {
+    return angularViews;
   }
 
   @Override
@@ -218,6 +230,18 @@ public class CompilationUnitElementImpl extends ElementImpl implements Compilati
       ((PropertyAccessorElementImpl) accessor).setEnclosingElement(this);
     }
     this.accessors = accessors;
+  }
+
+  /**
+   * Set the Angular views defined in this compilation unit.
+   * 
+   * @param angularViews the Angular views defined in this compilation unit
+   */
+  public void setAngularViews(AngularViewElement[] angularViews) {
+    for (AngularViewElement view : angularViews) {
+      ((AngularViewElementImpl) view).setEnclosingElement(this);
+    }
+    this.angularViews = angularViews;
   }
 
   /**

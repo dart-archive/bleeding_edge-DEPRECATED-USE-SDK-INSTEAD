@@ -52,6 +52,7 @@ import com.google.dart.engine.element.angular.AngularHasSelectorElement;
 import com.google.dart.engine.element.angular.AngularPropertyElement;
 import com.google.dart.engine.element.angular.AngularScopePropertyElement;
 import com.google.dart.engine.element.angular.AngularSelectorElement;
+import com.google.dart.engine.element.angular.AngularViewElement;
 
 /**
  * Instances of the class {@code GeneralizingElementVisitor} implement an element visitor that will
@@ -151,6 +152,11 @@ public class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
 
   @Override
   public R visitAngularSelectorElement(AngularSelectorElement element) {
+    return visitAngularElement(element);
+  }
+
+  @Override
+  public R visitAngularViewElement(AngularViewElement element) {
     return visitAngularElement(element);
   }
 

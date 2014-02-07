@@ -30,10 +30,11 @@ import com.google.dart.engine.element.angular.AngularPropertyElement;
 import com.google.dart.engine.element.angular.AngularPropertyKind;
 import com.google.dart.engine.element.angular.AngularScopePropertyElement;
 import com.google.dart.engine.element.angular.AngularSelectorElement;
+import com.google.dart.engine.element.angular.AngularViewElement;
 import com.google.dart.engine.error.AngularCode;
+import com.google.dart.engine.internal.element.angular.AngularTagSelectorElementImpl;
 import com.google.dart.engine.internal.element.angular.HasAttributeSelectorElementImpl;
 import com.google.dart.engine.internal.element.angular.IsTagHasAttributeSelectorElementImpl;
-import com.google.dart.engine.internal.element.angular.AngularTagSelectorElementImpl;
 import com.google.dart.engine.internal.html.angular.AngularTest;
 
 public class AngularCompilationUnitBuilderTest extends AngularTest {
@@ -830,6 +831,42 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
   public void test_parseSelector_unknown() throws Exception {
     AngularSelectorElement selector = AngularCompilationUnitBuilder.parseSelector(0, "~unknown");
     assertNull(selector);
+  }
+
+  public void test_view() throws Exception {
+    contextHelper.addSource("/wrong.html", "");
+    contextHelper.addSource("/my_templateA.html", "");
+    contextHelper.addSource("/my_templateB.html", "");
+    String mainContent = createAngularSource(//
+        "class MyRouteInitializer {",
+        "  init(ViewFactory view, foo) {",
+        "    foo.view('wrong.html');   // has target",
+        "    foo();                    // less than one argument",
+        "    foo('wrong.html', 'bar'); // more than one argument",
+        "    foo('wrong' + '.html');   // not literal",
+        "    foo('wrong.html');        // not ViewFactory",
+        "    view('my_templateA.html');",
+        "    view('my_templateB.html');",
+        "  }",
+        "}");
+    resolveMainSourceNoErrors(mainContent);
+    // prepare AngularViewElement(s)
+    AngularViewElement[] views = mainUnitElement.getAngularViews();
+    assertLength(2, views);
+    {
+      AngularViewElement view = views[0];
+      assertEquals("my_templateA.html", view.getTemplateUri());
+      assertEquals(null, view.getName());
+      assertEquals(-1, view.getNameOffset());
+      assertEquals(findOffset(mainContent, "my_templateA.html'"), view.getTemplateUriOffset());
+    }
+    {
+      AngularViewElement view = views[1];
+      assertEquals("my_templateB.html", view.getTemplateUri());
+      assertEquals(null, view.getName());
+      assertEquals(-1, view.getNameOffset());
+      assertEquals(findOffset(mainContent, "my_templateB.html'"), view.getTemplateUriOffset());
+    }
   }
 
   private void assertProperty(AngularPropertyElement property, String expectedName,

@@ -43,6 +43,7 @@ import com.google.dart.engine.element.angular.AngularFilterElement;
 import com.google.dart.engine.element.angular.AngularPropertyElement;
 import com.google.dart.engine.element.angular.AngularScopePropertyElement;
 import com.google.dart.engine.element.angular.AngularSelectorElement;
+import com.google.dart.engine.element.angular.AngularViewElement;
 
 /**
  * Instances of the class {@code SimpleElementVisitor} implement an element visitor that will do
@@ -85,6 +86,11 @@ public class SimpleElementVisitor<R> implements ElementVisitor<R> {
 
   @Override
   public R visitAngularSelectorElement(AngularSelectorElement element) {
+    return null;
+  }
+
+  @Override
+  public R visitAngularViewElement(AngularViewElement element) {
     return null;
   }
 
