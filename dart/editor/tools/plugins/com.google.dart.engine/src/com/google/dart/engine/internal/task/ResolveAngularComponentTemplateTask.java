@@ -17,10 +17,10 @@ import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.angular.AngularComponentElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.html.ast.HtmlUnit;
-import com.google.dart.engine.internal.cache.AngularApplicationInfo;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
 import com.google.dart.engine.internal.context.RecordingErrorListener;
 import com.google.dart.engine.internal.context.ResolvableHtmlUnit;
+import com.google.dart.engine.internal.element.angular.AngularApplication;
 import com.google.dart.engine.internal.html.angular.AngularHtmlUnitResolver;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.source.LineInfo;
@@ -38,7 +38,7 @@ public class ResolveAngularComponentTemplateTask extends AnalysisTask {
   /**
    * The Angular application to resolve in context of.
    */
-  private final AngularApplicationInfo application;
+  private final AngularApplication application;
 
   /**
    * The source to be resolved.
@@ -69,7 +69,7 @@ public class ResolveAngularComponentTemplateTask extends AnalysisTask {
    * @param application the Angular application to resolve in context of
    */
   public ResolveAngularComponentTemplateTask(InternalAnalysisContext context, Source source,
-      AngularComponentElement component, AngularApplicationInfo application) {
+      AngularComponentElement component, AngularApplication application) {
     super(context);
     this.source = source;
     this.component = component;

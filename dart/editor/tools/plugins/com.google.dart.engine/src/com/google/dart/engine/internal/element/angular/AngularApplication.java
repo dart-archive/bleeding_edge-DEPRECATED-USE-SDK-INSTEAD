@@ -12,7 +12,7 @@
  * the License.
  */
 
-package com.google.dart.engine.internal.cache;
+package com.google.dart.engine.internal.element.angular;
 
 import com.google.dart.engine.element.angular.AngularElement;
 import com.google.dart.engine.source.Source;
@@ -20,11 +20,11 @@ import com.google.dart.engine.source.Source;
 /**
  * Information about Angular application.
  */
-public class AngularApplicationInfo {
+public class AngularApplication {
   private final Source entryPoint;
   private final AngularElement[] elements;
 
-  public AngularApplicationInfo(Source entryPoint, AngularElement[] elements) {
+  public AngularApplication(Source entryPoint, AngularElement[] elements) {
     this.entryPoint = entryPoint;
     this.elements = elements;
   }

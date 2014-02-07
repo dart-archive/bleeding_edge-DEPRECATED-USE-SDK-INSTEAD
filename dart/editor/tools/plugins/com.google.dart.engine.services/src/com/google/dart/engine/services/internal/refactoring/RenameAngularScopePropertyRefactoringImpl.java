@@ -14,9 +14,8 @@
 
 package com.google.dart.engine.services.internal.refactoring;
 
-import com.google.dart.engine.element.angular.AngularElement;
-import com.google.dart.engine.element.angular.AngularFilterElement;
-import com.google.dart.engine.internal.element.angular.AngularApplication;
+import com.google.dart.engine.element.angular.AngularComponentElement;
+import com.google.dart.engine.element.angular.AngularScopePropertyElement;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.services.refactoring.NamingConventions;
 import com.google.dart.engine.services.refactoring.Refactoring;
@@ -25,29 +24,28 @@ import com.google.dart.engine.services.status.RefactoringStatus;
 import java.text.MessageFormat;
 
 /**
- * {@link Refactoring} for renaming {@link AngularFilterElement}.
+ * {@link Refactoring} for renaming {@link AngularScopePropertyElement}.
  */
-public class RenameAngularFilterRefactoringImpl extends RenameAngularElementRefactoringImpl {
-  public RenameAngularFilterRefactoringImpl(SearchEngine searchEngine, AngularFilterElement element) {
+public class RenameAngularScopePropertyRefactoringImpl extends RenameAngularElementRefactoringImpl {
+  public RenameAngularScopePropertyRefactoringImpl(SearchEngine searchEngine,
+      AngularScopePropertyElement element) {
     super(searchEngine, element);
   }
 
   @Override
   public String getRefactoringName() {
-    return "Rename Angular Filter";
+    return "Rename Angular Scope Property";
   }
 
   @Override
   protected RefactoringStatus checkNameConflicts(String newName) {
-    AngularApplication application = element.getApplication();
-    for (AngularElement angularElement : application.getElements()) {
-      if (angularElement instanceof AngularFilterElement) {
-        if (angularElement.getName().equals(newName)) {
-          String message = MessageFormat.format(
-              "Application already defines filter with name ''{0}''.",
-              newName);
-          return RefactoringStatus.createErrorStatus(message);
-        }
+    AngularComponentElement component = (AngularComponentElement) element.getEnclosingElement();
+    for (AngularScopePropertyElement otherProperty : component.getScopeProperties()) {
+      if (otherProperty.getName().equals(newName)) {
+        String message = MessageFormat.format(
+            "Component already defines scope property with name ''{0}''.",
+            newName);
+        return RefactoringStatus.createErrorStatus(message);
       }
     }
     return new RefactoringStatus();
@@ -55,6 +53,6 @@ public class RenameAngularFilterRefactoringImpl extends RenameAngularElementRefa
 
   @Override
   protected RefactoringStatus checkNameSyntax(String newName) {
-    return NamingConventions.validateAngularFilterName(newName);
+    return NamingConventions.validateAngularScopePropertyName(newName);
   }
 }

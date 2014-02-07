@@ -14,6 +14,7 @@
 package com.google.dart.engine.element.angular;
 
 import com.google.dart.engine.element.ToolkitObjectElement;
+import com.google.dart.engine.internal.element.angular.AngularApplication;
 
 /**
  * The interface {@code AngularElement} defines the behavior of objects representing information
@@ -26,4 +27,11 @@ public interface AngularElement extends ToolkitObjectElement {
    * An empty array of angular elements.
    */
   AngularElement[] EMPTY_ARRAY = new AngularElement[0];
+
+  /**
+   * Returns the {@link AngularApplication} this element is used in.
+   * 
+   * @return the {@link AngularApplication} this element is used in
+   */
+  AngularApplication getApplication();
 }

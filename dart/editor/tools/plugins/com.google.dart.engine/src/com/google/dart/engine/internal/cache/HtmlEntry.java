@@ -17,6 +17,7 @@ import com.google.dart.engine.element.HtmlElement;
 import com.google.dart.engine.element.angular.AngularComponentElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.html.ast.HtmlUnit;
+import com.google.dart.engine.internal.element.angular.AngularApplication;
 import com.google.dart.engine.source.Source;
 
 /**
@@ -30,7 +31,7 @@ public interface HtmlEntry extends SourceEntry {
    * The data descriptor representing the information about an Angular application this source is
    * used in.
    */
-  public static final DataDescriptor<AngularApplicationInfo> ANGULAR_APPLICATION = new DataDescriptor<AngularApplicationInfo>(
+  public static final DataDescriptor<AngularApplication> ANGULAR_APPLICATION = new DataDescriptor<AngularApplication>(
       "HtmlEntry.ANGULAR_APPLICATION");
 
   /**
@@ -44,7 +45,7 @@ public interface HtmlEntry extends SourceEntry {
    * The data descriptor representing the information about an Angular application this source is
    * entry point for.
    */
-  public static final DataDescriptor<AngularApplicationInfo> ANGULAR_ENTRY = new DataDescriptor<AngularApplicationInfo>(
+  public static final DataDescriptor<AngularApplication> ANGULAR_ENTRY = new DataDescriptor<AngularApplication>(
       "HtmlEntry.ANGULAR_ENTRY");
 
   /**

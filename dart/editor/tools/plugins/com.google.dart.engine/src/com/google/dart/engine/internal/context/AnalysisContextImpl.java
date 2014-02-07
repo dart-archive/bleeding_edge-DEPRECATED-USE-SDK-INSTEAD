@@ -38,7 +38,6 @@ import com.google.dart.engine.element.angular.AngularElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.internal.cache.AnalysisCache;
-import com.google.dart.engine.internal.cache.AngularApplicationInfo;
 import com.google.dart.engine.internal.cache.CacheRetentionPolicy;
 import com.google.dart.engine.internal.cache.CacheState;
 import com.google.dart.engine.internal.cache.DartEntry;
@@ -51,6 +50,7 @@ import com.google.dart.engine.internal.cache.SourceEntry;
 import com.google.dart.engine.internal.cache.SourceEntryImpl;
 import com.google.dart.engine.internal.element.ElementImpl;
 import com.google.dart.engine.internal.element.ElementLocationImpl;
+import com.google.dart.engine.internal.element.angular.AngularApplication;
 import com.google.dart.engine.internal.resolver.Library;
 import com.google.dart.engine.internal.resolver.LibraryResolver;
 import com.google.dart.engine.internal.resolver.TypeProvider;
@@ -2187,14 +2187,14 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       }
       CacheState angularErrorsState = htmlEntry.getState(HtmlEntry.ANGULAR_ERRORS);
       if (angularErrorsState == CacheState.INVALID) {
-        AngularApplicationInfo entryInfo = htmlEntry.getValue(HtmlEntry.ANGULAR_ENTRY);
+        AngularApplication entryInfo = htmlEntry.getValue(HtmlEntry.ANGULAR_ENTRY);
         if (entryInfo != null) {
           HtmlEntryImpl htmlCopy = htmlEntry.getWritableCopy();
           htmlCopy.setState(HtmlEntry.ANGULAR_ERRORS, CacheState.IN_PROCESS);
           cache.put(source, htmlCopy);
           return new ResolveAngularEntryHtmlTask(this, source, entryInfo);
         }
-        AngularApplicationInfo applicationInfo = htmlEntry.getValue(HtmlEntry.ANGULAR_APPLICATION);
+        AngularApplication applicationInfo = htmlEntry.getValue(HtmlEntry.ANGULAR_APPLICATION);
         if (applicationInfo != null) {
           AngularComponentElement component = htmlEntry.getValue(HtmlEntry.ANGULAR_COMPONENT);
           if (component != null) {
@@ -2392,12 +2392,12 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       }
       CacheState angularErrorsState = htmlEntry.getState(HtmlEntry.ANGULAR_ERRORS);
       if (angularErrorsState == CacheState.INVALID) {
-        AngularApplicationInfo entryInfo = htmlEntry.getValue(HtmlEntry.ANGULAR_ENTRY);
+        AngularApplication entryInfo = htmlEntry.getValue(HtmlEntry.ANGULAR_ENTRY);
         if (entryInfo != null) {
           sources.add(source);
           return;
         }
-        AngularApplicationInfo applicationInfo = htmlEntry.getValue(HtmlEntry.ANGULAR_APPLICATION);
+        AngularApplication applicationInfo = htmlEntry.getValue(HtmlEntry.ANGULAR_APPLICATION);
         if (applicationInfo != null) {
           AngularComponentElement component = htmlEntry.getValue(HtmlEntry.ANGULAR_COMPONENT);
           if (component != null) {
@@ -2540,10 +2540,10 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
    * @param library the {@link Library} that was resolved
    * @param dartCopy the {@link DartEntryImpl} to record new Angular components
    */
-  private void recordAngularComponents(HtmlEntryImpl entry, AngularApplicationInfo app)
+  private void recordAngularComponents(HtmlEntryImpl entry, AngularApplication app)
       throws AnalysisException {
     // reset old Angular errors
-    AngularApplicationInfo oldApp = entry.getValue(HtmlEntry.ANGULAR_ENTRY);
+    AngularApplication oldApp = entry.getValue(HtmlEntry.ANGULAR_ENTRY);
     if (oldApp != null) {
       AngularElement[] oldAngularElements = oldApp.getElements();
       for (AngularElement angularElement : oldAngularElements) {

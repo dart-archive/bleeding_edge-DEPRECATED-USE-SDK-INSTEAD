@@ -18,10 +18,10 @@ import com.google.dart.engine.element.HtmlElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.internal.builder.HtmlUnitBuilder;
-import com.google.dart.engine.internal.cache.AngularApplicationInfo;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
 import com.google.dart.engine.internal.context.RecordingErrorListener;
 import com.google.dart.engine.internal.context.ResolvableHtmlUnit;
+import com.google.dart.engine.internal.element.angular.AngularApplication;
 import com.google.dart.engine.internal.html.angular.AngularHtmlUnitResolver;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.source.LineInfo;
@@ -63,7 +63,7 @@ public class ResolveHtmlTask extends AnalysisTask {
   /**
    * The Angular application information, maybe {@code null}
    */
-  private AngularApplicationInfo angularApplication;
+  private AngularApplication angularApplication;
 
   /**
    * Initialize a newly created task to perform analysis within the given context.
@@ -82,10 +82,10 @@ public class ResolveHtmlTask extends AnalysisTask {
   }
 
   /**
-   * Returns the {@link AngularApplicationInfo} for the Web application with this Angular entry
+   * Returns the {@link AngularApplication} for the Web application with this Angular entry
    * point, maybe {@code null} if not an Angular entry point.
    */
-  public AngularApplicationInfo getAngularApplication() {
+  public AngularApplication getAngularApplication() {
     return angularApplication;
   }
 

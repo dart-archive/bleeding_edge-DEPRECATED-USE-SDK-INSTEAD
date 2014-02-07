@@ -17,6 +17,7 @@ import com.google.dart.engine.element.HtmlElement;
 import com.google.dart.engine.element.angular.AngularComponentElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.html.ast.HtmlUnit;
+import com.google.dart.engine.internal.element.angular.AngularApplication;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceKind;
 
@@ -99,7 +100,7 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
   /**
    * Information about the Angular Application this unit is used in.
    */
-  private AngularApplicationInfo angularApplication;
+  private AngularApplication angularApplication;
 
   /**
    * The state of the {@link #angularEntry}.
@@ -109,7 +110,7 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
   /**
    * Information about the Angular Application this unit is entry point for.
    */
-  private AngularApplicationInfo angularEntry = null;
+  private AngularApplication angularEntry = null;
 
   /**
    * The state of the {@link #angularComponent}.
@@ -376,13 +377,13 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
   @Override
   public <E> void setValue(DataDescriptor<E> descriptor, E value) {
     if (descriptor == ANGULAR_APPLICATION) {
-      angularApplication = (AngularApplicationInfo) value;
+      angularApplication = (AngularApplication) value;
       angularApplicationState = CacheState.VALID;
     } else if (descriptor == ANGULAR_COMPONENT) {
       angularComponent = (AngularComponentElement) value;
       angularComponentState = CacheState.VALID;
     } else if (descriptor == ANGULAR_ENTRY) {
-      angularEntry = (AngularApplicationInfo) value;
+      angularEntry = (AngularApplication) value;
       angularEntryState = CacheState.VALID;
     } else if (descriptor == ANGULAR_ERRORS) {
       angularErrors = (AnalysisError[]) value;

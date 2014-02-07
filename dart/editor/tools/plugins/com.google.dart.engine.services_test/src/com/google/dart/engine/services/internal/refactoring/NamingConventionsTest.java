@@ -22,6 +22,7 @@ import static com.google.dart.engine.services.refactoring.NamingConventions.vali
 import static com.google.dart.engine.services.refactoring.NamingConventions.validateAngularControllerName;
 import static com.google.dart.engine.services.refactoring.NamingConventions.validateAngularFilterName;
 import static com.google.dart.engine.services.refactoring.NamingConventions.validateAngularPropertyName;
+import static com.google.dart.engine.services.refactoring.NamingConventions.validateAngularScopePropertyName;
 import static com.google.dart.engine.services.refactoring.NamingConventions.validateClassName;
 import static com.google.dart.engine.services.refactoring.NamingConventions.validateConstantName;
 import static com.google.dart.engine.services.refactoring.NamingConventions.validateConstructorName;
@@ -212,6 +213,49 @@ public class NamingConventionsTest extends AbstractDartTest {
 
   public void test_validateAngularPropertyName_OK_severalIdentifiers() throws Exception {
     assertRefactoringStatusOK(validateAngularPropertyName("my-property-name"));
+  }
+
+  public void test_validateAngularScopePropertyName_blank() throws Exception {
+    assertRefactoringStatus(
+        validateAngularScopePropertyName(" name"),
+        RefactoringStatusSeverity.ERROR,
+        "Scope property name must not start or end with a blank.");
+    assertRefactoringStatus(
+        validateAngularScopePropertyName("name "),
+        RefactoringStatusSeverity.ERROR,
+        "Scope property name must not start or end with a blank.");
+  }
+
+  public void test_validateAngularScopePropertyName_hasBlank() throws Exception {
+    assertRefactoringStatus(
+        validateAngularScopePropertyName("my name"),
+        RefactoringStatusSeverity.ERROR,
+        "Scope property name must not contain ' '.");
+  }
+
+  public void test_validateAngularScopePropertyName_hasDot() throws Exception {
+    assertRefactoringStatus(
+        validateAngularScopePropertyName("my.bad.name"),
+        RefactoringStatusSeverity.ERROR,
+        "Scope property name must not contain '.'.");
+  }
+
+  public void test_validateAngularScopePropertyName_notIdentifierStart() throws Exception {
+    assertRefactoringStatus(
+        validateAngularScopePropertyName("2my-bad-name"),
+        RefactoringStatusSeverity.ERROR,
+        "Scope property name must not start with '2'.");
+  }
+
+  public void test_validateAngularScopePropertyName_null() throws Exception {
+    assertRefactoringStatus(
+        validateAngularScopePropertyName(null),
+        RefactoringStatusSeverity.ERROR,
+        "Scope property name must not be null.");
+  }
+
+  public void test_validateAngularScopePropertyName_OK() throws Exception {
+    assertRefactoringStatusOK(validateAngularScopePropertyName("name"));
   }
 
   public void test_validateClassName_doesNotStartWithLowerCase() throws Exception {

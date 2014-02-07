@@ -22,6 +22,7 @@ import com.google.dart.engine.element.angular.AngularComponentElement;
 import com.google.dart.engine.element.angular.AngularControllerElement;
 import com.google.dart.engine.element.angular.AngularFilterElement;
 import com.google.dart.engine.element.angular.AngularPropertyElement;
+import com.google.dart.engine.element.angular.AngularScopePropertyElement;
 import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.index.IndexFactory;
@@ -195,15 +196,14 @@ public class AngularRenameRefactoringTest extends AngularTest {
           RefactoringStatusSeverity.ERROR,
           "Filter name must not contain '.'.");
     }
-    // TODO(scheglov)
-//    // there is already "existingFilter" filter
-//    {
-//      RefactoringStatus status = refactoring.checkNewName("existingFilter");
-//      assertRefactoringStatus(
-//          status,
-//          RefactoringStatusSeverity.ERROR,
-//          "Library already defines filter with name 'existingFilter'.");
-//    }
+    // there is already "existingFilter" filter
+    {
+      RefactoringStatus status = refactoring.checkNewName("existingFilter");
+      assertRefactoringStatus(
+          status,
+          RefactoringStatusSeverity.ERROR,
+          "Application already defines filter with name 'existingFilter'.");
+    }
   }
 
   public void test_angular_renameProperty_checkNewName() throws Exception {
@@ -271,6 +271,36 @@ public class AngularRenameRefactoringTest extends AngularTest {
     // check results
     assertIndexChangeResult(createHtmlWithAngular("<div newName='null'/>"));
     assertMainChangeResult(mainContent.replace("'test' :", "'newName' :"));
+  }
+
+  public void test_angular_renameScopeProperty() throws Exception {
+    addMainSource(createSource("",//
+        "import 'angular.dart';",
+        "",
+        "@NgComponent(",
+        "    templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
+        "    publishAs: 'ctrl',",
+        "    selector: 'myComponent')",
+        "class MyComponent {",
+        "  String field;",
+        "  MyComponent(Scope scope) {",
+        "    scope['test'] = 'abc';",
+        "  }",
+        "}"));
+    contextHelper.addSource("/entry-point.html", createHtmlWithAngular());
+    addIndexSource("/my_template.html", "<div>{{test}}</div>");
+    contextHelper.addSource("/my_styles.css", "");
+    contextHelper.runTasks();
+    resolveMain();
+    resolveIndex();
+    indexUnit(mainUnit);
+    indexUnit(indexUnit);
+    // prepare refactoring
+    AngularScopePropertyElement property = findMainElement("test");
+    prepareRenameChange(property, "newName");
+    // check results
+    assertIndexChangeResult("<div>{{newName}}</div>");
+    assertMainChangeResult(mainContent.replace("'test'] =", "'newName'] ="));
   }
 
   public void test_dart_renameField_updateFilterArg_orderBy() throws Exception {

@@ -197,6 +197,7 @@ public class AngularComponentElementImpl extends AngularHasSelectorElementImpl i
   @Override
   public void visitChildren(ElementVisitor<?> visitor) {
     safelyVisitChildren(properties, visitor);
+    safelyVisitChildren(scopeProperties, visitor);
     super.visitChildren(visitor);
   }
 

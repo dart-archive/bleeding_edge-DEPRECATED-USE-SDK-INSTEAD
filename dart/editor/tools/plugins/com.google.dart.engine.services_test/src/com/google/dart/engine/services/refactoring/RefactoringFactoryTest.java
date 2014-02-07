@@ -31,6 +31,7 @@ import com.google.dart.engine.element.angular.AngularComponentElement;
 import com.google.dart.engine.element.angular.AngularControllerElement;
 import com.google.dart.engine.element.angular.AngularFilterElement;
 import com.google.dart.engine.element.angular.AngularPropertyElement;
+import com.google.dart.engine.element.angular.AngularScopePropertyElement;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.engine.services.internal.correction.AbstractDartTest;
@@ -44,6 +45,7 @@ import com.google.dart.engine.services.internal.refactoring.RenameAngularCompone
 import com.google.dart.engine.services.internal.refactoring.RenameAngularControllerRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.RenameAngularFilterRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.RenameAngularPropertyRefactoringImpl;
+import com.google.dart.engine.services.internal.refactoring.RenameAngularScopePropertyRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.RenameClassMemberRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.RenameConstructorRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.RenameLibraryRefactoringImpl;
@@ -138,6 +140,13 @@ public class RefactoringFactoryTest extends AbstractDartTest {
     // create refactoring
     Refactoring refactoring = createRenameRefactoring(searchEngine, element);
     assertThat(refactoring).isInstanceOf(RenameAngularPropertyRefactoringImpl.class);
+  }
+
+  public void test_createRenameRefactoring_AngularScopePropertyElement() throws Exception {
+    AngularScopePropertyElement element = mock(AngularScopePropertyElement.class);
+    // create refactoring
+    Refactoring refactoring = createRenameRefactoring(searchEngine, element);
+    assertThat(refactoring).isInstanceOf(RenameAngularScopePropertyRefactoringImpl.class);
   }
 
   public void test_createRenameRefactoring_classMember_FieldElement() throws Exception {

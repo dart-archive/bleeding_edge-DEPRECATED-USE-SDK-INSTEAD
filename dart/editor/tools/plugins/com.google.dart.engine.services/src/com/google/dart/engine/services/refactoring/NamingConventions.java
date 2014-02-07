@@ -93,6 +93,15 @@ public final class NamingConventions {
    *         valid, {@link RefactoringStatusSeverity#WARNING} if the name is discouraged, or
    *         {@link RefactoringStatusSeverity#ERROR} if the name is illegal.
    */
+  public static RefactoringStatus validateAngularScopePropertyName(String name) {
+    return validateLowerCamelCase(name, "Scope property");
+  }
+
+  /**
+   * @return the {@link RefactoringStatus} with {@link RefactoringStatusSeverity#OK} if the name is
+   *         valid, {@link RefactoringStatusSeverity#WARNING} if the name is discouraged, or
+   *         {@link RefactoringStatusSeverity#ERROR} if the name is illegal.
+   */
   public static RefactoringStatus validateClassName(String name) {
     return validateUpperCamelCase(name, "Class");
   }

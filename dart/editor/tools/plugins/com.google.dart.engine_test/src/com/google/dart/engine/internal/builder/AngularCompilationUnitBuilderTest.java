@@ -624,18 +624,21 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
     assertLength(3, scopeProperties);
     {
       AngularScopePropertyElement property = scopeProperties[0];
+      assertSame(property, findMainElement("boolProp"));
       assertEquals("boolProp", property.getName());
       assertEquals(findOffset(mainContent, "boolProp'"), property.getNameOffset());
       assertEquals("bool", property.getType().getName());
     }
     {
       AngularScopePropertyElement property = scopeProperties[1];
+      assertSame(property, findMainElement("intProp"));
       assertEquals("intProp", property.getName());
       assertEquals(findOffset(mainContent, "intProp'"), property.getNameOffset());
       assertEquals("int", property.getType().getName());
     }
     {
       AngularScopePropertyElement property = scopeProperties[2];
+      assertSame(property, findMainElement("stringProp"));
       assertEquals("stringProp", property.getName());
       assertEquals(findOffset(mainContent, "stringProp'"), property.getNameOffset());
       assertEquals("String", property.getType().getName());

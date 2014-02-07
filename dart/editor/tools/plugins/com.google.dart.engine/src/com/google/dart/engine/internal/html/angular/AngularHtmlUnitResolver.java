@@ -49,7 +49,6 @@ import com.google.dart.engine.html.ast.XmlExpression;
 import com.google.dart.engine.html.ast.XmlTagNode;
 import com.google.dart.engine.html.ast.visitor.RecursiveXmlVisitor;
 import com.google.dart.engine.html.parser.HtmlParser;
-import com.google.dart.engine.internal.cache.AngularApplicationInfo;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
 import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
 import com.google.dart.engine.internal.element.FunctionElementImpl;
@@ -57,7 +56,9 @@ import com.google.dart.engine.internal.element.HtmlElementImpl;
 import com.google.dart.engine.internal.element.ImportElementImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
 import com.google.dart.engine.internal.element.LocalVariableElementImpl;
+import com.google.dart.engine.internal.element.angular.AngularApplication;
 import com.google.dart.engine.internal.element.angular.AngularComponentElementImpl;
+import com.google.dart.engine.internal.element.angular.AngularElementImpl;
 import com.google.dart.engine.internal.resolver.InheritanceManager;
 import com.google.dart.engine.internal.resolver.ProxyConditionalAnalysisError;
 import com.google.dart.engine.internal.resolver.ResolverVisitor;
@@ -257,10 +258,10 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
   }
 
   /**
-   * The {@link AngularApplicationInfo} for the Web application with this entry point, may be
+   * The {@link AngularApplication} for the Web application with this entry point, may be
    * {@code null} if not an entry point.
    */
-  public AngularApplicationInfo calculateAngularApplication() throws AnalysisException {
+  public AngularApplication calculateAngularApplication() throws AnalysisException {
     // check if Angular at all
     if (!hasAngularAnnotation(unit)) {
       return null;
@@ -273,6 +274,11 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
     // prepare accessible Angular elements
     LibraryElement libraryElement = dartUnit.getElement().getLibrary();
     AngularElement[] angularElements = getAngularElements(libraryElement);
+    AngularApplication application = new AngularApplication(source, angularElements);
+    // set AngularApplication for each AngularElement
+    for (AngularElement angularElement : angularElements) {
+      ((AngularElementImpl) angularElement).setApplication(application);
+    }
     // resolve template URIs
     // TODO(scheglov) resolve to HtmlElement to allow F3 ?
     for (AngularElement angularElement : angularElements) {
@@ -309,7 +315,7 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
       }
     }
     // done
-    return new AngularApplicationInfo(source, angularElements);
+    return application;
   }
 
   /**
@@ -318,7 +324,7 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
    * @param application the Angular application we are resolving for
    * @param component the {@link AngularComponentElement} to resolve template for, not {@code null}
    */
-  public void resolveComponentTemplate(AngularApplicationInfo application,
+  public void resolveComponentTemplate(AngularApplication application,
       AngularComponentElement component) throws AnalysisException {
     isAngular = true;
     resolveInternal(application.getElements(), component);
@@ -327,7 +333,7 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
   /**
    * Resolves {@link #source} as an Angular application entry point.
    */
-  public void resolveEntryPoint(AngularApplicationInfo application) throws AnalysisException {
+  public void resolveEntryPoint(AngularApplication application) throws AnalysisException {
     resolveInternal(application.getElements(), null);
   }
 

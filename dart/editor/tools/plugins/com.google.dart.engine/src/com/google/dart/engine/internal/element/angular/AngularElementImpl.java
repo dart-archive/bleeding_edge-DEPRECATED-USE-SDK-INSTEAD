@@ -24,6 +24,11 @@ import com.google.dart.engine.internal.element.ToolkitObjectElementImpl;
  */
 public abstract class AngularElementImpl extends ToolkitObjectElementImpl implements AngularElement {
   /**
+   * The {@link AngularApplication} this element is used in.
+   */
+  private AngularApplication application;
+
+  /**
    * Initialize a newly created Angular element to have the given name.
    * 
    * @param name the name of this element
@@ -32,5 +37,17 @@ public abstract class AngularElementImpl extends ToolkitObjectElementImpl implem
    */
   public AngularElementImpl(String name, int nameOffset) {
     super(name, nameOffset);
+  }
+
+  @Override
+  public AngularApplication getApplication() {
+    return application;
+  }
+
+  /**
+   * Set the {@link AngularApplication} this element is used in.
+   */
+  public void setApplication(AngularApplication application) {
+    this.application = application;
   }
 }
