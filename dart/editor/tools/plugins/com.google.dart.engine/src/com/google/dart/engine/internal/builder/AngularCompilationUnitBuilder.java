@@ -60,7 +60,7 @@ import com.google.dart.engine.internal.element.angular.AngularPropertyElementImp
 import com.google.dart.engine.internal.element.angular.AngularScopePropertyElementImpl;
 import com.google.dart.engine.internal.element.angular.HasAttributeSelectorElementImpl;
 import com.google.dart.engine.internal.element.angular.IsTagHasAttributeSelectorElementImpl;
-import com.google.dart.engine.internal.element.angular.IsTagSelectorElementImpl;
+import com.google.dart.engine.internal.element.angular.AngularTagSelectorElementImpl;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
@@ -189,7 +189,7 @@ public class AngularCompilationUnitBuilder {
     }
     // tag
     if (StringUtilities.isTagName(text)) {
-      return new IsTagSelectorElementImpl(text, offset);
+      return new AngularTagSelectorElementImpl(text, offset);
     }
     return null;
   }

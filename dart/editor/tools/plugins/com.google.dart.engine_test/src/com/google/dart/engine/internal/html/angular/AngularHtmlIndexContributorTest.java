@@ -128,7 +128,7 @@ public class AngularHtmlIndexContributorTest extends AngularTest {
     assertRecordedRelation(
         relations,
         componentElement,
-        IndexConstants.IS_REFERENCED_BY,
+        IndexConstants.ANGULAR_REFERENCE,
         new ExpectedLocation(indexHtmlUnit, findOffset("ctrl.field"), "ctrl"));
     assertRecordedRelation(
         relations,
@@ -151,7 +151,8 @@ public class AngularHtmlIndexContributorTest extends AngularTest {
         "  set setB(value) {}",
         "}"));
     resolveIndex(createHtmlWithMyController(//
-    "<myComponent attrA='null' attrB='str'/>"));
+        "<myComponent attrA='null' attrB='str'/>",
+        "<myComponent>abcd</myComponent> with closing tag"));
     // prepare elements
     AngularSelectorElement selectorElement = findMainElement("myComponent");
     AngularPropertyElement attrA = findMainElement("attrA");
@@ -163,16 +164,32 @@ public class AngularHtmlIndexContributorTest extends AngularTest {
     assertRecordedRelation(
         relations,
         selectorElement,
-        IndexConstants.IS_REFERENCED_BY,
+        IndexConstants.ANGULAR_REFERENCE,
         new ExpectedLocation(indexHtmlUnit, findOffset("myComponent attrA='null"), "myComponent"));
-    assertRecordedRelation(relations, attrA, IndexConstants.IS_REFERENCED_BY, new ExpectedLocation(
-        indexHtmlUnit,
-        findOffset("attrA='null"),
-        "attrA"));
-    assertRecordedRelation(relations, attrB, IndexConstants.IS_REFERENCED_BY, new ExpectedLocation(
-        indexHtmlUnit,
-        findOffset("attrB='str"),
-        "attrB"));
+    assertRecordedRelation(
+        relations,
+        attrA,
+        IndexConstants.ANGULAR_REFERENCE,
+        new ExpectedLocation(indexHtmlUnit, findOffset("attrA='null"), "attrA"));
+    assertRecordedRelation(
+        relations,
+        attrB,
+        IndexConstants.ANGULAR_REFERENCE,
+        new ExpectedLocation(indexHtmlUnit, findOffset("attrB='str"), "attrB"));
+    // with closing tag
+    assertRecordedRelation(
+        relations,
+        selectorElement,
+        IndexConstants.ANGULAR_REFERENCE,
+        new ExpectedLocation(indexHtmlUnit, findOffset("myComponent>abcd"), "myComponent"));
+    assertRecordedRelation(
+        relations,
+        selectorElement,
+        IndexConstants.ANGULAR_CLOSING_TAG_REFERENCE,
+        new ExpectedLocation(
+            indexHtmlUnit,
+            findOffset("myComponent> with closing tag"),
+            "myComponent"));
   }
 
   public void test_NgFilter_use() throws Exception {
@@ -207,7 +224,7 @@ public class AngularHtmlIndexContributorTest extends AngularTest {
     assertRecordedRelation(
         relations,
         filterElement,
-        IndexConstants.IS_REFERENCED_BY,
+        IndexConstants.ANGULAR_REFERENCE,
         new ExpectedLocation(indexHtmlUnit, findOffset("myFilter:true"), "myFilter"));
   }
 

@@ -58,34 +58,7 @@ public final class NamingConventions {
    *         {@link RefactoringStatusSeverity#ERROR} if the name is illegal.
    */
   public static RefactoringStatus validateAngularPropertyName(String name) {
-    // null
-    if (name == null) {
-      return RefactoringStatus.createErrorStatus("Property name must not be null.");
-    }
-    // blank
-    if (StringUtils.isBlank(name)) {
-      return RefactoringStatus.createErrorStatus("Property name must not be blank.");
-    }
-    // first character
-    char currentChar = name.charAt(0);
-    if (!Character.isLetter(currentChar)) {
-      String message = MessageFormat.format(
-          "Property name must not start with ''{0}''.",
-          currentChar);
-      return RefactoringStatus.createErrorStatus(message);
-    }
-    // second+ character
-    for (int i = 1; i < name.length(); i++) {
-      currentChar = name.charAt(i);
-      if (!Character.isLetterOrDigit(currentChar) && currentChar != '-') {
-        String message = MessageFormat.format(
-            "Property name must not contain ''{0}''.",
-            currentChar);
-        return RefactoringStatus.createErrorStatus(message);
-      }
-    }
-    // OK
-    return new RefactoringStatus();
+    return validateTagOrAttributeName(name, "Property name");
   }
 
   /**
@@ -95,6 +68,15 @@ public final class NamingConventions {
    */
   public static RefactoringStatus validateAngularScopePropertyName(String name) {
     return validateLowerCamelCase(name, "Scope property");
+  }
+
+  /**
+   * @return the {@link RefactoringStatus} with {@link RefactoringStatusSeverity#OK} if the name is
+   *         valid, {@link RefactoringStatusSeverity#WARNING} if the name is discouraged, or
+   *         {@link RefactoringStatusSeverity#ERROR} if the name is illegal.
+   */
+  public static RefactoringStatus validateAngularTagSelectorName(String name) {
+    return validateTagOrAttributeName(name, "Tag selector name");
   }
 
   /**
@@ -318,6 +300,37 @@ public final class NamingConventions {
           "{0} name should start with a lowercase letter.",
           elementName);
       return RefactoringStatus.createWarningStatus(message);
+    }
+    // OK
+    return new RefactoringStatus();
+  }
+
+  private static RefactoringStatus validateTagOrAttributeName(String name, String elementName) {
+    // null
+    if (name == null) {
+      return RefactoringStatus.createErrorStatus(elementName + " must not be null.");
+    }
+    // blank
+    if (StringUtils.isBlank(name)) {
+      return RefactoringStatus.createErrorStatus(elementName + " must not be blank.");
+    }
+    // first character
+    char currentChar = name.charAt(0);
+    if (!Character.isLetter(currentChar)) {
+      String message = MessageFormat.format(
+          elementName + " must not start with ''{0}''.",
+          currentChar);
+      return RefactoringStatus.createErrorStatus(message);
+    }
+    // second+ character
+    for (int i = 1; i < name.length(); i++) {
+      currentChar = name.charAt(i);
+      if (!Character.isLetterOrDigit(currentChar) && currentChar != '-') {
+        String message = MessageFormat.format(
+            elementName + " must not contain ''{0}''.",
+            currentChar);
+        return RefactoringStatus.createErrorStatus(message);
+      }
     }
     // OK
     return new RefactoringStatus();

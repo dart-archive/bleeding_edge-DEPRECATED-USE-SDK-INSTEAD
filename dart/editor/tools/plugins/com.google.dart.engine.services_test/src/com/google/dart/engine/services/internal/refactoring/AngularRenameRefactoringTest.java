@@ -23,6 +23,7 @@ import com.google.dart.engine.element.angular.AngularControllerElement;
 import com.google.dart.engine.element.angular.AngularFilterElement;
 import com.google.dart.engine.element.angular.AngularPropertyElement;
 import com.google.dart.engine.element.angular.AngularScopePropertyElement;
+import com.google.dart.engine.element.angular.AngularTagSelectorElement;
 import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.index.IndexFactory;
@@ -301,6 +302,146 @@ public class AngularRenameRefactoringTest extends AngularTest {
     // check results
     assertIndexChangeResult("<div>{{newName}}</div>");
     assertMainChangeResult(mainContent.replace("'test'] =", "'newName'] ="));
+  }
+
+  public void test_angular_renameScopeProperty_checkNewName() throws Exception {
+    addMainSource(createSource("",//
+        "import 'angular.dart';",
+        "",
+        "@NgComponent(",
+        "    templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
+        "    publishAs: 'ctrl',",
+        "    selector: 'myComponent')",
+        "class MyComponent {",
+        "  String field;",
+        "  MyComponent(Scope scope) {",
+        "    scope['existingScopeProperty'] = 42;",
+        "    scope['test'] = 'abc';",
+        "  }",
+        "}"));
+    contextHelper.addSource("/entry-point.html", createHtmlWithAngular());
+    addIndexSource("/my_template.html", "<div>{{test}}</div>");
+    contextHelper.addSource("/my_styles.css", "");
+    contextHelper.runTasks();
+    resolveMain();
+    resolveIndex();
+    indexUnit(mainUnit);
+    indexUnit(indexUnit);
+    // prepare refactoring
+    AngularScopePropertyElement property = findMainElement("test");
+    createRenameRefactoring(property);
+    // "newName"
+    {
+      RefactoringStatus status = refactoring.checkNewName("newName");
+      assertRefactoringStatusOK(status);
+    }
+    // "new-name" - bad
+    {
+      RefactoringStatus status = refactoring.checkNewName("new-name");
+      assertRefactoringStatus(
+          status,
+          RefactoringStatusSeverity.ERROR,
+          "Scope property name must not contain '-'.");
+    }
+    // "new.name" - bad
+    {
+      RefactoringStatus status = refactoring.checkNewName("new.name");
+      assertRefactoringStatus(
+          status,
+          RefactoringStatusSeverity.ERROR,
+          "Scope property name must not contain '.'.");
+    }
+    // there is already "existingScopeProperty" filter
+    {
+      RefactoringStatus status = refactoring.checkNewName("existingScopeProperty");
+      assertRefactoringStatus(
+          status,
+          RefactoringStatusSeverity.ERROR,
+          "Component already defines scope property with name 'existingScopeProperty'.");
+    }
+  }
+
+  public void test_angular_renameTagSelector() throws Exception {
+    contextHelper.addSource("/my_template.html", createSource(//
+        "    <div>",
+        "      {{ctrl.field}}",
+        "    </div>"));
+    addMainSource(createSource("",//
+        "import 'angular.dart';",
+        "",
+        "@NgComponent(",
+        "    templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
+        "    publishAs: 'ctrl',",
+        "    selector: 'myComponent' // selector)",
+        "class MyComponent {",
+        "}"));
+    addIndexSource(createHtmlWithAngular("<myComponent>abcd</myComponent>"));
+    contextHelper.runTasks();
+    resolveMain();
+    resolveIndex();
+    indexUnit(indexUnit);
+    // prepare refactoring
+    AngularTagSelectorElement selector = findMainElement("myComponent");
+    prepareRenameChange(selector, "newName");
+    // check results
+    assertIndexChangeResult(createHtmlWithAngular("<newName>abcd</newName>"));
+    assertMainChangeResult(mainContent.replace("'myComponent'", "'newName'"));
+  }
+
+  public void test_angular_renameTagSelector_checkNewName() throws Exception {
+    contextHelper.addSource("/my_template.html", createSource(//
+        "    <div>",
+        "      {{ctrl.field}}",
+        "    </div>"));
+    addMainSource(createSource("",//
+        "import 'angular.dart';",
+        "",
+        "@NgComponent(selector: 'existingSelector')",
+        "class OtherComponent {}",
+        "",
+        "@NgComponent(",
+        "    templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
+        "    publishAs: 'ctrl',",
+        "    selector: 'myComponent' // selector)",
+        "class MyComponent {",
+        "}"));
+    addIndexSource(createHtmlWithAngular("<myComponent>abcd</myComponent>"));
+    contextHelper.runTasks();
+    resolveMain();
+    resolveIndex();
+    indexUnit(indexUnit);
+    // prepare refactoring
+    AngularTagSelectorElement selector = findMainElement("myComponent");
+    createRenameRefactoring(selector);
+    // "new-name"
+    {
+      RefactoringStatus status = refactoring.checkNewName("new-name");
+      assertRefactoringStatusOK(status);
+    }
+    // "new name" - bad
+    {
+      RefactoringStatus status = refactoring.checkNewName("new name");
+      assertRefactoringStatus(
+          status,
+          RefactoringStatusSeverity.ERROR,
+          "Tag selector name must not contain ' '.");
+    }
+    // "new.name" - bad
+    {
+      RefactoringStatus status = refactoring.checkNewName("new.name");
+      assertRefactoringStatus(
+          status,
+          RefactoringStatusSeverity.ERROR,
+          "Tag selector name must not contain '.'.");
+    }
+    // there is already "existingFilter" filter
+    {
+      RefactoringStatus status = refactoring.checkNewName("existingSelector");
+      assertRefactoringStatus(
+          status,
+          RefactoringStatusSeverity.ERROR,
+          "Application already defines component with tag selector 'existingSelector'.");
+    }
   }
 
   public void test_dart_renameField_updateFilterArg_orderBy() throws Exception {

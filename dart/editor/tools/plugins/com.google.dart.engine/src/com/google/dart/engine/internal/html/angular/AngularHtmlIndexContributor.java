@@ -67,7 +67,7 @@ public class AngularHtmlIndexContributor extends ExpressionVisitor {
         AngularElement angularElement = AngularHtmlUnitResolver.getAngularElement(element);
         if (angularElement != null) {
           element = angularElement;
-          relationship = IndexConstants.IS_REFERENCED_BY;
+          relationship = IndexConstants.ANGULAR_REFERENCE;
         }
         super.recordRelationship(element, relationship, location);
       }
@@ -83,7 +83,7 @@ public class AngularHtmlIndexContributor extends ExpressionVisitor {
       if (element instanceof AngularElement) {
         store.recordRelationship(
             element,
-            IndexConstants.IS_REFERENCED_BY,
+            IndexConstants.ANGULAR_REFERENCE,
             createLocation(identifier));
         return;
       }
@@ -106,7 +106,7 @@ public class AngularHtmlIndexContributor extends ExpressionVisitor {
     if (element != null) {
       Token nameToken = node.getNameToken();
       Location location = createLocation(nameToken);
-      store.recordRelationship(element, IndexConstants.IS_REFERENCED_BY, location);
+      store.recordRelationship(element, IndexConstants.ANGULAR_REFERENCE, location);
     }
     return super.visitXmlAttributeNode(node);
   }
@@ -115,9 +115,18 @@ public class AngularHtmlIndexContributor extends ExpressionVisitor {
   public Void visitXmlTagNode(XmlTagNode node) {
     Element element = node.getElement();
     if (element != null) {
-      Token tagToken = node.getTagToken();
-      Location location = createLocation(tagToken);
-      store.recordRelationship(element, IndexConstants.IS_REFERENCED_BY, location);
+      // tag
+      {
+        Token tagToken = node.getTagToken();
+        Location location = createLocation(tagToken);
+        store.recordRelationship(element, IndexConstants.ANGULAR_REFERENCE, location);
+      }
+      // maybe add closing tag range
+      Token closingTag = node.getClosingTag();
+      if (closingTag != null) {
+        Location location = createLocation(closingTag);
+        store.recordRelationship(element, IndexConstants.ANGULAR_CLOSING_TAG_REFERENCE, location);
+      }
     }
     return super.visitXmlTagNode(node);
   }

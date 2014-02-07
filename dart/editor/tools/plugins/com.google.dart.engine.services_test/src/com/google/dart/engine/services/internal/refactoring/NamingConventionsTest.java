@@ -23,6 +23,7 @@ import static com.google.dart.engine.services.refactoring.NamingConventions.vali
 import static com.google.dart.engine.services.refactoring.NamingConventions.validateAngularFilterName;
 import static com.google.dart.engine.services.refactoring.NamingConventions.validateAngularPropertyName;
 import static com.google.dart.engine.services.refactoring.NamingConventions.validateAngularScopePropertyName;
+import static com.google.dart.engine.services.refactoring.NamingConventions.validateAngularTagSelectorName;
 import static com.google.dart.engine.services.refactoring.NamingConventions.validateClassName;
 import static com.google.dart.engine.services.refactoring.NamingConventions.validateConstantName;
 import static com.google.dart.engine.services.refactoring.NamingConventions.validateConstructorName;
@@ -256,6 +257,53 @@ public class NamingConventionsTest extends AbstractDartTest {
 
   public void test_validateAngularScopePropertyName_OK() throws Exception {
     assertRefactoringStatusOK(validateAngularScopePropertyName("name"));
+  }
+
+  public void test_validateAngularTagSelector_blank() throws Exception {
+    assertRefactoringStatus(
+        validateAngularTagSelectorName(" "),
+        RefactoringStatusSeverity.ERROR,
+        "Tag selector name must not be blank.");
+    assertRefactoringStatus(
+        validateAngularTagSelectorName(" "),
+        RefactoringStatusSeverity.ERROR,
+        "Tag selector name must not be blank.");
+  }
+
+  public void test_validateAngularTagSelector_hasBlank() throws Exception {
+    assertRefactoringStatus(
+        validateAngularTagSelectorName("my- bad-name"),
+        RefactoringStatusSeverity.ERROR,
+        "Tag selector name must not contain ' '.");
+  }
+
+  public void test_validateAngularTagSelector_hasDot() throws Exception {
+    assertRefactoringStatus(
+        validateAngularTagSelectorName("my.bad.name"),
+        RefactoringStatusSeverity.ERROR,
+        "Tag selector name must not contain '.'.");
+  }
+
+  public void test_validateAngularTagSelector_notIdentifierStart() throws Exception {
+    assertRefactoringStatus(
+        validateAngularTagSelectorName("2my-bad-name"),
+        RefactoringStatusSeverity.ERROR,
+        "Tag selector name must not start with '2'.");
+  }
+
+  public void test_validateAngularTagSelector_null() throws Exception {
+    assertRefactoringStatus(
+        validateAngularTagSelectorName(null),
+        RefactoringStatusSeverity.ERROR,
+        "Tag selector name must not be null.");
+  }
+
+  public void test_validateAngularTagSelector_OK_oneIdentifier() throws Exception {
+    assertRefactoringStatusOK(validateAngularTagSelectorName("name"));
+  }
+
+  public void test_validateAngularTagSelector_OK_severalIdentifiers() throws Exception {
+    assertRefactoringStatusOK(validateAngularTagSelectorName("my-property-name"));
   }
 
   public void test_validateClassName_doesNotStartWithLowerCase() throws Exception {

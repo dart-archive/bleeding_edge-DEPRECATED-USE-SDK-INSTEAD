@@ -14,6 +14,7 @@
 package com.google.dart.engine.internal.index;
 
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.angular.AngularElement;
 import com.google.dart.engine.index.Relationship;
 import com.google.dart.engine.index.UniverseElement;
 
@@ -186,4 +187,14 @@ public interface IndexConstants {
    * location (the right operand). This is used for methods.
    */
   Relationship IS_INVOKED_BY_UNQUALIFIED = Relationship.getRelationship("is-invoked-by-unqualified");
+
+  /**
+   * Reference to some {@link AngularElement}.
+   */
+  Relationship ANGULAR_REFERENCE = Relationship.getRelationship("angular-reference");
+
+  /**
+   * Reference to some closing tag of an XML element.
+   */
+  Relationship ANGULAR_CLOSING_TAG_REFERENCE = Relationship.getRelationship("angular-closing-tag-reference");
 }

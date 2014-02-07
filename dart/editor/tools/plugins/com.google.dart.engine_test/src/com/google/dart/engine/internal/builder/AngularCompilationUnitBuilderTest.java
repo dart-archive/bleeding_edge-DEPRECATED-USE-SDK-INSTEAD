@@ -33,7 +33,7 @@ import com.google.dart.engine.element.angular.AngularSelectorElement;
 import com.google.dart.engine.error.AngularCode;
 import com.google.dart.engine.internal.element.angular.HasAttributeSelectorElementImpl;
 import com.google.dart.engine.internal.element.angular.IsTagHasAttributeSelectorElementImpl;
-import com.google.dart.engine.internal.element.angular.IsTagSelectorElementImpl;
+import com.google.dart.engine.internal.element.angular.AngularTagSelectorElementImpl;
 import com.google.dart.engine.internal.html.angular.AngularTest;
 
 public class AngularCompilationUnitBuilderTest extends AngularTest {
@@ -43,8 +43,8 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
   }
 
   private static void assertIsTagSelector(AngularSelectorElement selector, String name) {
-    assertInstanceOf(IsTagSelectorElementImpl.class, selector);
-    assertEquals(name, ((IsTagSelectorElementImpl) selector).getName());
+    assertInstanceOf(AngularTagSelectorElementImpl.class, selector);
+    assertEquals(name, ((AngularTagSelectorElementImpl) selector).getName());
   }
 
   private static String createAngularSource(String... lines) {

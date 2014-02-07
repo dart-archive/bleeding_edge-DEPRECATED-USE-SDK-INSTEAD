@@ -356,18 +356,21 @@ public class SearchEngineImplTest extends EngineTestCase {
         ElementKind.ANGULAR_COMPONENT);
     {
       Location locationA = new Location(elementA, 1, 2);
-      indexStore.recordRelationship(referencedElement, IndexConstants.IS_REFERENCED_BY, locationA);
+      indexStore.recordRelationship(referencedElement, IndexConstants.ANGULAR_REFERENCE, locationA);
     }
     {
       Location locationB = new Location(elementB, 10, 20);
-      indexStore.recordRelationship(referencedElement, IndexConstants.IS_REFERENCED_BY, locationB);
+      indexStore.recordRelationship(
+          referencedElement,
+          IndexConstants.ANGULAR_CLOSING_TAG_REFERENCE,
+          locationB);
     }
     // search matches
     List<SearchMatch> matches = searchReferencesSync(Element.class, referencedElement);
     assertMatches(
         matches,
         new ExpectedMatch(elementA, MatchKind.ANGULAR_REFERENCE, 1, 2),
-        new ExpectedMatch(elementB, MatchKind.ANGULAR_REFERENCE, 10, 20));
+        new ExpectedMatch(elementB, MatchKind.ANGULAR_CLOSING_TAG_REFERENCE, 10, 20));
   }
 
   public void test_searchReferences_AngularControllerElement() throws Exception {
@@ -376,11 +379,11 @@ public class SearchEngineImplTest extends EngineTestCase {
         ElementKind.ANGULAR_CONTROLLER);
     {
       Location locationA = new Location(elementA, 1, 2);
-      indexStore.recordRelationship(referencedElement, IndexConstants.IS_REFERENCED_BY, locationA);
+      indexStore.recordRelationship(referencedElement, IndexConstants.ANGULAR_REFERENCE, locationA);
     }
     {
       Location locationB = new Location(elementB, 10, 20);
-      indexStore.recordRelationship(referencedElement, IndexConstants.IS_REFERENCED_BY, locationB);
+      indexStore.recordRelationship(referencedElement, IndexConstants.ANGULAR_REFERENCE, locationB);
     }
     // search matches
     List<SearchMatch> matches = searchReferencesSync(Element.class, referencedElement);
@@ -396,11 +399,11 @@ public class SearchEngineImplTest extends EngineTestCase {
         ElementKind.ANGULAR_FILTER);
     {
       Location locationA = new Location(elementA, 1, 2);
-      indexStore.recordRelationship(referencedElement, IndexConstants.IS_REFERENCED_BY, locationA);
+      indexStore.recordRelationship(referencedElement, IndexConstants.ANGULAR_REFERENCE, locationA);
     }
     {
       Location locationB = new Location(elementB, 10, 20);
-      indexStore.recordRelationship(referencedElement, IndexConstants.IS_REFERENCED_BY, locationB);
+      indexStore.recordRelationship(referencedElement, IndexConstants.ANGULAR_REFERENCE, locationB);
     }
     // search matches
     List<SearchMatch> matches = searchReferencesSync(Element.class, referencedElement);
@@ -416,11 +419,11 @@ public class SearchEngineImplTest extends EngineTestCase {
         ElementKind.ANGULAR_PROPERTY);
     {
       Location locationA = new Location(elementA, 1, 2);
-      indexStore.recordRelationship(referencedElement, IndexConstants.IS_REFERENCED_BY, locationA);
+      indexStore.recordRelationship(referencedElement, IndexConstants.ANGULAR_REFERENCE, locationA);
     }
     {
       Location locationB = new Location(elementB, 10, 20);
-      indexStore.recordRelationship(referencedElement, IndexConstants.IS_REFERENCED_BY, locationB);
+      indexStore.recordRelationship(referencedElement, IndexConstants.ANGULAR_REFERENCE, locationB);
     }
     // search matches
     List<SearchMatch> matches = searchReferencesSync(Element.class, referencedElement);
@@ -436,11 +439,11 @@ public class SearchEngineImplTest extends EngineTestCase {
         ElementKind.ANGULAR_SCOPE_PROPERTY);
     {
       Location locationA = new Location(elementA, 1, 2);
-      indexStore.recordRelationship(referencedElement, IndexConstants.IS_REFERENCED_BY, locationA);
+      indexStore.recordRelationship(referencedElement, IndexConstants.ANGULAR_REFERENCE, locationA);
     }
     {
       Location locationB = new Location(elementB, 10, 20);
-      indexStore.recordRelationship(referencedElement, IndexConstants.IS_REFERENCED_BY, locationB);
+      indexStore.recordRelationship(referencedElement, IndexConstants.ANGULAR_REFERENCE, locationB);
     }
     // search matches
     List<SearchMatch> matches = searchReferencesSync(Element.class, referencedElement);
@@ -456,11 +459,11 @@ public class SearchEngineImplTest extends EngineTestCase {
         ElementKind.ANGULAR_SELECTOR);
     {
       Location locationA = new Location(elementA, 1, 2);
-      indexStore.recordRelationship(referencedElement, IndexConstants.IS_REFERENCED_BY, locationA);
+      indexStore.recordRelationship(referencedElement, IndexConstants.ANGULAR_REFERENCE, locationA);
     }
     {
       Location locationB = new Location(elementB, 10, 20);
-      indexStore.recordRelationship(referencedElement, IndexConstants.IS_REFERENCED_BY, locationB);
+      indexStore.recordRelationship(referencedElement, IndexConstants.ANGULAR_REFERENCE, locationB);
     }
     // search matches
     List<SearchMatch> matches = searchReferencesSync(Element.class, referencedElement);

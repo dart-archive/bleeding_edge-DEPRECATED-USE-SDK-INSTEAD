@@ -14,34 +14,27 @@
 
 package com.google.dart.engine.internal.element.angular;
 
-import com.google.common.annotations.VisibleForTesting;
+import com.google.dart.engine.element.angular.AngularSelectorElement;
+import com.google.dart.engine.element.angular.AngularTagSelectorElement;
 import com.google.dart.engine.html.ast.XmlTagNode;
 
 /**
- * Combination of {@link AngularTagSelectorElementImpl} and {@link HasAttributeSelectorElementImpl}.
+ * Implementation of {@link AngularSelectorElement} based on tag name.
  */
-public class IsTagHasAttributeSelectorElementImpl extends AngularSelectorElementImpl {
-  private final String tagName;
-  private final String attributeName;
-
-  public IsTagHasAttributeSelectorElementImpl(String tagName, String attributeName) {
-    super(null, -1);
-    this.tagName = tagName;
-    this.attributeName = attributeName;
+public class AngularTagSelectorElementImpl extends AngularSelectorElementImpl implements
+    AngularTagSelectorElement {
+  public AngularTagSelectorElementImpl(String name, int offset) {
+    super(name, offset);
   }
 
   @Override
   public boolean apply(XmlTagNode node) {
-    return node.getTag().equals(tagName) && node.getAttribute(attributeName) != null;
+    String tagName = getName();
+    return node.getTag().equals(tagName);
   }
 
-  @VisibleForTesting
-  public String getAttributeName() {
-    return attributeName;
-  }
-
-  @VisibleForTesting
-  public String getTagName() {
-    return tagName;
+  @Override
+  public AngularApplication getApplication() {
+    return ((AngularElementImpl) getEnclosingElement()).getApplication();
   }
 }

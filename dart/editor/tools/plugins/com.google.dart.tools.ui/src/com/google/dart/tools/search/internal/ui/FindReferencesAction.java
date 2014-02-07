@@ -357,7 +357,11 @@ public class FindReferencesAction extends AbstractDartSelectionAction {
       references.addAll(searchEngine.searchReferences(refElement, null, new SearchFilter() {
         @Override
         public boolean passes(SearchMatch match) {
-          if (match.getKind() == MatchKind.CONSTRUCTOR_DECLARATION) {
+          MatchKind kind = match.getKind();
+          if (kind == MatchKind.CONSTRUCTOR_DECLARATION) {
+            return false;
+          }
+          if (kind == MatchKind.ANGULAR_CLOSING_TAG_REFERENCE) {
             return false;
           }
           return true;

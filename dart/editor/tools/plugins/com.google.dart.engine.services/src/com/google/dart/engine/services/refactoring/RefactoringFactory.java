@@ -33,6 +33,7 @@ import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.angular.AngularComponentElement;
 import com.google.dart.engine.element.angular.AngularControllerElement;
 import com.google.dart.engine.element.angular.AngularFilterElement;
+import com.google.dart.engine.element.angular.AngularTagSelectorElement;
 import com.google.dart.engine.element.angular.AngularPropertyElement;
 import com.google.dart.engine.element.angular.AngularScopePropertyElement;
 import com.google.dart.engine.search.SearchEngine;
@@ -48,6 +49,7 @@ import com.google.dart.engine.services.internal.refactoring.RenameAngularControl
 import com.google.dart.engine.services.internal.refactoring.RenameAngularFilterRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.RenameAngularPropertyRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.RenameAngularScopePropertyRefactoringImpl;
+import com.google.dart.engine.services.internal.refactoring.RenameAngularTagSelectorRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.RenameClassMemberRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.RenameConstructorRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.RenameImportRefactoringImpl;
@@ -138,6 +140,10 @@ public class RefactoringFactory {
     if (element instanceof AngularScopePropertyElement) {
       AngularScopePropertyElement property = (AngularScopePropertyElement) element;
       return new RenameAngularScopePropertyRefactoringImpl(searchEngine, property);
+    }
+    if (element instanceof AngularTagSelectorElement) {
+      AngularTagSelectorElement selector = (AngularTagSelectorElement) element;
+      return new RenameAngularTagSelectorRefactoringImpl(searchEngine, selector);
     }
     if (element instanceof PropertyAccessorElement) {
       element = ((PropertyAccessorElement) element).getVariable();

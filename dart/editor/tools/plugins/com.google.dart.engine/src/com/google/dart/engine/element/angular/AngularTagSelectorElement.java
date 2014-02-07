@@ -12,22 +12,10 @@
  * the License.
  */
 
-package com.google.dart.engine.internal.element.angular;
-
-import com.google.dart.engine.element.angular.AngularSelectorElement;
-import com.google.dart.engine.html.ast.XmlTagNode;
+package com.google.dart.engine.element.angular;
 
 /**
- * Implementation of {@link AngularSelectorElement} based on tag name.
+ * {@link AngularSelectorElement} based on tag name.
  */
-public class IsTagSelectorElementImpl extends AngularSelectorElementImpl {
-  public IsTagSelectorElementImpl(String name, int offset) {
-    super(name, offset);
-  }
-
-  @Override
-  public boolean apply(XmlTagNode node) {
-    String tagName = getName();
-    return node.getTag().equals(tagName);
-  }
+public interface AngularTagSelectorElement extends AngularSelectorElement {
 }

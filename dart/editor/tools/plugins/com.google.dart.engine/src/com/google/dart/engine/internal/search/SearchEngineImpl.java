@@ -508,10 +508,15 @@ public class SearchEngineImpl implements SearchEngine {
       SearchListener listener) {
     assert listener != null;
     listener = applyFilter(filter, listener);
+    listener = new CountingSearchListener(2, listener);
     index.getRelationships(
         element,
-        IndexConstants.IS_REFERENCED_BY,
+        IndexConstants.ANGULAR_REFERENCE,
         newCallback(MatchKind.ANGULAR_REFERENCE, scope, listener));
+    index.getRelationships(
+        element,
+        IndexConstants.ANGULAR_CLOSING_TAG_REFERENCE,
+        newCallback(MatchKind.ANGULAR_CLOSING_TAG_REFERENCE, scope, listener));
   }
 
   private void searchReferences(ClassElement type, SearchScope scope, SearchFilter filter,
