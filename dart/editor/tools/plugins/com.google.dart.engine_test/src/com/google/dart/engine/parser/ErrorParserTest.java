@@ -708,6 +708,23 @@ public class ErrorParserTest extends ParserTestCase {
         ParserErrorCode.GETTER_WITH_PARAMETERS);
   }
 
+  public void test_illegalAssignmentToNonAssignable_postfix_minusMinus_literal() throws Exception {
+    parseExpression("0--", ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE);
+  }
+
+  public void test_illegalAssignmentToNonAssignable_postfix_plusPlus_literal() throws Exception {
+    parseExpression("0++", ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE);
+  }
+
+  public void test_illegalAssignmentToNonAssignable_postfix_plusPlus_parethesized()
+      throws Exception {
+    parseExpression("(x)++", ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE);
+  }
+
+  public void test_illegalAssignmentToNonAssignable_primarySelectorPostfix() throws Exception {
+    parseExpression("x(y)(z)++", ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE);
+  }
+
   public void test_illegalAssignmentToNonAssignable_superAssigned() throws Exception {
     // TODO(brianwilkerson) When the test fail_illegalAssignmentToNonAssignable_superAssigned starts
     // to pass, remove this test (there should only be one error generated, but we're keeping this
@@ -830,24 +847,12 @@ public class ErrorParserTest extends ParserTestCase {
     parseExpression("x.y = y;");
   }
 
-  public void test_missingAssignableSelector_postfix_minusMinus_literal() throws Exception {
-    parseExpression("0--", ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR);
-  }
-
-  public void test_missingAssignableSelector_postfix_plusPlus_literal() throws Exception {
-    parseExpression("0++", ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR);
-  }
-
   public void test_missingAssignableSelector_prefix_minusMinus_literal() throws Exception {
     parseExpression("--0", ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR);
   }
 
   public void test_missingAssignableSelector_prefix_plusPlus_literal() throws Exception {
     parseExpression("++0", ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR);
-  }
-
-  public void test_missingAssignableSelector_primarySelectorPostfix() throws Exception {
-    parseExpression("x(y)(z)++", ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR);
   }
 
   public void test_missingAssignableSelector_selector() throws Exception {
