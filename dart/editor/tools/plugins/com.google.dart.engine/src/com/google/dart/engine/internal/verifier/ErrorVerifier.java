@@ -1941,7 +1941,10 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
         return true;
       }
       if (variable.isFinal()) {
-        errorReporter.reportError(StaticWarningCode.ASSIGNMENT_TO_FINAL, expression);
+        errorReporter.reportError(
+            StaticWarningCode.ASSIGNMENT_TO_FINAL,
+            expression,
+            variable.getName());
         return true;
       }
       return false;

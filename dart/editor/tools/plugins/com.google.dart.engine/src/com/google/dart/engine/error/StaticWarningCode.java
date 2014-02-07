@@ -76,7 +76,7 @@ public enum StaticWarningCode implements ErrorCode {
    * to be thrown, because no setter is defined for it. The assignment will also give rise to a
    * static warning for the same reason.
    */
-  ASSIGNMENT_TO_FINAL("Final variables cannot be assigned a value"),
+  ASSIGNMENT_TO_FINAL("'%s' cannot be used as a setter, it is final"),
 
   /**
    * 12.18 Assignment: Let <i>T</i> be the static type of <i>e<sub>1</sub></i>. It is a static type
