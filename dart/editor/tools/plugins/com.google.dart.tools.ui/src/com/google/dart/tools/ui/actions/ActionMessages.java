@@ -233,30 +233,6 @@ public final class ActionMessages extends NLS {
   public static String OpenExternalDartdocAction_description;
   public static String OpenExternalDartdocAction_tooltip;
 
-  public static String GenerateJavascriptAction_Compiling;
-  public static String GenerateJavascriptAction_title;
-  public static String GenerateJavascriptAction_description;
-  public static String GenerateJavascriptAction_DoneSuccess;
-  public static String GenerateJavascriptAction_tooltip;
-  public static String GenerateJavascriptAction_jobTitle;
-  public static String GenerateJavascriptAction_noneSelected;
-  public static String GenerateJavascriptAction_unableToLaunch;
-  public static String GenerateJavascriptAction_errorLaunching;
-  public static String GenerateJavascriptAction_errorCompiling;
-  public static String GenerateJavascriptAction_Fail;
-  public static String GenerateJavascriptAction_FailException;
-  public static String GenerateJavascriptAction_FailMessage;
-  public static String GenerateJavascriptAction_GenerateMessage;
-
-  public static String GenerateDartdocAction_Compiling;
-  public static String GenerateDartdocAction_title;
-  public static String GenerateDartdocAction_description;
-  public static String GenerateDartdocAction_tooltip;
-  public static String GenerateDartdocAction_jobTitle;
-  public static String GenerateDartdocAction_unableToLaunch;
-  public static String GenerateDartdocAction_noneSelected;
-  public static String GenerateDartdocAction_FailException;
-
   public static String SelfEncapsulateFieldAction_label;
   public static String SelfEncapsulateFieldAction_dialog_title;
   public static String SelfEncapsulateFieldAction_dialog_unavailable;
