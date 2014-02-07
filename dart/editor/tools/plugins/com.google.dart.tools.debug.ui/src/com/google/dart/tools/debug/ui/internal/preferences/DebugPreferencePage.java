@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.debug.ui.internal.preferences;
 
-import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin.BreakOnExceptions;
 
@@ -25,14 +24,11 @@ import org.eclipse.jface.preference.PreferencePage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.graphics.Font;
-import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
@@ -46,21 +42,6 @@ import org.eclipse.ui.IWorkbenchPreferencePage;
 public class DebugPreferencePage extends PreferencePage implements IWorkbenchPreferencePage {
   public static final String PAGE_ID = "com.google.dart.tools.debug.debugPreferencePage"; //$NON-NLS-1$
 
-  private static Font italicFont;
-
-  private static Font getItalicFont(Font font) {
-    if (italicFont == null) {
-      FontData data = font.getFontData()[0];
-
-      italicFont = new Font(Display.getDefault(), new FontData(
-          data.getName(),
-          data.getHeight(),
-          SWT.ITALIC));
-    }
-
-    return italicFont;
-  }
-
   private Combo exceptionsCombo;
 
   private Button defaultBrowserButton;
@@ -71,20 +52,11 @@ public class DebugPreferencePage extends PreferencePage implements IWorkbenchPre
 
   private Text browserArgumentText;
 
-  private Text dart2jsFlagsText;
-
   /**
    * Create a new preference page.
    */
   public DebugPreferencePage() {
 
-  }
-
-  @Override
-  public void dispose() {
-    italicFont.dispose();
-    italicFont = null;
-    super.dispose();
   }
 
   @Override
@@ -101,8 +73,6 @@ public class DebugPreferencePage extends PreferencePage implements IWorkbenchPre
         defaultBrowserButton.getSelection(),
         browserNameText.getText().trim(),
         browserArgumentText.getText().trim());
-
-    DartCore.getPlugin().setDart2JsPreferences(dart2jsFlagsText.getText().trim());
 
     return true;
   }
@@ -132,8 +102,6 @@ public class DebugPreferencePage extends PreferencePage implements IWorkbenchPre
     exceptionsCombo.select(exceptionsCombo.indexOf(DartDebugCorePlugin.getPlugin().getBreakOnExceptions().toString()));
 
     createBrowserConfig(composite, labelWidth);
-
-    createDart2jsPrefs(composite, labelWidth);
 
     return composite;
   }
@@ -189,33 +157,6 @@ public class DebugPreferencePage extends PreferencePage implements IWorkbenchPre
         browserArgumentText);
 
     initFromPrefs();
-
-  }
-
-  private void createDart2jsPrefs(Composite composite, int labelWidth) {
-    // dart2js group
-    Group dart2jsGroup = new Group(composite, SWT.NONE);
-    dart2jsGroup.setText(DebugPreferenceMessages.DebugPreferencePage_Dart2js);
-    GridDataFactory.fillDefaults().grab(true, false).applyTo(dart2jsGroup);
-    GridLayoutFactory.swtDefaults().numColumns(3).applyTo(dart2jsGroup);
-    ((GridLayout) dart2jsGroup.getLayout()).marginBottom = 5;
-
-    Label dart2jsLabel = new Label(dart2jsGroup, SWT.NONE);
-    dart2jsLabel.setText("Compiler flags:");
-    GridDataFactory.swtDefaults().hint(labelWidth, -1).applyTo(dart2jsLabel);
-
-    dart2jsFlagsText = new Text(dart2jsGroup, SWT.BORDER | SWT.SINGLE);
-    GridDataFactory.swtDefaults().align(SWT.FILL, SWT.CENTER).grab(true, false).applyTo(
-        dart2jsFlagsText);
-    dart2jsFlagsText.setText(DartCore.getPlugin().getDart2jsFlags());
-
-    Label label = new Label(dart2jsGroup, SWT.NONE);
-    GridDataFactory.swtDefaults().hint(selectBrowserButton.getSize().x, -1).applyTo(label);
-
-    label = new Label(dart2jsGroup, SWT.NONE);
-    label.setText("(e.g. --minify)");
-    label.setFont(getItalicFont(label.getFont()));
-    GridDataFactory.swtDefaults().indent(labelWidth, SWT.DEFAULT).span(3, 1).applyTo(label);
 
   }
 
