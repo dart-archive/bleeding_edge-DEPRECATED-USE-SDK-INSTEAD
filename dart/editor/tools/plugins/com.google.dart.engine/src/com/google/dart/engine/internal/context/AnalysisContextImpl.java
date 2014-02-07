@@ -2203,17 +2203,20 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         cache.put(source, htmlCopy);
         return new ResolveHtmlTask(this, source);
       }
+      // try to resolve as an Angular entry point
+      CacheState angularEntryState = htmlEntry.getState(HtmlEntry.ANGULAR_ENTRY);
+      if (angularEntryState == CacheState.INVALID) {
+        HtmlEntryImpl htmlCopy = htmlEntry.getWritableCopy();
+        htmlCopy.setState(HtmlEntry.ANGULAR_ENTRY, CacheState.IN_PROCESS);
+        cache.put(source, htmlCopy);
+        return new ResolveAngularEntryHtmlTask(this, source);
+      }
+      // try to resolve as an Angular application part
       CacheState angularErrorsState = htmlEntry.getState(HtmlEntry.ANGULAR_ERRORS);
       if (angularErrorsState == CacheState.INVALID) {
-        AngularApplication entryInfo = htmlEntry.getValue(HtmlEntry.ANGULAR_ENTRY);
-        if (entryInfo != null) {
-          HtmlEntryImpl htmlCopy = htmlEntry.getWritableCopy();
-          htmlCopy.setState(HtmlEntry.ANGULAR_ERRORS, CacheState.IN_PROCESS);
-          cache.put(source, htmlCopy);
-          return new ResolveAngularEntryHtmlTask(this, source, entryInfo);
-        }
         AngularApplication applicationInfo = htmlEntry.getValue(HtmlEntry.ANGULAR_APPLICATION);
         if (applicationInfo != null) {
+          // try to resolve as an Angular component template
           AngularComponentElement component = htmlEntry.getValue(HtmlEntry.ANGULAR_COMPONENT);
           if (component != null) {
             HtmlEntryImpl htmlCopy = htmlEntry.getWritableCopy();
@@ -2222,9 +2225,6 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
             return new ResolveAngularComponentTemplateTask(this, source, component, applicationInfo);
           }
         }
-        HtmlEntryImpl htmlCopy = htmlEntry.getWritableCopy();
-        htmlCopy.setValue(HtmlEntry.ANGULAR_ERRORS, AnalysisError.NO_ERRORS);
-        cache.put(source, htmlCopy);
       }
     }
     return null;
@@ -2553,12 +2553,10 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
-   * Updates {@link HtmlEntry}s that correspond to the previously known and new Angular components.
-   * 
-   * @param library the {@link Library} that was resolved
-   * @param dartCopy the {@link DartEntryImpl} to record new Angular components
+   * Updates {@link HtmlEntry}s that correspond to the previously known and new Angular application
+   * information.
    */
-  private void recordAngularComponents(HtmlEntryImpl entry, AngularApplication app)
+  private void recordAngularEntryPoint(HtmlEntryImpl entry, ResolveAngularEntryHtmlTask task)
       throws AnalysisException {
     // reset old Angular errors
     AngularApplication oldApp = entry.getValue(HtmlEntry.ANGULAR_ENTRY);
@@ -2582,9 +2580,13 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         }
       }
     }
-    // prepare for new Angular analysis
-    if (app != null) {
-      AngularElement[] newAngularElements = app.getElements();
+    // schedule more Angular analysis
+    AngularApplication application = task.getApplication();
+    if (application != null) {
+      // if this is an entry point, then we already resolved it
+      entry.setValue(HtmlEntry.ANGULAR_ERRORS, task.getResolutionErrors());
+      // schedule component templates
+      AngularElement[] newAngularElements = application.getElements();
       for (AngularElement angularElement : newAngularElements) {
         if (angularElement instanceof AngularComponentElement) {
           AngularComponentElement component = (AngularComponentElement) angularElement;
@@ -2592,7 +2594,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
           if (templateSource != null) {
             HtmlEntry htmlEntry = getReadableHtmlEntry(templateSource);
             HtmlEntryImpl htmlCopy = htmlEntry.getWritableCopy();
-            htmlCopy.setValue(HtmlEntry.ANGULAR_APPLICATION, app);
+            htmlCopy.setValue(HtmlEntry.ANGULAR_APPLICATION, application);
             htmlCopy.setValue(HtmlEntry.ANGULAR_COMPONENT, component);
             htmlCopy.setState(HtmlEntry.ANGULAR_ERRORS, CacheState.INVALID);
             cache.put(templateSource, htmlCopy);
@@ -2601,9 +2603,8 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         }
       }
     }
-    // remember Angular application
-    entry.setValue(HtmlEntry.ANGULAR_ENTRY, app);
-    entry.setState(HtmlEntry.ANGULAR_ERRORS, CacheState.INVALID);
+    // remember Angular entry point
+    entry.setValue(HtmlEntry.ANGULAR_ENTRY, application);
   }
 
   /**
@@ -3184,10 +3185,10 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         }
         HtmlEntryImpl htmlCopy = htmlEntry.getWritableCopy();
         if (thrownException == null) {
-          htmlCopy.setValue(HtmlEntry.ANGULAR_ERRORS, task.getResolutionErrors());
           ChangeNoticeImpl notice = getNotice(source);
           notice.setHtmlUnit(task.getResolvedUnit());
           notice.setErrors(htmlCopy.getAllErrors(), htmlCopy.getValue(SourceEntry.LINE_INFO));
+          recordAngularEntryPoint(htmlCopy, task);
         } else {
           htmlCopy.recordResolutionError();
         }
@@ -3461,7 +3462,6 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
           cache.removedAst(source);
         }
         htmlCopy.setException(thrownException);
-        recordAngularComponents(htmlCopy, task.getAngularApplication());
         cache.put(source, htmlCopy);
         htmlEntry = htmlCopy;
       } else {

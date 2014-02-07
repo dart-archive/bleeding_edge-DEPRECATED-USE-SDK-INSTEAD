@@ -105,7 +105,7 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
   /**
    * The state of the {@link #angularEntry}.
    */
-  private CacheState angularEntryState = CacheState.VALID;
+  private CacheState angularEntryState = CacheState.INVALID;
 
   /**
    * Information about the Angular Application this unit is entry point for.
@@ -297,6 +297,9 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
    * Invalidate all of the resolution information associated with the HTML file.
    */
   public void invalidateAllResolutionInformation() {
+    angularEntry = null;
+    angularEntryState = CacheState.INVALID;
+
     angularErrors = AnalysisError.NO_ERRORS;
     angularErrorsState = CacheState.INVALID;
 

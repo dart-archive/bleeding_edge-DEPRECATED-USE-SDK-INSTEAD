@@ -21,10 +21,7 @@ import com.google.dart.engine.internal.builder.HtmlUnitBuilder;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
 import com.google.dart.engine.internal.context.RecordingErrorListener;
 import com.google.dart.engine.internal.context.ResolvableHtmlUnit;
-import com.google.dart.engine.internal.element.angular.AngularApplication;
-import com.google.dart.engine.internal.html.angular.AngularHtmlUnitResolver;
 import com.google.dart.engine.source.Source;
-import com.google.dart.engine.utilities.source.LineInfo;
 
 /**
  * Instances of the class {@code ResolveHtmlTask} resolve a specific source as an HTML file.
@@ -56,16 +53,6 @@ public class ResolveHtmlTask extends AnalysisTask {
   private AnalysisError[] resolutionErrors = AnalysisError.NO_ERRORS;
 
   /**
-   * The flag that says is this unit is an Angular application.
-   */
-  private boolean isAngularApplication;
-
-  /**
-   * The Angular application information, maybe {@code null}
-   */
-  private AngularApplication angularApplication;
-
-  /**
    * Initialize a newly created task to perform analysis within the given context.
    * 
    * @param context the context in which the task is to be performed
@@ -79,14 +66,6 @@ public class ResolveHtmlTask extends AnalysisTask {
   @Override
   public <E> E accept(AnalysisTaskVisitor<E> visitor) throws AnalysisException {
     return visitor.visitResolveHtmlTask(this);
-  }
-
-  /**
-   * Returns the {@link AngularApplication} for the Web application with this Angular entry
-   * point, maybe {@code null} if not an Angular entry point.
-   */
-  public AngularApplication getAngularApplication() {
-    return angularApplication;
   }
 
   public HtmlElement getElement() {
@@ -125,13 +104,6 @@ public class ResolveHtmlTask extends AnalysisTask {
     return source;
   }
 
-  /**
-   * Returns {@code true} if analyzed unit is an Angular application.
-   */
-  public boolean isAngularApplication() {
-    return isAngularApplication;
-  }
-
   @Override
   protected String getTaskDescription() {
     if (source == null) {
@@ -153,15 +125,6 @@ public class ResolveHtmlTask extends AnalysisTask {
     HtmlUnitBuilder builder = new HtmlUnitBuilder(getContext());
     element = builder.buildHtmlElement(source, modificationTime, unit);
     RecordingErrorListener errorListener = builder.getErrorListener();
-    LineInfo lineInfo = getContext().getLineInfo(source);
-    // try to resolve as an Angular entry point
-    isAngularApplication = AngularHtmlUnitResolver.hasAngularAnnotation(unit);
-    angularApplication = new AngularHtmlUnitResolver(
-        getContext(),
-        errorListener,
-        source,
-        lineInfo,
-        unit).calculateAngularApplication();
     // record all resolution errors
     resolutionErrors = errorListener.getErrors(source);
     // remember resolved unit

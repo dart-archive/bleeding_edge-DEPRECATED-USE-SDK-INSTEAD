@@ -65,7 +65,7 @@ public class HtmlEntryImplTest extends EngineTestCase {
     entry.invalidateAllResolutionInformation();
     assertSame(CacheState.VALID, entry.getState(HtmlEntry.ANGULAR_APPLICATION));
     assertSame(CacheState.VALID, entry.getState(HtmlEntry.ANGULAR_COMPONENT));
-    assertSame(CacheState.VALID, entry.getState(HtmlEntry.ANGULAR_ENTRY));
+    assertSame(CacheState.INVALID, entry.getState(HtmlEntry.ANGULAR_ENTRY));
     assertSame(CacheState.INVALID, entry.getState(HtmlEntry.ANGULAR_ERRORS));
     assertSame(CacheState.INVALID, entry.getState(HtmlEntry.ELEMENT));
     assertSame(CacheState.INVALID, entry.getState(HtmlEntry.HINTS));

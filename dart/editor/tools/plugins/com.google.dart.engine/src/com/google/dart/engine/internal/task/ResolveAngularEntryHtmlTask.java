@@ -36,11 +36,6 @@ public class ResolveAngularEntryHtmlTask extends AnalysisTask {
   private final Source source;
 
   /**
-   * The Angular application to resolve in context of.
-   */
-  private final AngularApplication application;
-
-  /**
    * The time at which the contents of the source were last modified.
    */
   private long modificationTime = -1L;
@@ -56,6 +51,11 @@ public class ResolveAngularEntryHtmlTask extends AnalysisTask {
   private HtmlElement element = null;
 
   /**
+   * The Angular application to resolve in context of.
+   */
+  private AngularApplication application;
+
+  /**
    * The resolution errors that were discovered while resolving the source.
    */
   private AnalysisError[] resolutionErrors = AnalysisError.NO_ERRORS;
@@ -65,18 +65,23 @@ public class ResolveAngularEntryHtmlTask extends AnalysisTask {
    * 
    * @param context the context in which the task is to be performed
    * @param source the source to be resolved
-   * @param application the Angular application to resolve in context of
    */
-  public ResolveAngularEntryHtmlTask(InternalAnalysisContext context, Source source,
-      AngularApplication application) {
+  public ResolveAngularEntryHtmlTask(InternalAnalysisContext context, Source source) {
     super(context);
     this.source = source;
-    this.application = application;
   }
 
   @Override
   public <E> E accept(AnalysisTaskVisitor<E> visitor) throws AnalysisException {
     return visitor.visitResolveAngularEntryHtmlTask(this);
+  }
+
+  /**
+   * Returns the {@link AngularApplication} for the Web application with this Angular entry point,
+   * maybe {@code null} if not an Angular entry point.
+   */
+  public AngularApplication getApplication() {
+    return application;
   }
 
   public HtmlElement getElement() {
@@ -136,10 +141,14 @@ public class ResolveAngularEntryHtmlTask extends AnalysisTask {
     // prepare for resolution
     RecordingErrorListener errorListener = new RecordingErrorListener();
     LineInfo lineInfo = getContext().getLineInfo(source);
+    // try to resolve as an Angular entry point
+    application = new AngularHtmlUnitResolver(getContext(), errorListener, source, lineInfo, unit).calculateAngularApplication();
     // do resolve
-    new AngularHtmlUnitResolver(getContext(), errorListener, source, lineInfo, unit).resolveEntryPoint(application);
-    // remember errors
-    resolutionErrors = errorListener.getErrors(source);
+    if (application != null) {
+      new AngularHtmlUnitResolver(getContext(), errorListener, source, lineInfo, unit).resolveEntryPoint(application);
+      // remember errors
+      resolutionErrors = errorListener.getErrors(source);
+    }
     // remember resolved unit
     resolvedUnit = unit;
   }
