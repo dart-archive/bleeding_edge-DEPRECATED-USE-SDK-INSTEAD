@@ -25,6 +25,7 @@ TypeText upArrow
 TypeText upArrow
 TypeText upArrow
 util.newline
+Wait 2
 
 TypeText downArrow,downArrow,leftArrow
 util.newline
@@ -33,6 +34,7 @@ window.localStorage[doc.id] = doc.toJson();
 }}
 TypeText downArrow,downArrow,downArrow,leftArrow
 util.newline
+Wait 2
 TypeText {{
 if (!_storedIds.contains(doc.id)
 }}
@@ -44,11 +46,13 @@ _storedIds.add(doc.id);
 TypeText downArrow,downArrow,downArrow
 util.endOfLine
 util.newline
+Wait 2
 TypeText {{
 window.localStorage[DOCUMENT_ID_KEY] = JSON.encode(_storedIds);
 }}
 TypeText downArrow,downArrow,downArrow,downArrow,downArrow
 util.newline
+Wait 2
 TypeText {{
 _storedIds.remove(doc.id);
 window.localStorage.remove(doc.id);
@@ -62,6 +66,7 @@ util.newline
 TypeText downArrow
 util.endOfLine
 util.newline
+Wait 2
 TypeText {{
 if (window.localStorage[DOCUMENT_ID_KEY] != null) {
 _storedIds = JSON.decode(window.localStorage[DOCUMENT_ID_KEY]
@@ -71,6 +76,7 @@ TypeText ";"
 TypeText downArrow,downArrow,downArrow
 util.endOfLine
 util.newline
+Wait 2
 TypeText {{
 return _storedIds.map(_fetchDocument
 }}
@@ -86,6 +92,7 @@ TypeText ";"
 TypeText downArrow,downArrow,downArrow,downArrow,downArrow
 util.endOfLine
 util.newline
+Wait 2
 TypeText {{
 return new Document.fromJson(window.localStorage[id]
 }}
