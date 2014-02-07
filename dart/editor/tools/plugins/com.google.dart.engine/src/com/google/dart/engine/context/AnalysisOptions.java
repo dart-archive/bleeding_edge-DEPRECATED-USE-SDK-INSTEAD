@@ -40,6 +40,14 @@ public interface AnalysisOptions {
   public boolean getDart2jsHint();
 
   /**
+   * Return {@code true} if errors, warnings and hints should be generated for sources in the SDK.
+   * The default value is {@code false}.
+   * 
+   * @return {@code true} if errors, warnings and hints should be generated for the SDK
+   */
+  public boolean getGenerateSdkErrors();
+
+  /**
    * Return {@code true} if analysis is to generate hint results (e.g. type inference based
    * information and pub best practices).
    * 

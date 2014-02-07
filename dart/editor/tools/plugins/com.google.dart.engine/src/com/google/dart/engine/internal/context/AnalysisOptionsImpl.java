@@ -42,6 +42,12 @@ public class AnalysisOptionsImpl implements AnalysisOptions {
   private boolean dart2jsHint = true;
 
   /**
+   * A flag indicating whether errors, warnings and hints should be generated for sources in the
+   * SDK.
+   */
+  private boolean generateSdkErrors = false;
+
+  /**
    * A flag indicating whether analysis is to generate hint results (e.g. type inference based
    * information and pub best practices).
    */
@@ -92,6 +98,11 @@ public class AnalysisOptionsImpl implements AnalysisOptions {
   }
 
   @Override
+  public boolean getGenerateSdkErrors() {
+    return generateSdkErrors;
+  }
+
+  @Override
   public boolean getHint() {
     return hint;
   }
@@ -133,6 +144,17 @@ public class AnalysisOptionsImpl implements AnalysisOptions {
    */
   public void setDart2jsHint(boolean dart2jsHints) {
     this.dart2jsHint = dart2jsHints;
+  }
+
+  /**
+   * Set whether errors, warnings and hints should be generated for sources in the SDK to match the
+   * given value.
+   * 
+   * @param generate {@code true} if errors, warnings and hints should be generated for sources in
+   *          the SDK
+   */
+  public void setGenerateSdkErrors(boolean generate) {
+    generateSdkErrors = generate;
   }
 
   /**

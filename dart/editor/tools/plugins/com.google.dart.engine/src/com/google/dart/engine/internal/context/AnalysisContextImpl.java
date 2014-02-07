@@ -2016,6 +2016,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   private AnalysisTask getNextAnalysisTask() {
     synchronized (cacheLock) {
       boolean hintsEnabled = options.getHint();
+      boolean sdkErrorsEnabled = options.getGenerateSdkErrors();
       //
       // Look for incremental analysis
       //
@@ -2028,7 +2029,12 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       // Look for a priority source that needs to be analyzed.
       //
       for (Source source : priorityOrder) {
-        AnalysisTask task = getNextAnalysisTask(source, cache.get(source), true, hintsEnabled);
+        AnalysisTask task = getNextAnalysisTask(
+            source,
+            cache.get(source),
+            true,
+            hintsEnabled,
+            sdkErrorsEnabled);
         if (task != null) {
           return task;
         }
@@ -2038,7 +2044,12 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       //
       Source source = workManager.getNextSource();
       while (source != null) {
-        AnalysisTask task = getNextAnalysisTask(source, cache.get(source), false, hintsEnabled);
+        AnalysisTask task = getNextAnalysisTask(
+            source,
+            cache.get(source),
+            false,
+            hintsEnabled,
+            sdkErrorsEnabled);
         if (task != null) {
           return task;
         }
@@ -2071,10 +2082,12 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
    * @param sourceEntry the cache entry associated with the source
    * @param isPriority {@code true} if the source is a priority source
    * @param hintsEnabled {@code true} if hints are currently enabled
+   * @param sdkErrorsEnabled {@code true} if errors, warnings and hints should be generated for
+   *          sources in the SDK
    * @return the next task that needs to be performed for the given source
    */
   private AnalysisTask getNextAnalysisTask(Source source, SourceEntry sourceEntry,
-      boolean isPriority, boolean hintsEnabled) {
+      boolean isPriority, boolean hintsEnabled, boolean sdkErrorsEnabled) {
     if (sourceEntry instanceof DartEntry) {
       DartEntry dartEntry = (DartEntry) sourceEntry;
       CacheState parseErrorsState = dartEntry.getState(DartEntry.PARSE_ERRORS);
@@ -2130,29 +2143,34 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
             return new ResolveDartLibraryTask(this, source, librarySource);
             //}
           }
-          CacheState verificationErrorsState = dartEntry.getState(
-              DartEntry.VERIFICATION_ERRORS,
-              librarySource);
-          if (verificationErrorsState == CacheState.INVALID
-              || (isPriority && verificationErrorsState == CacheState.FLUSHED)) {
-            LibraryElement libraryElement = libraryEntry.getValue(DartEntry.ELEMENT);
-            if (libraryElement != null) {
-              DartEntryImpl dartCopy = dartEntry.getWritableCopy();
-              dartCopy.setState(DartEntry.VERIFICATION_ERRORS, librarySource, CacheState.IN_PROCESS);
-              cache.put(source, dartCopy);
-              return new GenerateDartErrorsTask(this, source, libraryElement);
-            }
-          }
-          if (hintsEnabled) {
-            CacheState hintsState = dartEntry.getState(DartEntry.HINTS, librarySource);
-            if (hintsState == CacheState.INVALID
-                || (isPriority && hintsState == CacheState.FLUSHED)) {
+          if (sdkErrorsEnabled || !source.isInSystemLibrary()) {
+            CacheState verificationErrorsState = dartEntry.getState(
+                DartEntry.VERIFICATION_ERRORS,
+                librarySource);
+            if (verificationErrorsState == CacheState.INVALID
+                || (isPriority && verificationErrorsState == CacheState.FLUSHED)) {
               LibraryElement libraryElement = libraryEntry.getValue(DartEntry.ELEMENT);
               if (libraryElement != null) {
                 DartEntryImpl dartCopy = dartEntry.getWritableCopy();
-                dartCopy.setState(DartEntry.HINTS, librarySource, CacheState.IN_PROCESS);
+                dartCopy.setState(
+                    DartEntry.VERIFICATION_ERRORS,
+                    librarySource,
+                    CacheState.IN_PROCESS);
                 cache.put(source, dartCopy);
-                return new GenerateDartHintsTask(this, libraryElement);
+                return new GenerateDartErrorsTask(this, source, libraryElement);
+              }
+            }
+            if (hintsEnabled) {
+              CacheState hintsState = dartEntry.getState(DartEntry.HINTS, librarySource);
+              if (hintsState == CacheState.INVALID
+                  || (isPriority && hintsState == CacheState.FLUSHED)) {
+                LibraryElement libraryElement = libraryEntry.getValue(DartEntry.ELEMENT);
+                if (libraryElement != null) {
+                  DartEntryImpl dartCopy = dartEntry.getWritableCopy();
+                  dartCopy.setState(DartEntry.HINTS, librarySource, CacheState.IN_PROCESS);
+                  cache.put(source, dartCopy);
+                  return new GenerateDartHintsTask(this, libraryElement);
+                }
               }
             }
           }
