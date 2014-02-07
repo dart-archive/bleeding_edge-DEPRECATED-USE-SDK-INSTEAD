@@ -18,6 +18,18 @@ import com.google.dart.engine.parser.ParserTestCase;
 
 public class ExitDetectorTest extends ParserTestCase {
 
+  public void fail_doStatement_continue_with_label() throws Exception {
+    assertFalse("{ x: do { continue x; } while(true); }");
+  }
+
+  public void fail_whileStatement_continue_with_label() throws Exception {
+    assertFalse("{ x: while (true) { continue x; } }");
+  }
+
+  public void fail_whileStatement_doStatement_scopeRequired() throws Exception {
+    assertTrue("{ while (true) { x: do { continue x; } while(true); }");
+  }
+
   public void test_asExpression() throws Exception {
     assertFalse("a as Object;");
   }
@@ -138,16 +150,24 @@ public class ExitDetectorTest extends ParserTestCase {
     assertNotNull(new ExitDetector());
   }
 
-  public void test_doStatement_false_nonReturn() throws Exception {
-    assertFalse("{ do { } while (false); }");
-  }
-
   public void test_doStatement_throwCondition() throws Exception {
-    assertTrue("{ do { } while (throw ''); }");
+    assertTrue("{ do {} while (throw ''); }");
   }
 
-  public void test_doStatement_true_nonReturn() throws Exception {
-    assertFalse("{ do {} while (true); }");
+  public void test_doStatement_true_break() throws Exception {
+    assertFalse("{ do { break; } while (true); }");
+  }
+
+  public void test_doStatement_true_continue() throws Exception {
+    assertTrue("{ do { continue; } while (true); }");
+  }
+
+  public void test_doStatement_true_if_return() throws Exception {
+    assertTrue("{ do { if (true) {return null;} } while (true); }");
+  }
+
+  public void test_doStatement_true_noBreak() throws Exception {
+    assertTrue("{ do {} while (true); }");
   }
 
   public void test_doStatement_true_return() throws Exception {
@@ -176,6 +196,22 @@ public class ExitDetectorTest extends ParserTestCase {
 
   public void test_forStatement_initialization() throws Exception {
     assertTrue("for (i = throw 0;;) {}");
+  }
+
+  public void test_forStatement_true_break() throws Exception {
+    assertFalse("{ for (; true; ) { break; } }");
+  }
+
+  public void test_forStatement_true_continue() throws Exception {
+    assertTrue("{ for (; true; ) { continue; } }");
+  }
+
+  public void test_forStatement_true_if_return() throws Exception {
+    assertTrue("{ for (; true; ) { if (true) {return null;} } }");
+  }
+
+  public void test_forStatement_true_noBreak() throws Exception {
+    assertTrue("{ for (; true; ) {} }");
   }
 
   public void test_forStatement_updaters() throws Exception {
@@ -422,12 +458,20 @@ public class ExitDetectorTest extends ParserTestCase {
     assertTrue("{ while (throw '') {} }");
   }
 
-  public void test_whileStatement_true_if_return() throws Exception {
-    assertTrue("{ while (true) { if(true) {return null;} } }");
+  public void test_whileStatement_true_break() throws Exception {
+    assertFalse("{ while (true) { break; } }");
   }
 
-  public void test_whileStatement_true_nonReturn() throws Exception {
-    assertFalse("{ while (true) {} }");
+  public void test_whileStatement_true_continue() throws Exception {
+    assertTrue("{ while (true) { continue; } }");
+  }
+
+  public void test_whileStatement_true_if_return() throws Exception {
+    assertTrue("{ while (true) { if (true) {return null;} } }");
+  }
+
+  public void test_whileStatement_true_noBreak() throws Exception {
+    assertTrue("{ while (true) {} }");
   }
 
   public void test_whileStatement_true_return() throws Exception {

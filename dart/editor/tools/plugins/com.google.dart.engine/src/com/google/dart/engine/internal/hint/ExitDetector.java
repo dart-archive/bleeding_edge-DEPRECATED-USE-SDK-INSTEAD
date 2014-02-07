@@ -74,6 +74,15 @@ import com.google.dart.engine.scanner.TokenType;
  * expression, or simple infinite loop such as {@code while(true)}.
  */
 public class ExitDetector extends GeneralizingASTVisitor<Boolean> {
+
+  /**
+   * Set to {@code true} when a {@code break} is encountered, and reset to {@code false} when a
+   * {@code do}, {@code while}, {@code for} or {@code switch} block is entered.
+   */
+  // TODO (jwren) This support only covers a subset of cases.  Labeled breaks and continues aren't
+  // covered.
+  private boolean enclosingBlockContainsBreak = false;
+
   /**
    * Initialize a newly created return detector.
    */
@@ -142,6 +151,7 @@ public class ExitDetector extends GeneralizingASTVisitor<Boolean> {
 
   @Override
   public Boolean visitBreakStatement(BreakStatement node) {
+    enclosingBlockContainsBreak = true;
     return false;
   }
 
@@ -177,18 +187,27 @@ public class ExitDetector extends GeneralizingASTVisitor<Boolean> {
 
   @Override
   public Boolean visitDoStatement(DoStatement node) {
-    Expression conditionExpression = node.getCondition();
-    if (conditionExpression.accept(this)) {
-      return true;
-    }
-    // TODO(jwren) Do we want to take all constant expressions into account?
-    if (conditionExpression instanceof BooleanLiteral) {
-      BooleanLiteral booleanLiteral = (BooleanLiteral) conditionExpression;
-      if (booleanLiteral.getValue()) {
-        return node.getBody().accept(this);
+    boolean outerBreakValue = enclosingBlockContainsBreak;
+    enclosingBlockContainsBreak = false;
+    try {
+      Expression conditionExpression = node.getCondition();
+      if (conditionExpression.accept(this)) {
+        return true;
       }
+      // TODO(jwren) Do we want to take all constant expressions into account?
+      if (conditionExpression instanceof BooleanLiteral) {
+        BooleanLiteral booleanLiteral = (BooleanLiteral) conditionExpression;
+        // If do {} while (true), and the body doesn't return or the body doesn't have a break, then
+        // return true.
+        boolean blockReturns = node.getBody().accept(this);
+        if (booleanLiteral.getValue() && (blockReturns || !enclosingBlockContainsBreak)) {
+          return true;
+        }
+      }
+      return false;
+    } finally {
+      enclosingBlockContainsBreak = outerBreakValue;
     }
-    return false;
   }
 
   @Override
@@ -208,17 +227,37 @@ public class ExitDetector extends GeneralizingASTVisitor<Boolean> {
 
   @Override
   public Boolean visitForStatement(ForStatement node) {
-    if (node.getVariables() != null
-        && visitVariableDeclarations(node.getVariables().getVariables())) {
-      return true;
+    boolean outerBreakValue = enclosingBlockContainsBreak;
+    enclosingBlockContainsBreak = false;
+    try {
+      if (node.getVariables() != null
+          && visitVariableDeclarations(node.getVariables().getVariables())) {
+        return true;
+      }
+      if (node.getInitialization() != null && node.getInitialization().accept(this)) {
+        return true;
+      }
+      Expression conditionExpression = node.getCondition();
+      if (conditionExpression != null && conditionExpression.accept(this)) {
+        return true;
+      }
+      if (visitExpressions(node.getUpdaters())) {
+        return true;
+      }
+      // TODO(jwren) Do we want to take all constant expressions into account?
+      if (conditionExpression instanceof BooleanLiteral) {
+        BooleanLiteral booleanLiteral = (BooleanLiteral) conditionExpression;
+        // If for(; true; ), and the body doesn't return or the body doesn't have a break, then
+        // return true.
+        boolean blockReturns = node.getBody().accept(this);
+        if (booleanLiteral.getValue() && (blockReturns || !enclosingBlockContainsBreak)) {
+          return true;
+        }
+      }
+      return false;
+    } finally {
+      enclosingBlockContainsBreak = outerBreakValue;
     }
-    if (node.getInitialization() != null && node.getInitialization().accept(this)) {
-      return true;
-    }
-    if (node.getCondition() != null && node.getCondition().accept(this)) {
-      return true;
-    }
-    return visitExpressions(node.getUpdaters());
   }
 
   @Override
@@ -371,25 +410,31 @@ public class ExitDetector extends GeneralizingASTVisitor<Boolean> {
 
   @Override
   public Boolean visitSwitchStatement(SwitchStatement node) {
-    boolean hasDefault = false;
-    NodeList<SwitchMember> memberList = node.getMembers();
-    SwitchMember[] members = memberList.toArray(new SwitchMember[memberList.size()]);
-    for (int i = 0; i < members.length; i++) {
-      SwitchMember switchMember = members[i];
-      if (switchMember instanceof SwitchDefault) {
-        hasDefault = true;
-        // If this is the last member and there are no statements, return false
-        if (switchMember.getStatements().isEmpty() && i + 1 == members.length) {
+    boolean outerBreakValue = enclosingBlockContainsBreak;
+    enclosingBlockContainsBreak = false;
+    try {
+      boolean hasDefault = false;
+      NodeList<SwitchMember> memberList = node.getMembers();
+      SwitchMember[] members = memberList.toArray(new SwitchMember[memberList.size()]);
+      for (int i = 0; i < members.length; i++) {
+        SwitchMember switchMember = members[i];
+        if (switchMember instanceof SwitchDefault) {
+          hasDefault = true;
+          // If this is the last member and there are no statements, return false
+          if (switchMember.getStatements().isEmpty() && i + 1 == members.length) {
+            return false;
+          }
+        }
+        // For switch members with no statements, don't visit the children, otherwise, return false if
+        // no return is found in the children statements
+        if (!switchMember.getStatements().isEmpty() && !switchMember.accept(this)) {
           return false;
         }
       }
-      // For switch members with no statements, don't visit the children, otherwise, return false if
-      // no return is found in the children statements
-      if (!switchMember.getStatements().isEmpty() && !switchMember.accept(this)) {
-        return false;
-      }
+      return hasDefault;
+    } finally {
+      enclosingBlockContainsBreak = outerBreakValue;
     }
-    return hasDefault;
   }
 
   @Override
@@ -446,18 +491,27 @@ public class ExitDetector extends GeneralizingASTVisitor<Boolean> {
 
   @Override
   public Boolean visitWhileStatement(WhileStatement node) {
-    Expression conditionExpression = node.getCondition();
-    if (conditionExpression.accept(this)) {
-      return true;
-    }
-    // TODO(jwren) Do we want to take all constant expressions into account?
-    if (conditionExpression instanceof BooleanLiteral) {
-      BooleanLiteral booleanLiteral = (BooleanLiteral) conditionExpression;
-      if (booleanLiteral.getValue()) {
-        return node.getBody().accept(this);
+    boolean outerBreakValue = enclosingBlockContainsBreak;
+    enclosingBlockContainsBreak = false;
+    try {
+      Expression conditionExpression = node.getCondition();
+      if (conditionExpression.accept(this)) {
+        return true;
       }
+      // TODO(jwren) Do we want to take all constant expressions into account?
+      if (conditionExpression instanceof BooleanLiteral) {
+        BooleanLiteral booleanLiteral = (BooleanLiteral) conditionExpression;
+        // If while(true), and the body doesn't return or the body doesn't have a break, then return
+        // true.
+        boolean blockReturns = node.getBody().accept(this);
+        if (booleanLiteral.getValue() && (blockReturns || !enclosingBlockContainsBreak)) {
+          return true;
+        }
+      }
+      return false;
+    } finally {
+      enclosingBlockContainsBreak = outerBreakValue;
     }
-    return false;
   }
 
   private boolean visitExpressions(NodeList<Expression> expressions) {
