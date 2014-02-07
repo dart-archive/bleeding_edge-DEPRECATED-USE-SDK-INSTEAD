@@ -833,7 +833,26 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
     listener.assertNoErrors();
   }
 
-  public void test_visitPropertyAccess_getter() throws Exception {
+  public void test_visitPropertyAccess_propagated_getter() throws Exception {
+    Type boolType = typeProvider.getBoolType();
+    PropertyAccessorElementImpl getter = getterElement("b", false, boolType);
+    PropertyAccess node = propertyAccess(identifier("a"), "b");
+    node.getPropertyName().setPropagatedElement(getter);
+    assertSame(boolType, analyze(node, false));
+    listener.assertNoErrors();
+  }
+
+  public void test_visitPropertyAccess_propagated_setter() throws Exception {
+    Type boolType = typeProvider.getBoolType();
+    FieldElementImpl field = fieldElement("b", false, false, false, boolType);
+    PropertyAccessorElement setter = field.getSetter();
+    PropertyAccess node = propertyAccess(identifier("a"), "b");
+    node.getPropertyName().setPropagatedElement(setter);
+    assertSame(boolType, analyze(node, false));
+    listener.assertNoErrors();
+  }
+
+  public void test_visitPropertyAccess_static_getter() throws Exception {
     Type boolType = typeProvider.getBoolType();
     PropertyAccessorElementImpl getter = getterElement("b", false, boolType);
     PropertyAccess node = propertyAccess(identifier("a"), "b");
@@ -842,7 +861,7 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
     listener.assertNoErrors();
   }
 
-  public void test_visitPropertyAccess_setter() throws Exception {
+  public void test_visitPropertyAccess_static_setter() throws Exception {
     Type boolType = typeProvider.getBoolType();
     FieldElementImpl field = fieldElement("b", false, false, false, boolType);
     PropertyAccessorElement setter = field.getSetter();
@@ -912,7 +931,20 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
    * @return the type associated with the expression
    */
   private Type analyze(Expression node) {
-    return analyze(node, null);
+    return analyze(node, null, true);
+  }
+
+  /**
+   * Return the type associated with the given expression after the static or propagated type
+   * analyzer has computed a type for it.
+   * 
+   * @param node the expression with which the type is associated
+   * @param useStaticType {@code true} if the static type is being requested, and {@code false} if
+   *          the propagated type is being requested
+   * @return the type associated with the expression
+   */
+  private Type analyze(Expression node, boolean useStaticType) {
+    return analyze(node, null, useStaticType);
   }
 
   /**
@@ -924,6 +956,20 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
    * @return the type associated with the expression
    */
   private Type analyze(Expression node, InterfaceType thisType) {
+    return analyze(node, thisType, true);
+  }
+
+  /**
+   * Return the type associated with the given expression after the static type analyzer has
+   * computed a type for it.
+   * 
+   * @param node the expression with which the type is associated
+   * @param thisType the type of 'this'
+   * @param useStaticType {@code true} if the static type is being requested, and {@code false} if
+   *          the propagated type is being requested
+   * @return the type associated with the expression
+   */
+  private Type analyze(Expression node, InterfaceType thisType, boolean useStaticType) {
     try {
       Field typeField = analyzer.getClass().getDeclaredField("thisType");
       typeField.setAccessible(true);
@@ -932,7 +978,11 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
       throw new IllegalArgumentException("Could not set type of 'this'", exception);
     }
     node.accept(analyzer);
-    return node.getStaticType();
+    if (useStaticType) {
+      return node.getStaticType();
+    } else {
+      return node.getPropagatedType();
+    }
   }
 
   /**
