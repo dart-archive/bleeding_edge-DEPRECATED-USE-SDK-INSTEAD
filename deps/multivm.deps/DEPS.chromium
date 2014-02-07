@@ -23,12 +23,12 @@ vars = {
   "libcxxabi_revision": "753a30dd68ae008948d48f16bc942d5963fe65a1",
   "webkit_trunk": "http://src.chromium.org/blink/trunk",
   "nacl_trunk": "http://src.chromium.org/native_client/trunk",
-  "webkit_revision": "166298",
+  "webkit_revision": "166433",
   "chromium_git": "https://chromium.googlesource.com",
   "chromiumos_git": "https://chromium.googlesource.com/chromiumos",
   "skia_git": "https://skia.googlesource.com",
   "swig_revision": "230490",
-  "nacl_revision": "12657",
+  "nacl_revision": "12705",
   # After changing nacl_revision, run 'glient sync' and check native_client/DEPS
   # to update other nacl_*_revision's.
   "nacl_tools_revision": "12655",  # native_client/DEPS: tools_rev
@@ -45,12 +45,12 @@ vars = {
 
   "sfntly_revision": "228",
   "lighttpd_revision": "33737",
-  "skia_revision": "13264",
-  "skia_hash": "0a74106aaae65151715482b6d0e35906b8a4c9e5",
+  "skia_revision": "13315",
+  "skia_hash": "076f078a5ef3506190fb6c97b7b91827d91cb7c1",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and V8 without interference from each other.
-  "v8_revision": "18992",
+  "v8_revision": "19088",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling WebRTC
   # and V8 without interference from each other.
@@ -85,7 +85,7 @@ deps = {
     "/angle/angle.git@17918f9a0ba4deca8818b4e11d03e244c631a8e4",
 
   "src/third_party/trace-viewer":
-    (Var("googlecode_url") % "trace-viewer") + "/trunk@1091",
+    (Var("googlecode_url") % "trace-viewer") + "/trunk@1120",
 
   "src/third_party/WebKit":
     Var("webkit_trunk") + "@" + Var("webkit_revision"),
@@ -279,7 +279,7 @@ deps = {
     Var("llvm_url") + "/cfe/trunk/tools/clang-format@198831",
 
   "src/third_party/webpagereplay":
-    (Var("googlecode_url") % "web-page-replay") + "/trunk@537",
+    (Var("googlecode_url") % "web-page-replay") + "/trunk@540",
 
   "src/third_party/pywebsocket/src":
     (Var("googlecode_url") % "pywebsocket") + "/trunk/src@662",
@@ -356,7 +356,7 @@ deps_os = {
     # Binary level profile guided optimizations. This points to the
     # latest release binaries for the toolchain.
     "src/third_party/syzygy/binaries":
-      (Var("googlecode_url") % "sawbuck") + "/trunk/syzygy/binaries@2000",
+      (Var("googlecode_url") % "sawbuck") + "/trunk/syzygy/binaries@2021",
 
     # Binaries for nacl sdk.
     "src/third_party/nacl_sdk_binaries":
@@ -478,7 +478,7 @@ deps_os = {
     # For Linux and Chromium OS.
     "src/third_party/cros_system_api":
       Var("chromiumos_git") + "/platform/system_api.git" +
-      "@6445c9773efbcbcbc4077c349f846b18c525b3eb",
+      "@9481a478cd2fea24ed70e81372529a613be1410d",
 
     # Note that this is different from Android's freetype repo.
     "src/third_party/freetype2/src":
@@ -488,7 +488,7 @@ deps_os = {
     # Build tools for targeting ChromeOS.
     "src/third_party/chromite":
       Var("chromiumos_git") + "/chromite.git" +
-      "@6637dcd35a8b9f02ba54d2a369118306cee88432",
+      "@1ee2901d33ae698d1f2a1d95e9f3fd5bbd5f13f9",
 
     # Dependency of chromite.git.
     "src/third_party/pyelftools":
@@ -644,12 +644,6 @@ hooks = [
     "name": "clang",
     "pattern": ".",
     "action": ["python", "src/tools/clang/scripts/update.py", "--mac-only"],
-  },
-  {
-    # Update the cygwin mount on Windows.
-    "name": "cygwin",
-    "pattern": ".",
-    "action": ["python", "src/build/win/setup_cygwin_mount.py", "--win-only"],
   },
   {
     # Update LASTCHANGE. This is also run by export_tarball.py in
