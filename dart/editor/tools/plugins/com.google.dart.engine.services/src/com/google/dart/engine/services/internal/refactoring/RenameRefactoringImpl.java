@@ -22,6 +22,7 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LocalElement;
 import com.google.dart.engine.element.PrefixElement;
+import com.google.dart.engine.internal.context.InstrumentedAnalysisContextImpl;
 import com.google.dart.engine.search.MatchKind;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchMatch;
@@ -93,12 +94,29 @@ public abstract class RenameRefactoringImpl extends RefactoringImpl implements R
   }
 
   /**
+   * Check if the given {@link Element} is in the given {@link AnalysisContext}.
+   */
+  protected static boolean isInContext(Element element, AnalysisContext context) {
+    AnalysisContext elementContext = element.getContext();
+    if (elementContext != context) {
+      if (context instanceof InstrumentedAnalysisContextImpl) {
+        if (elementContext != ((InstrumentedAnalysisContextImpl) context).getBasis()) {
+          return false;
+        }
+      } else {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
    * Check if the given {@link Element} is visible in the given {@link Source}.
    */
   protected static boolean isInTheSameLibrary(Element element, AnalysisContext context,
       Source source) {
     // should be the same AnalysisContext
-    if (element.getContext() != context) {
+    if (!isInContext(element, context)) {
       return false;
     }
     // private elements are visible only in their library
@@ -113,7 +131,7 @@ public abstract class RenameRefactoringImpl extends RefactoringImpl implements R
   protected static boolean isPublicOrInTheSameLibrary(Element element, AnalysisContext context,
       Source source) {
     // should be the same AnalysisContext
-    if (element.getContext() != context) {
+    if (!isInContext(element, context)) {
       return false;
     }
     // public elements are always visible
