@@ -80,15 +80,31 @@ class _IsSameAs extends Matcher {
       description.add('same instance as ').addDescriptionOf(_expected);
 }
 
+class _SymbolEqualsMatcher extends Matcher {
+  final Symbol _expected;
+  const _SymbolEqualsMatcher(this._expected);
+  bool matches(item, Map matchState) {
+    final Symbol sym = item is Symbol ? item : item is String ? new Symbol(item) : new Symbol("$item");
+    return sym == _expected;
+  }
+  
+  Description describe(Description description) =>
+      description.add('same Symbol as ').addDescriptionOf(_expected);
+}
+
 /**
  * Returns a matcher that does a deep recursive match. This only works
  * with scalars, Maps and Iterables. To handle cyclic structures a
  * recursion depth [limit] can be provided. The default limit is 100.
  */
-Matcher equals(expected, [limit=100]) =>
-    expected is String
-        ? new _StringEqualsMatcher(expected)
-        : new _DeepMatcher(expected, limit);
+Matcher equals(expected, [limit=100]) {
+    if (expected is Symbol)
+        return new _SymbolEqualsMatcher(expected);
+    if (expected is String)
+        return new _StringEqualsMatcher(expected);
+    else 
+        return new _DeepMatcher(expected, limit);
+}
 
 class _DeepMatcher extends Matcher {
   final _expected;

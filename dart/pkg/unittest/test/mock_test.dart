@@ -722,7 +722,7 @@ main() {
     m.resetBehavior();
   });
 
-  solo_test('Spys', () {
+  test('Spys', () {
     var real = new Foo();
     var spy = new Mock.spy(real);
     var sum = spy.sum(1, 2, 3);
@@ -731,5 +731,32 @@ main() {
     spy.getLogs(callsTo('sum')).verify(happenedExactly(1));
     spy.getLogs(callsTo('total')).verify(happenedExactly(1));
   });
+  
+  test('Mocking: Symbols', () {
+    var m = new Mock();
+    print(m.length);
+    // TODO: not sure what a symbol literal for a getter is
+//    m.getLogs(callsTo(#length)).verify(happenedOnce);
+
+    m.when(callsTo(#foo, 1, 2)).thenReturn('A').thenReturn('B');
+    m.when(callsTo(#foo, 1, 1)).thenReturn('C');
+    m.when(callsTo(#foo, 9, anything)).thenReturn('D');
+    m.when(callsTo(#bar, anything, anything)).thenReturn('E');
+    m.when(callsTo(#foobar)).thenReturn('F');
+
+    var s = '${m.foo(1,2)}${m.foo(1,1)}${m.foo(9,10)}'
+        '${m.bar(1,1)}${m.foo(1,2)}';
+    m.getLogs(callsTo('foo', anything, anything)).
+        verify(happenedExactly(4));
+    m.getLogs(callsTo('foo', 1, anything)).verify(happenedExactly(3));
+    m.getLogs(callsTo('foo', 9, anything)).verify(happenedOnce);
+    m.getLogs(callsTo('foo', anything, 2)).verify(happenedExactly(2));
+    m.getLogs(callsTo('foobar')).verify(neverHappened);
+    m.getLogs(callsTo('foo', 10, anything)).verify(neverHappened);
+    m.getLogs(callsTo('foo'), returning(anyOf('A', 'C'))).
+        verify(happenedExactly(2));
+    expect(s, 'ACDEB');
+  });
+
 }
 
