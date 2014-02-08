@@ -100,7 +100,6 @@ import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.internal.element.ConstructorElementImpl;
 import com.google.dart.engine.internal.element.ElementAnnotationImpl;
 import com.google.dart.engine.internal.element.ElementImpl;
-import com.google.dart.engine.internal.element.FieldFormalParameterElementImpl;
 import com.google.dart.engine.internal.element.LabelElementImpl;
 import com.google.dart.engine.internal.element.MultiplyDefinedElementImpl;
 import com.google.dart.engine.internal.scope.LabelScope;
@@ -108,7 +107,6 @@ import com.google.dart.engine.internal.scope.Namespace;
 import com.google.dart.engine.internal.scope.NamespaceBuilder;
 import com.google.dart.engine.internal.scope.Scope;
 import com.google.dart.engine.internal.type.InterfaceTypeImpl;
-import com.google.dart.engine.resolver.ResolverErrorCode;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.type.FunctionType;
@@ -246,33 +244,36 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
    * Checks if the given expression is the reference to the type, if it is then the
    * {@link ClassElement} is returned, otherwise {@code null} is returned.
    * 
-   * @param expr the expression to evaluate
+   * @param expression the expression to evaluate
    * @return the {@link ClassElement} if the given expression is the reference to the type, and
    *         {@code null} otherwise
    */
-  public static ClassElementImpl getTypeReference(Expression expr) {
-    if (expr instanceof Identifier) {
-      Identifier identifier = (Identifier) expr;
-      if (identifier.getStaticElement() instanceof ClassElementImpl) {
-        return (ClassElementImpl) identifier.getStaticElement();
+  public static ClassElementImpl getTypeReference(Expression expression) {
+    if (expression instanceof Identifier) {
+      Element staticElement = ((Identifier) expression).getStaticElement();
+      if (staticElement instanceof ClassElementImpl) {
+        return (ClassElementImpl) staticElement;
       }
     }
     return null;
   }
 
   /**
+   * Return {@code true} if the given identifier is the return type of a constructor declaration.
+   * 
    * @return {@code true} if the given identifier is the return type of a constructor declaration.
    */
-  private static boolean isConstructorReturnType(SimpleIdentifier node) {
-    ASTNode parent = node.getParent();
+  private static boolean isConstructorReturnType(SimpleIdentifier identifier) {
+    ASTNode parent = identifier.getParent();
     if (parent instanceof ConstructorDeclaration) {
-      ConstructorDeclaration constructor = (ConstructorDeclaration) parent;
-      return constructor.getReturnType() == node;
+      return ((ConstructorDeclaration) parent).getReturnType() == identifier;
     }
     return false;
   }
 
   /**
+   * Return {@code true} if the given identifier is the return type of a factory constructor.
+   * 
    * @return {@code true} if the given identifier is the return type of a factory constructor
    *         declaration.
    */
@@ -286,10 +287,10 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
   }
 
   /**
-   * Checks if the given 'super' expression is used in the valid context.
+   * Return {@code true} if the given 'super' expression is used in a valid context.
    * 
    * @param node the 'super' expression to analyze
-   * @return {@code true} if the given 'super' expression is in the valid context
+   * @return {@code true} if the 'super' expression is in a valid context
    */
   private static boolean isSuperInValidContext(SuperExpression node) {
     for (ASTNode n = node; n != null; n = n.getParent()) {
@@ -392,32 +393,21 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
         MethodElement propagatedMethod = lookUpMethod(leftHandSide, propagatedType, methodName);
         node.setPropagatedElement(propagatedMethod);
 
-        boolean shouldReportMissingMember_static = shouldReportMissingMember(
-            staticType,
-            staticMethod);
-        boolean shouldReportMissingMember_propagated = !shouldReportMissingMember_static
-            && enableHints ? shouldReportMissingMember(propagatedType, propagatedMethod) : false;
-        //
-        // If we are about to generate the hint (propagated version of this warning), then check
-        // that the member is not in a subtype of the propagated type.
-        //
-        if (shouldReportMissingMember_propagated) {
-          if (memberFoundInSubclass(propagatedType.getElement(), methodName, true, false)) {
-            shouldReportMissingMember_propagated = false;
-          }
-        }
-
-        if (shouldReportMissingMember_static || shouldReportMissingMember_propagated) {
-          ErrorCode errorCode = shouldReportMissingMember_static
-              ? StaticTypeWarningCode.UNDEFINED_METHOD : HintCode.UNDEFINED_METHOD;
+        if (shouldReportMissingMember(staticType, staticMethod)) {
           resolver.reportErrorProxyConditionalAnalysisError(
-              shouldReportMissingMember_static ? staticType.getElement()
-                  : propagatedType.getElement(),
-              errorCode,
+              staticType.getElement(),
+              StaticTypeWarningCode.UNDEFINED_METHOD,
               operator,
               methodName,
-              shouldReportMissingMember_static ? staticType.getDisplayName()
-                  : propagatedType.getDisplayName());
+              staticType.getDisplayName());
+        } else if (enableHints && shouldReportMissingMember(propagatedType, propagatedMethod)
+            && !memberFoundInSubclass(propagatedType.getElement(), methodName, true, false)) {
+          resolver.reportErrorProxyConditionalAnalysisError(
+              propagatedType.getElement(),
+              HintCode.UNDEFINED_METHOD,
+              operator,
+              methodName,
+              propagatedType.getDisplayName());
         }
       }
     }
@@ -440,32 +430,21 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
         MethodElement propagatedMethod = lookUpMethod(leftOperand, propagatedType, methodName);
         node.setPropagatedElement(propagatedMethod);
 
-        boolean shouldReportMissingMember_static = shouldReportMissingMember(
-            staticType,
-            staticMethod);
-        boolean shouldReportMissingMember_propagated = !shouldReportMissingMember_static
-            && enableHints ? shouldReportMissingMember(propagatedType, propagatedMethod) : false;
-        //
-        // If we are about to generate the hint (propagated version of this warning), then check
-        // that the member is not in a subtype of the propagated type.
-        //
-        if (shouldReportMissingMember_propagated) {
-          if (memberFoundInSubclass(propagatedType.getElement(), methodName, true, false)) {
-            shouldReportMissingMember_propagated = false;
-          }
-        }
-
-        if (shouldReportMissingMember_static || shouldReportMissingMember_propagated) {
-          ErrorCode errorCode = shouldReportMissingMember_static
-              ? StaticTypeWarningCode.UNDEFINED_OPERATOR : HintCode.UNDEFINED_OPERATOR;
+        if (shouldReportMissingMember(staticType, staticMethod)) {
           resolver.reportErrorProxyConditionalAnalysisError(
-              shouldReportMissingMember_static ? staticType.getElement()
-                  : propagatedType.getElement(),
-              errorCode,
+              staticType.getElement(),
+              StaticTypeWarningCode.UNDEFINED_OPERATOR,
               operator,
               methodName,
-              shouldReportMissingMember_static ? staticType.getDisplayName()
-                  : propagatedType.getDisplayName());
+              staticType.getDisplayName());
+        } else if (enableHints && shouldReportMissingMember(propagatedType, propagatedMethod)
+            && !memberFoundInSubclass(propagatedType.getElement(), methodName, true, false)) {
+          resolver.reportErrorProxyConditionalAnalysisError(
+              propagatedType.getElement(),
+              HintCode.UNDEFINED_OPERATOR,
+              operator,
+              methodName,
+              propagatedType.getDisplayName());
         }
       }
     }
@@ -474,11 +453,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
 
   @Override
   public Void visitBreakStatement(BreakStatement node) {
-    SimpleIdentifier labelNode = node.getLabel();
-    LabelElementImpl labelElement = lookupLabel(node, labelNode);
-    if (labelElement != null && labelElement.isOnSwitchMember()) {
-      resolver.reportError(ResolverErrorCode.BREAK_LABEL_ON_SWITCH_MEMBER, labelNode);
-    }
+    lookupLabel(node, node.getLabel());
     return null;
   }
 
@@ -606,17 +581,18 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     ConstructorElement element = node.getElement();
     if (element instanceof ConstructorElementImpl) {
       ConstructorElementImpl constructorElement = (ConstructorElementImpl) element;
-      // set redirected factory constructor
       ConstructorName redirectedNode = node.getRedirectedConstructor();
       if (redirectedNode != null) {
+        // set redirected factory constructor
         ConstructorElement redirectedElement = redirectedNode.getStaticElement();
         constructorElement.setRedirectedConstructor(redirectedElement);
-      }
-      // set redirected generate constructor
-      for (ConstructorInitializer initializer : node.getInitializers()) {
-        if (initializer instanceof RedirectingConstructorInvocation) {
-          ConstructorElement redirectedElement = ((RedirectingConstructorInvocation) initializer).getStaticElement();
-          constructorElement.setRedirectedConstructor(redirectedElement);
+      } else {
+        // set redirected generative constructor
+        for (ConstructorInitializer initializer : node.getInitializers()) {
+          if (initializer instanceof RedirectingConstructorInvocation) {
+            ConstructorElement redirectedElement = ((RedirectingConstructorInvocation) initializer).getStaticElement();
+            constructorElement.setRedirectedConstructor(redirectedElement);
+          }
         }
       }
       setMetadata(constructorElement, node);
@@ -630,11 +606,6 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     ClassElement enclosingClass = resolver.getEnclosingClass();
     FieldElement fieldElement = enclosingClass.getField(fieldName.getName());
     fieldName.setStaticElement(fieldElement);
-    if (fieldElement == null || fieldElement.isSynthetic()) {
-      resolver.reportError(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTANT_FIELD, node, fieldName);
-    } else if (fieldElement.isStatic()) {
-      resolver.reportError(CompileTimeErrorCode.INITIALIZER_FOR_STATIC_FIELD, node, fieldName);
-    }
     return null;
   }
 
@@ -645,16 +616,16 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       return null;
     } else if (!(type instanceof InterfaceType)) {
       // TODO(brianwilkerson) Report these errors.
-      ASTNode parent = node.getParent();
-      if (parent instanceof InstanceCreationExpression) {
-        if (((InstanceCreationExpression) parent).isConst()) {
-          // CompileTimeErrorCode.CONST_WITH_NON_TYPE
-        } else {
-          // StaticWarningCode.NEW_WITH_NON_TYPE
-        }
-      } else {
-        // This is part of a redirecting factory constructor; not sure which error code to use
-      }
+//      ASTNode parent = node.getParent();
+//      if (parent instanceof InstanceCreationExpression) {
+//        if (((InstanceCreationExpression) parent).isConst()) {
+//          // CompileTimeErrorCode.CONST_WITH_NON_TYPE
+//        } else {
+//          // StaticWarningCode.NEW_WITH_NON_TYPE
+//        }
+//      } else {
+//        // This is part of a redirecting factory constructor; not sure which error code to use
+//      }
       return null;
     }
     // look up ConstructorElement
@@ -673,11 +644,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
 
   @Override
   public Void visitContinueStatement(ContinueStatement node) {
-    SimpleIdentifier labelNode = node.getLabel();
-    LabelElementImpl labelElement = lookupLabel(node, labelNode);
-    if (labelElement != null && labelElement.isOnSwitchStatement()) {
-      resolver.reportError(ResolverErrorCode.CONTINUE_LABEL_ON_SWITCH, labelNode);
-    }
+    lookupLabel(node, node.getLabel());
     return null;
   }
 
@@ -702,58 +669,6 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
 
   @Override
   public Void visitFieldFormalParameter(FieldFormalParameter node) {
-    String fieldName = node.getIdentifier().getName();
-    ClassElement classElement = resolver.getEnclosingClass();
-    if (classElement != null) {
-      FieldElement fieldElement = classElement.getField(fieldName);
-      if (fieldElement == null || fieldElement.isSynthetic()) {
-        resolver.reportError(
-            CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTANT_FIELD,
-            node,
-            fieldName);
-      } else {
-        ParameterElement parameterElement = node.getElement();
-        if (parameterElement instanceof FieldFormalParameterElementImpl) {
-          FieldFormalParameterElementImpl fieldFormal = (FieldFormalParameterElementImpl) parameterElement;
-          Type declaredType = fieldFormal.getType();
-          Type fieldType = fieldElement.getType();
-          if (fieldElement.isSynthetic()) {
-            resolver.reportError(
-                CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTANT_FIELD,
-                node,
-                fieldName);
-          } else if (fieldElement.isStatic()) {
-            resolver.reportError(
-                CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_STATIC_FIELD,
-                node,
-                fieldName);
-          } else if (declaredType != null && fieldType != null
-              && !declaredType.isAssignableTo(fieldType)) {
-            resolver.reportError(
-                StaticWarningCode.FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE,
-                node,
-                declaredType.getDisplayName(),
-                fieldType.getDisplayName());
-          }
-        } else {
-          if (fieldElement.isSynthetic()) {
-            resolver.reportError(
-                CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTANT_FIELD,
-                node,
-                fieldName);
-          } else if (fieldElement.isStatic()) {
-            resolver.reportError(
-                CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_STATIC_FIELD,
-                node,
-                fieldName);
-          }
-        }
-      }
-    }
-//    else {
-//    // TODO(jwren) Report error, constructor initializer variable is a top level element
-//    // (Either here or in ErrorVerifier#checkForAllFinalInitializedErrorCodes)
-//    }
     setMetadata(node.getElement(), node);
     return super.visitFieldFormalParameter(node);
   }
@@ -1113,29 +1028,21 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     MethodElement propagatedMethod = lookUpMethod(operand, propagatedType, methodName);
     node.setPropagatedElement(propagatedMethod);
 
-    boolean shouldReportMissingMember_static = shouldReportMissingMember(staticType, staticMethod);
-    boolean shouldReportMissingMember_propagated = !shouldReportMissingMember_static && enableHints
-        ? shouldReportMissingMember(propagatedType, propagatedMethod) : false;
-    //
-    // If we are about to generate the hint (propagated version of this warning), then check
-    // that the member is not in a subtype of the propagated type.
-    //
-    if (shouldReportMissingMember_propagated) {
-      if (memberFoundInSubclass(propagatedType.getElement(), methodName, true, false)) {
-        shouldReportMissingMember_propagated = false;
-      }
-    }
-
-    if (shouldReportMissingMember_static || shouldReportMissingMember_propagated) {
-      ErrorCode errorCode = shouldReportMissingMember_static
-          ? StaticTypeWarningCode.UNDEFINED_OPERATOR : HintCode.UNDEFINED_OPERATOR;
+    if (shouldReportMissingMember(staticType, staticMethod)) {
       resolver.reportErrorProxyConditionalAnalysisError(
-          shouldReportMissingMember_static ? staticType.getElement() : propagatedType.getElement(),
-          errorCode,
+          staticType.getElement(),
+          StaticTypeWarningCode.UNDEFINED_OPERATOR,
           node.getOperator(),
           methodName,
-          shouldReportMissingMember_static ? staticType.getDisplayName()
-              : propagatedType.getDisplayName());
+          staticType.getDisplayName());
+    } else if (enableHints && shouldReportMissingMember(propagatedType, propagatedMethod)
+        && !memberFoundInSubclass(propagatedType.getElement(), methodName, true, false)) {
+      resolver.reportErrorProxyConditionalAnalysisError(
+          propagatedType.getElement(),
+          HintCode.UNDEFINED_OPERATOR,
+          node.getOperator(),
+          methodName,
+          propagatedType.getDisplayName());
     }
     return null;
   }
@@ -1227,30 +1134,21 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       MethodElement propagatedMethod = lookUpMethod(operand, propagatedType, methodName);
       node.setPropagatedElement(propagatedMethod);
 
-      boolean shouldReportMissingMember_static = shouldReportMissingMember(staticType, staticMethod);
-      boolean shouldReportMissingMember_propagated = !shouldReportMissingMember_static
-          && enableHints ? shouldReportMissingMember(propagatedType, propagatedMethod) : false;
-      //
-      // If we are about to generate the hint (propagated version of this warning), then check
-      // that the member is not in a subtype of the propagated type.
-      //
-      if (shouldReportMissingMember_propagated) {
-        if (memberFoundInSubclass(propagatedType.getElement(), methodName, true, false)) {
-          shouldReportMissingMember_propagated = false;
-        }
-      }
-
-      if (shouldReportMissingMember_static || shouldReportMissingMember_propagated) {
-        ErrorCode errorCode = shouldReportMissingMember_static
-            ? StaticTypeWarningCode.UNDEFINED_OPERATOR : HintCode.UNDEFINED_OPERATOR;
+      if (shouldReportMissingMember(staticType, staticMethod)) {
         resolver.reportErrorProxyConditionalAnalysisError(
-            shouldReportMissingMember_static ? staticType.getElement()
-                : propagatedType.getElement(),
-            errorCode,
+            staticType.getElement(),
+            StaticTypeWarningCode.UNDEFINED_OPERATOR,
             operator,
             methodName,
-            shouldReportMissingMember_static ? staticType.getDisplayName()
-                : propagatedType.getDisplayName());
+            staticType.getDisplayName());
+      } else if (enableHints && shouldReportMissingMember(propagatedType, propagatedMethod)
+          && !memberFoundInSubclass(propagatedType.getElement(), methodName, true, false)) {
+        resolver.reportErrorProxyConditionalAnalysisError(
+            propagatedType.getElement(),
+            HintCode.UNDEFINED_OPERATOR,
+            operator,
+            methodName,
+            propagatedType.getDisplayName());
       }
     }
     return null;
@@ -1560,16 +1458,8 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
 
     boolean shouldReportMissingMember_static = shouldReportMissingMember(staticType, staticMethod);
     boolean shouldReportMissingMember_propagated = !shouldReportMissingMember_static && enableHints
-        ? shouldReportMissingMember(propagatedType, propagatedMethod) : false;
-    //
-    // If we are about to generate the hint (propagated version of this warning), then check
-    // that the member is not in a subtype of the propagated type.
-    //
-    if (shouldReportMissingMember_propagated) {
-      if (memberFoundInSubclass(propagatedType.getElement(), methodName, true, false)) {
-        shouldReportMissingMember_propagated = false;
-      }
-    }
+        && shouldReportMissingMember(propagatedType, propagatedMethod)
+        && !memberFoundInSubclass(propagatedType.getElement(), methodName, true, false);
 
     if (shouldReportMissingMember_static || shouldReportMissingMember_propagated) {
       Token leftBracket = node.getLeftBracket();

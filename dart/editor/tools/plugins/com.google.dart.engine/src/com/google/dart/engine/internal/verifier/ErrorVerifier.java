@@ -100,6 +100,7 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.ExportElement;
 import com.google.dart.engine.element.FieldElement;
+import com.google.dart.engine.element.FieldFormalParameterElement;
 import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
@@ -119,6 +120,7 @@ import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.internal.constant.EvaluationResultImpl;
 import com.google.dart.engine.internal.constant.ValidResult;
 import com.google.dart.engine.internal.element.FieldFormalParameterElementImpl;
+import com.google.dart.engine.internal.element.LabelElementImpl;
 import com.google.dart.engine.internal.element.ParameterElementImpl;
 import com.google.dart.engine.internal.element.member.ConstructorMember;
 import com.google.dart.engine.internal.error.ErrorReporter;
@@ -131,6 +133,7 @@ import com.google.dart.engine.internal.scope.NamespaceBuilder;
 import com.google.dart.engine.internal.type.DynamicTypeImpl;
 import com.google.dart.engine.internal.type.VoidTypeImpl;
 import com.google.dart.engine.parser.ParserErrorCode;
+import com.google.dart.engine.resolver.ResolverErrorCode;
 import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.KeywordToken;
 import com.google.dart.engine.scanner.Token;
@@ -428,6 +431,19 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   }
 
   @Override
+  public Void visitBreakStatement(BreakStatement node) {
+    SimpleIdentifier labelNode = node.getLabel();
+    if (labelNode != null) {
+      Element labelElement = labelNode.getStaticElement();
+      if (labelElement instanceof LabelElementImpl
+          && ((LabelElementImpl) labelElement).isOnSwitchMember()) {
+        errorReporter.reportError(ResolverErrorCode.BREAK_LABEL_ON_SWITCH_MEMBER, labelNode);
+      }
+    }
+    return null;
+  }
+
+  @Override
   public Void visitCatchClause(CatchClause node) {
     boolean previousIsInCatchClause = isInCatchClause;
     try {
@@ -551,11 +567,25 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   public Void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
     isInConstructorInitializer = true;
     try {
+      checkForInvalidField(node);
       checkForFieldInitializerNotAssignable(node);
       return super.visitConstructorFieldInitializer(node);
     } finally {
       isInConstructorInitializer = false;
     }
+  }
+
+  @Override
+  public Void visitContinueStatement(ContinueStatement node) {
+    SimpleIdentifier labelNode = node.getLabel();
+    if (labelNode != null) {
+      Element labelElement = labelNode.getStaticElement();
+      if (labelElement instanceof LabelElementImpl
+          && ((LabelElementImpl) labelElement).isOnSwitchStatement()) {
+        errorReporter.reportError(ResolverErrorCode.CONTINUE_LABEL_ON_SWITCH, labelNode);
+      }
+    }
+    return null;
   }
 
   @Override
@@ -609,6 +639,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
 
   @Override
   public Void visitFieldFormalParameter(FieldFormalParameter node) {
+    checkForValidField(node);
     checkForConstFormalParameter(node);
     checkForPrivateOptionalParameter(node);
     checkForFieldInitializingFormalRedirectingConstructor(node);
@@ -2990,11 +3021,11 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    */
   private boolean checkForFieldInitializerNotAssignable(ConstructorFieldInitializer node) {
     // prepare field element
-    Element fieldNameElement = node.getFieldName().getStaticElement();
-    if (!(fieldNameElement instanceof FieldElement)) {
+    Element staticElement = node.getFieldName().getStaticElement();
+    if (!(staticElement instanceof FieldElement)) {
       return false;
     }
-    FieldElement fieldElement = (FieldElement) fieldNameElement;
+    FieldElement fieldElement = (FieldElement) staticElement;
     // prepare field type
     Type fieldType = fieldElement.getType();
     // prepare expression type
@@ -3505,6 +3536,36 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
 //      return true;
 //    }
     return false;
+  }
+
+  /**
+   * Check the given initializer to ensure that the field being initialized is a valid field.
+   * 
+   * @param node the field initializer being checked
+   */
+  private void checkForInvalidField(ConstructorFieldInitializer node) {
+    SimpleIdentifier fieldName = node.getFieldName();
+    Element staticElement = fieldName.getStaticElement();
+    if (staticElement instanceof FieldElement) {
+      FieldElement fieldElement = (FieldElement) staticElement;
+      if (fieldElement.isSynthetic()) {
+        errorReporter.reportError(
+            CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTANT_FIELD,
+            node,
+            fieldName);
+      } else if (fieldElement.isStatic()) {
+        errorReporter.reportError(
+            CompileTimeErrorCode.INITIALIZER_FOR_STATIC_FIELD,
+            node,
+            fieldName);
+      }
+    } else {
+      errorReporter.reportError(
+          CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTANT_FIELD,
+          node,
+          fieldName);
+      return;
+    }
   }
 
   /**
@@ -4933,6 +4994,60 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     return true;
   }
 
+  private void checkForValidField(FieldFormalParameter node) {
+    ParameterElement element = node.getElement();
+    if (element instanceof FieldFormalParameterElement) {
+      FieldElement fieldElement = ((FieldFormalParameterElement) element).getField();
+      if (fieldElement == null || fieldElement.isSynthetic()) {
+        errorReporter.reportError(
+            CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTANT_FIELD,
+            node,
+            node.getIdentifier().getName());
+      } else {
+        ParameterElement parameterElement = node.getElement();
+        if (parameterElement instanceof FieldFormalParameterElementImpl) {
+          FieldFormalParameterElementImpl fieldFormal = (FieldFormalParameterElementImpl) parameterElement;
+          Type declaredType = fieldFormal.getType();
+          Type fieldType = fieldElement.getType();
+          if (fieldElement.isSynthetic()) {
+            errorReporter.reportError(
+                CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTANT_FIELD,
+                node,
+                node.getIdentifier().getName());
+          } else if (fieldElement.isStatic()) {
+            errorReporter.reportError(
+                CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_STATIC_FIELD,
+                node,
+                node.getIdentifier().getName());
+          } else if (declaredType != null && fieldType != null
+              && !declaredType.isAssignableTo(fieldType)) {
+            errorReporter.reportError(
+                StaticWarningCode.FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE,
+                node,
+                declaredType.getDisplayName(),
+                fieldType.getDisplayName());
+          }
+        } else {
+          if (fieldElement.isSynthetic()) {
+            errorReporter.reportError(
+                CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTANT_FIELD,
+                node,
+                node.getIdentifier().getName());
+          } else if (fieldElement.isStatic()) {
+            errorReporter.reportError(
+                CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_STATIC_FIELD,
+                node,
+                node.getIdentifier().getName());
+          }
+        }
+      }
+    }
+//    else {
+//    // TODO(jwren) Report error, constructor initializer variable is a top level element
+//    // (Either here or in ErrorVerifier#checkForAllFinalInitializedErrorCodes)
+//    }
+  }
+
   /**
    * This verifies the passed operator-method declaration, has correct number of parameters.
    * <p>
@@ -5428,94 +5543,94 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     return result == null
         || (result instanceof ValidResult && ((ValidResult) result).isUserDefinedObject());
   }
-
-  /**
-   * Return {@code true} iff the passed {@link ClassElement} has a concrete implementation of the
-   * passed accessor name in the superclass chain.
-   */
-  private boolean memberHasConcreteAccessorImplementationInSuperclassChain(
-      ClassElement classElement, String accessorName, ArrayList<ClassElement> superclassChain) {
-    if (superclassChain.contains(classElement)) {
-      return false;
-    } else {
-      superclassChain.add(classElement);
-    }
-    for (PropertyAccessorElement accessor : classElement.getAccessors()) {
-      if (accessor.getName().equals(accessorName)) {
-        if (!accessor.isAbstract()) {
-          return true;
-        }
-      }
-    }
-    for (InterfaceType mixinType : classElement.getMixins()) {
-      if (mixinType != null) {
-        ClassElement mixinElement = mixinType.getElement();
-        if (mixinElement != null) {
-          for (PropertyAccessorElement accessor : mixinElement.getAccessors()) {
-            if (accessor.getName().equals(accessorName)) {
-              if (!accessor.isAbstract()) {
-                return true;
-              }
-            }
-          }
-        }
-      }
-    }
-    InterfaceType superType = classElement.getSupertype();
-    if (superType != null) {
-      ClassElement superClassElt = superType.getElement();
-      if (superClassElt != null) {
-        return memberHasConcreteAccessorImplementationInSuperclassChain(
-            superClassElt,
-            accessorName,
-            superclassChain);
-      }
-    }
-    return false;
-  }
-
-  /**
-   * Return {@code true} iff the passed {@link ClassElement} has a concrete implementation of the
-   * passed method name in the superclass chain.
-   */
-  private boolean memberHasConcreteMethodImplementationInSuperclassChain(ClassElement classElement,
-      String methodName, ArrayList<ClassElement> superclassChain) {
-    if (superclassChain.contains(classElement)) {
-      return false;
-    } else {
-      superclassChain.add(classElement);
-    }
-    for (MethodElement method : classElement.getMethods()) {
-      if (method.getName().equals(methodName)) {
-        if (!method.isAbstract()) {
-          return true;
-        }
-      }
-    }
-    for (InterfaceType mixinType : classElement.getMixins()) {
-      if (mixinType != null) {
-        ClassElement mixinElement = mixinType.getElement();
-        if (mixinElement != null) {
-          for (MethodElement method : mixinElement.getMethods()) {
-            if (method.getName().equals(methodName)) {
-              if (!method.isAbstract()) {
-                return true;
-              }
-            }
-          }
-        }
-      }
-    }
-    InterfaceType superType = classElement.getSupertype();
-    if (superType != null) {
-      ClassElement superClassElt = superType.getElement();
-      if (superClassElt != null) {
-        return memberHasConcreteMethodImplementationInSuperclassChain(
-            superClassElt,
-            methodName,
-            superclassChain);
-      }
-    }
-    return false;
-  }
+//
+//  /**
+//   * Return {@code true} iff the passed {@link ClassElement} has a concrete implementation of the
+//   * passed accessor name in the superclass chain.
+//   */
+//  private boolean memberHasConcreteAccessorImplementationInSuperclassChain(
+//      ClassElement classElement, String accessorName, ArrayList<ClassElement> superclassChain) {
+//    if (superclassChain.contains(classElement)) {
+//      return false;
+//    } else {
+//      superclassChain.add(classElement);
+//    }
+//    for (PropertyAccessorElement accessor : classElement.getAccessors()) {
+//      if (accessor.getName().equals(accessorName)) {
+//        if (!accessor.isAbstract()) {
+//          return true;
+//        }
+//      }
+//    }
+//    for (InterfaceType mixinType : classElement.getMixins()) {
+//      if (mixinType != null) {
+//        ClassElement mixinElement = mixinType.getElement();
+//        if (mixinElement != null) {
+//          for (PropertyAccessorElement accessor : mixinElement.getAccessors()) {
+//            if (accessor.getName().equals(accessorName)) {
+//              if (!accessor.isAbstract()) {
+//                return true;
+//              }
+//            }
+//          }
+//        }
+//      }
+//    }
+//    InterfaceType superType = classElement.getSupertype();
+//    if (superType != null) {
+//      ClassElement superClassElt = superType.getElement();
+//      if (superClassElt != null) {
+//        return memberHasConcreteAccessorImplementationInSuperclassChain(
+//            superClassElt,
+//            accessorName,
+//            superclassChain);
+//      }
+//    }
+//    return false;
+//  }
+//
+//  /**
+//   * Return {@code true} iff the passed {@link ClassElement} has a concrete implementation of the
+//   * passed method name in the superclass chain.
+//   */
+//  private boolean memberHasConcreteMethodImplementationInSuperclassChain(ClassElement classElement,
+//      String methodName, ArrayList<ClassElement> superclassChain) {
+//    if (superclassChain.contains(classElement)) {
+//      return false;
+//    } else {
+//      superclassChain.add(classElement);
+//    }
+//    for (MethodElement method : classElement.getMethods()) {
+//      if (method.getName().equals(methodName)) {
+//        if (!method.isAbstract()) {
+//          return true;
+//        }
+//      }
+//    }
+//    for (InterfaceType mixinType : classElement.getMixins()) {
+//      if (mixinType != null) {
+//        ClassElement mixinElement = mixinType.getElement();
+//        if (mixinElement != null) {
+//          for (MethodElement method : mixinElement.getMethods()) {
+//            if (method.getName().equals(methodName)) {
+//              if (!method.isAbstract()) {
+//                return true;
+//              }
+//            }
+//          }
+//        }
+//      }
+//    }
+//    InterfaceType superType = classElement.getSupertype();
+//    if (superType != null) {
+//      ClassElement superClassElt = superType.getElement();
+//      if (superClassElt != null) {
+//        return memberHasConcreteMethodImplementationInSuperclassChain(
+//            superClassElt,
+//            methodName,
+//            superclassChain);
+//      }
+//    }
+//    return false;
+//  }
 }
