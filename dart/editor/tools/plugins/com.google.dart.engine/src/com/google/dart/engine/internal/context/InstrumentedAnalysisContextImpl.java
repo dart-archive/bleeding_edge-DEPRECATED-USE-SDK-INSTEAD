@@ -152,14 +152,7 @@ public class InstrumentedAnalysisContextImpl implements InternalAnalysisContext 
 
   @Override
   public Source[] computeExportedLibraries(Source source) throws AnalysisException {
-    InstrumentationBuilder instrumentation = Instrumentation.builder("Analysis-computeExportedLibraries");
-    checkThread(instrumentation);
-    try {
-      instrumentation.metric("contextId", contextId);
-      return basis.computeExportedLibraries(source);
-    } finally {
-      instrumentation.log();
-    }
+    return basis.computeExportedLibraries(source);
   }
 
   @Override
@@ -180,14 +173,7 @@ public class InstrumentedAnalysisContextImpl implements InternalAnalysisContext 
 
   @Override
   public Source[] computeImportedLibraries(Source source) throws AnalysisException {
-    InstrumentationBuilder instrumentation = Instrumentation.builder("Analysis-computeImportedLibraries");
-    checkThread(instrumentation);
-    try {
-      instrumentation.metric("contextId", contextId);
-      return basis.computeImportedLibraries(source);
-    } finally {
-      instrumentation.log();
-    }
+    return basis.computeImportedLibraries(source);
   }
 
   @Override
@@ -490,7 +476,14 @@ public class InstrumentedAnalysisContextImpl implements InternalAnalysisContext 
 
   @Override
   public Source[] getRefactoringUnsafeSources() {
-    return basis.getRefactoringUnsafeSources();
+    InstrumentationBuilder instrumentation = Instrumentation.builder("Analysis-getRefactoringUnsafeSources");
+    checkThread(instrumentation);
+    try {
+      instrumentation.metric("contextId", contextId);
+      return basis.getRefactoringUnsafeSources();
+    } finally {
+      instrumentation.log();
+    }
   }
 
   @Override
