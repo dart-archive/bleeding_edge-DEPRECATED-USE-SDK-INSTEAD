@@ -19,7 +19,6 @@ import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.Project;
-import com.google.dart.tools.core.internal.builder.AnalysisManager;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.deploy.Activator;
 
@@ -53,7 +52,6 @@ public class HtmlReconcilerHook implements ISourceValidator, IValidator {
     @Override
     public void documentChanged(DocumentEvent event) {
       sourceChanged(document.get());
-      performAnalysisInBackground();
     }
   };
 
@@ -95,22 +93,16 @@ public class HtmlReconcilerHook implements ISourceValidator, IValidator {
     // prepare model Project
     IProject resourceProject = resource.getProject();
     project = DartCore.getProjectManager().getProject(resourceProject);
-    // TODO(scheglov) disabled because of the problems with big Angular project
-    if (true) {
-      return;
-    }
     // track changes
-//    document.addDocumentListener(documentListener);
-//    HtmlReconcilerManager.getInstance().reconcileWith(document, this);
-//    // force reconcile
-//    sourceChanged(document.get());
-//    performAnalysisInBackground();
+    document.addDocumentListener(documentListener);
+    HtmlReconcilerManager.getInstance().reconcileWith(document, this);
+    // force reconcile
+    sourceChanged(document.get());
   }
 
   @Override
   public void disconnect(IDocument document) {
     sourceChanged(null);
-    performAnalysisInBackground();
     // clean up
     document.removeDocumentListener(documentListener);
     DartReconcilerManager.getInstance().reconcileWith(document, null);
@@ -121,12 +113,12 @@ public class HtmlReconcilerHook implements ISourceValidator, IValidator {
   }
 
   public HtmlUnit getResolvedUnit() {
-    AnalysisContext analysisContext = getContext();
+    AnalysisContext context = getContext();
     Source source = getSource();
-    if (analysisContext == null || source == null) {
+    if (context == null || source == null) {
       return null;
     }
-    return analysisContext.getResolvedHtmlUnit(source);
+    return context.getResolvedHtmlUnit(source);
   }
 
   @Override
@@ -154,17 +146,11 @@ public class HtmlReconcilerHook implements ISourceValidator, IValidator {
   }
 
   /**
-   * Start background analysis of the context containing the source being edited.
-   */
-  private void performAnalysisInBackground() {
-    AnalysisContext context = getContext();
-    if (context != null) {
-      AnalysisManager.getInstance().performAnalysisInBackground(project, context);
-    }
-  }
-
-  /**
    * Notify the context that the source has changed.
+   * <p>
+   * Note, that {@link Source} is updated in {@link AnalysisContext} in the background thread, so
+   * there is a small probability that some operation will be initiated on not-quite-synchronized
+   * content. But it is better than nothing for now...
    * 
    * @param code the new source code or {@code null} if the source should be pulled from disk
    */
@@ -172,7 +158,7 @@ public class HtmlReconcilerHook implements ISourceValidator, IValidator {
     AnalysisContext context = getContext();
     Source source = getSource();
     if (context != null && source != null) {
-      context.setContents(source, code);
+      HtmlReconcilerManager.performUpdateInBackground(project, context, source, code);
     }
   }
 }
