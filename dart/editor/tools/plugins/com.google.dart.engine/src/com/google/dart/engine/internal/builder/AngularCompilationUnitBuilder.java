@@ -679,18 +679,29 @@ public class AngularCompilationUnitBuilder {
     classDeclaration.accept(new RecursiveASTVisitor<Void>() {
       @Override
       public Void visitAssignmentExpression(AssignmentExpression node) {
-        SimpleStringLiteral nameNode = getNameNode(node.getLeftHandSide());
-        if (nameNode != null) {
-          String name = nameNode.getStringValue();
-          int nameOffset = nameNode.getValueOffset();
-          AngularScopePropertyElement property = new AngularScopePropertyElementImpl(
-              name,
-              nameOffset,
-              node.getRightHandSide().getBestType());
-          nameNode.setToolkitElement(property);
-          properties.add(property);
-        }
+        addProperty(node);
         return super.visitAssignmentExpression(node);
+      }
+
+      private void addProperty(AssignmentExpression node) {
+        // try to find "name" in scope[name]
+        SimpleStringLiteral nameNode = getNameNode(node.getLeftHandSide());
+        if (nameNode == null) {
+          return;
+        }
+        // prepare unique
+        String name = nameNode.getStringValue();
+        if (hasPropertyWithName(name)) {
+          return;
+        }
+        // do add property
+        int nameOffset = nameNode.getValueOffset();
+        AngularScopePropertyElement property = new AngularScopePropertyElementImpl(
+            name,
+            nameOffset,
+            node.getRightHandSide().getBestType());
+        nameNode.setToolkitElement(property);
+        properties.add(property);
       }
 
       private SimpleStringLiteral getNameNode(Expression node) {
@@ -703,6 +714,15 @@ public class AngularCompilationUnitBuilder {
           }
         }
         return null;
+      }
+
+      private boolean hasPropertyWithName(String name) {
+        for (AngularScopePropertyElement property : properties) {
+          if (property.getName().equals(name)) {
+            return true;
+          }
+        }
+        return false;
       }
 
       private boolean isScope(Expression target) {

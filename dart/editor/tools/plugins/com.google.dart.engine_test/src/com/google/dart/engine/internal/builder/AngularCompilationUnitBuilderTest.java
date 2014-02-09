@@ -605,6 +605,8 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
         "    scope['boolProp'] = true;",
         "    scope['intProp'] = 42;",
         "    scope['stringProp'] = 'foo';",
+        "    // duplicate is ignored",
+        "    scope['boolProp'] = true;",
         "    // LHS is not an IndexExpression",
         "    var v1;",
         "    v1 = 1;",
