@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui;
 
+import com.google.dart.engine.internal.context.InstrumentedAnalysisContextImpl;
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.core.DartCore;
@@ -799,6 +800,7 @@ public class DartToolsPlugin extends AbstractUIPlugin {
   @Override
   public void start(BundleContext context) throws Exception {
     super.start(context);
+    InstrumentedAnalysisContextImpl.setUIThread(Display.getCurrent().getThread());
 
     // get the packages from pub
     PubPackageManager.getInstance().initialize();

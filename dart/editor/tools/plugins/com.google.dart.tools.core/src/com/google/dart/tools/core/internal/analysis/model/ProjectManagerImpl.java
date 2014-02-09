@@ -38,6 +38,7 @@ import com.google.dart.tools.core.analysis.model.ResolvedEvent;
 import com.google.dart.tools.core.analysis.model.ResolvedHtmlEvent;
 import com.google.dart.tools.core.analysis.model.ResourceMap;
 import com.google.dart.tools.core.builder.BuildEvent;
+import com.google.dart.tools.core.instrumentation.InstrumentationLogger;
 import com.google.dart.tools.core.internal.builder.AnalysisEngineParticipant;
 import com.google.dart.tools.core.internal.builder.AnalysisMarkerManager;
 import com.google.dart.tools.core.internal.builder.AnalysisWorker;
@@ -426,6 +427,7 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
         index.run();
       }
     }.start();
+    InstrumentationLogger.ensureLoggerStarted();
     new AnalysisWorker(this, getSdkContext()).performAnalysisInBackground();
     analyzeAllProjects();
   }
