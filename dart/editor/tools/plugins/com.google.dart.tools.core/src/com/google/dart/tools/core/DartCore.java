@@ -880,10 +880,9 @@ public class DartCore extends Plugin implements DartSdkListener {
    * 
    * @param fileName the file name being tested
    * @return <code>true</code> if the given file name's extension is a Dart-like extension
-   * @see #getDartLikeExtensions()
    */
   public static boolean isDartLikeFileName(String fileName) {
-    return isLikeFileName(fileName, getDartLikeExtensions());
+    return StringUtilities.endsWithIgnoreCase(fileName, ".dart");
   }
 
   /**

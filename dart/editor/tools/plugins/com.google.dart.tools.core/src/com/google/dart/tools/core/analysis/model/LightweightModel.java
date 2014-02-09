@@ -262,7 +262,8 @@ public class LightweightModel {
               return false;
             }
 
-            if (resource instanceof IFile) {
+            // We're currently only providing information about Dart files to clients.
+            if (resource instanceof IFile && DartCore.isDartLikeFileName(resource.getName())) {
               IFile file = (IFile) resource;
               Source source = resourceMap.getSource(file);
 
