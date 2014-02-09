@@ -329,9 +329,10 @@ public class DartDoubleClickSelector implements ITextDoubleClickStrategy, ISourc
     IDocument document = textViewer.getDocument();
 
     IRegion region = fPairMatcher.match(document, offset);
+
     if (region != null && region.getLength() >= 2) {
       textViewer.setSelectedRange(region.getOffset() + 1, region.getLength() - 2);
-    } else {
+    } else if (textViewer instanceof CompilationUnitEditor.AdaptedSourceViewer) {
       CompilationUnitEditor editor = ((CompilationUnitEditor.AdaptedSourceViewer) textViewer).getEditor();
       NodeLocator locator = new NodeLocator(offset);
       ASTNode node = locator.searchWithin(editor.getInputUnit());
@@ -347,6 +348,9 @@ public class DartDoubleClickSelector implements ITextDoubleClickStrategy, ISourc
       } else {
         region = selectWord(document, offset);
       }
+      textViewer.setSelectedRange(region.getOffset(), region.getLength());
+    } else {
+      region = selectWord(document, offset);
       textViewer.setSelectedRange(region.getOffset(), region.getLength());
     }
   }
