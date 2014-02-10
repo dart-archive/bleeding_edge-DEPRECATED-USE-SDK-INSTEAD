@@ -6402,7 +6402,7 @@ public class Parser {
    */
   private Token validateModifiersForConstructor(Modifiers modifiers) {
     if (modifiers.getAbstractKeyword() != null) {
-      reportError(ParserErrorCode.ABSTRACT_CLASS_MEMBER);
+      reportError(ParserErrorCode.ABSTRACT_CLASS_MEMBER, modifiers.getAbstractKeyword());
     }
     if (modifiers.getFinalKeyword() != null) {
       reportError(ParserErrorCode.FINAL_CONSTRUCTOR, modifiers.getFinalKeyword());
