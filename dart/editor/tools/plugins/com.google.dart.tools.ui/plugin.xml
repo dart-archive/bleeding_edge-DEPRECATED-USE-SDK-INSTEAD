@@ -494,9 +494,8 @@
             markerSeverity="2"/>
       <type
             name="com.google.dart.tools.ui.info"
-            super="org.eclipse.ui.workbench.texteditor.warning"
             markerType="com.google.dart.tools.core.hint"
-            markerSeverity="1"/>
+            markerSeverity="0"/>
       <type
             name="com.google.dart.tools.ui.warning"
             super="org.eclipse.ui.workbench.texteditor.warning"
