@@ -35,7 +35,7 @@ vars = {
   "mockito_rev" : "@19997",
   "snakeyaml_rev" : "@19997",
   "stripjar_rev" : "@20110",
-  "WebCore_rev" : "@31553",
+  "WebCore_rev" : "@32481",
   "weberknecht_rev" : "@26547",
   "bootstrap_css_rev" : "@28387",
   "font_awesome_rev": "@31824",
