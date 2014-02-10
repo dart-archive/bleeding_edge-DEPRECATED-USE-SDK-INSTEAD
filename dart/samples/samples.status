@@ -8,28 +8,10 @@ build_dart: Skip
 build_dart_simple: Skip
 sample_extension: Skip
 
-[ $compiler == dart2js && $runtime == drt ]
-swarm/test/swarm_test: Pass, Crash, Fail # Issue 10950
-
-[ $compiler == none && $runtime == drt && $mode == debug ]
-dromaeo_smoke_test: Crash # Issue 14218
-
 [ $runtime == ie9 ]
-swarm/test/swarm_ui_lib/layout/layout_test: Fail # http://dartbug.com/5132
 third_party/todomvc: Pass, Fail, Timeout # Flaky? Issue 12865
 searchable_list/test/demo_app_test: Pass, Timeout # Issue 15047
 polymer_intl: Pass, Timeout # 15047
-
-[ $runtime == safari ]
-promise_based_test: Skip
-swarm/test/swarm_test: Pass, Fail # Issue 14523
-
-[ $runtime == chrome ]
-swarm/test/swarm_test: Pass, Fail # Issue 14523
-
-[ $runtime == opera ]
-swarm/test/swarm_ui_lib/touch/touch_test: Fail
-swarm/test/swarm_test: Fail
 
 [ $runtime == vm ]
 # Skip tests that use dart:html on the standalone VM
@@ -42,7 +24,6 @@ searchable_list: Skip
 solar: Skip
 spirodraw: Skip
 sunflower: Skip
-swarm: Skip
 swipe: Skip
 polymer_intl: Skip
 
@@ -51,28 +32,8 @@ third_party/todomvc: Skip # uses dart:html
 
 [ $compiler == dart2js && $browser ]
 
-[ $compiler == dart2js && $runtime == chromeOnAndroid ]
-swarm/test/swarm_test: Fail # TODO(kasperl): Please triage.
-swarm/test/swarm_ui_lib/layout/layout_test: Fail # TODO(kasperl): Please triage.
-
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
-
-[ $compiler == none && $runtime == dartium ]
-swarm/test/swarm_test: Fail # Issue 13719: Please triage this failure.
-
-[ $browser ]
-# This may be related to issue 157
-swarm/test/swarm_ui_lib/touch/touch_test: Fail # Expectation: Solver. Expect.approxEquals(expected:9, actual:8.990625000000001, tolerance:0.0009) fails
-
-[ $compiler == dart2js && $runtime == ff ]
-swarm/test/swarm_test: Fail # Issue 5633
-
-[ $compiler == dart2js && $runtime == drt && $system == windows ]
-swarm/test/swarm_test: Fail # Issue 4517
-
-[ $compiler == dart2js && $runtime == ie9 ]
-swarm/test/swarm_test: Timeout, Fail # Issue 5633
 
 [ $compiler == dart2analyzer ]
 build_dart: Skip
@@ -83,13 +44,4 @@ build_dart: Skip
 
 [ $arch == arm ]
 sample_extension/test/sample_extension_test: Skip # Issue 14705
-
-[ $compiler == dartanalyzer || $compiler == dart2analyzer ]
-chat/test/chat_server_test: StaticWarning
-swarm/test/swarm_test: StaticWarning
-swarm/test/swarm_ui_lib/layout/layout_test: StaticWarning
-swarm/test/swarm_ui_lib/observable/observable_test: StaticWarning
-swarm/test/swarm_ui_lib/touch/touch_test: StaticWarning
-swarm/test/swarm_ui_lib/util/util_test: StaticWarning
-swarm/test/swarm_ui_lib/view/view_test: StaticWarning
 
