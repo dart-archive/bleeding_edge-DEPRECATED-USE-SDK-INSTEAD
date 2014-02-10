@@ -15,10 +15,8 @@ package com.google.dart.tools.debug.ui.internal.util;
 
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.LightweightModel;
-import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.ui.internal.DartUtil;
-import com.google.dart.tools.debug.ui.internal.DebugErrorHandler;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.eclipse.core.resources.IContainer;
@@ -87,17 +85,8 @@ public abstract class AbstractLaunchShortcut implements ILaunchShortcut2 {
   public final IResource getLaunchableResource(IEditorPart editor) {
     IResource resource = (IResource) editor.getEditorInput().getAdapter(IResource.class);
 
-    try {
-      if (resource != null) {
-        return getLaunchableResource(resource);
-      }
-    } catch (DartModelException e) {
-      DebugErrorHandler.errorDialog(
-          null,
-          "Error Launching " + launchTypeLabel,
-          "Unable to locate launchable resource.",
-          e);
-      return null;
+    if (resource != null) {
+      return getLaunchableResource(resource);
     }
 
     return null;
@@ -109,34 +98,19 @@ public abstract class AbstractLaunchShortcut implements ILaunchShortcut2 {
       return null;
     }
 
-    Object elem = ((IStructuredSelection) selection).getFirstElement();
+    Object obj = ((IStructuredSelection) selection).getFirstElement();
 
-    Object res = null;
-    if (elem instanceof IResource) {
-      res = elem;
-//    } else if (elem instanceof DartElement) {
-//      res = elem;
-    } else if (elem instanceof IAdaptable) {
-      res = ((IAdaptable) elem).getAdapter(IResource.class);
-    }
-    try {
-      IResource resource = getLaunchableResource(res);
-      if (resource == null) {
-        MessageDialog.openInformation(
-            null,
-            "Unable to Run " + launchTypeLabel,
-            "Unable to run the current selection: could not find an associated html file");
-      }
-      return resource;
+    IResource resource;
 
-    } catch (DartModelException e) {
-      DebugErrorHandler.errorDialog(
-          null,
-          "Error Launching " + launchTypeLabel,
-          "Unable to locate launchable resource.",
-          e);
-      return null;
+    if (obj instanceof IResource) {
+      resource = (IResource) obj;
+    } else if (obj instanceof IAdaptable) {
+      resource = (IResource) ((IAdaptable) obj).getAdapter(IResource.class);
+    } else {
+      resource = null;
     }
+
+    return getLaunchableResource(resource);
   }
 
   @Override
@@ -156,20 +130,11 @@ public abstract class AbstractLaunchShortcut implements ILaunchShortcut2 {
     IResource resource = (IResource) editor.getEditorInput().getAdapter(IResource.class);
 
     if (resource != null) {
-      try {
-        resource = getLaunchableResource(resource);
+      resource = getLaunchableResource(resource);
 
-        if (resource != null) {
-          launch(resource, mode);
+      if (resource != null) {
+        launch(resource, mode);
 
-          return;
-        }
-      } catch (DartModelException e) {
-        DebugErrorHandler.errorDialog(
-            null,
-            "Error Launching " + launchTypeLabel,
-            "Unable to locate launchable resource.",
-            e);
         return;
       }
     }
@@ -254,7 +219,7 @@ public abstract class AbstractLaunchShortcut implements ILaunchShortcut2 {
    * @param originalResource the original resource or <code>null</code>
    * @return the Dart resource to be launched or <code>null</code>
    */
-  protected IResource getLaunchableResource(Object originalResource) throws DartModelException {
+  protected IResource getLaunchableResource(Object originalResource) {
     if (originalResource == null) {
       return null;
     }
@@ -266,15 +231,14 @@ public abstract class AbstractLaunchShortcut implements ILaunchShortcut2 {
       }
       return getPrimaryLaunchTarget(resource);
     }
-    return null;
 
+    return null;
   }
 
   /**
    * Checks if given resource is part of/is library that can be run on browser
    */
   protected boolean isBrowserApplication(IResource resource) {
-
     if (getPrimaryLaunchTarget(resource) != null) {
       return true;
     }

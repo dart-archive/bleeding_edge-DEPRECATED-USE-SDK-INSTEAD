@@ -56,6 +56,13 @@
          type="org.eclipse.core.runtime.IAdaptable"
          class="com.google.dart.tools.debug.ui.internal.util.DartPropertyTester">
       </propertyTester>
+      <propertyTester
+         id="com.google.dart.tools.debug.dartPropertyTester"
+         namespace="com.google.dart.tools.debug"
+         properties="containsChromeApp"
+         type="org.eclipse.core.runtime.IAdaptable"
+         class="com.google.dart.tools.debug.ui.internal.util.DartPropertyTester">
+      </propertyTester>
    </extension>
    
    <!-- Dartium launch configuration -->
@@ -102,6 +109,7 @@
             icon="icons/chromium_16.png"
             id="com.google.dart.tools.debug.ui.dartChromeShortcut"
             label="%dart.dartiumlaunch.shortcut.label"
+            description="Run the selected application in Dartium"
             modes="run,debug">
          <configurationType
                id="com.google.dart.tools.debug.core.dartiumLaunchConfig">
@@ -158,6 +166,7 @@
             class="com.google.dart.tools.debug.ui.internal.chromeapp.ChromeAppLaunchShortcut"
             id="com.google.dart.tools.debug.ui.chromeAppLaunchShortcut"
             label="%dart.chromeApplaunch.shortcut.label"
+            description="Run the selected application as a Chrome App"
             icon="icons/chrome_app.png"
             modes="run,debug">
          <configurationType
@@ -173,7 +182,7 @@
                         <or>
                            <and>
                               <test property="com.google.dart.tools.debug.isInDartProject"/>
-                              <test property="org.eclipse.core.resources.name" value="manifest.json"/>
+                              <test property="com.google.dart.tools.debug.containsChromeApp"/>
                            </and>
                            <test property="com.google.dart.tools.debug.isDartProject"/>
                         </or>
@@ -222,6 +231,7 @@
             icon="icons/obj16/globe_dark.png"
             id="com.google.dart.tools.debug.ui.dartBrowserShortcut"
             label="%dart.clientlaunch.shortcut.label"
+            description="Run the selected application in the default browser"
             modes="run">
          <configurationType
                id="com.google.dart.tools.debug.core.browserLaunchConfig">
@@ -277,6 +287,7 @@
             class="com.google.dart.tools.debug.ui.internal.server.DartServerLaunchShortcut"
             id="com.google.dart.tools.debug.ui.serverLaunchShortcut"
             label="%dart.serverlaunch.shortcut.label"
+            description="Run the selected Dart command-line application"
             icon="icons/obj16/osprc_obj.png"
             modes="run,debug">
          <configurationType
@@ -313,6 +324,9 @@
             class="com.google.dart.tools.debug.ui.internal.breakpoints.DartBreakpointAdapterFactory">
          <adapter
                type="org.eclipse.debug.ui.actions.IToggleBreakpointsTarget">
+         </adapter>
+         <adapter
+               type="org.eclipse.debug.ui.actions.IRunToLineTarget">
          </adapter>
       </factory>
    </extension>

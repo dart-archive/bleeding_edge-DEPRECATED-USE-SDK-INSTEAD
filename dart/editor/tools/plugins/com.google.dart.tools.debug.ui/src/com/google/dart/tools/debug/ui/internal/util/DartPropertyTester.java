@@ -14,6 +14,7 @@
 package com.google.dart.tools.debug.ui.internal.util;
 
 import com.google.dart.tools.core.internal.model.DartProjectNature;
+import com.google.dart.tools.debug.ui.internal.chromeapp.ChromeAppLaunchShortcut;
 
 import org.eclipse.core.expressions.PropertyTester;
 import org.eclipse.core.filesystem.URIUtil;
@@ -31,6 +32,7 @@ import org.eclipse.core.runtime.Platform;
  * <ul>
  * <li>"isDartProject" - whether the given project is a Dart project
  * <li>"isInDartProject" - whether the given resource is in a Dart project.
+ * <li>"containsChromeApp" - whether the given resource contains a chrome app
  */
 public class DartPropertyTester extends PropertyTester {
 
@@ -114,6 +116,22 @@ public class DartPropertyTester extends PropertyTester {
       return isDartProject(resource);
     } else if (property.equals("isInDartProject")) {
       return isInDartProject(resource);
+    } else if (property.equals("containsChromeApp")) {
+      return containsChromeApp(resource);
+    } else {
+      return false;
+    }
+  }
+
+  protected boolean containsChromeApp(IResource resource) {
+    if (resource instanceof IFile) {
+      if (ChromeAppLaunchShortcut.isManifestFile(resource)) {
+        return true;
+      } else {
+        return ChromeAppLaunchShortcut.containsManifestJsonFile(resource.getParent());
+      }
+    } else if (resource instanceof IContainer) {
+      return ChromeAppLaunchShortcut.containsManifestJsonFile((IContainer) resource);
     } else {
       return false;
     }

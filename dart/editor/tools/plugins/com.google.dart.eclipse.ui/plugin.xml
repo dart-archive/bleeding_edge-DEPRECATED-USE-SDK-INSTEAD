@@ -143,6 +143,14 @@
       </perspective>    
    </extension>
 
+   <extension point="org.eclipse.ui.perspectiveExtensions">
+      <perspectiveExtension targetID="org.eclipse.debug.ui.DebugPerspective">
+         <viewShortcut id="com.google.dart.tools.debug.objectInspectorView"/>
+         <view id="com.google.dart.tools.debug.objectInspectorView"
+            relative="org.eclipse.ui.views.ContentOutline"
+            relationship="stack"/>
+      </perspectiveExtension>
+   </extension>
 
    <extension
          point="org.eclipse.ui.preferencePages">

@@ -16,7 +16,6 @@ package com.google.dart.tools.debug.ui.internal.chromeapp;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.CharStreams;
-import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
@@ -51,6 +50,26 @@ import java.io.InputStreamReader;
 public class ChromeAppLaunchShortcut extends AbstractLaunchShortcut implements ILaunchShortcutExt {
   public static final String MANIFEST_FILE_NAME = "manifest.json";
 
+  public static boolean containsManifestJsonFile(IContainer container) {
+    return findManifestJsonFile(container) != null;
+  }
+
+  public static boolean isManifestFile(IResource resource) {
+    return resource instanceof IFile && resource.getName().equals(MANIFEST_FILE_NAME);
+  }
+
+  private static IFile findManifestJsonFile(IContainer container) {
+    if (container.exists(new Path(MANIFEST_FILE_NAME))) {
+      return container.getFile(new Path(MANIFEST_FILE_NAME));
+    }
+
+    if (container.getParent() != null) {
+      return findManifestJsonFile(container.getParent());
+    } else {
+      return null;
+    }
+  }
+
   public ChromeAppLaunchShortcut() {
     super("Chrome App");
   }
@@ -79,7 +98,7 @@ public class ChromeAppLaunchShortcut extends AbstractLaunchShortcut implements I
   }
 
   @Override
-  protected IResource getLaunchableResource(Object originalResource) throws DartModelException {
+  protected IResource getLaunchableResource(Object originalResource) {
     if (!(originalResource instanceof IResource)) {
       return null;
     }
@@ -148,29 +167,9 @@ public class ChromeAppLaunchShortcut extends AbstractLaunchShortcut implements I
       return false;
     }
 
-    try {
-      IResource launchAbleResource = getLaunchableResource(resource);
+    IResource launchAbleResource = getLaunchableResource(resource);
 
-      return configResource.equals(launchAbleResource);
-    } catch (DartModelException ex) {
-      return false;
-    }
-  }
-
-  private boolean containsManifestJsonFile(IContainer container) {
-    return findManifestJsonFile(container) != null;
-  }
-
-  private IFile findManifestJsonFile(IContainer container) {
-    if (container.exists(new Path(MANIFEST_FILE_NAME))) {
-      return container.getFile(new Path(MANIFEST_FILE_NAME));
-    }
-
-    if (container.getParent() != null) {
-      return findManifestJsonFile(container.getParent());
-    } else {
-      return null;
-    }
+    return configResource.equals(launchAbleResource);
   }
 
   /**
@@ -184,10 +183,6 @@ public class ChromeAppLaunchShortcut extends AbstractLaunchShortcut implements I
     String name = parseNameFromJson(jsonResource);
 
     return name == null ? jsonResource.getName() : name;
-  }
-
-  private boolean isManifestFile(IResource resource) {
-    return resource instanceof IFile && resource.getName().equals(MANIFEST_FILE_NAME);
   }
 
   /**
