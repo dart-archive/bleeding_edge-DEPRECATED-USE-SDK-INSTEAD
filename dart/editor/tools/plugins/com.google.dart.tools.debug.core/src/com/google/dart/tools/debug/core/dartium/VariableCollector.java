@@ -49,7 +49,7 @@ class VariableCollector {
               @Override
               public void handleResult(WebkitResult<WebkitPropertyDescriptor[]> result) {
                 try {
-                  collector.collectFields(result, !obj.isList(), !obj.isList());
+                  collector.collectFields(result, !obj.isList(), !obj.isList(), false);
                 } catch (Throwable t) {
                   DartDebugCorePlugin.logError(t);
 
@@ -93,7 +93,7 @@ class VariableCollector {
               @Override
               public void handleResult(WebkitResult<WebkitPropertyDescriptor[]> result) {
                 try {
-                  collector.collectFields(result, false, !obj.isList());
+                  collector.collectFields(result, false, !obj.isList(), true);
                 } catch (Throwable t) {
                   DartDebugCorePlugin.logError(t);
 
@@ -155,7 +155,7 @@ class VariableCollector {
   }
 
   private void collectFields(WebkitResult<WebkitPropertyDescriptor[]> results, boolean shouldSort,
-      boolean collectStatics) {
+      boolean collectStatics, boolean isLocal) {
     boolean gettingStaticFields = false;
 
     if (!results.isError()) {
@@ -171,6 +171,9 @@ class VariableCollector {
         if (descriptor.isEnumerable()) {
           if (!shouldFilter(descriptor)) {
             DartiumDebugVariable variable = new DartiumDebugVariable(target, descriptor);
+
+            // TODO(devoncarew): Dartium sends us lots of properties as locals that aren't really.
+            //variable.setIsLocal(isLocal);
 
             if (parentVariable != null) {
               variable.setParent(parentVariable);

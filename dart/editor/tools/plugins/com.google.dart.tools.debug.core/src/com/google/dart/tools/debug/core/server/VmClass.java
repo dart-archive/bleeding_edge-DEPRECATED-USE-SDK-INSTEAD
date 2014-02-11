@@ -31,7 +31,7 @@ public class VmClass extends VmRef {
     clazz.name = obj.optString("name");
     clazz.superclassId = obj.optInt("superclassId");
     clazz.libraryId = obj.optInt("libraryId");
-    clazz.fields = VmVariable.createFrom(isolate, obj.optJSONArray("fields"), true);
+    clazz.fields = VmVariable.createFrom(isolate, obj.optJSONArray("fields"), false);
 
     return clazz;
   }

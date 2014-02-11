@@ -222,6 +222,8 @@ public class DartDebugModelPresentation implements IDebugModelPresentation,
           return DartDebugUIPlugin.getImage("obj16/object_library.png");
         } else if (variable.isStatic()) {
           return DartDebugUIPlugin.getImage("obj16/object_static.png");
+        } else if (variable.isLocal()) {
+          return DartDebugUIPlugin.getImage("obj16/object_local.gif");
         } else {
           return DartDebugUIPlugin.getImage("obj16/object_obj.png");
         }

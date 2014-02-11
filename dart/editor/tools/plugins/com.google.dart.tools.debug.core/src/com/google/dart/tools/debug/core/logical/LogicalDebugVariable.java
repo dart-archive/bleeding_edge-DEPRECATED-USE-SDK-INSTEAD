@@ -67,6 +67,11 @@ class LogicalDebugVariable extends DebugElement implements IVariable, IDartDebug
   }
 
   @Override
+  public boolean isLocal() {
+    return false;
+  }
+
+  @Override
   public boolean isStatic() {
     return false;
   }

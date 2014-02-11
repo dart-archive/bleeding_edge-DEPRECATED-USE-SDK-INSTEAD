@@ -203,6 +203,11 @@ public class ServerDebugVariable extends ServerDebugElement implements IDartDebu
   }
 
   @Override
+  public boolean isLocal() {
+    return vmVariable.isLocal();
+  }
+
+  @Override
   public boolean isStatic() {
     return isStatic;
   }
