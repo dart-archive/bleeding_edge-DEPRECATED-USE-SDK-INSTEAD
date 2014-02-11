@@ -54,6 +54,32 @@ public class CompletionLibraryTests extends CompletionTestCase {
         "1+libFunction");
   }
 
+  public void test_importPrefix_hideCombinator() throws Exception {
+    ArrayList<Source> sources = new ArrayList<Source>();
+    test(//
+        src(//
+            "import 'dart:math' as math hide PI;",
+            "main() {",
+            "  math.!1",
+            "}"),
+        sources,
+        "1-PI",
+        "1+LN10");
+  }
+
+  public void test_importPrefix_showCombinator() throws Exception {
+    ArrayList<Source> sources = new ArrayList<Source>();
+    test(//
+        src(//
+            "import 'dart:math' as math show PI;",
+            "main() {",
+            "  math.!1",
+            "}"),
+        sources,
+        "1+PI",
+        "1-LN10");
+  }
+
   public void test_noPrivateElement_otherLibrary_constructor() throws Exception {
     ArrayList<Source> sources = new ArrayList<Source>();
     sources.add(addSource(//

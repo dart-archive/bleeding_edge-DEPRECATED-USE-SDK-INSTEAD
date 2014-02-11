@@ -255,19 +255,32 @@ public class CompletionEngine {
       }
     }
 
+    void addTopLevelNames(ImportElement[] imports, TopLevelNamesKind topKind) {
+      for (ImportElement imp : imports) {
+        Collection<Element> elementsCollection = CorrectionUtils.getImportNamespace(imp).values();
+        List<Element> elements = Lists.newArrayList(elementsCollection);
+        addTopLevelNames(elements);
+      }
+    }
+
     void addTopLevelNames(LibraryElement library, TopLevelNamesKind topKind) {
-      if (!state.areLiteralsAllowed) {
-        mergeNames(findAllTypes(library, topKind));
-      }
-      if (!state.areClassesRequired) {
-        mergeNames(findAllNotTypes(library, topKind));
-        mergeNames(findAllPrefixes());
-      }
+      List<Element> elements = findTopLevelElements(library, topKind);
+      addTopLevelNames(elements);
     }
 
     void addTopLevelNames(LibraryElement[] libraries, TopLevelNamesKind topKind) {
       for (LibraryElement library : libraries) {
         addTopLevelNames(library, topKind);
+      }
+    }
+
+    void addTopLevelNames(List<Element> elements, TopLevelNamesKind topKind) {
+      if (!state.areLiteralsAllowed) {
+        mergeNames(findAllTypes(elements));
+      }
+      if (!state.areClassesRequired) {
+        mergeNames(findAllNotTypes(elements));
+        mergeNames(findAllPrefixes());
       }
     }
 
@@ -297,6 +310,16 @@ public class CompletionEngine {
       list.remove(element);
       if (list.isEmpty()) {
         uniqueNames.remove(name);
+      }
+    }
+
+    private void addTopLevelNames(List<Element> elements) {
+      if (!state.areLiteralsAllowed) {
+        mergeNames(findAllTypes(elements));
+      }
+      if (!state.areClassesRequired) {
+        mergeNames(findAllNotTypes(elements));
+        mergeNames(findAllPrefixes());
       }
     }
 
@@ -2019,7 +2042,6 @@ public class CompletionEngine {
     if (filter == null) {
       filter = new Filter(identifier);
     }
-    // TODO(scheglov)
     for (ConstructorElement cons : classElement.getConstructors()) {
       if (!isVisible(cons)) {
         continue;
@@ -2173,11 +2195,11 @@ public class CompletionEngine {
       filter = new Filter(identifier);
     }
     NameCollector names = new NameCollector();
-    LibraryElement[] prefixLibraries = librariesImportedByName(prefixName);
+    ImportElement[] prefixImports = importsWithName(prefixName);
     // Library prefixes do not have a unique AST representation so we need to fudge state vars.
     boolean litsAllowed = state.areLiteralsAllowed;
     state.areLiteralsAllowed = false;
-    names.addTopLevelNames(prefixLibraries, TopLevelNamesKind.DECLARED_AND_EXPORTS);
+    names.addTopLevelNames(prefixImports, TopLevelNamesKind.DECLARED_AND_EXPORTS);
     state.areLiteralsAllowed = litsAllowed;
     proposeNames(names, identifier);
   }
@@ -2329,8 +2351,8 @@ public class CompletionEngine {
     return !filter.match(name);
   }
 
-  private Element[] findAllNotTypes(LibraryElement library, TopLevelNamesKind topKind) {
-    List<Element> elements = findTopLevelElements(library, topKind);
+  private Element[] findAllNotTypes(List<Element> elements) {
+    elements = Lists.newArrayList(elements);
     for (Iterator<Element> I = elements.iterator(); I.hasNext();) {
       Element element = I.next();
       ElementKind kind = element.getKind();
@@ -2350,6 +2372,11 @@ public class CompletionEngine {
 
   private Element[] findAllTypes(LibraryElement library, TopLevelNamesKind topKind) {
     List<Element> elements = findTopLevelElements(library, topKind);
+    return findAllTypes(elements);
+  }
+
+  private Element[] findAllTypes(List<Element> elements) {
+    elements = Lists.newArrayList(elements);
     for (Iterator<Element> I = elements.iterator(); I.hasNext();) {
       Element element = I.next();
       ElementKind kind = element.getKind();
@@ -2422,6 +2449,21 @@ public class CompletionEngine {
     return errors[0].getOffset() <= completionLocation();
   }
 
+  private ImportElement[] importsWithName(SimpleIdentifier libName) {
+    String name = libName.getName();
+    List<ImportElement> imports = Lists.newArrayList();
+    for (ImportElement imp : getCurrentLibrary().getImports()) {
+      PrefixElement prefix = imp.getPrefix();
+      if (prefix != null) {
+        String impName = prefix.getDisplayName();
+        if (name.equals(impName)) {
+          imports.add(imp);
+        }
+      }
+    }
+    return imports.toArray(new ImportElement[imports.size()]);
+  }
+
   private boolean isCompletingKeyword(Token keyword) {
     if (keyword == null) {
       return false;
@@ -2464,22 +2506,6 @@ public class CompletionEngine {
 
   private boolean isVisible(Element element) {
     return !isPrivate(element) || isInCurrentLibrary(element);
-  }
-
-  private LibraryElement[] librariesImportedByName(SimpleIdentifier libName) {
-    ImportElement[] imps = getCurrentLibrary().getImports();
-    String name = libName.getName();
-    List<LibraryElement> libs = new ArrayList<LibraryElement>();
-    for (ImportElement imp : imps) {
-      PrefixElement prefix = imp.getPrefix();
-      if (prefix != null) {
-        String impName = prefix.getDisplayName();
-        if (name.equals(impName)) {
-          libs.add(imp.getImportedLibrary());
-        }
-      }
-    }
-    return libs.toArray(new LibraryElement[libs.size()]);
   }
 
   private String makeNonconflictingName(String candidate, List<String> names) {
