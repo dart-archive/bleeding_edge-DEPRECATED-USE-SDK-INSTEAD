@@ -125,6 +125,12 @@ public interface DartEntry extends SourceEntry {
       "DartEntry.VERIFICATION_ERRORS");
 
   /**
+   * The data descriptor representing the errors reported during Angular resolution.
+   */
+  public static final DataDescriptor<AnalysisError[]> ANGULAR_ERRORS = new DataDescriptor<AnalysisError[]>(
+      "DartEntry.ANGULAR_ERRORS");
+
+  /**
    * Return all of the errors associated with the compilation unit that are currently cached.
    * 
    * @return all of the errors associated with the compilation unit

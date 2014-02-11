@@ -352,6 +352,12 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
   private int bitmask = 0;
 
   /**
+   * The error produced while performing Angular resolution, or an empty array if there are no
+   * errors if the error are not currently cached.
+   */
+  private AnalysisError[] angularErrors = AnalysisError.NO_ERRORS;
+
+  /**
    * The index of the bit in the {@link #bitmask} indicating that this library is launchable: that
    * the file has a main method.
    */
@@ -412,6 +418,9 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
       }
       state = state.nextState;
     };
+    for (AnalysisError error : angularErrors) {
+      errors.add(error);
+    }
     if (errors.size() == 0) {
       return AnalysisError.NO_ERRORS;
     }
@@ -543,7 +552,9 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
   @Override
   @SuppressWarnings("unchecked")
   public <E> E getValue(DataDescriptor<E> descriptor) {
-    if (descriptor == CONTAINING_LIBRARIES) {
+    if (descriptor == ANGULAR_ERRORS) {
+      return (E) angularErrors;
+    } else if (descriptor == CONTAINING_LIBRARIES) {
       return (E) containingLibraries.toArray(new Source[containingLibraries.size()]);
     } else if (descriptor == ELEMENT) {
       return (E) element;
@@ -996,7 +1007,9 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
 
   @Override
   public <E> void setValue(DataDescriptor<E> descriptor, E value) {
-    if (descriptor == ELEMENT) {
+    if (descriptor == ANGULAR_ERRORS) {
+      angularErrors = value == null ? AnalysisError.NO_ERRORS : (AnalysisError[]) value;
+    } else if (descriptor == ELEMENT) {
       element = (LibraryElement) value;
       elementState = CacheState.VALID;
     } else if (descriptor == EXPORTED_LIBRARIES) {

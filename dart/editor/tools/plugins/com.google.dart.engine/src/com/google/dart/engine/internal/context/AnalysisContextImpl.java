@@ -2578,6 +2578,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     AngularApplication oldApplication = entry.getValue(HtmlEntry.ANGULAR_ENTRY);
     if (oldApplication != null) {
       angularApplications.remove(oldApplication);
+      // reset HTML sources
       AngularElement[] oldAngularElements = oldApplication.getElements();
       for (AngularElement angularElement : oldAngularElements) {
         if (angularElement instanceof AngularComponentElement) {
@@ -2596,13 +2597,24 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
           }
         }
       }
+      // reset Dart sources
+      Source[] oldElementSources = oldApplication.getElementSources();
+      for (Source elementSource : oldElementSources) {
+        DartEntry dartEntry = getReadableDartEntry(elementSource);
+        DartEntryImpl dartCopy = dartEntry.getWritableCopy();
+        dartCopy.setValue(DartEntry.ANGULAR_ERRORS, AnalysisError.NO_ERRORS);
+        cache.put(elementSource, dartCopy);
+        // notify about (disappeared) Dart errors
+        ChangeNoticeImpl notice = getNotice(elementSource);
+        notice.setErrors(dartCopy.getAllErrors(), computeLineInfo(elementSource));
+      }
     }
     // schedule more Angular analysis
     AngularApplication application = task.getApplication();
     if (application != null) {
       angularApplications.add(application);
       // if this is an entry point, then we already resolved it
-      entry.setValue(HtmlEntry.ANGULAR_ERRORS, task.getResolutionErrors());
+      entry.setValue(HtmlEntry.ANGULAR_ERRORS, task.getEntryErrors());
       // schedule HTML templates analysis
       AngularElement[] newAngularElements = application.getElements();
       for (AngularElement angularElement : newAngularElements) {
@@ -2622,6 +2634,17 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
             workManager.add(templateSource, SourcePriority.HTML);
           }
         }
+      }
+      // update Dart sources errors
+      Source[] newElementSources = application.getElementSources();
+      for (Source elementSource : newElementSources) {
+        DartEntry dartEntry = getReadableDartEntry(elementSource);
+        DartEntryImpl dartCopy = dartEntry.getWritableCopy();
+        dartCopy.setValue(DartEntry.ANGULAR_ERRORS, task.getErrors(elementSource));
+        cache.put(elementSource, dartCopy);
+        // notify about Dart errors
+        ChangeNoticeImpl notice = getNotice(elementSource);
+        notice.setErrors(dartCopy.getAllErrors(), computeLineInfo(elementSource));
       }
     }
     // remember Angular entry point
@@ -3206,10 +3229,13 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         }
         HtmlEntryImpl htmlCopy = htmlEntry.getWritableCopy();
         if (thrownException == null) {
+          htmlCopy.setValue(HtmlEntry.RESOLVED_UNIT, task.getResolvedUnit());
+          recordAngularEntryPoint(htmlCopy, task);
+          cache.storedAst(source);
+
           ChangeNoticeImpl notice = getNotice(source);
           notice.setHtmlUnit(task.getResolvedUnit());
           notice.setErrors(htmlCopy.getAllErrors(), htmlCopy.getValue(SourceEntry.LINE_INFO));
-          recordAngularEntryPoint(htmlCopy, task);
         } else {
           htmlCopy.recordResolutionError();
         }

@@ -26,11 +26,14 @@ public class AngularApplication {
   private final Source entryPoint;
   private final Set<Source> librarySources;
   private final AngularElement[] elements;
+  private final Source[] elementSources;
 
-  public AngularApplication(Source entryPoint, Set<Source> librarySources, AngularElement[] elements) {
+  public AngularApplication(Source entryPoint, Set<Source> librarySources,
+      AngularElement[] elements, Source[] elementSources) {
     this.entryPoint = entryPoint;
     this.librarySources = librarySources;
     this.elements = elements;
+    this.elementSources = elementSources;
   }
 
   /**
@@ -45,6 +48,13 @@ public class AngularApplication {
    */
   public AngularElement[] getElements() {
     return elements;
+  }
+
+  /**
+   * Returns {@link Source}s of all {@link #getElements()}.
+   */
+  public Source[] getElementSources() {
+    return elementSources;
   }
 
   /**

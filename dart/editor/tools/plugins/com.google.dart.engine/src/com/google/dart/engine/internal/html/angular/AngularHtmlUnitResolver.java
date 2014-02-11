@@ -273,6 +273,11 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
     LibraryElement libraryElement = dartUnit.getElement().getLibrary();
     Set<LibraryElement> libraries = Sets.newHashSet();
     AngularElement[] angularElements = getAngularElements(libraries, libraryElement);
+    // prepare AngularElement sources
+    Set<Source> angularElementsSources = Sets.newHashSet();
+    for (AngularElement angularElement : angularElements) {
+      angularElementsSources.add(angularElement.getSource());
+    }
     // resolve AngularComponentElement template URIs
     // TODO(scheglov) resolve to HtmlElement to allow F3 ?
     for (AngularElement angularElement : angularElements) {
@@ -287,11 +292,12 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
           if (templateSource == null || !templateSource.exists()) {
             templateSource = context.getSourceFactory().resolveUri(source, "package:" + templateUri);
             if (templateSource == null || !templateSource.exists()) {
-              reportError(
+              errorListener.onError(new AnalysisError(
+                  angularElement.getSource(),
                   hasTemplate.getTemplateUriOffset(),
                   templateUri.length(),
                   AngularCode.URI_DOES_NOT_EXIST,
-                  templateUri);
+                  templateUri));
               continue;
             }
           }
@@ -305,11 +311,12 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
             ((AngularViewElementImpl) hasTemplate).setTemplateSource(templateSource);
           }
         } catch (URISyntaxException exception) {
-          reportError(
+          errorListener.onError(new AnalysisError(
+              angularElement.getSource(),
               hasTemplate.getTemplateUriOffset(),
               templateUri.length(),
               AngularCode.INVALID_URI,
-              templateUri);
+              templateUri));
         }
       }
     }
@@ -317,7 +324,8 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
     AngularApplication application = new AngularApplication(
         source,
         getLibrarySources(libraries),
-        angularElements);
+        angularElements,
+        angularElementsSources.toArray(new Source[angularElementsSources.size()]));
     // set AngularApplication for each AngularElement
     for (AngularElement angularElement : angularElements) {
       ((AngularElementImpl) angularElement).setApplication(application);

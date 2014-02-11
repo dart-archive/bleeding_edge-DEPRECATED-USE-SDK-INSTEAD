@@ -36,6 +36,11 @@ public class ResolveAngularEntryHtmlTask extends AnalysisTask {
   private final Source source;
 
   /**
+   * The listener to record errors.
+   */
+  private final RecordingErrorListener errorListener = new RecordingErrorListener();
+
+  /**
    * The time at which the contents of the source were last modified.
    */
   private long modificationTime = -1L;
@@ -54,11 +59,6 @@ public class ResolveAngularEntryHtmlTask extends AnalysisTask {
    * The Angular application to resolve in context of.
    */
   private AngularApplication application;
-
-  /**
-   * The resolution errors that were discovered while resolving the source.
-   */
-  private AnalysisError[] resolutionErrors = AnalysisError.NO_ERRORS;
 
   /**
    * Initialize a newly created task to perform analysis within the given context.
@@ -89,6 +89,20 @@ public class ResolveAngularEntryHtmlTask extends AnalysisTask {
   }
 
   /**
+   * The resolution errors that were discovered while resolving the source.
+   */
+  public AnalysisError[] getEntryErrors() {
+    return errorListener.getErrors(source);
+  }
+
+  /**
+   * Returns {@link AnalysisError}s recorded for the given {@link Source}.
+   */
+  public AnalysisError[] getErrors(Source source) {
+    return errorListener.getErrors(source);
+  }
+
+  /**
    * Return the time at which the contents of the source that was parsed were last modified, or a
    * negative value if the task has not yet been performed or if an exception occurred.
    * 
@@ -96,10 +110,6 @@ public class ResolveAngularEntryHtmlTask extends AnalysisTask {
    */
   public long getModificationTime() {
     return modificationTime;
-  }
-
-  public AnalysisError[] getResolutionErrors() {
-    return resolutionErrors;
   }
 
   /**
@@ -139,15 +149,12 @@ public class ResolveAngularEntryHtmlTask extends AnalysisTask {
     }
     modificationTime = resolvableHtmlUnit.getModificationTime();
     // prepare for resolution
-    RecordingErrorListener errorListener = new RecordingErrorListener();
     LineInfo lineInfo = getContext().getLineInfo(source);
     // try to resolve as an Angular entry point
     application = new AngularHtmlUnitResolver(getContext(), errorListener, source, lineInfo, unit).calculateAngularApplication();
     // do resolve
     if (application != null) {
       new AngularHtmlUnitResolver(getContext(), errorListener, source, lineInfo, unit).resolveEntryPoint(application);
-      // remember errors
-      resolutionErrors = errorListener.getErrors(source);
     }
     // remember resolved unit
     resolvedUnit = unit;
