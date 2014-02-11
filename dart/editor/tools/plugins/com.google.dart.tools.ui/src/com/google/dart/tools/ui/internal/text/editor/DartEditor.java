@@ -828,7 +828,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
 
     FormatElementAction() {
       setEnabled(isEditorInputModifiable());
-      setText("Format (experimental)");
+      setText("Format");
     }
 
     @Override
