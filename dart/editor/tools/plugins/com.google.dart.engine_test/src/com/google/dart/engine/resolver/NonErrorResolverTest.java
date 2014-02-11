@@ -2888,6 +2888,75 @@ public class NonErrorResolverTest extends ResolverTestCase {
     assertNoErrors(source);
   }
 
+  public void test_proxy_annotation_superclass() throws Exception {
+    Source source = addSource(createSource(//
+        "library L;",
+        "class B extends A {",
+        "  m() {",
+        "    n();",
+        "    var x = g;",
+        "    s = 1;",
+        "    var y = this + this;",
+        "  }",
+        "}",
+        "@proxy",
+        "class A {}"));
+    resolve(source);
+    assertNoErrors(source);
+  }
+
+  public void test_proxy_annotation_superclass_mixin() throws Exception {
+    Source source = addSource(createSource(//
+        "library L;",
+        "class B extends Object with A {",
+        "  m() {",
+        "    n();",
+        "    var x = g;",
+        "    s = 1;",
+        "    var y = this + this;",
+        "  }",
+        "}",
+        "@proxy",
+        "class A {}"));
+    resolve(source);
+    assertNoErrors(source);
+  }
+
+  public void test_proxy_annotation_superinterface() throws Exception {
+    Source source = addSource(createSource(//
+        "library L;",
+        "class B implements A {",
+        "  m() {",
+        "    n();",
+        "    var x = g;",
+        "    s = 1;",
+        "    var y = this + this;",
+        "  }",
+        "}",
+        "@proxy",
+        "class A {}"));
+    resolve(source);
+    assertNoErrors(source);
+  }
+
+  public void test_proxy_annotation_superinterface_infiniteLoop() throws Exception {
+    Source source = addSource(createSource(//
+        "library L;",
+        "class C implements A {",
+        "  m() {",
+        "    n();",
+        "    var x = g;",
+        "    s = 1;",
+        "    var y = this + this;",
+        "  }",
+        "}",
+        "class B implements A{}",
+        "class A implements B{}"));
+    resolve(source);
+    // Test is that a stack overflow isn't reached in resolution (previous line), no need to assert
+    // error set.
+  }
+
   public void test_recursiveConstructorRedirect() throws Exception {
     Source source = addSource(createSource(//
         "class A {",

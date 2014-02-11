@@ -28,16 +28,6 @@ import com.google.dart.engine.error.AnalysisError;
  */
 public class ProxyConditionalAnalysisError {
   /**
-   * Return {@code true} if the given element represents a class that has the proxy annotation.
-   * 
-   * @param element the class being tested
-   * @return {@code true} if the given element represents a class that has the proxy annotation
-   */
-  private static boolean classHasProxyAnnotation(Element element) {
-    return (element instanceof ClassElement) && ((ClassElement) element).isProxy();
-  }
-
-  /**
    * The enclosing {@link ClassElement}, this is what will determine if the error code should, or
    * should not, be generated on the source.
    */
@@ -49,8 +39,8 @@ public class ProxyConditionalAnalysisError {
   private AnalysisError analysisError;
 
   /**
-   * Instantiate a new ProxyConditionalErrorCode with some enclosing element and the conditional
-   * analysis error.
+   * Instantiate a new {@link ProxyConditionalAnalysisError} with some enclosing element and the
+   * conditional analysis error.
    * 
    * @param enclosingElement the enclosing element
    * @param analysisError the conditional analysis error
@@ -75,7 +65,10 @@ public class ProxyConditionalAnalysisError {
    * @return {@code true} iff the enclosing class has the proxy annotation
    */
   public boolean shouldIncludeErrorCode() {
-    return !classHasProxyAnnotation(enclosingElement);
+    if (enclosingElement instanceof ClassElement) {
+      return !((ClassElement) enclosingElement).isOrInheritsProxy();
+    }
+    return true;
   }
 
 }

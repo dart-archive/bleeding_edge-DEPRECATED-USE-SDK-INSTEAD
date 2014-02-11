@@ -210,6 +210,14 @@ public interface ClassElement extends Element {
   public boolean isAbstract();
 
   /**
+   * Return {@code true} if this class {@link #isProxy()}, or if it inherits the proxy annotation
+   * from a supertype.
+   * 
+   * @return {@code true} if this class defines or inherits a proxy
+   */
+  public boolean isOrInheritsProxy();
+
+  /**
    * Return {@code true} if this element has an annotation of the form '@proxy'.
    * 
    * @return {@code true} if this element defines a proxy

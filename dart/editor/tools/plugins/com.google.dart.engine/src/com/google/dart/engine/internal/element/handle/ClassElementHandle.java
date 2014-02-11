@@ -156,6 +156,11 @@ public class ClassElementHandle extends ElementHandle implements ClassElement {
   }
 
   @Override
+  public boolean isOrInheritsProxy() {
+    return getActualElement().isOrInheritsProxy();
+  }
+
+  @Override
   public boolean isProxy() {
     return getActualElement().isProxy();
   }

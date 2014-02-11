@@ -322,6 +322,11 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
   }
 
   @Override
+  public boolean isOrInheritsProxy() {
+    return isOrInheritsProxy(this, new HashSet<ClassElement>());
+  }
+
+  @Override
   public boolean isProxy() {
     for (ElementAnnotation annotation : getMetadata()) {
       if (annotation.isProxy()) {
@@ -630,4 +635,31 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
       }
     }
   }
+
+  private boolean isOrInheritsProxy(ClassElement classElt, HashSet<ClassElement> visitedClassElts) {
+    if (visitedClassElts.contains(classElt)) {
+      return false;
+    }
+    visitedClassElts.add(classElt);
+    if (classElt.isProxy()) {
+      return true;
+    } else if (classElt.getSupertype() != null
+        && isOrInheritsProxy(classElt.getSupertype().getElement(), visitedClassElts)) {
+      return true;
+    }
+    InterfaceType[] supertypes = classElt.getInterfaces();
+    for (int i = 0; i < supertypes.length; i++) {
+      if (isOrInheritsProxy(supertypes[i].getElement(), visitedClassElts)) {
+        return true;
+      }
+    }
+    supertypes = classElt.getMixins();
+    for (int i = 0; i < supertypes.length; i++) {
+      if (isOrInheritsProxy(supertypes[i].getElement(), visitedClassElts)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
 }
