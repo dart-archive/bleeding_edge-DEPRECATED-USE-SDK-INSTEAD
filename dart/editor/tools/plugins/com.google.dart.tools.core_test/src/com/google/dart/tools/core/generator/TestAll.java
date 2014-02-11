@@ -22,6 +22,7 @@ public class TestAll {
     suite.addTestSuite(DartProjectGeneratorTest.class);
     suite.addTestSuite(CommandLineSampleTest.class);
     suite.addTestSuite(ChromePackagedAppSampleTest.class);
+    suite.addTestSuite(ProjectSampleTest.class);
     suite.addTestSuite(WebAppSampleTest.class);
     suite.addTestSuite(PolymerSampleTest.class);
     return suite;

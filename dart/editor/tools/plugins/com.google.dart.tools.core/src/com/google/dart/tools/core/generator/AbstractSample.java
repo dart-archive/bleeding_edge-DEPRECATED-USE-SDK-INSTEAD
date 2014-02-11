@@ -50,6 +50,7 @@ public class AbstractSample {
     return Arrays.asList(
         new ChromePackagedAppSample(),
         new CommandLineSample(),
+        new ProjectSample(),
         new WebAppSample(),
         new PolymerSample());
   }
