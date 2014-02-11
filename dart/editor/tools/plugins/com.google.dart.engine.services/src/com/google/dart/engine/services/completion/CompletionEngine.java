@@ -114,6 +114,8 @@ import com.google.dart.engine.internal.context.InternalAnalysisContext;
 import com.google.dart.engine.internal.resolver.TypeProvider;
 import com.google.dart.engine.internal.type.DynamicTypeImpl;
 import com.google.dart.engine.scanner.Token;
+import com.google.dart.engine.sdk.DartSdk;
+import com.google.dart.engine.sdk.SdkLibrary;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchFilter;
 import com.google.dart.engine.search.SearchMatch;
@@ -2130,11 +2132,20 @@ public class CompletionEngine {
       pName("dart:", ProposalKind.IMPORT);
       return;
     }
-    List<LibraryElement> libs = getSystemLibraries();
-    for (LibraryElement lib : libs) {
-      String name = lib.getDisplayName();
-      // standard libraries name name starting with "dart."
-      name = StringUtils.removeStart(name, "dart.");
+    // add DartSdk libraries
+    DartSdk dartSdk = getAnalysisContext().getSourceFactory().getDartSdk();
+    for (SdkLibrary library : dartSdk.getSdkLibraries()) {
+      String name = library.getShortName();
+      // ignore internal
+      if (library.isInternal()) {
+        continue;
+      }
+      // ignore implementation
+      if (library.isImplementation()) {
+        continue;
+      }
+      // standard libraries name name starting with "dart:"
+      name = StringUtils.removeStart(name, "dart:");
       // ignore private libraries
       if (Identifier.isPrivateName(name)) {
         continue;
@@ -2376,19 +2387,6 @@ public class CompletionEngine {
 
   private ClassElement getObjectClassElement() {
     return getTypeProvider().getObjectType().getElement();
-  }
-
-  private List<LibraryElement> getSystemLibraries() {
-    // TODO Get ALL system libraries, not just the ones that have been loaded already.
-    AnalysisContext ac = getAnalysisContext();
-    Source[] ss = ac.getLibrarySources();
-    List<LibraryElement> sl = new ArrayList<LibraryElement>();
-    for (Source s : ss) {
-      if (s.isInSystemLibrary()) {
-        sl.add(ac.getLibraryElement(s));
-      }
-    }
-    return sl;
   }
 
   private TypeProvider getTypeProvider() {
