@@ -396,6 +396,8 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
   }
 
   protected String getActualLocationPath() {
+    final String packageFragment = "/packages/";
+
     String scriptId = webkitFrame.getLocation().getScriptId();
 
     WebkitScript script = getConnection().getDebugger().getScript(scriptId);
@@ -405,6 +407,11 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
 
       if (script.isSystemScript() || script.isDataUrl() || script.isChromeExtensionUrl()) {
         return url;
+      }
+
+      // Check for http://foo/bar/web/packages/baz.dart, convert it into a package: url.
+      if (url.contains(packageFragment)) {
+        url = "package:" + url.substring(url.indexOf(packageFragment) + packageFragment.length());
       }
 
       if (url.startsWith("package:")) {
