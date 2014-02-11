@@ -1751,21 +1751,22 @@ public class CompletionEngine {
   void analyzeNamedParameter(ArgumentList args, SimpleIdentifier identifier) {
     // Completion x!
     filter = new Filter(identifier);
-    // prepare executable element
-    ExecutableElement executableElement = null;
+    // prepare parameters
+    ParameterElement[] parameters = null;
     ASTNode argsParent = args.getParent();
     if (argsParent instanceof MethodInvocation) {
       MethodInvocation invocation = (MethodInvocation) argsParent;
       Element nameElement = invocation.getMethodName().getStaticElement();
-      if (nameElement instanceof ExecutableElement) {
-        executableElement = (ExecutableElement) nameElement;
+      FunctionType functionType = getFunctionType(nameElement);
+      if (functionType != null) {
+        parameters = functionType.getParameters();
       }
     }
     if (argsParent instanceof InstanceCreationExpression) {
       InstanceCreationExpression creation = (InstanceCreationExpression) argsParent;
-      executableElement = creation.getStaticElement();
+      parameters = ((ExecutableElement) creation.getStaticElement()).getParameters();
     }
-    if (executableElement == null) {
+    if (parameters == null) {
       return;
     }
     // remember already used names
@@ -1778,7 +1779,6 @@ public class CompletionEngine {
       }
     }
     // propose named parameters
-    ParameterElement[] parameters = executableElement.getParameters();
     for (ParameterElement parameterElement : parameters) {
       // should be named
       if (parameterElement.getParameterKind() != ParameterKind.NAMED) {
@@ -2385,6 +2385,21 @@ public class CompletionEngine {
     return context.getCompilationUnit().getElement().getEnclosingElement();
   }
 
+  private FunctionType getFunctionType(Element element) {
+    if (element instanceof ExecutableElement) {
+      ExecutableElement executableElement = (ExecutableElement) element;
+      return executableElement.getType();
+    }
+    if (element instanceof VariableElement) {
+      VariableElement variableElement = (VariableElement) element;
+      Type type = variableElement.getType();
+      if (type instanceof FunctionType) {
+        return (FunctionType) type;
+      }
+    }
+    return null;
+  }
+
   private ClassElement getObjectClassElement() {
     return getTypeProvider().getObjectType().getElement();
   }
@@ -2507,7 +2522,7 @@ public class CompletionEngine {
     pWord(C_DYNAMIC, ProposalKind.VARIABLE);
   }
 
-  private void pExecutable(ExecutableElement element, SimpleIdentifier identifier,
+  private void pExecutable(Element element, FunctionType functionType, SimpleIdentifier identifier,
       boolean isPotentialMatch) {
     // Create a completion proposal for the element: function, method, getter, setter, constructor.
     String name = element.getDisplayName();
@@ -2525,7 +2540,7 @@ public class CompletionEngine {
     if (state.targetParameter != null) {
       Type parameterType = state.targetParameter.getType();
       if (parameterType instanceof FunctionType) {
-        if (element.getType().isAssignableTo(parameterType)) {
+        if (functionType.isAssignableTo(parameterType)) {
           pName(name, element, CompletionProposal.RELEVANCE_HIGH, ProposalKind.METHOD_NAME);
         }
       }
@@ -2538,8 +2553,8 @@ public class CompletionEngine {
       prop.setRelevance(CompletionProposal.RELEVANCE_LOW);
     }
 
-    setParameterInfo(element, prop);
-    prop.setCompletion(name).setReturnType(element.getType().getReturnType().getDisplayName());
+    setParameterInfo(functionType, prop);
+    prop.setCompletion(name).setReturnType(functionType.getReturnType().getDisplayName());
 
     // If there is already argument list, then update only method name.
     if (identifier.getParent() instanceof MethodInvocation
@@ -2553,6 +2568,11 @@ public class CompletionEngine {
     }
 
     requestor.accept(prop);
+  }
+
+  private void pExecutable(ExecutableElement element, SimpleIdentifier identifier,
+      boolean isPotentialMatch) {
+    pExecutable(element, element.getType(), identifier, isPotentialMatch);
   }
 
   private void pExecutable(VariableElement element, SimpleIdentifier identifier) {
@@ -2651,7 +2671,7 @@ public class CompletionEngine {
       return;
     }
     CompletionProposal prop = createProposal(element, name);
-    setParameterInfo(element, prop);
+    setParameterInfo(element.getType(), prop);
     prop.setReturnType(element.getType().getReturnType().getName());
     Element container = element.getEnclosingElement();
     prop.setDeclaringType(container.getDisplayName());
@@ -2758,8 +2778,13 @@ public class CompletionEngine {
       case LOCAL_VARIABLE:
       case PARAMETER:
       case TOP_LEVEL_VARIABLE:
-        VariableElement var = (VariableElement) element;
-        pExecutable(var, identifier);
+        FunctionType functionType = getFunctionType(element);
+        if (functionType != null) {
+          pExecutable(element, functionType, identifier, names.isPotentialMatch(element));
+        } else {
+          VariableElement var = (VariableElement) element;
+          pExecutable(var, identifier);
+        }
         break;
       case CLASS:
         pName(element, identifier);
@@ -2804,12 +2829,12 @@ public class CompletionEngine {
     filter.removeNotMatching(elements);
   }
 
-  private void setParameterInfo(ExecutableElement cons, CompletionProposal prop) {
+  private void setParameterInfo(FunctionType functionType, CompletionProposal prop) {
     List<String> params = new ArrayList<String>();
     List<String> types = new ArrayList<String>();
     boolean named = false, positional = false;
     int posCount = 0;
-    for (ParameterElement param : cons.getParameters()) {
+    for (ParameterElement param : functionType.getParameters()) {
       if (!param.isSynthetic()) {
         switch (param.getParameterKind()) {
           case REQUIRED:

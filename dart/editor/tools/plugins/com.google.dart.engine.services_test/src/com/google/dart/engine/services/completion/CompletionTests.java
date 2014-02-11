@@ -1659,6 +1659,14 @@ public class CompletionTests extends CompletionTestCase {
         "1+String");
   }
 
+  public void testCompletion_functionTypeParameter_namedArgument() throws Exception {
+    test(src(//
+        "typedef FFF(a, b, {x1, x2, y});",
+        "main(FFF fff) {",
+        "  fff(1, 2, !1)!2;",
+        "}"), "1+x1", "2-x2");
+  }
+
   public void testCompletion_ifStmt_field1() throws Exception {
     test("class Foo { int myField = 7; mth() { if (!1) {}}}", "1+myField");
   }
