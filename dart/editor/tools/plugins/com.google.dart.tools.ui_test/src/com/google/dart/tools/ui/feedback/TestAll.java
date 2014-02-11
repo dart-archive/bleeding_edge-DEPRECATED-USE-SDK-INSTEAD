@@ -19,7 +19,9 @@ import junit.framework.TestSuite;
 public class TestAll {
   public static Test suite() {
     TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
-    // TODO (danrubel): Add tests for feedback
+    suite.addTestSuite(FeedbackSubmissionJob2Test.class);
+    suite.addTestSuite(LogReaderTest.class);
+    suite.addTestSuite(LogEntryTest.class);
     return suite;
   }
 }

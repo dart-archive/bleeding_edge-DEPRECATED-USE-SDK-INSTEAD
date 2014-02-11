@@ -15,10 +15,12 @@ package com.google.dart.tools.ui.feedback;
 
 import com.google.dart.engine.utilities.io.PrintStringWriter;
 import com.google.dart.tools.core.DartCoreDebug;
-import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.ui.feedback.FeedbackUtils.Stats;
 
 import org.eclipse.swt.graphics.Image;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * An object representing a user feedback report.
@@ -27,11 +29,17 @@ public class FeedbackReport {
 
   private String feedbackText;
   private final String osDetails;
-  private final String ideVersion;
+  private final String productVersion;
   private final Stats stats;
   private final String logContents;
   private final String productName;
+
   private final Image screenshotImage;
+
+  private final boolean isSdkInstalled;
+  private final boolean isDartiumInstalled;
+  private final Map<String, String> sparseOptionsMap;
+  private String userEmail;
 
   /**
    * Create a new feedback instance with default values.
@@ -44,7 +52,10 @@ public class FeedbackReport {
         FeedbackUtils.getEditorVersionDetails(),
         FeedbackUtils.getStats(),
         LogReader.readLogSafely(),
-        screenshotImage);
+        screenshotImage,
+        FeedbackUtils.isSdkInstalled(),
+        FeedbackUtils.isDartiumInstalled(),
+        FeedbackUtils.getSparseOptionsMap());
   }
 
   /**
@@ -52,19 +63,24 @@ public class FeedbackReport {
    * 
    * @param feedbackText the user feedback
    * @param osDetails OS details
-   * @param ideVersion IDE version
-   * @param internalStats information about the current session or <code>null</code> if none
+   * @param productVersion the version of Dart Editor or Dart Plugins
    * @param logContents system log contents
+   * @param isSdkInstalled {@code true} if the product has an installed SDK
+   * @param isDartiumInstalled {@code true} if the product has the Dartium web browser installed
    */
   public FeedbackReport(String feedbackText, String productName, String osDetails,
-      String ideVersion, Stats stats, String logContents, Image screenshotImage) {
+      String productVersion, Stats stats, String logContents, Image screenshotImage,
+      boolean isSdkInstalled, boolean isDartiumInstalled, Map<String, String> sparseOptionsMap) {
     this.feedbackText = feedbackText;
     this.productName = productName;
     this.osDetails = osDetails;
-    this.ideVersion = ideVersion;
+    this.productVersion = productVersion;
     this.stats = stats;
     this.logContents = logContents;
     this.screenshotImage = screenshotImage;
+    this.isSdkInstalled = isSdkInstalled;
+    this.isDartiumInstalled = isDartiumInstalled;
+    this.sparseOptionsMap = sparseOptionsMap;
   }
 
   /**
@@ -80,8 +96,8 @@ public class FeedbackReport {
     return writer.toString();
   }
 
-  public String getEditorProductName() {
-    return productName;
+  public List<LogEntry> getLogEntries() {
+    return LogReader.parseEntries(logContents);
   }
 
   /**
@@ -91,19 +107,22 @@ public class FeedbackReport {
    */
   public String getOptionsText() {
     StringBuilder msg = new StringBuilder();
-
-    msg.append("SDK installed: " + DartSdkManager.getManager().hasSdk() + "\n");
-
-    if (DartSdkManager.getManager().hasSdk()) {
-      msg.append("Dartium installed: " + DartSdkManager.getManager().getSdk().isDartiumInstalled()
-          + "\n");
-    }
+    msg.append("SDK installed: " + isSdkInstalled() + "\n");
+    msg.append("Dartium installed: " + isDartiumInstalled() + "\n");
 
     if (DartCoreDebug.EXPERIMENTAL) {
       msg.append("Experimental: true\n");
     }
 
     return msg.toString().trim();
+  }
+
+  public String getProductName() {
+    return productName;
+  }
+
+  public Stats getStats() {
+    return stats;
   }
 
   /**
@@ -122,8 +141,8 @@ public class FeedbackReport {
     this.feedbackText = feedbackText;
   }
 
-  String getEditorVersion() {
-    return ideVersion;
+  public void setUserEmail(String emailAddress) {
+    userEmail = emailAddress;
   }
 
   String getFeedbackText() {
@@ -134,6 +153,10 @@ public class FeedbackReport {
     return screenshotImage;
   }
 
+  String getJvmDetails() {
+    return System.getProperties().getProperty("java.version");
+  }
+
   String getLogContents() {
     return logContents;
   }
@@ -142,4 +165,23 @@ public class FeedbackReport {
     return osDetails;
   }
 
+  String getProductVersion() {
+    return productVersion;
+  }
+
+  Map<String, String> getSparseOptionsMap() {
+    return sparseOptionsMap;
+  }
+
+  String getUserEmail() {
+    return userEmail;
+  }
+
+  boolean isDartiumInstalled() {
+    return isDartiumInstalled;
+  }
+
+  boolean isSdkInstalled() {
+    return isSdkInstalled;
+  }
 }

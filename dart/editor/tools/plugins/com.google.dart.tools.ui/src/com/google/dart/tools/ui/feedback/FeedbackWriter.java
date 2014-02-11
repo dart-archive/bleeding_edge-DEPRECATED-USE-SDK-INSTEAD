@@ -92,9 +92,9 @@ public class FeedbackWriter {
    * @param writer the writer
    */
   void writeDetails(PrintWriter writer) {
-    writer.println(feedback.getEditorProductName() + ": " + feedback.getEditorVersion()); //$NON-NLS-1$
+    writer.println(feedback.getProductName() + ": " + feedback.getProductVersion()); //$NON-NLS-1$
     writer.println("OS: " + feedback.getOsDetails()); //$NON-NLS-1$
-    writer.println("JVM: " + System.getProperties().getProperty("java.version")); //$NON-NLS-1$
+    writer.println("JVM: " + feedback.getJvmDetails()); //$NON-NLS-1$
     writer.print(feedback.getStatsText());
     writer.println();
     writer.println(feedback.getOptionsText());

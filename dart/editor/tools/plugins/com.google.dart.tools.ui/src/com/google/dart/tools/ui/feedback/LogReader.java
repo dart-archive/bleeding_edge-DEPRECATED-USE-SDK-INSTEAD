@@ -22,11 +22,13 @@ import java.io.InputStreamReader;
 import java.io.RandomAccessFile;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A utility for reading eclipse platform logs.
  */
-class LogReader {
+public class LogReader {
 
   private static class TailInputStream extends InputStream {
 
@@ -82,6 +84,52 @@ class LogReader {
   public static final long MAX_FILE_LENGTH = 23 * 1024;
 
   private static final int DEFAULT_BUFFER_SIZE = 1024 * 4;
+
+  /**
+   * Parse the given content and return the log entries therein.
+   * 
+   * @param logContents the log contents
+   * @return the entries or {@code null} if the log contents are null
+   */
+  public static List<LogEntry> parseEntries(String logContents) {
+    if (logContents == null) {
+      return null;
+    }
+    ArrayList<LogEntry> logEntries = new ArrayList<LogEntry>();
+    int start = 0;
+    while (start < logContents.length()) {
+
+      // find beginning of next log entry or EOF
+      int end = start;
+      while (end < logContents.length()) {
+        if (logContents.charAt(end) == '!') {
+          if (end > start) {
+            char ch = logContents.charAt(end - 1);
+            if (ch == '\r' || ch == '\n') {
+              int i = end + 1;
+              while (i < logContents.length() && !Character.isWhitespace(logContents.charAt(i))) {
+                i++;
+              }
+              String tag = logContents.substring(end, i);
+              if (tag.equals(LogEntry.ENTRY_TAG) || tag.equals(LogEntry.SESSION_TAG)) {
+                break;
+              }
+            }
+          }
+        }
+        end++;
+      }
+
+      // Add the new log entry
+      String entryContent = logContents.substring(start, end).trim();
+      if (entryContent.length() > 0) {
+        logEntries.add(new LogEntry(entryContent));
+      }
+
+      start = end;
+    }
+    return logEntries;
+  }
 
   /**
    * Tail the contents of the log into a String up to {@link #MAX_FILE_LENGTH} characters long. If
