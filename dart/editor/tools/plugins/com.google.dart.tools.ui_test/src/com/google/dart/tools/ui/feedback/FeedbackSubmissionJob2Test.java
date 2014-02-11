@@ -102,20 +102,42 @@ public class FeedbackSubmissionJob2Test extends TestCase {
       + "          var GF_TOKEN = \"some-token\";\n" // valid token
       + "trailing stuff to be ignored";
 
+  public static FeedbackReport newTestFeedbackReport(String logContents) {
+    return newTestFeedbackReport(FEEDBACK_TEXT, null, logContents);
+  }
+
+  private static FeedbackReport newTestFeedbackReport(String feedbackText, Image screenshot,
+      String logContents) {
+    Map<String, String> sparseOptionsMap = new HashMap<String, String>();
+    sparseOptionsMap.put(SPARSE_MAP_KEY, SPARSE_MAP_VALUE);
+    sparseOptionsMap.put("experimental/altKeyBindings", "true");
+    FeedbackReport report = new FeedbackReport(//
+        feedbackText,
+        "Editor",
+        "osDetails",
+        IDE_VERSION,
+        new Stats(1, 2, 3, 4, 5, 6, "indexStats", true),
+        logContents,
+        screenshot,
+        true,
+        true,
+        sparseOptionsMap);
+    report.setUserEmail("username@gmail.com");
+    return report;
+  }
+
   private ServerSocket serverSocket;
   private Throwable serverException;
+
   private boolean sawReturn = false;
   boolean errorLogged;
-
-  private static final int PREFERRED_PORT = 52222;
-  private static final String TOKEN_URL = "http://localhost:" + PREFERRED_PORT + "/token";
-  private static final String SUBMIT_URL = "http://localhost:" + PREFERRED_PORT + "/feedback?";
-
   private static final String ISO_8859_1 = "ISO-8859-1";
   private static final String CRLF = "\r\n";
   private static final String FEEDBACK_LOG_1 = LOG_CONTENTS;
+
   private static final String FEEDBACK_LOG_2 = LOG_EXCEPTION + EOL + EOL + LOG_MESSAGE + EOL + EOL
       + LOG_CONTENTS;
+
   private static final String FEEDBACK_LOG_3 = LOG_EXCEPTION + EOL + EOL + LOG_MESSAGE;
 
   /**
@@ -167,47 +189,8 @@ public class FeedbackSubmissionJob2Test extends TestCase {
     }
   }
 
-  public static FeedbackSubmissionJob2 newTestFeedbackClient(boolean includeLog,
-      String logContents, boolean includeScreenshot, boolean isPublic) {
-    return new FeedbackSubmissionJob2(
-        newTestFeedbackReport(logContents),
-        includeLog,
-        includeScreenshot,
-        isPublic,
-        TOKEN_URL,
-        SUBMIT_URL) {
-      @Override
-      protected void logError(IOException e) {
-        // ignored
-      }
-    };
-  }
-
-  public static FeedbackReport newTestFeedbackReport(String logContents) {
-    return newTestFeedbackReport(FEEDBACK_TEXT, null, logContents);
-  }
-
-  private static FeedbackReport newTestFeedbackReport(String feedbackText, Image screenshot,
-      String logContents) {
-    Map<String, String> sparseOptionsMap = new HashMap<String, String>();
-    sparseOptionsMap.put(SPARSE_MAP_KEY, SPARSE_MAP_VALUE);
-    sparseOptionsMap.put("experimental/altKeyBindings", "true");
-    FeedbackReport report = new FeedbackReport(//
-        feedbackText,
-        "Editor",
-        "osDetails",
-        IDE_VERSION,
-        new Stats(1, 2, 3, 4, 5, 6, "indexStats", true),
-        logContents,
-        screenshot,
-        true,
-        true,
-        sparseOptionsMap);
-    report.setUserEmail("username@gmail.com");
-    return report;
-  }
-
   private String tokenResponse;
+
   private String submitResponse;
   private final BlockingQueue<Object> requestQueue = new ArrayBlockingQueue<Object>(4);
   private final Object NO_CONTENT_SENT = new Object();
@@ -494,6 +477,22 @@ public class FeedbackSubmissionJob2Test extends TestCase {
     return foundValues;
   }
 
+  private FeedbackSubmissionJob2 newTestFeedbackClient(boolean includeLog, String logContents,
+      boolean includeScreenshot, boolean isPublic) {
+    return new FeedbackSubmissionJob2(
+        newTestFeedbackReport(logContents),
+        includeLog,
+        includeScreenshot,
+        isPublic,
+        "http://127.0.0.1:" + serverSocket.getLocalPort() + "/token",
+        "http://127.0.0.1:" + serverSocket.getLocalPort() + "/feedback?") {
+      @Override
+      protected void logError(IOException e) {
+        // ignored
+      }
+    };
+  }
+
   private void processRequest(Socket socket) throws IOException {
     StringBuilder request = new StringBuilder();
     Object parseResult = NO_CONTENT_SENT;
@@ -628,7 +627,7 @@ public class FeedbackSubmissionJob2Test extends TestCase {
 
   private void startServer() throws IOException {
     final String serverName = getClass().getSimpleName() + " Server";
-    serverSocket = new ServerSocket(PREFERRED_PORT);
+    serverSocket = new ServerSocket(0);
     new Thread(new Runnable() {
       @Override
       public void run() {
