@@ -3,39 +3,25 @@ import 'package:angular/angular.dart';
 import 'package:angular/playback/playback_http.dart';
 import 'todo.dart';
 
-@MirrorsUsed(targets: const[
-  'angular',
-  'angular.core',
-  'angular.core.dom',
-  'angular.filter',
-  'angular.perf',
-  'angular.directive',
-  'angular.routing',
-  'angular.core.parser.dynamic_parser',
-  'angular.core.parser.lexer',
-  'todo',
-  'perf_api',
-  'List',
-  'NodeTreeSanitizer',
-  'PlaybackHttpBackendConfig'
-  ],
-  override: '*')
-import 'dart:mirrors';
-
 import 'dart:html';
 
-main() {
+// Everything in the 'todo' library should be preserved by MirrorsUsed.
+@MirrorsUsed(
+    targets: const ['todo'],
+    override: '*')
+import 'dart:mirrors';
 
+main() {
   print(window.location.search);
   var module = new Module()
-    ..type(TodoController)
-    ..type(PlaybackHttpBackendConfig);
+      ..type(TodoController)
+      ..type(PlaybackHttpBackendConfig);
 
   // If these is a query in the URL, use the server-backed
   // TodoController.  Otherwise, use the stored-data controller.
   var query = window.location.search;
   if (query.contains('?')) {
-    module.type(ServerController);
+    module.type(ServerController, implementedBy: HttpServerController);
   } else {
     module.type(ServerController, implementedBy: NoServerController);
   }
@@ -52,5 +38,5 @@ main() {
     module.type(HttpBackend, implementedBy: PlaybackHttpBackend);
   }
 
-  ngBootstrap(module:module);
+  ngBootstrap(module: module);
 }
