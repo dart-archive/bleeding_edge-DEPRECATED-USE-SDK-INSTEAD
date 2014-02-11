@@ -106,7 +106,7 @@ public class FeedbackSubmissionJob2Test extends TestCase {
   private boolean sawReturn = false;
   boolean errorLogged;
 
-  private static final int PREFERRED_PORT = 3031;
+  private static final int PREFERRED_PORT = 30457;
   private static final String TOKEN_URL = "http://localhost:" + PREFERRED_PORT + "/token";
   private static final String SUBMIT_URL = "http://localhost:" + PREFERRED_PORT + "/feedback?";
 
@@ -619,6 +619,7 @@ public class FeedbackSubmissionJob2Test extends TestCase {
 
   private ExtensionSubmit waitForFeedbackReceived() throws InterruptedException {
     String request = (String) requestQueue.poll(100, TimeUnit.MILLISECONDS);
+    assertNotNull(request);
     assertTrue(request.indexOf("Content-Type: application/x-protobuf") > 0);
     Object content = requestQueue.poll(100, TimeUnit.MILLISECONDS);
     assertNotSame(NO_CONTENT_SENT, content);
