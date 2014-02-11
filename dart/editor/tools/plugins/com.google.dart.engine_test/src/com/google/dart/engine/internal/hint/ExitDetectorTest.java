@@ -186,16 +186,24 @@ public class ExitDetectorTest extends ParserTestCase {
     assertTrue("for (element in throw '') {}");
   }
 
-  public void test_forStatement() throws Exception {
-    assertFalse("for (;;) {}");
-  }
-
   public void test_forStatement_condition() throws Exception {
     assertTrue("for (; throw 0;) {}");
   }
 
+  public void test_forStatement_implicitTrue() throws Exception {
+    assertTrue("for (;;) {}");
+  }
+
+  public void test_forStatement_implicitTrue_break() throws Exception {
+    assertFalse("for (;;) { break; }");
+  }
+
   public void test_forStatement_initialization() throws Exception {
     assertTrue("for (i = throw 0;;) {}");
+  }
+
+  public void test_forStatement_true() throws Exception {
+    assertTrue("for (; true; ) {}");
   }
 
   public void test_forStatement_true_break() throws Exception {

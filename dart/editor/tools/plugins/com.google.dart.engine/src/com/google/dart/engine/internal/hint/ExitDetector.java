@@ -222,7 +222,13 @@ public class ExitDetector extends GeneralizingASTVisitor<Boolean> {
 
   @Override
   public Boolean visitForEachStatement(ForEachStatement node) {
-    return node.getIterator().accept(this);
+    boolean outerBreakValue = enclosingBlockContainsBreak;
+    enclosingBlockContainsBreak = false;
+    try {
+      return node.getIterator().accept(this);
+    } finally {
+      enclosingBlockContainsBreak = outerBreakValue;
+    }
   }
 
   @Override
@@ -245,12 +251,13 @@ public class ExitDetector extends GeneralizingASTVisitor<Boolean> {
         return true;
       }
       // TODO(jwren) Do we want to take all constant expressions into account?
-      if (conditionExpression instanceof BooleanLiteral) {
-        BooleanLiteral booleanLiteral = (BooleanLiteral) conditionExpression;
-        // If for(; true; ), and the body doesn't return or the body doesn't have a break, then
-        // return true.
+      // If for(; true; ) (or for(;;)), and the body doesn't return or the body doesn't have a
+      // break, then return true.
+      boolean implicitOrExplictTrue = conditionExpression == null
+          || (conditionExpression instanceof BooleanLiteral && ((BooleanLiteral) conditionExpression).getValue());
+      if (implicitOrExplictTrue) {
         boolean blockReturns = node.getBody().accept(this);
-        if (booleanLiteral.getValue() && (blockReturns || !enclosingBlockContainsBreak)) {
+        if (blockReturns || !enclosingBlockContainsBreak) {
           return true;
         }
       }
