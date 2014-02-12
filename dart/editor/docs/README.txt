@@ -10,6 +10,11 @@ Notes about Dart Editor workspace setup, development, build, and deploy.
     http://www.eclipse.org/downloads/packages/eclipse-classic-372/indigosr2
     http://archive.eclipse.org/eclipse/downloads/drops/R-3.8.2-201301310800/
 
+* Select "Help > Install New Software" to install
+    Eclipse Web Developer Tools
+    Eclipse XML Editors and Tools (optional)
+    SWT Designer (optional)
+
 * Install SVN support into Eclipse
     Subclipse SVN tools 
       from http://subclipse.tigris.org/update_1.6.x
@@ -18,7 +23,7 @@ Notes about Dart Editor workspace setup, development, build, and deploy.
     http://dev.chromium.org/developers/how-tos/depottools
     (username is full email address)
 
-* Install SWTBot (optional -- needed for UI tests)
+* Install SWTBot (deprecated -- used for deprecated UI tests)
     Install from the Eclipse SWTBot download page
       http://www.eclipse.org/swtbot/downloads.php
       http://download.eclipse.org/technology/swtbot/helios/dev-build/update-site
@@ -272,7 +277,7 @@ run the buildTests.xml ant script in the com.google.dart.tools.tests.feature_rel
     win32
 
 ====================================
-  Running SWTBot UI tests
+  Running SWTBot UI tests (deprecated)
 ====================================
 
 Install SWTBot (see optional installation step above)
