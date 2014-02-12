@@ -478,11 +478,6 @@
    <extension
          point="org.eclipse.ui.editors.annotationTypes">
       <type
-            name="com.google.dart.tools.ui.angular_error"
-            super="org.eclipse.ui.workbench.texteditor.error"
-            markerType="com.google.dart.tools.core.angular_error"
-            markerSeverity="2"/>
-      <type
             name="com.google.dart.tools.ui.angular_warning"
             super="org.eclipse.ui.workbench.texteditor.warning"
             markerType="com.google.dart.tools.core.angular_warning"
@@ -518,32 +513,13 @@
    <extension
          point="org.eclipse.ui.editors.markerAnnotationSpecification">
        <specification
-           annotationType="com.google.dart.tools.ui.angular_error"
-           colorPreferenceKey="angularErrorColor"
-           colorPreferenceValue="255,0,0"
-           contributesToHeader="true"
-           highlightPreferenceKey="angularErrorHighlighting"
-           highlightPreferenceValue="false"
-           icon="icons/full/dart16/angular_14_red.png"
-           label="Angular Error"
-           overviewRulerPreferenceKey="angularErrorInOverviewRuler"
-           overviewRulerPreferenceValue="true"
-           presentationLayer="4"
-           textPreferenceKey="angularErrorText"
-           textPreferenceValue="true"
-           textStylePreferenceKey="angularErrorTextStyle"
-           textStylePreferenceValue="PROBLEM_UNDERLINE"
-           verticalRulerPreferenceKey="angularErrorInVerticalRuler"
-           verticalRulerPreferenceValue="true">
-       </specification>
-       <specification
            annotationType="com.google.dart.tools.ui.angular_warning"
            colorPreferenceKey="angularWarningColor"
            colorPreferenceValue="244,200,45"
            contributesToHeader="true"
            highlightPreferenceKey="angularWarningHighlighting"
            highlightPreferenceValue="false"
-           icon="icons/full/dart16/angular_14_yellow.png"
+           icon="icons/full/dart16/angular_14_red.png"
            label="Angular warning"
            overviewRulerPreferenceKey="angularWarningIndicationInOverviewRuler"
            overviewRulerPreferenceValue="true"

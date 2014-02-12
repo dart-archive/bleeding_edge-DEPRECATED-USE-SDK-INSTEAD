@@ -79,7 +79,6 @@ public class AnalysisMarkerManager {
 
       resource.deleteMarkers(DartCore.DART_PROBLEM_MARKER_TYPE, true, IResource.DEPTH_ZERO);
       resource.deleteMarkers(DartCore.DART_TASK_MARKER_TYPE, true, IResource.DEPTH_ZERO);
-      resource.deleteMarkers(DartCore.ANGULAR_ERROR_MARKER_TYPE, true, IResource.DEPTH_ZERO);
       resource.deleteMarkers(DartCore.ANGULAR_WARNING_MARKER_TYPE, true, IResource.DEPTH_ZERO);
 
       // Ignore if user requested to don't analyze resource.
@@ -109,13 +108,8 @@ public class AnalysisMarkerManager {
         String markerType = DartCore.DART_PROBLEM_MARKER_TYPE;
 
         if (errorCode.getType() == ErrorType.ANGULAR) {
-          if (errorCode.getErrorSeverity() == ErrorSeverity.ERROR) {
-            markerType = DartCore.ANGULAR_ERROR_MARKER_TYPE;
-            severity = IMarker.SEVERITY_ERROR;
-          } else {
-            markerType = DartCore.ANGULAR_WARNING_MARKER_TYPE;
-            severity = IMarker.SEVERITY_WARNING;
-          }
+          markerType = DartCore.ANGULAR_WARNING_MARKER_TYPE;
+          severity = IMarker.SEVERITY_WARNING;
         } else if (errorCode.getType() == ErrorType.TODO) {
           markerType = DartCore.DART_TASK_MARKER_TYPE;
         } else if (isHint) {
