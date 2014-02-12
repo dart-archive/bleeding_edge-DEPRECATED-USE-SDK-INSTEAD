@@ -786,19 +786,23 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
    * @return the visual length of <code>seq</code>
    */
   private int computeVisualLength(CharSequence seq, int tabLength) {
+
     int size = 0;
 
-    for (int i = 0; i < seq.length(); i++) {
-      char ch = seq.charAt(i);
-      if (ch == '\t') {
-        if (tabLength != 0) {
-          size += tabLength - size % tabLength;
-          // else: size stays the same
+    if (seq != null) {
+      for (int i = 0; i < seq.length(); i++) {
+        char ch = seq.charAt(i);
+        if (ch == '\t') {
+          if (tabLength != 0) {
+            size += tabLength - size % tabLength;
+            // else: size stays the same
+          }
+        } else {
+          size++;
         }
-      } else {
-        size++;
       }
     }
+
     return size;
   }
 
