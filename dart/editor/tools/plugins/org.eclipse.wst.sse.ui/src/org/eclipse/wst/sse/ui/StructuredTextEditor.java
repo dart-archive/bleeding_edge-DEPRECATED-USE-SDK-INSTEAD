@@ -2183,7 +2183,7 @@ public class StructuredTextEditor extends TextEditor {
     fOverviewRuler = createOverviewRuler(getSharedColors());
     StructuredTextViewer sourceViewer = createStructedTextViewer(parent, verticalRuler, styles);
     initSourceViewer(sourceViewer);
-    com.google.dart.tools.ui.internal.text.editor.EditorUtility.addGTKPasteHack(getSourceViewer());
+    com.google.dart.tools.ui.internal.text.editor.EditorUtility.addGTKPasteHack(sourceViewer);
     return sourceViewer;
   }
 
