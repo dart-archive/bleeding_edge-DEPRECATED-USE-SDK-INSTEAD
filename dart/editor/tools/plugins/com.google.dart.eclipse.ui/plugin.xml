@@ -461,6 +461,18 @@
       </command> 
    </extension>
 
+   <extension point="org.eclipse.ui.console.consolePatternMatchListeners">
+      <consolePatternMatchListener
+            class="com.google.dart.tools.debug.ui.internal.view.DebuggerPatternMatchListener"
+            id="com.google.dart.tools.debug.ui.internal.view.DebuggerPatternMatchListener"
+            regex="(\\(.*\\))|(  \\S*.dart .*)">
+         <enablement>
+            <test property="org.eclipse.ui.console.consoleTypeTest"
+                  value="org.eclipse.debug.ui.ProcessConsoleType"/>
+         </enablement>
+      </consolePatternMatchListener>
+   </extension>
+
    <extension
          point="org.eclipse.ui.actionSets">
       <actionSet
