@@ -24,9 +24,13 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
+import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.Region;
+import org.eclipse.jface.text.link.LinkedModeModel;
 import org.eclipse.jface.text.link.LinkedModeUI;
+import org.eclipse.jface.text.link.LinkedModeUI.ExitFlags;
 import org.eclipse.jface.text.link.LinkedPositionGroup;
+import org.eclipse.swt.events.VerifyEvent;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorPart;
@@ -50,12 +54,13 @@ public final class FilledArgumentNamesMethodProposal extends DartMethodCompletio
   }
 
   @Override
-  public void apply(IDocument document, char trigger, int offset) {
+  public void apply(final IDocument document, char trigger, int offset) {
     super.apply(document, trigger, offset);
     int baseOffset = getReplacementOffset();
     String replacement = getReplacementString();
 
-    if (fArgumentOffsets != null && getTextViewer() != null) {
+    ITextViewer textViewer = getTextViewer();
+    if (fArgumentOffsets != null && textViewer != null) {
       try {
         OptionalArgumentModel model = new OptionalArgumentModel();
         buildLinkedModeModel(model, document, baseOffset);
@@ -66,10 +71,17 @@ public final class FilledArgumentNamesMethodProposal extends DartMethodCompletio
           model.addLinkingListener(new EditorHighlightingSynchronizer(editor));
         }
 
-        LinkedModeUI ui = new EditorLinkedModeUI(model, getTextViewer());
-        ui.setExitPosition(getTextViewer(), baseOffset + replacement.length(), 0, Integer.MAX_VALUE);
-        model.exitPositionUpdater(ui, getTextViewer(), baseOffset + replacement.length());
-        ui.setExitPolicy(new ExitPolicy(')', document));
+        LinkedModeUI ui = new EditorLinkedModeUI(model, textViewer);
+        ui.setExitPosition(textViewer, baseOffset + replacement.length(), 0, Integer.MAX_VALUE);
+        model.exitPositionUpdater(ui, textViewer, baseOffset + replacement.length());
+        ui.setExitPolicy(new ExitPolicy(')', document) {
+          @Override
+          public ExitFlags doExit(LinkedModeModel environment, VerifyEvent event, int offset,
+              int length) {
+            maybeRewriteCommaWithTab(document, event, offset);
+            return super.doExit(environment, event, offset, length);
+          }
+        });
         ui.setDoContextInfo(true);
         ui.setCyclingMode(LinkedModeUI.CYCLE_WHEN_NO_PARENT);
         ui.enter();
@@ -194,6 +206,23 @@ public final class FilledArgumentNamesMethodProposal extends DartMethodCompletio
       return (DartEditor) part;
     } else {
       return null;
+    }
+  }
+
+  /**
+   * We call this hackish method from {@link ExitPolicy} to check if <code>','</code> is pressed at
+   * place where it could be used as <code>TAB</code>, i.e. just before <code>','</code>.
+   * <p>
+   * https://code.google.com/p/dart/issues/detail?id=15798
+   */
+  private void maybeRewriteCommaWithTab(IDocument document, VerifyEvent event, int offset) {
+    if (event.character == ',') {
+      try {
+        if (document.get(offset, 1).equals(",")) {
+          event.character = '\t';
+        }
+      } catch (Throwable e) {
+      }
     }
   }
 
