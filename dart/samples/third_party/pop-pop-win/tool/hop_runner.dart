@@ -27,10 +27,6 @@ void main(List<String> args) {
       liveTypeAnalysis: true
   ));
 
-  addTask('update_js', createCopyJSTask('web',
-      browserDart: true,
-      browserInterop: true));
-
   addTask('app_update_js', createCopyJSTask('app_package',
       browserDart: true,
       browserInterop: true));
