@@ -95,11 +95,11 @@ public class RunPubBuildHandler extends AbstractHandler {
       }
       IContainer buildDir = (IContainer) workingDir.findMember(DartCore.BUILD_DIRECTORY_NAME);
       IPath path = resource.getFullPath();
-      int index = 0;
-      while (index < path.segmentCount() && !DartCore.pubDirectories.contains(path.segment(index))) {
-        index++;
+      int index = path.segmentCount() - 1;
+      while (index > 0 && !DartCore.pubDirectories.contains(path.segment(index))) {
+        index--;
       }
-      if (index < path.segmentCount() && buildDir.exists()) {
+      if (index > 0 && buildDir.exists()) {
         if (DartCore.isDartLikeFileName(resource.getName())) {
           LightweightModel model = LightweightModel.getModel();
           IFile htmlFile = model.getHtmlFileForLibrary((IFile) resource);
