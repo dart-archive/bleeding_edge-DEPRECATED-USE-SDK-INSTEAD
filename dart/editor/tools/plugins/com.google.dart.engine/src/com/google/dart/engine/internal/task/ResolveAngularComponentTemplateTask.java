@@ -132,16 +132,17 @@ public class ResolveAngularComponentTemplateTask extends AnalysisTask {
     RecordingErrorListener errorListener = new RecordingErrorListener();
     LineInfo lineInfo = getContext().getLineInfo(source);
     // do resolve
-    AngularHtmlUnitResolver resolver = new AngularHtmlUnitResolver(
-        getContext(),
-        errorListener,
-        source,
-        lineInfo,
-        unit);
-    resolver.resolveComponentTemplate(application, component);
+    if (application != null) {
+      AngularHtmlUnitResolver resolver = new AngularHtmlUnitResolver(
+          getContext(),
+          errorListener,
+          source,
+          lineInfo,
+          unit);
+      resolver.resolveComponentTemplate(application, component);
+      resolvedUnit = unit;
+    }
     // remember errors
     resolutionErrors = errorListener.getErrors(source);
-    // remember resolved unit
-    resolvedUnit = unit;
   }
 }

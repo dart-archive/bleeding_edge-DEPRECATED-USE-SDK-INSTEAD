@@ -15,6 +15,7 @@ package com.google.dart.engine.internal.html.angular;
 
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.SimpleIdentifier;
+import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.LocalVariableElement;
@@ -24,6 +25,7 @@ import com.google.dart.engine.element.angular.AngularPropertyElement;
 import com.google.dart.engine.element.angular.AngularPropertyKind;
 import com.google.dart.engine.element.angular.AngularScopePropertyElement;
 import com.google.dart.engine.element.angular.AngularSelectorElement;
+import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AngularCode;
 import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.html.ast.HtmlUnitUtils;
@@ -33,6 +35,7 @@ import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
 import com.google.dart.engine.internal.element.FunctionElementImpl;
 import com.google.dart.engine.internal.element.LocalVariableElementImpl;
 import com.google.dart.engine.internal.element.angular.AngularControllerElementImpl;
+import com.google.dart.engine.source.Source;
 
 import static com.google.dart.engine.element.ElementFactory.classElement;
 import static com.google.dart.engine.element.ElementFactory.compilationUnit;
@@ -40,6 +43,129 @@ import static com.google.dart.engine.element.ElementFactory.functionElement;
 import static com.google.dart.engine.element.ElementFactory.localVariableElement;
 
 public class AngularHtmlUnitResolverTest extends AngularTest {
+  public void test_analysisContext_changeDart_invalidateApplication() throws Exception {
+    addMainSource(createSource("",//
+        "import 'angular.dart';",
+        "",
+        "@NgComponent(",
+        "    templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
+        "    publishAs: 'ctrl',",
+        "    selector: 'myComponent')",
+        "class MyComponent {",
+        "  String field;",
+        "}"));
+    contextHelper.addSource("/entry-point.html", createHtmlWithAngular());
+    addIndexSource("/my_template.html", createSource(//
+        "    <div>",
+        "      {{ctrl.newField}}",
+        "    </div>"));
+    contextHelper.addSource("/my_styles.css", "");
+    contextHelper.runTasks();
+    // there are some errors in my_template.html
+    {
+      AnalysisError[] errors = context.getErrors(indexSource).getErrors();
+      assertTrue(errors.length != 0);
+    }
+    // change main.dart, there are no MyComponent anymore
+    context.setContents(mainSource, "");
+    // ...errors in my_template.html should be removed
+    {
+      AnalysisError[] errors = context.getErrors(indexSource).getErrors();
+      assertTrue(errors.length == 0);
+    }
+  }
+
+  public void test_analysisContext_changeEntryPoint_clearAngularErrors_inDart() throws Exception {
+    addMainSource(createSource("",//
+        "import 'angular.dart';",
+        "",
+        "@NgComponent(",
+        "    templateUrl: 'no-such-template.html', cssUrl: 'my_styles.css',",
+        "    publishAs: 'ctrl',",
+        "    selector: 'myComponent')",
+        "class MyComponent {",
+        "}"));
+    Source entrySource = contextHelper.addSource("/entry-point.html", createHtmlWithAngular());
+    contextHelper.addSource("/my_styles.css", "");
+    contextHelper.runTasks();
+    // there are some errors in MyComponent
+    {
+      AnalysisError[] errors = context.getErrors(mainSource).getErrors();
+      assertTrue(errors.length != 0);
+    }
+    // make entry-point.html non-Angular
+    context.setContents(entrySource, "<html/>");
+    // ...errors in MyComponent should be removed
+    {
+      AnalysisError[] errors = context.getErrors(mainSource).getErrors();
+      assertTrue(errors.length == 0);
+    }
+  }
+
+  public void test_analysisContext_changeEntryPoint_clearAngularErrors_inTemplate()
+      throws Exception {
+    addMainSource(createSource("",//
+        "import 'angular.dart';",
+        "",
+        "@NgComponent(",
+        "    templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
+        "    publishAs: 'ctrl',",
+        "    selector: 'myComponent')",
+        "class MyComponent {",
+        "  String field;",
+        "}"));
+    Source entrySource = contextHelper.addSource("/entry-point.html", createHtmlWithAngular());
+    addIndexSource("/my_template.html", createSource(//
+        "    <div>",
+        "      {{ctrl.noSuchField}}",
+        "    </div>"));
+    contextHelper.addSource("/my_styles.css", "");
+    contextHelper.runTasks();
+    // there are some errors in my_template.html
+    {
+      AnalysisError[] errors = context.getErrors(indexSource).getErrors();
+      assertTrue(errors.length != 0);
+    }
+    // make entry-point.html non-Angular
+    context.setContents(entrySource, "<html/>");
+    // ...errors in my_template.html should be removed
+    {
+      AnalysisError[] errors = context.getErrors(indexSource).getErrors();
+      assertTrue(errors.length == 0);
+    }
+  }
+
+  public void test_analysisContext_removeEntryPoint_clearAngularErrors_inDart() throws Exception {
+    addMainSource(createSource("",//
+        "import 'angular.dart';",
+        "",
+        "@NgComponent(",
+        "    templateUrl: 'no-such-template.html', cssUrl: 'my_styles.css',",
+        "    publishAs: 'ctrl',",
+        "    selector: 'myComponent')",
+        "class MyComponent {",
+        "}"));
+    Source entrySource = contextHelper.addSource("/entry-point.html", createHtmlWithAngular());
+    contextHelper.addSource("/my_styles.css", "");
+    contextHelper.runTasks();
+    // there are some errors in MyComponent
+    {
+      AnalysisError[] errors = context.getErrors(mainSource).getErrors();
+      assertTrue(errors.length != 0);
+    }
+    // remove entry-point.html
+    {
+      ChangeSet changeSet = new ChangeSet();
+      changeSet.removed(entrySource);
+      context.applyChanges(changeSet);
+    }
+    // ...errors in MyComponent should be removed
+    {
+      AnalysisError[] errors = context.getErrors(mainSource).getErrors();
+      assertTrue(errors.length == 0);
+    }
+  }
+
   public void test_contextProperties() throws Exception {
     addMyController();
     resolveIndexNoErrors(createHtmlWithAngular(//

@@ -2222,14 +2222,12 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       CacheState angularErrorsState = htmlEntry.getState(HtmlEntry.ANGULAR_ERRORS);
       if (angularErrorsState == CacheState.INVALID) {
         AngularApplication application = htmlEntry.getValue(HtmlEntry.ANGULAR_APPLICATION);
-        if (application != null) {
-          // try to resolve as an Angular template
-          AngularComponentElement component = htmlEntry.getValue(HtmlEntry.ANGULAR_COMPONENT);
-          HtmlEntryImpl htmlCopy = htmlEntry.getWritableCopy();
-          htmlCopy.setState(HtmlEntry.ANGULAR_ERRORS, CacheState.IN_PROCESS);
-          cache.put(source, htmlCopy);
-          return new ResolveAngularComponentTemplateTask(this, source, component, application);
-        }
+        // try to resolve as an Angular template
+        AngularComponentElement component = htmlEntry.getValue(HtmlEntry.ANGULAR_COMPONENT);
+        HtmlEntryImpl htmlCopy = htmlEntry.getWritableCopy();
+        htmlCopy.setState(HtmlEntry.ANGULAR_ERRORS, CacheState.IN_PROCESS);
+        cache.put(source, htmlCopy);
+        return new ResolveAngularComponentTemplateTask(this, source, component, application);
       }
     }
     return null;
@@ -2457,6 +2455,55 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
+   * In response to a change to Angular entry point {@link HtmlElement}, invalidate any results that
+   * depend on it.
+   * <p>
+   * <b>Note:</b> This method must only be invoked while we are synchronized on {@link #cacheLock}.
+   * <p>
+   * <b>Note:</b> Any cache entries that were accessed before this method was invoked must be
+   * re-accessed after this method returns.
+   * 
+   * @param entryCopy the {@link HtmlEntryImpl} of the (maybe) Angular entry point being invalidated
+   */
+  private void invalidateAngularResolution(HtmlEntryImpl entryCopy) {
+    AngularApplication application = entryCopy.getValue(HtmlEntry.ANGULAR_ENTRY);
+    if (application == null) {
+      return;
+    }
+    angularApplications.remove(application);
+    // invalidate Entry
+    entryCopy.setState(HtmlEntry.ANGULAR_ENTRY, CacheState.INVALID);
+    // reset HTML sources
+    AngularElement[] oldAngularElements = application.getElements();
+    for (AngularElement angularElement : oldAngularElements) {
+      if (angularElement instanceof AngularHasTemplateElement) {
+        AngularHasTemplateElement hasTemplate = (AngularHasTemplateElement) angularElement;
+        Source templateSource = hasTemplate.getTemplateSource();
+        if (templateSource != null) {
+          HtmlEntry htmlEntry = getReadableHtmlEntry(templateSource);
+          HtmlEntryImpl htmlCopy = htmlEntry.getWritableCopy();
+          htmlCopy.setValue(HtmlEntry.ANGULAR_APPLICATION, null);
+          htmlCopy.setValue(HtmlEntry.ANGULAR_COMPONENT, null);
+          htmlCopy.setState(HtmlEntry.ANGULAR_ERRORS, CacheState.INVALID);
+          cache.put(templateSource, htmlCopy);
+          workManager.add(templateSource, SourcePriority.HTML);
+        }
+      }
+    }
+    // reset Dart sources
+    Source[] oldElementSources = application.getElementSources();
+    for (Source elementSource : oldElementSources) {
+      DartEntry dartEntry = getReadableDartEntry(elementSource);
+      DartEntryImpl dartCopy = dartEntry.getWritableCopy();
+      dartCopy.setValue(DartEntry.ANGULAR_ERRORS, AnalysisError.NO_ERRORS);
+      cache.put(elementSource, dartCopy);
+      // notify about (disappeared) Angular errors
+      ChangeNoticeImpl notice = getNotice(elementSource);
+      notice.setErrors(dartCopy.getAllErrors(), dartEntry.getValue(SourceEntry.LINE_INFO));
+    }
+  }
+
+  /**
    * In response to a change to at least one of the compilation units in the given library,
    * invalidate any results that are dependent on the result of resolving that library.
    * <p>
@@ -2503,13 +2550,13 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       }
     }
     // invalidate Angular applications
-    for (AngularApplication angularApplication : angularApplications) {
-      if (angularApplication.dependsOn(librarySource)) {
-        Source entryPointSource = angularApplication.getEntryPoint();
-        HtmlEntry htmlEntry = getReadableHtmlEntry(entryPointSource);
-        HtmlEntryImpl htmlCopy = htmlEntry.getWritableCopy();
-        htmlCopy.setState(HtmlEntry.ANGULAR_ENTRY, CacheState.INVALID);
-        cache.put(entryPointSource, htmlCopy);
+    for (AngularApplication application : angularApplications) {
+      if (application.dependsOn(librarySource)) {
+        Source entryPointSource = application.getEntryPoint();
+        HtmlEntry entry = getReadableHtmlEntry(entryPointSource);
+        HtmlEntryImpl entryCopy = entry.getWritableCopy();
+        invalidateAngularResolution(entryCopy);
+        cache.put(entryPointSource, entryCopy);
         workManager.add(entryPointSource, SourcePriority.HTML);
       }
     }
@@ -2574,42 +2621,6 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
    */
   private void recordAngularEntryPoint(HtmlEntryImpl entry, ResolveAngularEntryHtmlTask task)
       throws AnalysisException {
-    // reset old Angular errors
-    AngularApplication oldApplication = entry.getValue(HtmlEntry.ANGULAR_ENTRY);
-    if (oldApplication != null) {
-      angularApplications.remove(oldApplication);
-      // reset HTML sources
-      AngularElement[] oldAngularElements = oldApplication.getElements();
-      for (AngularElement angularElement : oldAngularElements) {
-        if (angularElement instanceof AngularComponentElement) {
-          AngularComponentElement component = (AngularComponentElement) angularElement;
-          Source templateSource = component.getTemplateSource();
-          if (templateSource != null) {
-            HtmlEntry htmlEntry = getReadableHtmlEntry(templateSource);
-            HtmlEntryImpl htmlCopy = htmlEntry.getWritableCopy();
-            htmlCopy.setValue(HtmlEntry.ANGULAR_APPLICATION, null);
-            htmlCopy.setValue(HtmlEntry.ANGULAR_COMPONENT, null);
-            htmlCopy.setValue(HtmlEntry.ANGULAR_ERRORS, AnalysisError.NO_ERRORS);
-            cache.put(templateSource, htmlCopy);
-            // notify about (disappeared) HTML errors
-            ChangeNoticeImpl notice = getNotice(templateSource);
-            notice.setErrors(htmlCopy.getAllErrors(), computeLineInfo(templateSource));
-          }
-        }
-      }
-      // reset Dart sources
-      Source[] oldElementSources = oldApplication.getElementSources();
-      for (Source elementSource : oldElementSources) {
-        DartEntry dartEntry = getReadableDartEntry(elementSource);
-        DartEntryImpl dartCopy = dartEntry.getWritableCopy();
-        dartCopy.setValue(DartEntry.ANGULAR_ERRORS, AnalysisError.NO_ERRORS);
-        cache.put(elementSource, dartCopy);
-        // notify about (disappeared) Dart errors
-        ChangeNoticeImpl notice = getNotice(elementSource);
-        notice.setErrors(dartCopy.getAllErrors(), computeLineInfo(elementSource));
-      }
-    }
-    // schedule more Angular analysis
     AngularApplication application = task.getApplication();
     if (application != null) {
       angularApplications.add(application);
@@ -3146,6 +3157,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         HtmlEntryImpl htmlCopy = htmlEntry.getWritableCopy();
         if (thrownException == null) {
           htmlCopy.setValue(HtmlEntry.ANGULAR_ERRORS, task.getResolutionErrors());
+          // notify about errors
           ChangeNoticeImpl notice = getNotice(source);
           notice.setHtmlUnit(task.getResolvedUnit());
           notice.setErrors(htmlCopy.getAllErrors(), htmlCopy.getValue(SourceEntry.LINE_INFO));
@@ -3641,6 +3653,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       HtmlEntryImpl htmlCopy = ((HtmlEntry) sourceEntry).getWritableCopy();
       long oldTime = htmlCopy.getModificationTime();
       htmlCopy.setModificationTime(source.getModificationStamp());
+      invalidateAngularResolution(htmlCopy);
       htmlCopy.invalidateAllInformation();
       cache.put(source, htmlCopy);
       cache.removedAst(source);
@@ -3689,7 +3702,10 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     writer.println("Removed source: " + debuggingString(source));
 
     SourceEntry sourceEntry = cache.get(source);
-    if (sourceEntry instanceof DartEntry) {
+    if (sourceEntry instanceof HtmlEntry) {
+      HtmlEntryImpl htmlCopy = ((HtmlEntry) sourceEntry).getWritableCopy();
+      invalidateAngularResolution(htmlCopy);
+    } else if (sourceEntry instanceof DartEntry) {
       HashSet<Source> libraries = new HashSet<Source>();
       for (Source librarySource : getLibrariesContaining(source)) {
         libraries.add(librarySource);

@@ -1097,6 +1097,7 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     clientServerState = other.clientServerState;
     launchableState = other.launchableState;
     bitmask = other.bitmask;
+    angularErrors = other.angularErrors;
   }
 
   @Override

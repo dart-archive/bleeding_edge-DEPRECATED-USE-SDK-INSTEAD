@@ -273,16 +273,13 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
     LibraryElement libraryElement = dartUnit.getElement().getLibrary();
     Set<LibraryElement> libraries = Sets.newHashSet();
     AngularElement[] angularElements = getAngularElements(libraries, libraryElement);
-    // prepare AngularElement sources
-    Set<Source> angularElementsSources = Sets.newHashSet();
-    for (AngularElement angularElement : angularElements) {
-      angularElementsSources.add(angularElement.getSource());
-    }
     // resolve AngularComponentElement template URIs
     // TODO(scheglov) resolve to HtmlElement to allow F3 ?
+    Set<Source> angularElementsSources = Sets.newHashSet();
     for (AngularElement angularElement : angularElements) {
       if (angularElement instanceof AngularHasTemplateElement) {
         AngularHasTemplateElement hasTemplate = (AngularHasTemplateElement) angularElement;
+        angularElementsSources.add(angularElement.getSource());
         String templateUri = hasTemplate.getTemplateUri();
         if (templateUri == null) {
           continue;
