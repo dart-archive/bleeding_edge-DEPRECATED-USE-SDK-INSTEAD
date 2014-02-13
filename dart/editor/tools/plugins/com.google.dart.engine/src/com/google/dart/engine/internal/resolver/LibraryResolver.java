@@ -28,7 +28,9 @@ import com.google.dart.engine.ast.StringInterpolation;
 import com.google.dart.engine.ast.StringLiteral;
 import com.google.dart.engine.ast.UriBasedDirective;
 import com.google.dart.engine.context.AnalysisException;
+import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExportElement;
+import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.NamespaceCombinator;
@@ -46,6 +48,8 @@ import com.google.dart.engine.internal.element.ImportElementImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
 import com.google.dart.engine.internal.element.PrefixElementImpl;
 import com.google.dart.engine.internal.element.ShowElementCombinatorImpl;
+import com.google.dart.engine.internal.scope.Namespace;
+import com.google.dart.engine.internal.scope.NamespaceBuilder;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceKind;
@@ -499,6 +503,13 @@ public class LibraryResolver {
       LibraryElementImpl libraryElement = library.getLibraryElement();
       libraryElement.setImports(imports.toArray(new ImportElement[imports.size()]));
       libraryElement.setExports(exports.toArray(new ExportElement[exports.size()]));
+      if (libraryElement.getEntryPoint() == null) {
+        Namespace namespace = new NamespaceBuilder().createExportNamespace(libraryElement);
+        Element element = namespace.get(LibraryElementBuilder.ENTRY_POINT_NAME);
+        if (element instanceof FunctionElement) {
+          libraryElement.setEntryPoint((FunctionElement) element);
+        }
+      }
     }
   }
 

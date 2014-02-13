@@ -60,7 +60,7 @@ public class LibraryElementBuilder {
   /**
    * The name of the function used as an entry point.
    */
-  private static final String ENTRY_POINT_NAME = "main";
+  public static final String ENTRY_POINT_NAME = "main";
 
   /**
    * Initialize a newly created library element builder.

@@ -221,6 +221,45 @@ public class SimpleResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_entryPoint_exported() throws Exception {
+    addSource("/two.dart", createSource(//
+        "library two;",
+        "main() {}"));
+    Source source = addSource("/one.dart", createSource(//
+        "library one;",
+        "export 'two.dart';"));
+    LibraryElement library = resolve(source);
+    assertNotNull(library);
+    FunctionElement main = library.getEntryPoint();
+    assertNotNull(main);
+    assertNotSame(library, main.getLibrary());
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_entryPoint_local() throws Exception {
+    Source source = addSource("/one.dart", createSource(//
+        "library one;",
+        "main() {}"));
+    LibraryElement library = resolve(source);
+    assertNotNull(library);
+    FunctionElement main = library.getEntryPoint();
+    assertNotNull(main);
+    assertSame(library, main.getLibrary());
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_entryPoint_none() throws Exception {
+    Source source = addSource("/one.dart", createSource(//
+        "library one;"));
+    LibraryElement library = resolve(source);
+    assertNotNull(library);
+    assertNull(library.getEntryPoint());
+    assertNoErrors(source);
+    verify(source);
+  }
+
   public void test_extractedMethodAsConstant() throws Exception {
     Source source = addSource(createSource(//
         "abstract class Comparable<T> {",
