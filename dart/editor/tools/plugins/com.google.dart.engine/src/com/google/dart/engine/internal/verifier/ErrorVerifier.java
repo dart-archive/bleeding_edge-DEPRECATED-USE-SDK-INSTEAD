@@ -301,16 +301,16 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   private ExecutableElement enclosingFunction;
 
   /**
-   * The number of return statements found in the method or function that we are currently visiting
-   * that have a return value.
+   * The return statements found in the method or function that we are currently visiting that have
+   * a return value.
    */
-  private int returnWithCount = 0;
+  private ArrayList<ReturnStatement> returnsWith = new ArrayList<ReturnStatement>();
 
   /**
-   * The number of return statements found in the method or function that we are currently visiting
-   * that do not have a return value.
+   * The return statements found in the method or function that we are currently visiting that do
+   * not have a return value.
    */
-  private int returnWithoutCount = 0;
+  private ArrayList<ReturnStatement> returnsWithout = new ArrayList<ReturnStatement>();
 
   /**
    * This map is initialized when visiting the contents of a class declaration. If the visitor is
@@ -416,16 +416,16 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
 
   @Override
   public Void visitBlockFunctionBody(BlockFunctionBody node) {
-    int previousReturnWithCount = returnWithCount;
-    int previousReturnWithoutCount = returnWithoutCount;
+    ArrayList<ReturnStatement> previousReturnsWith = returnsWith;
+    ArrayList<ReturnStatement> previousReturnsWithout = returnsWithout;
     try {
-      returnWithCount = 0;
-      returnWithoutCount = 0;
+      returnsWith = new ArrayList<ReturnStatement>();
+      returnsWithout = new ArrayList<ReturnStatement>();
       super.visitBlockFunctionBody(node);
       checkForMixedReturns(node);
     } finally {
-      returnWithCount = previousReturnWithCount;
-      returnWithoutCount = previousReturnWithoutCount;
+      returnsWith = previousReturnsWith;
+      returnsWithout = previousReturnsWithout;
     }
     return null;
   }
@@ -932,9 +932,9 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   @Override
   public Void visitReturnStatement(ReturnStatement node) {
     if (node.getExpression() == null) {
-      returnWithoutCount++;
+      returnsWithout.add(node);
     } else {
-      returnWithCount++;
+      returnsWith.add(node);
     }
     checkForAllReturnStatementErrorCodes(node);
     return super.visitReturnStatement(node);
@@ -3820,8 +3820,19 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * @see StaticWarningCode#MIXED_RETURN_TYPES
    */
   private boolean checkForMixedReturns(BlockFunctionBody node) {
-    if (returnWithCount > 0 && returnWithoutCount > 0) {
-      errorReporter.reportError(StaticWarningCode.MIXED_RETURN_TYPES, node);
+    int withCount = returnsWith.size();
+    int withoutCount = returnsWithout.size();
+    if (withCount > 0 && withoutCount > 0) {
+      for (int i = 0; i < withCount; i++) {
+        errorReporter.reportError(
+            StaticWarningCode.MIXED_RETURN_TYPES,
+            returnsWith.get(i).getKeyword());
+      }
+      for (int i = 0; i < withoutCount; i++) {
+        errorReporter.reportError(
+            StaticWarningCode.MIXED_RETURN_TYPES,
+            returnsWithout.get(i).getKeyword());
+      }
       return true;
     }
     return false;

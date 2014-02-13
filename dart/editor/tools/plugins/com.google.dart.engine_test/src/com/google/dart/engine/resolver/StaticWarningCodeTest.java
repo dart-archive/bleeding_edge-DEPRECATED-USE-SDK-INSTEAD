@@ -1628,7 +1628,7 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "  }",
         "}"));
     resolve(source);
-    assertErrors(source, StaticWarningCode.MIXED_RETURN_TYPES);
+    assertErrors(source, StaticWarningCode.MIXED_RETURN_TYPES, StaticWarningCode.MIXED_RETURN_TYPES);
     verify(source);
   }
 
@@ -1643,7 +1643,7 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "  }",
         "}"));
     resolve(source);
-    assertErrors(source, StaticWarningCode.MIXED_RETURN_TYPES);
+    assertErrors(source, StaticWarningCode.MIXED_RETURN_TYPES, StaticWarningCode.MIXED_RETURN_TYPES);
     verify(source);
   }
 
@@ -1656,7 +1656,7 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "  return 0;",
         "}"));
     resolve(source);
-    assertErrors(source, StaticWarningCode.MIXED_RETURN_TYPES);
+    assertErrors(source, StaticWarningCode.MIXED_RETURN_TYPES, StaticWarningCode.MIXED_RETURN_TYPES);
     verify(source);
   }
 
