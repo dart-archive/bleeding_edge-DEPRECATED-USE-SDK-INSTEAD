@@ -186,8 +186,7 @@ deps = {
     Var("ffmpeg_revision"),
 
   "src/third_party/libjingle/source/talk":
-    (Var("googlecode_url") % "webrtc") + "/stable/talk@" +
-    Var("webrtc_revision"),
+    (Var("googlecode_url") % "webrtc") + "/branches/3.48/talk@5413",
 
   "src/third_party/usrsctp/usrsctplib":
     (Var("googlecode_url") % "sctp-refimpl") +
