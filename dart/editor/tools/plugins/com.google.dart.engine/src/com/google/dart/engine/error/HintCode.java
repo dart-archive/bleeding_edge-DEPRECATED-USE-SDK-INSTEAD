@@ -88,8 +88,8 @@ public enum HintCode implements ErrorCode {
    * @param returnType the name of the declared return type
    */
   MISSING_RETURN(
-      "This function declares a return type of '%s', but does not end with a return statement.",
-      "Either add a return statement or change the return type to 'void'."),
+      "This function declares a return type of '%s', but does not end with a return statement",
+      "Either add a return statement or change the return type to 'void'"),
 
   /**
    * It is not in best practice to declare a private method that happens to override the method in a
