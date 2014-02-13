@@ -23,12 +23,12 @@ vars = {
   "libcxxabi_revision": "753a30dd68ae008948d48f16bc942d5963fe65a1",
   "webkit_trunk": "http://src.chromium.org/blink/trunk",
   "nacl_trunk": "http://src.chromium.org/native_client/trunk",
-  "webkit_revision": "166433",
+  "webkit_revision": "166792",
   "chromium_git": "https://chromium.googlesource.com",
   "chromiumos_git": "https://chromium.googlesource.com/chromiumos",
   "skia_git": "https://skia.googlesource.com",
   "swig_revision": "230490",
-  "nacl_revision": "12705",
+  "nacl_revision": "12710",
   # After changing nacl_revision, run 'glient sync' and check native_client/DEPS
   # to update other nacl_*_revision's.
   "nacl_tools_revision": "12655",  # native_client/DEPS: tools_rev
@@ -40,17 +40,17 @@ vars = {
 
   # These two FFmpeg variables must be updated together.  One is used for SVN
   # checkouts and the other for Git checkouts.
-  "ffmpeg_revision": "246718",
-  "ffmpeg_hash": "61396529e4d0a9987b5c396e80534da8226ffc2c",
+  "ffmpeg_revision": "249179",
+  "ffmpeg_hash": "4ae5e54f30f949e5485d70fa0eae85a0e75cb46c",
 
   "sfntly_revision": "228",
   "lighttpd_revision": "33737",
-  "skia_revision": "13315",
-  "skia_hash": "076f078a5ef3506190fb6c97b7b91827d91cb7c1",
+  "skia_revision": "13355",
+  "skia_hash": "c5acc6c827993602eded2d5b53fdbe29a372b4c4",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and V8 without interference from each other.
-  "v8_revision": "19088",
+  "v8_revision": "19187",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling WebRTC
   # and V8 without interference from each other.
@@ -64,7 +64,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling openssl
   # and whatever else without interference from each other.
-  "openssl_revision": "244037",
+  "openssl_revision": "249698",
 }
 
 deps = {
@@ -82,7 +82,7 @@ deps = {
 
   "src/third_party/angle":
     Var("chromium_git") +
-    "/angle/angle.git@17918f9a0ba4deca8818b4e11d03e244c631a8e4",
+    "/angle/angle.git@ef26f3bb09eaadb3b99ddd8c89a972dc1e497930",
 
   "src/third_party/trace-viewer":
     (Var("googlecode_url") % "trace-viewer") + "/trunk@1120",
@@ -250,7 +250,7 @@ deps = {
         "/trunk/jsoncpp/src/lib_json@" + Var("jsoncpp_revision"),
 
   "src/third_party/libyuv":
-    (Var("googlecode_url") % "libyuv") + "/trunk@978",
+    (Var("googlecode_url") % "libyuv") + "/trunk@979",
 
   "src/third_party/smhasher/src":
     (Var("googlecode_url") % "smhasher") + "/trunk@151",
@@ -288,7 +288,7 @@ deps = {
     "/trunk/deps/third_party/opus@237544",
 
   "src/media/cdm/ppapi/api":
-    "/trunk/deps/cdm@241073",
+    "/trunk/deps/cdm@249141",
 
   "src/third_party/mesa/src":
     "/trunk/deps/third_party/mesa@240938",
@@ -478,7 +478,7 @@ deps_os = {
     # For Linux and Chromium OS.
     "src/third_party/cros_system_api":
       Var("chromiumos_git") + "/platform/system_api.git" +
-      "@9481a478cd2fea24ed70e81372529a613be1410d",
+      "@dd3f77a57a0b44197b07b36580f994700bed08a7",
 
     # Note that this is different from Android's freetype repo.
     "src/third_party/freetype2/src":
@@ -758,11 +758,5 @@ hooks = [
     "name": "gyp",
     "pattern": ".",
     "action": ["python", "src/build/gyp_chromium"],
-  },
-  {
-    # Check for landmines (reasons to clobber the build).
-    "name": "landmines",
-    "pattern": ".",
-    "action": ["python", "src/build/landmines.py"],
   },
 ]
