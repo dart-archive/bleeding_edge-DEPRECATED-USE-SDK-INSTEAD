@@ -878,6 +878,20 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_extraPositionalArguments_implicitConstructor() throws Exception {
+    Source source = addSource(createSource(//
+        "class A<E extends num> {",
+        "  A(E x, E y);",
+        "}",
+        "class B<E extends num> = A<E>;",
+        "void main() {",
+        "   B<int> x = new B<int>(0,0);",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
   public void test_extraPositionalArguments_typedef_local() throws Exception {
     Source source = addSource(createSource(//
         "typedef A(p1, p2);",

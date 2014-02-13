@@ -48,6 +48,17 @@ public class ConstructorElementImpl extends ExecutableElementImpl implements Con
     super(name);
   }
 
+  /**
+   * Initialize a newly created constructor element to have the given name.
+   * 
+   * @param name the name of this element
+   * @param nameOffset the offset of the name of this element in the file that contains the
+   *          declaration of this element
+   */
+  public ConstructorElementImpl(String name, int nameOffset) {
+    super(name, nameOffset);
+  }
+
   @Override
   public <R> R accept(ElementVisitor<R> visitor) {
     return visitor.visitConstructorElement(this);
