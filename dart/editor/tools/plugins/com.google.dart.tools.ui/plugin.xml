@@ -590,7 +590,7 @@
      <specification
            annotationType="com.google.dart.tools.ui.info"
            colorPreferenceKey="suggestionIndicationColor"
-           colorPreferenceValue="244,200,45"
+           colorPreferenceValue="180,180,180"
            icon="icons/full/misc/info.png"
            contributesToHeader="true"
            highlightPreferenceKey="suggestionIndicationHighlighting"
