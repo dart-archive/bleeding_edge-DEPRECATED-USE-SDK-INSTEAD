@@ -414,7 +414,13 @@
             </visibleWhen>
          </command>
       </menuContribution>
+      <menuContribution
+            allPopups="false"
+            locationURI="menu:org.eclipse.ui.run?after=emptyLaunchGroup">
+         <command commandId="com.google.dart.tools.debug.ui.remoteConnection" />
+      </menuContribution>
   </extension>
+
   <extension
         point="org.eclipse.ui.ide.projectNatureImages">
      <image

@@ -540,7 +540,7 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
     }
   }
 
-  protected void printExceptionToStdout(WebkitRemoteObject exception) {
+  protected void printExceptionToStdout(final WebkitRemoteObject exception) {
     try {
       getConnection().getRuntime().callToString(
           exception.getObjectId(),
@@ -549,6 +549,10 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
             public void handleResult(WebkitResult<String> result) {
               if (!result.isError()) {
                 String text = result.getResult();
+
+                if (exception.isPrimitive()) {
+                  text = exception.getValue();
+                }
 
                 int index = text.indexOf('\n');
 

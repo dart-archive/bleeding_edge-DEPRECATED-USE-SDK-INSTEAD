@@ -113,7 +113,7 @@ public class ResourceLabelProvider implements IStyledLabelProvider, ILabelProvid
       IResource resource = (IResource) element;
 
       // Un-analyzed resources are grey.
-      if (!DartCore.isAnalyzed(resource)) {
+      if (!DartCore.isAnalyzed(resource) || resource.isDerived(IResource.CHECK_ANCESTORS)) {
         return new StyledString(resource.getName(), StyledString.QUALIFIER_STYLER);
       }
 
