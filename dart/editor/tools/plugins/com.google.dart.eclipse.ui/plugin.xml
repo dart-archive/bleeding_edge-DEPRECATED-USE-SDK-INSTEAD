@@ -510,4 +510,20 @@
       </actionSet>
    </extension>
 
+   <extension point="org.eclipse.ui.popupMenus">
+      <objectContribution
+            adaptable="true"
+            id="com.google.dart.eclipse.popupMenus"
+            nameFilter="*"
+            objectClass="org.eclipse.core.resources.IProject">
+         <action
+               class="com.google.dart.eclipse.ui.internal.actions.ToggleDartNatureAction"
+               enablesFor="+"
+               id="com.google.dart.eclipse.addRemoveNatureAction"
+               label="Convert to Dart Project..."
+               menubarPath="org.eclipse.ui.projectConfigure/additions">
+         </action>
+      </objectContribution>
+   </extension>
+
 </plugin>
