@@ -195,7 +195,11 @@ public class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     } else if (oldNode == node.getImplementsClause()) {
       return parser.parseImplementsClause();
     } else if (node.getMembers().contains(oldNode)) {
-      return parser.parseClassMember(node.getName().getName());
+      ClassMember member = parser.parseClassMember(node.getName().getName());
+      if (member == null) {
+        throw new InsufficientContextException();
+      }
+      return member;
     }
     return notAChild(node);
   }

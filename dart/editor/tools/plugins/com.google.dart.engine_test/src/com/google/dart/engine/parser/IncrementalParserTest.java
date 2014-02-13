@@ -91,6 +91,12 @@ public class IncrementalParserTest extends EngineTestCase {
     assertParse("class A {}", "", " class B {}", "");
   }
 
+  public void test_insert_insideClassBody() {
+    // "class C {C(); }"
+    // "class C { C(); }"
+    assertParse("class C {", "", " ", "C(); }");
+  }
+
   public void test_insert_insideIdentifier() {
     // "f() => cob;"
     // "f() => cow.b;"
