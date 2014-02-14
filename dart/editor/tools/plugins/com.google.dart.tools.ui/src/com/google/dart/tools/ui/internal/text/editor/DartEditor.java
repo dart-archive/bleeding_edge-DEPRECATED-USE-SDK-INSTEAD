@@ -3716,6 +3716,12 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
   }
 
   @Override
+  protected void initializeDragAndDrop(ISourceViewer viewer) {
+    // Disabled in Dart Editor.
+//    super.initializeDragAndDrop(viewer);
+  }
+
+  @Override
   protected void initializeEditor() {
     IPreferenceStore store = createCombinedPreferenceStore(null);
     setPreferenceStore(store);
