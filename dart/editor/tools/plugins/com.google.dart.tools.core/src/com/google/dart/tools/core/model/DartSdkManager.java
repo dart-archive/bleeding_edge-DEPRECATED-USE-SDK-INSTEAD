@@ -515,6 +515,11 @@ public class DartSdkManager {
 
       // send upgrade notifications
       notifyListeners();
+
+      DartCore.getConsole().printSeparator("Dart SDK update");
+      DartCore.getConsole().println(
+          "Dart SDK updated to version " + getManager().getSdk().getSdkVersion());
+
     } finally {
       monitor.done();
     }
