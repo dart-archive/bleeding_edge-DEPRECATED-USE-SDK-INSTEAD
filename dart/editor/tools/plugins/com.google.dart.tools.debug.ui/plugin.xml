@@ -325,9 +325,6 @@
          <adapter
                type="org.eclipse.debug.ui.actions.IToggleBreakpointsTarget">
          </adapter>
-         <adapter
-               type="org.eclipse.debug.ui.actions.IRunToLineTarget">
-         </adapter>
       </factory>
    </extension>
 
