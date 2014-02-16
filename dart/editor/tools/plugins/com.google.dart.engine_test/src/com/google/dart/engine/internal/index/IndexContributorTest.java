@@ -1138,6 +1138,35 @@ public class IndexContributorTest extends AbstractDartTest {
     // no exception
   }
 
+  public void test_isReferencedBy_ImportElement_withPrefix_wrongInvocation() throws Exception {
+    verifyNoTestUnitErrors = false;
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "import 'dart:math' as m;",
+        "main() {",
+        "  m();",
+        "}",
+        "");
+    // index
+    index.visitCompilationUnit(testUnit);
+    // should be no exceptions
+  }
+
+  public void test_isReferencedBy_ImportElement_withPrefix_wrongPrefixedIdentifier()
+      throws Exception {
+    verifyNoTestUnitErrors = false;
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "import 'dart:math' as m;",
+        "main() {",
+        "  x.m;",
+        "}",
+        "");
+    // index
+    index.visitCompilationUnit(testUnit);
+    // should be no exceptions
+  }
+
   public void test_isReferencedBy_LabelElement() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",

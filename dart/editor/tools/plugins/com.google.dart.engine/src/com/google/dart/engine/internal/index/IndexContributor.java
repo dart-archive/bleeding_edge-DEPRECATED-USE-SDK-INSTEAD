@@ -146,13 +146,17 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
     Element usedElement = null;
     if (parent instanceof PrefixedIdentifier) {
       PrefixedIdentifier prefixed = (PrefixedIdentifier) parent;
-      usedElement = prefixed.getStaticElement();
-      info.periodEnd = prefixed.getPeriod().getEnd();
+      if (prefixed.getPrefix() == prefixNode) {
+        usedElement = prefixed.getStaticElement();
+        info.periodEnd = prefixed.getPeriod().getEnd();
+      }
     }
     if (parent instanceof MethodInvocation) {
       MethodInvocation invocation = (MethodInvocation) parent;
-      usedElement = invocation.getMethodName().getStaticElement();
-      info.periodEnd = invocation.getPeriod().getEnd();
+      if (invocation.getTarget() == prefixNode) {
+        usedElement = invocation.getMethodName().getStaticElement();
+        info.periodEnd = invocation.getPeriod().getEnd();
+      }
     }
     // we need used Element
     if (usedElement == null) {
