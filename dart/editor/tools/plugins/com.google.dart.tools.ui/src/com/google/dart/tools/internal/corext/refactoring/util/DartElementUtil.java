@@ -1,8 +1,10 @@
 package com.google.dart.tools.internal.corext.refactoring.util;
 
+import com.google.dart.engine.ast.ClassTypeAlias;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.CompilationUnitElement;
+import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.FieldFormalParameterElement;
@@ -241,6 +243,25 @@ public class DartElementUtil {
       return null;
     }
     return resolvedUnit.getElement();
+  }
+
+  /**
+   * Synthetic implicit constructors of {@link ClassTypeAlias} use implementations of constructors
+   * from superclass.
+   * 
+   * @return the given {@link Element} or implementation {@link ConstructorElement}.
+   */
+  public static Element getExplicitIfSyntheticImplicitConstructor(Element element) {
+    if (element instanceof ConstructorElement) {
+      ConstructorElement constructor = (ConstructorElement) element;
+      if (constructor.isSynthetic()) {
+        ConstructorElement redirectedConstructor = constructor.getRedirectedConstructor();
+        if (redirectedConstructor != null) {
+          return redirectedConstructor;
+        }
+      }
+    }
+    return element;
   }
 
   /**

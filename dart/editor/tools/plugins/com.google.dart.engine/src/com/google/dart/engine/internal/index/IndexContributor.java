@@ -523,6 +523,11 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
   @Override
   public Void visitConstructorName(ConstructorName node) {
     ConstructorElement element = node.getStaticElement();
+    // in 'class B = A;' actually A constructors are invoked
+    if (element.isSynthetic() && element.getRedirectedConstructor() != null) {
+      element = element.getRedirectedConstructor();
+    }
+    // prepare location
     Location location;
     if (node.getName() != null) {
       int start = node.getPeriod().getOffset();
@@ -532,6 +537,7 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
       int start = node.getType().getEnd();
       location = createLocation(start, 0);
     }
+    // record relationship
     recordRelationship(element, IndexConstants.IS_REFERENCED_BY, location);
     return super.visitConstructorName(node);
   }

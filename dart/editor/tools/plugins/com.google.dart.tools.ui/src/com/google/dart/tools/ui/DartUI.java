@@ -731,6 +731,7 @@ public final class DartUI {
       PartInitException {
     element = DartElementUtil.getVariableIfSyntheticAccessor(element);
     element = DartElementUtil.getAccessorIfSyntheticVariable(element);
+    element = DartElementUtil.getExplicitIfSyntheticImplicitConstructor(element);
     return openInEditor(element, true, true);
   }
 

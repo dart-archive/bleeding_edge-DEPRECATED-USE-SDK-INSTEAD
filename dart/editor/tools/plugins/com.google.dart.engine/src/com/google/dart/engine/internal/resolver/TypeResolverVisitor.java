@@ -804,6 +804,7 @@ public class TypeResolverVisitor extends ScopedVisitor {
         explicitConstructor.getName(),
         -1);
     implicitConstructor.setSynthetic(true);
+    implicitConstructor.setRedirectedConstructor(explicitConstructor);
     implicitConstructor.setConst(explicitConstructor.isConst());
     implicitConstructor.setReturnType(classType);
     ParameterElement[] explicitParameters = explicitConstructor.getParameters();

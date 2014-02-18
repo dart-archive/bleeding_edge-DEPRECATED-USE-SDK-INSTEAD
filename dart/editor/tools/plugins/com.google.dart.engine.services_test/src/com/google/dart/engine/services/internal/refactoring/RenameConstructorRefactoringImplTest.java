@@ -142,6 +142,37 @@ public class RenameConstructorRefactoringImplTest extends RenameRefactoringImplT
         "}");
   }
 
+  public void test_createChange_classTypeAlias() throws Exception {
+    indexTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A implements B {",
+        "  A.test() {}",
+        "}",
+        "class B = A;",
+        "main() {",
+        "  new A.test();",
+        "  new B.test();",
+        "}");
+    // configure refactoring
+    {
+      ConstructorElement constructor = findNode("A.test() {}", ConstructorDeclaration.class).getElement();
+      createRenameRefactoring(constructor);
+    }
+    assertEquals("Rename Constructor", refactoring.getRefactoringName());
+    refactoring.setNewName("newName");
+    // validate change
+    assertSuccessfulRename(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A implements B {",
+        "  A.newName() {}",
+        "}",
+        "class B = A;",
+        "main() {",
+        "  new A.newName();",
+        "  new B.newName();",
+        "}");
+  }
+
   public void test_createChange_multipleUnits() throws Exception {
     testCode = makeSource(
         "// filler filler filler filler filler filler filler filler filler filler",
