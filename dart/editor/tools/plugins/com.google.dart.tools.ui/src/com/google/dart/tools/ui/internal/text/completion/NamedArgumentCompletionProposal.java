@@ -65,7 +65,12 @@ public class NamedArgumentCompletionProposal extends AbstractDartCompletionPropo
 
   @Override
   public boolean validate(IDocument document, int offset, DocumentEvent event) {
-    return true;
+    return super.validate(document, offset, event);
+  }
+
+  @Override
+  protected boolean isValidPrefix(String prefix) {
+    return isPrefix(prefix, name);
   }
 
   private void showValueProposals(ITextViewer viewer) {

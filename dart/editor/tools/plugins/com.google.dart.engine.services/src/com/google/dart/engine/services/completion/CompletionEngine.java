@@ -904,6 +904,20 @@ public class CompletionEngine {
               pArgumentList(proposal, offset, len);
             }
           }
+        } else if (node.getParent() instanceof Annotation) {
+          Annotation annotation = (Annotation) node.getParent();
+          Element annotationElement = annotation.getElement();
+          if (annotationElement instanceof ConstructorElement) {
+            ConstructorElement constructorElement = (ConstructorElement) annotationElement;
+            // we don't need any filter
+            filter = new Filter("", -1, 0);
+            // fill parameters for "pArgumentList"
+            CompletionProposal prop = createProposal(constructorElement);
+            setParameterInfo(constructorElement.getType(), prop);
+            prop.setCompletion(constructorElement.getEnclosingElement().getName());
+            // propose the whole parameters list
+            pArgumentList(prop, 0, 0);
+          }
         }
       }
       if (isCompletionBetween(
@@ -1667,7 +1681,10 @@ public class CompletionEngine {
         proposeName(element, identifier, names);
       }
       if (element instanceof ClassElement) {
-        proposeName(element, identifier, names);
+        ClassElement classElement = (ClassElement) element;
+        for (ConstructorElement constructor : classElement.getConstructors()) {
+          pNamedConstructor(classElement, constructor, identifier);
+        }
       }
     }
   }
@@ -1788,6 +1805,13 @@ public class CompletionEngine {
     if (argsParent instanceof InstanceCreationExpression) {
       InstanceCreationExpression creation = (InstanceCreationExpression) argsParent;
       parameters = ((ExecutableElement) creation.getStaticElement()).getParameters();
+    }
+    if (argsParent instanceof Annotation) {
+      Annotation annotation = (Annotation) argsParent;
+      Element element = annotation.getElement();
+      if (element instanceof ConstructorElement) {
+        parameters = ((ConstructorElement) element).getParameters();
+      }
     }
     if (parameters == null) {
       return;
@@ -2701,7 +2725,9 @@ public class CompletionEngine {
     prop.setReturnType(element.getType().getReturnType().getName());
     Element container = element.getEnclosingElement();
     prop.setDeclaringType(container.getDisplayName());
-    prop.setReplacementLengthIdentifier(identifier.getLength());
+    if (identifier != null) {
+      prop.setReplacementLengthIdentifier(identifier.getLength());
+    }
     requestor.accept(prop);
   }
 
