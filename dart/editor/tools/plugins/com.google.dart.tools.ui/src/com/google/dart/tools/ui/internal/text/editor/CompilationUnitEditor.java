@@ -305,6 +305,9 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
 
     @Override
     public void verifyKey(VerifyEvent event) {
+      if (!isEditable()) {
+        return;
+      }
 
       // early pruning to slow down normal typing as little as possible
       if (!event.doit || getInsertMode() != SMART_INSERT || isBlockSelectionModeEnabled()
