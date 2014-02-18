@@ -732,6 +732,7 @@ public final class DartUI {
     element = DartElementUtil.getVariableIfSyntheticAccessor(element);
     element = DartElementUtil.getAccessorIfSyntheticVariable(element);
     element = DartElementUtil.getExplicitIfSyntheticImplicitConstructor(element);
+    element = DartElementUtil.getClassIfSyntheticDefaultConstructor(element);
     return openInEditor(element, true, true);
   }
 

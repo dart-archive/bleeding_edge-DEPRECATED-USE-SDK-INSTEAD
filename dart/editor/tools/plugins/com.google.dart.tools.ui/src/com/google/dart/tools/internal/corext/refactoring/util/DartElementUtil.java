@@ -3,6 +3,7 @@ package com.google.dart.tools.internal.corext.refactoring.util;
 import com.google.dart.engine.ast.ClassTypeAlias;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
@@ -230,6 +231,22 @@ public class DartElementUtil {
   public static Element getBaseIfMember(Element element) {
     if (element instanceof Member) {
       return ((Member) element).getBaseElement();
+    }
+    return element;
+  }
+
+  /**
+   * There is nothing to open for synthetic default constructor. We can show {@link ClassElement}
+   * instead.
+   * 
+   * @return the given {@link Element} or {@link ClassElement}.
+   */
+  public static Element getClassIfSyntheticDefaultConstructor(Element element) {
+    if (element instanceof ConstructorElement) {
+      ConstructorElement constructor = (ConstructorElement) element;
+      if (constructor.isSynthetic()) {
+        return constructor.getEnclosingElement();
+      }
     }
     return element;
   }
