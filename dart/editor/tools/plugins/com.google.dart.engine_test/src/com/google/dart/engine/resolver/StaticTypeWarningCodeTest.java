@@ -1173,6 +1173,15 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_wrongNumberOfTypeArguments_classAlias() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "class B<F extends num> = A<F>;"));
+    resolve(source);
+    assertErrors(source, StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS);
+    verify(source);
+  }
+
   public void test_wrongNumberOfTypeArguments_tooFew() throws Exception {
     Source source = addSource(createSource(//
         "class A<E, F> {}",

@@ -851,7 +851,7 @@ public class TypeResolverVisitor extends ScopedVisitor {
       }
     } else {
       NodeList<TypeName> arguments = typeArguments.getArguments();
-      int argumentCount = arguments.size();
+      int argumentCount = Math.min(arguments.size(), parameterCount);
       for (int i = 0; i < argumentCount; i++) {
         types[i] = arguments.get(i).getType();
       }
