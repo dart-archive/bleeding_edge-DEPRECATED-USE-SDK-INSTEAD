@@ -9,7 +9,6 @@ homepage
 url
 ref
 environment
-path
 documentation
 dependency_overrides
 transformers
