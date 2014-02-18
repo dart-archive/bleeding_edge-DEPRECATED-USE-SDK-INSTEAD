@@ -95,7 +95,9 @@ public class ActionUtil {
         }
       }
       // show name or element kind
-      if (name.length() > MAX_NAME_LENGTH) {
+      if (name == null) {
+        text.append(STRING_SELECTION);
+      } else if (name.length() > MAX_NAME_LENGTH) {
         text.append(element.getKind().getDisplayName());
       } else {
         text.append('\"');
