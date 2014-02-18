@@ -524,7 +524,7 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
   public Void visitConstructorName(ConstructorName node) {
     ConstructorElement element = node.getStaticElement();
     // in 'class B = A;' actually A constructors are invoked
-    if (element.isSynthetic() && element.getRedirectedConstructor() != null) {
+    if (element != null && element.isSynthetic() && element.getRedirectedConstructor() != null) {
       element = element.getRedirectedConstructor();
     }
     // prepare location
