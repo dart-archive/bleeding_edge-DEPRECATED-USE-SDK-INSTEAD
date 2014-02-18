@@ -13,16 +13,25 @@
  */
 package com.google.dart.tools.ui.internal.projects;
 
+import com.google.common.collect.Lists;
 import com.google.dart.tools.ui.DartToolsPlugin;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.window.IShellProvider;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IEditorReference;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.actions.CloseResourceAction;
 import org.eclipse.ui.ide.IDE;
+import org.eclipse.ui.part.FileEditorInput;
+
+import java.util.List;
 
 /**
  * Standard action for hiding the currently selected project(s).
@@ -76,6 +85,12 @@ public class HideProjectAction extends CloseResourceAction {
         try {
           // Prompt occurs in super#run(), don't nag again
           IDE.saveAllEditors(new IResource[] {project}, false);
+          // Close project's editors.
+          {
+            IWorkbenchPage activePage = DartToolsPlugin.getActivePage();
+            IEditorReference[] editorRefs = collectEditorReferences(activePage, project);
+            activePage.closeEditors(editorRefs, false);
+          }
         } catch (Throwable th) {
           ex[0] = th;
         }
@@ -86,4 +101,20 @@ public class HideProjectAction extends CloseResourceAction {
     }
   }
 
+  private IEditorReference[] collectEditorReferences(IWorkbenchPage activePage, IResource project)
+      throws PartInitException {
+    List<IEditorReference> references = Lists.newArrayList();
+    // add editors with project's resources
+    for (IEditorReference editorRef : activePage.getEditorReferences()) {
+      IEditorInput input = editorRef.getEditorInput();
+      if (input instanceof FileEditorInput) {
+        FileEditorInput fileEditorInput = (FileEditorInput) input;
+        IFile file = fileEditorInput.getFile();
+        if (file.getProject().equals(project)) {
+          references.add(editorRef);
+        }
+      }
+    }
+    return references.toArray(new IEditorReference[] {});
+  }
 }
