@@ -59,7 +59,7 @@ import java.util.List;
  * @coverage dart.engine.sdk
  */
 public class SdkLibrariesReader {
-  private static class LibraryBuilder extends RecursiveASTVisitor<Void> {
+  public static class LibraryBuilder extends RecursiveASTVisitor<Void> {
     /**
      * The prefix added to the name of a library to form the URI used in code to reference the
      * library.
@@ -71,6 +71,11 @@ public class SdkLibrariesReader {
      * library.
      */
     private static final String IMPLEMENTATION = "implementation"; //$NON-NLS-1$
+
+    /**
+     * The name of the optional parameter used to specify the path used when compiling for dart2js.
+     */
+    private static final String DART2JS_PATH = "dart2jsPath"; //$NON-NLS-1$
 
     /**
      * The name of the optional parameter used to indicate whether the library is documented.
@@ -95,10 +100,25 @@ public class SdkLibrariesReader {
     private static final String VM_PLATFORM = "VM_PLATFORM"; //$NON-NLS-1$
 
     /**
+     * A flag indicating whether the dart2js path should be used when it is available.
+     */
+    private boolean useDart2jsPaths;
+
+    /**
      * The library map that is populated by visiting the AST structure parsed from the contents of
      * the libraries file.
      */
     private LibraryMap librariesMap = new LibraryMap();
+
+    /**
+     * Initialize a newly created library builder to use the dart2js path if the given value is
+     * {@code true}.
+     * 
+     * @param useDart2jsPaths {@code true} if the dart2js path should be used when it is available
+     */
+    public LibraryBuilder(boolean useDart2jsPaths) {
+      this.useDart2jsPaths = useDart2jsPaths;
+    }
 
     /**
      * Return the library map that was populated by visiting the AST structure parsed from the
@@ -142,6 +162,10 @@ public class SdkLibrariesReader {
                   library.setDart2JsLibrary();
                 }
               }
+            } else if (useDart2jsPaths && name.equals(DART2JS_PATH)) {
+              if (expression instanceof SimpleStringLiteral) {
+                library.setPath(((SimpleStringLiteral) expression).getValue());
+              }
             }
           }
         }
@@ -149,6 +173,21 @@ public class SdkLibrariesReader {
       }
       return null;
     }
+  }
+
+  /**
+   * A flag indicating whether the dart2js path should be used when it is available.
+   */
+  private boolean useDart2jsPaths;
+
+  /**
+   * Initialize a newly created library reader to use the dart2js path if the given value is
+   * {@code true}.
+   * 
+   * @param useDart2jsPaths {@code true} if the dart2js path should be used when it is available
+   */
+  public SdkLibrariesReader(boolean useDart2jsPaths) {
+    this.useDart2jsPaths = useDart2jsPaths;
   }
 
   /**
@@ -177,7 +216,7 @@ public class SdkLibrariesReader {
         errorListener);
     Parser parser = new Parser(source, errorListener);
     CompilationUnit unit = parser.parseCompilationUnit(scanner.tokenize());
-    LibraryBuilder libraryBuilder = new LibraryBuilder();
+    LibraryBuilder libraryBuilder = new LibraryBuilder(useDart2jsPaths);
     // If any syntactic errors were found then don't try to visit the AST structure.
     if (!errorListener.getErrorReported()) {
       unit.accept(libraryBuilder);

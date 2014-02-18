@@ -19,14 +19,40 @@ import com.google.dart.engine.sdk.SdkLibrary;
 import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
 
 public class SDKLibrariesReaderTest extends EngineTestCase {
+  public void test_readFrom_dart2js() {
+    LibraryMap libraryMap = new SdkLibrariesReader(true).readFrom(
+        createFile("/libs.dart"),
+        createSource(//
+            "final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {",
+            "  'first' : const LibraryInfo(",
+            "    'first/first.dart',",
+            "    category: 'First',",
+            "    documented: true,",
+            "    platforms: VM_PLATFORM,",
+            "    dart2jsPath: 'first/first_dart2js.dart'),",
+            "};"));
+    assertNotNull(libraryMap);
+    assertEquals(1, libraryMap.size());
+
+    SdkLibrary first = libraryMap.getLibrary("dart:first");
+    assertNotNull(first);
+    assertEquals("First", first.getCategory());
+    assertEquals("first/first_dart2js.dart", first.getPath());
+    assertEquals("dart:first", first.getShortName());
+    assertEquals(false, first.isDart2JsLibrary());
+    assertEquals(true, first.isDocumented());
+    assertEquals(false, first.isImplementation());
+    assertEquals(true, first.isVmLibrary());
+  }
+
   public void test_readFrom_empty() {
-    LibraryMap libraryMap = new SdkLibrariesReader().readFrom(createFile("/libs.dart"), "");
+    LibraryMap libraryMap = new SdkLibrariesReader(false).readFrom(createFile("/libs.dart"), "");
     assertNotNull(libraryMap);
     assertEquals(0, libraryMap.size());
   }
 
-  public void test_readFrom_nonEmpty() {
-    LibraryMap libraryMap = new SdkLibrariesReader().readFrom(
+  public void test_readFrom_normal() {
+    LibraryMap libraryMap = new SdkLibrariesReader(false).readFrom(
         createFile("/libs.dart"),
         createSource(//
             "final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {",

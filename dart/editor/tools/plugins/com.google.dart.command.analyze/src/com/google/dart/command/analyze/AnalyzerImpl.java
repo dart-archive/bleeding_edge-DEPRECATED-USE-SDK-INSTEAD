@@ -61,10 +61,10 @@ public class AnalyzerImpl {
   /**
    * @return the new or cached instance of the {@link DartSdk} with the given directory.
    */
-  private static DirectoryBasedDartSdk getSdk(File sdkDirectory) {
+  private static DirectoryBasedDartSdk getSdk(File sdkDirectory, boolean useDart2jsPaths) {
     DirectoryBasedDartSdk sdk = sdkMap.get(sdkDirectory);
     if (sdk == null) {
-      sdk = new DirectoryBasedDartSdk(sdkDirectory);
+      sdk = new DirectoryBasedDartSdk(sdkDirectory, useDart2jsPaths);
       sdkMap.put(sdkDirectory, sdk);
     }
     return sdk;
@@ -76,7 +76,7 @@ public class AnalyzerImpl {
 
   public AnalyzerImpl(AnalyzerOptions options) {
     this.options = options;
-    this.sdk = getSdk(options.getDartSdkPath());
+    this.sdk = getSdk(options.getDartSdkPath(), options.getUseDart2jsPaths());
   }
 
   /**

@@ -192,9 +192,19 @@ public class DirectoryBasedDartSdk implements DartSdk {
    * @param sdkDirectory the directory containing the SDK
    */
   public DirectoryBasedDartSdk(File sdkDirectory) {
+    this(sdkDirectory, false);
+  }
+
+  /**
+   * Initialize a newly created SDK to represent the Dart SDK installed in the given directory.
+   * 
+   * @param sdkDirectory the directory containing the SDK
+   * @param useDart2jsPaths {@code true} if the dart2js path should be used when it is available
+   */
+  public DirectoryBasedDartSdk(File sdkDirectory, boolean useDart2jsPaths) {
     this.sdkDirectory = sdkDirectory.getAbsoluteFile();
     initializeSdk();
-    initializeLibraryMap();
+    initializeLibraryMap(useDart2jsPaths);
     analysisContext = new AnalysisContextImpl();
     analysisContext.setSourceFactory(new SourceFactory(new DartUriResolver(this)));
     String[] uris = getUris();
@@ -438,12 +448,14 @@ public class DirectoryBasedDartSdk implements DartSdk {
 
   /**
    * Read all of the configuration files to initialize the library maps.
+   * 
+   * @param useDart2jsPaths {@code true} if the dart2js path should be used when it is available
    */
-  private void initializeLibraryMap() {
+  private void initializeLibraryMap(boolean useDart2jsPaths) {
     File librariesFile = new File(new File(getLibraryDirectory(), INTERNAL_DIR), LIBRARIES_FILE);
     try {
       String contents = FileUtilities.getContents(librariesFile);
-      libraryMap = new SdkLibrariesReader().readFrom(librariesFile, contents);
+      libraryMap = new SdkLibrariesReader(useDart2jsPaths).readFrom(librariesFile, contents);
     } catch (Exception exception) {
       AnalysisEngine.getInstance().getLogger().logError(
           "Could not initialize the library map from " + librariesFile.getAbsolutePath(),

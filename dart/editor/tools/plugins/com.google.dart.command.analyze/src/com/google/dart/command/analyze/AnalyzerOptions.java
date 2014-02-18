@@ -135,6 +135,10 @@ public class AnalyzerOptions {
   // usage = "The path to the Dart SDK") // don't show in help
   private File dartSdkPath = null;
 
+  @Option(name = "--use-dart2js-libraries")
+  // usage = "Use the same resolution of dart: URI's as dart2js (defaults to the resolution used by the VM)") // don't show in help
+  private boolean useDart2jsPaths = false;
+
   @Option(name = "--verbose", //
   aliases = {"-v"})
   // TODO(devoncarew): document this flag when it is supported
@@ -252,6 +256,16 @@ public class AnalyzerOptions {
    */
   public String getSourceFile() {
     return sourceFile;
+  }
+
+  /**
+   * Return {@code true} if the analyzer should use the same resolution of dart: URI's as dart2js,
+   * or {@code false} if it should use the resolution used by the VM.
+   * 
+   * @return {@code true} if the analyzer should use the dart2js paths when they are available
+   */
+  public boolean getUseDart2jsPaths() {
+    return useDart2jsPaths;
   }
 
   /**
