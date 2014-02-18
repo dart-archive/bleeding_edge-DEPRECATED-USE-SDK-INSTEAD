@@ -20,13 +20,14 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class DebuggerPatternMatchListenerTest extends TestCase {
-  Pattern dartiumPattern = Pattern.compile(DebuggerPatternMatchListener.DARTIUM_PATTERN);
+  Pattern dartiumPattern1 = Pattern.compile(DebuggerPatternMatchListener.DARTIUM_PATTERN_1);
+  Pattern dartiumPattern2 = Pattern.compile(DebuggerPatternMatchListener.DARTIUM_PATTERN_2);
   Pattern unitTestPattern = Pattern.compile(DebuggerPatternMatchListener.UNITTEST_PATTERN);
 
   public void testDartiumPattern1() {
     final String test1 = "(http://127.0.0.1:3030/Users/util/debuggertest/web_test.dart:33:14)";
 
-    Matcher matcher = dartiumPattern.matcher(test1);
+    Matcher matcher = dartiumPattern1.matcher(test1);
 
     assertEquals(true, matcher.find());
     assertEquals("http://127.0.0.1:3030/Users/util/debuggertest/web_test.dart", matcher.group(1));
@@ -36,13 +37,23 @@ public class DebuggerPatternMatchListenerTest extends TestCase {
   public void testDartiumPattern2() {
     final String test1 = "(file:///Users/devoncarew/projects/dart/dart/editor/util/debuggertest/cmd_test.dart:30:11)";
 
-    Matcher matcher = dartiumPattern.matcher(test1);
+    Matcher matcher = dartiumPattern1.matcher(test1);
 
     assertEquals(true, matcher.find());
     assertEquals(
         "file:///Users/devoncarew/projects/dart/dart/editor/util/debuggertest/cmd_test.dart",
         matcher.group(1));
     assertEquals("30", matcher.group(2));
+  }
+
+  public void testDartiumPattern3() {
+    final String test1 = "(web.dart:10)";
+
+    Matcher matcher = dartiumPattern2.matcher(test1);
+
+    assertEquals(true, matcher.find());
+    assertEquals("web.dart", matcher.group(1));
+    assertEquals("10", matcher.group(2));
   }
 
   public void testUnitTestPattern1() {

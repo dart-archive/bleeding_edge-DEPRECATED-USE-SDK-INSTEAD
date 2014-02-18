@@ -173,12 +173,7 @@ public class WebkitConsole extends WebkitDomain {
       /** Message source. */
       String source = message.optString("source");
       /** JavaScript stack trace for assertions and error messages. */
-      List<CallFrame> stackTrace = null;
-
-      // Only include the stack trace if the log level is "error".
-      if ("error".equals(level)) {
-        stackTrace = CallFrame.createFrom(message.optJSONArray("stackTrace"));
-      }
+      List<CallFrame> stackTrace = CallFrame.createFrom(message.optJSONArray("stackTrace"));
 
       for (ConsoleListener listener : listeners) {
         listener.messageAdded(text, url, line, stackTrace);

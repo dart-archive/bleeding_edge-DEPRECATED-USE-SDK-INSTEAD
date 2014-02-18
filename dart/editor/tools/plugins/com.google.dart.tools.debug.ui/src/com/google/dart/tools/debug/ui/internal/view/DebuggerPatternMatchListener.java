@@ -91,11 +91,12 @@ public class DebuggerPatternMatchListener implements IPatternMatchListener {
     }
   }
 
-  public static String DARTIUM_PATTERN = "\\(((?:http://|file:|package:|chrome-extension:)\\S+):(\\d*):\\d*\\)";
-
+  public static String DARTIUM_PATTERN_1 = "\\((\\S+):(\\d+):(\\d+)\\)";
+  public static String DARTIUM_PATTERN_2 = "\\((\\S+):(\\d+)\\)";
   public static String UNITTEST_PATTERN = "^  (\\S*\\.dart) (\\d*)";
 
-  private static Pattern dartiumPattern = Pattern.compile(DebuggerPatternMatchListener.DARTIUM_PATTERN);
+  private static Pattern dartiumPattern1 = Pattern.compile(DebuggerPatternMatchListener.DARTIUM_PATTERN_1);
+  private static Pattern dartiumPattern2 = Pattern.compile(DebuggerPatternMatchListener.DARTIUM_PATTERN_2);
   private static Pattern unitTestPattern = Pattern.compile(DebuggerPatternMatchListener.UNITTEST_PATTERN);
 
   private TextConsole console;
@@ -145,13 +146,17 @@ public class DebuggerPatternMatchListener implements IPatternMatchListener {
     try {
       String text = console.getDocument().get(event.getOffset(), event.getLength());
 
-      Matcher match = dartiumPattern.matcher(text);
+      Matcher match = dartiumPattern1.matcher(text);
 
       if (!match.find()) {
-        match = unitTestPattern.matcher(text);
+        match = dartiumPattern2.matcher(text);
 
         if (!match.find()) {
-          match = null;
+          match = unitTestPattern.matcher(text);
+
+          if (!match.find()) {
+            match = null;
+          }
         }
       }
 
