@@ -48,7 +48,7 @@ public class RenameImportRefactoringImplTest extends RenameRefactoringImplTest {
     indexTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
         "import 'dart:async';",
-        "import 'dart:math';",
+        "import 'dart:math' show Random, min hide max;",
         "main() {",
         "  Future f;",
         "  Random r;",
@@ -63,7 +63,7 @@ public class RenameImportRefactoringImplTest extends RenameRefactoringImplTest {
     assertSuccessfulRename(
         "// filler filler filler filler filler filler filler filler filler filler",
         "import 'dart:async';",
-        "import 'dart:math' as newName;",
+        "import 'dart:math' as newName show Random, min hide max;",
         "main() {",
         "  Future f;",
         "  newName.Random r;",

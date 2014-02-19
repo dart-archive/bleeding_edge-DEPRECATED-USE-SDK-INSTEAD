@@ -24,6 +24,7 @@ import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.ClassTypeAlias;
+import com.google.dart.engine.ast.Combinator;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.ConstructorFieldInitializer;
@@ -326,6 +327,14 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
     }
     // done
     return location;
+  }
+
+  /**
+   * @return {@code true} if given "node" is part of an import {@link Combinator}.
+   */
+  private static boolean isIdentifierInImportCombinator(SimpleIdentifier node) {
+    ASTNode parent = node.getParent();
+    return parent instanceof Combinator;
   }
 
   /**
@@ -870,6 +879,9 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
    * top-level element and not qualified with import prefix.
    */
   private void recordImportElementReferenceWithoutPrefix(SimpleIdentifier node) {
+    if (isIdentifierInImportCombinator(node)) {
+      return;
+    }
     if (isIdentifierInPrefixedIdentifier(node)) {
       return;
     }

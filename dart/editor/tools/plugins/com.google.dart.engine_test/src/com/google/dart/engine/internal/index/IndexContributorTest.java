@@ -945,10 +945,11 @@ public class IndexContributorTest extends AbstractDartTest {
             "// filler filler filler filler filler filler filler filler filler filler",
             "library lib;",
             "var myVar;",
-            "myFunction() {}"));
+            "myFunction() {}",
+            "myToHide() {}"));
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "import 'Lib.dart';",
+        "import 'Lib.dart' show myVar, myFunction hide myToHide;",
         "main() {",
         "  myVar = 1;",
         "  myFunction();",
@@ -977,6 +978,22 @@ public class IndexContributorTest extends AbstractDartTest {
         importElement,
         IndexConstants.IS_REFERENCED_BY,
         new ExpectedLocation(mainElement, findOffset("print(0);"), ""));
+    // no references from import combinators
+    assertNoRecordedRelation(
+        relations,
+        importElement,
+        IndexConstants.IS_REFERENCED_BY,
+        new ExpectedLocation(testUnitElement, findOffset("myVar, "), ""));
+    assertNoRecordedRelation(
+        relations,
+        importElement,
+        IndexConstants.IS_REFERENCED_BY,
+        new ExpectedLocation(testUnitElement, findOffset("myFunction hide"), ""));
+    assertNoRecordedRelation(
+        relations,
+        importElement,
+        IndexConstants.IS_REFERENCED_BY,
+        new ExpectedLocation(testUnitElement, findOffset("myToHide;"), ""));
   }
 
   public void test_isReferencedBy_ImportElement_withPrefix() throws Exception {
