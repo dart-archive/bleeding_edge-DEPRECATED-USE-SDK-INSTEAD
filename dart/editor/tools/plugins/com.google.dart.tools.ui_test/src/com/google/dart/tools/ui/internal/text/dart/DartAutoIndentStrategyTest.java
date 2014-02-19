@@ -168,6 +168,27 @@ public class DartAutoIndentStrategyTest extends EngineTestCase {
         "}"));
   }
 
+  /**
+   * <p>
+   * https://code.google.com/p/dart/issues/detail?id=16899
+   */
+  public void test_smartIndentAfterNewLine_blockAfterWrappedArgumentList() throws Exception {
+    assertSmartInsertAfterNewLine(createSource(//
+        "main() {",
+        "  f(",
+        "      111,",
+        "      222).then(() {!",
+        "  });",
+        "}"), createSource(//
+        "main() {",
+        "  f(",
+        "      111,",
+        "      222).then(() {",
+        "    !",
+        "  });",
+        "}"));
+  }
+
   public void test_smartIndentAfterNewLine_classBeforeMethod() throws Exception {
     assertSmartInsertAfterNewLine(createSource(//
         "class A {!main() {}"),

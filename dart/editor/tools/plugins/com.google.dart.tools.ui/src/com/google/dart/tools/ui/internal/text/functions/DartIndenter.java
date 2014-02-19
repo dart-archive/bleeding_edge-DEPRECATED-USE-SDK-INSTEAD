@@ -1269,6 +1269,23 @@ public class DartIndenter {
     return false;
   }
 
+  private boolean looksLikeArgumentListOpen() {
+    int fPosition_ = fPosition;
+    int fPreviousPos_ = fPreviousPos;
+    try {
+      nextToken();
+      if (fToken == Symbols.TokenIDENT) {
+        fPosition_ = fPosition;
+        fPreviousPos_ = fPreviousPos;
+        return true;
+      }
+      return false;
+    } finally {
+      fPosition = fPosition_;
+      fPreviousPos = fPreviousPos_;
+    }
+  }
+
   /**
    * Returns <code>true</code> if the next token received after calling <code>nextToken</code> is
    * either an equal sign or an array designator ('[]').
@@ -1837,6 +1854,9 @@ public class DartIndenter {
         case Symbols.TokenEOF:
           if (isInBlock) {
             fIndent = getBlockIndent(mayBeMethodBody == READ_IDENT, isTypeBody);
+          }
+          if (looksLikeArgumentListOpen()) {
+            break;
           }
           // else: fIndent set by previous calls
           return fPreviousPos;
