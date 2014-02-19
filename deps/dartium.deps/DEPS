@@ -11,6 +11,7 @@ vars.update({
   "dartium_base": "http://src.chromium.org",
   "dartium_chromium_branch": "/chrome/branches/dart/1750/src",
   "dartium_chromium_revision": "252058",
+  "chromium_base_revision": "251057",
   "dart_branch": "/branches/bleeding_edge",
   "dartium_webkit_branch": "/blink/branches/dart/1750",
   "dartium_webkit_revision": "167423",
@@ -55,9 +56,23 @@ deps.update({
 
   "src/dart/runtime/bin/vmservice/client/deployed/web/bootstrap_css":
     "/third_party/bootstrap_css" + Var("bootstrap_css_rev"),
+
+  "src/chrome/tools/test/reference_build/chrome_linux": None,
+  "src/chrome/tools/test/reference_build/chrome_mac": None,
+  "src/chrome/tools/test/reference_build/chrome_win": None,
 })
 
 hooks[0:0] = [{
     "pattern": "dart",
     "action": ["python", "src/dartium_tools/generate_dart_vm_version.py"],
   }]
+
+hooks.append({
+  # Set the revision for a lazily downloaded reference build of chromium,
+  # with which to run perf tests.
+  'name': 'set_reference_build',
+  'pattern': '.',
+  'action': ['python',
+             'src/dartium_tools/set_reference_build_revision.py',
+             Var('chromium_base_revision')],
+})
