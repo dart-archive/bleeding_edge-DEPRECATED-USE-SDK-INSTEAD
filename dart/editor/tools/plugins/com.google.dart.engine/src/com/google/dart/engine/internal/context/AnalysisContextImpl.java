@@ -3680,8 +3680,8 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         invalidateLibraryResolution(library, writer);
       }
 
-      removeFromParts(source, ((DartEntry) sourceEntry));
-      DartEntryImpl dartCopy = ((DartEntry) sourceEntry).getWritableCopy();
+      removeFromParts(source, ((DartEntry) cache.get(source)));
+      DartEntryImpl dartCopy = ((DartEntry) cache.get(source)).getWritableCopy();
       dartCopy.setModificationTime(source.getModificationStamp());
       dartCopy.invalidateAllInformation();
       cache.put(source, dartCopy);
