@@ -50,6 +50,7 @@ public enum CorrectionKind {
   QF_CHANGE_TO(51, "Change to '%s'"),
   QF_CHANGE_TO_STATIC_ACCESS(50, "Change access to static using '%s'"),
   QF_CREATE_CLASS(50, CorrectionImage.IMG_CORRECTION_CLASS, "Create class '%s'"),
+  QF_CREATE_CONSTRUCTOR(50, "Create constructor '%s'"),
   QF_CREATE_CONSTRUCTOR_SUPER(50, "Create constructor to call %s"),
   QF_CREATE_FUNCTION(49, "Create function '%s'"),
   QF_CREATE_METHOD(50, "Create method '%s'"),

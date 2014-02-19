@@ -248,6 +248,90 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
         resultProposal.getLinkedPositions());
   }
 
+  public void test_createConstructor_hasNotSyntheticDefault() throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  A() {}",
+        "}",
+        "main() {",
+        "  new A(1, 2.0);",
+        "}",
+        "");
+    assertNoFix(CorrectionKind.QF_CREATE_CONSTRUCTOR);
+  }
+
+  public void test_createConstructor_insteadOfSyntheticDefault() throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  foo() {}",
+        "}",
+        "main() {",
+        "  new A(1, 2.0);",
+        "}",
+        "");
+    assert_runProcessor(
+        CorrectionKind.QF_CREATE_CONSTRUCTOR,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  A(int i, double d) {",
+            "  }",
+            "",
+            "  foo() {}",
+            "}",
+            "main() {",
+            "  new A(1, 2.0);",
+            "}",
+            ""));
+    // linked positions
+    {
+      Map<String, List<SourceRange>> expected = Maps.newHashMap();
+      expected.put("TYPE0", getResultRanges("int i"));
+      expected.put("ARG0", getResultRanges("i,"));
+      expected.put("TYPE1", getResultRanges("double d"));
+      expected.put("ARG1", getResultRanges("d) {"));
+      assertEquals(expected, resultProposal.getLinkedPositions());
+    }
+  }
+
+  public void test_createConstructor_named() throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  foo() {}",
+        "}",
+        "main() {",
+        "  new A.named(1, 2.0);",
+        "}",
+        "");
+    assert_runProcessor(
+        CorrectionKind.QF_CREATE_CONSTRUCTOR,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  A.named(int i, double d) {",
+            "  }",
+            "",
+            "  foo() {}",
+            "}",
+            "main() {",
+            "  new A.named(1, 2.0);",
+            "}",
+            ""));
+    // linked positions
+    {
+      Map<String, List<SourceRange>> expected = Maps.newHashMap();
+      expected.put("NAME", getResultRanges("named(1, 2.0);", "named(int i"));
+      expected.put("TYPE0", getResultRanges("int i"));
+      expected.put("ARG0", getResultRanges("i,"));
+      expected.put("TYPE1", getResultRanges("double d"));
+      expected.put("ARG1", getResultRanges("d) {"));
+      assertEquals(expected, resultProposal.getLinkedPositions());
+    }
+  }
+
   public void test_createConstructorSuperExplicit() throws Exception {
     prepareProblemWithFix(
         "// filler filler filler filler filler filler filler filler filler filler",
