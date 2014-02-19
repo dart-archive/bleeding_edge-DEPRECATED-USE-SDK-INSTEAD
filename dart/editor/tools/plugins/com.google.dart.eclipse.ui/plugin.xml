@@ -75,11 +75,6 @@
             commandId="com.google.dart.tools.ui.edit.text.dart.goto.matching.bracket"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
       <key
-            sequence="F3"
-            contextId="com.google.dart.tools.ui.dartViewScope"
-            commandId="com.google.dart.tools.ui.edit.text.dart.open.editor"
-            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
-      <key
            sequence="M2+M3+R"
            contextId="com.google.dart.tools.ui.dartEditorScope"
            commandId="com.google.dart.tools.ui.edit.text.dart.rename.element"
@@ -127,7 +122,17 @@
            sequence="M1+M2+T"
            contextId="com.google.dart.tools.ui.dartEditorScope"
            commandId="com.google.dart.eclipse.openType"
-           schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>             
+           schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
+      <key
+           sequence="F3"
+           contextId="com.google.dart.tools.ui.dartEditorScope"
+           commandId="com.google.dart.tools.ui.edit.text.dart.open.editor"
+           schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
+       <key
+           sequence="F4"
+           contextId="com.google.dart.tools.ui.dartEditorScope"
+           commandId="com.google.dart.tools.ui.edit.text.dart.open.type.hierarchy"
+           schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
    </extension>
    
    <extension
