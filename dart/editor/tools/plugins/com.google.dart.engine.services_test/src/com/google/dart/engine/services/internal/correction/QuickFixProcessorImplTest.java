@@ -265,7 +265,9 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
     prepareProblemWithFix(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
-        "  foo() {}",
+        "  int field;",
+        "",
+        "  method() {}",
         "}",
         "main() {",
         "  new A(1, 2.0);",
@@ -276,10 +278,12 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
         makeSource(
             "// filler filler filler filler filler filler filler filler filler filler",
             "class A {",
+            "  int field;",
+            "",
             "  A(int i, double d) {",
             "  }",
             "",
-            "  foo() {}",
+            "  method() {}",
             "}",
             "main() {",
             "  new A(1, 2.0);",
@@ -300,7 +304,7 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
     prepareProblemWithFix(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
-        "  foo() {}",
+        "  method() {}",
         "}",
         "main() {",
         "  new A.named(1, 2.0);",
@@ -314,7 +318,7 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
             "  A.named(int i, double d) {",
             "  }",
             "",
-            "  foo() {}",
+            "  method() {}",
             "}",
             "main() {",
             "  new A.named(1, 2.0);",
@@ -330,6 +334,95 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
       expected.put("ARG1", getResultRanges("d) {"));
       assertEquals(expected, resultProposal.getLinkedPositions());
     }
+  }
+
+  public void test_createConstructor_named_afterLeadingFields() throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  int fieldA;",
+        "  int fieldB;",
+        "",
+        "  method() {}",
+        "",
+        "  int fieldC;",
+        "}",
+        "main() {",
+        "  new A.named(1, 2.0);",
+        "}",
+        "");
+    assert_runProcessor(
+        CorrectionKind.QF_CREATE_CONSTRUCTOR,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  int fieldA;",
+            "  int fieldB;",
+            "",
+            "  A.named(int i, double d) {",
+            "  }",
+            "",
+            "  method() {}",
+            "",
+            "  int fieldC;",
+            "}",
+            "main() {",
+            "  new A.named(1, 2.0);",
+            "}",
+            ""));
+  }
+
+  public void test_createConstructor_named_afterOtherConstructors() throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  A() {}",
+        "",
+        "  method() {}",
+        "}",
+        "main() {",
+        "  new A.named(1, 2.0);",
+        "}",
+        "");
+    assert_runProcessor(
+        CorrectionKind.QF_CREATE_CONSTRUCTOR,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  A() {}",
+            "",
+            "  A.named(int i, double d) {",
+            "  }",
+            "",
+            "  method() {}",
+            "}",
+            "main() {",
+            "  new A.named(1, 2.0);",
+            "}",
+            ""));
+  }
+
+  public void test_createConstructor_named_noOtherMembers() throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "}",
+        "main() {",
+        "  new A.named(1, 2.0);",
+        "}",
+        "");
+    assert_runProcessor(
+        CorrectionKind.QF_CREATE_CONSTRUCTOR,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  A.named(int i, double d) {",
+            "  }",
+            "}",
+            "main() {",
+            "  new A.named(1, 2.0);",
+            "}",
+            ""));
   }
 
   public void test_createConstructorSuperExplicit() throws Exception {
@@ -416,7 +509,9 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
         "  A(p1, int p2, List<String> p3, [int p4]);",
         "}",
         "class B extends A {",
-        "  int existingMember;",
+        "  int existingField;",
+        "",
+        "  int existingMethod() {}",
         "}");
     assert_runProcessor(
         CorrectionKind.QF_CREATE_CONSTRUCTOR_SUPER,
@@ -426,9 +521,11 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
             "  A(p1, int p2, List<String> p3, [int p4]);",
             "}",
             "class B extends A {",
+            "  int existingField;",
+            "",
             "  B(p1, int p2, List<String> p3) : super(p1, p2, p3);",
             "",
-            "  int existingMember;",
+            "  int existingMethod() {}",
             "}"));
   }
 
@@ -440,6 +537,9 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
         "  A(this._field);",
         "}",
         "class B extends A {",
+        "  int existingField;",
+        "",
+        "  int existingMethod() {}",
         "}");
     assert_runProcessor(
         CorrectionKind.QF_CREATE_CONSTRUCTOR_SUPER,
@@ -450,7 +550,11 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
             "  A(this._field);",
             "}",
             "class B extends A {",
+            "  int existingField;",
+            "",
             "  B(int field) : super(field);",
+            "",
+            "  int existingMethod() {}",
             "}"));
   }
 
@@ -461,6 +565,9 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
         "  A.named(p1, int p2);",
         "}",
         "class B extends A {",
+        "  int existingField;",
+        "",
+        "  int existingMethod() {}",
         "}");
     assert_runProcessor(
         CorrectionKind.QF_CREATE_CONSTRUCTOR_SUPER,
@@ -470,7 +577,11 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
             "  A.named(p1, int p2);",
             "}",
             "class B extends A {",
+            "  int existingField;",
+            "",
             "  B.named(p1, int p2) : super.named(p1, p2);",
+            "",
+            "  int existingMethod() {}",
             "}"));
   }
 

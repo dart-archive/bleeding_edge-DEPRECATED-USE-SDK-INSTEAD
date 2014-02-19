@@ -161,6 +161,21 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
     }
   }
 
+  /**
+   * Described location for newly created {@link ConstructorDeclaration}.
+   */
+  private static class NewConstructorLocation {
+    final String prefix;
+    final int offset;
+    final String suffix;
+
+    public NewConstructorLocation(String prefix, int offset, String suffix) {
+      this.prefix = prefix;
+      this.offset = offset;
+      this.suffix = suffix;
+    }
+  }
+
   private static final CorrectionProposal[] NO_PROPOSALS = {};
 
   /**
@@ -255,18 +270,17 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
   private LibraryElement unitLibraryElement;
   private File unitFile;
   private File unitLibraryFile;
-  private File unitLibraryFolder;
 
 //  private SourceRange proposalEndRange = null;
 
+  private File unitLibraryFolder;
   private ASTNode node;
-  private ASTNode coveredNode;
 
+  private ASTNode coveredNode;
   private int selectionOffset;
   private int selectionLength;
-  private CorrectionUtils utils;
 
-  private final Map<SourceRange, Edit> positionStopEdits = Maps.newHashMap();
+  private CorrectionUtils utils;
 
   // TODO(scheglov) implement this
 //  private void addFix_createConstructor() {
@@ -341,6 +355,8 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
 //      addUnitCorrectionProposal(targetUnit, TextFileChange.FORCE_SAVE, msg, OBJ_CONSTRUCTOR_IMG);
 //    }
 //  }
+
+  private final Map<SourceRange, Edit> positionStopEdits = Maps.newHashMap();
 
   private final Map<String, List<SourceRange>> linkedPositions = Maps.newHashMap();
 
@@ -622,21 +638,20 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
     ClassElement targetElement = (ClassElement) targetType.getElement();
     Source targetSource = targetElement.getSource();
     ClassDeclaration targetClass = targetElement.getNode();
-    // prepare insert offset
-    String prefix = "  ";
-    int insertOffset = targetClass.getLeftBracket().getEnd();
+    NewConstructorLocation targetLocation = prepareNewConstructorLocation(targetClass, eol);
     // build method source
-    SourceBuilder sb = new SourceBuilder(insertOffset);
+    SourceBuilder sb = new SourceBuilder(targetLocation.offset);
     {
-      sb.append(eol);
-      sb.append(prefix);
+      String indent = "  ";
+      sb.append(targetLocation.prefix);
+      sb.append(indent);
       sb.append(targetElement.getName());
       addFix_undefinedMethod_create_parameters(sb, instanceCreation.getArgumentList());
-      sb.append(") {" + eol + prefix + "}");
-      sb.append(eol);
+      sb.append(") {" + eol + indent + "}");
+      sb.append(targetLocation.suffix);
     }
     // insert source
-    addInsertEdit(insertOffset, sb.toString());
+    addInsertEdit(sb);
     // add linked positions
     addLinkedPositions(sb);
     // add proposal
@@ -678,14 +693,13 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
     ClassElement targetElement = (ClassElement) targetType.getElement();
     Source targetSource = targetElement.getSource();
     ClassDeclaration targetClass = targetElement.getNode();
-    // prepare insert offset
-    String prefix = "  ";
-    int insertOffset = targetClass.getLeftBracket().getEnd();
+    NewConstructorLocation targetLocation = prepareNewConstructorLocation(targetClass, eol);
     // build method source
-    SourceBuilder sb = new SourceBuilder(insertOffset);
+    SourceBuilder sb = new SourceBuilder(targetLocation.offset);
     {
-      sb.append(eol);
-      sb.append(prefix);
+      String indent = "  ";
+      sb.append(targetLocation.prefix);
+      sb.append(indent);
       sb.append(targetElement.getName());
       sb.append(".");
       // append name
@@ -695,11 +709,11 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
         sb.endPosition();
       }
       addFix_undefinedMethod_create_parameters(sb, instanceCreation.getArgumentList());
-      sb.append(") {" + eol + prefix + "}");
-      sb.append(eol);
+      sb.append(") {" + eol + indent + "}");
+      sb.append(targetLocation.suffix);
     }
     // insert source
-    addInsertEdit(insertOffset, sb.toString());
+    addInsertEdit(sb);
     // add linked positions
     if (Objects.equal(targetSource, source)) {
       addLinkedPosition("NAME", sb, rangeNode(name));
@@ -818,12 +832,12 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
         argumentsBuffer.append(parameterName);
       }
       // add proposal
-      int insertOffset = targetClassNode.getLeftBracket().getEnd();
-      SourceBuilder sb = new SourceBuilder(insertOffset);
+      String eol = utils.getEndOfLine();
+      NewConstructorLocation targetLocation = prepareNewConstructorLocation(targetClassNode, eol);
+      SourceBuilder sb = new SourceBuilder(targetLocation.offset);
       {
-        String eol = utils.getEndOfLine();
         String indent = utils.getIndent(1);
-        sb.append(eol);
+        sb.append(targetLocation.prefix);
         sb.append(indent);
         sb.append(targetClassName);
         if (!constructorName.isEmpty()) {
@@ -842,9 +856,7 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
         sb.append("(");
         sb.append(argumentsBuffer);
         sb.append(");");
-        if (!targetClassNode.getMembers().isEmpty()) {
-          sb.append(eol);
-        }
+        sb.append(targetLocation.suffix);
       }
       addInsertEdit(sb);
       // add proposal
@@ -1977,6 +1989,27 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
       return true;
     }
     return false;
+  }
+
+  private NewConstructorLocation prepareNewConstructorLocation(ClassDeclaration classDeclaration,
+      String eol) {
+    List<ClassMember> members = classDeclaration.getMembers();
+    // find the last field/constructor
+    ClassMember lastFieldOrConstructor = null;
+    for (ClassMember member : members) {
+      if (member instanceof FieldDeclaration || member instanceof ConstructorDeclaration) {
+        lastFieldOrConstructor = member;
+      } else {
+        break;
+      }
+    }
+    // after the field/constructor
+    if (lastFieldOrConstructor != null) {
+      return new NewConstructorLocation(eol + eol, lastFieldOrConstructor.getEnd(), "");
+    }
+    // at the beginning of the class
+    String suffix = members.isEmpty() ? "" : eol;
+    return new NewConstructorLocation(eol, classDeclaration.getLeftBracket().getEnd(), suffix);
   }
 
   /**
