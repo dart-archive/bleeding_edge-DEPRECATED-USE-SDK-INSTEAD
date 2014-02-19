@@ -56,10 +56,16 @@ deps.update({
 
   "src/dart/runtime/bin/vmservice/client/deployed/web/bootstrap_css":
     "/third_party/bootstrap_css" + Var("bootstrap_css_rev"),
+})
 
-  "src/chrome/tools/test/reference_build/chrome_linux": None,
-  "src/chrome/tools/test/reference_build/chrome_mac": None,
-  "src/chrome/tools/test/reference_build/chrome_win": None,
+deps_os['win'].update({
+  "src/chrome/tools/test/reference_build/chrome_win": None
+})
+deps_os['mac'].update({
+  "src/chrome/tools/test/reference_build/chrome_mac": None
+})
+deps_os['unix'].update({
+  "src/chrome/tools/test/reference_build/chrome_linux": None
 })
 
 hooks[0:0] = [{

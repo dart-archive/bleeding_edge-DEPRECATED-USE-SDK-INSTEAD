@@ -42,9 +42,16 @@ deps.update({
     Var("multivm_base") + Var("multivm_chromium_branch") + "@" +
         Var("multivm_chromium_revision"),
   "src/dartium_tools": Var("multivm_base") + Var("dartium_tools_branch"),
-  "src/chrome/tools/test/reference_build/chrome_linux": None,
-  "src/chrome/tools/test/reference_build/chrome_mac": None,
-  "src/chrome/tools/test/reference_build/chrome_win": None,
+})
+
+deps_os['win'].update({
+  "src/chrome/tools/test/reference_build/chrome_win": None
+})
+deps_os['mac'].update({
+  "src/chrome/tools/test/reference_build/chrome_mac": None
+})
+deps_os['unix'].update({
+  "src/chrome/tools/test/reference_build/chrome_linux": None
 })
 
 hooks.append({
