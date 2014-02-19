@@ -22,13 +22,11 @@ import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
 import com.google.dart.engine.internal.context.PerformanceStatistics;
 import com.google.dart.engine.internal.context.RecordingErrorListener;
+import com.google.dart.engine.internal.context.TimestampedData;
 import com.google.dart.engine.parser.Parser;
-import com.google.dart.engine.scanner.CharSequenceReader;
-import com.google.dart.engine.scanner.Scanner;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.general.TimeCounter.TimeCounterHandle;
-import com.google.dart.engine.utilities.source.LineInfo;
 
 /**
  * Instances of the class {@code ParseDartTask} parse a specific source as a Dart file.
@@ -43,11 +41,6 @@ public class ParseDartTask extends AnalysisTask {
    * The time at which the contents of the source were last modified.
    */
   private long modificationTime = -1L;
-
-  /**
-   * The line information that was produced.
-   */
-  private LineInfo lineInfo;
 
   /**
    * The compilation unit that was produced by parsing the source.
@@ -106,16 +99,6 @@ public class ParseDartTask extends AnalysisTask {
   }
 
   /**
-   * Return the line information that was produced, or {@code null} if the task has not yet been
-   * performed or if an exception occurred.
-   * 
-   * @return the line information that was produced
-   */
-  public LineInfo getLineInfo() {
-    return lineInfo;
-  }
-
-  /**
    * Return the time at which the contents of the source that was parsed were last modified, or a
    * negative value if the task has not yet been performed or if an exception occurred.
    * 
@@ -165,33 +148,12 @@ public class ParseDartTask extends AnalysisTask {
   @Override
   protected void internalPerform() throws AnalysisException {
     final RecordingErrorListener errorListener = new RecordingErrorListener();
-    final Token[] token = {null};
-    //
-    // Scan the contents of the file.
-    //
-    Source.ContentReceiver receiver = new Source.ContentReceiver() {
-      @Override
-      public void accept(CharSequence contents, long modificationTime) {
-        ParseDartTask.this.modificationTime = modificationTime;
-        TimeCounterHandle timeCounterScan = PerformanceStatistics.scan.start();
-        try {
-          Scanner scanner = new Scanner(source, new CharSequenceReader(contents), errorListener);
-          scanner.setPreserveComments(getContext().getAnalysisOptions().getPreserveComments());
-          token[0] = scanner.tokenize();
-          lineInfo = new LineInfo(scanner.getLineStarts());
-        } finally {
-          timeCounterScan.stop();
-        }
-      }
-    };
-    try {
-      source.getContents(receiver);
-    } catch (Exception exception) {
-      modificationTime = source.getModificationStamp();
-      throw new AnalysisException(exception);
-    }
-    if (token[0] == null) {
-      throw new AnalysisException("Could not get contents for '" + source.getFullName() + "'");
+    InternalAnalysisContext context = getContext();
+    TimestampedData<Token> data = context.internalScanTokenStream(source);
+    modificationTime = data.getModificationTime();
+    Token token = data.getData();
+    if (token == null) {
+      throw new AnalysisException("Could not get token stream for " + source.getFullName());
     }
     //
     // Then parse the token stream.
@@ -199,8 +161,8 @@ public class ParseDartTask extends AnalysisTask {
     TimeCounterHandle timeCounterParse = PerformanceStatistics.parse.start();
     try {
       Parser parser = new Parser(source, errorListener);
-      parser.setParseFunctionBodies(getContext().getAnalysisOptions().getAnalyzeFunctionBodies());
-      unit = parser.parseCompilationUnit(token[0]);
+      parser.setParseFunctionBodies(context.getAnalysisOptions().getAnalyzeFunctionBodies());
+      unit = parser.parseCompilationUnit(token);
       errors = errorListener.getErrors(source);
       for (Directive directive : unit.getDirectives()) {
         if (directive instanceof LibraryDirective) {
@@ -209,7 +171,7 @@ public class ParseDartTask extends AnalysisTask {
           hasPartOfDirective = true;
         }
       }
-      unit.setLineInfo(lineInfo);
+      unit.setLineInfo(context.getLineInfo(source));
     } finally {
       timeCounterParse.stop();
     }

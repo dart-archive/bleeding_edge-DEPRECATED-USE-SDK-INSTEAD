@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.internal.task;
 
+import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.Directive;
 import com.google.dart.engine.ast.ExportDirective;
 import com.google.dart.engine.ast.ImportDirective;
@@ -23,7 +24,7 @@ import com.google.dart.engine.ast.UriBasedDirective;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
 import com.google.dart.engine.internal.context.PerformanceStatistics;
-import com.google.dart.engine.internal.context.ResolvableCompilationUnit;
+import com.google.dart.engine.internal.context.TimestampedData;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.general.TimeCounter.TimeCounterHandle;
 import com.google.dart.engine.utilities.io.UriUtilities;
@@ -137,14 +138,11 @@ public class ResolveDartDependenciesTask extends AnalysisTask {
 
   @Override
   protected void internalPerform() throws AnalysisException {
-    ResolvableCompilationUnit unit = getContext().computeResolvableCompilationUnit(source);
+    TimestampedData<CompilationUnit> unit = getContext().internalParseCompilationUnit(source);
     modificationTime = unit.getModificationTime();
-    //
-    // Then parse the token stream.
-    //
     TimeCounterHandle timeCounterParse = PerformanceStatistics.parse.start();
     try {
-      for (Directive directive : unit.getCompilationUnit().getDirectives()) {
+      for (Directive directive : unit.getData().getDirectives()) {
         if (directive instanceof ExportDirective) {
           Source exportSource = resolveSource(source, (ExportDirective) directive);
           if (exportSource != null) {

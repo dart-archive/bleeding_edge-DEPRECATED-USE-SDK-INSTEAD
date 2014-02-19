@@ -691,7 +691,6 @@ public class LibraryResolver {
    */
   private Library createLibrary(Source librarySource) throws AnalysisException {
     Library library = new Library(analysisContext, errorListener, librarySource);
-    library.getDefiningCompilationUnit();
     libraryMap.put(librarySource, library);
     return library;
   }

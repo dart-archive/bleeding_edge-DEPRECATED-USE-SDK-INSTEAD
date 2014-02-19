@@ -17,6 +17,7 @@ import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.internal.scope.Namespace;
+import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceKind;
 
@@ -117,6 +118,18 @@ public interface DartEntry extends SourceEntry {
    */
   public static final DataDescriptor<SourceKind> SOURCE_KIND = new DataDescriptor<SourceKind>(
       "DartEntry.SOURCE_KIND");
+
+  /**
+   * The data descriptor representing the token stream.
+   */
+  public static final DataDescriptor<AnalysisError[]> SCAN_ERRORS = new DataDescriptor<AnalysisError[]>(
+      "DartEntry.SCAN_ERRORS");
+
+  /**
+   * The data descriptor representing the token stream.
+   */
+  public static final DataDescriptor<Token> TOKEN_STREAM = new DataDescriptor<Token>(
+      "DartEntry.TOKEN_STREAM");
 
   /**
    * The data descriptor representing the errors resulting from verifying the source.

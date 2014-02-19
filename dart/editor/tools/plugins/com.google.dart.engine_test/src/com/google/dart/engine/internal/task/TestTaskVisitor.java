@@ -92,4 +92,10 @@ public class TestTaskVisitor<E> implements AnalysisTaskVisitor<E> {
     Assert.fail("Unexpectedly invoked visitResolveHtmlTask");
     return null;
   }
+
+  @Override
+  public E visitScanDartTask(ScanDartTask task) throws AnalysisException {
+    Assert.fail("Unexpectedly invoked visitScanDartTask");
+    return null;
+  }
 }

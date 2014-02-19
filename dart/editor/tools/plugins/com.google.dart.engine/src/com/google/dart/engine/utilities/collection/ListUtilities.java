@@ -27,8 +27,9 @@ public final class ListUtilities {
    * @param elements the elements to be added to the list
    */
   public static <E> void addAll(List<E> list, E[] elements) {
-    for (E element : elements) {
-      list.add(element);
+    int count = elements.length;
+    for (int i = 0; i < count; i++) {
+      list.add(elements[i]);
     }
   }
 

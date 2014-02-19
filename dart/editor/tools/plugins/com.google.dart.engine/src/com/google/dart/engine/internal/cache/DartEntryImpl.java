@@ -17,11 +17,12 @@ import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.internal.scope.Namespace;
+import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceKind;
 import com.google.dart.engine.utilities.ast.ASTCloner;
 import com.google.dart.engine.utilities.collection.BooleanArray;
-import com.google.dart.engine.utilities.source.LineInfo;
+import com.google.dart.engine.utilities.collection.ListUtilities;
 
 import java.util.ArrayList;
 
@@ -234,6 +235,27 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
   }
 
   /**
+   * The state of the cached token stream.
+   */
+  private CacheState tokenStreamState = CacheState.INVALID;
+
+  /**
+   * The head of the token stream, or {@code null} if the token stream is not currently cached.
+   */
+  private Token tokenStream;
+
+  /**
+   * The state of the cached scan errors.
+   */
+  private CacheState scanErrorsState = CacheState.INVALID;
+
+  /**
+   * The errors produced while scanning the compilation unit, or {@code null} if the errors are not
+   * currently cached.
+   */
+  private AnalysisError[] scanErrors = AnalysisError.NO_ERRORS;
+
+  /**
    * The state of the cached source kind.
    */
   private CacheState sourceKindState = CacheState.INVALID;
@@ -266,8 +288,8 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
   private CacheState parseErrorsState = CacheState.INVALID;
 
   /**
-   * The errors produced while scanning and parsing the compilation unit, or {@code null} if the
-   * errors are not currently cached.
+   * The errors produced while parsing the compilation unit, or {@code null} if the errors are not
+   * currently cached.
    */
   private AnalysisError[] parseErrors = AnalysisError.NO_ERRORS;
 
@@ -391,6 +413,10 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
    * Flush any AST structures being maintained by this entry.
    */
   public void flushAstStructures() {
+    if (tokenStreamState == CacheState.VALID) {
+      tokenStreamState = CacheState.FLUSHED;
+      tokenStream = null;
+    }
     if (parsedUnitState == CacheState.VALID) {
       parsedUnitState = CacheState.FLUSHED;
       parsedUnitAccessed = false;
@@ -402,25 +428,16 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
   @Override
   public AnalysisError[] getAllErrors() {
     ArrayList<AnalysisError> errors = new ArrayList<AnalysisError>();
-    for (AnalysisError error : parseErrors) {
-      errors.add(error);
-    }
+    ListUtilities.addAll(errors, scanErrors);
+    ListUtilities.addAll(errors, parseErrors);
     ResolutionState state = resolutionState;
     while (state != null) {
-      for (AnalysisError error : state.resolutionErrors) {
-        errors.add(error);
-      }
-      for (AnalysisError error : state.verificationErrors) {
-        errors.add(error);
-      }
-      for (AnalysisError error : state.hints) {
-        errors.add(error);
-      }
+      ListUtilities.addAll(errors, state.resolutionErrors);
+      ListUtilities.addAll(errors, state.verificationErrors);
+      ListUtilities.addAll(errors, state.hints);
       state = state.nextState;
-    };
-    for (AnalysisError error : angularErrors) {
-      errors.add(error);
     }
+    ListUtilities.addAll(errors, angularErrors);
     if (errors.size() == 0) {
       return AnalysisError.NO_ERRORS;
     }
@@ -515,8 +532,12 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
       return parsedUnitState;
     } else if (descriptor == PUBLIC_NAMESPACE) {
       return publicNamespaceState;
+    } else if (descriptor == SCAN_ERRORS) {
+      return scanErrorsState;
     } else if (descriptor == SOURCE_KIND) {
       return sourceKindState;
+    } else if (descriptor == TOKEN_STREAM) {
+      return tokenStreamState;
     } else {
       return super.getState(descriptor);
     }
@@ -575,8 +596,12 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
       return (E) parsedUnit;
     } else if (descriptor == PUBLIC_NAMESPACE) {
       return (E) publicNamespace;
+    } else if (descriptor == SCAN_ERRORS) {
+      return (E) scanErrors;
     } else if (descriptor == SOURCE_KIND) {
       return (E) sourceKind;
+    } else if (descriptor == TOKEN_STREAM) {
+      return (E) tokenStream;
     }
     return super.getValue(descriptor);
   }
@@ -637,8 +662,12 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
       return parsedUnitState == CacheState.INVALID;
     } else if (descriptor == PUBLIC_NAMESPACE) {
       return publicNamespaceState == CacheState.INVALID;
+    } else if (descriptor == SCAN_ERRORS) {
+      return scanErrorsState == CacheState.INVALID;
     } else if (descriptor == SOURCE_KIND) {
       return sourceKindState == CacheState.INVALID;
+    } else if (descriptor == TOKEN_STREAM) {
+      return tokenStreamState == CacheState.INVALID;
     } else if (descriptor == RESOLUTION_ERRORS || descriptor == RESOLVED_UNIT
         || descriptor == VERIFICATION_ERRORS || descriptor == HINTS) {
       ResolutionState state = resolutionState;
@@ -662,6 +691,12 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
   @Override
   public void invalidateAllInformation() {
     super.invalidateAllInformation();
+
+    scanErrors = AnalysisError.NO_ERRORS;
+    scanErrorsState = CacheState.INVALID;
+
+    tokenStream = null;
+    tokenStreamState = CacheState.INVALID;
 
     sourceKind = SourceKind.UNKNOWN;
     sourceKindState = CacheState.INVALID;
@@ -761,8 +796,6 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
    * as being in error.
    */
   public void recordParseError() {
-    setState(LINE_INFO, CacheState.ERROR);
-
     sourceKind = SourceKind.UNKNOWN;
     sourceKindState = CacheState.ERROR;
 
@@ -782,9 +815,6 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
    * the current thread.
    */
   public void recordParseInProcess() {
-    if (getState(LINE_INFO) != CacheState.VALID) {
-      setState(LINE_INFO, CacheState.IN_PROCESS);
-    }
     if (sourceKindState != CacheState.VALID) {
       sourceKindState = CacheState.IN_PROCESS;
     }
@@ -855,6 +885,55 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
   }
 
   /**
+   * Record that an error occurred while attempting to scan or parse the entry represented by this
+   * entry. This will set the state of all information, including any resolution-based information,
+   * as being in error.
+   */
+  public void recordScanError() {
+    setState(LINE_INFO, CacheState.ERROR);
+
+    scanErrors = AnalysisError.NO_ERRORS;
+    scanErrorsState = CacheState.ERROR;
+
+    tokenStream = null;
+    tokenStreamState = CacheState.ERROR;
+
+    recordParseError();
+  }
+
+  /**
+   * Record that the scan-related information for the associated source is about to be computed by
+   * the current thread.
+   */
+  public void recordScanInProcess() {
+    if (getState(LINE_INFO) != CacheState.VALID) {
+      setState(LINE_INFO, CacheState.IN_PROCESS);
+    }
+    if (scanErrorsState != CacheState.VALID) {
+      scanErrorsState = CacheState.IN_PROCESS;
+    }
+    if (tokenStreamState != CacheState.VALID) {
+      tokenStreamState = CacheState.IN_PROCESS;
+    }
+  }
+
+  /**
+   * Record that an in-process scan has stopped without recording results because the results were
+   * invalidated before they could be recorded.
+   */
+  public void recordScanNotInProcess() {
+    if (getState(LINE_INFO) == CacheState.IN_PROCESS) {
+      setState(LINE_INFO, CacheState.INVALID);
+    }
+    if (scanErrorsState == CacheState.IN_PROCESS) {
+      scanErrorsState = CacheState.INVALID;
+    }
+    if (tokenStreamState == CacheState.IN_PROCESS) {
+      tokenStreamState = CacheState.INVALID;
+    }
+  }
+
+  /**
    * Remove the given library from the list of libraries that contain this part. This method should
    * only be invoked on entries that represent a part.
    * 
@@ -905,31 +984,6 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     containingLibraries.add(librarySource);
   }
 
-  /**
-   * Set the results of parsing the compilation unit at the given time to the given values.
-   * 
-   * @param modificationStamp the earliest time at which the source was last modified before the
-   *          parsing was started
-   * @param lineInfo the line information resulting from parsing the compilation unit
-   * @param unit the AST structure resulting from parsing the compilation unit
-   * @param errors the parse errors resulting from parsing the compilation unit
-   */
-  public void setParseResults(long modificationStamp, LineInfo lineInfo, CompilationUnit unit,
-      AnalysisError[] errors) {
-    if (getState(LINE_INFO) != CacheState.VALID) {
-      setValue(LINE_INFO, lineInfo);
-    }
-    if (parsedUnitState != CacheState.VALID) {
-      parsedUnit = unit;
-      parsedUnitAccessed = false;
-      parsedUnitState = CacheState.VALID;
-    }
-    if (parseErrorsState != CacheState.VALID) {
-      parseErrors = errors == null ? AnalysisError.NO_ERRORS : errors;
-      parseErrorsState = CacheState.VALID;
-    }
-  }
-
   @Override
   public void setState(DataDescriptor<?> descriptor, CacheState state) {
     if (descriptor == ELEMENT) {
@@ -963,9 +1017,15 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     } else if (descriptor == PUBLIC_NAMESPACE) {
       publicNamespace = updatedValue(state, publicNamespace, null);
       publicNamespaceState = state;
+    } else if (descriptor == SCAN_ERRORS) {
+      scanErrors = updatedValue(state, scanErrors, AnalysisError.NO_ERRORS);
+      scanErrorsState = state;
     } else if (descriptor == SOURCE_KIND) {
       sourceKind = updatedValue(state, sourceKind, SourceKind.UNKNOWN);
       sourceKindState = state;
+    } else if (descriptor == TOKEN_STREAM) {
+      tokenStream = updatedValue(state, tokenStream, null);
+      tokenStreamState = state;
     } else {
       super.setState(descriptor, state);
     }
@@ -1037,9 +1097,15 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     } else if (descriptor == PUBLIC_NAMESPACE) {
       publicNamespace = (Namespace) value;
       publicNamespaceState = CacheState.VALID;
+    } else if (descriptor == SCAN_ERRORS) {
+      scanErrors = value == null ? AnalysisError.NO_ERRORS : (AnalysisError[]) value;
+      scanErrorsState = CacheState.VALID;
     } else if (descriptor == SOURCE_KIND) {
       sourceKind = (SourceKind) value;
       sourceKindState = CacheState.VALID;
+    } else if (descriptor == TOKEN_STREAM) {
+      tokenStream = (Token) value;
+      tokenStreamState = CacheState.VALID;
     } else {
       super.setValue(descriptor, value);
     }
@@ -1075,6 +1141,10 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
   protected void copyFrom(SourceEntryImpl entry) {
     super.copyFrom(entry);
     DartEntryImpl other = (DartEntryImpl) entry;
+    scanErrorsState = other.scanErrorsState;
+    scanErrors = other.scanErrors;
+    tokenStreamState = other.tokenStreamState;
+    tokenStream = other.tokenStream;
     sourceKindState = other.sourceKindState;
     sourceKind = other.sourceKind;
     parsedUnitState = other.parsedUnitState;
@@ -1102,7 +1172,8 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
 
   @Override
   protected boolean hasErrorState() {
-    return super.hasErrorState() || sourceKindState == CacheState.ERROR
+    return super.hasErrorState() || scanErrorsState == CacheState.ERROR
+        || tokenStreamState == CacheState.ERROR || sourceKindState == CacheState.ERROR
         || parsedUnitState == CacheState.ERROR || parseErrorsState == CacheState.ERROR
         || importedLibrariesState == CacheState.ERROR || exportedLibrariesState == CacheState.ERROR
         || includedPartsState == CacheState.ERROR || elementState == CacheState.ERROR
@@ -1114,6 +1185,10 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
   protected void writeOn(StringBuilder builder) {
     builder.append("Dart: ");
     super.writeOn(builder);
+    builder.append("; tokenStream = ");
+    builder.append(tokenStreamState);
+    builder.append("; scanErrors = ");
+    builder.append(scanErrorsState);
     builder.append("; sourceKind = ");
     builder.append(sourceKindState);
     builder.append("; parsedUnit = ");

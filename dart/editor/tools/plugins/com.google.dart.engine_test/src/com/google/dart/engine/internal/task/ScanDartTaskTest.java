@@ -24,51 +24,41 @@ import com.google.dart.engine.source.TestSource;
 
 import java.io.IOException;
 
-public class ParseDartTaskTest extends EngineTestCase {
+public class ScanDartTaskTest extends EngineTestCase {
   public void test_accept() throws AnalysisException {
-    ParseDartTask task = new ParseDartTask(null, null);
+    ScanDartTask task = new ScanDartTask(null, null);
     assertTrue(task.accept(new TestTaskVisitor<Boolean>() {
       @Override
-      public Boolean visitParseDartTask(ParseDartTask task) throws AnalysisException {
+      public Boolean visitScanDartTask(ScanDartTask task) throws AnalysisException {
         return true;
       }
     }));
   }
 
-  public void test_getCompilationUnit() {
-    ParseDartTask task = new ParseDartTask(null, null);
-    assertNull(task.getCompilationUnit());
-  }
-
   public void test_getErrors() {
-    ParseDartTask task = new ParseDartTask(null, null);
+    ScanDartTask task = new ScanDartTask(null, null);
     assertLength(0, task.getErrors());
   }
 
   public void test_getException() {
-    ParseDartTask task = new ParseDartTask(null, null);
+    ScanDartTask task = new ScanDartTask(null, null);
     assertNull(task.getException());
   }
 
+  public void test_getLineInfo() {
+    ScanDartTask task = new ScanDartTask(null, null);
+    assertNull(task.getLineInfo());
+  }
+
   public void test_getModificationTime() {
-    ParseDartTask task = new ParseDartTask(null, null);
+    ScanDartTask task = new ScanDartTask(null, null);
     assertEquals(-1L, task.getModificationTime());
   }
 
   public void test_getSource() {
     Source source = new TestSource("");
-    ParseDartTask task = new ParseDartTask(null, source);
+    ScanDartTask task = new ScanDartTask(null, source);
     assertSame(source, task.getSource());
-  }
-
-  public void test_hasLibraryDirective() {
-    ParseDartTask task = new ParseDartTask(null, null);
-    assertFalse(task.hasLibraryDirective());
-  }
-
-  public void test_hasPartOfDirective() {
-    ParseDartTask task = new ParseDartTask(null, null);
-    assertFalse(task.hasPartOfDirective());
   }
 
   public void test_perform_exception() throws AnalysisException {
@@ -80,65 +70,34 @@ public class ParseDartTaskTest extends EngineTestCase {
     };
     InternalAnalysisContext context = new AnalysisContextImpl();
     context.setSourceFactory(new SourceFactory(new FileUriResolver()));
-    ParseDartTask task = new ParseDartTask(context, source);
+    ScanDartTask task = new ScanDartTask(context, source);
     task.perform(new TestTaskVisitor<Boolean>() {
       @Override
-      public Boolean visitParseDartTask(ParseDartTask task) throws AnalysisException {
+      public Boolean visitScanDartTask(ScanDartTask task) throws AnalysisException {
         assertNotNull(task.getException());
         return true;
       }
     });
   }
 
-  public void test_perform_library() throws AnalysisException {
+  public void test_perform_valid() throws AnalysisException {
     final Source source = new TestSource(createSource(//
-        "library lib;",
-        "import 'lib2.dart';",
-        "export 'lib3.dart';",
-        "part 'part.dart';",
-        "class A {}",
-        ";"));
+        "class A {}"));
     InternalAnalysisContext context = new AnalysisContextImpl();
     context.setSourceFactory(new SourceFactory(new FileUriResolver()));
-    ParseDartTask task = new ParseDartTask(context, source);
+    ScanDartTask task = new ScanDartTask(context, source);
     task.perform(new TestTaskVisitor<Boolean>() {
       @Override
-      public Boolean visitParseDartTask(ParseDartTask task) throws AnalysisException {
+      public Boolean visitScanDartTask(ScanDartTask task) throws AnalysisException {
         AnalysisException exception = task.getException();
         if (exception != null) {
           throw exception;
         }
-        assertNotNull(task.getCompilationUnit());
-        assertLength(1, task.getErrors());
-        assertEquals(source.getModificationStamp(), task.getModificationTime());
-        assertSame(source, task.getSource());
-        assertTrue(task.hasLibraryDirective());
-        assertFalse(task.hasPartOfDirective());
-        return true;
-      }
-    });
-  }
-
-  public void test_perform_part() throws AnalysisException {
-    final Source source = new TestSource(createSource(//
-        "part of lib;",
-        "class B {}"));
-    InternalAnalysisContext context = new AnalysisContextImpl();
-    context.setSourceFactory(new SourceFactory(new FileUriResolver()));
-    ParseDartTask task = new ParseDartTask(context, source);
-    task.perform(new TestTaskVisitor<Boolean>() {
-      @Override
-      public Boolean visitParseDartTask(ParseDartTask task) throws AnalysisException {
-        AnalysisException exception = task.getException();
-        if (exception != null) {
-          throw exception;
-        }
-        assertNotNull(task.getCompilationUnit());
+        assertNotNull(task.getTokenStream());
         assertLength(0, task.getErrors());
+        assertNotNull(task.getLineInfo());
         assertEquals(source.getModificationStamp(), task.getModificationTime());
         assertSame(source, task.getSource());
-        assertFalse(task.hasLibraryDirective());
-        assertTrue(task.hasPartOfDirective());
         return true;
       }
     });
