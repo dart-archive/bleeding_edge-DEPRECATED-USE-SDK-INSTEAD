@@ -74,7 +74,7 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
   private IResourceResolver resourceResolver;
   private boolean enableBreakpoints;
   private DartiumDebugThread debugThread;
-  private BreakpointManager breakpointManager;
+  private DartBreakpointManager breakpointManager;
   private CssScriptManager cssScriptManager;
   private HtmlScriptManager htmlScriptManager;
   private DartCodeManager dartCodeManager;
@@ -122,7 +122,11 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
       process = new DartiumProcess(this, debugTargetName, javaProcess);
     }
 
-    breakpointManager = new BreakpointManager(this);
+    if (enableBreakpoints) {
+      breakpointManager = new BreakpointManager(this);
+    } else {
+      breakpointManager = new NullBreakpointManager();
+    }
 
     cssScriptManager = new CssScriptManager(this);
 
@@ -231,6 +235,10 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
     return this;
   }
 
+  public boolean getEnableBreakpoints() {
+    return enableBreakpoints;
+  }
+
   @Override
   public ILaunch getLaunch() {
     return launch;
@@ -291,13 +299,9 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
     this.resourceResolver = resolver;
 
     IBreakpointManager eclipseBpManager = DebugPlugin.getDefault().getBreakpointManager();
-    connection.getDebugger().setBreakpointsActive(enableBreakpoints && eclipseBpManager.isEnabled());
 
-    if (enableBreakpoints) {
-      connection.getDebugger().setPauseOnExceptions(getPauseType(), null);
-    } else {
-      connection.getDebugger().setPauseOnExceptions(PauseOnExceptionsType.none);
-    }
+    connection.getDebugger().setBreakpointsActive(enableBreakpoints && eclipseBpManager.isEnabled());
+    connection.getDebugger().setPauseOnExceptions(getPauseType());
 
     getConnection().getPage().navigate(url);
   }
@@ -508,7 +512,7 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
     };
   }
 
-  protected BreakpointManager getBreakpointManager() {
+  protected DartBreakpointManager getBreakpointManager() {
     return breakpointManager;
   }
 
@@ -532,11 +536,11 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
     if (replacedWithDevTools.equalsIgnoreCase(reason)) {
       // When the user opens the Webkit inspector our debug connection is closed.
       // We warn the user when this happens, since it otherwise isn't apparent to them
-      // when the debugger connection is closing.
-//      DebugUIHelper.getHelper().showError(
-//          "Debugger Connection Closed",
-//          "The debugger connection has been closed by the remote host.");
-      DebugUIHelper.getHelper().showDevtoolsDisconnectError("Debugger Connection Closed", this);
+      // when the debugger connection is closing.      
+      if (enableBreakpoints) {
+        // Only show this message if the user launched Dartium with debugging enabled.
+        DebugUIHelper.getHelper().showDevtoolsDisconnectError("Debugger Connection Closed", this);
+      }
     }
   }
 
@@ -597,6 +601,10 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
   }
 
   private PauseOnExceptionsType getPauseType() {
+    if (!enableBreakpoints) {
+      return PauseOnExceptionsType.none;
+    }
+
     final BreakOnExceptions boe = DartDebugCorePlugin.getPlugin().getBreakOnExceptions();
     PauseOnExceptionsType pauseType = PauseOnExceptionsType.none;
 

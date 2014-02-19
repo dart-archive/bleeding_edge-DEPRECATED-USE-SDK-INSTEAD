@@ -261,6 +261,12 @@ public class BrowserManager {
       }
     }
 
+    if (!restart) {
+      if (enableDebugging != DartiumDebugTarget.getActiveTarget().getEnableBreakpoints()) {
+        restart = true;
+      }
+    }
+
     CoreLaunchUtils.removeTerminatedLaunches();
 
     if (!restart) {

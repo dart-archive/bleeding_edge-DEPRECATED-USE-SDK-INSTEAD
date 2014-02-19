@@ -298,7 +298,7 @@ public class DartiumDebugThread extends DartiumDebugElement implements IThread {
   }
 
   private DartBreakpoint getBreakpointFor(WebkitCallFrame frame) {
-    BreakpointManager breakpointManager = getTarget().getBreakpointManager();
+    DartBreakpointManager breakpointManager = getTarget().getBreakpointManager();
 
     if (breakpointManager != null) {
       return breakpointManager.getBreakpointFor(frame.getLocation());
