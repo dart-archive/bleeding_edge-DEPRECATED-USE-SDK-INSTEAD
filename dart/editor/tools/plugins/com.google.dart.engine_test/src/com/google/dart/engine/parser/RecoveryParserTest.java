@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.parser;
 
+import com.google.dart.engine.ast.Annotation;
 import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.BlockFunctionBody;
@@ -531,6 +532,18 @@ public class RecoveryParserTest extends ParserTestCase {
         ParserErrorCode.MISSING_IDENTIFIER,
         ParserErrorCode.MISSING_IDENTIFIER);
     assertInstanceOf(BinaryExpression.class, expression.getRightOperand());
+  }
+
+  public void test_missingIdentifier_afterAnnotation() throws Exception {
+    MethodDeclaration method = parse(
+        "parseClassMember",
+        new Object[] {"C"},
+        "@override }",
+        ParserErrorCode.EXPECTED_CLASS_MEMBER);
+    assertNull(method.getDocumentationComment());
+    NodeList<Annotation> metadata = method.getMetadata();
+    assertSize(1, metadata);
+    assertEquals("override", metadata.get(0).getName().getName());
   }
 
   public void test_multiplicativeExpression_missing_LHS() throws Exception {

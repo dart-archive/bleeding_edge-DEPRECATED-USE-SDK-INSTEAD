@@ -457,6 +457,24 @@ public class Parser {
         return parseOperator(commentAndMetadata, modifiers.getExternalKeyword(), null);
       }
       reportError(ParserErrorCode.EXPECTED_CLASS_MEMBER, currentToken);
+      if (commentAndMetadata.getComment() != null || !commentAndMetadata.getMetadata().isEmpty()) {
+        //
+        // We appear to have found an incomplete declaration at the end of the class. At this point
+        // it consists of a metadata, which we don't want to loose, so we'll treat it as a method
+        // declaration with a missing name, parameters and empty body.
+        //
+        return new MethodDeclaration(
+            commentAndMetadata.getComment(),
+            commentAndMetadata.getMetadata(),
+            null,
+            null,
+            null,
+            null,
+            null,
+            createSyntheticIdentifier(),
+            new FormalParameterList(null, new ArrayList<FormalParameter>(), null, null, null),
+            new EmptyFunctionBody(createSyntheticToken(TokenType.SEMICOLON)));
+      }
       return null;
     } else if (matches(peek(), TokenType.PERIOD) && matchesIdentifier(peek(2))
         && matches(peek(3), TokenType.OPEN_PAREN)) {

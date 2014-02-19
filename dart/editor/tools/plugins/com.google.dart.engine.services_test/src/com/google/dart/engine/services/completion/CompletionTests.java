@@ -1531,6 +1531,17 @@ public class CompletionTests extends CompletionTestCase {
         "}"), "1+AAA:" + ProposalKind.CONSTRUCTOR, "1+AAA.nnn:" + ProposalKind.CONSTRUCTOR);
   }
 
+  public void testCompletion_annotation_type_inClass_withoutMember() throws Exception {
+    test(src(//
+        "class AAA {",
+        "  const AAA();",
+        "}",
+        "",
+        "class C {",
+        "  @A!1",
+        "}"), "1+AAA:" + ProposalKind.CONSTRUCTOR);
+  }
+
   public void testCompletion_arguments_ignoreEmpty() throws Exception {
     test(src(//
         "class A {",
