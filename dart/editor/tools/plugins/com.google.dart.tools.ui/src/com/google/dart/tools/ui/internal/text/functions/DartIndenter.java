@@ -1273,11 +1273,14 @@ public class DartIndenter {
     int fPosition_ = fPosition;
     int fPreviousPos_ = fPreviousPos;
     try {
-      nextToken();
-      if (fToken == Symbols.TokenIDENT) {
-        fPosition_ = fPosition;
-        fPreviousPos_ = fPreviousPos;
-        return true;
+      if (fToken == Symbols.TokenLPAREN) {
+        nextToken();
+        if (fToken == Symbols.TokenIDENT) {
+          // OK, probably closure arguments
+          fPosition_ = fPosition;
+          fPreviousPos_ = fPreviousPos;
+          return true;
+        }
       }
       return false;
     } finally {
