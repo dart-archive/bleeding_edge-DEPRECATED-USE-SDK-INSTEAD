@@ -14,6 +14,7 @@
 package com.google.dart.engine.context;
 
 import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementLocation;
 import com.google.dart.engine.element.HtmlElement;
@@ -168,6 +169,18 @@ public interface AnalysisContext {
    * @return the set of analysis options controlling the behavior of this context
    */
   public AnalysisOptions getAnalysisOptions();
+
+  /**
+   * Return the element model corresponding to the compilation unit defined by the given source in
+   * the library defined by the given source, or {@code null} if the element model does not
+   * currently exist or if the library cannot be analyzed for some reason.
+   * 
+   * @param unitSource the source of the compilation unit
+   * @param librarySource the source of the defining compilation unit of the library containing the
+   *          compilation unit
+   * @return the element model corresponding to the compilation unit defined by the given source
+   */
+  public CompilationUnitElement getCompilationUnitElement(Source unitSource, Source librarySource);
 
   /**
    * Return the element referenced by the given location, or {@code null} if the element is not

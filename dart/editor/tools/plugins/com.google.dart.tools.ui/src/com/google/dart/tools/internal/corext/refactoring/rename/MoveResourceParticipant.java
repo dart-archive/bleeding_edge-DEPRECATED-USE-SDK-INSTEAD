@@ -251,11 +251,10 @@ public class MoveResourceParticipant extends MoveParticipant {
   private Change createChangeEx(IProgressMonitor pm) throws Exception {
     MoveArguments arguments = getArguments();
     // prepare unit
-    CompilationUnit fileUnit = DartElementUtil.getResolvedCompilationUnit(file);
-    if (fileUnit == null) {
+    CompilationUnitElement fileElement = DartElementUtil.getCompilationUnitElement(file);
+    if (fileElement == null) {
       return null;
     }
-    CompilationUnitElement fileElement = fileUnit.getElement();
     // update references
     Object destination = arguments.getDestination();
     if (arguments.getUpdateReferences() && destination instanceof IContainer) {
@@ -271,6 +270,12 @@ public class MoveResourceParticipant extends MoveParticipant {
       {
         LibraryElement library = fileElement.getLibrary();
         if (library != null && Objects.equal(library.getDefiningCompilationUnit(), fileElement)) {
+          // prepare resolved unit AST
+          CompilationUnit fileUnit = DartElementUtil.resolveCompilationUnit(file);
+          if (fileUnit == null) {
+            return null;
+          }
+          //  update directives
           URI newUnitUri = destContainer.getLocationURI();
           for (Directive directive : fileUnit.getDirectives()) {
             if (directive instanceof UriBasedDirective) {

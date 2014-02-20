@@ -583,6 +583,25 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @Override
+  public CompilationUnitElement getCompilationUnitElement(Source unitSource, Source librarySource) {
+    LibraryElement libraryElement = getLibraryElement(librarySource);
+    if (libraryElement != null) {
+      // try defining unit
+      CompilationUnitElement definingUnit = libraryElement.getDefiningCompilationUnit();
+      if (definingUnit.getSource().equals(unitSource)) {
+        return definingUnit;
+      }
+      // try parts
+      for (CompilationUnitElement partUnit : libraryElement.getParts()) {
+        if (partUnit.getSource().equals(unitSource)) {
+          return partUnit;
+        }
+      }
+    }
+    return null;
+  }
+
+  @Override
   public Element getElement(ElementLocation location) {
     // TODO(brianwilkerson) This should not be a "get" method.
     try {

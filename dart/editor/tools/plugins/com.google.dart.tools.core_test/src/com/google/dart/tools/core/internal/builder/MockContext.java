@@ -7,6 +7,7 @@ import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.context.AnalysisOptions;
 import com.google.dart.engine.context.AnalysisResult;
 import com.google.dart.engine.context.ChangeSet;
+import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementLocation;
 import com.google.dart.engine.element.HtmlElement;
@@ -238,6 +239,11 @@ public class MockContext implements AnalysisContext {
   @Override
   public AnalysisOptions getAnalysisOptions() {
     return options;
+  }
+
+  @Override
+  public CompilationUnitElement getCompilationUnitElement(Source unitSource, Source librarySource) {
+    return null;
   }
 
   @Override
