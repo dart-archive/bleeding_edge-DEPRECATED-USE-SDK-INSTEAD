@@ -139,7 +139,7 @@ public class HTMLUIPlugin extends AbstractUIPlugin {
     int size = toolsPreferences.getInt(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_TAB_WIDTH);
     String ch = useSpaces ? HTMLCorePreferenceNames.SPACE : HTMLCorePreferenceNames.TAB;
     Preferences preferences = HTMLCorePlugin.getDefault().getPluginPreferences();
-    preferences.setValue(HTMLCorePreferenceNames.INDENTATION_SIZE, size);
+    preferences.setValue(HTMLCorePreferenceNames.INDENTATION_SIZE, useSpaces ? size : 1);
     preferences.setValue(HTMLCorePreferenceNames.INDENTATION_CHAR, ch);
   }
 }
