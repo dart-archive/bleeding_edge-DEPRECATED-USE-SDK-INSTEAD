@@ -15,21 +15,11 @@ package com.google.dart.tools.core.internal.model;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import com.google.dart.compiler.DartSource;
 import com.google.dart.compiler.LibrarySource;
-import com.google.dart.compiler.PackageLibraryManager;
 import com.google.dart.compiler.UrlLibrarySource;
-import com.google.dart.compiler.ast.DartIdentifier;
-import com.google.dart.compiler.ast.DartImportDirective;
-import com.google.dart.compiler.ast.DartLibraryDirective;
-import com.google.dart.compiler.ast.DartSourceDirective;
-import com.google.dart.compiler.ast.DartStringLiteral;
 import com.google.dart.compiler.ast.DartUnit;
-import com.google.dart.compiler.common.SourceInfo;
-import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.buffer.Buffer;
-import com.google.dart.tools.core.dom.visitor.SafeDartNodeTraverser;
 import com.google.dart.tools.core.internal.builder.LocalUrisTracker;
 import com.google.dart.tools.core.internal.model.info.DartElementInfo;
 import com.google.dart.tools.core.internal.model.info.OpenableElementInfo;
@@ -647,146 +637,6 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
     if (!DartSdkManager.getManager().hasSdk()) {
       return false;
     }
-
-    DartUnit unit = null;
-
-    unit.accept(new SafeDartNodeTraverser<Void>() {
-      @SuppressWarnings("deprecation")
-      @Override
-      public Void visitImportDirective(DartImportDirective node) {
-        // prepare "path"
-        DartStringLiteral uriNode = node.getLibraryUri();
-        String relativePath = getRelativePath(uriNode);
-        if (relativePath == null) {
-          return null;
-        }
-        // prepare SourceRanges
-        SourceRange sourceRange = new SourceRange(
-            node.getSourceInfo().getOffset(),
-            node.getSourceInfo().getLength());
-        SourceRange uriRange = sourceRange;
-        if (uriNode != null) {
-          uriRange = new SourceRange(
-              uriNode.getSourceInfo().getOffset(),
-              uriNode.getSourceInfo().getLength());
-        }
-        // prepare "prefix"
-        String prefix = null;
-        SourceRange nameRange = null;
-        DartIdentifier prefixNode = node.getPrefix();
-        if (prefixNode != null) {
-          prefix = prefixNode.getName();
-          SourceInfo prefixSourceInfo = prefixNode.getSourceInfo();
-          nameRange = new SourceRange(prefixSourceInfo.getOffset(), prefixSourceInfo.getLength());
-        }
-        {
-          DartStringLiteral prefixLiteral = node.getOldPrefix();
-          if (prefixLiteral != null) {
-            prefix = prefixLiteral.getValue();
-            SourceInfo prefixSourceInfo = prefixLiteral.getSourceInfo();
-            nameRange = new SourceRange(prefixSourceInfo.getOffset(), prefixSourceInfo.getLength());
-          }
-        }
-        // prepare LibrarySource
-        LibrarySource librarySource;
-        try {
-          librarySource = sourceFile.getImportFor(relativePath);
-        } catch (Exception exception) {
-          DartCore.logError(
-              "Failed to resolve import " + relativePath + " in " + sourceFile.getUri(),
-              exception);
-          return null;
-        }
-        if (librarySource == null) {
-          DartCore.logError("Failed to resolve import " + relativePath + " in "
-              + sourceFile.getUri());
-          return null;
-        } else if (PackageLibraryManager.isDartUri(librarySource.getUri())) {
-          // It is a bundled library.
-
-          return null;
-        } else if (!librarySource.exists()) {
-          // Don't add non-existent libraries.
-          return null;
-        }
-
-        // Find a resource in the workspace corresponding to the imported library.
-        IResource[] libraryFiles = ResourceUtil.getResources(librarySource);
-        if (libraryFiles != null && libraryFiles.length == 1 && libraryFiles[0] instanceof IFile) {
-          IFile libFile = (IFile) libraryFiles[0];
-          DartProjectImpl dartProject = null;
-          DartLibraryImpl library = new DartLibraryImpl(dartProject, libFile, librarySource);
-
-          return null;
-        }
-
-        // Find an external library on disk.
-        File libFile = ResourceUtil.getFile(librarySource);
-        if (libFile != null) {
-//          DartLibraryImpl library = null;
-//          try {
-//            library = (DartLibraryImpl) modelManager.openLibrary(libFile, monitor);
-//          } catch (DartModelException exception) {
-//            // I believe that this should not happen, but I'm leaving it in until I can confirm this.
-//            DartCore.logInformation("Failed to open imported library " + relativePath + " in "
-//                + sourceFile.getUri(), exception);
-//          }
-//          if (library == null) {
-          DartLibraryImpl library = new DartLibraryImpl(libFile);
-
-          return null;
-        }
-
-        // Otherwise, the library could not be resolved.
-        DartCore.logError("Failed to resolve import " + relativePath + " in " + sourceFile);
-        return null;
-      }
-
-      @Override
-      public Void visitLibraryDirective(DartLibraryDirective node) {
-
-        return null;
-      }
-
-      @Override
-      public Void visitSourceDirective(DartSourceDirective node) {
-        DartStringLiteral sourceUri = node.getSourceUri();
-        String relativePath = getRelativePath(sourceUri);
-        if (relativePath == null || relativePath.length() == 0) {
-          return null;
-        }
-        DartSource source = sourceFile.getSourceFor(relativePath);
-        if (source == null) {
-          return null;
-        }
-        IResource[] compilationUnitFiles = ResourceUtil.getResources(source);
-        if (compilationUnitFiles != null && compilationUnitFiles.length == 1
-            && compilationUnitFiles[0] instanceof IFile) {
-          IFile unitFile = (IFile) compilationUnitFiles[0];
-          if (unitFile.isAccessible()) {
-            CompilationUnitImpl sourceUnit = new CompilationUnitImpl(
-                DartLibraryImpl.this,
-                unitFile,
-                DefaultWorkingCopyOwner.getInstance());
-
-            return null;
-          }
-        }
-
-        return null;
-      }
-
-      private String getRelativePath(DartStringLiteral literal) {
-        if (literal == null) {
-          return null;
-        }
-        String relativePath = literal.getValue();
-        if (relativePath == null || relativePath.length() == 0) {
-          return null;
-        }
-        return relativePath;
-      }
-    });
 
     // find html files for library
     if (getDartProject().exists()) { // will not look into ExternalDartProject

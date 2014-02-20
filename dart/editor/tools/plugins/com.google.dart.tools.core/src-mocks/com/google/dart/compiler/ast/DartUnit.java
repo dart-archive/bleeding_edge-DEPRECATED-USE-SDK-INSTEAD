@@ -14,60 +14,13 @@
 package com.google.dart.compiler.ast;
 
 import java.util.List;
-import java.util.Set;
 
 public class DartUnit extends DartNode {
-
-  @Override
-  public <R> R accept(ASTVisitor<R> visitor) {
-    return null;
-  }
-
-  public List<DartComment> getComments() {
-    return null;
-  }
-
-  public Set<String> getDeclarationNames() {
-    return null;
-  }
-
   public List<DartDirective> getDirectives() {
-    return null;
-  }
-
-  public LibraryUnit getLibrary() {
-    return null;
-  }
-
-  public String getSourceName() {
-    return null;
-  }
-
-  public Set<String> getTopDeclarationNames() {
     return null;
   }
 
   public List<DartNode> getTopLevelNodes() {
     return null;
-  }
-
-  public boolean hasParseErrors() {
-    return false;
-  }
-
-  public boolean isDiet() {
-    return false;
-  }
-
-  public void setHasParseErrors(boolean hasParseErrors) {
-  }
-
-  public void setLibrary(LibraryUnit library) {
-
-  }
-
-  @Override
-  public void visitChildren(ASTVisitor<?> visitor) {
-
   }
 }

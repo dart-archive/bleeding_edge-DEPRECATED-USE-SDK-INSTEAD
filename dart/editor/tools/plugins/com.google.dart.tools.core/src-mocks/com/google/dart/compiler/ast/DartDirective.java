@@ -4,25 +4,9 @@
 
 package com.google.dart.compiler.ast;
 
-import com.google.dart.compiler.resolver.NodeElement;
 
 /**
  * Base class for directives.
  */
-public abstract class DartDirective extends DartNodeWithMetadata implements HasObsoleteMetadata {
-
-  @Override
-  public NodeElement getElement() {
-    return null;
-  }
-
-  @Override
-  public DartObsoleteMetadata getObsoleteMetadata() {
-    return null;
-  }
-
-  @Override
-  public void setObsoleteMetadata(DartObsoleteMetadata metadata) {
-
-  }
+public abstract class DartDirective extends DartNode {
 }

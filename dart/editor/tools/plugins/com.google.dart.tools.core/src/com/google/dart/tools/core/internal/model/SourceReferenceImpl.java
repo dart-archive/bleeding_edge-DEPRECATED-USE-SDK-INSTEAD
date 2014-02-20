@@ -13,12 +13,9 @@
  */
 package com.google.dart.tools.core.internal.model;
 
-import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.buffer.Buffer;
 import com.google.dart.tools.core.internal.model.info.DartElementInfo;
-import com.google.dart.tools.core.internal.util.DOMFinder;
 import com.google.dart.tools.core.internal.util.Messages;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
@@ -87,23 +84,6 @@ public abstract class SourceReferenceImpl extends DartElementImpl implements Sou
     return occurrenceCount == ((SourceReferenceImpl) o).occurrenceCount && super.equals(o);
   }
 
-  /**
-   * Return the {@link DartNode AST node} that corresponds to this element, or <code>null</code> if
-   * there is no corresponding node.
-   * 
-   * @return the {@link DartNode AST node} that corresponds to this element
-   */
-  @Override
-  public DartNode findNode(DartUnit ast) {
-    DOMFinder finder = new DOMFinder(ast, this, false);
-    try {
-      return finder.search();
-    } catch (DartModelException exception) {
-      // receiver doesn't exist
-      return null;
-    }
-  }
-
   @Override
   public CompilationUnit getCompilationUnit() {
     return getAncestor(CompilationUnit.class);
@@ -124,39 +104,6 @@ public abstract class SourceReferenceImpl extends DartElementImpl implements Sou
 
     return null;
   }
-
-  // /*
-  // * @see JavaElement
-  // */
-  // public DartElement getHandleFromMemento(String token, MementoTokenizer
-  // memento, WorkingCopyOwner workingCopyOwner) {
-  // switch (token.charAt(0)) {
-  // case JEM_COUNT:
-  // return getHandleUpdatingCountFromMemento(memento, workingCopyOwner);
-  // }
-  // return this;
-  // }
-  // protected void getHandleMemento(StringBuffer buff) {
-  // super.getHandleMemento(buff);
-  // if (this.occurrenceCount > 1) {
-  // buff.append(JEM_COUNT);
-  // buff.append(this.occurrenceCount);
-  // }
-  // }
-
-  // /*
-  // * Update the occurence count of the receiver and creates a Java element
-  // handle from the given memento.
-  // * The given working copy owner is used only for compilation unit handles.
-  // */
-  // public DartElement getHandleUpdatingCountFromMemento(MementoTokenizer
-  // memento, WorkingCopyOwner owner) {
-  // if (!memento.hasMoreTokens()) return this;
-  // this.occurrenceCount = Integer.parseInt(memento.nextToken());
-  // if (!memento.hasMoreTokens()) return this;
-  // String token = memento.nextToken();
-  // return getHandleFromMemento(token, memento, owner);
-  // }
 
   /**
    * Return the occurrence count of this element. The occurrence count is used to distinguish two

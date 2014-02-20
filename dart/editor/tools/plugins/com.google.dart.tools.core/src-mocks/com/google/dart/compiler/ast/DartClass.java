@@ -13,32 +13,13 @@
  */
 package com.google.dart.compiler.ast;
 
-import java.util.List;
-
 public class DartClass extends DartDeclaration<DartIdentifier> {
 
-  protected DartClass(DartIdentifier name) {
-    super(name);
+  protected DartClass() {
+    super(null);
   }
 
   public String getClassName() {
-    return null;
-  }
-
-  public List<DartTypeNode> getInterfaces() {
-    return null;
-  }
-
-  public List<DartNode> getMembers() {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  public DartTypeNode getSuperclass() {
-    return null;
-  }
-
-  public List<DartTypeParameter> getTypeParameters() {
     return null;
   }
 

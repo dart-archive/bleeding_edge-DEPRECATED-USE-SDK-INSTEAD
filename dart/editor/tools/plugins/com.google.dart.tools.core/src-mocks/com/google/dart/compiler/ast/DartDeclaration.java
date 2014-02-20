@@ -4,37 +4,15 @@
 
 package com.google.dart.compiler.ast;
 
-public abstract class DartDeclaration<N extends DartExpression> extends DartNodeWithMetadata
-    implements HasObsoleteMetadata {
+public abstract class DartDeclaration<N extends DartExpression> extends DartNode {
 
   protected DartDeclaration(N name) {
-  }
-
-  public DartComment getDartDoc() {
-    return null;
   }
 
   public final N getName() {
     return null;
   }
 
-  @Override
-  public DartObsoleteMetadata getObsoleteMetadata() {
-    return null;
-  }
-
-  public void setDartDoc(DartComment dartDoc) {
-  }
-
   public final void setName(N newName) {
-  }
-
-  @Override
-  public void setObsoleteMetadata(DartObsoleteMetadata metadata) {
-
-  }
-
-  @Override
-  public void visitChildren(ASTVisitor<?> visitor) {
   }
 }

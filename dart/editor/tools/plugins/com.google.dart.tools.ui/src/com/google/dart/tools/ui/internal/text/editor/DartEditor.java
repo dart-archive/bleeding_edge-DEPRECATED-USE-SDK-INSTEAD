@@ -17,7 +17,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.dart.compiler.ast.DartUnit;
-import com.google.dart.compiler.ast.DartVariable;
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.ClassMember;
@@ -4014,15 +4013,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       }
 
       try {
-        SourceRange range = null;
-        if (reference instanceof DartVariable) {
-          DartX.notYet();
-          // DartElement je = ((Variable) reference).getParent();
-          // if (je instanceof SourceReference)
-          // range = ((SourceReference) je).getSourceInfo().getSourceRange();
-        } else {
-          range = reference.getSourceRange();
-        }
+        SourceRange range = reference.getSourceRange();
 
         if (range == null) {
           return;

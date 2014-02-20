@@ -13,22 +13,9 @@
  */
 package com.google.dart.compiler.ast;
 
-import com.google.dart.compiler.common.HasSourceInfo;
-import com.google.dart.compiler.common.HasSourceInfoSetter;
 import com.google.dart.compiler.common.SourceInfo;
-import com.google.dart.compiler.resolver.Element;
-import com.google.dart.compiler.type.Type;
 
-public abstract class DartNode implements HasSourceInfo, HasSourceInfoSetter {
-
-  public <R> R accept(ASTVisitor<R> visitor) {
-    return null;
-  }
-
-  public Element getElement() {
-    return null;
-  }
-
+public abstract class DartNode {
   public String getObjectIdentifier() {
     return null;
   }
@@ -41,26 +28,8 @@ public abstract class DartNode implements HasSourceInfo, HasSourceInfoSetter {
     return null;
   }
 
-  @Override
   public SourceInfo getSourceInfo() {
     return null;
-  }
-
-  public Type getType() {
-    return null;
-  }
-
-  public void setElement(Element element) {
-
-  }
-
-  @Override
-  public void setSourceInfo(SourceInfo sourceInfo) {
-
-  }
-
-  public void setType(Type type) {
-
   }
 
   public final String toSource() {
@@ -71,12 +40,4 @@ public abstract class DartNode implements HasSourceInfo, HasSourceInfoSetter {
   public String toString() {
     return null;
   }
-
-  public void visitChildren(ASTVisitor<?> visitor) {
-  }
-
-  protected void safelyVisitChild(DartNode child, ASTVisitor<?> visitor) {
-
-  }
-
 }

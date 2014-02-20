@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.ui.internal.text.dart;
 
-import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.ast.DartDirective;
 import com.google.dart.compiler.ast.DartImportDirective;
 import com.google.dart.compiler.ast.DartUnit;
@@ -28,7 +27,6 @@ import org.eclipse.text.edits.MultiTextEdit;
 import org.eclipse.text.edits.TextEdit;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -102,7 +100,6 @@ public class ImportRewrite {
 
       DartUnit usedAstRoot = this.dartUnit;
       if (usedAstRoot == null && compUnit != null) {
-        Collection<DartCompilationError> parseErrors = new ArrayList<DartCompilationError>();
         dartUnit = null;
       }
 

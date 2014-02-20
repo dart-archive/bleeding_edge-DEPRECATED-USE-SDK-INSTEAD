@@ -31,8 +31,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
  * copy and to create its buffer.
  * <p>
  * Clients should subclass this class to instantiate a working copy owner that is specific to their
- * need and that they can pass in to various APIs (e.g.
- * {@link Type#resolveType(String, WorkingCopyOwner)}. Clients can also override the default
+ * need and that they can pass in to various APIs. Clients can also override the default
  * implementation of {@link #createBuffer(SourceFileElement)}.
  * </p>
  * <p>
