@@ -26,6 +26,7 @@ import com.google.dart.tools.ui.internal.util.TypeLabelUtil;
 import com.google.dart.tools.ui.internal.viewsupport.DartElementImageProvider;
 import com.google.dart.tools.ui.text.editor.tmp.Signature;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.StyledString;
@@ -461,7 +462,8 @@ public class CompletionProposalLabelProvider {
   }
 
   String createSimpleLabel(CompletionProposal proposal) {
-    return String.valueOf(proposal.getCompletion());
+    String label = String.valueOf(proposal.getCompletion());
+    return StringUtils.remove(label, CompletionProposal.CURSOR_MARKER);
   }
 
   String createSimpleLabelWithType(CompletionProposal proposal) {

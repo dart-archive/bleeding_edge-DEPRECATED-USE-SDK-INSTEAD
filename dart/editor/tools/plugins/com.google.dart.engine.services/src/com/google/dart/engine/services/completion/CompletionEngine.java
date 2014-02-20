@@ -74,6 +74,7 @@ import com.google.dart.engine.ast.SimpleFormalParameter;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.SimpleStringLiteral;
 import com.google.dart.engine.ast.Statement;
+import com.google.dart.engine.ast.StringLiteral;
 import com.google.dart.engine.ast.SuperConstructorInvocation;
 import com.google.dart.engine.ast.SuperExpression;
 import com.google.dart.engine.ast.SwitchCase;
@@ -1270,6 +1271,16 @@ public class CompletionEngine {
     }
 
     @Override
+    public Void visitNamespaceDirective(NamespaceDirective node) {
+      StringLiteral uri = node.getUri();
+      if (uri != null && uri.isSynthetic()
+          && node.getKeyword().getEnd() <= context.getSelectionOffset()) {
+        uri.accept(this);
+      }
+      return super.visitNamespaceDirective(node);
+    }
+
+    @Override
     public Void visitPartOfDirective(PartOfDirective node) {
       if (isCompletingKeyword(node.getOfToken())) {
         pKeyword(node.getOfToken());
@@ -2086,7 +2097,7 @@ public class CompletionEngine {
     }
     // if no URI yet, propose package:
     if (prefix.isEmpty()) {
-      pName("package:", ProposalKind.IMPORT);
+      pImportUriWithScheme(node, "package:");
       return;
     }
     // check "packages" folder for package libraries that are not added to AnalysisContext
@@ -2175,7 +2186,7 @@ public class CompletionEngine {
       return;
     }
     if (prefix.isEmpty()) {
-      pName("dart:", ProposalKind.IMPORT);
+      pImportUriWithScheme(node, "dart:");
       return;
     }
     // add DartSdk libraries
@@ -2658,6 +2669,23 @@ public class CompletionEngine {
     Element container = element.getEnclosingElement();
     prop.setDeclaringType(container.getDisplayName());
     requestor.accept(prop);
+  }
+
+  /**
+   * Proposes URI with the given scheme for the given {@link NamespaceDirective}.
+   */
+  private void pImportUriWithScheme(NamespaceDirective node, String uriScheme) {
+    String newUri = uriScheme + CompletionProposal.CURSOR_MARKER;
+    if (node.getUri().isSynthetic()) {
+      newUri = "'" + newUri + "'";
+    }
+    if (context.getSelectionOffset() == node.getKeyword().getEnd()) {
+      newUri = " " + newUri;
+    }
+    if (node.getSemicolon() == null || node.getSemicolon().isSynthetic()) {
+      newUri += ";";
+    }
+    pName(newUri, ProposalKind.IMPORT);
   }
 
   private void pKeyword(Token keyword) {

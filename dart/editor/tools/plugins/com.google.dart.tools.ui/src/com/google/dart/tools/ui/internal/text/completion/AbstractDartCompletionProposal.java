@@ -66,6 +66,7 @@ import org.eclipse.jface.text.link.LinkedModeUI.ExitFlags;
 import org.eclipse.jface.text.link.LinkedModeUI.IExitPolicy;
 import org.eclipse.jface.text.link.LinkedPosition;
 import org.eclipse.jface.text.link.LinkedPositionGroup;
+import org.eclipse.jface.text.source.SourceViewer;
 import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.osgi.util.TextProcessor;
 import org.eclipse.swt.SWT;
@@ -77,6 +78,7 @@ import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.RGB;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
@@ -403,6 +405,8 @@ public abstract class AbstractDartCompletionProposal implements IDartCompletionP
    */
   private ITextPresentationListener fTextPresentationListener;
 
+  protected boolean triggerCompletionAfterApply = false;
+
   protected AbstractDartCompletionProposal() {
     fInvocationContext = null;
   }
@@ -496,7 +500,7 @@ public abstract class AbstractDartCompletionProposal implements IDartCompletionP
   }
 
   @Override
-  public void apply(ITextViewer viewer, char trigger, int stateMask, int offset) {
+  public void apply(final ITextViewer viewer, char trigger, int stateMask, int offset) {
 
     IDocument document = viewer.getDocument();
     if (fTextViewer == null) {
@@ -535,6 +539,18 @@ public abstract class AbstractDartCompletionProposal implements IDartCompletionP
 
     apply(document, trigger, offset);
     fToggleEating = false;
+
+    if (triggerCompletionAfterApply) {
+      if (viewer instanceof SourceViewer) {
+        // run asynchronously to allow cursor to move
+        Display.getDefault().asyncExec(new Runnable() {
+          @Override
+          public void run() {
+            ((SourceViewer) viewer).doOperation(SourceViewer.CONTENTASSIST_PROPOSALS);
+          }
+        });
+      }
+    }
   }
 
   @Override

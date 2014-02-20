@@ -51,6 +51,11 @@ import java.security.Signature;
  */
 public class CompletionProposal {
   /**
+   * This character is used to specify location of the cursor after completion.
+   */
+  public static final char CURSOR_MARKER = 0x2758;
+
+  /**
    * Completion is a declaration of an anonymous class. This kind of completion might occur in a
    * context like <code>"new List(^;"</code> and complete it to <code>"new List() {}"</code>.
    * <p>

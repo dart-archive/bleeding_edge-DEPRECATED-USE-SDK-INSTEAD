@@ -1731,6 +1731,13 @@ public class CompletionTests extends CompletionTestCase {
     test("topValue = 7; class Foo { mth() { if (t!1) {}}}", "1+topValue");
   }
 
+  public void testCompletion_import() throws Exception {
+    test(src(//
+        "import '!1';"),
+        resultWithCursor("1+dart:!"),
+        resultWithCursor("1+package:!"));
+  }
+
   public void testCompletion_import_dart() throws Exception {
     test(
         src(//
@@ -1742,6 +1749,26 @@ public class CompletionTests extends CompletionTestCase {
         "1+dart:math",
         "1-dart:_chrome",
         "1-dart:_collection.dev");
+  }
+
+  public void testCompletion_import_noSpace() throws Exception {
+    test(src(//
+        "import!1",
+        ""), resultWithCursor("1+ 'dart:!';"), resultWithCursor("1+ 'package:!';"));
+  }
+
+  public void testCompletion_import_noStringLiteral() throws Exception {
+    test(src(//
+        "import !1;"),
+        resultWithCursor("1+'dart:!'"),
+        resultWithCursor("1+'package:!'"));
+  }
+
+  public void testCompletion_import_noStringLiteral_noSemicolon() throws Exception {
+    test(src(//
+        "import !1"),
+        resultWithCursor("1+'dart:!';"),
+        resultWithCursor("1+'package:!';"));
   }
 
   public void testCompletion_incompleteClassMember() throws Exception {
