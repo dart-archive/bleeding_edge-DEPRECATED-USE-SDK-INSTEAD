@@ -40,6 +40,7 @@ Export-Package: com.google.dart.tools.internal.corext.refactoring;x-friends:="co
  com.google.dart.tools.ui.internal.actions;x-friends:="com.google.dart.eclipse.ui",
  com.google.dart.tools.ui.internal.callhierarchy,
  com.google.dart.tools.ui.internal.filesview,
+ com.google.dart.tools.ui.internal.formatter,
  com.google.dart.tools.ui.internal.handlers,
  com.google.dart.tools.ui.internal.intro;x-friends:="com.google.dart.tools.deploy",
  com.google.dart.tools.ui.internal.preferences,

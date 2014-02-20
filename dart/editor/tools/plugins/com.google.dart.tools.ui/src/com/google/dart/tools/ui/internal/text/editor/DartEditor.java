@@ -2152,6 +2152,13 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     resolvedUnit = null;
   }
 
+  /**
+   * Run the editor format action.
+   */
+  public void doFormat() {
+    getAction(DartEditorActionDefinitionIds.QUICK_FORMAT).run();
+  }
+
   @Override
   public void editorContextMenuAboutToShow(IMenuManager menu) {
     menu.add(new Separator(ITextEditorActionConstants.GROUP_OPEN));

@@ -37,6 +37,7 @@ import com.google.dart.tools.ui.actions.ShowInFinderAction;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentation;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.internal.actions.CollapseAllAction;
+import com.google.dart.tools.ui.internal.formatter.DartFormatter.FormatFileAction;
 import com.google.dart.tools.ui.internal.handlers.OpenFolderHandler;
 import com.google.dart.tools.ui.internal.projects.HideProjectAction;
 import com.google.dart.tools.ui.internal.projects.OpenNewApplicationWizardAction;
@@ -257,6 +258,8 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
 
   private CopyFilePathAction copyFilePathAction;
 
+  private FormatFileAction formatFileAction;
+
   private HideProjectAction hideContainerAction;
   private UndoRedoActionGroup undoRedoActionGroup;
   private RunPubAction pubUpdateAction;
@@ -379,6 +382,9 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     }
     if (propertyDialogAction != null) {
       treeViewer.removeSelectionChangedListener(propertyDialogAction);
+    }
+    if (formatFileAction != null) {
+      treeViewer.removeSelectionChangedListener(formatFileAction);
     }
 
     if (pubUpdateListener != null) {
@@ -549,6 +555,12 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
       }
 
       if (!isPackagesDir) {
+
+        // Only show this if it's enabled (if it's not the WST one will be there instead)
+        if (formatFileAction.isEnabled()) {
+          manager.add(new Separator());
+          manager.add(formatFileAction);
+        }
 
 //        manager.add(cleanUpAction);
         manager.add(new Separator());
@@ -823,6 +835,10 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
 //    treeViewer.addSelectionChangedListener(cleanUpAction);
     moveAction = new MoveResourceAction(getShell());
     treeViewer.addSelectionChangedListener(moveAction);
+
+    formatFileAction = new FormatFileAction(getViewSite());
+    formatFileAction.setEnabled(false); //selection events will update
+    treeViewer.addSelectionChangedListener(formatFileAction);
 
     propertyDialogAction = new PropertyDialogAction(getViewSite(), treeViewer);
     propertyDialogAction.setActionDefinitionId(IWorkbenchCommandConstants.FILE_PROPERTIES);

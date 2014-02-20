@@ -13,21 +13,43 @@
  */
 package com.google.dart.tools.ui.internal.formatter;
 
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.dart2js.ProcessRunner;
 import com.google.dart.tools.core.model.DartSdkManager;
+import com.google.dart.tools.core.utilities.io.FileUtilities;
 import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.actions.DartEditorActionDefinitionIds;
+import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.window.IShellProvider;
 import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.actions.WorkspaceAction;
+import org.eclipse.ui.ide.ResourceUtil;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedWriter;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.io.Reader;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -85,6 +107,53 @@ public class DartFormatter {
 //
 //  }
 
+  public static class FormatFileAction extends WorkspaceAction {
+
+    private List<IFile> files = Arrays.asList(new IFile[0]);
+
+    public FormatFileAction(IShellProvider provider) {
+      super(provider, "Format");
+      setId(DartEditorActionDefinitionIds.QUICK_FORMAT);
+      setActionDefinitionId(DartEditorActionDefinitionIds.QUICK_FORMAT);
+    }
+
+    @Override
+    public void run() {
+      for (IFile file : files) {
+        try {
+          format(file, new NullProgressMonitor());
+        } catch (Exception e) {
+          DartCore.logError(e);
+        }
+      }
+    }
+
+    @Override
+    protected String getOperationMessage() {
+      return "Formatting;";
+    }
+
+    @Override
+    protected List<IFile> getSelectedResources() {
+      @SuppressWarnings("unchecked")
+      List<Object> res = super.getSelectedResources();
+      ArrayList<IFile> resources = new ArrayList<IFile>();
+      for (Object r : res) {
+        if (r instanceof IFile && DartCore.isDartLikeFileName(((IResource) r).getName())) {
+          resources.add((IFile) r);
+        }
+      }
+      return resources;
+    }
+
+    @Override
+    protected boolean updateSelection(IStructuredSelection selection) {
+      files = getSelectedResources();
+      return !files.isEmpty();
+    }
+
+  }
+
   /**
    * Holder for formatted source and selection info.
    */
@@ -101,6 +170,30 @@ public class DartFormatter {
   private static final String JSON_OFFSET_KEY = "offset";
   private static final String JSON_SELECTION_KEY = "selection";
   private static final String JSON_SOURCE_KEY = "source";
+
+  /**
+   * Run the formatter on the given input file.
+   * 
+   * @param file the source to pass to the formatter
+   * @param selection the selection info to pass into the formatter
+   * @param monitor the monitor for displaying progress
+   * @throws IOException if an exception was thrown during execution
+   * @throws CoreException if an exception occurs in file refresh
+   */
+  public static void format(IFile file, IProgressMonitor monitor) throws IOException, CoreException {
+
+    if (file == null || DartCore.isPackagesResource(file)) {
+      return;
+    }
+
+    DartEditor editor = getDirtyEditor(file);
+    if (editor != null) {
+      // Delegate to the editor if possible
+      editor.doFormat();
+    } else {
+      formatFile(file, monitor);
+    }
+  }
 
   /**
    * Run the formatter on the given input source.
@@ -120,11 +213,19 @@ public class DartFormatter {
       return null;
     }
 
+    if (source.length() == 0) {
+      FormattedSource result = new FormattedSource();
+      result.source = source;
+      return result;
+    }
+
     ProcessBuilder builder = new ProcessBuilder();
 
     List<String> args = new ArrayList<String>();
     args.add(dartfmt.getPath());
-    args.add(ARGS_SOURCE_FLAG + " " + selection.x + "," + selection.y);
+    if (selection != null) {
+      args.add(ARGS_SOURCE_FLAG + " " + selection.x + "," + selection.y);
+    }
     args.add(ARGS_MACHINE_FORMAT_FLAG);
 
     builder.command(args);
@@ -178,6 +279,53 @@ public class DartFormatter {
 
   public static boolean isAvailable() {
     return DartSdkManager.getManager().getSdk().getDartFmtExecutable().canExecute();
+  }
+
+  private static void formatFile(IFile file, IProgressMonitor monitor)
+      throws UnsupportedEncodingException, CoreException, IOException {
+
+    Reader reader = new InputStreamReader(file.getContents(), file.getCharset());
+    String contents = FileUtilities.getContents(reader);
+
+    if (contents != null) {
+      FormattedSource result = format(contents, null, monitor);
+      if (!contents.equals(result.source)) {
+        InputStream stream = new ByteArrayInputStream(result.source.getBytes("UTF-8"));
+        file.setContents(stream, IResource.KEEP_HISTORY, monitor);
+      }
+    }
+  }
+
+  private static IWorkbenchPage getActivePage() {
+
+    final IWorkbenchPage[] page = new IWorkbenchPage[1];
+
+    Display.getDefault().syncExec(new Runnable() {
+
+      @Override
+      public void run() {
+        IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+        if (window != null) {
+          page[0] = window.getActivePage();
+        }
+      }
+    });
+
+    return page[0];
+  }
+
+  private static DartEditor getDirtyEditor(IFile file) {
+
+    IWorkbenchPage activePage = getActivePage();
+    if (activePage != null) {
+      IEditorPart editor = ResourceUtil.findEditor(activePage, file);
+      if (editor instanceof DartEditor) {
+        if (editor.isDirty()) {
+          return (DartEditor) editor;
+        }
+      }
+    }
+    return null;
   }
 
 //  private static List<String> buildArguments(IPath path) {

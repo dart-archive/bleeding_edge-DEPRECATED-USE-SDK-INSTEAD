@@ -376,6 +376,17 @@
       </file-association>      
    </extension>
    
+   <extension point="org.eclipse.core.contenttype.contentTypes">
+		<content-type
+			file-extensions="dart"
+			priority="high"
+			name="Dart"
+			id="com.google.dart.tools.dartsource"
+			base-type="org.eclipse.core.runtime.text">
+		</content-type>
+	</extension>
+   
+   
    <extension
          point="org.eclipse.ui.perspectives">
       <perspective
@@ -781,6 +792,13 @@
       </contentTypeIdentifier>
     </validator>
   </extension>
+  
+  <extension point="org.eclipse.wst.sse.core.formatProcessors">
+		<processor
+        class="com.google.dart.tools.wst.ui.format.DartFormatProcessorImpl"
+        contentTypeId="com.google.dart.tools.dartsource">
+		</processor>
+	</extension>
   
   <extension point="org.eclipse.ui.workbench.texteditor.hyperlinkDetectorTargets">
     <target
