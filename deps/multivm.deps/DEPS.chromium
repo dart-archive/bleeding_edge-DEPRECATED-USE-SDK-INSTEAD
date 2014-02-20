@@ -23,12 +23,12 @@ vars = {
   "libcxxabi_revision": "753a30dd68ae008948d48f16bc942d5963fe65a1",
   "webkit_trunk": "http://src.chromium.org/blink/trunk",
   "nacl_trunk": "http://src.chromium.org/native_client/trunk",
-  "webkit_revision": "166792",
+  "webkit_revision": "167046",
   "chromium_git": "https://chromium.googlesource.com",
   "chromiumos_git": "https://chromium.googlesource.com/chromiumos",
   "skia_git": "https://skia.googlesource.com",
   "swig_revision": "230490",
-  "nacl_revision": "12710",
+  "nacl_revision": "12730",
   # After changing nacl_revision, run 'glient sync' and check native_client/DEPS
   # to update other nacl_*_revision's.
   "nacl_tools_revision": "12655",  # native_client/DEPS: tools_rev
@@ -45,16 +45,17 @@ vars = {
 
   "sfntly_revision": "228",
   "lighttpd_revision": "33737",
-  "skia_revision": "13355",
-  "skia_hash": "c5acc6c827993602eded2d5b53fdbe29a372b4c4",
+  "skia_revision": "13419",
+  "skia_hash": "8441f0c6970cb438285e4d062dcc3a00ee46495a",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and V8 without interference from each other.
-  "v8_revision": "19187",
+  "v8_revision": "19304",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling WebRTC
   # and V8 without interference from each other.
-  "webrtc_revision": "5444",
+  "webrtc_revision": "5523",
+  #"webrtc_revision": "5521",
   "jsoncpp_revision": "248",
   "nss_revision": "246067",
   # Three lines of non-changing comments so that
@@ -64,7 +65,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling openssl
   # and whatever else without interference from each other.
-  "openssl_revision": "249698",
+  "openssl_revision": "250522",
 }
 
 deps = {
@@ -82,7 +83,7 @@ deps = {
 
   "src/third_party/angle":
     Var("chromium_git") +
-    "/angle/angle.git@ef26f3bb09eaadb3b99ddd8c89a972dc1e497930",
+    "/angle/angle.git@a25382b9b37ddc50d19427b88ee2ad770d7f9f1d",
 
   "src/third_party/trace-viewer":
     (Var("googlecode_url") % "trace-viewer") + "/trunk@1120",
@@ -118,7 +119,7 @@ deps = {
     "/trunk/src@321",
 
   "src/third_party/leveldatabase/src":
-    (Var("googlecode_url") % "leveldb") + "/trunk@78",
+    (Var("googlecode_url") % "leveldb") + "/trunk@79",
 
   # TODO(thakis): Pull from svn instead, http://crbug.com/333071
   "src/third_party/libc++/trunk":
@@ -132,7 +133,7 @@ deps = {
     (Var("googlecode_url") % "snappy") + "/trunk@80",
 
   "src/tools/grit":
-    (Var("googlecode_url") % "grit-i18n") + "/trunk@148",
+    (Var("googlecode_url") % "grit-i18n") + "/trunk@151",
 
   "src/tools/gyp":
     (Var("googlecode_url") % "gyp") + "/trunk@1846",
@@ -214,7 +215,7 @@ deps = {
     "/trunk/KERN/usrsctp/usrsctplib@8723",
 
   "src/third_party/libsrtp":
-    "/trunk/deps/third_party/libsrtp@214783",
+    "/trunk/deps/third_party/libsrtp@250757",
 
   "src/third_party/speex":
     "/trunk/deps/third_party/speex@198168",
@@ -478,7 +479,7 @@ deps_os = {
     # For Linux and Chromium OS.
     "src/third_party/cros_system_api":
       Var("chromiumos_git") + "/platform/system_api.git" +
-      "@dd3f77a57a0b44197b07b36580f994700bed08a7",
+      "@874a39664f1538b1855391f98bf14026a5dd2c24",
 
     # Note that this is different from Android's freetype repo.
     "src/third_party/freetype2/src":
