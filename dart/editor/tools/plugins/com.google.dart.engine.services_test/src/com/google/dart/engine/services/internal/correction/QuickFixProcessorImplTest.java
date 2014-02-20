@@ -710,50 +710,62 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
         "",
         "class B extends A {",
         "}");
-    assert_runProcessor(
-        CorrectionKind.QF_CREATE_MISSING_OVERRIDES,
-        makeSource(
-            "// filler filler filler filler filler filler filler filler filler filler",
-            "abstract class A {",
-            "  m1();",
-            "  int m2();",
-            "  String m3(int p1, double p2, Map<int, List<String>> p3);",
-            "  String m4(p1, p2);",
-            "  String m5(p1, [int p2 = 2, int p3, p4 = 4]);",
-            "  String m6(p1, {int p2: 2, int p3, p4: 4});",
-            "}",
-            "",
-            "class B extends A {",
-            "  @override",
-            "  m1() {",
-            "    // TODO: implement m1",
-            "  }",
-            "",
-            "  @override",
-            "  int m2() {",
-            "    // TODO: implement m2",
-            "  }",
-            "",
-            "  @override",
-            "  String m3(int p1, double p2, Map<int, List<String>> p3) {",
-            "    // TODO: implement m3",
-            "  }",
-            "",
-            "  @override",
-            "  String m4(p1, p2) {",
-            "    // TODO: implement m4",
-            "  }",
-            "",
-            "  @override",
-            "  String m5(p1, [int p2 = 2, int p3, p4 = 4]) {",
-            "    // TODO: implement m5",
-            "  }",
-            "",
-            "  @override",
-            "  String m6(p1, {int p2: 2, int p3, p4: 4}) {",
-            "    // TODO: implement m6",
-            "  }",
-            "}"));
+    String expectedSource = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "abstract class A {",
+        "  m1();",
+        "  int m2();",
+        "  String m3(int p1, double p2, Map<int, List<String>> p3);",
+        "  String m4(p1, p2);",
+        "  String m5(p1, [int p2 = 2, int p3, p4 = 4]);",
+        "  String m6(p1, {int p2: 2, int p3, p4: 4});",
+        "}",
+        "",
+        "class B extends A {",
+        "  @override",
+        "  m1() {",
+        "    // TODO: implement m1",
+        "  }",
+        "",
+        "  @override",
+        "  int m2() {",
+        "    // TODO: implement m2",
+        "  }",
+        "",
+        "  @override",
+        "  String m3(int p1, double p2, Map<int, List<String>> p3) {",
+        "    // TODO: implement m3",
+        "  }",
+        "",
+        "  @override",
+        "  String m4(p1, p2) {",
+        "    // TODO: implement m4",
+        "  }",
+        "",
+        "  @override",
+        "  String m5(p1, [int p2 = 2, int p3, p4 = 4]) {",
+        "    // TODO: implement m5",
+        "  }",
+        "",
+        "  @override",
+        "  String m6(p1, {int p2: 2, int p3, p4: 4}) {",
+        "    // TODO: implement m6",
+        "  }",
+        "}");
+    assert_runProcessor(CorrectionKind.QF_CREATE_MISSING_OVERRIDES, expectedSource);
+    // end position should be on "m1", not on "m2", "m3", etc
+    {
+      SourceRange endRange = resultProposal.getEndRange();
+      assertNotNull(endRange);
+      int endOffset = endRange.getOffset();
+      String endString = expectedSource.substring(endOffset, endOffset + 25);
+      assertTrue(endString.contains("m1"));
+      assertFalse(endString.contains("m2"));
+      assertFalse(endString.contains("m3"));
+      assertFalse(endString.contains("m4"));
+      assertFalse(endString.contains("m5"));
+      assertFalse(endString.contains("m6"));
+    }
   }
 
   public void test_createMissingOverrides_operator() throws Exception {

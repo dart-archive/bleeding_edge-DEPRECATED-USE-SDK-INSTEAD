@@ -321,6 +321,13 @@ public class ServiceUtils {
         uiProposal.addLinkedPositionProposal(group, proposal.getText(), toLTK(proposal.getIcon()));
       }
     }
+    // set end position
+    {
+      SourceRange endRange = sourceProposal.getEndRange();
+      if (endRange != null) {
+        uiProposal.setEndPosition(TrackedPositions.forRange(endRange));
+      }
+    }
     // done
     return uiProposal;
   }

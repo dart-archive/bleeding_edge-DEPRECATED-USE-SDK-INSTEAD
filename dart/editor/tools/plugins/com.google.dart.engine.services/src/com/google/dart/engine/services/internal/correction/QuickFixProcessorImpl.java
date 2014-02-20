@@ -357,10 +357,9 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
 //  }
 
   private final Map<SourceRange, Edit> positionStopEdits = Maps.newHashMap();
-
   private final Map<String, List<SourceRange>> linkedPositions = Maps.newHashMap();
-
   private final Map<String, List<LinkedPositionProposal>> linkedPositionProposals = Maps.newHashMap();
+  private SourceRange endRange = null;
 
   @Override
   public CorrectionProposal[] computeProposals(AssistContext context, AnalysisError problem)
@@ -989,6 +988,10 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
     sb.append(eol);
     // done
     addInsertEdit(insertOffset, sb.toString());
+    // maybe set end range
+    if (endRange == null) {
+      endRange = rangeStartLength(insertOffset, 0);
+    }
   }
 
   private void addFix_createPart() throws Exception {
@@ -1848,9 +1851,8 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
       SourceCorrectionProposal proposal = new SourceCorrectionProposal(change, kind, arguments);
       proposal.setLinkedPositions(linkedPositions);
       proposal.setLinkedPositionProposals(linkedPositionProposals);
+      proposal.setEndRange(endRange);
       // done
-      proposal.setLinkedPositions(linkedPositions);
-      proposal.setLinkedPositionProposals(linkedPositionProposals);
       proposals.add(proposal);
     }
     // reset
@@ -2036,7 +2038,7 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
     linkedPositions.clear();
     positionStopEdits.clear();
     linkedPositionProposals.clear();
-//    proposalEndRange = null;
+    endRange = null;
   }
 
   private void updateFinderWithClassMembers(final ClosestElementFinder finder,
