@@ -2380,9 +2380,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       return DartCore.getProjectManager().getContext(inputResourceFile);
     }
     if (inputJavaFile != null) {
-      if (getInputSource() != null) {
-        return DartCore.getProjectManager().getSdkContext();
-      }
+      return DartCore.getProjectManager().getSdkContext();
     }
     return null;
   }
