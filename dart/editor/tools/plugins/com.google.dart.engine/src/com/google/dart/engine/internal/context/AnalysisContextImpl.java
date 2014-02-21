@@ -2375,24 +2375,27 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         cache.put(source, htmlCopy);
         return new ResolveHtmlTask(this, source);
       }
-      // try to resolve as an Angular entry point
-      CacheState angularEntryState = htmlEntry.getState(HtmlEntry.ANGULAR_ENTRY);
-      if (angularEntryState == CacheState.INVALID) {
-        HtmlEntryImpl htmlCopy = htmlEntry.getWritableCopy();
-        htmlCopy.setState(HtmlEntry.ANGULAR_ENTRY, CacheState.IN_PROCESS);
-        cache.put(source, htmlCopy);
-        return new ResolveAngularEntryHtmlTask(this, source);
-      }
-      // try to resolve as an Angular application part
-      CacheState angularErrorsState = htmlEntry.getState(HtmlEntry.ANGULAR_ERRORS);
-      if (angularErrorsState == CacheState.INVALID) {
-        AngularApplication application = htmlEntry.getValue(HtmlEntry.ANGULAR_APPLICATION);
-        // try to resolve as an Angular template
-        AngularComponentElement component = htmlEntry.getValue(HtmlEntry.ANGULAR_COMPONENT);
-        HtmlEntryImpl htmlCopy = htmlEntry.getWritableCopy();
-        htmlCopy.setState(HtmlEntry.ANGULAR_ERRORS, CacheState.IN_PROCESS);
-        cache.put(source, htmlCopy);
-        return new ResolveAngularComponentTemplateTask(this, source, component, application);
+      // Angular support
+      if (options.getAnalyzeAngular()) {
+        // try to resolve as an Angular entry point
+        CacheState angularEntryState = htmlEntry.getState(HtmlEntry.ANGULAR_ENTRY);
+        if (angularEntryState == CacheState.INVALID) {
+          HtmlEntryImpl htmlCopy = htmlEntry.getWritableCopy();
+          htmlCopy.setState(HtmlEntry.ANGULAR_ENTRY, CacheState.IN_PROCESS);
+          cache.put(source, htmlCopy);
+          return new ResolveAngularEntryHtmlTask(this, source);
+        }
+        // try to resolve as an Angular application part
+        CacheState angularErrorsState = htmlEntry.getState(HtmlEntry.ANGULAR_ERRORS);
+        if (angularErrorsState == CacheState.INVALID) {
+          AngularApplication application = htmlEntry.getValue(HtmlEntry.ANGULAR_APPLICATION);
+          // try to resolve as an Angular template
+          AngularComponentElement component = htmlEntry.getValue(HtmlEntry.ANGULAR_COMPONENT);
+          HtmlEntryImpl htmlCopy = htmlEntry.getWritableCopy();
+          htmlCopy.setState(HtmlEntry.ANGULAR_ERRORS, CacheState.IN_PROCESS);
+          cache.put(source, htmlCopy);
+          return new ResolveAngularComponentTemplateTask(this, source, component, application);
+        }
       }
     }
     return null;
@@ -2582,19 +2585,22 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         sources.add(source);
         return;
       }
-      CacheState angularErrorsState = htmlEntry.getState(HtmlEntry.ANGULAR_ERRORS);
-      if (angularErrorsState == CacheState.INVALID) {
-        AngularApplication entryInfo = htmlEntry.getValue(HtmlEntry.ANGULAR_ENTRY);
-        if (entryInfo != null) {
-          sources.add(source);
-          return;
-        }
-        AngularApplication applicationInfo = htmlEntry.getValue(HtmlEntry.ANGULAR_APPLICATION);
-        if (applicationInfo != null) {
-          AngularComponentElement component = htmlEntry.getValue(HtmlEntry.ANGULAR_COMPONENT);
-          if (component != null) {
+      // Angular
+      if (options.getAnalyzeAngular()) {
+        CacheState angularErrorsState = htmlEntry.getState(HtmlEntry.ANGULAR_ERRORS);
+        if (angularErrorsState == CacheState.INVALID) {
+          AngularApplication entryInfo = htmlEntry.getValue(HtmlEntry.ANGULAR_ENTRY);
+          if (entryInfo != null) {
             sources.add(source);
             return;
+          }
+          AngularApplication applicationInfo = htmlEntry.getValue(HtmlEntry.ANGULAR_APPLICATION);
+          if (applicationInfo != null) {
+            AngularComponentElement component = htmlEntry.getValue(HtmlEntry.ANGULAR_COMPONENT);
+            if (component != null) {
+              sources.add(source);
+              return;
+            }
           }
         }
       }

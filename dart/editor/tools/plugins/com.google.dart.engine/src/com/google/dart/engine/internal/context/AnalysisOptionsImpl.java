@@ -59,9 +59,14 @@ public class AnalysisOptionsImpl implements AnalysisOptions {
   private boolean incremental = false;
 
   /**
-   * flag indicating whether analysis is to parse comments.
+   * A flag indicating whether analysis is to parse comments.
    */
   private boolean preserveComments = true;
+
+  /**
+   * A flag indicating whether analysis is to analyze Angular.
+   */
+  private boolean analyzeAngular = true;
 
   /**
    * Initialize a newly created set of analysis options to have their default values.
@@ -80,6 +85,11 @@ public class AnalysisOptionsImpl implements AnalysisOptions {
     dart2jsHint = options.getDart2jsHint();
     hint = options.getHint();
     incremental = options.getIncremental();
+  }
+
+  @Override
+  public boolean getAnalyzeAngular() {
+    return analyzeAngular;
   }
 
   @Override
@@ -115,6 +125,15 @@ public class AnalysisOptionsImpl implements AnalysisOptions {
   @Override
   public boolean getPreserveComments() {
     return preserveComments;
+  }
+
+  /**
+   * Set whether analysis is to analyze Angular.
+   * 
+   * @param analyzeAngular {@code true} if analysis is to analyze Angular
+   */
+  public void setAnalyzeAngular(boolean analyzeAngular) {
+    this.analyzeAngular = analyzeAngular;
   }
 
   /**
