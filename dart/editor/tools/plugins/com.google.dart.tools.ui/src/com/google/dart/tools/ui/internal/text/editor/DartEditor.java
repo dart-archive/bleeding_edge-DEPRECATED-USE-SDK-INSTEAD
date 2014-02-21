@@ -785,6 +785,9 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
             public void run() {
               if (!formatResult.source.equals(unformattedSource)) {
                 document.set(formatResult.source);
+                getSourceViewer().revealRange(
+                    formatResult.selectionOffset,
+                    formatResult.selectionLength);
                 getSourceViewer().setSelectedRange(
                     formatResult.selectionOffset,
                     formatResult.selectionLength);
