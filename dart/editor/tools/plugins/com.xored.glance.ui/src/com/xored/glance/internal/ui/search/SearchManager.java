@@ -225,6 +225,12 @@ public class SearchManager {
     return false;
   }
 
+  public void selectAll() {
+    if (panel != null) {
+      panel.selectAll();
+    }
+  }
+
   public void setStatusLine(final IWorkbenchWindow window, final boolean open) {
     final ISearchPanel panel = SearchStatusLine.getSearchLine(window);
     if (!open) {

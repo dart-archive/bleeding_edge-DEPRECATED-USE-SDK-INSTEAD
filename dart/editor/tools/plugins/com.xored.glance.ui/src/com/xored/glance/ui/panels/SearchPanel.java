@@ -375,6 +375,12 @@ public abstract class SearchPanel implements ISearchPanel, IPreferenceConstants,
   }
 
   @Override
+  public void selectAll() {
+    updateHistory();
+    title.setSelection(new Point(0, title.getText().length()));
+  }
+
+  @Override
   public void setEnabled(final boolean enabled) {
     if (isReady()) {
       title.setEnabled(enabled);

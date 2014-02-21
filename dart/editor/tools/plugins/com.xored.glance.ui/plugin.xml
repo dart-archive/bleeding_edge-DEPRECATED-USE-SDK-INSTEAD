@@ -67,14 +67,12 @@
 			contextId="org.eclipse.ui.contexts.dialogAndWindow"
 			commandId="com.xored.glance.commands.open"
 			schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
-	<!--
   <key
-        commandId="com.xored.glance.commands.focus"
+        commandId="org.eclipse.ui.edit.selectAll"
         contextId="com.xored.glance.ui.context"
         schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
         sequence="M1+F">
   </key>
-  -->
   <key
         commandId="com.xored.glance.commands.close"
         contextId="com.xored.glance.ui.context"
