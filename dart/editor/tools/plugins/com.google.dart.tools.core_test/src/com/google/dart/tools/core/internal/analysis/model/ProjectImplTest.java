@@ -626,18 +626,20 @@ public class ProjectImplTest extends ContextManagerImplTest {
   public void test_resolveUriToFileInfoResourceInLib_Windows() throws Exception {
     if (DartCore.isWindows()) {
       testProject = new TestProject();
-      testProject.createFolder("lib");
-      testProject.setFileContent("lib/stuff.dart", "library stuff;");
-      testProject.setFileContent(PUBSPEC_FILE_NAME, "name:  myapp");
-      testProject.createFolder(PACKAGES_DIRECTORY_NAME + "/myapp");
-      testProject.setFileContent(PACKAGES_DIRECTORY_NAME + "/myapp/stuff.dart", "library stuff;");
-      ProjectImpl projectimpl = new ProjectImpl(testProject.getProject(), sdk);
-      IFileInfo info = projectimpl.resolveUriToFileInfo(
-          testProject.getProject(),
-          "package:myapp/stuff.dart");
-      assertNotNull(info);
-      assertNotNull(info.getResource());
-      assertTrue(info.getResource().getFullPath().toString().contains("/lib/"));
+      if (testProject.getProject().exists()) {
+        testProject.createFolder("lib");
+        testProject.setFileContent("lib/stuff.dart", "library stuff;");
+        testProject.setFileContent(PUBSPEC_FILE_NAME, "name:  myapp");
+        testProject.createFolder(PACKAGES_DIRECTORY_NAME + "/myapp");
+        testProject.setFileContent(PACKAGES_DIRECTORY_NAME + "/myapp/stuff.dart", "library stuff;");
+        ProjectImpl projectimpl = new ProjectImpl(testProject.getProject(), sdk);
+        IFileInfo info = projectimpl.resolveUriToFileInfo(
+            testProject.getProject(),
+            "package:myapp/stuff.dart");
+        assertNotNull(info);
+        assertNotNull(info.getResource());
+        assertTrue(info.getResource().getFullPath().toString().contains("/lib/"));
+      }
     }
   }
 
