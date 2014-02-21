@@ -14,6 +14,7 @@
 package com.google.dart.engine.internal.context;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.ast.ASTNode;
@@ -2707,7 +2708,8 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       }
     }
     // invalidate Angular applications
-    for (AngularApplication application : angularApplications) {
+    List<AngularApplication> angularApplicationsCopy = Lists.newArrayList(angularApplications);
+    for (AngularApplication application : angularApplicationsCopy) {
       if (application.dependsOn(librarySource)) {
         Source entryPointSource = application.getEntryPoint();
         HtmlEntry entry = getReadableHtmlEntry(entryPointSource);
