@@ -1692,12 +1692,12 @@ public class CompletionTests extends CompletionTestCase {
   public void testCompletion_dartDoc_reference_incomplete() throws Exception {
     test(src(//
         "/**",
-        " * [!1 some text",
+        " * [doubl!1 some text",
         " * other text",
         " */",
         "class A {}",
         "/**",
-        " * [doubl!2 some text",
+        " * [!2 some text",
         " * other text",
         " */",
         "class B {}",
@@ -1705,7 +1705,7 @@ public class CompletionTests extends CompletionTestCase {
         " * [!3] some text",
         " */",
         "class C {}",
-        ""), "1+int", "1+String", "2+double", "2-int", "3+int", "3+String");
+        ""), "1+double", "1-int", "2+int", "2+String", "3+int", "3+String");
   }
 
   public void testCompletion_double_inFractionPart() throws Exception {

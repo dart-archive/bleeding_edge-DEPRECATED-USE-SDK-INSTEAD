@@ -2955,8 +2955,8 @@ public class Parser {
       while (leftIndex >= 0 && leftIndex + 1 < length) {
         int[] range = findRange(codeBlockRanges, leftIndex);
         if (range == null) {
-          int rightIndex = comment.indexOf(']', leftIndex);
           int nameOffset = token.getOffset() + leftIndex + 1;
+          int rightIndex = comment.indexOf(']', leftIndex);
           if (rightIndex >= 0) {
             char firstChar = comment.charAt(leftIndex + 1);
             if (firstChar != '\'' && firstChar != '"') {
@@ -2980,7 +2980,7 @@ public class Parser {
               Token nameToken = new StringToken(TokenType.IDENTIFIER, name, nameOffset);
               references.add(new CommentReference(null, new SimpleIdentifier(nameToken)));
             } else {
-              Token nameToken = new SyntheticStringToken(TokenType.IDENTIFIER, "", leftIndex + 1);
+              Token nameToken = new SyntheticStringToken(TokenType.IDENTIFIER, "", nameOffset);
               references.add(new CommentReference(null, new SimpleIdentifier(nameToken)));
             }
             // next character
