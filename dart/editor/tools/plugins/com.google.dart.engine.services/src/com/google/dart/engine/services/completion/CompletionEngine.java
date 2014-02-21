@@ -28,8 +28,11 @@ import com.google.dart.engine.ast.BooleanLiteral;
 import com.google.dart.engine.ast.BreakStatement;
 import com.google.dart.engine.ast.CatchClause;
 import com.google.dart.engine.ast.ClassDeclaration;
+import com.google.dart.engine.ast.ClassMember;
 import com.google.dart.engine.ast.ClassTypeAlias;
 import com.google.dart.engine.ast.Combinator;
+import com.google.dart.engine.ast.Comment;
+import com.google.dart.engine.ast.CommentReference;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.ConstructorFieldInitializer;
@@ -50,6 +53,7 @@ import com.google.dart.engine.ast.ForEachStatement;
 import com.google.dart.engine.ast.ForStatement;
 import com.google.dart.engine.ast.FormalParameter;
 import com.google.dart.engine.ast.FormalParameterList;
+import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.FunctionTypeAlias;
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.ast.IfStatement;
@@ -99,6 +103,7 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.FieldElement;
+import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
@@ -547,6 +552,12 @@ public class CompletionEngine {
     @Override
     public Void visitCombinator(Combinator node) {
       proposeCombinator(node, completionNode);
+      return null;
+    }
+
+    @Override
+    public Void visitCommentReference(CommentReference node) {
+      analyzeCommentReference(completionNode);
       return null;
     }
 
@@ -1700,6 +1711,67 @@ public class CompletionEngine {
     }
   }
 
+  void analyzeCommentReference(SimpleIdentifier identifier) {
+    filter = new Filter(identifier);
+    NameCollector names = collectTopLevelElementVisibleAt(identifier);
+    Set<Element> enclosingElements = Sets.newHashSet();
+    // names from commented node
+    {
+      ASTNode parent2 = identifier.getParent().getParent();
+      if (parent2 instanceof Comment) {
+        ASTNode commentParent = parent2.getParent();
+        // function comment
+        if (commentParent instanceof FunctionDeclaration) {
+          FunctionDeclaration function = (FunctionDeclaration) commentParent;
+          ExecutableElement functionElement = function.getElement();
+          names.mergeNames(functionElement.getParameters());
+          enclosingElements.add(functionElement);
+        }
+        // function type alias comment
+        if (commentParent instanceof FunctionTypeAlias) {
+          FunctionTypeAlias function = (FunctionTypeAlias) commentParent;
+          FunctionTypeAliasElement functionElement = function.getElement();
+          names.mergeNames(functionElement.getParameters());
+          enclosingElements.add(functionElement);
+        }
+        // method comment
+        boolean isMethod = commentParent instanceof MethodDeclaration;
+        boolean isConstructor = commentParent instanceof ConstructorDeclaration;
+        if (isMethod || isConstructor) {
+          ClassMember member = (ClassMember) commentParent;
+          ExecutableElement memberElement = (ExecutableElement) member.getElement();
+          names.mergeNames(memberElement.getParameters());
+          enclosingElements.add(memberElement);
+          // pass through
+          commentParent = member.getParent();
+        }
+        // class comment
+        if (commentParent instanceof ClassDeclaration) {
+          ClassDeclaration classDeclaration = (ClassDeclaration) commentParent;
+          ClassElement classElement = classDeclaration.getElement();
+          names.addNamesDefinedByHierarchy(classElement, false);
+          enclosingElements.add(classElement);
+        }
+      }
+    }
+    // propose names
+    for (Element element : names.getUniqueElements()) {
+      CompletionProposal proposal = createProposal(element, identifier);
+      if (proposal != null) {
+        // we don't want to add arguments, just names
+        if (element instanceof MethodElement || element instanceof FunctionElement) {
+          proposal.setKind(ProposalKind.METHOD_NAME);
+        }
+        // elevate priority for local elements
+        if (enclosingElements.contains(element.getEnclosingElement())) {
+          proposal.setRelevance(CompletionProposal.RELEVANCE_HIGH);
+        }
+        // propose
+        requestor.accept(proposal);
+      }
+    }
+  }
+
   void analyzeConstructorTypeName(SimpleIdentifier identifier) {
     filter = new Filter(identifier);
     Element[] types = findAllTypes(getCurrentLibrary(), TopLevelNamesKind.DECLARED_AND_IMPORTS);
@@ -2332,6 +2404,26 @@ public class CompletionEngine {
     return createProposal(element, completion);
   }
 
+  private CompletionProposal createProposal(Element element, SimpleIdentifier identifier) {
+    // Create a completion proposal for the element: variable, field, class, function.
+    if (filterDisallows(element)) {
+      return null;
+    }
+    CompletionProposal prop = createProposal(element);
+    Element container = element.getEnclosingElement();
+    if (container != null) {
+      prop.setDeclaringType(container.getDisplayName());
+    }
+    Type type = typeOf(element);
+    if (type != null) {
+      prop.setReturnType(type.getName());
+    }
+    if (identifier != null) {
+      prop.setReplacementLengthIdentifier(identifier.getLength());
+    }
+    return prop;
+  }
+
   private CompletionProposal createProposal(Element element, String completion) {
     ProposalKind kind = proposalKindOf(element);
     CompletionProposal prop = createProposal(kind);
@@ -2699,23 +2791,10 @@ public class CompletionEngine {
   }
 
   private void pName(Element element, SimpleIdentifier identifier) {
-    // Create a completion proposal for the element: variable, field, class, function.
-    if (filterDisallows(element)) {
-      return;
+    CompletionProposal prop = createProposal(element, identifier);
+    if (prop != null) {
+      requestor.accept(prop);
     }
-    CompletionProposal prop = createProposal(element);
-    Element container = element.getEnclosingElement();
-    if (container != null) {
-      prop.setDeclaringType(container.getDisplayName());
-    }
-    Type type = typeOf(element);
-    if (type != null) {
-      prop.setReturnType(type.getName());
-    }
-    if (identifier != null) {
-      prop.setReplacementLengthIdentifier(identifier.getLength());
-    }
-    requestor.accept(prop);
   }
 
   private void pName(String name, Element element, int relevance, ProposalKind kind) {
@@ -2969,7 +3048,8 @@ public class CompletionEngine {
         PropertyAccessorElement accessor = (PropertyAccessorElement) receiver;
         if (accessor.isSynthetic()) {
           PropertyInducingElement inducer = accessor.getVariable();
-          if (inducer.getType().isDynamic()) {
+          Type inducerType = inducer.getType();
+          if (inducerType == null || inducerType.isDynamic()) {
             receiverType = typeSearch(inducer);
             if (receiverType != null) {
               break;

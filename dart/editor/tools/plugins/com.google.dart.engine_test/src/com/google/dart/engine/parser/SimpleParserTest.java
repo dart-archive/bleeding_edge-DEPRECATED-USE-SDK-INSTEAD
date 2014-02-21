@@ -1436,6 +1436,18 @@ public class SimpleParserTest extends ParserTestCase {
     assertEquals(5, identifier.getOffset());
   }
 
+  public void test_parseCommentReference_synthetic() throws Exception {
+    CommentReference reference = parse("parseCommentReference", new Object[] {"", 5}, "");
+    SimpleIdentifier identifier = assertInstanceOf(
+        SimpleIdentifier.class,
+        reference.getIdentifier());
+    assertNotNull(identifier);
+    assertTrue(identifier.isSynthetic());
+    assertNotNull(identifier.getToken());
+    assertEquals("", identifier.getName());
+    assertEquals(5, identifier.getOffset());
+  }
+
   public void test_parseCommentReferences_multiLine() throws Exception {
     Token[] tokens = new Token[] {new StringToken(
         TokenType.MULTI_LINE_COMMENT,
@@ -1452,6 +1464,34 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(reference);
     assertNotNull(reference.getIdentifier());
     assertEquals(20, reference.getOffset());
+  }
+
+  public void test_parseCommentReferences_notClosed_noIdentifier() throws Exception {
+    Token[] tokens = new Token[] {new StringToken(
+        TokenType.MULTI_LINE_COMMENT,
+        "/** [ some text",
+        5),};
+    List<CommentReference> references = parse("parseCommentReferences", new Object[] {tokens}, "");
+    assertSize(1, references);
+    CommentReference reference = references.get(0);
+    assertNotNull(reference);
+    assertNotNull(reference.getIdentifier());
+    assertTrue(reference.getIdentifier().isSynthetic());
+    assertEquals("", reference.getIdentifier().getName());
+  }
+
+  public void test_parseCommentReferences_notClosed_withIdentifier() throws Exception {
+    Token[] tokens = new Token[] {new StringToken(
+        TokenType.MULTI_LINE_COMMENT,
+        "/** [namePrefix some text",
+        5),};
+    List<CommentReference> references = parse("parseCommentReferences", new Object[] {tokens}, "");
+    assertSize(1, references);
+    CommentReference reference = references.get(0);
+    assertNotNull(reference);
+    assertNotNull(reference.getIdentifier());
+    assertFalse(reference.getIdentifier().isSynthetic());
+    assertEquals("namePrefix", reference.getIdentifier().getName());
   }
 
   public void test_parseCommentReferences_singleLine() throws Exception {

@@ -141,6 +141,8 @@
          categoryId="com.google.dart.tools.ui.javaNoTypeProposalCategory">
          <partition type="__dftl_partition_content_type"/>
          <partition type="__dart_string"/>
+         <partition type="__dart_doc"/>
+         <partition type="__dart_multiline_comment"/>
       </dartCompletionProposalComputer>
    </extension>
    <!-- Dart doc completions -->   

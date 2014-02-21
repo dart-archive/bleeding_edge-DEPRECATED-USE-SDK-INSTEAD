@@ -2879,7 +2879,8 @@ public class Parser {
   private CommentReference parseCommentReference(String referenceSource, int sourceOffset) {
     // TODO(brianwilkerson) The errors are not getting the right offset/length and are being duplicated.
     if (referenceSource.length() == 0) {
-      return null;
+      Token syntheticToken = new SyntheticStringToken(TokenType.IDENTIFIER, "", sourceOffset);
+      return new CommentReference(null, new SimpleIdentifier(syntheticToken));
     }
     try {
       BooleanErrorListener listener = new BooleanErrorListener();
@@ -2955,6 +2956,7 @@ public class Parser {
         int[] range = findRange(codeBlockRanges, leftIndex);
         if (range == null) {
           int rightIndex = comment.indexOf(']', leftIndex);
+          int nameOffset = token.getOffset() + leftIndex + 1;
           if (rightIndex >= 0) {
             char firstChar = comment.charAt(leftIndex + 1);
             if (firstChar != '\'' && firstChar != '"') {
@@ -2963,13 +2965,25 @@ public class Parser {
               } else {
                 CommentReference reference = parseCommentReference(
                     comment.substring(leftIndex + 1, rightIndex),
-                    token.getOffset() + leftIndex + 1);
+                    nameOffset);
                 if (reference != null) {
                   references.add(reference);
                 }
               }
             }
           } else {
+            // terminating ']' is not typed yet
+            char charAfterLeft = comment.charAt(leftIndex + 1);
+            if (Character.isLetterOrDigit(charAfterLeft)) {
+              int nameEnd = StringUtilities.indexOfFirstNotLetterDigit(comment, leftIndex + 1);
+              String name = comment.substring(leftIndex + 1, nameEnd);
+              Token nameToken = new StringToken(TokenType.IDENTIFIER, name, nameOffset);
+              references.add(new CommentReference(null, new SimpleIdentifier(nameToken)));
+            } else {
+              Token nameToken = new SyntheticStringToken(TokenType.IDENTIFIER, "", leftIndex + 1);
+              references.add(new CommentReference(null, new SimpleIdentifier(nameToken)));
+            }
+            // next character
             rightIndex = leftIndex + 1;
           }
           leftIndex = comment.indexOf('[', rightIndex);

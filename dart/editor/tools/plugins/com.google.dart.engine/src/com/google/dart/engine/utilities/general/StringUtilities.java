@@ -165,6 +165,28 @@ public final class StringUtilities {
   }
 
   /**
+   * Return the index of the first not letter/digit character in the given string that is at or
+   * after the given starting index. Return the length of the given string if the all characters to
+   * the end are letters/digits.
+   * 
+   * @param string the string being searched
+   * @param startIndex the index at which the search should begin
+   * @return the index of the first not letter/digit character
+   */
+  public static int indexOfFirstNotLetterDigit(String string, int startIndex) {
+    int index = startIndex;
+    int last = string.length();
+    while (index < last) {
+      char c = string.charAt(index);
+      if (!Character.isLetterOrDigit(c)) {
+        return index;
+      }
+      index++;
+    }
+    return last;
+  }
+
+  /**
    * Returns a canonical representation for the given {@link String}.
    * 
    * @return the given {@link String} or its canonical representation.

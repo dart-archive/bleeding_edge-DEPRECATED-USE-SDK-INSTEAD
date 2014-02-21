@@ -1627,6 +1627,87 @@ public class CompletionTests extends CompletionTestCase {
         "}"), "1+Random:ARGUMENT_LIST");
   }
 
+  public void testCompletion_dartDoc_reference_forClass() throws Exception {
+    test(src(//
+        "/**",
+        " * [int!1]",
+        " * [method!2]",
+        " */",
+        "class AAA {",
+        "  methodA() {}",
+        "}",
+        ""), "1+int", "1-method", "2+methodA", "2-int");
+  }
+
+  public void testCompletion_dartDoc_reference_forConstructor() throws Exception {
+    test(src(//
+        "class A {",
+        "  /**",
+        "   * [aa!1]",
+        "   * [int!2]",
+        "   * [method!3]",
+        "   */",
+        "  A.named(aaa, bbb) {}",
+        "  methodA() {}",
+        "}"), "1+aaa", "1-bbb", "2+int", "2-double", "3+methodA");
+  }
+
+  public void testCompletion_dartDoc_reference_forFunction() throws Exception {
+    test(src(//
+        "/**",
+        " * [aa!1]",
+        " * [int!2]",
+        " * [function!3]",
+        " */",
+        "functionA(aaa, bbb) {}",
+        "functionB() {}",
+        ""), "1+aaa", "1-bbb", "2+int", "2-double", "3+functionA", "3+functionB", "3-int");
+  }
+
+  public void testCompletion_dartDoc_reference_forFunctionTypeAlias() throws Exception {
+    test(src(//
+        "/**",
+        " * [aa!1]",
+        " * [int!2]",
+        " * [Function!3]",
+        " */",
+        "typedef FunctionA(aaa, bbb) {}",
+        "typedef FunctionB() {}",
+        ""), "1+aaa", "1-bbb", "2+int", "2-double", "3+FunctionA", "3+FunctionB", "3-int");
+  }
+
+  public void testCompletion_dartDoc_reference_forMethod() throws Exception {
+    test(src(//
+        "class A {",
+        "  /**",
+        "   * [aa!1]",
+        "   * [int!2]",
+        "   * [method!3]",
+        "   */",
+        "  methodA(aaa, bbb) {}",
+        "  methodB() {}",
+        "}"), "1+aaa", "1-bbb", "2+int", "2-double", "3+methodA", "3+methodB", "3-int");
+  }
+
+  public void testCompletion_dartDoc_reference_incomplete() throws Exception {
+    test(src(//
+        "/**",
+        " * [!1 some text",
+        " * other text",
+        " */",
+        "class A {}",
+        "/**",
+        " * [doubl!2 some text",
+        " * other text",
+        " */",
+        "class B {}",
+        "/**",
+        " * [!3] some text",
+        " */",
+        "class C {}",
+        ""), "1+int", "1+String", "2+double", "2-int", "3+int", "3+String");
+  }
+
   public void testCompletion_double_inFractionPart() throws Exception {
     test(src(//
         "main() {",
