@@ -98,6 +98,7 @@ public class ResourceLabelProvider implements IStyledLabelProvider, ILabelProvid
         if (DartCore.isPackagesResource(folder)) {
           return DartToolsPlugin.getImage(PACKAGE_ICON);
         }
+
       }
     }
 
@@ -114,11 +115,16 @@ public class ResourceLabelProvider implements IStyledLabelProvider, ILabelProvid
 
       // Un-analyzed resources are grey.
       if (!DartCore.isAnalyzed(resource) || resource.isDerived(IResource.CHECK_ANCESTORS)) {
-        return new StyledString(resource.getName(), StyledString.QUALIFIER_STYLER);
+        if (resource instanceof IFolder && DartCore.isBuildDirectory((IFolder) resource)) {
+          return new StyledString(
+              resource.getName() + " [generated]",
+              StyledString.QUALIFIER_STYLER);
+        } else {
+          return new StyledString(resource.getName(), StyledString.QUALIFIER_STYLER);
+        }
       }
 
       StyledString string = new StyledString(resource.getName());
-
       try {
         if (resource instanceof IFolder) {
           String packageVersion = resource.getPersistentProperty(DartCore.PUB_PACKAGE_VERSION);

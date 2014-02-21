@@ -18,6 +18,7 @@ import com.google.dart.tools.core.DartCore;
 
 import org.eclipse.core.filesystem.IFileStore;
 import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.viewers.ViewerComparator;
@@ -33,6 +34,7 @@ public class FilesViewerComparator extends ViewerComparator {
   private static final int RESOURCE_SORT = 2;
   private static final int FILESTORE_SORT = 3;
   private static final int DEFAULT_SORT = 4;
+  private static final int GENERATED_SORT = 5;
 
   public FilesViewerComparator() {
     super(new Comparator<String>() {
@@ -52,6 +54,8 @@ public class FilesViewerComparator extends ViewerComparator {
 
       if (container.getName().equals(DartCore.PACKAGES_DIRECTORY_NAME)) {
         return SPECIAL_RESOURCE_SORT;
+      } else if (container instanceof IFolder && DartCore.isBuildDirectory((IFolder) container)) {
+        return GENERATED_SORT;
       } else {
         return DIRECTORY_SORT;
       }
