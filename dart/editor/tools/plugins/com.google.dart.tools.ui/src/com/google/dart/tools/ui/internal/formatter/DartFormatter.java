@@ -165,6 +165,7 @@ public class DartFormatter {
 
   private static final String ARGS_MACHINE_FORMAT_FLAG = "-m";
   private static final String ARGS_SOURCE_FLAG = "-s";
+  private static final String ARGS_TRANSFORMS_FLAG = "-t";
 
   private static final String JSON_LENGTH_KEY = "length";
   private static final String JSON_OFFSET_KEY = "offset";
@@ -226,6 +227,7 @@ public class DartFormatter {
     if (selection != null) {
       args.add(ARGS_SOURCE_FLAG + " " + selection.x + "," + selection.y);
     }
+    args.add(ARGS_TRANSFORMS_FLAG);
     args.add(ARGS_MACHINE_FORMAT_FLAG);
 
     builder.command(args);
