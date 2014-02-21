@@ -153,6 +153,18 @@ public interface AnalysisContext {
   public LineInfo computeLineInfo(Source source) throws AnalysisException;
 
   /**
+   * Return {@code true} if the given source exists.
+   * <p>
+   * This method should be used rather than the method {@link Source#exists()} because contexts can
+   * have local overrides of the content of a source that the source is not aware of and a source
+   * with local content is considered to exist even if there is no file on disk.
+   * 
+   * @param source the source whose modification stamp is to be returned
+   * @return {@code true} if the source exists
+   */
+  public boolean exists(Source source);
+
+  /**
    * Create a new context in which analysis can be performed. Any sources in the specified container
    * will be removed from this context and added to the newly created context.
    * 

@@ -542,6 +542,19 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @Override
+  public boolean exists(Source source) {
+    if (source == null) {
+      return false;
+    }
+    if (sourceFactory != null) {
+      if (sourceFactory.getContentCache().getContents(source) != null) {
+        return true;
+      }
+    }
+    return source.exists();
+  }
+
+  @Override
   public AnalysisContext extractContext(SourceContainer container) {
     return extractContextInto(
         container,
@@ -3994,7 +4007,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
           inconsistentCount++;
         }
         if (sourceEntry.getException() != null) {
-          if (!source.exists()) {
+          if (!exists(source)) {
             missingSources.add(source);
           }
         }

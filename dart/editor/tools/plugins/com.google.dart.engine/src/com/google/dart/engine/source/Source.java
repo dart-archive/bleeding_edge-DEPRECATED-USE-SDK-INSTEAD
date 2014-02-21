@@ -57,6 +57,10 @@ public interface Source {
 
   /**
    * Return {@code true} if this source exists.
+   * <p>
+   * Clients should consider using the the method {@link AnalysisContext#exists(Source)} because
+   * contexts can have local overrides of the content of a source that the source is not aware of
+   * and a source with local content is considered to exist even if there is no file on disk.
    * 
    * @return {@code true} if this source exists
    */

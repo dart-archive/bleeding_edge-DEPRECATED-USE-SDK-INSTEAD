@@ -66,7 +66,7 @@ public class DartHyperlinkDetector extends AbstractHyperlinkDetector {
     @Override
     public void run(IStructuredSelection selection) {
       try {
-        if (element.getSource().exists()) {
+        if (element.getContext().exists(element.getSource())) {
           DartUI.openInEditor(element);
         } else {
           // If the source is undefined we assume it is part of the script currently in the viewer.

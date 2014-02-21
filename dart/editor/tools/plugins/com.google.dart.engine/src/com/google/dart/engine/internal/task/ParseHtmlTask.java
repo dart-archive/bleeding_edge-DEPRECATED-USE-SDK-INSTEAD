@@ -207,7 +207,7 @@ public class ParseHtmlTask extends AnalysisTask {
             URI uri = new URI(null, null, scriptAttribute.getText(), null);
             String fileName = uri.getPath();
             Source librarySource = getContext().getSourceFactory().resolveUri(source, fileName);
-            if (librarySource != null && librarySource.exists()) {
+            if (getContext().exists(librarySource)) {
               libraries.add(librarySource);
             }
           } catch (URISyntaxException e) {

@@ -723,7 +723,7 @@ public class LibraryResolver {
    * @return the library object that was created
    */
   private Library createLibraryOrNull(Source librarySource) {
-    if (!librarySource.exists()) {
+    if (!analysisContext.exists(librarySource)) {
       return null;
     }
     Library library = new Library(analysisContext, errorListener, librarySource);

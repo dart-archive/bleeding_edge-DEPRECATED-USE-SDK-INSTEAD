@@ -240,6 +240,18 @@ public class InstrumentedAnalysisContextImpl implements InternalAnalysisContext 
   }
 
   @Override
+  public boolean exists(Source source) {
+    InstrumentationBuilder instrumentation = Instrumentation.builder("Analysis-exists");
+    checkThread(instrumentation);
+    try {
+      instrumentation.metric("contextId", contextId);
+      return basis.exists(source);
+    } finally {
+      instrumentation.log();
+    }
+  }
+
+  @Override
   public AnalysisContext extractContext(SourceContainer container) {
     InstrumentationBuilder instrumentation = Instrumentation.builder("Analysis-extractContext");
     checkThread(instrumentation);
@@ -486,7 +498,7 @@ public class InstrumentedAnalysisContextImpl implements InternalAnalysisContext 
 
   @Override
   public long getModificationStamp(Source source) {
-    InstrumentationBuilder instrumentation = Instrumentation.builder("Analysis-computeDocumentationComment");
+    InstrumentationBuilder instrumentation = Instrumentation.builder("Analysis-getModificationStamp");
     checkThread(instrumentation);
     try {
       instrumentation.metric("contextId", contextId);

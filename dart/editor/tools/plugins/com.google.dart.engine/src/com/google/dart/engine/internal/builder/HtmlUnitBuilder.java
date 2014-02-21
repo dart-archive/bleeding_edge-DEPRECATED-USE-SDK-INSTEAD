@@ -190,7 +190,7 @@ public class HtmlUnitBuilder implements XmlVisitor<Void> {
                 htmlSource,
                 scriptSourcePath);
             script.setScriptSource(scriptSource);
-            if (scriptSource == null || !scriptSource.exists()) {
+            if (!context.exists(scriptSource)) {
               reportValueError(
                   HtmlWarningCode.URI_DOES_NOT_EXIST,
                   scriptAttribute,

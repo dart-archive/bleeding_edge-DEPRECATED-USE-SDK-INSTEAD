@@ -232,6 +232,19 @@ public class MockContext implements AnalysisContext {
   }
 
   @Override
+  public boolean exists(Source source) {
+    if (source == null) {
+      return false;
+    }
+    if (factory != null) {
+      if (factory.getContentCache().getContents(source) != null) {
+        return true;
+      }
+    }
+    return source.exists();
+  }
+
+  @Override
   public AnalysisContext extractContext(SourceContainer container) {
     calls.add(this, EXTRACT_CONTEXT, container);
     return new MockContext();

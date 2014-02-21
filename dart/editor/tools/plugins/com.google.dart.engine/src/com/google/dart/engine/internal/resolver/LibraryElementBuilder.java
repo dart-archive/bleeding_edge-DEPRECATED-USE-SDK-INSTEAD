@@ -108,7 +108,7 @@ public class LibraryElementBuilder {
         PartDirective partDirective = (PartDirective) directive;
         StringLiteral partUri = partDirective.getUri();
         Source partSource = library.getSource(partDirective);
-        if (partSource != null && partSource.exists()) {
+        if (analysisContext.exists(partSource)) {
           hasPartDirective = true;
           CompilationUnitElementImpl part = builder.buildCompilationUnit(
               partSource,

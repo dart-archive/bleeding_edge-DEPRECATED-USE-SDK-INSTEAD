@@ -286,9 +286,9 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
         }
         try {
           Source templateSource = source.resolveRelative(new URI(templateUri));
-          if (templateSource == null || !templateSource.exists()) {
+          if (!context.exists(templateSource)) {
             templateSource = context.getSourceFactory().resolveUri(source, "package:" + templateUri);
-            if (templateSource == null || !templateSource.exists()) {
+            if (!context.exists(templateSource)) {
               errorListener.onError(new AnalysisError(
                   angularElement.getSource(),
                   hasTemplate.getTemplateUriOffset(),
