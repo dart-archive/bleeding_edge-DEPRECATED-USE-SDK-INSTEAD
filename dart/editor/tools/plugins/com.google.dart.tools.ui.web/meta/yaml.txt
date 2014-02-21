@@ -8,6 +8,7 @@ authors
 homepage
 url
 ref
+path
 environment
 documentation
 dependency_overrides
