@@ -1138,6 +1138,10 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
     if (offset == -1) {
       return;
     }
+    // should be &&
+    if (binaryExpression.getOperator().getType() != TokenType.AMPERSAND_AMPERSAND) {
+      return;
+    }
     // prepare "if"
     Statement statement = node.getAncestor(Statement.class);
     if (!(statement instanceof IfStatement)) {

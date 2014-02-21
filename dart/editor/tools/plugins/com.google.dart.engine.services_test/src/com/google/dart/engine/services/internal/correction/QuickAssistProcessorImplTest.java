@@ -1759,6 +1759,18 @@ public class QuickAssistProcessorImplTest extends RefactoringImplTest {
     }
   }
 
+  public void test_splitAndCondition_wrong_notAnd() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  if (1 == 1 || 2 == 2) {",
+        "    print(0);",
+        "  }",
+        "}");
+    // not &&
+    assert_splitAndCondition_wrong(initial, "|| 2 == 2");
+  }
+
   public void test_splitAndCondition_wrong_notPartOfIf() throws Exception {
     String initial = makeSource(
         "// filler filler filler filler filler filler filler filler filler filler",
