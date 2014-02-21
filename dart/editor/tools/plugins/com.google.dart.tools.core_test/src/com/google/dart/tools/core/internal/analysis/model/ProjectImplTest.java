@@ -679,7 +679,7 @@ public class ProjectImplTest extends ContextManagerImplTest {
       FileUtilities.delete(lib);
     }
 
-    if (testProject != null) {
+    if (testProject != null && testProject.getProject().exists()) {
       testProject.dispose();
     }
   }
