@@ -1746,6 +1746,13 @@ public class CompletionTests extends CompletionTestCase {
         "1-dart:_collection.dev");
   }
 
+  public void testCompletion_export_noStringLiteral_noSemicolon() throws Exception {
+    test(src(//
+        "import !1",
+        "",
+        "class A {}"), resultWithCursor("1+'dart:!';"), resultWithCursor("1+'package:!';"));
+  }
+
   public void testCompletion_forStmt_vars() throws Exception {
     test(
         "class int{}class Foo { mth() { for (in!1t i = 0; i!2 < 5; i!3++); }}",
@@ -1847,9 +1854,9 @@ public class CompletionTests extends CompletionTestCase {
 
   public void testCompletion_import_noStringLiteral_noSemicolon() throws Exception {
     test(src(//
-        "import !1"),
-        resultWithCursor("1+'dart:!';"),
-        resultWithCursor("1+'package:!';"));
+        "import !1",
+        "",
+        "class A {}"), resultWithCursor("1+'dart:!';"), resultWithCursor("1+'package:!';"));
   }
 
   public void testCompletion_incompleteClassMember() throws Exception {

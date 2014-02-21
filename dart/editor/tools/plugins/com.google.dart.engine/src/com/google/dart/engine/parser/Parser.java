@@ -1743,6 +1743,21 @@ public class Parser {
   }
 
   /**
+   * If {@link #currentToken} is a semicolon, returns it; otherwise reports error and creates a
+   * synthetic one.
+   * <p>
+   * TODO(scheglov) consider pushing this into {@link #expect(TokenType)}
+   */
+  private Token expectSemicolon() {
+    if (matches(TokenType.SEMICOLON)) {
+      return getAndAdvance();
+    } else {
+      reportError(ParserErrorCode.EXPECTED_TOKEN, currentToken.getPrevious(), ";");
+      return createSyntheticToken(TokenType.SEMICOLON);
+    }
+  }
+
+  /**
    * Search the given list of ranges for a range that contains the given index. Return the range
    * that was found, or {@code null} if none of the ranges contain the index.
    * 
@@ -3467,7 +3482,7 @@ public class Parser {
     Token exportKeyword = expect(Keyword.EXPORT);
     StringLiteral libraryUri = parseStringLiteral();
     List<Combinator> combinators = parseCombinators();
-    Token semicolon = expect(TokenType.SEMICOLON);
+    Token semicolon = expectSemicolon();
     return new ExportDirective(
         commentAndMetadata.getComment(),
         commentAndMetadata.getMetadata(),
@@ -4070,7 +4085,7 @@ public class Parser {
       prefix = parseSimpleIdentifier();
     }
     List<Combinator> combinators = parseCombinators();
-    Token semicolon = expect(TokenType.SEMICOLON);
+    Token semicolon = expectSemicolon();
     return new ImportDirective(
         commentAndMetadata.getComment(),
         commentAndMetadata.getMetadata(),
