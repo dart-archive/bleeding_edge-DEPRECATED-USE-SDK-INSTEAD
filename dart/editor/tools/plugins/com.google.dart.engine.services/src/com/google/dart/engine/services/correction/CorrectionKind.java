@@ -55,6 +55,7 @@ public enum CorrectionKind {
   QF_CREATE_FUNCTION(49, "Create function '%s'"),
   QF_CREATE_METHOD(50, "Create method '%s'"),
   QF_CREATE_MISSING_OVERRIDES(50, "Create %d missing override(s)"),
+  QF_CREATE_NO_SUCH_METHOD(49, "Create 'noSuchMethod' method"),
   QF_CREATE_PART(50, "Create part '%s'"),
   QF_IMPORT_LIBRARY_PREFIX(51, "Use imported library '%s' with prefix '%s'"),
   QF_IMPORT_LIBRARY_PROJECT(51, "Import library '%s'"),

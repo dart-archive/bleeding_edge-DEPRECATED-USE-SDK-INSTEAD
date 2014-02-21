@@ -271,8 +271,6 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
   private File unitFile;
   private File unitLibraryFile;
 
-//  private SourceRange proposalEndRange = null;
-
   private File unitLibraryFolder;
   private ASTNode node;
 
@@ -281,80 +279,6 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
   private int selectionLength;
 
   private CorrectionUtils utils;
-
-  // TODO(scheglov) implement this
-//  private void addFix_createConstructor() {
-//    DartNewExpression newExpression = null;
-//    DartNode nameNode = null;
-//    String namePrefix = null;
-//    String name = null;
-//    // prepare "new X()"
-//    if (node instanceof DartIdentifier && node.getParent().getParent() instanceof DartNewExpression) {
-//      newExpression = (DartNewExpression) node.getParent().getParent();
-//      // default constructor
-//      if (node.getParent() instanceof DartTypeNode) {
-//        namePrefix = ((DartIdentifier) node).getName();
-//        name = "";
-//      }
-//      // named constructor
-//      if (node.getParent() instanceof DartPropertyAccess) {
-//        DartPropertyAccess constructorNameNode = (DartPropertyAccess) node.getParent();
-//        nameNode = constructorNameNode.getName();
-//        namePrefix = constructorNameNode.getQualifier().toSource() + ".";
-//        name = constructorNameNode.getName().getName();
-//      }
-//    }
-//    // prepare environment
-//    String eol = utils.getEndOfLine();
-//    String prefix = "  ";
-//    CompilationUnit targetUnit;
-//    SourceRange range;
-//    {
-//      ClassElement targetElement = (ClassElement) newExpression.getType().getElement();
-//      {
-//        SourceInfo targetSourceInfo = targetElement.getSourceInfo();
-//        Source targetSource = targetSourceInfo.getSource();
-//        IResource targetResource = ResourceUtil.getResource(targetSource);
-//        targetUnit = (CompilationUnit) DartCore.create(targetResource);
-//      }
-//      range = SourceRangeFactory.forStartLength(
-//          targetElement.getOpenBraceOffset() + "{".length(),
-//          0);
-//    }
-//    // build source
-//    SourceBuilder sb = new SourceBuilder(range);
-//    {
-//      sb.append(eol);
-//      sb.append(prefix);
-//      // append name
-//      {
-//        sb.append(namePrefix);
-//        if (name != null) {
-//          sb.startPosition("NAME");
-//          sb.append(name);
-//          sb.endPosition();
-//        }
-//      }
-//      addFix_unresolvedMethodCreate_parameters(sb, newExpression);
-//      sb.append(") {" + eol + prefix + "}");
-//      sb.append(eol);
-//    }
-//    // insert source
-//    addReplaceEdit(range, sb.toString());
-//    // add linked positions
-//    // TODO(scheglov) disabled, caused exception in old model, don't know why
-////    if (Objects.equal(targetUnit, unit) && nameNode != null) {
-////      addLinkedPosition("NAME", TrackedPositions.forNode(nameNode));
-////    }
-//    addLinkedPositions(sb);
-//    // add proposal
-//    {
-//      String msg = Messages.format(
-//          CorrectionMessages.QuickFixProcessor_createConstructor,
-//          namePrefix + name);
-//      addUnitCorrectionProposal(targetUnit, TextFileChange.FORCE_SAVE, msg, OBJ_CONSTRUCTOR_IMG);
-//    }
-//  }
 
   private final Map<SourceRange, Edit> positionStopEdits = Maps.newHashMap();
   private final Map<String, List<SourceRange>> linkedPositions = Maps.newHashMap();
@@ -458,6 +382,7 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
         Object property = errorWithProperties.getProperty(ErrorProperty.UNIMPLEMENTED_METHODS);
         ExecutableElement[] missingOverrides = (ExecutableElement[]) property;
         addFix_createMissingOverrides(missingOverrides);
+        addFix_createNoSuchMethod();
       }
       if (errorCode == StaticWarningCode.UNDEFINED_CLASS) {
         addFix_importLibrary_withType();
@@ -992,6 +917,31 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
     if (endRange == null) {
       endRange = rangeStartLength(insertOffset, 0);
     }
+  }
+
+  private void addFix_createNoSuchMethod() throws Exception {
+    ClassDeclaration targetClass = (ClassDeclaration) node.getParent();
+    // prepare environment
+    String eol = utils.getEndOfLine();
+    String prefix = utils.getIndent(1);
+    int insertOffset = targetClass.getEnd() - 1;
+    // prepare source
+    SourceBuilder sb = new SourceBuilder(insertOffset);
+    {
+      // insert empty line before existing member
+      if (!targetClass.getMembers().isEmpty()) {
+        sb.append(eol);
+      }
+      // append method
+      sb.append(prefix);
+      sb.append("noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);");
+      sb.append(eol);
+    }
+    // done
+    addInsertEdit(sb);
+    endRange = rangeStartLength(insertOffset, 0);
+    // add proposal
+    addUnitCorrectionProposal(CorrectionKind.QF_CREATE_NO_SUCH_METHOD);
   }
 
   private void addFix_createPart() throws Exception {

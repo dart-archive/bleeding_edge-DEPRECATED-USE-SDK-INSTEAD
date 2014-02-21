@@ -839,6 +839,33 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
             "}"));
   }
 
+  public void test_createNoSuchMethod() throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "abstract class A {",
+        "  m1();",
+        "  int m2();",
+        "}",
+        "",
+        "class B extends A {",
+        "  existing() {}",
+        "}");
+    assert_runProcessor(
+        CorrectionKind.QF_CREATE_NO_SUCH_METHOD,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "abstract class A {",
+            "  m1();",
+            "  int m2();",
+            "}",
+            "",
+            "class B extends A {",
+            "  existing() {}",
+            "",
+            "  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);",
+            "}"));
+  }
+
   public void test_createPart() throws Exception {
     prepareProblemWithFix(
         "// filler filler filler filler filler filler filler filler filler filler",
