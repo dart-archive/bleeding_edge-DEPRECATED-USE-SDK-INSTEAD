@@ -34,6 +34,7 @@ import com.google.dart.tools.core.mock.MockContainer;
 import com.google.dart.tools.core.mock.MockFile;
 import com.google.dart.tools.core.mock.MockFolder;
 import com.google.dart.tools.core.mock.MockProject;
+import com.google.dart.tools.core.test.util.TestProject;
 import com.google.dart.tools.core.utilities.io.FileUtilities;
 
 import static com.google.dart.engine.element.ElementFactory.library;
@@ -81,6 +82,7 @@ public class ProjectImplTest extends ContextManagerImplTest {
   private File[] packageRoots = new File[0];
 
   private Index index;
+  private TestProject testProject;
 
   public void assertUriResolvedToPackageRoot(Project project, IPath expectedPackageRoot) {
     IPath expected = expectedPackageRoot != null ? expectedPackageRoot.append("foo").append(
@@ -603,7 +605,6 @@ public class ProjectImplTest extends ContextManagerImplTest {
   }
 
   public void test_resolveUriToFileInfoResourceInLib() throws IOException {
-    // TODO(keertip): add a test for Windows
     if (!DartCore.isWindows()) {
       ProjectImpl project = newTarget();
       File packages = projectContainer.getFolder("packages").getLocation().toFile();
@@ -619,6 +620,24 @@ public class ProjectImplTest extends ContextManagerImplTest {
       assertEquals(
           info.getResource().getFullPath(),
           projectContainer.getFile("lib/stuff.dart").getFullPath());
+    }
+  }
+
+  public void test_resolveUriToFileInfoResourceInLib_Windows() throws Exception {
+    if (DartCore.isWindows()) {
+      testProject = new TestProject();
+      testProject.createFolder("lib");
+      testProject.setFileContent("lib/stuff.dart", "library stuff;");
+      testProject.setFileContent(PUBSPEC_FILE_NAME, "name:  myapp");
+      testProject.createFolder(PACKAGES_DIRECTORY_NAME + "/myapp");
+      testProject.setFileContent(PACKAGES_DIRECTORY_NAME + "/myapp/stuff.dart", "library stuff;");
+      ProjectImpl projectimpl = new ProjectImpl(testProject.getProject(), sdk);
+      IFileInfo info = projectimpl.resolveUriToFileInfo(
+          testProject.getProject(),
+          "package:myapp/stuff.dart");
+      assertNotNull(info);
+      assertNotNull(info.getResource());
+      assertTrue(info.getResource().getFullPath().toString().contains("/lib/"));
     }
   }
 
@@ -658,6 +677,10 @@ public class ProjectImplTest extends ContextManagerImplTest {
     }
     if (lib.exists()) {
       FileUtilities.delete(lib);
+    }
+
+    if (testProject != null) {
+      testProject.dispose();
     }
   }
 

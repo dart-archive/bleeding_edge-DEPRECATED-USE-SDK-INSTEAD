@@ -15,6 +15,7 @@
 package com.google.dart.tools.debug.core.server;
 
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.analysis.model.IFileInfo;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.core.expr.IExpressionEvaluator;
 import com.google.dart.tools.debug.core.expr.WatchExpressionResult;
@@ -23,7 +24,6 @@ import com.google.dart.tools.debug.core.util.IDartStackFrame;
 import com.google.dart.tools.debug.core.util.IExceptionStackFrame;
 import com.google.dart.tools.debug.core.util.IVariableResolver;
 
-import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.model.IDebugTarget;
@@ -421,10 +421,12 @@ public class ServerDebugStackFrame extends ServerDebugElement implements IStackF
 
   private URI resolvePackageUri(IResource resource, URI uri) {
     if (resource != null) {
-      IFile file = DartCore.getProjectManager().resolvePackageUri(resource, uri.toString());
+      IFileInfo fileInfo = DartCore.getProjectManager().resolveUriToFileInfo(
+          resource,
+          uri.toString());
 
-      if (file != null) {
-        return file.getLocation().toFile().toURI();
+      if (fileInfo != null) {
+        return fileInfo.getFile().toURI();
       }
     }
 

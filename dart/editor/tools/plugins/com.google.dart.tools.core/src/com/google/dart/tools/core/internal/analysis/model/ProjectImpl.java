@@ -48,6 +48,7 @@ import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
@@ -56,6 +57,7 @@ import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import static org.eclipse.core.resources.IResource.PROJECT;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -458,6 +460,43 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
     if (source != null && map != null) {
       IFile resource = map.getResource(source);
       if (resource != null) {
+        // linked files do not resolve to canonical paths. So find if it is
+        // a self referenced package and get the resource in lib instead.
+        if (DartCore.isWindows()) {
+          int index = 0;
+          IPath path = resource.getFullPath();
+          while (index < path.segmentCount()
+              && !path.segment(index).equals(PACKAGES_DIRECTORY_NAME)) {
+            index++;
+          }
+          if (index != path.segmentCount()) {
+            String packageName = path.segment(index + 1);
+            if (packageName.equals(DartCore.getSelfLinkedPackageName(resource))) {
+              // src/app/packages/app/mylib.dart => /src/app/lib/mylib.dart
+              IPath newPath = path.uptoSegment(index).append("lib").append(
+                  path.removeFirstSegments(index + 2));
+              IResource libResource = ResourcesPlugin.getWorkspace().getRoot().findMember(newPath);
+              if (libResource != null) {
+                return new FileInfo(libResource.getLocation().toFile(), (IFile) libResource);
+              }
+
+            } else {
+              // check if the package is open in the workspace, if so return resource from that 
+              // project instead of read only packages resource
+              // src/app/packages/mypackage/mylib.dart => /src/mypackage/lib/mylib.dart
+              String projectPath = getPubFolderPath(packageName);
+              if (projectPath != null) {
+                IPath newPath = new Path(projectPath).append("lib").append(
+                    path.removeFirstSegments(index + 2));
+                IResource libResource = ResourcesPlugin.getWorkspace().getRoot().findMember(newPath);
+                if (libResource != null) {
+                  return new FileInfo(libResource.getLocation().toFile(), (IFile) libResource);
+                }
+              }
+            }
+          }
+        }
+
         return new FileInfo(new File(source.getFullName()), resource);
       }
     }
@@ -639,6 +678,31 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
       PubFolder pubFolder = pubFolders.get(path.removeLastSegments(count));
       if (pubFolder != null) {
         return pubFolder;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Check if there is a project in the workspace for the given package name, if present return the
+   * project path.
+   * 
+   * @param packageName, the package to look for
+   * @return the path to project or {@code null}
+   */
+  private String getPubFolderPath(String packageName) {
+    for (IProject project : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
+      PubFolder[] folders = DartCore.getProjectManager().getProject(project).getPubFolders();
+      for (PubFolder pubFolder : folders) {
+        try {
+          if (pubFolder.getPubspec().getName().equals(packageName)) {
+            return pubFolder.getResource().getFullPath().toString();
+          }
+        } catch (CoreException e) {
+          DartCore.logError(e);
+        } catch (IOException e) {
+          DartCore.logError(e);
+        }
       }
     }
     return null;
