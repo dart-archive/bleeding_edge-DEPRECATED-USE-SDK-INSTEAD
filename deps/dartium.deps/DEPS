@@ -79,6 +79,6 @@ hooks.append({
   'name': 'set_reference_build',
   'pattern': '.',
   'action': ['python',
-             'src/dartium_tools/set_reference_build_revision.py',
+             'src/dart/tools/bots/set_reference_build_revision.py',
              Var('chromium_base_revision')],
 })
