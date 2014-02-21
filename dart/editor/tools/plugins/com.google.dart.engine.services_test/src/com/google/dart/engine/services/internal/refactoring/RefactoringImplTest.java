@@ -161,11 +161,20 @@ public abstract class RefactoringImplTest extends AbstractDartTest {
   protected SearchEngine searchEngine;
 
   /**
+   * Assert result of applying given {@link Change} to the given {@link Source}.
+   */
+  protected final void assertChangeResult(Change compositeChange, Source source, String expected)
+      throws Exception {
+    AnalysisContext context = getAnalysisContext();
+    assertChangeResult(context, compositeChange, source, expected);
+  }
+
+  /**
    * Assert result of applying given {@link Change} to the {@link #testCode}.
    */
-  protected final void assertTestChangeResult(AnalysisContext context, Change compositeChange,
-      String expected) throws Exception {
-    assertChangeResult(context, compositeChange, testSource, expected);
+  protected final void assertTestChangeResult(Change compositeChange, String expected)
+      throws Exception {
+    assertChangeResult(compositeChange, testSource, expected);
   }
 
   /**

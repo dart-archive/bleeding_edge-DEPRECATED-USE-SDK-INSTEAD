@@ -230,7 +230,7 @@ public class ConvertMethodToGetterRefactoringImplTest extends RefactoringImplTes
   protected final void assertSuccessfulRefactoring(String... lines) throws Exception {
     assertRefactoringStatusOK(refactoringStatus);
     Change change = refactoring.createChange(pm);
-    assertTestChangeResult(getAnalysisContext(), change, makeSource(lines));
+    assertTestChangeResult(change, makeSource(lines));
   }
 
   /**

@@ -84,15 +84,14 @@ public class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
   @Override
   public Change createChange(ProgressMonitor pm) throws Exception {
     pm = checkProgressMonitor(pm);
-    AnalysisContext context = element.getContext();
     SourceChange change = new SourceChange(getRefactoringName(), element.getSource());
     // update declaration
-    addDeclarationEdit(context, change, element);
+    addDeclarationEdit(change, element);
     // update references
     List<SearchMatch> refMatches = searchEngine.searchReferences(element, null, null);
     List<SourceReference> references = getSourceReferences(refMatches);
     for (SourceReference reference : references) {
-      addReferenceEdit(context, change, reference);
+      addReferenceEdit(change, reference);
     }
     return change;
   }

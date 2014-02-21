@@ -64,20 +64,19 @@ public class RenameLibraryRefactoringImpl extends RenameRefactoringImpl {
   public Change createChange(ProgressMonitor pm) throws Exception {
     pm = checkProgressMonitor(pm);
     try {
-      AnalysisContext context = element.getContext();
       SourceChangeManager changeManager = new SourceChangeManager();
       // update declaration
       {
         Source elementSource = element.getSource();
         SourceChange elementChange = changeManager.get(elementSource);
-        addDeclarationEdit(context, elementChange, element);
+        addDeclarationEdit(elementChange, element);
       }
       // update references
       List<SearchMatch> matches = searchEngine.searchReferences(element, null, null);
       List<SourceReference> references = getSourceReferences(matches);
       for (SourceReference reference : references) {
         SourceChange refChange = changeManager.get(reference.source);
-        addReferenceEdit(context, refChange, reference);
+        addReferenceEdit(refChange, reference);
       }
       // return CompositeChange
       CompositeChange compositeChange = new CompositeChange(getRefactoringName());

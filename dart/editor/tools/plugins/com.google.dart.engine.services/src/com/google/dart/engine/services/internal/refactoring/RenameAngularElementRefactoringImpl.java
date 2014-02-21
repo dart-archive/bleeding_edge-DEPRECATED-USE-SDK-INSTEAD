@@ -14,7 +14,6 @@
 
 package com.google.dart.engine.services.internal.refactoring;
 
-import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.angular.AngularElement;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchMatch;
@@ -64,20 +63,19 @@ abstract public class RenameAngularElementRefactoringImpl extends RenameRefactor
   public Change createChange(ProgressMonitor pm) throws Exception {
     pm = checkProgressMonitor(pm);
     try {
-      AnalysisContext context = element.getContext();
       SourceChangeManager changeManager = new SourceChangeManager();
       // update declaration
       {
         Source elementSource = element.getSource();
         SourceChange elementChange = changeManager.get(elementSource);
-        addDeclarationEdit(context, elementChange, element);
+        addDeclarationEdit(elementChange, element);
       }
       // update references
       List<SearchMatch> matches = searchEngine.searchReferences(element, null, null);
       List<SourceReference> references = getSourceReferences(matches);
       for (SourceReference reference : references) {
         SourceChange refChange = changeManager.get(reference.source);
-        addReferenceEdit(context, refChange, reference);
+        addReferenceEdit(refChange, reference);
       }
       // return CompositeChange
       CompositeChange compositeChange = new CompositeChange(getRefactoringName());

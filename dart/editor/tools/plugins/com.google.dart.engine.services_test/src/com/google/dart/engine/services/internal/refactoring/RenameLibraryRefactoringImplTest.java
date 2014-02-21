@@ -69,7 +69,6 @@ public class RenameLibraryRefactoringImplTest extends RenameRefactoringImplTest 
         "part 'part.dart';",
         "");
     assertChangeResult(
-        getAnalysisContext(),
         refactoringChange,
         partSource,
         makeSource(

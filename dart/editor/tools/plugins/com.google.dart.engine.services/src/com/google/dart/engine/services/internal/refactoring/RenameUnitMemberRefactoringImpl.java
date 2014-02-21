@@ -15,7 +15,6 @@
 package com.google.dart.engine.services.internal.refactoring;
 
 import com.google.common.collect.Lists;
-import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.FunctionElement;
@@ -92,7 +91,6 @@ public class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
   public Change createChange(ProgressMonitor pm) throws Exception {
     pm = checkProgressMonitor(pm);
     try {
-      AnalysisContext context = element.getContext();
       SourceChangeManager changeManager = new SourceChangeManager();
       // prepare elements (for synthetic property)
       List<Element> elements = Lists.newArrayList();
@@ -115,14 +113,14 @@ public class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
         {
           Source elementSource = element.getSource();
           SourceChange elementChange = changeManager.get(elementSource);
-          addDeclarationEdit(context, elementChange, element);
+          addDeclarationEdit(elementChange, element);
         }
         // update references
         List<SearchMatch> matches = searchEngine.searchReferences(element, null, null);
         List<SourceReference> references = getSourceReferences(matches);
         for (SourceReference reference : references) {
           SourceChange refChange = changeManager.get(reference.source);
-          addReferenceEdit(context, refChange, reference);
+          addReferenceEdit(refChange, reference);
         }
       }
       // return CompositeChange

@@ -1163,7 +1163,7 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
     SourceChange appChange = proposal.getChange();
     assertSame(testSource, appChange.getSource());
     assertChangeResult(
-        getAnalysisContext(),
+        analysisContext,
         appChange,
         testSource,
         makeSource(
@@ -1225,7 +1225,7 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
     SourceChange appChange = proposal.getChange();
     assertSame(appSource, appChange.getSource());
     assertChangeResult(
-        getAnalysisContext(),
+        analysisContext,
         appChange,
         appSource,
         makeSource(

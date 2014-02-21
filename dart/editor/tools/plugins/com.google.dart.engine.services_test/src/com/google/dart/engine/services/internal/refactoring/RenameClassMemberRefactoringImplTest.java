@@ -534,7 +534,6 @@ public class RenameClassMemberRefactoringImplTest extends RenameRefactoringImplT
     assertRefactoringStatusOK();
     Change refactoringChange = refactoring.createChange(pm);
     assertChangeResult(
-        getAnalysisContext(),
         refactoringChange,
         testSource,
         makeSource(
@@ -590,7 +589,6 @@ public class RenameClassMemberRefactoringImplTest extends RenameRefactoringImplT
     assertRefactoringStatusOK();
     Change refactoringChange = refactoring.createChange(pm);
     assertChangeResult(
-        getAnalysisContext(),
         refactoringChange,
         testSource,
         makeSource(
@@ -611,7 +609,6 @@ public class RenameClassMemberRefactoringImplTest extends RenameRefactoringImplT
             "  a.newName += 2;",
             "}"));
     assertChangeResult(
-        getAnalysisContext(),
         refactoringChange,
         sourceB,
         makeSource(

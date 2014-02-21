@@ -393,7 +393,6 @@ public class RenameUnitMemberRefactoringImplTest extends RenameRefactoringImplTe
     assertRefactoringStatusOK();
     Change refactoringChange = refactoring.createChange(pm);
     assertChangeResult(
-        getAnalysisContext(),
         refactoringChange,
         testSource,
         makeSource(
@@ -412,7 +411,6 @@ public class RenameUnitMemberRefactoringImplTest extends RenameRefactoringImplTe
             "  NewName t2 = new NewName.named();",
             "}"));
     assertChangeResult(
-        getAnalysisContext(),
         refactoringChange,
         sourceB,
         makeSource(
@@ -556,7 +554,6 @@ public class RenameUnitMemberRefactoringImplTest extends RenameRefactoringImplTe
     refactoringChange = refactoring.createChange(pm);
     // validate change
     assertChangeResult(
-        getAnalysisContext(),
         refactoringChange,
         testSource,
         makeSource(
@@ -564,7 +561,6 @@ public class RenameUnitMemberRefactoringImplTest extends RenameRefactoringImplTe
             "part of lib;",
             "class NewName {}"));
     assertChangeResult(
-        getAnalysisContext(),
         refactoringChange,
         libSourceA,
         makeSource(
@@ -573,7 +569,6 @@ public class RenameUnitMemberRefactoringImplTest extends RenameRefactoringImplTe
             "part 'test.dart';",
             "NewName f() {}"));
     assertChangeResult(
-        getAnalysisContext(),
         refactoringChange,
         libSourceB,
         makeSource(
@@ -667,7 +662,6 @@ public class RenameUnitMemberRefactoringImplTest extends RenameRefactoringImplTe
         "  newName();",
         "}");
     assertChangeResult(
-        getAnalysisContext(),
         refactoringChange,
         source2,
         makeSource(
