@@ -3112,6 +3112,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         if (thrownException == null) {
           if (task.hasPartOfDirective() && !task.hasLibraryDirective()) {
             dartCopy.setValue(DartEntry.SOURCE_KIND, SourceKind.PART);
+            dartCopy.removeContainingLibrary(source);
             workManager.add(source, SourcePriority.NORMAL_PART);
           } else {
             dartCopy.setValue(DartEntry.SOURCE_KIND, SourceKind.LIBRARY);
