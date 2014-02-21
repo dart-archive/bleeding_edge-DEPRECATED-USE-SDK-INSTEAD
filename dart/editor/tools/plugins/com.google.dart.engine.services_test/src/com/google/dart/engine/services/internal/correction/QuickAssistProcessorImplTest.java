@@ -675,6 +675,7 @@ public class QuickAssistProcessorImplTest extends RefactoringImplTest {
     }
     // check Source(s)
     RefactoringImplTest.assertChangeResult(
+        getAnalysisContext(),
         proposalChange,
         testSource,
         makeSource(
@@ -686,6 +687,7 @@ public class QuickAssistProcessorImplTest extends RefactoringImplTest {
             "",
             "int varAfter;"));
     RefactoringImplTest.assertChangeResult(
+        getAnalysisContext(),
         proposalChange,
         libSource,
         makeSource(

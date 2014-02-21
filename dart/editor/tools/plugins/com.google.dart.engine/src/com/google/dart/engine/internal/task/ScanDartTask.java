@@ -150,9 +150,9 @@ public class ScanDartTask extends AnalysisTask {
       }
     };
     try {
-      source.getContents(receiver);
+      getContext().getContents(source, receiver);
     } catch (Exception exception) {
-      modificationTime = source.getModificationStamp();
+      modificationTime = getContext().getModificationStamp(source);
       throw new AnalysisException(exception);
     }
     if (token[0] == null) {

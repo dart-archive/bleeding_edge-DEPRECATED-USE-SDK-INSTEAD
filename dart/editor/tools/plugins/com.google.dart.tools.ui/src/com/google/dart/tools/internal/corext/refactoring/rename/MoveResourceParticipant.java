@@ -18,6 +18,7 @@ import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.Directive;
 import com.google.dart.engine.ast.StringLiteral;
 import com.google.dart.engine.ast.UriBasedDirective;
+import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExportElement;
@@ -73,9 +74,9 @@ public class MoveResourceParticipant extends MoveParticipant {
   /**
    * @return the {@link String} content of the given {@link Source}.
    */
-  private static String getSourceContent(Source source) throws Exception {
+  private static String getSourceContent(AnalysisContext context, Source source) throws Exception {
     final String result[] = {null};
-    source.getContents(new Source.ContentReceiver() {
+    context.getContents(source, new Source.ContentReceiver() {
       @Override
       public void accept(CharSequence contents, long modificationTime) {
         result[0] = contents.toString();
@@ -97,9 +98,11 @@ public class MoveResourceParticipant extends MoveParticipant {
   }
 
   private static boolean isPackageReference(SearchMatch match) throws Exception {
-    Source source = match.getElement().getSource();
+    Element element = match.getElement();
+    AnalysisContext context = element.getContext();
+    Source source = element.getSource();
     int offset = match.getSourceRange().getOffset() + "'".length();
-    String content = getSourceContent(source);
+    String content = getSourceContent(context, source);
     return content.startsWith("package:", offset);
   }
 

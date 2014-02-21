@@ -254,7 +254,7 @@ public final class DartDocUtilities {
 
             final String[] result = new String[1];
             try {
-              source.getContents(new ContentReceiver() {
+              cu.getContext().getContents(source, new ContentReceiver() {
                 @Override
                 public void accept(CharSequence contents, long modificationTime) {
                   result[0] = contents.toString();

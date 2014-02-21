@@ -1910,7 +1910,7 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
         Source source = parameter.getSource();
         String sourceContent = sourceContentMap.get(source);
         if (sourceContent == null) {
-          sourceContent = CorrectionUtils.getSourceContent(source);
+          sourceContent = CorrectionUtils.getSourceContent(parameter.getContext(), source);
           sourceContentMap.put(source, sourceContent);
         }
         String valueSource = sourceContent.substring(valueRange.getOffset(), valueRange.getEnd());

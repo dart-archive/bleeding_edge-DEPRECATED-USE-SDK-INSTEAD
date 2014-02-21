@@ -51,6 +51,7 @@ import com.google.dart.engine.ast.StringLiteral;
 import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
 import com.google.dart.engine.ast.visitor.NodeLocator;
+import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementKind;
@@ -151,11 +152,11 @@ public class CorrectionUtils {
    * Validates that the {@link Edit} replaces the expected part of the {@link Source} and adds this
    * {@link Edit} to the {@link SourceChange}.
    */
-  public static void addEdit(SourceChange change, String description, String expected, Edit edit)
-      throws Exception {
+  public static void addEdit(AnalysisContext context, SourceChange change, String description,
+      String expected, Edit edit) throws Exception {
     if (DEBUG_VALIDATE_EDITS) {
       Source source = change.getSource();
-      String sourceContent = getSourceContent(source);
+      String sourceContent = getSourceContent(context, source);
       // prepare range
       int beginIndex = edit.offset;
       int endIndex = beginIndex + edit.length;
@@ -648,9 +649,9 @@ public class CorrectionUtils {
   /**
    * @return the {@link String} content of the given {@link Source}.
    */
-  public static String getSourceContent(Source source) throws Exception {
+  public static String getSourceContent(AnalysisContext context, Source source) throws Exception {
     final String result[] = {null};
-    source.getContents(new Source.ContentReceiver() {
+    context.getContents(source, new Source.ContentReceiver() {
       @Override
       public void accept(CharSequence contents, long modificationTime) {
         result[0] = contents.toString();
@@ -1017,8 +1018,9 @@ public class CorrectionUtils {
 
   public CorrectionUtils(CompilationUnit unit) throws Exception {
     this.unit = unit;
-    this.library = unit.getElement().getLibrary();
-    this.buffer = getSourceContent(unit.getElement().getSource());
+    CompilationUnitElement element = unit.getElement();
+    this.library = element.getLibrary();
+    this.buffer = getSourceContent(element.getContext(), element.getSource());
   }
 
   /**

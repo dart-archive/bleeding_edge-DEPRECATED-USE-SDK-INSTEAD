@@ -76,6 +76,7 @@ import com.google.dart.engine.internal.task.ScanDartTask;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.source.Source.ContentReceiver;
 import com.google.dart.engine.source.SourceContainer;
 import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.engine.source.SourceKind;
@@ -602,6 +603,18 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @Override
+  public void getContents(Source source, ContentReceiver receiver) throws Exception {
+    if (sourceFactory != null) {
+      String contents = sourceFactory.getContentCache().getContents(source);
+      if (contents != null) {
+        receiver.accept(contents, sourceFactory.getContentCache().getModificationStamp(source));
+        return;
+      }
+    }
+    source.getContents(receiver);
+  }
+
+  @Override
   public Element getElement(ElementLocation location) {
     // TODO(brianwilkerson) This should not be a "get" method.
     try {
@@ -797,6 +810,17 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       return sourceEntry.getValue(SourceEntry.LINE_INFO);
     }
     return null;
+  }
+
+  @Override
+  public long getModificationStamp(Source source) {
+    if (sourceFactory != null) {
+      Long stamp = sourceFactory.getContentCache().getModificationStamp(source);
+      if (stamp != null) {
+        return stamp.longValue();
+      }
+    }
+    return source.getModificationStamp();
   }
 
   @Override
@@ -1340,7 +1364,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
               AnalysisError[] errors = errorListener.getErrors(source);
               LineInfo lineInfo = getLineInfo(source);
               DartEntry dartEntry = (DartEntry) cache.get(source);
-              long sourceTime = source.getModificationStamp();
+              long sourceTime = getModificationStamp(source);
               if (dartEntry.getModificationTime() != sourceTime) {
                 // The source has changed without the context being notified. Simulate notification.
                 sourceChanged(source);
@@ -1393,7 +1417,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
               if (dartEntry != null) {
                 long resultTime = library.getModificationTime(source);
                 writer.println("  " + debuggingString(source) + "; sourceTime = "
-                    + source.getModificationStamp() + ", resultTime = " + resultTime
+                    + getModificationStamp(source) + ", resultTime = " + resultTime
                     + ", cacheTime = " + dartEntry.getModificationTime());
                 DartEntryImpl dartCopy = dartEntry.getWritableCopy();
                 if (thrownException == null || resultTime >= 0L) {
@@ -1418,7 +1442,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
                 }
               } else {
                 writer.println("  " + debuggingString(source) + "; sourceTime = "
-                    + source.getModificationStamp() + ", no entry");
+                    + getModificationStamp(source) + ", no entry");
               }
             }
           }
@@ -1490,7 +1514,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
               "Internal error: attempting to resolve non-Dart file as a Dart file: "
                   + source.getFullName());
         }
-        long sourceTime = source.getModificationStamp();
+        long sourceTime = getModificationStamp(source);
         long resultTime = library.getModificationTime(source);
         if (sourceTime != resultTime) {
           // The source has changed without the context being notified. Simulate notification.
@@ -1813,12 +1837,12 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     String name = source.getShortName();
     if (AnalysisEngine.isHtmlFileName(name)) {
       HtmlEntryImpl htmlEntry = new HtmlEntryImpl();
-      htmlEntry.setModificationTime(source.getModificationStamp());
+      htmlEntry.setModificationTime(getModificationStamp(source));
       cache.put(source, htmlEntry);
       return htmlEntry;
     } else {
       DartEntryImpl dartEntry = new DartEntryImpl();
-      dartEntry.setModificationTime(source.getModificationStamp());
+      dartEntry.setModificationTime(getModificationStamp(source));
       cache.put(source, dartEntry);
       return dartEntry;
     }
@@ -1832,7 +1856,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
    * @return debugging information about the given source
    */
   private String debuggingString(Source source) {
-    return "'" + source.getFullName() + "' [" + source.getModificationStamp() + "]";
+    return "'" + source.getFullName() + "' [" + getModificationStamp(source) + "]";
   }
 
   /**
@@ -2857,7 +2881,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
                 + source.getFullName());
       }
       dartEntry = (DartEntry) sourceEntry;
-      long sourceTime = source.getModificationStamp();
+      long sourceTime = getModificationStamp(source);
       long resultTime = task.getModificationTime();
       if (sourceTime == resultTime) {
         if (dartEntry.getModificationTime() != sourceTime) {
@@ -2969,7 +2993,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         if (unitSource.equals(librarySource)) {
           libraryEntry = dartEntry;
         }
-        long sourceTime = unitSource.getModificationStamp();
+        long sourceTime = getModificationStamp(unitSource);
         long resultTime = results.getModificationTime();
         if (sourceTime == resultTime) {
           if (dartEntry.getModificationTime() != sourceTime) {
@@ -3072,7 +3096,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
                 + source.getFullName());
       }
       dartEntry = (DartEntry) sourceEntry;
-      long sourceTime = source.getModificationStamp();
+      long sourceTime = getModificationStamp(source);
       long resultTime = task.getModificationTime();
       if (sourceTime == resultTime) {
         if (dartEntry.getModificationTime() != sourceTime) {
@@ -3174,7 +3198,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
                 + source.getFullName());
       }
       htmlEntry = (HtmlEntry) sourceEntry;
-      long sourceTime = source.getModificationStamp();
+      long sourceTime = getModificationStamp(source);
       long resultTime = task.getModificationTime();
       if (sourceTime == resultTime) {
         if (htmlEntry.getModificationTime() != sourceTime) {
@@ -3273,7 +3297,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
                 + source.getFullName());
       }
       htmlEntry = (HtmlEntry) sourceEntry;
-      long sourceTime = source.getModificationStamp();
+      long sourceTime = getModificationStamp(source);
       long resultTime = task.getModificationTime();
       if (sourceTime == resultTime) {
         if (htmlEntry.getModificationTime() != sourceTime) {
@@ -3358,7 +3382,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
                 + source.getFullName());
       }
       htmlEntry = (HtmlEntry) sourceEntry;
-      long sourceTime = source.getModificationStamp();
+      long sourceTime = getModificationStamp(source);
       long resultTime = task.getModificationTime();
       if (sourceTime == resultTime) {
         if (htmlEntry.getModificationTime() != sourceTime) {
@@ -3446,7 +3470,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
                 + source.getFullName());
       }
       dartEntry = (DartEntry) sourceEntry;
-      long sourceTime = source.getModificationStamp();
+      long sourceTime = getModificationStamp(source);
       long resultTime = task.getModificationTime();
       if (sourceTime == resultTime) {
         if (dartEntry.getModificationTime() != sourceTime) {
@@ -3541,7 +3565,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
                 + unitSource.getFullName());
       }
       dartEntry = (DartEntry) sourceEntry;
-      long sourceTime = unitSource.getModificationStamp();
+      long sourceTime = getModificationStamp(unitSource);
       long resultTime = task.getModificationTime();
       if (sourceTime == resultTime) {
         if (dartEntry.getModificationTime() != sourceTime) {
@@ -3624,7 +3648,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
                 + source.getFullName());
       }
       htmlEntry = (HtmlEntry) sourceEntry;
-      long sourceTime = source.getModificationStamp();
+      long sourceTime = getModificationStamp(source);
       long resultTime = task.getModificationTime();
       if (sourceTime == resultTime) {
         if (htmlEntry.getModificationTime() != sourceTime) {
@@ -3714,7 +3738,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
                 + source.getFullName());
       }
       dartEntry = (DartEntry) sourceEntry;
-      long sourceTime = source.getModificationStamp();
+      long sourceTime = getModificationStamp(source);
       long resultTime = task.getModificationTime();
       if (sourceTime == resultTime) {
         if (dartEntry.getModificationTime() != sourceTime) {
@@ -3839,7 +3863,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     } else {
       SourceEntryImpl sourceCopy = sourceEntry.getWritableCopy();
       long oldTime = sourceCopy.getModificationTime();
-      sourceCopy.setModificationTime(source.getModificationStamp());
+      sourceCopy.setModificationTime(getModificationStamp(source));
       // TODO(brianwilkerson) Understand why we're not invalidating the cache.
       cache.put(source, sourceCopy);
       logInformation("Added new source: " + debuggingString(source) + " (previously modified at "
@@ -3860,7 +3884,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
    */
   private void sourceChanged(Source source) {
     SourceEntry sourceEntry = cache.get(source);
-    if (sourceEntry == null || sourceEntry.getModificationTime() == source.getModificationStamp()) {
+    if (sourceEntry == null || sourceEntry.getModificationTime() == getModificationStamp(source)) {
       // Either we have removed this source, in which case we don't care that it is changed, or we
       // have already invalidated the cache and don't need to invalidate it again.
       if (sourceEntry == null) {
@@ -3873,7 +3897,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     if (sourceEntry instanceof HtmlEntry) {
       HtmlEntryImpl htmlCopy = ((HtmlEntry) sourceEntry).getWritableCopy();
       long oldTime = htmlCopy.getModificationTime();
-      htmlCopy.setModificationTime(source.getModificationStamp());
+      htmlCopy.setModificationTime(getModificationStamp(source));
       invalidateAngularResolution(htmlCopy);
       htmlCopy.invalidateAllInformation();
       cache.put(source, htmlCopy);
@@ -3903,7 +3927,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
 
       removeFromParts(source, ((DartEntry) cache.get(source)));
       DartEntryImpl dartCopy = ((DartEntry) cache.get(source)).getWritableCopy();
-      dartCopy.setModificationTime(source.getModificationStamp());
+      dartCopy.setModificationTime(getModificationStamp(source));
       dartCopy.invalidateAllInformation();
       cache.put(source, dartCopy);
       cache.removedAst(source);
@@ -3961,7 +3985,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       for (Map.Entry<Source, SourceEntry> entry : cache.entrySet()) {
         Source source = entry.getKey();
         SourceEntry sourceEntry = entry.getValue();
-        long sourceTime = source.getModificationStamp();
+        long sourceTime = getModificationStamp(source);
         if (sourceTime != sourceEntry.getModificationTime()) {
           sourceChanged(source);
           inconsistentCount++;

@@ -240,7 +240,7 @@ public class SourceFactory {
    * contents of the source.
    * <p>
    * <b>Note:</b> This method is not intended to be used except by
-   * {@link FileBasedSource#getContents(com.google.dart.engine.source.Source.ContentReceiver)}.
+   * {@link AnalysisContext#getContents(Source, Source.ContentReceiver)}.
    * 
    * @param source the source whose content is to be returned
    * @return the contents of the given source
@@ -254,7 +254,7 @@ public class SourceFactory {
    * override the contents of the source.
    * <p>
    * <b>Note:</b> This method is not intended to be used except by
-   * {@link FileBasedSource#getModificationStamp()}.
+   * {@link AnalysisContext#getModificationStamp(Source)}.
    * 
    * @param source the source whose modification stamp is to be returned
    * @return the modification stamp of the given source

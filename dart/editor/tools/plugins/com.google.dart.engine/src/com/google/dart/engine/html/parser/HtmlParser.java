@@ -22,7 +22,6 @@ import com.google.dart.engine.html.ast.XmlAttributeNode;
 import com.google.dart.engine.html.ast.XmlNode;
 import com.google.dart.engine.html.ast.XmlTagNode;
 import com.google.dart.engine.html.scanner.HtmlScanResult;
-import com.google.dart.engine.html.scanner.HtmlScanner;
 import com.google.dart.engine.html.scanner.Token;
 import com.google.dart.engine.parser.Parser;
 import com.google.dart.engine.scanner.Scanner;
@@ -127,18 +126,6 @@ public class HtmlParser extends XmlParser {
         firstToken,
         scanResult.getLineStarts(),
         unit);
-  }
-
-  /**
-   * Scan then parse the specified source.
-   * 
-   * @param source the source to be scanned and parsed (not {@code null})
-   * @return the parse result (not {@code null})
-   */
-  public HtmlParseResult parse(Source source) throws Exception {
-    HtmlScanner scanner = new HtmlScanner(source);
-    source.getContents(scanner);
-    return parse(scanner.getResult());
   }
 
   @Override

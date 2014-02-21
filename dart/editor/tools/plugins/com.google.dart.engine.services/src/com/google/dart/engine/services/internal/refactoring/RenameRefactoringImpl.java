@@ -216,25 +216,26 @@ public abstract class RenameRefactoringImpl extends RefactoringImpl implements R
   /**
    * Adds the "Update declaration" {@link Edit} to the {@link SourceChange}.
    */
-  protected final void addDeclarationEdit(SourceChange change, Element element) throws Exception {
+  protected final void addDeclarationEdit(AnalysisContext context, SourceChange change,
+      Element element) throws Exception {
     Edit edit = new Edit(rangeElementName(element), newName);
-    addEdit(change, "Update declaration", edit);
+    addEdit(context, change, "Update declaration", edit);
   }
 
   /**
    * Adds the {@link Edit} that replaces {@link #oldName} to the {@link SourceChange}.
    */
-  protected final void addEdit(SourceChange sourceChange, String description, Edit edit)
-      throws Exception {
-    CorrectionUtils.addEdit(sourceChange, description, oldName, edit);
+  protected final void addEdit(AnalysisContext context, SourceChange sourceChange,
+      String description, Edit edit) throws Exception {
+    CorrectionUtils.addEdit(context, sourceChange, description, oldName, edit);
   }
 
   /**
    * Adds the "Update reference" {@link Edit} to the {@link SourceChange}.
    */
-  protected final void addReferenceEdit(SourceChange change, SourceReference reference)
-      throws Exception {
+  protected final void addReferenceEdit(AnalysisContext context, SourceChange change,
+      SourceReference reference) throws Exception {
     Edit edit = createReferenceEdit(reference, newName);
-    addEdit(change, "Update reference", edit);
+    addEdit(context, change, "Update reference", edit);
   }
 }

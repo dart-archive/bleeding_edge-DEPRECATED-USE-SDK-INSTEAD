@@ -90,7 +90,7 @@ public class AbstractDartTest extends TestCase {
    */
   public static String getSourceContent(Source source) throws Exception {
     final String result[] = {null};
-    source.getContents(new Source.ContentReceiver() {
+    analysisContext.getContents(source, new Source.ContentReceiver() {
       @Override
       public void accept(CharSequence contents, long modificationTime) {
         result[0] = contents.toString();

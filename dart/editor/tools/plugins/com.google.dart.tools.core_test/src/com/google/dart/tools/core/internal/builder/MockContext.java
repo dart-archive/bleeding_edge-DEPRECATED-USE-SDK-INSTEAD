@@ -19,6 +19,7 @@ import com.google.dart.engine.internal.context.AnalysisOptionsImpl;
 import com.google.dart.engine.source.DirectoryBasedSourceContainer;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.source.Source.ContentReceiver;
 import com.google.dart.engine.source.SourceContainer;
 import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.engine.source.SourceKind;
@@ -247,6 +248,16 @@ public class MockContext implements AnalysisContext {
   }
 
   @Override
+  public void getContents(Source source, ContentReceiver receiver) throws Exception {
+    String contents = factory.getContentCache().getContents(source);
+    if (contents != null) {
+      receiver.accept(contents, factory.getContentCache().getModificationStamp(source));
+    } else {
+      source.getContents(receiver);
+    }
+  }
+
+  @Override
   public Element getElement(ElementLocation location) {
     return null;
   }
@@ -309,6 +320,15 @@ public class MockContext implements AnalysisContext {
   @Override
   public LineInfo getLineInfo(Source source) {
     return null;
+  }
+
+  @Override
+  public long getModificationStamp(Source source) {
+    Long stamp = factory.getContentCache().getModificationStamp(source);
+    if (stamp != null) {
+      return stamp.longValue();
+    }
+    return source.getModificationStamp();
   }
 
   @Override

@@ -18,6 +18,7 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.search.MatchKind;
@@ -117,7 +118,10 @@ public abstract class SearchMatchPage extends SearchPage {
     public void addMatch(SourceLineProvider lineProvider, SearchMatch match) {
       ReferenceKind referenceKind = ReferenceKind.of(match.getKind());
       Source source = element.getSource();
-      SourceLine sourceLine = lineProvider.getLine(source, match.getSourceRange().getOffset());
+      SourceLine sourceLine = lineProvider.getLine(
+          element.getContext(),
+          source,
+          match.getSourceRange().getOffset());
       // find target LineItem
       LineItem targetLineItem = null;
       for (LineItem lineItem : lines) {
@@ -510,9 +514,9 @@ public abstract class SearchMatchPage extends SearchPage {
     /**
      * @return the {@link String} content of the given {@link Source}.
      */
-    private static String getSourceContent(Source source) throws Exception {
+    private static String getSourceContent(AnalysisContext context, Source source) throws Exception {
       final String result[] = {null};
-      source.getContents(new Source.ContentReceiver() {
+      context.getContents(source, new Source.ContentReceiver() {
         @Override
         public void accept(CharSequence contents, long modificationTime) {
           result[0] = contents.toString();
@@ -526,8 +530,8 @@ public abstract class SearchMatchPage extends SearchPage {
     /**
      * @return the {@link SourceLine} for the given {@link Source} and offset; may be {@code null}.
      */
-    public SourceLine getLine(Source source, int offset) {
-      String content = getContent(source);
+    public SourceLine getLine(AnalysisContext context, Source source, int offset) {
+      String content = getContent(context, source);
       // find start of line
       int start = offset;
       while (start > 0 && content.charAt(start - 1) != '\n') {
@@ -543,11 +547,11 @@ public abstract class SearchMatchPage extends SearchPage {
       return new SourceLine(source, start, text);
     }
 
-    private String getContent(Source source) {
+    private String getContent(AnalysisContext context, Source source) {
       String content = sourceContentMap.get(source);
       if (content == null) {
         try {
-          content = getSourceContent(source);
+          content = getSourceContent(context, source);
           sourceContentMap.put(source, content);
         } catch (Throwable e) {
           return null;

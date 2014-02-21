@@ -93,7 +93,7 @@ public class ResolveDartUnitTaskTest extends EngineTestCase {
   }
 
   public void xtest_perform_library() throws AnalysisException {
-    InternalAnalysisContext context = AnalysisContextFactory.contextWithCore();
+    final InternalAnalysisContext context = AnalysisContextFactory.contextWithCore();
     LibraryElementImpl libraryElement = library(context, "lib");
     CompilationUnitElementImpl unitElement = (CompilationUnitElementImpl) libraryElement.getDefiningCompilationUnit();
     ClassElementImpl classElement = classElement("A");
@@ -115,7 +115,7 @@ public class ResolveDartUnitTaskTest extends EngineTestCase {
           throw exception;
         }
         assertSame(source, task.getLibrarySource());
-        assertEquals(source.getModificationStamp(), task.getModificationTime());
+        assertEquals(context.getModificationStamp(source), task.getModificationTime());
         assertNotNull(task.getResolvedUnit());
         assertSame(source, task.getSource());
         return true;

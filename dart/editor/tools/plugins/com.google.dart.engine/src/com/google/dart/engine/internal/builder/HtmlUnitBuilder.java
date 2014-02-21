@@ -103,7 +103,10 @@ public class HtmlUnitBuilder implements XmlVisitor<Void> {
    */
   @VisibleForTesting
   public HtmlElementImpl buildHtmlElement(Source source) throws AnalysisException {
-    return buildHtmlElement(source, source.getModificationStamp(), context.parseHtmlUnit(source));
+    return buildHtmlElement(
+        source,
+        context.getModificationStamp(source),
+        context.parseHtmlUnit(source));
   }
 
   /**

@@ -13,6 +13,8 @@
  */
 package com.google.dart.engine.source;
 
+import com.google.dart.engine.context.AnalysisContext;
+
 import java.net.URI;
 
 /**
@@ -61,10 +63,11 @@ public interface Source {
   public boolean exists();
 
   /**
-   * Get the contents of this source and pass it to the given receiver. Exactly one of the methods
-   * defined on the receiver will be invoked unless an exception is thrown. The method that will be
-   * invoked depends on which of the possible representations of the contents is the most efficient.
-   * Whichever method is invoked, it will be invoked before this method returns.
+   * Get the contents of this source and pass it to the given content receiver.
+   * <p>
+   * Clients should consider using the the method
+   * {@link AnalysisContext#getModificationStamp(Source)} because contexts can have local overrides
+   * of the content of a source that the source is not aware of.
    * 
    * @param receiver the content receiver to which the content of this source will be passed
    * @throws Exception if the contents of this source could not be accessed
@@ -95,6 +98,10 @@ public interface Source {
    * the modification stamp was accessed then the same value will be returned, but if the contents
    * of the source have been modified one or more times (even if the net change is zero) the stamps
    * will be different.
+   * <p>
+   * Clients should consider using the the method
+   * {@link AnalysisContext#getModificationStamp(Source)} because contexts can have local overrides
+   * of the content of a source that the source is not aware of.
    * 
    * @return the modification stamp for this source
    */

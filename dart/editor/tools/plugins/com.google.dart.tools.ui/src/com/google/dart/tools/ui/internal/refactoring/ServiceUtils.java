@@ -198,7 +198,7 @@ public class ServiceUtils {
     if (context == null) {
       return null;
     }
-    return new DartStatusContext(context.getSource(), context.getRange());
+    return new DartStatusContext(context.getContext(), context.getSource(), context.getRange());
   }
 
   /**

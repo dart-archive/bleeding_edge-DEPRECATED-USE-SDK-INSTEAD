@@ -172,7 +172,7 @@ public class ParseHtmlTask extends AnalysisTask {
   protected void internalPerform() throws AnalysisException {
     HtmlScanner scanner = new HtmlScanner(source);
     try {
-      source.getContents(scanner);
+      getContext().getContents(source, scanner);
     } catch (Exception exception) {
       throw new AnalysisException(exception);
     }

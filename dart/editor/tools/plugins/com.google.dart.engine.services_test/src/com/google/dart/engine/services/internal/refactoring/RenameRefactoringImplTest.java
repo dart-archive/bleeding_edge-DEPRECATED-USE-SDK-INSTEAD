@@ -47,7 +47,7 @@ public abstract class RenameRefactoringImplTest extends RefactoringImplTest {
   protected final void assertSuccessfulRename(String... lines) throws Exception {
     assertRefactoringStatusOK();
     refactoringChange = refactoring.createChange(pm);
-    assertTestChangeResult(refactoringChange, makeSource(lines));
+    assertTestChangeResult(getAnalysisContext(), refactoringChange, makeSource(lines));
   }
 
   /**

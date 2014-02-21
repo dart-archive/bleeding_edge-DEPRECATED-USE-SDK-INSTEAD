@@ -45,11 +45,11 @@ public abstract class RefactoringImplTest extends AbstractDartTest {
   /**
    * Assert result of applying given {@link Change} to the "source".
    */
-  public static void assertChangeResult(Change compositeChange, Source source, String expected)
-      throws Exception {
+  public static void assertChangeResult(AnalysisContext context, Change compositeChange,
+      Source source, String expected) throws Exception {
     SourceChange sourceChange = getSourceChange(compositeChange, source);
     assertNotNull("No change for: " + source.toString(), sourceChange);
-    String sourceResult = getChangeResult(source, sourceChange);
+    String sourceResult = getChangeResult(context, source, sourceChange);
     assertEquals(expected, sourceResult);
   }
 
@@ -131,8 +131,9 @@ public abstract class RefactoringImplTest extends AbstractDartTest {
   /**
    * @return the result of applying given {@link SourceChange} to the {@link #testCode}.
    */
-  private static String getChangeResult(Source source, SourceChange change) throws Exception {
-    String sourceCode = CorrectionUtils.getSourceContent(source);
+  private static String getChangeResult(AnalysisContext context, Source source, SourceChange change)
+      throws Exception {
+    String sourceCode = CorrectionUtils.getSourceContent(context, source);
     List<Edit> sourceEdits = change.getEdits();
     return CorrectionUtils.applyReplaceEdits(sourceCode, sourceEdits);
   }
@@ -162,9 +163,9 @@ public abstract class RefactoringImplTest extends AbstractDartTest {
   /**
    * Assert result of applying given {@link Change} to the {@link #testCode}.
    */
-  protected final void assertTestChangeResult(Change compositeChange, String expected)
-      throws Exception {
-    assertChangeResult(compositeChange, testSource, expected);
+  protected final void assertTestChangeResult(AnalysisContext context, Change compositeChange,
+      String expected) throws Exception {
+    assertChangeResult(context, compositeChange, testSource, expected);
   }
 
   /**
@@ -214,10 +215,11 @@ public abstract class RefactoringImplTest extends AbstractDartTest {
   /**
    * Prints lines of result applying {@link Refactoring} to the the {@link #testSource}.
    */
-  protected final void printRefactoringTestSourceResult(Refactoring refactoring) throws Exception {
+  protected final void printRefactoringTestSourceResult(AnalysisContext context,
+      Refactoring refactoring) throws Exception {
     Change refactoringChange = refactoring.createChange(pm);
     SourceChange testChange = getSourceChange(refactoringChange, testSource);
-    String testResult = getChangeResult(testSource, testChange);
+    String testResult = getChangeResult(context, testSource, testChange);
     printSourceLines(testResult);
   }
 

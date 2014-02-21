@@ -59,7 +59,7 @@ public class SDKAnalysisTest extends TestCase {
       for (String dartUri : sdk.getUris()) {
         Source source = sourceFactory.forUri(dartUri);
 
-        internalParse(source, AnalysisErrorListener.NULL_LISTENER);
+        internalParse(context, source, AnalysisErrorListener.NULL_LISTENER);
 
       }
     }
@@ -93,7 +93,7 @@ public class SDKAnalysisTest extends TestCase {
     for (int i = 0; i < iterations; i++) {
       for (String dartUri : sdk.getUris()) {
         Source source = sourceFactory.forUri(dartUri);
-        internalScan(source, AnalysisErrorListener.NULL_LISTENER);
+        internalScan(context, source, AnalysisErrorListener.NULL_LISTENER);
       }
     }
     long endTime = System.currentTimeMillis();
@@ -106,8 +106,8 @@ public class SDKAnalysisTest extends TestCase {
 
   }
 
-  private void internalParse(final Source source, final AnalysisErrorListener errorListener)
-      throws AnalysisException {
+  private void internalParse(AnalysisContext context, final Source source,
+      final AnalysisErrorListener errorListener) throws AnalysisException {
     final ScanResult result = new ScanResult();
     Source.ContentReceiver receiver = new Source.ContentReceiver() {
       @Override
@@ -117,7 +117,7 @@ public class SDKAnalysisTest extends TestCase {
       }
     };
     try {
-      source.getContents(receiver);
+      context.getContents(source, receiver);
       Parser parser = new Parser(source, AnalysisErrorListener.NULL_LISTENER);
       parser.parseCompilationUnit(result.token);
     } catch (Exception exception) {
@@ -125,8 +125,8 @@ public class SDKAnalysisTest extends TestCase {
     }
   }
 
-  private void internalScan(final Source source, final AnalysisErrorListener errorListener)
-      throws AnalysisException {
+  private void internalScan(AnalysisContext context, final Source source,
+      final AnalysisErrorListener errorListener) throws AnalysisException {
     Source.ContentReceiver receiver = new Source.ContentReceiver() {
       @Override
       public void accept(CharSequence contents, long modificationTime) {
@@ -135,7 +135,7 @@ public class SDKAnalysisTest extends TestCase {
       }
     };
     try {
-      source.getContents(receiver);
+      context.getContents(source, receiver);
     } catch (Exception exception) {
       throw new AnalysisException(exception);
     }

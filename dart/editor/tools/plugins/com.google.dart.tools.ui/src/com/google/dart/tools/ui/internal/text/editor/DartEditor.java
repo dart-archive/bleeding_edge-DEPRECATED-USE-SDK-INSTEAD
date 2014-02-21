@@ -2421,9 +2421,11 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     }
     // may be SDK
     if (inputJavaFile != null) {
-      return new FileBasedSource(
-          projectManager.getSdkContext().getSourceFactory().getContentCache(),
-          inputJavaFile);
+      AnalysisContext context = getInputAnalysisContext();
+      if (context == null) {
+        return null;
+      }
+      return new FileBasedSource(context.getSourceFactory().getContentCache(), inputJavaFile);
     }
     // some random external file
     return null;

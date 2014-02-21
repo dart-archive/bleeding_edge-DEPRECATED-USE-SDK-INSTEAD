@@ -95,7 +95,7 @@ public class ResolveDartDependenciesTaskTest extends EngineTestCase {
         "part 'part.dart';",
         "class A {}",
         ";"));
-    InternalAnalysisContext context = new AnalysisContextImpl();
+    final InternalAnalysisContext context = new AnalysisContextImpl();
     context.setSourceFactory(new SourceFactory(new FileUriResolver()));
     ResolveDartDependenciesTask task = new ResolveDartDependenciesTask(context, source);
     task.perform(new TestTaskVisitor<Boolean>() {
@@ -109,7 +109,7 @@ public class ResolveDartDependenciesTaskTest extends EngineTestCase {
         assertLength(1, task.getExportedSources());
         assertLength(1, task.getImportedSources());
         assertLength(1, task.getIncludedSources());
-        assertEquals(source.getModificationStamp(), task.getModificationTime());
+        assertEquals(context.getModificationStamp(source), task.getModificationTime());
         assertSame(source, task.getSource());
         return true;
       }
@@ -123,7 +123,7 @@ public class ResolveDartDependenciesTaskTest extends EngineTestCase {
         "export 'b.dart';",
         "part 'c.dart';",
         "class D {}"));
-    InternalAnalysisContext context = new AnalysisContextImpl();
+    final InternalAnalysisContext context = new AnalysisContextImpl();
     context.setSourceFactory(new SourceFactory(new FileUriResolver()));
     ResolveDartDependenciesTask task = new ResolveDartDependenciesTask(context, source);
     task.perform(new TestTaskVisitor<Boolean>() {
@@ -137,7 +137,7 @@ public class ResolveDartDependenciesTaskTest extends EngineTestCase {
         assertLength(1, task.getExportedSources());
         assertLength(1, task.getImportedSources());
         assertLength(1, task.getIncludedSources());
-        assertEquals(source.getModificationStamp(), task.getModificationTime());
+        assertEquals(context.getModificationStamp(source), task.getModificationTime());
         assertSame(source, task.getSource());
         return true;
       }

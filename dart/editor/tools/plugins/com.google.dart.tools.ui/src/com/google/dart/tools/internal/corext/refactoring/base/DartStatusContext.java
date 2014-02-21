@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.internal.corext.refactoring.base;
 
+import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
@@ -34,12 +35,12 @@ public class DartStatusContext extends RefactoringStatusContext implements IAdap
   /**
    * @return the {@link String} content of the given {@link Source}.
    */
-  private static String getSourceContent(final Source source) {
+  private static String getSourceContent(final AnalysisContext context, final Source source) {
     final String result[] = {""};
     ExecutionUtils.runIgnore(new RunnableEx() {
       @Override
       public void run() throws Exception {
-        source.getContents(new Source.ContentReceiver() {
+        context.getContents(source, new Source.ContentReceiver() {
           @Override
           public void accept(CharSequence contents, long modificationTime) {
             result[0] = contents.toString();
@@ -54,10 +55,10 @@ public class DartStatusContext extends RefactoringStatusContext implements IAdap
   private final String content;
   private final SourceRange sourceRange;
 
-  public DartStatusContext(Source source, SourceRange range) {
+  public DartStatusContext(AnalysisContext context, Source source, SourceRange range) {
     this.source = source;
     Assert.isNotNull(source);
-    this.content = getSourceContent(source);
+    this.content = getSourceContent(context, source);
     this.sourceRange = range;
   }
 

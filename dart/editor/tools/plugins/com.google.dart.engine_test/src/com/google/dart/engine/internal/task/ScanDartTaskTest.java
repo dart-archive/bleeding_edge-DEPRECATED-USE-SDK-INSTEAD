@@ -83,7 +83,7 @@ public class ScanDartTaskTest extends EngineTestCase {
   public void test_perform_valid() throws AnalysisException {
     final Source source = new TestSource(createSource(//
         "class A {}"));
-    InternalAnalysisContext context = new AnalysisContextImpl();
+    final InternalAnalysisContext context = new AnalysisContextImpl();
     context.setSourceFactory(new SourceFactory(new FileUriResolver()));
     ScanDartTask task = new ScanDartTask(context, source);
     task.perform(new TestTaskVisitor<Boolean>() {
@@ -96,7 +96,7 @@ public class ScanDartTaskTest extends EngineTestCase {
         assertNotNull(task.getTokenStream());
         assertLength(0, task.getErrors());
         assertNotNull(task.getLineInfo());
-        assertEquals(source.getModificationStamp(), task.getModificationTime());
+        assertEquals(context.getModificationStamp(source), task.getModificationTime());
         assertSame(source, task.getSource());
         return true;
       }

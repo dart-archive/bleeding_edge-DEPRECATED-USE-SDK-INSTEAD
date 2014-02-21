@@ -206,6 +206,7 @@ public class RenameConstructorRefactoringImplTest extends RenameRefactoringImplT
     assertRefactoringStatusOK();
     Change refactoringChange = refactoring.createChange(pm);
     assertChangeResult(
+        getAnalysisContext(),
         refactoringChange,
         testSource,
         makeSource(
@@ -221,6 +222,7 @@ public class RenameConstructorRefactoringImplTest extends RenameRefactoringImplT
             "  new A.newName();",
             "}"));
     assertChangeResult(
+        getAnalysisContext(),
         refactoringChange,
         sourceB,
         makeSource(

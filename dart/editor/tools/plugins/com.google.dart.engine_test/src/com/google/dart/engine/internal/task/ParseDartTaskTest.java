@@ -98,7 +98,7 @@ public class ParseDartTaskTest extends EngineTestCase {
         "part 'part.dart';",
         "class A {}",
         ";"));
-    InternalAnalysisContext context = new AnalysisContextImpl();
+    final InternalAnalysisContext context = new AnalysisContextImpl();
     context.setSourceFactory(new SourceFactory(new FileUriResolver()));
     ParseDartTask task = new ParseDartTask(context, source);
     task.perform(new TestTaskVisitor<Boolean>() {
@@ -110,7 +110,7 @@ public class ParseDartTaskTest extends EngineTestCase {
         }
         assertNotNull(task.getCompilationUnit());
         assertLength(1, task.getErrors());
-        assertEquals(source.getModificationStamp(), task.getModificationTime());
+        assertEquals(context.getModificationStamp(source), task.getModificationTime());
         assertSame(source, task.getSource());
         assertTrue(task.hasLibraryDirective());
         assertFalse(task.hasPartOfDirective());
@@ -123,7 +123,7 @@ public class ParseDartTaskTest extends EngineTestCase {
     final Source source = new TestSource(createSource(//
         "part of lib;",
         "class B {}"));
-    InternalAnalysisContext context = new AnalysisContextImpl();
+    final InternalAnalysisContext context = new AnalysisContextImpl();
     context.setSourceFactory(new SourceFactory(new FileUriResolver()));
     ParseDartTask task = new ParseDartTask(context, source);
     task.perform(new TestTaskVisitor<Boolean>() {
@@ -135,7 +135,7 @@ public class ParseDartTaskTest extends EngineTestCase {
         }
         assertNotNull(task.getCompilationUnit());
         assertLength(0, task.getErrors());
-        assertEquals(source.getModificationStamp(), task.getModificationTime());
+        assertEquals(context.getModificationStamp(source), task.getModificationTime());
         assertSame(source, task.getSource());
         assertFalse(task.hasLibraryDirective());
         assertTrue(task.hasPartOfDirective());

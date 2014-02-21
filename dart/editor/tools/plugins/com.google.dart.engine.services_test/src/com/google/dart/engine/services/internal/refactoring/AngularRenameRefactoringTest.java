@@ -499,11 +499,11 @@ public class AngularRenameRefactoringTest extends AngularTest {
   }
 
   private void assertIndexChangeResult(String expected) throws Exception {
-    assertChangeResult(refactoringChange, indexSource, expected);
+    assertChangeResult(context, refactoringChange, indexSource, expected);
   }
 
   private void assertMainChangeResult(String expected) throws Exception {
-    assertChangeResult(refactoringChange, mainSource, expected);
+    assertChangeResult(context, refactoringChange, mainSource, expected);
   }
 
   private void createRenameRefactoring(Element element) {

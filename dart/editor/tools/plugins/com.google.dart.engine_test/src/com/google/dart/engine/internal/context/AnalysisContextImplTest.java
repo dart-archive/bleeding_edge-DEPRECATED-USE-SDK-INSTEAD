@@ -1001,7 +1001,7 @@ public class AnalysisContextImplTest extends EngineTestCase {
 
   public void xtest_performAnalysisTask_modifiedAfterParse() throws Exception {
     Source source = addSource("/test.dart", "library lib;");
-    long initialTime = source.getModificationStamp();
+    long initialTime = context.getModificationStamp(source);
     ArrayList<Source> sources = new ArrayList<Source>();
     sources.add(source);
     context.setAnalysisPriorityOrder(sources);
@@ -1010,7 +1010,7 @@ public class AnalysisContextImplTest extends EngineTestCase {
       Thread.sleep(1); // Force the modification time to be different.
     }
     sourceFactory.getContentCache().setContents(source, "library test;");
-    assertTrue(initialTime != source.getModificationStamp());
+    assertTrue(initialTime != context.getModificationStamp(source));
     for (int i = 0; i < 100; i++) {
       ChangeNotice[] notice = context.performAnalysisTask().getChangeNotices();
       if (notice == null) {

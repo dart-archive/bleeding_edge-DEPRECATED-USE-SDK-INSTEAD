@@ -21,6 +21,7 @@ import com.google.dart.engine.internal.resolver.TypeProvider;
 import com.google.dart.engine.internal.scope.Namespace;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.source.Source.ContentReceiver;
 import com.google.dart.engine.source.SourceContainer;
 import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.engine.source.SourceKind;
@@ -291,6 +292,11 @@ public class InstrumentedAnalysisContextImpl implements InternalAnalysisContext 
   }
 
   @Override
+  public void getContents(Source source, ContentReceiver receiver) throws Exception {
+    basis.getContents(source, receiver);
+  }
+
+  @Override
   public Element getElement(ElementLocation location) {
     InstrumentationBuilder instrumentation = Instrumentation.builder("Analysis-getElement");
     checkThread(instrumentation);
@@ -473,6 +479,18 @@ public class InstrumentedAnalysisContextImpl implements InternalAnalysisContext 
     try {
       instrumentation.metric("contextId", contextId);
       return basis.getLineInfo(source);
+    } finally {
+      instrumentation.log();
+    }
+  }
+
+  @Override
+  public long getModificationStamp(Source source) {
+    InstrumentationBuilder instrumentation = Instrumentation.builder("Analysis-computeDocumentationComment");
+    checkThread(instrumentation);
+    try {
+      instrumentation.metric("contextId", contextId);
+      return basis.getModificationStamp(source);
     } finally {
       instrumentation.log();
     }

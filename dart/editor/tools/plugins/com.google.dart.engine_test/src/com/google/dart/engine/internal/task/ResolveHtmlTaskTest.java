@@ -98,7 +98,7 @@ public class ResolveHtmlTaskTest extends EngineTestCase {
             "<body>",
             "</body>",
             "</html>"));
-    InternalAnalysisContext context = AnalysisContextFactory.contextWithCore();
+    final InternalAnalysisContext context = AnalysisContextFactory.contextWithCore();
     ResolveHtmlTask task = new ResolveHtmlTask(context, source);
     task.perform(new TestTaskVisitor<Boolean>() {
       @Override
@@ -108,7 +108,7 @@ public class ResolveHtmlTaskTest extends EngineTestCase {
           throw exception;
         }
         assertNotNull(task.getElement());
-        assertEquals(source.getModificationStamp(), task.getModificationTime());
+        assertEquals(context.getModificationStamp(source), task.getModificationTime());
         assertLength(1, task.getResolutionErrors());
         assertSame(source, task.getSource());
         return true;

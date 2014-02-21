@@ -196,7 +196,7 @@ public class ParseHtmlTaskTest extends EngineTestCase {
   }
 
   private ParseHtmlTask parseSource(final Source source, TestLogger testLogger) throws Exception {
-    InternalAnalysisContext context = new AnalysisContextImpl();
+    final InternalAnalysisContext context = new AnalysisContextImpl();
     context.setSourceFactory(new SourceFactory(new FileUriResolver()));
     ParseHtmlTask task = new ParseHtmlTask(context, source);
     Logger oldLogger = AnalysisEngine.getInstance().getLogger();
@@ -211,7 +211,7 @@ public class ParseHtmlTaskTest extends EngineTestCase {
           }
           assertNotNull(task.getHtmlUnit());
           assertNotNull(task.getLineInfo());
-          assertEquals(source.getModificationStamp(), task.getModificationTime());
+          assertEquals(context.getModificationStamp(source), task.getModificationTime());
           assertSame(source, task.getSource());
           return true;
         }

@@ -2426,7 +2426,7 @@ public class ExtractMethodRefactoringImplTest extends RefactoringImplTest {
   protected final void assertSuccessfulRefactoring(String... lines) throws Exception {
     assertRefactoringStatus(refactoringStatus, RefactoringStatusSeverity.OK, null);
     Change change = refactoring.createChange(pm);
-    assertTestChangeResult(change, makeSource(lines));
+    assertTestChangeResult(getAnalysisContext(), change, makeSource(lines));
   }
 
   /**

@@ -15,6 +15,7 @@
 package com.google.dart.engine.services.internal.refactoring;
 
 import com.google.common.collect.Lists;
+import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.FieldElement;
@@ -117,20 +118,21 @@ public class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
   public Change createChange(ProgressMonitor pm) throws Exception {
     pm = checkProgressMonitor(pm);
     try {
+      AnalysisContext context = element.getContext();
       SourceChangeManager exactManager = new SourceChangeManager();
       // update declaration
       for (Element renameElement : validator.renameElements) {
         if (!renameElement.isSynthetic()) {
           Source elementSource = renameElement.getSource();
           SourceChange elementChange = exactManager.get(elementSource);
-          addDeclarationEdit(elementChange, renameElement);
+          addDeclarationEdit(context, elementChange, renameElement);
         }
       }
       // update references
       List<SourceReference> elementRefs = getSourceReferences(validator.renameElementsReferences);
       for (SourceReference reference : elementRefs) {
         SourceChange refChange = exactManager.get(reference.source);
-        addReferenceEdit(refChange, reference);
+        addReferenceEdit(context, refChange, reference);
       }
       // potential matches
       SourceChangeManager previewManager = new SourceChangeManager();
@@ -148,7 +150,7 @@ public class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
         // add edit
         SourceChange refChange = previewManager.get(reference.source);
         Edit edit = createReferenceEdit(reference, newName);
-        addEdit(refChange, "Update reference @" + reference.range.getOffset(), edit);
+        addEdit(context, refChange, "Update reference @" + reference.range.getOffset(), edit);
       }
       // return CompositeChange
       SourceChange[] exactChanges = exactManager.getChanges();

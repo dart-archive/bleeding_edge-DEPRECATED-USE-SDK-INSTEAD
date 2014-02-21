@@ -14,6 +14,7 @@
 
 package com.google.dart.engine.services.internal.refactoring;
 
+import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
@@ -77,6 +78,7 @@ public class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
   public Change createChange(ProgressMonitor pm) throws Exception {
     pm = checkProgressMonitor(pm);
     try {
+      AnalysisContext context = element.getContext();
       SourceChangeManager changeManager = new SourceChangeManager();
       String replacement = newName.isEmpty() ? "" : "." + newName;
       String oldContent = oldName.isEmpty() ? "" : "." + oldName;
@@ -88,7 +90,7 @@ public class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
           if (reference.kind == MatchKind.CONSTRUCTOR_DECLARATION) {
             SourceChange refChange = changeManager.get(reference.source);
             Edit refEdit = createReferenceEdit(reference, replacement);
-            CorrectionUtils.addEdit(refChange, "Update declaration", oldContent, refEdit);
+            CorrectionUtils.addEdit(context, refChange, "Update declaration", oldContent, refEdit);
           }
         }
       }
@@ -97,7 +99,7 @@ public class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
         if (reference.kind == MatchKind.CONSTRUCTOR_REFERENCE) {
           SourceChange refChange = changeManager.get(reference.source);
           Edit refEdit = createReferenceEdit(reference, replacement);
-          CorrectionUtils.addEdit(refChange, "Update reference", oldContent, refEdit);
+          CorrectionUtils.addEdit(context, refChange, "Update reference", oldContent, refEdit);
         }
       }
       // return CompositeChange

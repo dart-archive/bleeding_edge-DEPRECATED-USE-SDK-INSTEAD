@@ -57,14 +57,15 @@ public class LibraryElementImpl extends ElementImpl implements LibraryElement {
     if (!visitedLibraries.contains(library)) {
       visitedLibraries.add(library);
 
+      AnalysisContext context = library.getContext();
       // Check the defining compilation unit.
-      if (timeStamp < library.getDefiningCompilationUnit().getSource().getModificationStamp()) {
+      if (timeStamp < context.getModificationStamp(library.getDefiningCompilationUnit().getSource())) {
         return false;
       }
 
       // Check the parted compilation units.
       for (CompilationUnitElement element : library.getParts()) {
-        if (timeStamp < element.getSource().getModificationStamp()) {
+        if (timeStamp < context.getModificationStamp(element.getSource())) {
           return false;
         }
       }

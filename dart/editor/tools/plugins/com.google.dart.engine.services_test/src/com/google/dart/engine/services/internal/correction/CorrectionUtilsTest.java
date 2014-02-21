@@ -44,6 +44,7 @@ import com.google.dart.engine.ast.Statement;
 import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationStatement;
+import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ConstructorElement;
@@ -58,11 +59,13 @@ import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.TypeParameterElement;
+import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.services.change.Edit;
 import com.google.dart.engine.services.change.SourceChange;
 import com.google.dart.engine.services.internal.correction.CorrectionUtils.InsertDesc;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.engine.type.Type;
 import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.engine.utilities.source.SourceRangeFactory;
@@ -113,7 +116,7 @@ public class CorrectionUtilsTest extends AbstractDartTest {
     // add Edit
     String description = "desc";
     try {
-      CorrectionUtils.addEdit(change, description, "234", edit);
+      CorrectionUtils.addEdit(getAnalysisContext(), change, description, "234", edit);
       fail();
     } catch (IllegalStateException e) {
     }
@@ -130,7 +133,7 @@ public class CorrectionUtilsTest extends AbstractDartTest {
     // add Edit
     String description = "desc";
     try {
-      CorrectionUtils.addEdit(change, description, "err", edit);
+      CorrectionUtils.addEdit(getAnalysisContext(), change, description, "err", edit);
       fail();
     } catch (IllegalStateException e) {
     }
@@ -146,7 +149,7 @@ public class CorrectionUtilsTest extends AbstractDartTest {
     when(change.getSource()).thenReturn(testSource);
     // add Edit
     String description = "desc";
-    CorrectionUtils.addEdit(change, description, "234", edit);
+    CorrectionUtils.addEdit(getAnalysisContext(), change, description, "234", edit);
     // verify
     verify(change).addEdit(description, edit);
   }
@@ -1681,9 +1684,12 @@ public class CorrectionUtilsTest extends AbstractDartTest {
   }
 
   public void test_new_withCharBuffer() throws Exception {
+    AnalysisContext context = new AnalysisContextImpl();
+    context.setSourceFactory(new SourceFactory());
     Source source = mock(Source.class);
     CompilationUnit unit = mock(CompilationUnit.class);
     CompilationUnitElement unitElement = mock(CompilationUnitElement.class);
+    when(unitElement.getContext()).thenReturn(context);
     when(unit.getElement()).thenReturn(unitElement);
     when(unitElement.getSource()).thenReturn(source);
     // mock content
