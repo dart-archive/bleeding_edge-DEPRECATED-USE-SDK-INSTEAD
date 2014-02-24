@@ -212,14 +212,6 @@ public class DartHover implements ITextHover, ITextHoverExtension, ITextHoverExt
       // types
       if (node instanceof Expression) {
         Expression expression = (Expression) node;
-        // show node if no Element
-        if (element == null) {
-          String text = node.toSource();
-          text = WordUtils.wrap(text, 100);
-          setGridVisible(elementSection, true);
-          elementSection.setTitle("Node");
-          elementSection.setText(text);
-        }
         // parameter
         {
           ASTNode n = expression;
