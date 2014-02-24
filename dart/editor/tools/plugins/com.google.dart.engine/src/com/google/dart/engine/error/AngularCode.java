@@ -50,8 +50,7 @@ public enum AngularCode implements ErrorCode {
    * @param message the message template used to create the message to be displayed for the error
    */
   private AngularCode(String message) {
-//    this(message, ErrorSeverity.WARNING);
-    this(message, ErrorSeverity.INFO);
+    this(message, ErrorSeverity.WARNING);
   }
 
   /**
@@ -62,7 +61,7 @@ public enum AngularCode implements ErrorCode {
    */
   private AngularCode(String message, ErrorSeverity severity) {
     this.message = message;
-    this.severity = severity;
+    this.severity = ErrorSeverity.INFO; //severity;
   }
 
   @Override
