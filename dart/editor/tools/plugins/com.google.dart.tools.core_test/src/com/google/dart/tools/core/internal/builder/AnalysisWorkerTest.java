@@ -19,7 +19,6 @@ import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
-import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.engine.utilities.source.LineInfo;
 import com.google.dart.tools.core.AbstractDartCoreTest;
 import com.google.dart.tools.core.analysis.model.AnalysisEvent;
@@ -102,9 +101,7 @@ public class AnalysisWorkerTest extends AbstractDartCoreTest {
 
   public void test_performAnalysis() throws Exception {
     MockFile libFile = project.addFile("test.dart");
-    SourceFactory sourceFactory = analysisContext.getSourceFactory();
-    Source libSource = new FileBasedSource(sourceFactory.getContentCache(), libFile.toFile());
-    sourceFactory.setContents(libSource, "library a;\nmain() {}");
+    Source libSource = addSource(libFile, "library a;\nmain() {}");
     ChangeSet changeSet = new ChangeSet();
     changeSet.added(libSource);
     analysisContext.applyChanges(changeSet);
@@ -147,9 +144,7 @@ public class AnalysisWorkerTest extends AbstractDartCoreTest {
 
   public void test_performAnalysis_stop() throws Exception {
     MockFile libFile = project.addFile("test.dart");
-    SourceFactory sourceFactory = analysisContext.getSourceFactory();
-    Source libSource = new FileBasedSource(sourceFactory.getContentCache(), libFile.toFile());
-    sourceFactory.setContents(libSource, "library a;\nmain() {}");
+    Source libSource = addSource(libFile, "library a;\nmain() {}");
     ChangeSet changeSet = new ChangeSet();
     changeSet.added(libSource);
     analysisContext.applyChanges(changeSet);
@@ -180,5 +175,14 @@ public class AnalysisWorkerTest extends AbstractDartCoreTest {
   @Override
   protected void tearDown() throws Exception {
     AnalysisWorker.removeListener(listener);
+  }
+
+  private Source addSource(MockFile file, String contents) {
+    Source source = new FileBasedSource(file.toFile());
+    ChangeSet changeSet = new ChangeSet();
+    changeSet.added(source);
+    analysisContext.applyChanges(changeSet);
+    analysisContext.setContents(source, contents);
+    return source;
   }
 }

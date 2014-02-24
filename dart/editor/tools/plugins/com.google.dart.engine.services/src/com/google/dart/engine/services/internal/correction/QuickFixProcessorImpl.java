@@ -225,7 +225,7 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
    * @return the "package" {@link URI}, may be {@code null}.
    */
   private static URI findPackageUri(AnalysisContext context, File file) {
-    Source fileSource = new FileBasedSource(null, file);
+    Source fileSource = new FileBasedSource(file);
     return context.getSourceFactory().restoreUri(fileSource);
   }
 

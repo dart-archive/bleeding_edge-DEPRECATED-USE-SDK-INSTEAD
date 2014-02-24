@@ -18,7 +18,6 @@ import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
 import com.google.dart.engine.sdk.SdkLibrary;
-import com.google.dart.engine.source.ContentCache;
 import com.google.dart.engine.source.DartUriResolver;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
@@ -85,8 +84,8 @@ public class DartSdkManager {
     private FileBasedSource coreSource;
 
     @Override
-    public Source fromEncoding(ContentCache contentCache, UriKind kind, URI uri) {
-      return new FileBasedSource(contentCache, new File(uri), kind);
+    public Source fromEncoding(UriKind kind, URI uri) {
+      return new FileBasedSource(new File(uri), kind);
     }
 
     @Override
@@ -122,10 +121,7 @@ public class DartSdkManager {
     public Source mapDartUri(String dartUri) {
       if (DART_CORE.equals(dartUri)) {
         if (coreSource == null) {
-          coreSource = new FileBasedSource(
-              getContext().getSourceFactory().getContentCache(),
-              new File("core.dart"),
-              UriKind.DART_URI) {
+          coreSource = new FileBasedSource(new File("core.dart"), UriKind.DART_URI) {
             @Override
             public void getContents(com.google.dart.engine.source.Source.ContentReceiver receiver)
                 throws Exception {

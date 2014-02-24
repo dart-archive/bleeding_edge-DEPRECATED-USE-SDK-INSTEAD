@@ -42,6 +42,7 @@ import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceContainer;
 import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.engine.source.SourceKind;
+import com.google.dart.engine.source.TestSource;
 import com.google.dart.engine.utilities.source.LineInfo;
 
 import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
@@ -85,10 +86,7 @@ public class AnalysisContextImplTest extends EngineTestCase {
 
   public void test_applyChanges_add() {
     Source source = addSource("/test.dart", "");
-    sourceFactory.setContents(source, "main() {}");
-    ChangeSet changeSet = new ChangeSet();
-    changeSet.changed(source);
-    context.applyChanges(changeSet);
+    context.setContents(source, "main() {}");
   }
 
   public void test_applyChanges_change_flush_element() throws Exception {
@@ -369,8 +367,75 @@ public class AnalysisContextImplTest extends EngineTestCase {
     assertNotSame(compilationUnit, context.computeResolvableCompilationUnit(source));
   }
 
+  public void test_exists_false() throws Exception {
+    assertFalse(context.exists(new TestSource()));
+  }
+
+  public void test_exists_null() throws Exception {
+    assertFalse(context.exists(null));
+  }
+
+  public void test_exists_overridden() throws Exception {
+    Source source = new TestSource();
+    context.setContents(source, "");
+    assertTrue(context.exists(source));
+  }
+
+  public void test_exists_true() throws Exception {
+    assertTrue(context.exists(new TestSource() {
+      @Override
+      public boolean exists() {
+        return true;
+      }
+    }));
+  }
+
   public void test_getAnalysisOptions() throws Exception {
     assertNotNull(context.getAnalysisOptions());
+  }
+
+  public void test_getContents_fromSource() throws Exception {
+    final String content = "library lib;";
+    final boolean[] gotContents = {false};
+    context.getContents(new TestSource(content), new Source.ContentReceiver() {
+      @Override
+      public void accept(CharSequence contents, long modificationTime) {
+        gotContents[0] = true;
+        assertEquals(content, contents.toString());
+      }
+    });
+    assertTrue("Failed to get contents", gotContents[0]);
+  }
+
+  public void test_getContents_overridden() throws Exception {
+    final String content = "library lib;";
+    Source source = new TestSource();
+    context.setContents(source, content);
+    final boolean[] gotContents = {false};
+    context.getContents(source, new Source.ContentReceiver() {
+      @Override
+      public void accept(CharSequence contents, long modificationTime) {
+        gotContents[0] = true;
+        assertEquals(content, contents.toString());
+      }
+    });
+    assertTrue("Failed to get contents", gotContents[0]);
+  }
+
+  public void test_getContents_unoverridden() throws Exception {
+    final String content = "library lib;";
+    Source source = new TestSource(content);
+    context.setContents(source, "part of lib;");
+    context.setContents(source, null);
+    final boolean[] gotContents = {false};
+    context.getContents(source, new Source.ContentReceiver() {
+      @Override
+      public void accept(CharSequence contents, long modificationTime) {
+        gotContents[0] = true;
+        assertEquals(content, contents.toString());
+      }
+    });
+    assertTrue("Failed to get contents", gotContents[0]);
   }
 
   public void test_getElement() throws Exception {
@@ -442,6 +507,7 @@ public class AnalysisContextImplTest extends EngineTestCase {
 
   public void test_getHtmlFilesReferencing_html() throws Exception {
     context = AnalysisContextFactory.contextWithCore();
+    sourceFactory = context.getSourceFactory();
     Source htmlSource = addSource("/test.html", createSource(//
         "<html><head>",
         "<script type='application/dart' src='test.dart'/>",
@@ -474,6 +540,7 @@ public class AnalysisContextImplTest extends EngineTestCase {
 
   public void test_getHtmlFilesReferencing_part() throws Exception {
     context = AnalysisContextFactory.contextWithCore();
+    sourceFactory = context.getSourceFactory();
     Source htmlSource = addSource("/test.html", createSource(//
         "<html><head>",
         "<script type='application/dart' src='test.dart'/>",
@@ -609,6 +676,28 @@ public class AnalysisContextImplTest extends EngineTestCase {
     context.parseCompilationUnit(source);
     info = context.getLineInfo(source);
     assertNotNull(info);
+  }
+
+  public void test_getModificationStamp_fromSource() throws Exception {
+    final long stamp = 42L;
+    assertEquals(stamp, context.getModificationStamp(new TestSource() {
+      @Override
+      public long getModificationStamp() {
+        return stamp;
+      }
+    }));
+  }
+
+  public void test_getModificationStamp_overridden() throws Exception {
+    final long stamp = 42L;
+    Source source = new TestSource() {
+      @Override
+      public long getModificationStamp() {
+        return stamp;
+      }
+    };
+    context.setContents(source, "");
+    assertTrue(stamp != context.getModificationStamp(source));
   }
 
   public void test_getPublicNamespace_element() throws Exception {
@@ -765,7 +854,7 @@ public class AnalysisContextImplTest extends EngineTestCase {
   }
 
   public void test_parseCompilationUnit_nonExistentSource() throws Exception {
-    Source source = new FileBasedSource(sourceFactory.getContentCache(), createFile("/test.dart"));
+    Source source = new FileBasedSource(createFile("/test.dart"));
     try {
       context.parseCompilationUnit(source);
       fail("Expected AnalysisException because file does not exist");
@@ -886,13 +975,18 @@ public class AnalysisContextImplTest extends EngineTestCase {
     assertNotNull(unit);
 
     int offset = oldCode.indexOf("int a") + 4;
-    String newCode = createSource(//
+    final String newCode = createSource(//
         "library lib;",
         "part 'part.dart';",
         "int ya = 0;");
     assertNull(getIncrementalAnalysisCache(context));
     context.setChangedContents(librarySource, newCode, offset, 0, 1);
-    assertEquals(newCode, sourceFactory.getContentCache().getContents(librarySource));
+    context.getContents(librarySource, new Source.ContentReceiver() {
+      @Override
+      public void accept(CharSequence contents, long modificationTime) {
+        assertEquals(newCode, contents);
+      }
+    });
     IncrementalAnalysisCache incrementalCache = getIncrementalAnalysisCache(context);
     assertEquals(librarySource, incrementalCache.getLibrarySource());
     assertSame(unit, incrementalCache.getResolvedUnit());
@@ -912,11 +1006,16 @@ public class AnalysisContextImplTest extends EngineTestCase {
     Source librarySource = addSource("/lib.dart", oldCode);
 
     int offset = oldCode.indexOf("int a") + 4;
-    String newCode = createSource(//
+    final String newCode = createSource(//
         "library lib;",
         "int ya = 0;");
     context.setChangedContents(librarySource, newCode, offset, 0, 1);
-    assertEquals(newCode, sourceFactory.getContentCache().getContents(librarySource));
+    context.getContents(librarySource, new Source.ContentReceiver() {
+      @Override
+      public void accept(CharSequence contents, long modificationTime) {
+        assertEquals(newCode, contents);
+      }
+    });
     assertNull(getIncrementalAnalysisCache(context));
   }
 
@@ -1009,7 +1108,7 @@ public class AnalysisContextImplTest extends EngineTestCase {
     while (initialTime == System.currentTimeMillis()) {
       Thread.sleep(1); // Force the modification time to be different.
     }
-    sourceFactory.getContentCache().setContents(source, "library test;");
+    context.setContents(source, "library test;");
     assertTrue(initialTime != context.getModificationStamp(source));
     for (int i = 0; i < 100; i++) {
       ChangeNotice[] notice = context.performAnalysisTask().getChangeNotices();
@@ -1054,16 +1153,16 @@ public class AnalysisContextImplTest extends EngineTestCase {
   }
 
   private Source addSource(String fileName, String contents) {
-    Source source = new FileBasedSource(sourceFactory.getContentCache(), createFile(fileName));
-    sourceFactory.setContents(source, contents);
+    Source source = new FileBasedSource(createFile(fileName));
     ChangeSet changeSet = new ChangeSet();
     changeSet.added(source);
     context.applyChanges(changeSet);
+    context.setContents(source, contents);
     return source;
   }
 
   private Source addSourceWithException(String fileName) {
-    Source source = new FileBasedSource(sourceFactory.getContentCache(), createFile(fileName)) {
+    Source source = new FileBasedSource(createFile(fileName)) {
       @Override
       public void getContents(ContentReceiver receiver) throws Exception {
         throw new IOException("I/O Exception while getting the contents of " + getFullName());

@@ -33,11 +33,6 @@ public class SourceFactory {
   private AnalysisContext context;
 
   /**
-   * A cache of content used to override the default content of a source.
-   */
-  private ContentCache contentCache;
-
-  /**
    * The resolvers used to resolve absolute URI's.
    */
   private UriResolver[] resolvers;
@@ -45,19 +40,7 @@ public class SourceFactory {
   /**
    * The predicate to determine is {@link Source} is local.
    */
-  private LocalSourcePredicate localSourcePredicate;
-
-  /**
-   * Initialize a newly created source factory.
-   * 
-   * @param contentCache the cache holding content used to override the default content of a source
-   * @param resolvers the resolvers used to resolve absolute URI's
-   */
-  public SourceFactory(ContentCache contentCache, UriResolver... resolvers) {
-    this.contentCache = contentCache;
-    this.resolvers = resolvers;
-    this.localSourcePredicate = LocalSourcePredicate.NOT_SDK;
-  }
+  private LocalSourcePredicate localSourcePredicate = LocalSourcePredicate.NOT_SDK;
 
   /**
    * Initialize a newly created source factory.
@@ -65,7 +48,7 @@ public class SourceFactory {
    * @param resolvers the resolvers used to resolve absolute URI's
    */
   public SourceFactory(UriResolver... resolvers) {
-    this(new ContentCache(), resolvers);
+    this.resolvers = resolvers;
   }
 
   /**
@@ -106,7 +89,7 @@ public class SourceFactory {
     try {
       URI uri = new URI(encoding.substring(1));
       for (UriResolver resolver : resolvers) {
-        Source result = resolver.fromEncoding(contentCache, kind, uri);
+        Source result = resolver.fromEncoding(kind, uri);
         if (result != null) {
           return result;
         }
@@ -115,15 +98,6 @@ public class SourceFactory {
     } catch (Exception exception) {
       throw new IllegalArgumentException("Invalid URI in encoding");
     }
-  }
-
-  /**
-   * Return a cache of content used to override the default content of a source.
-   * 
-   * @return a cache of content used to override the default content of a source
-   */
-  public ContentCache getContentCache() {
-    return contentCache;
   }
 
   /**
@@ -201,19 +175,6 @@ public class SourceFactory {
   }
 
   /**
-   * Set the contents of the given source to the given contents. This has the effect of overriding
-   * the default contents of the source. If the contents are {@code null} the override is removed so
-   * that the default contents will be returned.
-   * 
-   * @param source the source whose contents are being overridden
-   * @param contents the new contents of the source
-   * @return the original cached contents or {@code null} if none
-   */
-  public String setContents(Source source, String contents) {
-    return contentCache.setContents(source, contents);
-  }
-
-  /**
    * Set the analysis context that this source factory is associated with to the given context.
    * <p>
    * <b>Note:</b> This method should only be invoked by
@@ -236,34 +197,6 @@ public class SourceFactory {
   }
 
   /**
-   * Return the contents of the given source, or {@code null} if this factory does not override the
-   * contents of the source.
-   * <p>
-   * <b>Note:</b> This method is not intended to be used except by
-   * {@link AnalysisContext#getContents(Source, Source.ContentReceiver)}.
-   * 
-   * @param source the source whose content is to be returned
-   * @return the contents of the given source
-   */
-  protected String getContents(Source source) {
-    return contentCache.getContents(source);
-  }
-
-  /**
-   * Return the modification stamp of the given source, or {@code null} if this factory does not
-   * override the contents of the source.
-   * <p>
-   * <b>Note:</b> This method is not intended to be used except by
-   * {@link AnalysisContext#getModificationStamp(Source)}.
-   * 
-   * @param source the source whose modification stamp is to be returned
-   * @return the modification stamp of the given source
-   */
-  protected Long getModificationStamp(Source source) {
-    return contentCache.getModificationStamp(source);
-  }
-
-  /**
    * Return a source object representing the URI that results from resolving the given (possibly
    * relative) contained URI against the URI associated with an existing source object, or
    * {@code null} if either the contained URI is invalid or if it cannot be resolved against the
@@ -276,7 +209,7 @@ public class SourceFactory {
   private Source resolveUri(Source containingSource, URI containedUri) {
     if (containedUri.isAbsolute()) {
       for (UriResolver resolver : resolvers) {
-        Source result = resolver.resolveAbsolute(contentCache, containedUri);
+        Source result = resolver.resolveAbsolute(containedUri);
         if (result != null) {
           return result;
         }

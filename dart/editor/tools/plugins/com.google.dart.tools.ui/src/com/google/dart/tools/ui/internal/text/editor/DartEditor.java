@@ -2423,7 +2423,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       if (context == null) {
         return null;
       }
-      return new FileBasedSource(context.getSourceFactory().getContentCache(), inputJavaFile);
+      return new FileBasedSource(inputJavaFile);
     }
     // some random external file
     return null;

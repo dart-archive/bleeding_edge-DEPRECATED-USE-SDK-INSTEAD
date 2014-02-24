@@ -36,23 +36,21 @@ public abstract class UriResolver {
    * {@link Source source} representing the file to which it was resolved, or {@code null} if it
    * could not be resolved.
    * 
-   * @param contentCache the content cache used to access the contents of the returned source
    * @param kind the kind of URI that was originally resolved in order to produce an encoding with
    *          the given URI
    * @param uri the URI to be resolved
    * @return a {@link Source source} representing the file to which given URI was resolved
    */
-  public abstract Source fromEncoding(ContentCache contentCache, UriKind kind, URI uri);
+  public abstract Source fromEncoding(UriKind kind, URI uri);
 
   /**
    * Resolve the given absolute URI. Return a {@link Source source} representing the file to which
    * it was resolved, or {@code null} if it could not be resolved.
    * 
-   * @param contentCache the content cache used to access the contents of the returned source
    * @param uri the URI to be resolved
    * @return a {@link Source source} representing the file to which given URI was resolved
    */
-  public abstract Source resolveAbsolute(ContentCache contentCache, URI uri);
+  public abstract Source resolveAbsolute(URI uri);
 
   /**
    * Return an absolute URI that represents the given source.

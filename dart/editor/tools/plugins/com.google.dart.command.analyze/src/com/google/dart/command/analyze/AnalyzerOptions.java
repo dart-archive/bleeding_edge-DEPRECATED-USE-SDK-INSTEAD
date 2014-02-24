@@ -186,7 +186,6 @@ public class AnalyzerOptions {
   usage = "Print performance statistics")
   private boolean perf = false;
 
-  @SuppressWarnings("unused")
   @Option(name = "--diagnostic-colors")
   private boolean diagnosticColors = false; // ignored for now
 
@@ -194,7 +193,7 @@ public class AnalyzerOptions {
   private final String sourceFile = null;
 
   public AnalyzerOptions() {
-
+    super();
   }
 
   /**
@@ -366,8 +365,6 @@ public class AnalyzerOptions {
         }
       }
     }
-
     return false;
   }
-
 }

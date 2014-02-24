@@ -77,7 +77,7 @@ public class SimpleResourceMapImpl implements ResourceMap {
     if (location == null) {
       return null;
     }
-    return new FileBasedSource(context.getSourceFactory().getContentCache(), location.toFile());
+    return new FileBasedSource(location.toFile());
 
   }
 }

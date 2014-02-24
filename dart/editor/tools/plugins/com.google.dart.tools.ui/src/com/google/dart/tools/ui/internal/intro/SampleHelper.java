@@ -102,9 +102,7 @@ public class SampleHelper {
               window.getShell());
 
           Project project = DartCore.getProjectManager().getProject(newProjectHandle);
-          IFile resource = (IFile) project.getResource(new FileBasedSource(
-              project.getDefaultContext().getSourceFactory().getContentCache(),
-              fileToOpen));
+          IFile resource = (IFile) project.getResource(new FileBasedSource(fileToOpen));
           EditorUtility.openInTextEditor(resource, true);
         } catch (CoreException e) {
           DartToolsPlugin.log(e);

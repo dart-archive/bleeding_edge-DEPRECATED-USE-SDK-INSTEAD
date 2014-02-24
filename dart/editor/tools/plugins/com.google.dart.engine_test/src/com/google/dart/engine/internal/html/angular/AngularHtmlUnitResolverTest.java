@@ -181,7 +181,7 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
 
   public void test_getAngularElement_isAngular() throws Exception {
     // prepare local variable "name" in compilation unit
-    CompilationUnitElementImpl unit = compilationUnit(context, "test.dart");
+    CompilationUnitElementImpl unit = compilationUnit("test.dart");
     FunctionElementImpl function = functionElement("main");
     unit.setFunctions(new FunctionElement[] {function});
     LocalVariableElementImpl local = localVariableElement("name");

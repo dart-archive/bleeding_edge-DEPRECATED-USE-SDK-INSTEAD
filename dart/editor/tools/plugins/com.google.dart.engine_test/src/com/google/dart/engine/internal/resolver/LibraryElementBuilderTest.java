@@ -36,13 +36,16 @@ import java.lang.reflect.Method;
 
 public class LibraryElementBuilderTest extends EngineTestCase {
   /**
-   * The source factory used to create {@link Source sources}.
+   * The analysis context used to analyze sources.
    */
-  private SourceFactory sourceFactory;
+  private AnalysisContextImpl context;
 
   @Override
   public void setUp() {
-    sourceFactory = new SourceFactory(new FileUriResolver());
+    SourceFactory sourceFactory = new SourceFactory(new DartUriResolver(
+        DirectoryBasedDartSdk.getDefaultSdk()), new FileUriResolver());
+    context = new AnalysisContextImpl();
+    context.setSourceFactory(sourceFactory);
   }
 
   public void test_accessorsAcrossFiles() throws Exception {
@@ -177,8 +180,8 @@ public class LibraryElementBuilderTest extends EngineTestCase {
    * @return the source object representing the added file
    */
   protected Source addSource(String filePath, String contents) {
-    Source source = new FileBasedSource(sourceFactory.getContentCache(), createFile(filePath));
-    sourceFactory.setContents(source, contents);
+    Source source = new FileBasedSource(createFile(filePath));
+    context.setContents(source, contents);
     return source;
   }
 
@@ -218,9 +221,6 @@ public class LibraryElementBuilderTest extends EngineTestCase {
    */
   private LibraryElement buildLibrary(Source librarySource, ErrorCode... expectedErrorCodes)
       throws Exception {
-    AnalysisContextImpl context = new AnalysisContextImpl();
-    context.setSourceFactory(new SourceFactory(new DartUriResolver(
-        DirectoryBasedDartSdk.getDefaultSdk()), new FileUriResolver()));
     LibraryResolver resolver = new LibraryResolver(context);
     LibraryElementBuilder builder = new LibraryElementBuilder(resolver);
     Method method = resolver.getClass().getDeclaredMethod(

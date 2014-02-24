@@ -23,7 +23,6 @@ import com.google.dart.engine.internal.context.InternalAnalysisContext;
 import com.google.dart.engine.internal.context.TimestampedData;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
-import com.google.dart.engine.source.SourceFactory;
 
 import static com.google.dart.engine.element.ElementFactory.library;
 import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
@@ -31,16 +30,6 @@ import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
 import java.util.HashMap;
 
 public class GenerateDartHintsTaskTest extends EngineTestCase {
-  /**
-   * The source factory associated with the analysis context.
-   */
-  private SourceFactory sourceFactory;
-
-  /**
-   * The change set to which sources will be added.
-   */
-  private ChangeSet changeSet;
-
   public void test_accept() throws AnalysisException {
     GenerateDartHintsTask task = new GenerateDartHintsTask(null, null);
     assertTrue(task.accept(new TestTaskVisitor<Boolean>() {
@@ -71,17 +60,23 @@ public class GenerateDartHintsTaskTest extends EngineTestCase {
 
   public void test_perform() throws AnalysisException {
     InternalAnalysisContext context = AnalysisContextFactory.contextWithCore();
-    sourceFactory = context.getSourceFactory();
-    changeSet = new ChangeSet();
-    final Source librarySource = cacheSource("/test.dart", createSource(//
+    ChangeSet changeSet = new ChangeSet();
+    final Source librarySource = new FileBasedSource(createFile("/test.dart"));
+    changeSet.added(librarySource);
+    Source unusedSource = new FileBasedSource(createFile("/unused.dart"));
+    changeSet.added(unusedSource);
+    final Source partSource = new FileBasedSource(createFile("/part.dart"));
+    changeSet.added(partSource);
+    context.applyChanges(changeSet);
+
+    context.setContents(librarySource, createSource(//
         "library lib;",
         "import 'unused.dart';",
         "part 'part.dart';"));
-    cacheSource("/unused.dart", createSource(//
+    context.setContents(unusedSource, createSource(//
         "library unused;"));
-    final Source partSource = cacheSource("/part.dart", createSource(//
+    context.setContents(partSource, createSource(//
         "part of lib;"));
-    context.applyChanges(changeSet);
 
     GenerateDartHintsTask task = new GenerateDartHintsTask(
         context,
@@ -102,20 +97,5 @@ public class GenerateDartHintsTaskTest extends EngineTestCase {
         return true;
       }
     });
-  }
-
-  /**
-   * Cache the source file content in the source factory but don't add the source to the analysis
-   * context. The file path should be absolute.
-   * 
-   * @param filePath the path of the file being cached
-   * @param contents the contents to be returned by the content provider for the specified file
-   * @return the source object representing the cached file
-   */
-  protected Source cacheSource(String filePath, String contents) {
-    Source source = new FileBasedSource(sourceFactory.getContentCache(), createFile(filePath));
-    sourceFactory.setContents(source, contents);
-    changeSet.added(source);
-    return source;
   }
 }

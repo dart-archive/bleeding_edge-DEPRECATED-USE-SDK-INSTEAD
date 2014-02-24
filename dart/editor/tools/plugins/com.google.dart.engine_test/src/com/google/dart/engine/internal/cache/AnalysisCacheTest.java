@@ -63,7 +63,7 @@ public class AnalysisCacheTest extends EngineTestCase {
     });
     int size = 6;
     for (int i = 0; i < size; i++) {
-      Source source = new TestSource(null, createFile("/test" + i + ".dart"), "");
+      Source source = new TestSource(createFile("/test" + i + ".dart"), "");
       DartEntryImpl entry = new DartEntryImpl();
       entry.setValue(DartEntry.PARSED_UNIT, null);
       cache.put(source, entry);
@@ -79,7 +79,7 @@ public class AnalysisCacheTest extends EngineTestCase {
     AnalysisCache cache = new AnalysisCache(8, null);
     int size = 4;
     for (int i = 0; i < size; i++) {
-      Source source = new TestSource(null, createFile("/test" + i + ".dart"), "");
+      Source source = new TestSource(createFile("/test" + i + ".dart"), "");
       cache.put(source, new DartEntryImpl());
       cache.accessedAst(source);
     }

@@ -384,8 +384,8 @@ public class DartEntryImplTest extends EngineTestCase {
   public void test_resolutionState() throws Exception {
     DartEntryImpl entry1 = new DartEntryImpl();
 
-    Source libSrc1 = new TestSource(null, createFile("/test1.dart"), "");
-    Source libSrc2 = new TestSource(null, createFile("/test2.dart"), "");
+    Source libSrc1 = new TestSource(createFile("/test1.dart"), "");
+    Source libSrc2 = new TestSource(createFile("/test2.dart"), "");
 
     ParserErrorCode errCode = ParserErrorCode.DIRECTIVE_AFTER_DECLARATION;
     AnalysisError[] errors1 = new AnalysisError[] {new AnalysisError(libSrc1, 0, 10, errCode)};

@@ -478,9 +478,7 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
             String name = proxy.getName();
             if (isDartLikeFileName(name) || isHtmlLikeFileName(name)) {
               if (proxy.requestResource().getLocation() != null) {
-                Source source = new FileBasedSource(
-                    context.getSourceFactory().getContentCache(),
-                    proxy.requestResource().getLocation().toFile());
+                Source source = new FileBasedSource(proxy.requestResource().getLocation().toFile());
                 sources.add(source);
               }
             }
@@ -489,7 +487,8 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
           }
           return true;
         }
-      }, 0);
+      },
+          0);
     } catch (CoreException e) {
       DartCore.logError(e);
     }

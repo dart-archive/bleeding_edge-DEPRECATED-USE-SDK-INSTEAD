@@ -92,7 +92,7 @@ public class DeltaProcessor {
       if (source == null) {
         File file = getResourceFile();
         if (file != null) {
-          source = new FileBasedSource(context.getSourceFactory().getContentCache(), file);
+          source = new FileBasedSource(file);
         } else {
           logNoLocation(getResource());
         }

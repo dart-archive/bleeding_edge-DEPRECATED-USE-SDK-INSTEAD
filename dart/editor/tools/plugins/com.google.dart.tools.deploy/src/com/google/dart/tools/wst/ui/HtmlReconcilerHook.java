@@ -142,7 +142,7 @@ public class HtmlReconcilerHook implements ISourceValidator, IValidator {
     if (analysisContext == null) {
       return null;
     }
-    return new FileBasedSource(analysisContext.getSourceFactory().getContentCache(), file);
+    return new FileBasedSource(file);
   }
 
   /**

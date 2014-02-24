@@ -25,7 +25,6 @@ import com.google.dart.engine.internal.element.EmbeddedHtmlScriptElementImpl;
 import com.google.dart.engine.internal.element.ExternalHtmlScriptElementImpl;
 import com.google.dart.engine.internal.element.HtmlElementImpl;
 import com.google.dart.engine.source.Source;
-import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.engine.source.TestSource;
 
 import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
@@ -118,8 +117,6 @@ public class HtmlUnitBuilderTest extends EngineTestCase {
 
   private AnalysisContextImpl context;
 
-  private SourceFactory sourceFactory;
-
   public void test_embedded_script() throws Exception {
     HtmlElementImpl element = build(createSource(//
         "<html>",
@@ -180,7 +177,6 @@ public class HtmlUnitBuilderTest extends EngineTestCase {
   @Override
   protected void setUp() throws Exception {
     context = AnalysisContextFactory.contextWithCore();
-    sourceFactory = context.getSourceFactory();
   }
 
   ExpectedLibrary l(ExpectedVariable... expectedVariables) {
@@ -188,10 +184,7 @@ public class HtmlUnitBuilderTest extends EngineTestCase {
   }
 
   private HtmlElementImpl build(String contents) throws Exception {
-    TestSource source = new TestSource(
-        sourceFactory.getContentCache(),
-        createFile("/test.html"),
-        contents);
+    TestSource source = new TestSource(createFile("/test.html"), contents);
     ChangeSet changeSet = new ChangeSet();
     changeSet.added(source);
     context.applyChanges(changeSet);

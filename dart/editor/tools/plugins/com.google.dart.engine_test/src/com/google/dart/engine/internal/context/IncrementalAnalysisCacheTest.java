@@ -20,7 +20,6 @@ import com.google.dart.engine.internal.cache.DartEntryImpl;
 import com.google.dart.engine.parser.Parser;
 import com.google.dart.engine.scanner.CharSequenceReader;
 import com.google.dart.engine.scanner.Scanner;
-import com.google.dart.engine.source.ContentCache;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.TestSource;
 
@@ -84,8 +83,7 @@ public class IncrementalAnalysisCacheTest extends TestCase {
   public void test_clear_differentSource() throws Exception {
     IncrementalAnalysisCache cache = update(null, source, "hello", "hbazlo", 1, 2, 3, entry);
 
-    ContentCache contentCache = new ContentCache();
-    Source otherSource = new TestSource(contentCache, new File("blat.dart"), "blat");
+    Source otherSource = new TestSource(new File("blat.dart"), "blat");
     result = clear(cache, otherSource);
     assertSame(cache, result);
   }
@@ -207,8 +205,7 @@ public class IncrementalAnalysisCacheTest extends TestCase {
   }
 
   public void test_update_newSource_entry() throws Exception {
-    ContentCache contentCache = new ContentCache();
-    Source oldSource = new TestSource(contentCache, new File("blat.dart"), "blat");
+    Source oldSource = new TestSource(new File("blat.dart"), "blat");
     DartEntryImpl oldEntry = new DartEntryImpl();
     CompilationUnit oldUnit = mock(CompilationUnit.class);
     oldEntry.setValue(DartEntry.RESOLVED_UNIT, source, oldUnit);
@@ -228,8 +225,7 @@ public class IncrementalAnalysisCacheTest extends TestCase {
   }
 
   public void test_update_newSource_noEntry() throws Exception {
-    ContentCache contentCache = new ContentCache();
-    Source oldSource = new TestSource(contentCache, new File("blat.dart"), "blat");
+    Source oldSource = new TestSource(new File("blat.dart"), "blat");
     DartEntryImpl oldEntry = new DartEntryImpl();
     CompilationUnit oldUnit = mock(CompilationUnit.class);
     oldEntry.setValue(DartEntry.RESOLVED_UNIT, source, oldUnit);
@@ -337,8 +333,7 @@ public class IncrementalAnalysisCacheTest extends TestCase {
     IncrementalAnalysisCache cache = update(null, source, "hello", "hbazlo", 1, 2, 3, entry);
     CompilationUnit newUnit = mock(CompilationUnit.class);
 
-    ContentCache contentCache = new ContentCache();
-    Source otherSource = new TestSource(contentCache, new File("blat.dart"), "blat");
+    Source otherSource = new TestSource(new File("blat.dart"), "blat");
 
     result = verifyStructure(cache, otherSource, newUnit);
     assertSame(cache, result);

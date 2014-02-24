@@ -143,7 +143,7 @@ public class ServiceUtilsTest extends AbstractDartTest {
   }
 
   public void test_toLTK_Change_SourceChange_externalFile() throws Exception {
-    FileBasedSource source = new FileBasedSource(null, FileUtilities2.createFile("/some/path"));
+    FileBasedSource source = new FileBasedSource(FileUtilities2.createFile("/some/path"));
     // fill SourceChange
     SourceChange sourceChange = new SourceChange("My change", source);
     sourceChange.addEdit(new Edit(10, 1, "a"));
@@ -268,7 +268,7 @@ public class ServiceUtilsTest extends AbstractDartTest {
    */
   private Source createFileSource(IFile file) {
     File ioFile = file.getLocation().toFile();
-    return new FileBasedSource(null, ioFile, UriKind.FILE_URI);
+    return new FileBasedSource(ioFile, UriKind.FILE_URI);
   }
 
   /**

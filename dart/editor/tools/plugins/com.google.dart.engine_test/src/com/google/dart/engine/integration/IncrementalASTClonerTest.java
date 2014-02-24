@@ -21,7 +21,6 @@ import com.google.dart.engine.parser.Parser;
 import com.google.dart.engine.scanner.CharSequenceReader;
 import com.google.dart.engine.scanner.Scanner;
 import com.google.dart.engine.scanner.Token;
-import com.google.dart.engine.source.ContentCache;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.ast.IncrementalASTCloner;
@@ -34,8 +33,6 @@ import junit.framework.TestCase;
 import java.io.File;
 
 public class IncrementalASTClonerTest extends TestCase {
-
-  private static final ContentCache contentCache = new ContentCache();
   private static int fileCount;
   private static int scanCount;
 
@@ -57,7 +54,7 @@ public class IncrementalASTClonerTest extends TestCase {
 
   private static void scan(File dartFile) {
     fileCount++;
-    final FileBasedSource source = new FileBasedSource(contentCache, dartFile);
+    final FileBasedSource source = new FileBasedSource(dartFile);
 
     final Token[] tokens = new Token[1];
     final LineInfo[] lineInfo = new LineInfo[1];

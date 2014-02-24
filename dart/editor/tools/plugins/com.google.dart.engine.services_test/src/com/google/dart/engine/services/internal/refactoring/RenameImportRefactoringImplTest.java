@@ -142,8 +142,7 @@ public class RenameImportRefactoringImplTest extends RenameRefactoringImplTest {
 
   public void test_shouldReportUnsafeRefactoringSource() throws Exception {
     indexTestUnit("import 'dart:async' as test;");
-    Source externalSource = new FileBasedSource(sourceFactory.getContentCache(), new File(
-        "other.dart"));
+    Source externalSource = new FileBasedSource(new File("other.dart"));
     // check public
     createRenameImportRefactoring("import 'dart:async");
     assertTrue(refactoring.shouldReportUnsafeRefactoringSource(analysisContext, testSource));

@@ -71,15 +71,15 @@ public class PackageUriResolver extends UriResolver {
   }
 
   @Override
-  public Source fromEncoding(ContentCache contentCache, UriKind kind, URI uri) {
+  public Source fromEncoding(UriKind kind, URI uri) {
     if (kind == UriKind.PACKAGE_SELF_URI || kind == UriKind.PACKAGE_URI) {
-      return new FileBasedSource(contentCache, new File(uri), kind);
+      return new FileBasedSource(new File(uri), kind);
     }
     return null;
   }
 
   @Override
-  public Source resolveAbsolute(ContentCache contentCache, URI uri) {
+  public Source resolveAbsolute(URI uri) {
     if (!isPackageUri(uri)) {
       return null;
     }
@@ -111,11 +111,10 @@ public class PackageUriResolver extends UriResolver {
         File canonicalFile = getCanonicalFile(packagesDirectory, pkgName, relPath);
         UriKind uriKind = isSelfReference(packagesDirectory, canonicalFile)
             ? UriKind.PACKAGE_SELF_URI : UriKind.PACKAGE_URI;
-        return new FileBasedSource(contentCache, canonicalFile, uriKind);
+        return new FileBasedSource(canonicalFile, uriKind);
       }
     }
-    return new FileBasedSource( //
-        contentCache,
+    return new FileBasedSource(
         getCanonicalFile(packagesDirectories[0], pkgName, relPath),
         UriKind.PACKAGE_URI);
   }

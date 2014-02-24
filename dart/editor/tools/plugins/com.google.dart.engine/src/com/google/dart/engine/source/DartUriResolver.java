@@ -54,9 +54,9 @@ public class DartUriResolver extends UriResolver {
   }
 
   @Override
-  public Source fromEncoding(ContentCache contentCache, UriKind kind, URI uri) {
+  public Source fromEncoding(UriKind kind, URI uri) {
     if (kind == UriKind.DART_URI) {
-      return sdk.fromEncoding(contentCache, kind, uri);
+      return sdk.fromEncoding(kind, uri);
     }
     return null;
   }
@@ -71,7 +71,7 @@ public class DartUriResolver extends UriResolver {
   }
 
   @Override
-  public Source resolveAbsolute(ContentCache contentCache, URI uri) {
+  public Source resolveAbsolute(URI uri) {
     if (!isDartUri(uri)) {
       return null;
     }

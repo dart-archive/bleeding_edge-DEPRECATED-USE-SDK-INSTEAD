@@ -37,7 +37,7 @@ public class PubResourceMapImplTest extends SimpleResourceMapImplTest {
 
   public void test_getResource_fromSourceInLib() throws Exception {
     MockFile res = libContainer.addFile("file.dart");
-    FileBasedSource source = new FileBasedSource(contentCache, res.getLocation().toFile());
+    FileBasedSource source = new FileBasedSource(res.getLocation().toFile());
 
     PubResourceMapImpl map = newTarget();
     assertSame(res, map.getResource(source));
@@ -47,13 +47,13 @@ public class PubResourceMapImplTest extends SimpleResourceMapImplTest {
     }
 
     File myAppPackagesDir = new File(packagesDir, "myapp");
-    source = new FileBasedSource(contentCache, new File(myAppPackagesDir, "file.dart"));
+    source = new FileBasedSource(new File(myAppPackagesDir, "file.dart"));
     assertSame(res, map.getResource(source));
   }
 
   public void test_getResource_fromSourceInMylib() throws Exception {
     MockFile res = mylibContainer.addFile("mylib.dart");
-    FileBasedSource source = new FileBasedSource(contentCache, res.getLocation().toFile());
+    FileBasedSource source = new FileBasedSource(res.getLocation().toFile());
 
     PubResourceMapImpl map = newTarget();
     assertSame(res, map.getResource(source));
@@ -63,7 +63,7 @@ public class PubResourceMapImplTest extends SimpleResourceMapImplTest {
     }
 
     File myLibPackagesDir = new File(packagesDir, "mylib");
-    source = new FileBasedSource(contentCache, new File(myLibPackagesDir, "mylib.dart"));
+    source = new FileBasedSource(new File(myLibPackagesDir, "mylib.dart"));
     assertSame(res, map.getResource(source));
 
   }
@@ -74,12 +74,12 @@ public class PubResourceMapImplTest extends SimpleResourceMapImplTest {
     }
     File file1 = new File(pkg1CanonicalDir, "file1.dart");
     File file2 = new File(pkg2CanonicalDir, "file2.dart");
-    FileBasedSource source1 = new FileBasedSource(contentCache, file1);
-    FileBasedSource source2 = new FileBasedSource(contentCache, file2);
+    FileBasedSource source1 = new FileBasedSource(file1);
+    FileBasedSource source2 = new FileBasedSource(file2);
     MockFile res1 = pkg1Container.addFile("file1.dart");
     MockFile res2 = pkg2Container.addFile("file2.dart");
-    FileBasedSource source1a = new FileBasedSource(contentCache, res1.getLocation().toFile());
-    FileBasedSource source2b = new FileBasedSource(contentCache, res2.getLocation().toFile());
+    FileBasedSource source1a = new FileBasedSource(res1.getLocation().toFile());
+    FileBasedSource source2b = new FileBasedSource(res2.getLocation().toFile());
 
     PubResourceMapImpl map = newTarget();
     map.getResource(source1);
@@ -101,8 +101,8 @@ public class PubResourceMapImplTest extends SimpleResourceMapImplTest {
     }
     File file1 = new File(pkg1CanonicalDir, "file1.dart");
     File file2 = new File(pkg2CanonicalDir, "file2.dart");
-    FileBasedSource source1 = new FileBasedSource(contentCache, file1);
-    FileBasedSource source2 = new FileBasedSource(contentCache, file2);
+    FileBasedSource source1 = new FileBasedSource(file1);
+    FileBasedSource source2 = new FileBasedSource(file2);
     MockFile res1 = pkg1Container.addFile("file1.dart");
     MockFile res2 = pkg2Container.addFile("file2.dart");
 

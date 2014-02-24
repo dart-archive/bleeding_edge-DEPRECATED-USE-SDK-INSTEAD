@@ -18,7 +18,6 @@ import com.google.dart.engine.context.AnalysisContextFactory;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
-import com.google.dart.engine.source.ContentCache;
 import com.google.dart.engine.source.FileUriResolver;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceFactory;
@@ -85,19 +84,16 @@ public class ResolveHtmlTaskTest extends EngineTestCase {
   }
 
   public void test_perform_valid() throws AnalysisException {
-    final Source source = new TestSource(
-        new ContentCache(),
-        createFile("/test.html"),
-        createSource(//
-            "<html>",
-            "<head>",
-            "  <script type='application/dart'>",
-            "    void f() { x = 0; }",
-            "  </script>",
-            "</head>",
-            "<body>",
-            "</body>",
-            "</html>"));
+    final Source source = new TestSource(createFile("/test.html"), createSource(//
+        "<html>",
+        "<head>",
+        "  <script type='application/dart'>",
+        "    void f() { x = 0; }",
+        "  </script>",
+        "</head>",
+        "<body>",
+        "</body>",
+        "</html>"));
     final InternalAnalysisContext context = AnalysisContextFactory.contextWithCore();
     ResolveHtmlTask task = new ResolveHtmlTask(context, source);
     task.perform(new TestTaskVisitor<Boolean>() {

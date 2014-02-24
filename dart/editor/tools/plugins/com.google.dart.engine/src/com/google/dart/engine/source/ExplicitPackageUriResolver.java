@@ -1,11 +1,11 @@
 /*
  * Copyright (c) 2013, the Dart project authors.
- *
+ * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- *
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -36,7 +36,7 @@ import java.util.Map;
  * An explicit package: resolver. This UriResolver shells out to pub, calling it's list-package-dirs
  * command. It parses the resulting json map, which maps symbolic package references to their
  * concrete locations on disk.
- *
+ * 
  * <pre>
  *{
  *"packages": {
@@ -59,7 +59,7 @@ public class ExplicitPackageUriResolver extends UriResolver {
 
   /**
    * Return {@code true} if the given URI is a {@code package} URI.
-   *
+   * 
    * @param uri the URI being tested
    * @return {@code true} if the given URI is a {@code package} URI
    */
@@ -77,7 +77,7 @@ public class ExplicitPackageUriResolver extends UriResolver {
 
   /**
    * Create a new ExplicitPackageUriResolver.
-   *
+   * 
    * @param sdk the sdk; this is used to locate the pub command to run
    * @param rootDir the directory for which we'll be resolving package information
    */
@@ -91,16 +91,16 @@ public class ExplicitPackageUriResolver extends UriResolver {
   }
 
   @Override
-  public Source fromEncoding(ContentCache contentCache, UriKind kind, URI uri) {
+  public Source fromEncoding(UriKind kind, URI uri) {
     if (kind == UriKind.PACKAGE_URI) {
-      return new FileBasedSource(contentCache, new File(uri), kind);
+      return new FileBasedSource(new File(uri), kind);
     } else {
       return null;
     }
   }
 
   @Override
-  public Source resolveAbsolute(ContentCache contentCache, URI uri) {
+  public Source resolveAbsolute(URI uri) {
     if (!isPackageUri(uri)) {
       return null;
     }
@@ -139,7 +139,7 @@ public class ExplicitPackageUriResolver extends UriResolver {
           File resolvedFile = new File(packageDir, relPath.replace('/', File.separatorChar));
 
           if (resolvedFile.exists()) {
-            return new FileBasedSource(contentCache, resolvedFile, UriKind.PACKAGE_URI);
+            return new FileBasedSource(resolvedFile, UriKind.PACKAGE_URI);
           }
         }
       }
@@ -150,8 +150,9 @@ public class ExplicitPackageUriResolver extends UriResolver {
 
     String fullPackagePath = pkgName + "/" + relPath;
 
-    return new FileBasedSource( //
-        contentCache, new File(rootDir, fullPackagePath.replace('/', File.separatorChar)), UriKind.PACKAGE_URI);
+    return new FileBasedSource(
+        new File(rootDir, fullPackagePath.replace('/', File.separatorChar)),
+        UriKind.PACKAGE_URI);
   }
 
   public String resolvePathToPackage(String path) {
@@ -216,11 +217,13 @@ public class ExplicitPackageUriResolver extends UriResolver {
             "pub " + PUB_LIST_COMMAND + " failed: exit code " + runner.getExitCode());
       }
     } catch (IOException ioe) {
-      AnalysisEngine.getInstance()
-          .getLogger().logInformation("error running pub " + PUB_LIST_COMMAND, ioe);
+      AnalysisEngine.getInstance().getLogger().logInformation(
+          "error running pub " + PUB_LIST_COMMAND,
+          ioe);
     } catch (JSONException e) {
-      AnalysisEngine.getInstance()
-          .getLogger().logError("malformed json from pub " + PUB_LIST_COMMAND, e);
+      AnalysisEngine.getInstance().getLogger().logError(
+          "malformed json from pub " + PUB_LIST_COMMAND,
+          e);
     }
 
     return new HashMap<String, List<File>>();

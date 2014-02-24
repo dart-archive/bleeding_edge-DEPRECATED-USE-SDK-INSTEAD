@@ -51,7 +51,6 @@ import com.google.dart.engine.error.HintCode;
 import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
-import com.google.dart.engine.source.ContentCache;
 import com.google.dart.engine.source.DartUriResolver;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.FileUriResolver;
@@ -1388,7 +1387,6 @@ public class MainEngine {
         new FileUriResolver(),
         new PackageUriResolver(new File(projectPath + "/packages")));
     context.setSourceFactory(sourceFactory);
-    ContentCache contentCache = sourceFactory.getContentCache();
     // prepare sources
     List<Source> sources = Lists.newArrayList();
     Map<Source, File> sourceToFile = Maps.newHashMap();
@@ -1399,7 +1397,7 @@ public class MainEngine {
       if (file.getAbsolutePath().contains("/packages/")) {
         continue;
       }
-      FileBasedSource source = new FileBasedSource(contentCache, file);
+      FileBasedSource source = new FileBasedSource(file);
       sources.add(source);
       sourceToFile.put(source, file);
     }
@@ -1410,7 +1408,7 @@ public class MainEngine {
       if (file.getAbsolutePath().contains("/packages/")) {
         continue;
       }
-      FileBasedSource source = new FileBasedSource(contentCache, file);
+      FileBasedSource source = new FileBasedSource(file);
       sources.add(source);
       sourceToFile.put(source, file);
     }

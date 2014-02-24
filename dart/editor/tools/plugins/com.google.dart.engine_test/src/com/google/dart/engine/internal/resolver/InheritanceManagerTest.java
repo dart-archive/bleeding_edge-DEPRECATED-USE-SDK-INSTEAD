@@ -28,7 +28,6 @@ import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
 import com.google.dart.engine.internal.element.MethodElementImpl;
-import com.google.dart.engine.source.ContentCache;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.utilities.io.FileUtilities2;
@@ -652,9 +651,7 @@ public class InheritanceManagerTest extends EngineTestCase {
    */
   private InheritanceManager createInheritanceManager() {
     AnalysisContextImpl context = AnalysisContextFactory.contextWithCore();
-    FileBasedSource source = new FileBasedSource(
-        new ContentCache(),
-        FileUtilities2.createFile("/test.dart"));
+    FileBasedSource source = new FileBasedSource(FileUtilities2.createFile("/test.dart"));
     CompilationUnitElementImpl definingCompilationUnit = new CompilationUnitElementImpl("test.dart");
     definingCompilationUnit.setSource(source);
     definingLibrary = library(context, "test");

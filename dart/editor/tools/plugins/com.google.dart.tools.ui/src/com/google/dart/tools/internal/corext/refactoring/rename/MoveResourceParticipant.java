@@ -175,7 +175,7 @@ public class MoveResourceParticipant extends MoveParticipant {
       File destDir = destContainer.getLocation().toFile();
       File destFile = new File(destDir, file.getName());
       SourceFactory sourceFactory = match.getElement().getContext().getSourceFactory();
-      FileBasedSource destSource = new FileBasedSource(sourceFactory.getContentCache(), destFile);
+      FileBasedSource destSource = new FileBasedSource(destFile);
       URI destUri = sourceFactory.restoreUri(destSource);
       if (destUri != null) {
         newUri = destUri.toString();

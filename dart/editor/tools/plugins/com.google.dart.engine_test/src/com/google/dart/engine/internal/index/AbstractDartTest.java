@@ -115,16 +115,10 @@ public class AbstractDartTest extends TestCase {
   public static CompilationUnit parseUnit(String path, String code) throws Exception {
     ensureAnalysisContext();
     // configure Source
-    Source source = new FileBasedSource(
-        sourceFactory.getContentCache(),
-        FileUtilities2.createFile(path));
-    {
-      sourceFactory.setContents(source, "");
-      ChangeSet changeSet = new ChangeSet();
-      changeSet.added(source);
-      analysisContext.applyChanges(changeSet);
-    }
-    // update Source
+    Source source = new FileBasedSource(FileUtilities2.createFile(path));
+    ChangeSet changeSet = new ChangeSet();
+    changeSet.added(source);
+    analysisContext.applyChanges(changeSet);
     analysisContext.setContents(source, code);
     // parse and resolve
     LibraryElement library = analysisContext.computeLibraryElement(source);
@@ -237,14 +231,12 @@ public class AbstractDartTest extends TestCase {
    */
   protected Source addSource(String filePath, String contents) {
     ensureAnalysisContext();
-    Source source = new FileBasedSource(sourceFactory.getContentCache(), createFile(filePath));
+    Source source = new FileBasedSource(createFile(filePath));
     // add Source to the context
-    sourceFactory.setContents(source, contents);
-    {
-      ChangeSet changeSet = new ChangeSet();
-      changeSet.added(source);
-      analysisContext.applyChanges(changeSet);
-    }
+    ChangeSet changeSet = new ChangeSet();
+    changeSet.added(source);
+    analysisContext.applyChanges(changeSet);
+    analysisContext.setContents(source, contents);
     // remember Source to remove from the context later
     sourceWithSetContent.add(source);
     // done
@@ -373,7 +365,12 @@ public class AbstractDartTest extends TestCase {
   protected final void parseTestUnits(Source... sources) throws Exception {
     Source librarySource = sources[0];
     testSource = sources[1];
-    testCode = sourceFactory.getContentCache().getContents(testSource);
+    analysisContext.getContents(testSource, new Source.ContentReceiver() {
+      @Override
+      public void accept(CharSequence contents, long modificationTime) {
+        testCode = contents.toString();
+      }
+    });
     // fill AnalysisContext
     {
       ChangeSet changeSet = new ChangeSet();
@@ -398,10 +395,9 @@ public class AbstractDartTest extends TestCase {
    * @return the {@link Source} which corresponds given path.
    */
   protected final Source setFileContent(String path, String content) {
-    FileBasedSource source = new FileBasedSource(sourceFactory.getContentCache(), createFile("/"
-        + path));
+    FileBasedSource source = new FileBasedSource(createFile("/" + path));
     sourceWithSetContent.add(source);
-    sourceFactory.setContents(source, content);
+    analysisContext.setContents(source, content);
     return source;
   }
 
@@ -409,7 +405,7 @@ public class AbstractDartTest extends TestCase {
   protected void tearDown() throws Exception {
     // reset SourceFactory
     for (Source source : sourceWithSetContent) {
-      sourceFactory.setContents(source, null);
+      analysisContext.setContents(source, null);
     }
     // reset AnalysisContext
     if (analysisContext != null) {
@@ -435,6 +431,6 @@ public class AbstractDartTest extends TestCase {
           testCode).isEmpty();
     }
     testSource = testUnitElement.getSource();
-    testCode = getSourceContent(testSource);;
+    testCode = getSourceContent(testSource);
   }
 }

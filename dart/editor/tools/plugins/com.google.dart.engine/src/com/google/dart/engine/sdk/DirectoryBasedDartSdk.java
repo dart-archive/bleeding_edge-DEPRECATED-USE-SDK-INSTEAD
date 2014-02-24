@@ -20,7 +20,6 @@ import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
 import com.google.dart.engine.internal.sdk.LibraryMap;
 import com.google.dart.engine.internal.sdk.SdkLibrariesReader;
-import com.google.dart.engine.source.ContentCache;
 import com.google.dart.engine.source.DartUriResolver;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
@@ -216,8 +215,8 @@ public class DirectoryBasedDartSdk implements DartSdk {
   }
 
   @Override
-  public Source fromEncoding(ContentCache contentCache, UriKind kind, URI uri) {
-    return new FileBasedSource(contentCache, new File(uri), kind);
+  public Source fromEncoding(UriKind kind, URI uri) {
+    return new FileBasedSource(new File(uri), kind);
   }
 
   @Override
@@ -399,9 +398,7 @@ public class DirectoryBasedDartSdk implements DartSdk {
     if (library == null) {
       return null;
     }
-    return new FileBasedSource(analysisContext.getSourceFactory().getContentCache(), new File(
-        getLibraryDirectory(),
-        library.getPath()), UriKind.DART_URI);
+    return new FileBasedSource(new File(getLibraryDirectory(), library.getPath()), UriKind.DART_URI);
   }
 
   /**

@@ -63,7 +63,7 @@ public class CreateFileCorrectionProposal implements IDartCompletionProposal, IC
         // prepare IFile
         IFile newFile;
         {
-          Source source = new FileBasedSource(null, file);
+          Source source = new FileBasedSource(file);
           IResource resource = DartCore.getProjectManager().getResource(source);
           if (!(resource instanceof IFile)) {
             return;

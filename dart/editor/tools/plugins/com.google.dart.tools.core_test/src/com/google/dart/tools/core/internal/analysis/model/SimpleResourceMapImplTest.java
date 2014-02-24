@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.core.internal.analysis.model;
 
-import com.google.dart.engine.source.ContentCache;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceFactory;
@@ -38,7 +37,6 @@ public class SimpleResourceMapImplTest extends TestCase {
   protected MockProject projectContainer;
   protected File projectDir;
   protected MockContext context;
-  protected ContentCache contentCache;
   protected MockContainer pubContainer;
 
   public void test_getContext() {
@@ -60,7 +58,7 @@ public class SimpleResourceMapImplTest extends TestCase {
     File myappDir = new File(projectDir, myappRes.getName());
     MockFile res = myappRes.getMockFile("other.dart");
     File file = new File(myappDir, res.getName());
-    Source source = new FileBasedSource(contentCache, file);
+    Source source = new FileBasedSource(file);
     assertSame(res, map.getResource(source));
   }
 
@@ -70,7 +68,7 @@ public class SimpleResourceMapImplTest extends TestCase {
     File myappDir = new File(projectDir, pubContainer.getName());
     MockFile res = pubContainer.getMockFile("other.dart");
     File file = new File(myappDir, res.getName());
-    Source source = new FileBasedSource(contentCache, file);
+    Source source = new FileBasedSource(file);
     assertEquals(source, map.getSource(res));
   }
 
@@ -87,7 +85,6 @@ public class SimpleResourceMapImplTest extends TestCase {
     projectContainer.setLocation(new Path(projectDir.getAbsolutePath()));
     context = new MockContext();
     context.setSourceFactory(new SourceFactory());
-    contentCache = context.getSourceFactory().getContentCache();
     pubContainer = projectContainer.getMockFolder("myapp");
   }
 

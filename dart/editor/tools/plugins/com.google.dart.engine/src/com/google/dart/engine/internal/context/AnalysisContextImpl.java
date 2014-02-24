@@ -76,6 +76,7 @@ import com.google.dart.engine.internal.task.ResolveHtmlTask;
 import com.google.dart.engine.internal.task.ScanDartTask;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.sdk.DartSdk;
+import com.google.dart.engine.source.ContentCache;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.Source.ContentReceiver;
 import com.google.dart.engine.source.SourceContainer;
@@ -211,6 +212,11 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
    * The set of analysis options controlling the behavior of this context.
    */
   private AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+
+  /**
+   * A cache of content used to override the default content of a source.
+   */
+  private ContentCache contentCache = new ContentCache();
 
   /**
    * The source factory used to create the sources that can be analyzed in this context.
@@ -546,10 +552,8 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     if (source == null) {
       return false;
     }
-    if (sourceFactory != null) {
-      if (sourceFactory.getContentCache().getContents(source) != null) {
-        return true;
-      }
+    if (contentCache.getContents(source) != null) {
+      return true;
     }
     return source.exists();
   }
@@ -618,12 +622,10 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
 
   @Override
   public void getContents(Source source, ContentReceiver receiver) throws Exception {
-    if (sourceFactory != null) {
-      String contents = sourceFactory.getContentCache().getContents(source);
-      if (contents != null) {
-        receiver.accept(contents, sourceFactory.getContentCache().getModificationStamp(source));
-        return;
-      }
+    String contents = contentCache.getContents(source);
+    if (contents != null) {
+      receiver.accept(contents, contentCache.getModificationStamp(source));
+      return;
     }
     source.getContents(receiver);
   }
@@ -828,11 +830,9 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
 
   @Override
   public long getModificationStamp(Source source) {
-    if (sourceFactory != null) {
-      Long stamp = sourceFactory.getContentCache().getModificationStamp(source);
-      if (stamp != null) {
-        return stamp.longValue();
-      }
+    Long stamp = contentCache.getModificationStamp(source);
+    if (stamp != null) {
+      return stamp.longValue();
     }
     return source.getModificationStamp();
   }
@@ -1269,7 +1269,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       int newLength) {
     synchronized (cacheLock) {
       recentTasks.clear();
-      String originalContents = sourceFactory.setContents(source, contents);
+      String originalContents = contentCache.setContents(source, contents);
       if (contents != null) {
         if (!contents.equals(originalContents)) {
           if (options.getIncremental()) {
@@ -1296,7 +1296,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   public void setContents(Source source, String contents) {
     synchronized (cacheLock) {
       recentTasks.clear();
-      String originalContents = sourceFactory.setContents(source, contents);
+      String originalContents = contentCache.setContents(source, contents);
       if (contents != null) {
         if (!contents.equals(originalContents)) {
           incrementalAnalysisCache = IncrementalAnalysisCache.clear(

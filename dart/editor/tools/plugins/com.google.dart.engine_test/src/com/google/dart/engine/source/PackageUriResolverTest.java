@@ -39,20 +39,16 @@ public class PackageUriResolverTest extends TestCase {
   }
 
   public void test_fromEncoding_nonPackage() throws Exception {
-    ContentCache contentCache = new ContentCache();
     File directory = createFile("/does/not");
     UriResolver resolver = new PackageUriResolver(directory);
-    Source result = resolver.fromEncoding(contentCache, UriKind.DART_URI, new URI(
-        "file:/does/not/exist.dart"));
+    Source result = resolver.fromEncoding(UriKind.DART_URI, new URI("file:/does/not/exist.dart"));
     assertNull(result);
   }
 
   public void test_fromEncoding_package() throws Exception {
-    ContentCache contentCache = new ContentCache();
     File directory = createFile("/does/not/exist/packages");
     UriResolver resolver = new PackageUriResolver(directory);
-    Source result = resolver.fromEncoding(contentCache, UriKind.PACKAGE_URI, new URI(
-        "file:/does/not/exist.dart"));
+    Source result = resolver.fromEncoding(UriKind.PACKAGE_URI, new URI("file:/does/not/exist.dart"));
     assertNotNull(result);
     assertEquals(createFile("/does/not/exist.dart").getAbsolutePath(), result.getFullName());
   }
@@ -85,46 +81,44 @@ public class PackageUriResolverTest extends TestCase {
     File pkg2Dir = new File(packagesDir, "pkg2");
     FileUtilities2.createSymLink(lib2Dir, pkg2Dir);
 
-    ContentCache contentCache = new ContentCache();
     UriResolver resolver = new PackageUriResolver(packagesDir);
 
     // Assert that package:pkg1 resolves to lib1
-    Source result = resolver.resolveAbsolute(contentCache, new URI("package:pkg1"));
+    Source result = resolver.resolveAbsolute(new URI("package:pkg1"));
     assertEquals(lib1Dir, new File(result.getFullName()));
     assertSame(UriKind.PACKAGE_SELF_URI, result.getUriKind());
 
     // Assert that package:pkg1/ resolves to lib1
-    result = resolver.resolveAbsolute(contentCache, new URI("package:pkg1/"));
+    result = resolver.resolveAbsolute(new URI("package:pkg1/"));
     assertEquals(lib1Dir, new File(result.getFullName()));
     assertSame(UriKind.PACKAGE_SELF_URI, result.getUriKind());
 
     // Assert that package:pkg1/other resolves to lib1/other not other
-    result = resolver.resolveAbsolute(contentCache, new URI("package:pkg1/other"));
+    result = resolver.resolveAbsolute(new URI("package:pkg1/other"));
     assertEquals(new File(lib1Dir, "other"), new File(result.getFullName()));
     assertSame(UriKind.PACKAGE_SELF_URI, result.getUriKind());
 
     // Assert that package:pkg1/other/some.dart resolves to lib1/other/some.dart not other.dart
     // when some.dart does NOT exist
     File someDart = new File(new File(lib1Dir, "other"), "some.dart");
-    result = resolver.resolveAbsolute(contentCache, new URI("package:pkg1/other/some.dart"));
+    result = resolver.resolveAbsolute(new URI("package:pkg1/other/some.dart"));
     assertEquals(someDart, new File(result.getFullName()));
 
     // Assert that package:pkg1/other/some.dart resolves to lib1/other/some.dart not other.dart
     // when some.dart exists
     assertTrue(new File(otherDir, someDart.getName()).createNewFile());
     assertTrue(someDart.exists());
-    result = resolver.resolveAbsolute(contentCache, new URI("package:pkg1/other/some.dart"));
+    result = resolver.resolveAbsolute(new URI("package:pkg1/other/some.dart"));
     assertEquals(someDart, new File(result.getFullName()));
 
     // Assert that package:pkg2/ resolves to lib2
-    result = resolver.resolveAbsolute(contentCache, new URI("package:pkg2/"));
+    result = resolver.resolveAbsolute(new URI("package:pkg2/"));
     assertEquals(lib2Dir, new File(result.getFullName()));
     assertSame(UriKind.PACKAGE_URI, result.getUriKind());
   }
 
   public void test_resolve_invalid() throws Exception {
     File packagesDir = new File("packages");
-    ContentCache contentCache = new ContentCache();
     UriResolver resolver = new PackageUriResolver(packagesDir);
 
     // Invalid: URI
@@ -136,28 +130,25 @@ public class PackageUriResolverTest extends TestCase {
     }
 
     // Invalid: just slash
-    Source result = resolver.resolveAbsolute(contentCache, new URI("package:/"));
+    Source result = resolver.resolveAbsolute(new URI("package:/"));
     assertNull(result);
 
     // Invalid: leading slash... or should we gracefully degrade and ignore the leading slash?
-    result = resolver.resolveAbsolute(contentCache, new URI("package:/foo"));
+    result = resolver.resolveAbsolute(new URI("package:/foo"));
     assertNull(result);
   }
 
   public void test_resolve_nonPackage() throws Exception {
-    ContentCache contentCache = new ContentCache();
     File directory = createFile("/does/not/exist/packages");
     UriResolver resolver = new PackageUriResolver(directory);
-    Source result = resolver.resolveAbsolute(contentCache, new URI("dart:core"));
+    Source result = resolver.resolveAbsolute(new URI("dart:core"));
     assertNull(result);
   }
 
   public void test_resolve_package() throws Exception {
-    ContentCache contentCache = new ContentCache();
     File directory = createFile("/does/not/exist/packages");
     UriResolver resolver = new PackageUriResolver(directory);
-    Source result = resolver.resolveAbsolute(contentCache, new URI(
-        "package:third/party/library.dart"));
+    Source result = resolver.resolveAbsolute(new URI("package:third/party/library.dart"));
     assertNotNull(result);
     assertEquals(
         createFile("/does/not/exist/packages/third/party/library.dart").getAbsoluteFile(),
@@ -176,12 +167,11 @@ public class PackageUriResolverTest extends TestCase {
     // Create symlink packages/args --> args-canonical
     FileUtilities2.createSymLink(argsCanonicalDir, new File(packagesDir, "args"));
 
-    ContentCache contentCache = new ContentCache();
     UriResolver resolver = new PackageUriResolver(packagesDir);
 
     // args-canonical/args.dart --> packages:args/args.dart
     File someDart = new File(argsCanonicalDir, "args.dart");
-    FileBasedSource source = new FileBasedSource(contentCache, someDart);
+    FileBasedSource source = new FileBasedSource(someDart);
     assertEquals(new URI("package:args/args.dart"), resolver.restoreAbsolute(source));
   }
 

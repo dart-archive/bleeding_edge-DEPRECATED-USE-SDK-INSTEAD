@@ -273,10 +273,8 @@ public class ProjectManagerImplTest extends ContextManagerImplTest {
     MockProjectManagerImpl manager = newTarget();
     IResource resource = projectContainer.getFolder("web").getFile("other.dart");
     File file = resource.getLocation().toFile();
-    Project project = manager.getProject(projectContainer);
-    Source source = new FileBasedSource(
-        project.getDefaultContext().getSourceFactory().getContentCache(),
-        file);
+    manager.getProject(projectContainer);
+    Source source = new FileBasedSource(file);
     assertSame(resource, manager.getResource(source));
   }
 
@@ -288,10 +286,8 @@ public class ProjectManagerImplTest extends ContextManagerImplTest {
   public void test_getResource_Source_outside() {
     MockProjectManagerImpl manager = newTarget();
     File file = new File("/does/not/exist.dart");
-    Project project = manager.getProject(projectContainer);
-    Source source = new FileBasedSource(
-        project.getDefaultContext().getSourceFactory().getContentCache(),
-        file);
+    manager.getProject(projectContainer);
+    Source source = new FileBasedSource(file);
     assertNull(manager.getResource(source));
   }
 
@@ -318,10 +314,8 @@ public class ProjectManagerImplTest extends ContextManagerImplTest {
         "libraryA.dart",
         "library libraryA;\nimport 'dart:html';\n main(){}");
     mockFolder.add(file);
-    Project project = manager.getProject(projectContainer);
-    Source source = new FileBasedSource(
-        project.getDefaultContext().getSourceFactory().getContentCache(),
-        file.toFile());
+    manager.getProject(projectContainer);
+    Source source = new FileBasedSource(file.toFile());
     boolean result = manager.isClientLibrary(source);
     assertTrue(result);
     result = manager.isServerLibrary(source);
@@ -337,10 +331,8 @@ public class ProjectManagerImplTest extends ContextManagerImplTest {
         "libraryB.dart",
         "library libraryB;\nimport 'dart:io';\n main(){}");
     mockFolder.add(serverFile);
-    Project project = manager.getProject(projectContainer);
-    Source source = new FileBasedSource(
-        project.getDefaultContext().getSourceFactory().getContentCache(),
-        serverFile.toFile());
+    manager.getProject(projectContainer);
+    Source source = new FileBasedSource(serverFile.toFile());
     boolean result = manager.isClientLibrary(source);
     assertFalse(result);
     result = manager.isServerLibrary(source);

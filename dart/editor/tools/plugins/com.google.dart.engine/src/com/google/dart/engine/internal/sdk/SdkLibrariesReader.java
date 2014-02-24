@@ -198,7 +198,7 @@ public class SdkLibrariesReader {
    * @return the library map read from the given source
    */
   public LibraryMap readFrom(File file, String libraryFileContents) {
-    return readFrom(new FileBasedSource(null, file, UriKind.FILE_URI), libraryFileContents);
+    return readFrom(new FileBasedSource(file, UriKind.FILE_URI), libraryFileContents);
   }
 
   /**

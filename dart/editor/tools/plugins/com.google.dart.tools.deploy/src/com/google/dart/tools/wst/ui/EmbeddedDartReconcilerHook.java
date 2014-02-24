@@ -255,9 +255,7 @@ public class EmbeddedDartReconcilerHook implements ISourceValidator, IValidator 
     try {
       String code = document.get(offset, length);
       File tempFile = new File(file.getParentFile(), file.getName() + offset + "p.dart");
-      Source source = new FileBasedSource(
-          analysisContext.getSourceFactory().getContentCache(),
-          tempFile);
+      Source source = new FileBasedSource(tempFile);
       analysisContext.setContents(source, code);
       parsedUnit = analysisContext.parseCompilationUnit(source);
       analysisContext.setContents(source, null);
@@ -301,9 +299,7 @@ public class EmbeddedDartReconcilerHook implements ISourceValidator, IValidator 
     try {
       String code = document.get(offset, length);
       File tempFile = new File(file.getParentFile(), file.getName() + offset + "r.dart");
-      Source source = new FileBasedSource(
-          analysisContext.getSourceFactory().getContentCache(),
-          tempFile);
+      Source source = new FileBasedSource(tempFile);
       analysisContext.setContents(source, code);
       LibraryElement library = analysisContext.computeLibraryElement(source);
       resolvedUnit = analysisContext.resolveCompilationUnit(source, library);

@@ -63,7 +63,6 @@ public class ExplicitPackageUriResolverTest extends TestCase {
 
   public void test_resolve_invalid() throws Exception {
     File projectDir = new File("foo_project");
-    ContentCache contentCache = new ContentCache();
     UriResolver resolver = new MockExplicitPackageUriResolver(projectDir);
 
     // Invalid: URI
@@ -75,19 +74,18 @@ public class ExplicitPackageUriResolverTest extends TestCase {
     }
 
     // Invalid: just slash
-    Source result = resolver.resolveAbsolute(contentCache, new URI("package:/"));
+    Source result = resolver.resolveAbsolute(new URI("package:/"));
     assertNull(result);
 
     // Invalid: leading slash... or should we gracefully degrade and ignore the leading slash?
-    result = resolver.resolveAbsolute(contentCache, new URI("package:/foo"));
+    result = resolver.resolveAbsolute(new URI("package:/foo"));
     assertNull(result);
   }
 
   public void test_resolve_nonPackage() throws Exception {
-    ContentCache contentCache = new ContentCache();
     File directory = createFile("/does/not/exist/foo_project");
     UriResolver resolver = new MockExplicitPackageUriResolver(directory);
-    Source result = resolver.resolveAbsolute(contentCache, new URI("dart:core"));
+    Source result = resolver.resolveAbsolute(new URI("dart:core"));
     assertNull(result);
   }
 

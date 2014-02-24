@@ -1,9 +1,11 @@
 package com.google.dart.tools.core.analysis.timing;
 
+import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.error.GatheringErrorListener;
 import com.google.dart.engine.html.parser.HtmlParseResult;
 import com.google.dart.engine.html.parser.HtmlParser;
 import com.google.dart.engine.html.scanner.HtmlScanner;
+import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceFactory;
@@ -26,11 +28,9 @@ public class HtmlParserTimings extends TestCase {
   }
 
   final ParseFileRunner newParseFile = new ParseFileRunner() {
-    private SourceFactory sourceFactory = new SourceFactory();
-
     @Override
     public void run(File htmlFile) throws Exception {
-      Source source = new FileBasedSource(sourceFactory.getContentCache(), htmlFile);
+      Source source = new FileBasedSource(htmlFile);
       GatheringErrorListener errorListener = new GatheringErrorListener();
       HtmlScanner scanner = new HtmlScanner(source);
       source.getContents(scanner);
@@ -40,15 +40,15 @@ public class HtmlParserTimings extends TestCase {
   };
 
   final ParseStringRunner newParseString = new ParseStringRunner() {
-    private SourceFactory sourceFactory = new SourceFactory();
-
     @Override
     public void run(File htmlFile, String contents) throws Exception {
-      Source source = new FileBasedSource(sourceFactory.getContentCache(), htmlFile);
-      sourceFactory.setContents(source, contents);
+      Source source = new FileBasedSource(htmlFile);
+      AnalysisContext context = new AnalysisContextImpl();
+      context.setSourceFactory(new SourceFactory());
+      context.setContents(source, contents);
       GatheringErrorListener errorListener = new GatheringErrorListener();
       HtmlScanner scanner = new HtmlScanner(source);
-      source.getContents(scanner);
+      context.getContents(source, scanner);
       HtmlParseResult parseResult = new HtmlParser(source, errorListener).parse(scanner.getResult());
       assertNotNull(parseResult);
     }

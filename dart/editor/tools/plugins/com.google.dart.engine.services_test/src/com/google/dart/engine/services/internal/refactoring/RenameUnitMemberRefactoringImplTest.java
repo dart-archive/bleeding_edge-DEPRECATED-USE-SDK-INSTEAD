@@ -617,8 +617,7 @@ public class RenameUnitMemberRefactoringImplTest extends RenameRefactoringImplTe
         "// filler filler filler filler filler filler filler filler filler filler",
         "class MyPublic {}",
         "class _MyPrivate {}");
-    Source externalSource = new FileBasedSource(sourceFactory.getContentCache(), new File(
-        "other.dart"));
+    Source externalSource = new FileBasedSource(new File("other.dart"));
     // check public
     createRenameRefactoring("MyPublic {}");
     assertTrue(refactoring.shouldReportUnsafeRefactoringSource(analysisContext, testSource));

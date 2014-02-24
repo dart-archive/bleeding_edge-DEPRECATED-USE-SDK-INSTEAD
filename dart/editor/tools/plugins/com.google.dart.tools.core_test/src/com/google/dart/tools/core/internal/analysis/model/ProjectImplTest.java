@@ -298,9 +298,7 @@ public class ProjectImplTest extends ContextManagerImplTest {
     ProjectImpl project = newTarget();
     IResource resource = projectContainer.getFolder("web").getFile("other.dart");
     File file = resource.getLocation().toFile();
-    Source source = new FileBasedSource(
-        project.getDefaultContext().getSourceFactory().getContentCache(),
-        file);
+    Source source = new FileBasedSource(file);
     assertSame(resource, project.getResource(source));
   }
 
@@ -312,9 +310,7 @@ public class ProjectImplTest extends ContextManagerImplTest {
   public void test_getResource_Source_outside() {
     ProjectImpl project = newTarget();
     File file = new File("/does/not/exist.dart");
-    Source source = new FileBasedSource(
-        project.getDefaultContext().getSourceFactory().getContentCache(),
-        file);
+    Source source = new FileBasedSource(file);
     assertNull(project.getResource(source));
   }
 
@@ -577,9 +573,9 @@ public class ProjectImplTest extends ContextManagerImplTest {
   }
 
   public void test_resolvePathToPackage() {
-    ProjectImpl project = newTarget();
     //TODO(keertip): implement project with ExplicitUriResolver and package map
     // use that to verify path to package
+    // ProjectImpl project = newTarget();
   }
 
   public void test_resolveUriTofileInfoFile() throws IOException {
@@ -696,7 +692,7 @@ public class ProjectImplTest extends ContextManagerImplTest {
   private void assertDartSdkFactoryInitialized(MockContainer container, AnalysisContext context) {
     SourceFactory factory = context.getSourceFactory();
     File file1 = container.getFile(new Path("doesNotExist1.dart")).getLocation().toFile();
-    Source source1 = new FileBasedSource(factory.getContentCache(), file1);
+    Source source1 = new FileBasedSource(file1);
 
     Source source2 = factory.resolveUri(source1, "doesNotExist2.dart");
     File file2 = new File(source2.getFullName());
@@ -710,7 +706,7 @@ public class ProjectImplTest extends ContextManagerImplTest {
   private void assertFactoryInitialized(MockContainer container, AnalysisContext context) {
     SourceFactory factory = context.getSourceFactory();
     File file1 = container.getFile(new Path("doesNotExist1.dart")).getLocation().toFile();
-    Source source1 = new FileBasedSource(factory.getContentCache(), file1);
+    Source source1 = new FileBasedSource(file1);
 
     Source source2 = factory.resolveUri(source1, "doesNotExist2.dart");
     File file2 = new File(source2.getFullName());

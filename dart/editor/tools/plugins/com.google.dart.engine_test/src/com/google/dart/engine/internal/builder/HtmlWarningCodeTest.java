@@ -86,10 +86,7 @@ public class HtmlWarningCodeTest extends EngineTestCase {
 
   private void verify(String contents, ErrorCode... expectedErrorCodes) throws Exception {
     this.contents = contents;
-    TestSource source = new TestSource(
-        sourceFactory.getContentCache(),
-        createFile("/test.html"),
-        contents);
+    TestSource source = new TestSource(createFile("/test.html"), contents);
     ChangeSet changeSet = new ChangeSet();
     changeSet.added(source);
     context.applyChanges(changeSet);

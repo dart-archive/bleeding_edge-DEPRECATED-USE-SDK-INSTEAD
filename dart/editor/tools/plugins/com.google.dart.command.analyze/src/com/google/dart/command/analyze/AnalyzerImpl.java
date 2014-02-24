@@ -95,31 +95,6 @@ public class AnalyzerImpl {
       throw new IllegalArgumentException("sourceFile cannot be null");
     }
 
-    // prepare "packages" directory
-    File packageDirectory;
-    if (options.getPackageRootPath() != null) {
-      packageDirectory = options.getPackageRootPath();
-    } else {
-      packageDirectory = getPackageDirectoryFor(sourceFile);
-    }
-
-    // create SourceFactory
-    SourceFactory sourceFactory;
-
-    if (options.getUsePackageMap()) {
-      sourceFactory = new SourceFactory(
-          new DartUriResolver(sdk),
-          new FileUriResolver(),
-          new ExplicitPackageUriResolver(sdk, getPubDir(sourceFile)));
-    } else if (packageDirectory != null) {
-      sourceFactory = new SourceFactory(
-          new DartUriResolver(sdk),
-          new FileUriResolver(),
-          new PackageUriResolver(packageDirectory.getAbsoluteFile()));
-    } else {
-      sourceFactory = new SourceFactory(new DartUriResolver(sdk), new FileUriResolver());
-    }
-
     // create options for context
     AnalysisOptionsImpl contextOptions = new AnalysisOptionsImpl();
     contextOptions.setCacheSize(MAX_CACHE_SIZE);
@@ -127,13 +102,13 @@ public class AnalyzerImpl {
 
     // prepare AnalysisContext
     AnalysisContext context = AnalysisEngine.getInstance().createAnalysisContext();
-    context.setSourceFactory(sourceFactory);
+    context.setSourceFactory(createSourceFactory(sourceFile));
     context.setAnalysisOptions(contextOptions);
 
     // prepare Source
     sourceFile = sourceFile.getAbsoluteFile();
     UriKind uriKind = getUriKind(sourceFile);
-    Source librarySource = new FileBasedSource(sourceFactory.getContentCache(), sourceFile, uriKind);
+    Source librarySource = new FileBasedSource(sourceFile, uriKind);
 
     return performAnalysis(context, librarySource, sourceFile, lineInfoMap, errors);
   }
@@ -240,6 +215,29 @@ public class AnalyzerImpl {
   }
 
   /**
+   * Create the source factory to be used in the analysis context.
+   * 
+   * @param sourceFile the file to be analyzed
+   * @return the source factory that was created
+   */
+  private SourceFactory createSourceFactory(File sourceFile) {
+    File packageDirectory = getPackageDirectory(sourceFile);
+    if (options.getUsePackageMap()) {
+      return new SourceFactory(
+          new DartUriResolver(sdk),
+          new FileUriResolver(),
+          new ExplicitPackageUriResolver(sdk, getPubDir(sourceFile)));
+    } else if (packageDirectory != null) {
+      return new SourceFactory(
+          new DartUriResolver(sdk),
+          new FileUriResolver(),
+          new PackageUriResolver(packageDirectory.getAbsoluteFile()));
+    } else {
+      return new SourceFactory(new DartUriResolver(sdk), new FileUriResolver());
+    }
+  }
+
+  /**
    * Remove any hints (ErrorType.HINT) from the passed list.
    */
   private void filterOutHints(List<AnalysisError> errors) {
@@ -275,6 +273,20 @@ public class AnalyzerImpl {
         }
         lineInfoMap.put(source, lineInfo);
       }
+    }
+  }
+
+  /**
+   * Return the package directory to be used to resolve {@code package:} URI's.
+   * 
+   * @param sourceFile the file to be analyzed
+   * @return the package directory to be used to resolve {@code package:} URI's
+   */
+  private File getPackageDirectory(File sourceFile) {
+    if (options.getPackageRootPath() != null) {
+      return options.getPackageRootPath();
+    } else {
+      return getPackageDirectoryFor(sourceFile);
     }
   }
 

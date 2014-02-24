@@ -33,12 +33,6 @@ import java.nio.charset.Charset;
  */
 public class FileBasedSource implements Source {
   /**
-   * The content cache used to access the contents of this source if they have been overridden from
-   * what is on disk or cached.
-   */
-  private final ContentCache contentCache;
-
-  /**
    * The file represented by this source.
    */
   private final File file;
@@ -62,22 +56,19 @@ public class FileBasedSource implements Source {
    * Initialize a newly created source object. The source object is assumed to not be in a system
    * library.
    * 
-   * @param contentCache the content cache used to access the contents of this source
    * @param file the file represented by this source
    */
-  public FileBasedSource(ContentCache contentCache, File file) {
-    this(contentCache, file, UriKind.FILE_URI);
+  public FileBasedSource(File file) {
+    this(file, UriKind.FILE_URI);
   }
 
   /**
    * Initialize a newly created source object.
    * 
-   * @param contentCache the content cache used to access the contents of this source
    * @param file the file represented by this source
    * @param flags {@code true} if this source is in one of the system libraries
    */
-  public FileBasedSource(ContentCache contentCache, File file, UriKind uriKind) {
-    this.contentCache = contentCache;
+  public FileBasedSource(File file, UriKind uriKind) {
     this.file = file;
     this.uriKind = uriKind;
   }
@@ -90,22 +81,11 @@ public class FileBasedSource implements Source {
 
   @Override
   public boolean exists() {
-    return contentCache.getContents(this) != null || file.isFile();
+    return file.isFile();
   }
 
   @Override
   public void getContents(ContentReceiver receiver) throws Exception {
-    //
-    // First check to see whether our content cache has an override for our contents.
-    //
-    String contents = contentCache.getContents(this);
-    if (contents != null) {
-      receiver.accept(contents, contentCache.getModificationStamp(this));
-      return;
-    }
-    //
-    // If not, read the contents from the file using native I/O.
-    //
     getContentsFromFile(receiver);
   }
 
@@ -124,10 +104,6 @@ public class FileBasedSource implements Source {
 
   @Override
   public long getModificationStamp() {
-    Long stamp = contentCache.getModificationStamp(this);
-    if (stamp != null) {
-      return stamp.longValue();
-    }
     return file.lastModified();
   }
 
@@ -155,7 +131,7 @@ public class FileBasedSource implements Source {
   public Source resolveRelative(URI containedUri) {
     try {
       URI resolvedUri = getFile().toURI().resolve(containedUri).normalize();
-      return new FileBasedSource(contentCache, new File(resolvedUri), uriKind);
+      return new FileBasedSource(new File(resolvedUri), uriKind);
     } catch (Exception exception) {
       // Fall through to return null
     }
@@ -234,7 +210,7 @@ public class FileBasedSource implements Source {
 
   /**
    * Return the file represented by this source. This is an internal method that is only intended to
-   * be used by {@link UriResolver}.
+   * be used by subclasses of {@link UriResolver} that are designed to work with file-based sources.
    * 
    * @return the file represented by this source
    */

@@ -19,7 +19,6 @@ import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
-import com.google.dart.engine.source.ContentCache;
 import com.google.dart.engine.source.DartUriResolver;
 import com.google.dart.engine.source.FileUriResolver;
 import com.google.dart.engine.source.Source;
@@ -192,8 +191,7 @@ public class DartReconcilingStrategyTest extends TestCase {
       "class A { foo() => this; }");
 
   MockEditor mockEditor = new MockEditor();
-  ContentCache mockCache = new ContentCache();
-  Source mockSource = new TestSource(mockCache, createFile("/test.dart"), INITIAL_CONTENTS);
+  Source mockSource = new TestSource(createFile("/test.dart"), INITIAL_CONTENTS);
   MockContext mockContext = new MockContext();
   Document mockDocument = new Document(INITIAL_CONTENTS);
   MockAnalysisManager analysisManager = new MockAnalysisManager();
@@ -224,7 +222,6 @@ public class DartReconcilingStrategyTest extends TestCase {
     analysisManager.assertBackgroundAnalysis(1);
 
     assertEquals(0, mockContext.getPriorityOrder().size());
-    assertNull(mockCache.getContents(mockSource));
   }
 
   /**
@@ -234,8 +231,6 @@ public class DartReconcilingStrategyTest extends TestCase {
     String insertedText = ".";
     int offset = INITIAL_CONTENTS.indexOf("this") + 4;
     assert offset > 5;
-    String newText = INITIAL_CONTENTS.substring(0, offset) + insertedText
-        + INITIAL_CONTENTS.substring(offset);
 
     strategy.initialReconcile();
     mockContext.assertSetChangedContentsCount(0, 0, 0, 0);
@@ -248,7 +243,7 @@ public class DartReconcilingStrategyTest extends TestCase {
     mockDocument.replace(offset, 0, insertedText);
 
     // assert "." causes immediate update of the context
-    assertEquals(newText, mockCache.getContents(mockSource));
+
     assertNull(mockEditor.getAppliedCompilationUnit());
     analysisManager.assertBackgroundAnalysis(2);
     mockContext.assertSetChangedContentsCount(1, offset, 0, 1);
@@ -307,7 +302,6 @@ public class DartReconcilingStrategyTest extends TestCase {
    * Assert reconciler lazily sets cached contents and performs resolution
    */
   public void test_initialState() throws Exception {
-    assertNull(mockCache.getContents(mockSource));
     assertNull(mockContext.getResolvedCompilationUnit(mockSource, mockSource));
     assertEquals(0, mockContext.getPriorityOrder().size());
   }
@@ -528,10 +522,7 @@ public class DartReconcilingStrategyTest extends TestCase {
   protected void setUp() throws Exception {
     DartSdk sdk = DirectoryBasedDartSdk.getDefaultSdk();
     assertNotNull(sdk);
-    SourceFactory sourceFactory = new SourceFactory(
-        mockCache,
-        new DartUriResolver(sdk),
-        new FileUriResolver());
+    SourceFactory sourceFactory = new SourceFactory(new DartUriResolver(sdk), new FileUriResolver());
     mockContext.setSourceFactory(sourceFactory);
     strategy.setDocument(mockDocument);
   }

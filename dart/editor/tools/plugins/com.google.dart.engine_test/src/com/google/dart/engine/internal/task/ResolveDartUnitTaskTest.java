@@ -103,7 +103,7 @@ public class ResolveDartUnitTaskTest extends EngineTestCase {
     classElement.setConstructors(new ConstructorElement[] {constructorElement});
     unitElement.setTypes(new ClassElement[] {classElement});
     final Source source = unitElement.getSource();
-    context.getSourceFactory().getContentCache().setContents(source, createSource(//
+    context.setContents(source, createSource(//
         "library lib;",
         "class A {}"));
     ResolveDartUnitTask task = new ResolveDartUnitTask(context, source, libraryElement);

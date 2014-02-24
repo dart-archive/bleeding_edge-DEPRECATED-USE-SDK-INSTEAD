@@ -32,7 +32,6 @@ import com.google.dart.engine.internal.resolver.ResolutionVerifier;
 import com.google.dart.engine.internal.resolver.TypeProvider;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
-import com.google.dart.engine.source.SourceFactory;
 
 import static com.google.dart.engine.ast.ASTFactory.identifier;
 import static com.google.dart.engine.ast.ASTFactory.libraryIdentifier;
@@ -41,11 +40,6 @@ import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
 import junit.framework.AssertionFailedError;
 
 public class ResolverTestCase extends EngineTestCase {
-  /**
-   * The source factory used to create {@link Source sources}.
-   */
-  private SourceFactory sourceFactory;
-
   /**
    * The analysis context used to parse the compilation units being resolved.
    */
@@ -121,8 +115,8 @@ public class ResolverTestCase extends EngineTestCase {
    * @return the source object representing the cached file
    */
   protected Source cacheSource(String filePath, String contents) {
-    Source source = new FileBasedSource(sourceFactory.getContentCache(), createFile(filePath));
-    sourceFactory.setContents(source, contents);
+    Source source = new FileBasedSource(createFile(filePath));
+    analysisContext.setContents(source, contents);
     return source;
   }
 
@@ -170,10 +164,6 @@ public class ResolverTestCase extends EngineTestCase {
     return analysisContext;
   }
 
-  protected SourceFactory getSourceFactory() {
-    return sourceFactory;
-  }
-
   /**
    * Return a type provider that can be used to test the results of resolution.
    * 
@@ -190,7 +180,6 @@ public class ResolverTestCase extends EngineTestCase {
    */
   protected void reset() {
     analysisContext = AnalysisContextFactory.contextWithCore();
-    sourceFactory = analysisContext.getSourceFactory();
   }
 
   /**
@@ -243,10 +232,8 @@ public class ResolverTestCase extends EngineTestCase {
    * @return the source that was created
    */
   private FileBasedSource createSource(String fileName) {
-    FileBasedSource source = new FileBasedSource(
-        sourceFactory.getContentCache(),
-        createFile(fileName));
-    sourceFactory.setContents(source, "");
+    FileBasedSource source = new FileBasedSource(createFile(fileName));
+    analysisContext.setContents(source, "");
     return source;
   }
 }

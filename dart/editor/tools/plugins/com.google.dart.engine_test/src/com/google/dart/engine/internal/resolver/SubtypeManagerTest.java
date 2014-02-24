@@ -20,7 +20,6 @@ import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
-import com.google.dart.engine.source.ContentCache;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.utilities.io.FileUtilities2;
 
@@ -118,9 +117,7 @@ public class SubtypeManagerTest extends EngineTestCase {
   protected void setUp() throws Exception {
     super.setUp();
     AnalysisContextImpl context = AnalysisContextFactory.contextWithCore();
-    FileBasedSource source = new FileBasedSource(
-        new ContentCache(),
-        FileUtilities2.createFile("/test.dart"));
+    FileBasedSource source = new FileBasedSource(FileUtilities2.createFile("/test.dart"));
     definingCompilationUnit = new CompilationUnitElementImpl("test.dart");
     definingCompilationUnit.setSource(source);
     LibraryElementImpl definingLibrary = library(context, "test");
