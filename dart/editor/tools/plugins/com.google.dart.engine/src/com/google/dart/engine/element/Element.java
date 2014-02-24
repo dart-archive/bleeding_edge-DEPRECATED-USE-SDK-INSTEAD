@@ -140,7 +140,9 @@ public interface Element {
   public ElementLocation getLocation();
 
   /**
-   * Return an array containing all of the metadata associated with this element.
+   * Return an array containing all of the metadata associated with this element. The array will be
+   * empty if the element does not have any metadata or if the library containing this element has
+   * not yet been resolved.
    * 
    * @return the metadata associated with this element
    */

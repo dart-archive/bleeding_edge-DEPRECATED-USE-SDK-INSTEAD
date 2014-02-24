@@ -209,9 +209,10 @@ public class ConstantVisitor extends UnifyingASTVisitor<EvaluationResultImpl> {
         return leftResult.divide(typeProvider, node, rightResult);
       case TILDE_SLASH:
         return leftResult.integerDivide(typeProvider, node, rightResult);
+      default:
+        // TODO(brianwilkerson) Figure out which error to report.
+        return error(node, null);
     }
-    // TODO(brianwilkerson) Figure out which error to report.
-    return error(node, null);
   }
 
   @Override
@@ -451,9 +452,10 @@ public class ConstantVisitor extends UnifyingASTVisitor<EvaluationResultImpl> {
         return operand.bitNot(typeProvider, node);
       case MINUS:
         return operand.negated(typeProvider, node);
+      default:
+        // TODO(brianwilkerson) Figure out which error to report.
+        return error(node, null);
     }
-    // TODO(brianwilkerson) Figure out which error to report.
-    return error(node, null);
   }
 
   @Override

@@ -33,7 +33,9 @@ public interface CompilationUnitElement extends Element, UriReferencedElement {
   public PropertyAccessorElement[] getAccessors();
 
   /**
-   * Return an array containing all of the Angular views defined in this compilation unit.
+   * Return an array containing all of the Angular views defined in this compilation unit. The array
+   * will be empty if the element does not have any Angular views or if the compilation unit has not
+   * yet had toolkit references resolved.
    * 
    * @return the Angular views defined in this compilation unit.
    */

@@ -79,6 +79,8 @@ public class NameOccurrencesFinder extends RecursiveASTVisitor<Void> {
           FieldFormalParameterElement fieldInit = (FieldFormalParameterElement) param;
           this.target2 = fieldInit.getField();
         }
+      default:
+        break;
     }
     if (target2 == null) {
       target2 = target;
@@ -125,6 +127,8 @@ public class NameOccurrencesFinder extends RecursiveASTVisitor<Void> {
           FieldFormalParameterElement fieldInit = (FieldFormalParameterElement) param;
           match(fieldInit.getField(), node);
         }
+        break;
+      default:
         break;
     }
     return null;

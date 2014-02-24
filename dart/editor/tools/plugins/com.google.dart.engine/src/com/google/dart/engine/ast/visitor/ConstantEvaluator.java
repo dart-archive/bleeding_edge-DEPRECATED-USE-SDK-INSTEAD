@@ -280,6 +280,9 @@ public class ConstantEvaluator extends GeneralizingASTVisitor<Object> {
                   / ((Double) rightOperand).doubleValue())).longValue());
         }
         break;
+      default:
+        // Fall through to return the default value.
+        break;
     }
     // TODO(brianwilkerson) This doesn't handle numeric conversions.
     return visitExpression(node);
@@ -397,6 +400,9 @@ public class ConstantEvaluator extends GeneralizingASTVisitor<Object> {
         } else if (operand instanceof Double) {
           return Double.valueOf(-((Double) operand).doubleValue());
         }
+        break;
+      default:
+        // Fall through to return the default value.
         break;
     }
     return NOT_A_CONSTANT;

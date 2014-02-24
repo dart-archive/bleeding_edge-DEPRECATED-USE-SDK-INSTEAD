@@ -2182,11 +2182,12 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
         return TokenType.STAR;
       case TILDE_SLASH_EQ:
         return TokenType.TILDE_SLASH;
+      default:
+        // Internal error: Unmapped assignment operator.
+        AnalysisEngine.getInstance().getLogger().logError(
+            "Failed to map " + operator.getLexeme() + " to it's corresponding operator");
+        return operator;
     }
-    // Internal error: Unmapped assignment operator.
-    AnalysisEngine.getInstance().getLogger().logError(
-        "Failed to map " + operator.getLexeme() + " to it's corresponding operator");
-    return operator;
   }
 
   private void resolveAnnotationConstructorInvocationArguments(Annotation annotation,

@@ -162,6 +162,9 @@ public class ParameterMember extends VariableMember implements ParameterElement 
         left = "[";
         right = "]";
         break;
+      case REQUIRED:
+        // No need to change the default.
+        break;
     }
     StringBuilder builder = new StringBuilder();
     builder.append(left);

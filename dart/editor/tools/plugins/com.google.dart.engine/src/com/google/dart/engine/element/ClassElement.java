@@ -155,9 +155,11 @@ public interface ClassElement extends Element {
   public InterfaceType getSupertype();
 
   /**
-   * Return an array containing all of the toolkit specific objects attached to this class.
+   * Return an array containing all of the toolkit specific objects associated with this class. The
+   * array will be empty if the class does not have any toolkit specific objects or if the
+   * compilation unit containing the class has not yet had toolkit references resolved.
    * 
-   * @return the toolkit objects attached to this class
+   * @return the toolkit objects associated with this class
    */
   public ToolkitObjectElement[] getToolkitObjects();
 

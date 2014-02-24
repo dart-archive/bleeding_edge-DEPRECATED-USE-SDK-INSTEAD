@@ -225,6 +225,9 @@ public class ParameterElementImpl extends VariableElementImpl implements Paramet
         left = "[";
         right = "]";
         break;
+      case REQUIRED:
+        // No need to change the default.
+        break;
     }
     builder.append(left);
     appendToWithoutDelimiters(builder);

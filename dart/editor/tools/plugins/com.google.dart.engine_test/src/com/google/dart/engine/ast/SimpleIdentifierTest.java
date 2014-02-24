@@ -217,6 +217,9 @@ public class SimpleIdentifierTest extends ParserTestCase {
       case PROPERTY_RIGHT:
         expression = propertyAccess(identifier("_"), identifier);
         break;
+      case NONE:
+        // Nothing to add.
+        break;
     }
     switch (assignment) {
       case BINARY:
@@ -245,6 +248,9 @@ public class SimpleIdentifierTest extends ParserTestCase {
         break;
       case SIMPLE_RIGHT:
         assignmentExpression(identifier("_"), TokenType.EQ, expression);
+        break;
+      case NONE:
+        // Nothing to add.
         break;
     }
     return identifier;

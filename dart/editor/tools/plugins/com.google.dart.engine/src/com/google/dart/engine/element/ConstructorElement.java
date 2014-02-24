@@ -36,7 +36,9 @@ public interface ConstructorElement extends ClassMemberElement, ExecutableElemen
   public ConstructorDeclaration getNode() throws AnalysisException;
 
   /**
-   * Return the constructor to which this constructor is redirecting.
+   * Return the constructor to which this constructor is redirecting, or {@code null} if this constructor
+   * does not redirect to another constructor or if the library containing this constructor has
+   * not yet been resolved.
    * 
    * @return the constructor to which this constructor is redirecting
    */
