@@ -21,7 +21,6 @@ import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.html.ast.XmlAttributeNode;
 import com.google.dart.engine.html.ast.XmlNode;
 import com.google.dart.engine.html.ast.XmlTagNode;
-import com.google.dart.engine.html.scanner.HtmlScanResult;
 import com.google.dart.engine.html.scanner.Token;
 import com.google.dart.engine.parser.Parser;
 import com.google.dart.engine.scanner.Scanner;
@@ -110,22 +109,16 @@ public class HtmlParser extends XmlParser {
   }
 
   /**
-   * Parse the tokens specified by the given scan result.
+   * Parse the given tokens.
    * 
-   * @param scanResult the result of scanning an HTML source (not {@code null})
+   * @param token the first token in the stream of tokens to be parsed
+   * @param lineInfo the line information created by the scanner
    * @return the parse result (not {@code null})
    */
-  public HtmlParseResult parse(HtmlScanResult scanResult) {
-    int[] lineStarts = scanResult.getLineStarts();
-    lineInfo = new LineInfo(lineStarts);
-    Token firstToken = scanResult.getToken();
-    List<XmlTagNode> tagNodes = parseTopTagNodes(firstToken);
-    HtmlUnit unit = new HtmlUnit(firstToken, tagNodes, getCurrentToken());
-    return new HtmlParseResult(
-        scanResult.getModificationTime(),
-        firstToken,
-        scanResult.getLineStarts(),
-        unit);
+  public HtmlUnit parse(Token token, LineInfo lineInfo) {
+    this.lineInfo = lineInfo;
+    List<XmlTagNode> tagNodes = parseTopTagNodes(token);
+    return new HtmlUnit(token, tagNodes, getCurrentToken());
   }
 
   @Override

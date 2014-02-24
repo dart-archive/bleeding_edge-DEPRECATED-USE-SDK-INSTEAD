@@ -19,10 +19,10 @@ import com.google.dart.engine.html.ast.HtmlScriptTagNode;
 import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.html.ast.XmlAttributeNode;
 import com.google.dart.engine.html.ast.visitor.RecursiveXmlVisitor;
-import com.google.dart.engine.html.parser.HtmlParseResult;
 import com.google.dart.engine.html.parser.HtmlParser;
-import com.google.dart.engine.html.scanner.HtmlScanResult;
-import com.google.dart.engine.html.scanner.HtmlScanner;
+import com.google.dart.engine.html.scanner.AbstractScanner;
+import com.google.dart.engine.html.scanner.StringScanner;
+import com.google.dart.engine.html.scanner.Token;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
 import com.google.dart.engine.internal.context.RecordingErrorListener;
 import com.google.dart.engine.source.Source;
@@ -72,20 +72,9 @@ public class ParseHtmlTask extends AnalysisTask {
   private static final String ATTRIBUTE_SRC = "src";
 
   /**
-   * The name of the 'type' attribute in a HTML tag.
-   */
-  private static final String ATTRIBUTE_TYPE = "type";
-
-  /**
    * The name of the 'script' tag in an HTML file.
    */
   private static final String TAG_SCRIPT = "script";
-
-  /**
-   * The value of the 'type' attribute of a 'script' tag that indicates that the script is written
-   * in Dart.
-   */
-  private static final String TYPE_DART = "application/dart";
 
   /**
    * Initialize a newly created task to perform analysis within the given context.
@@ -170,18 +159,24 @@ public class ParseHtmlTask extends AnalysisTask {
 
   @Override
   protected void internalPerform() throws AnalysisException {
-    HtmlScanner scanner = new HtmlScanner(source);
+    final Token[] token = {null};
+    Source.ContentReceiver receiver = new Source.ContentReceiver() {
+      @Override
+      public void accept(CharSequence contents, long modificationTime) {
+        ParseHtmlTask.this.modificationTime = modificationTime;
+        AbstractScanner scanner = new StringScanner(source, contents);
+        scanner.setPassThroughElements(new String[] {TAG_SCRIPT});
+        token[0] = scanner.tokenize();
+        lineInfo = new LineInfo(scanner.getLineStarts());
+      }
+    };
     try {
-      getContext().getContents(source, scanner);
+      getContext().getContents(source, receiver);
     } catch (Exception exception) {
       throw new AnalysisException(exception);
     }
-    HtmlScanResult scannerResult = scanner.getResult();
-    modificationTime = scannerResult.getModificationTime();
-    lineInfo = new LineInfo(scannerResult.getLineStarts());
     final RecordingErrorListener errorListener = new RecordingErrorListener();
-    HtmlParseResult result = new HtmlParser(source, errorListener).parse(scannerResult);
-    unit = result.getHtmlUnit();
+    unit = new HtmlParser(source, errorListener).parse(token[0], lineInfo);
     errors = errorListener.getErrors(source);
     referencedLibraries = getLibrarySources();
   }
