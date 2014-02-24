@@ -19,8 +19,7 @@ package com.google.dart.tools.core.model;
  * 
  * @coverage dart.tools.core.model
  */
-public interface TypeMember extends CompilationUnitElement, ParentElement, SourceManipulation,
-    SourceReference {
+public interface TypeMember extends CompilationUnitElement, ParentElement, SourceReference {
 
   /**
    * Return the type in which this member is declared, or <code>null</code> if this member is not

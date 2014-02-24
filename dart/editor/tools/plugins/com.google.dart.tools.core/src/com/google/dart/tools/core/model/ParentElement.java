@@ -29,15 +29,4 @@ public interface ParentElement {
    *           accessing its children
    */
   public DartElement[] getChildren() throws DartModelException;
-
-  /**
-   * Return <code>true</code> if this element has one or more immediate children. This is a
-   * convenience method, and may be more efficient than testing whether <code>getChildren</code> is
-   * an empty array.
-   * 
-   * @return <code>true</code> if this element has one or more immediate children
-   * @throws DartModelException if this element does not exist or if an exception occurs while
-   *           accessing its children
-   */
-  public boolean hasChildren() throws DartModelException;
 }

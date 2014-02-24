@@ -19,8 +19,7 @@ package com.google.dart.tools.core.model;
  * 
  * @coverage dart.tools.core.model
  */
-public interface DartFunctionTypeAlias extends CompilationUnitElement, SourceManipulation,
-    SourceReference {
+public interface DartFunctionTypeAlias extends CompilationUnitElement, SourceReference {
   /**
    * Return an array containing the full names of the parameter types for this function, or an empty
    * array if this function does not have any parameters. In the case where the type of a parameter

@@ -40,7 +40,6 @@ import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.model.DartSdk;
 import com.google.dart.tools.core.model.DartSdkListener;
 import com.google.dart.tools.core.model.DartSdkManager;
-import com.google.dart.tools.core.model.ElementChangedListener;
 import com.google.dart.tools.core.utilities.general.StringUtilities;
 import com.google.dart.tools.core.utilities.io.FileUtilities;
 import com.google.dart.tools.core.utilities.performance.PerformanceManager;
@@ -314,21 +313,6 @@ public class DartCore extends Plugin implements DartSdkListener {
    * Used to synchronize access to {@link #projectManager}.
    */
   private static final Object projectManagerLock = new Object();
-
-  /**
-   * Add the given listener to the list of objects that are listening for changes to Dart elements.
-   * Has no effect if an identical listener is already registered.
-   * <p>
-   * This listener will only be notified during the POST_CHANGE resource change notification and any
-   * reconcile operation (POST_RECONCILE). For finer control of the notification, use
-   * {@link #addElementChangedListener(IElementChangedListener,int)}, which allows to specify a
-   * different eventMask.
-   * 
-   * @param listener the listener being added
-   */
-  public static void addElementChangedListener(ElementChangedListener listener) {
-    //TODO (pquitslund): remove method
-  }
 
   /**
    * Add the given listener for dart ignore changes to the Dart Model. Has no effect if an identical
@@ -1248,16 +1232,6 @@ public class DartCore extends Plugin implements DartSdkListener {
    */
   public static String removeDartLikeExtension(String fileName) {
     return Util.getNameWithoutDartLikeExtension(fileName);
-  }
-
-  /**
-   * Remove the given listener from the list of objects that are listening for changes to Dart
-   * elements. Has no affect if an identical listener is not registered.
-   * 
-   * @param listener the listener to be removed
-   */
-  public static void removeElementChangedListener(ElementChangedListener listener) {
-    //TODO (pquitslund): remove method
   }
 
   /**

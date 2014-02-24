@@ -19,8 +19,7 @@ package com.google.dart.tools.core.model;
  * 
  * @coverage dart.tools.core.model
  */
-public interface DartClassTypeAlias extends CompilationUnitElement, SourceManipulation,
-    SourceReference {
+public interface DartClassTypeAlias extends CompilationUnitElement, SourceReference {
   /**
    * Return the name of this class' superclass, or <code>null</code> for source types that do not
    * specify a superclass.

@@ -26,7 +26,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
  * @coverage dart.tools.core.model
  */
 public interface CompilationUnit extends CodeAssistElement, SourceFileElement<CompilationUnit>,
-    OpenableElement, ParentElement, SourceManipulation, SourceReference {
+    OpenableElement, ParentElement, SourceReference {
 
   /**
    * Return the Dart elements corresponding to the given selected text in this compilation unit. The

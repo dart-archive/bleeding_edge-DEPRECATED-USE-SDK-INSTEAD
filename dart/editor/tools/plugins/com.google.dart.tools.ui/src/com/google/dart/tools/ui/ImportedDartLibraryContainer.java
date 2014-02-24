@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.ui;
 
-import com.google.dart.tools.core.internal.model.DartLibraryImpl;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
 
@@ -22,8 +21,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * This class is used by the {@link OldStandardDartElementContentProvider} as the "Imported Libraries"
- * element. This children of this element is an array of {@link ImportedDartLibrary}s.
+ * This class is used by the {@link OldStandardDartElementContentProvider} as the
+ * "Imported Libraries" element. This children of this element is an array of
+ * {@link ImportedDartLibrary}s.
  */
 public class ImportedDartLibraryContainer {
 
@@ -36,7 +36,7 @@ public class ImportedDartLibraryContainer {
    * @return the URI for the file defining the given library
    */
   public static URI getUri(DartLibrary library) {
-    return ((DartLibraryImpl) library).getLibrarySourceFile().getUri();
+    return null;
   }
 
   /**

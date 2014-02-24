@@ -24,8 +24,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
  * 
  * @coverage dart.tools.core.model
  */
-public interface Type extends CompilationUnitElement, ParentElement, SourceManipulation,
-    SourceReference {
+public interface Type extends CompilationUnitElement, ParentElement, SourceReference {
   /**
    * Do code completion inside a code snippet in the context of the current type.
    * <p>

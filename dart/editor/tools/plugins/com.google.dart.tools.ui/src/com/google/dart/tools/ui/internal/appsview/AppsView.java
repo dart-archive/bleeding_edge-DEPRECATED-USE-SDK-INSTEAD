@@ -19,8 +19,6 @@ import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartIgnoreEvent;
 import com.google.dart.tools.core.model.DartIgnoreListener;
 import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.core.model.ElementChangedEvent;
-import com.google.dart.tools.core.model.ElementChangedListener;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.actions.ActionInstrumentationUtilities;
 import com.google.dart.tools.ui.actions.DeleteAction;
@@ -132,20 +130,6 @@ public class AppsView extends ViewPart implements ISetSelectionTarget {
     }
   };
 
-  private ElementChangedListener modelListener = new ElementChangedListener() {
-    @Override
-    public void elementChanged(ElementChangedEvent event) {
-      Display.getDefault().asyncExec(new Runnable() {
-        @Override
-        public void run() {
-          if (treeViewer != null && !treeViewer.getTree().isDisposed()) {
-            treeViewer.refresh();
-          }
-        };
-      });
-    }
-  };
-
   @Override
   public void createPartControl(Composite parent) {
 
@@ -197,8 +181,6 @@ public class AppsView extends ViewPart implements ISetSelectionTarget {
       updateColors();
 
       restoreState();
-      int eventMask = ElementChangedEvent.POST_RECONCILE;
-
     } finally {
       instrumentation.log();
 

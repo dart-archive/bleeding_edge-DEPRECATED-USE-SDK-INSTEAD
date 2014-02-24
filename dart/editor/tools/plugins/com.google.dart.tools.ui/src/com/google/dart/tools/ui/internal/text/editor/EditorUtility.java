@@ -25,7 +25,6 @@ import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.model.DartVariableDeclaration;
-import com.google.dart.tools.core.model.HTMLFile;
 import com.google.dart.tools.core.model.SourceReference;
 import com.google.dart.tools.core.model.TypeMember;
 import com.google.dart.tools.ui.DartToolsPlugin;
@@ -491,9 +490,6 @@ public class EditorUtility {
 
     if (inputElement instanceof IFile) {
       return openInEditor((IFile) inputElement, activate);
-    }
-    if (inputElement instanceof HTMLFile) {
-      return openInEditor(((HTMLFile) inputElement).getCorrespondingResource(), activate);
     }
     DartX.todo();
 //    if (inputElement instanceof DartElement

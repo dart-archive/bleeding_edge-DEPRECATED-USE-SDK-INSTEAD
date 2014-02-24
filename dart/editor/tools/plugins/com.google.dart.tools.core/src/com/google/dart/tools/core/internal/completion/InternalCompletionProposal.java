@@ -13,25 +13,12 @@
  */
 package com.google.dart.tools.core.internal.completion;
 
-import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.completion.CompletionProposal;
 import com.google.dart.tools.core.completion.CompletionRequestor;
-import com.google.dart.tools.core.internal.search.scope.WorkspaceSearchScope;
 import com.google.dart.tools.core.internal.util.CharOperation;
 import com.google.dart.tools.core.model.DartModifiers;
-import com.google.dart.tools.core.model.Method;
-import com.google.dart.tools.core.model.Type;
-import com.google.dart.tools.core.search.SearchEngine;
-import com.google.dart.tools.core.search.SearchEngineFactory;
-import com.google.dart.tools.core.search.SearchException;
-import com.google.dart.tools.core.search.SearchFilter;
-import com.google.dart.tools.core.search.SearchMatch;
-import com.google.dart.tools.core.search.SearchPatternFactory;
 
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.NullProgressMonitor;
-
-import java.util.List;
 
 /**
  * Instances of the class <code>InternalCompletionProposal</code> implement a completion proposal.
@@ -122,11 +109,6 @@ public class InternalCompletionProposal extends CompletionProposal {
   private char[][] parameterNames = null;
 
   /**
-   * Indicates whether parameter names have been computed.
-   */
-  private boolean parameterNamesComputed = false;
-
-  /**
    * Modifiers declared on a method or field. NB: Replaces flags.
    */
   private DartModifiers modifiers = null;
@@ -184,7 +166,6 @@ public class InternalCompletionProposal extends CompletionProposal {
    * @param monitor the progress monitor, or <code>null</code> if none
    * @return the parameter names, or <code>null</code> if none or not available or not relevant
    */
-  @SuppressWarnings("deprecation")
   @Override
   public char[][] findParameterNames(IProgressMonitor monitor) {
     //TODO (pquitslund): remove
@@ -763,7 +744,6 @@ public class InternalCompletionProposal extends CompletionProposal {
   @Override
   public void setParameterNames(char[][] parameterNames) {
     this.parameterNames = parameterNames;
-    this.parameterNamesComputed = true;
   }
 
   @Override
@@ -1100,46 +1080,5 @@ public class InternalCompletionProposal extends CompletionProposal {
 
   protected void setTypeName(char[] typeName) {
     this.typeName = typeName;
-  }
-
-  private Method findMethod(Type type, char[] selector, char[][] paramTypeNames) {
-    Method method = null;
-    int startingIndex = 0;
-    String[] args;
-    args = new String[paramTypeNames.length];
-    int length = args.length;
-    for (int i = startingIndex; i < length; i++) {
-      args[i] = new String(paramTypeNames[i - startingIndex]);
-    }
-    method = type.getMethod(new String(selector), args);
-
-    Method[] methods = type.findMethods(method);
-    if (methods != null && methods.length > 0) {
-      method = methods[0];
-    }
-    return method;
-  }
-
-  private Type findTypeNamed(String typeName) {
-    SearchEngine engine = SearchEngineFactory.createSearchEngine();
-    List<SearchMatch> matches;
-    try {
-      matches = engine.searchTypeDeclarations(
-          new WorkspaceSearchScope(),
-          SearchPatternFactory.createExactPattern(typeName, true),
-          (SearchFilter) null,
-          new NullProgressMonitor());
-    } catch (SearchException ex) {
-      return null;
-    }
-    if (matches.isEmpty()) {
-      return null;
-    }
-    return (Type) matches.get(0).getElement();
-  }
-
-  private char[][] getParameterTypes(char[] arg) {
-    DartCore.notYetImplemented();
-    return null;
   }
 }

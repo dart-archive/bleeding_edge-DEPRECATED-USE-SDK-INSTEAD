@@ -93,11 +93,6 @@ public class SelectionConverter {
     return EMPTY_RESULT;
   }
 
-  public static DartElement[] codeResolve(DartElement input, ITextSelection selection)
-      throws DartModelException {
-    return codeResolve(null, input, selection);
-  }
-
   /**
    * Perform a code resolve in a separate thread.
    * 

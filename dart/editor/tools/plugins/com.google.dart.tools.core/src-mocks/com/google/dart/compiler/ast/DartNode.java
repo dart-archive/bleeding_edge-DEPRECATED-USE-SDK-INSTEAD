@@ -28,7 +28,7 @@ public abstract class DartNode {
     return null;
   }
 
-  public SourceInfo getSourceInfo() {
+  public final SourceInfo getSourceInfo() {
     return null;
   }
 
@@ -37,7 +37,7 @@ public abstract class DartNode {
   }
 
   @Override
-  public String toString() {
+  public final String toString() {
     return null;
   }
 }

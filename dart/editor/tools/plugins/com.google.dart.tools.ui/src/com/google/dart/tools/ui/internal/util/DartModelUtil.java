@@ -14,7 +14,6 @@
 package com.google.dart.tools.ui.internal.util;
 
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.internal.model.CompilationUnitImpl;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
@@ -181,7 +180,7 @@ public final class DartModelUtil {
    */
   public static void reconcile(CompilationUnit unit) throws DartModelException {
     DartX.todo();
-    ((CompilationUnitImpl) unit).reconcile(false, null);
+//    ((CompilationUnitImpl) unit).reconcile(false, null);
 //    unit.reconcile(CompilationUnit.NO_AST, false /*
 //                                                  * don't force problem
 //                                                  * detection
