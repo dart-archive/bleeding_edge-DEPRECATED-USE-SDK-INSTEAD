@@ -32,7 +32,7 @@ class DartiumStreamMonitor implements IStreamMonitor, WebkitConsole.ConsoleListe
   private final static String FAILED_TO_LOAD = "Failed to load resource";
   private final static String CHROME_THUMB = "chrome://thumb/";
   private final static String CHROME_SEARCH_THUMB = "chrome-search://thumb/";
-  //private final static String CHROME_NEW_TAB = "chrome://newtab/";
+  private final static String NEWTAB_MESSAGE = "_/chrome/newtab?";
 
   private List<IStreamListener> listeners = new ArrayList<IStreamListener>();
 
@@ -144,11 +144,12 @@ class DartiumStreamMonitor implements IStreamMonitor, WebkitConsole.ConsoleListe
       return true;
     }
 
+    // Ignore "Application Cache Checking event" messages.
+    if (url.contains(NEWTAB_MESSAGE)) {
+      return true;
+    }
+
     // Ignore invalid -webkit property messages.
-    // {"method":"Console.messageAdded","params":{"message":{"timestamp":1.382876131132117E9,
-    //   "text":"Invalid CSS property name: -webkit-touch-callout","level":"warning","source":"css",
-    //   "column":1,"line":1886,"repeatCount":1,"type":"log","url":"chrome://newtab/"}}}
-    // && url.startsWith(CHROME_NEW_TAB)) {
     if (message.indexOf("Invalid CSS property name: -webkit") != -1
         || message.indexOf("Invalid CSS property value: -webkit") != -1) {
       return true;
