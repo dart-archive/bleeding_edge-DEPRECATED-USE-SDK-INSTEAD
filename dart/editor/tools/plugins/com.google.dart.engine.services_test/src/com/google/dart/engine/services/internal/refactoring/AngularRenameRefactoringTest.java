@@ -285,7 +285,7 @@ public class AngularRenameRefactoringTest extends AngularTest {
         "class MyComponent {",
         "  String field;",
         "  MyComponent(Scope scope) {",
-        "    scope['test'] = 'abc';",
+        "    scope.context['test'] = 'abc';",
         "  }",
         "}"));
     contextHelper.addSource("/entry-point.html", createHtmlWithAngular());
@@ -315,8 +315,8 @@ public class AngularRenameRefactoringTest extends AngularTest {
         "class MyComponent {",
         "  String field;",
         "  MyComponent(Scope scope) {",
-        "    scope['existingScopeProperty'] = 42;",
-        "    scope['test'] = 'abc';",
+        "    scope.context['existingScopeProperty'] = 42;",
+        "    scope.context['test'] = 'abc';",
         "  }",
         "}"));
     contextHelper.addSource("/entry-point.html", createHtmlWithAngular());

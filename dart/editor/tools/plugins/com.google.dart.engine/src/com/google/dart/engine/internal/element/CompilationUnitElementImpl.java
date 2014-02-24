@@ -318,6 +318,7 @@ public class CompilationUnitElementImpl extends ElementImpl implements Compilati
     safelyVisitChildren(typeAliases, visitor);
     safelyVisitChildren(types, visitor);
     safelyVisitChildren(variables, visitor);
+    safelyVisitChildren(angularViews, visitor);
   }
 
   @Override

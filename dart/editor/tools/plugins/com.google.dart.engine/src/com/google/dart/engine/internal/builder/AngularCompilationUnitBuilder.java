@@ -32,6 +32,7 @@ import com.google.dart.engine.ast.MapLiteralEntry;
 import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.NamedExpression;
 import com.google.dart.engine.ast.NodeList;
+import com.google.dart.engine.ast.PrefixedIdentifier;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.SimpleStringLiteral;
 import com.google.dart.engine.ast.VariableDeclaration;
@@ -71,6 +72,8 @@ import com.google.dart.engine.source.Source;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
 import com.google.dart.engine.utilities.general.StringUtilities;
+
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 
@@ -709,7 +712,7 @@ public class AngularCompilationUnitBuilder {
           IndexExpression indexExpression = (IndexExpression) node;
           Expression target = indexExpression.getTarget();
           Expression index = indexExpression.getIndex();
-          if (index instanceof SimpleStringLiteral && isScope(target)) {
+          if (index instanceof SimpleStringLiteral && isContext(target)) {
             return (SimpleStringLiteral) index;
           }
         }
@@ -721,6 +724,16 @@ public class AngularCompilationUnitBuilder {
           if (property.getName().equals(name)) {
             return true;
           }
+        }
+        return false;
+      }
+
+      private boolean isContext(Expression target) {
+        if (target instanceof PrefixedIdentifier) {
+          PrefixedIdentifier prefixed = (PrefixedIdentifier) target;
+          SimpleIdentifier prefix = prefixed.getPrefix();
+          SimpleIdentifier identifier = prefixed.getIdentifier();
+          return StringUtils.equals(identifier.getName(), "context") && isScope(prefix);
         }
         return false;
       }

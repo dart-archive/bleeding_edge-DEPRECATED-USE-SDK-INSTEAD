@@ -19,6 +19,8 @@ import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.LocalVariableElement;
+import com.google.dart.engine.element.ToolkitObjectElement;
+import com.google.dart.engine.element.angular.AngularComponentElement;
 import com.google.dart.engine.element.angular.AngularElement;
 import com.google.dart.engine.element.angular.AngularFilterElement;
 import com.google.dart.engine.element.angular.AngularPropertyElement;
@@ -279,36 +281,6 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
       assertEquals("attrB", element.getName());
       assertEquals("setB", element.getField().getName());
     }
-  }
-
-  public void test_NgComponent_useScopeProperties() throws Exception {
-    addMainSource(createSource("",//
-        "import 'angular.dart';",
-        "",
-        "@NgComponent(",
-        "    templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
-        "    publishAs: 'ctrl',",
-        "    selector: 'myComponent')",
-        "class MyComponent {",
-        "  String field;",
-        "  MyComponent(Scope scope) {",
-        "    scope['scopeProperty'] = 'abc';",
-        "  }",
-        "}"));
-    contextHelper.addSource("/entry-point.html", createHtmlWithAngular());
-    addIndexSource("/my_template.html", createSource(//
-        "    <div>",
-        "      {{scopeProperty}}",
-        "    </div>"));
-    contextHelper.addSource("/my_styles.css", "");
-    contextHelper.runTasks();
-    resolveIndex();
-    assertNoErrors();
-    // "scopeProperty" is resolved
-    Element element = assertResolvedIdentifier("scopeProperty}}", "String");
-    assertInstanceOf(
-        AngularScopePropertyElement.class,
-        AngularHtmlUnitResolver.getAngularElement(element));
   }
 
   public void test_NgDirective_resolvedExpression_attrString() throws Exception {
@@ -678,6 +650,67 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
     resolveIndexNoErrors(createHtmlWithMyController("{{ctrl.field | uppercase}}"));
     assertResolvedIdentifier("ctrl", "MyController");
     assertResolvedIdentifier("uppercase");
+  }
+
+  public void test_scopeProperties() throws Exception {
+    addMainSource(createSource("",//
+        "import 'angular.dart';",
+        "",
+        "@NgComponent(",
+        "    templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
+        "    publishAs: 'ctrl',",
+        "    selector: 'myComponent')",
+        "class MyComponent {",
+        "  String field;",
+        "  MyComponent(Scope scope) {",
+        "    scope.context['scopeProperty'] = 'abc';",
+        "  }",
+        "}",
+        ""));
+    contextHelper.addSource("/entry-point.html", createHtmlWithAngular());
+    addIndexSource("/my_template.html", createSource(//
+        "    <div>",
+        "      {{scopeProperty}}",
+        "    </div>"));
+    contextHelper.addSource("/my_styles.css", "");
+    contextHelper.runTasks();
+    resolveIndex();
+    assertNoErrors();
+    // "scopeProperty" is resolved
+    Element element = assertResolvedIdentifier("scopeProperty}}", "String");
+    assertInstanceOf(
+        AngularScopePropertyElement.class,
+        AngularHtmlUnitResolver.getAngularElement(element));
+  }
+
+  public void test_scopeProperties_hideWithComponent() throws Exception {
+    addMainSource(createSource("",//
+        "import 'angular.dart';",
+        "",
+        "@NgComponent(",
+        "    templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
+        "    publishAs: 'ctrl',",
+        "    selector: 'myComponent')",
+        "class MyComponent {",
+        "}",
+        "",
+        "void setScopeProperties(Scope scope) {",
+        "  scope.context['ctrl'] = 1;",
+        "}",
+        ""));
+    contextHelper.addSource("/entry-point.html", createHtmlWithAngular());
+    addIndexSource("/my_template.html", createSource(//
+        "    <div>",
+        "      {{ctrl}}",
+        "    </div>"));
+    contextHelper.addSource("/my_styles.css", "");
+    contextHelper.runTasks();
+    resolveIndex();
+    assertNoErrors();
+    // "ctrl" is resolved
+    LocalVariableElement element = (LocalVariableElement) assertResolvedIdentifier("ctrl}}");
+    ToolkitObjectElement[] toolkitObjects = element.getToolkitObjects();
+    assertInstanceOf(AngularComponentElement.class, toolkitObjects[0]);
   }
 
   public void test_view_resolveTemplateFile() throws Exception {

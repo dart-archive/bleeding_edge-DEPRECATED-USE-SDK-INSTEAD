@@ -383,7 +383,7 @@ abstract public class AngularTest extends EngineTestCase {
             "library angular;",
             "",
             "class Scope {",
-            "  operator []=(String name, value) {}",
+            "  Map context;",
             "}",
             "",
             "class NgFilter {",
