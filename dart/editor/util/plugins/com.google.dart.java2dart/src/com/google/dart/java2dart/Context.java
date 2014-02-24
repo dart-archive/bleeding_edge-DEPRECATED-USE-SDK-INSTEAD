@@ -839,6 +839,9 @@ public class Context {
     parser.createASTs(paths, null, ArrayUtils.EMPTY_STRING_ARRAY, new FileASTRequestor() {
       @Override
       public void acceptAST(String sourceFilePath, org.eclipse.jdt.core.dom.CompilationUnit javaUnit) {
+//        for (IProblem problem : javaUnit.getProblems()) {
+//          System.out.println(problem);
+//        }
         try {
           File astFile = pathToFile.get(sourceFilePath);
           String javaSource = Files.toString(astFile, Charsets.UTF_8);

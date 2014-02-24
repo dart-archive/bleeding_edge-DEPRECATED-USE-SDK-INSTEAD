@@ -489,15 +489,12 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
   @Override
   public boolean visit(org.eclipse.jdt.core.dom.ClassInstanceCreation node) {
     IMethodBinding binding = node.resolveConstructorBinding();
-    String signature = JavaUtils.getJdtSignature(binding);
     TypeName typeNameNode = (TypeName) translate(node.getType());
     final List<Expression> arguments = translateArguments(binding, node.arguments());
     final ClassDeclaration innerClass;
     {
       AnonymousClassDeclaration anoDeclaration = node.getAnonymousClassDeclaration();
       if (anoDeclaration != null) {
-        ITypeBinding superclass = anoDeclaration.resolveBinding().getSuperclass();
-        signature = superclass.getKey() + StringUtils.substringAfter(signature, ";");
         String name = typeNameNode.getName().getName().replace('.', '_');
         name = name + "_" + context.generateTechnicalAnonymousClassIndex();
         innerClass = declareInnerClass(binding, anoDeclaration, name, ArrayUtils.EMPTY_STRING_ARRAY);

@@ -264,6 +264,7 @@ public class MainEngine {
     context.addSourceFiles(new File(engineTestFolder, "com/google/dart/engine/internal/resolver"));
     context.addSourceFiles(new File(engineTestFolder, "com/google/dart/engine/internal/scope"));
     context.addSourceFiles(new File(engineTestFolder, "com/google/dart/engine/context"));
+    context.addSourceFiles(new File(engineTestFolder, "com/google/dart/engine/source"));
     context.addSourceFiles(new File(engineTestFolder, "com/google/dart/engine/internal/context"));
     // configure renames
     context.addRename(
