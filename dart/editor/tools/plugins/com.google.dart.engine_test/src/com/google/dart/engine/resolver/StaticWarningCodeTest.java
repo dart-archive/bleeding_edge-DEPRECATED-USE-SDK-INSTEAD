@@ -1307,6 +1307,24 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_invalidGetterOverrideReturnType_twoMethods() throws Exception {
+    // test from language/override_inheritance_field_test_11.dart
+    Source source = addSource(createSource(//
+        "abstract class I {",
+        "  int get getter => null;",
+        "}",
+        "abstract class J {",
+        "  num get getter => null;",
+        "}",
+        "abstract class A implements I, J {}",
+        "class B extends A {",
+        "  String get getter => null;",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.INVALID_GETTER_OVERRIDE_RETURN_TYPE);
+    verify(source);
+  }
+
   public void test_invalidMethodOverrideNamedParamType() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
@@ -1539,6 +1557,24 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "}",
         "class B extends A {",
         "  void set s(String v) {}",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE);
+    verify(source);
+  }
+
+  public void test_invalidSetterOverrideNormalParamType_twoMethods() throws Exception {
+    // test from language/override_inheritance_field_test_34.dart
+    Source source = addSource(createSource(//
+        "abstract class I {",
+        "  set setter14(int _) => null;",
+        "}",
+        "abstract class J {",
+        "  set setter14(num _) => null;",
+        "}",
+        "abstract class A implements I, J {}",
+        "class B extends A {",
+        "  set setter14(String _) => null;",
         "}"));
     resolve(source);
     assertErrors(source, StaticWarningCode.INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE);
@@ -1895,6 +1931,24 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "  int x(int a, [int b]);",
         "}",
         "class C implements A, B {",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE);
+    verify(source);
+  }
+
+  public void test_nonAbstractClassInheritsAbstractMemberOne_setter_and_implicitSetter()
+      throws Exception {
+    // test from language/override_inheritance_abstract_test_14.dart
+    Source source = addSource(createSource(//
+        "abstract class A {",
+        "  set field(_);",
+        "}",
+        "abstract class I {",
+        "  var field;",
+        "}",
+        "class B extends A implements I {",
+        "  get field => 0;",
         "}"));
     resolve(source);
     assertErrors(source, StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE);

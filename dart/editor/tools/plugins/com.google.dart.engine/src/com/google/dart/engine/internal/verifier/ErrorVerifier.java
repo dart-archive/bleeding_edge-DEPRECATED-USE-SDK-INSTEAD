@@ -105,6 +105,7 @@ import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
+import com.google.dart.engine.element.MultiplyInheritedExecutableElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.TypeParameterElement;
@@ -1195,6 +1196,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * This checks the passed executable element against override-error codes.
    * 
    * @param executableElement a non-null {@link ExecutableElement} to evaluate
+   * @param overriddenExecutable the element that the executableElement is overriding
    * @param parameters the parameters of the executable element
    * @param errorNameTarget the node to report problems on
    * @return {@code true} if and only if an error code is generated on the passed node
@@ -1211,12 +1213,10 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * @see StaticWarningCode#INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES
    */
   private boolean checkForAllInvalidOverrideErrorCodes(ExecutableElement executableElement,
-      ParameterElement[] parameters, ASTNode[] parameterLocations, SimpleIdentifier errorNameTarget) {
+      ExecutableElement overriddenExecutable, ParameterElement[] parameters,
+      ASTNode[] parameterLocations, SimpleIdentifier errorNameTarget) {
     String executableElementName = executableElement.getName();
     boolean executableElementPrivate = Identifier.isPrivateName(executableElementName);
-    ExecutableElement overriddenExecutable = inheritanceManager.lookupInheritance(
-        enclosingClass,
-        executableElementName);
 
     boolean isGetter = false;
     boolean isSetter = false;
@@ -1515,6 +1515,57 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       }
     }
     return foundError;
+  }
+
+  /**
+   * This checks the passed executable element against override-error codes. This method computes
+   * the passed executableElement is overriding and calls
+   * {@link #checkForAllInvalidOverrideErrorCodes(ExecutableElement, ExecutableElement, ParameterElement[], ASTNode[], SimpleIdentifier)}
+   * when the {@link InheritanceManager} returns a {@link MultiplyInheritedExecutableElement}, this
+   * method loops through the array in the {@link MultiplyInheritedExecutableElement}.
+   * 
+   * @param executableElement a non-null {@link ExecutableElement} to evaluate
+   * @param parameters the parameters of the executable element
+   * @param errorNameTarget the node to report problems on
+   * @return {@code true} if and only if an error code is generated on the passed node
+   */
+  private boolean checkForAllInvalidOverrideErrorCodes(ExecutableElement executableElement,
+      ParameterElement[] parameters, ASTNode[] parameterLocations, SimpleIdentifier errorNameTarget) {
+    //
+    // Compute the overridden executable from the InheritanceManager
+    //
+    ExecutableElement overriddenExecutable = inheritanceManager.lookupInheritance(
+        enclosingClass,
+        executableElement.getName());
+
+    //
+    // If the result is a MultiplyInheritedExecutableElement call
+    // checkForAllInvalidOverrideErrorCodes on all of the elements, until an error is found.
+    //
+    if (overriddenExecutable instanceof MultiplyInheritedExecutableElement) {
+      MultiplyInheritedExecutableElement multiplyInheritedElement = (MultiplyInheritedExecutableElement) overriddenExecutable;
+      ExecutableElement[] overriddenElement = multiplyInheritedElement.getInheritedElements();
+      for (int i = 0; i < overriddenElement.length; i++) {
+        if (checkForAllInvalidOverrideErrorCodes(
+            executableElement,
+            overriddenElement[i],
+            parameters,
+            parameterLocations,
+            errorNameTarget)) {
+          return true;
+        }
+      }
+      return false;
+    }
+    //
+    // Otherwise, just call checkForAllInvalidOverrideErrorCodes.
+    //
+    return checkForAllInvalidOverrideErrorCodes(
+        executableElement,
+        overriddenExecutable,
+        parameters,
+        parameterLocations,
+        errorNameTarget);
   }
 
   /**
@@ -4072,8 +4123,9 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
         break;
       }
 
-      // If the element is defined in Object, skip it.
-      if (((ClassElement) executableElt.getEnclosingElement()).getType().isObject()) {
+      // If the element is not synthetic and can be determined to be defined in Object, skip it.
+      if (executableElt.getEnclosingElement() != null
+          && ((ClassElement) executableElt.getEnclosingElement()).getType().isObject()) {
         continue;
       }
 
@@ -4130,8 +4182,13 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     ArrayList<String> stringMembersArrayListSet = new ArrayList<String>(
         missingOverridesArray.length);
     for (int i = 0; i < missingOverridesArray.length; i++) {
-      String newStrMember = missingOverridesArray[i].getEnclosingElement().getDisplayName() + '.'
-          + missingOverridesArray[i].getDisplayName();
+      String newStrMember;
+      if (missingOverridesArray[i].getEnclosingElement() != null) {
+        newStrMember = missingOverridesArray[i].getEnclosingElement().getDisplayName() + '.'
+            + missingOverridesArray[i].getDisplayName();
+      } else {
+        newStrMember = missingOverridesArray[i].getDisplayName();
+      }
       if (!stringMembersArrayListSet.contains(newStrMember)) {
         stringMembersArrayListSet.add(newStrMember);
       }

@@ -13,27 +13,40 @@
  */
 package com.google.dart.engine.internal.resolver;
 
+import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
+import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.error.StaticTypeWarningCode;
 import com.google.dart.engine.error.StaticWarningCode;
+import com.google.dart.engine.internal.element.ExecutableElementImpl;
+import com.google.dart.engine.internal.element.MultiplyInheritedMethodElementImpl;
+import com.google.dart.engine.internal.element.MultiplyInheritedPropertyAccessorElementImpl;
+import com.google.dart.engine.internal.element.ParameterElementImpl;
 import com.google.dart.engine.internal.element.member.MethodMember;
 import com.google.dart.engine.internal.element.member.PropertyAccessorMember;
+import com.google.dart.engine.internal.type.DynamicTypeImpl;
+import com.google.dart.engine.internal.type.FunctionTypeImpl;
 import com.google.dart.engine.internal.verifier.ErrorVerifier;
+import com.google.dart.engine.scanner.StringToken;
+import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
+import com.google.dart.engine.utilities.dart.ParameterKind;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map.Entry;
+import java.util.Set;
 
 /**
  * Instances of the class {@code InheritanceManager} manage the knowledge of where class members
@@ -42,6 +55,158 @@ import java.util.Map.Entry;
  * @coverage dart.engine.resolver
  */
 public class InheritanceManager {
+
+  /**
+   * Given some array of {@link ExecutableElement}s, this method creates a synthetic element as
+   * described in the Superinterfaces section of Inheritance and Overriding.
+   * <p>
+   * TODO (jwren) Copy contents from the Spec into this javadoc.
+   * <p>
+   * TODO (jwren) Associate a propagated type to the synthetic method element using least upper
+   * bound calls
+   */
+  private static ExecutableElement computeMergedExecutableElement(
+      ExecutableElement[] elementArrayToMerge) {
+    int h = getNumOfPositionalParameters(elementArrayToMerge[0]);
+    int r = getNumOfRequiredParameters(elementArrayToMerge[0]);
+    Set<String> namedParametersList = new HashSet<String>();
+    for (int i = 1; i < elementArrayToMerge.length; i++) {
+      ExecutableElement element = elementArrayToMerge[i];
+      int numOfPositionalParams = getNumOfPositionalParameters(element);
+      if (h < numOfPositionalParams) {
+        h = numOfPositionalParams;
+      }
+      int numOfRequiredParams = getNumOfRequiredParameters(element);
+      if (r > numOfRequiredParams) {
+        r = numOfRequiredParams;
+      }
+      namedParametersList.addAll(getNamedParameterNames(element));
+    }
+    if (r > h) {
+      return null;
+    }
+    return createSyntheticExecutableElement(
+        elementArrayToMerge,
+        elementArrayToMerge[0].getDisplayName(),
+        r,
+        h - r,
+        namedParametersList.toArray(new String[namedParametersList.size()]));
+  }
+
+  /**
+   * Used by {@link #computeMergedExecutableElement(ExecutableElement[])} to actually create the
+   * synthetic element.
+   * 
+   * @param elementArrayToMerge the array used to create the synthetic element
+   * @param name the name of the method, getter or setter
+   * @param numOfRequiredParameters the number of required parameters
+   * @param numOfPositionalParameters the number of positional parameters
+   * @param namedParameters the list of {@link String}s that are the named parameters
+   * @return the created synthetic element
+   */
+  private static ExecutableElement createSyntheticExecutableElement(
+      ExecutableElement[] elementArrayToMerge, String name, int numOfRequiredParameters,
+      int numOfPositionalParameters, String... namedParameters) {
+    DynamicTypeImpl dynamicType = DynamicTypeImpl.getInstance();
+    SimpleIdentifier nameIdentifier = new SimpleIdentifier(new StringToken(
+        TokenType.IDENTIFIER,
+        name,
+        0));
+    ExecutableElementImpl executable;
+    if (elementArrayToMerge[0] instanceof MethodElement) {
+      MultiplyInheritedMethodElementImpl unionedMethod = new MultiplyInheritedMethodElementImpl(
+          nameIdentifier);
+      unionedMethod.setInheritedElements(elementArrayToMerge);
+      executable = unionedMethod;
+    } else {
+      MultiplyInheritedPropertyAccessorElementImpl unionedPropertyAccessor = new MultiplyInheritedPropertyAccessorElementImpl(
+          nameIdentifier);
+      unionedPropertyAccessor.setGetter(((PropertyAccessorElement) elementArrayToMerge[0]).isGetter());
+      unionedPropertyAccessor.setSetter(((PropertyAccessorElement) elementArrayToMerge[0]).isSetter());
+      unionedPropertyAccessor.setInheritedElements(elementArrayToMerge);
+      executable = unionedPropertyAccessor;
+    }
+
+    int numOfParameters = numOfRequiredParameters + numOfPositionalParameters
+        + namedParameters.length;
+    ParameterElement[] parameters = new ParameterElement[numOfParameters];
+    int i = 0;
+    for (int j = 0; j < numOfRequiredParameters; j++, i++) {
+      ParameterElementImpl parameter = new ParameterElementImpl("", 0);
+      parameter.setType(dynamicType);
+      parameter.setParameterKind(ParameterKind.REQUIRED);
+      parameters[i] = parameter;
+    }
+    for (int k = 0; k < numOfPositionalParameters; k++, i++) {
+      ParameterElementImpl parameter = new ParameterElementImpl("", 0);
+      parameter.setType(dynamicType);
+      parameter.setParameterKind(ParameterKind.POSITIONAL);
+      parameters[i] = parameter;
+    }
+    for (int m = 0; m < namedParameters.length; m++, i++) {
+      ParameterElementImpl parameter = new ParameterElementImpl(namedParameters[m], 0);
+      parameter.setType(dynamicType);
+      parameter.setParameterKind(ParameterKind.NAMED);
+      parameters[i] = parameter;
+    }
+    executable.setReturnType(dynamicType);
+    executable.setParameters(parameters);
+
+    FunctionTypeImpl methodType = new FunctionTypeImpl(executable);
+    executable.setType(methodType);
+
+    return executable;
+  }
+
+  /**
+   * Given some {@link ExecutableElement}, return the list of named parameters.
+   */
+  private static List<String> getNamedParameterNames(ExecutableElement executableElement) {
+    ArrayList<String> namedParameterNames = new ArrayList<String>();
+    ParameterElement[] parameters = executableElement.getParameters();
+    for (int i = 0; i < parameters.length; i++) {
+      ParameterElement parameterElement = parameters[i];
+      if (parameterElement.getParameterKind() == ParameterKind.NAMED) {
+        namedParameterNames.add(parameterElement.getName());
+      }
+    }
+    return namedParameterNames;
+  }
+
+  /**
+   * Given some {@link ExecutableElement} return the number of parameters of the specified kind.
+   */
+  private static int getNumOfParameters(ExecutableElement executableElement,
+      ParameterKind parameterKind) {
+    int parameterCount = 0;
+    ParameterElement[] parameters = executableElement.getParameters();
+    for (int i = 0; i < parameters.length; i++) {
+      ParameterElement parameterElement = parameters[i];
+      if (parameterElement.getParameterKind() == parameterKind) {
+        parameterCount++;
+      }
+    }
+    return parameterCount;
+  }
+
+  /**
+   * Given some {@link ExecutableElement} return the number of positional parameters.
+   * <p>
+   * Note: by positional we mean {@link ParameterKind#REQUIRED} or {@link ParameterKind#POSITIONAL}.
+   */
+  private static int getNumOfPositionalParameters(ExecutableElement executableElement) {
+    // For this portion of the spec "positional" references both the required and the positional
+    // parameters.
+    return getNumOfParameters(executableElement, ParameterKind.REQUIRED)
+        + getNumOfParameters(executableElement, ParameterKind.POSITIONAL);
+  }
+
+  /**
+   * Given some {@link ExecutableElement} return the number of required parameters.
+   */
+  private static int getNumOfRequiredParameters(ExecutableElement executableElement) {
+    return getNumOfParameters(executableElement, ParameterKind.REQUIRED);
+  }
 
   /**
    * The {@link LibraryElement} that is managed by this manager.
@@ -469,38 +634,81 @@ public class InheritanceManager {
     }
 
     //
-    // Union all of the maps together, grouping the ExecutableElements into sets.
+    // Union all of the lookupMaps together into unionMap, grouping the ExecutableElements into a
+    // list where none of the elements are equal where equality is determined by having equal
+    // function types. (We also take note too of the kind of the element: ()->int and () -> int may
+    // not be equal if one is a getter and the other is a method.)
     //
-    HashMap<String, HashSet<ExecutableElement>> unionMap = new HashMap<String, HashSet<ExecutableElement>>();
+    HashMap<String, ArrayList<ExecutableElement>> unionMap = new HashMap<String, ArrayList<ExecutableElement>>();
     for (MemberMap lookupMap : lookupMaps) {
-      for (int i = 0; i < lookupMap.getSize(); i++) {
+      int lookupMapSize = lookupMap.getSize();
+      for (int i = 0; i < lookupMapSize; i++) {
+        // Get the string key, if null, break.
         String key = lookupMap.getKey(i);
         if (key == null) {
           break;
         }
-        HashSet<ExecutableElement> set = unionMap.get(key);
-        if (set == null) {
-          set = new HashSet<ExecutableElement>(4);
-          unionMap.put(key, set);
+
+        // Get the list value out of the unionMap
+        ArrayList<ExecutableElement> list = unionMap.get(key);
+
+        // If we haven't created such a map for this key yet, do create it and put the list entry
+        // into the unionMap.
+        if (list == null) {
+          list = new ArrayList<ExecutableElement>(4);
+          unionMap.put(key, list);
         }
-        set.add(lookupMap.getValue(i));
+
+        // Fetch the entry out of this lookupMap
+        ExecutableElement newExecutableElementEntry = lookupMap.getValue(i);
+
+        if (list.isEmpty()) {
+          // If the list is empty, just the new value
+          list.add(newExecutableElementEntry);
+        } else {
+          // Otherwise, only add the newExecutableElementEntry if it isn't already in the list, this
+          // covers situation where a class inherits two methods (or two getters) that are
+          // identical.
+          boolean alreadyInList = false;
+          boolean isMethod1 = newExecutableElementEntry instanceof MethodElement;
+          for (ExecutableElement executableElementInList : list) {
+            boolean isMethod2 = executableElementInList instanceof MethodElement;
+            if (isMethod1 == isMethod2
+                && executableElementInList.getType().equals(newExecutableElementEntry.getType())) {
+              alreadyInList = true;
+              break;
+            }
+          }
+          if (!alreadyInList) {
+            list.add(newExecutableElementEntry);
+          }
+        }
       }
     }
 
     //
-    // Loop through the entries in the union map, adding them to the resultMap appropriately.
+    // Loop through the entries in the unionMap, adding them to the resultMap appropriately.
     //
-    for (Entry<String, HashSet<ExecutableElement>> entry : unionMap.entrySet()) {
+    for (Entry<String, ArrayList<ExecutableElement>> entry : unionMap.entrySet()) {
       String key = entry.getKey();
-      HashSet<ExecutableElement> set = entry.getValue();
-      int numOfEltsWithMatchingNames = set.size();
+      ArrayList<ExecutableElement> list = entry.getValue();
+      int numOfEltsWithMatchingNames = list.size();
       if (numOfEltsWithMatchingNames == 1) {
-        resultMap.put(key, set.iterator().next());
+        //
+        // Example: class A inherits only 1 method named 'm'.  Since it is the only such method, it
+        // is inherited.
+        // Another example: class A inherits 2 methods named 'm' from 2 different interfaces, but
+        // they both have the same signature, so it is the method inherited.
+        //
+        resultMap.put(key, list.get(0));
       } else {
+        //
+        // Then numOfEltsWithMatchingNames > 1, check for the warning cases.
+        //
         boolean allMethods = true;
         boolean allSetters = true;
         boolean allGetters = true;
-        for (ExecutableElement executableElement : set) {
+        for (ExecutableElement executableElement : list) {
           if (executableElement instanceof PropertyAccessorElement) {
             allMethods = false;
             if (((PropertyAccessorElement) executableElement).isSetter()) {
@@ -513,14 +721,21 @@ public class InheritanceManager {
             allSetters = false;
           }
         }
+
+        //
+        // If there isn't a mixture of methods with getters, then continue, otherwise create a
+        // warning.
+        //
         if (allMethods || allGetters || allSetters) {
+          //
           // Compute the element whose type is the subtype of all of the other types.
-          ExecutableElement[] elements = set.toArray(new ExecutableElement[numOfEltsWithMatchingNames]);
+          //
+          ExecutableElement[] elements = list.toArray(new ExecutableElement[numOfEltsWithMatchingNames]);
           FunctionType[] executableElementTypes = new FunctionType[numOfEltsWithMatchingNames];
           for (int i = 0; i < numOfEltsWithMatchingNames; i++) {
             executableElementTypes[i] = elements[i].getType();
           }
-          boolean foundSubtypeOfAllTypes = false;
+          ArrayList<Integer> subtypesOfAllOtherTypesIndexes = new ArrayList<Integer>(1);
           for (int i = 0; i < numOfEltsWithMatchingNames; i++) {
             FunctionType subtype = executableElementTypes[i];
             if (subtype == null) {
@@ -536,29 +751,62 @@ public class InheritanceManager {
               }
             }
             if (subtypeOfAllTypes) {
-              foundSubtypeOfAllTypes = true;
-              resultMap.put(key, elements[i]);
-              break;
+              subtypesOfAllOtherTypesIndexes.add(i);
             }
           }
-          if (!foundSubtypeOfAllTypes) {
-            reportError(
-                classElt,
-                classElt.getNameOffset(),
-                classElt.getDisplayName().length(),
-                StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE,
-                key);
+
+          //
+          // The following is split into three cases determined by the number of elements in subtypesOfAllOtherTypes
+          //
+          if (subtypesOfAllOtherTypesIndexes.size() == 1) {
+            //
+            // Example: class A inherited only 2 method named 'm'. One has the function type
+            // '() -> dynamic' and one has the function type '([int]) -> dynamic'. Since the second
+            // method is a subtype of all the others, it is the inherited method.
+            // Tests: InheritanceManagerTest.test_getMapOfMembersInheritedFromInterfaces_union_oneSubtype_*
+            //
+            resultMap.put(key, elements[subtypesOfAllOtherTypesIndexes.get(0)]);
+          } else {
+            if (subtypesOfAllOtherTypesIndexes.isEmpty()) {
+              //
+              // Example: class A inherited only 2 method named 'm'. One has the function type
+              // '() -> int' and one has the function type '() -> String'. Since neither is a subtype
+              // of the other, we create a warning, and have this class inherit nothing.
+              //
+              String firstTwoFuntionTypesStr = executableElementTypes[0].toString() + ", "
+                  + executableElementTypes[1].toString();
+              reportError(
+                  classElt,
+                  classElt.getNameOffset(),
+                  classElt.getDisplayName().length(),
+                  StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE,
+                  key,
+                  firstTwoFuntionTypesStr);
+            } else {
+              //
+              // Example: class A inherits 2 methods named 'm'. One has the function type
+              // '(int) -> dynamic' and one has the function type '(num) -> dynamic'. Since they are
+              // both a subtype of the other, a synthetic function '(dynamic) -> dynamic' is
+              // inherited.
+              // Tests: test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_*
+              //
+              ExecutableElement[] elementArrayToMerge = new ExecutableElement[subtypesOfAllOtherTypesIndexes.size()];
+              for (int i = 0; i < elementArrayToMerge.length; i++) {
+                elementArrayToMerge[i] = elements[subtypesOfAllOtherTypesIndexes.get(i)];
+              }
+              ExecutableElement mergedExecutableElement = computeMergedExecutableElement(elementArrayToMerge);
+              if (mergedExecutableElement != null) {
+                resultMap.put(key, mergedExecutableElement);
+              }
+            }
           }
         } else {
-          if (!allMethods && !allGetters) {
-            reportError(
-                classElt,
-                classElt.getNameOffset(),
-                classElt.getDisplayName().length(),
-                StaticWarningCode.INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD,
-                key);
-          }
-          resultMap.remove(entry.getKey());
+          reportError(
+              classElt,
+              classElt.getNameOffset(),
+              classElt.getDisplayName().length(),
+              StaticWarningCode.INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD,
+              key);
         }
       }
     }
@@ -658,5 +906,4 @@ public class InheritanceManager {
       }
     }
   }
-
 }
