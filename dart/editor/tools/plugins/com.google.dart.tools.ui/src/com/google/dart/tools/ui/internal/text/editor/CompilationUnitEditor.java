@@ -26,6 +26,7 @@ import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.model.SourceReference;
 import com.google.dart.tools.core.model.TypeMember;
 import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
+import com.google.dart.tools.internal.corext.refactoring.util.ReflectionUtils;
 import com.google.dart.tools.internal.corext.refactoring.util.RunnableEx;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
@@ -61,6 +62,7 @@ import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.jface.text.AbstractInformationControlManager;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.BadPositionCategoryException;
 import org.eclipse.jface.text.DefaultLineTracker;
@@ -220,6 +222,20 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
         return false;
       }
       return super.requestWidgetToken(requester, priority);
+    }
+
+    @Override
+    protected void ensureAnnotationHoverManagerInstalled() {
+      super.ensureAnnotationHoverManagerInstalled();
+      // Hack to force ANCHOR_TOP instead of default ANCHOR_RIGHT.
+      // https://code.google.com/p/dart/issues/detail?id=17109
+      try {
+        AbstractInformationControlManager manager = ReflectionUtils.getFieldObject(
+            this,
+            "fVerticalRulerHoveringController");
+        manager.setAnchor(AbstractInformationControlManager.ANCHOR_TOP);
+      } catch (Throwable e) {
+      }
     }
 
     @Override
