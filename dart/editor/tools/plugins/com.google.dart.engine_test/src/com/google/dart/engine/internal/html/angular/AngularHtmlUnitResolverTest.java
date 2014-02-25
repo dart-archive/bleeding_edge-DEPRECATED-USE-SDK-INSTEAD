@@ -29,7 +29,6 @@ import com.google.dart.engine.element.angular.AngularScopePropertyElement;
 import com.google.dart.engine.element.angular.AngularSelectorElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AngularCode;
-import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.html.ast.HtmlUnitUtils;
 import com.google.dart.engine.html.ast.XmlAttributeNode;
 import com.google.dart.engine.html.ast.XmlTagNode;
@@ -54,12 +53,11 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
         "    publishAs: 'ctrl',",
         "    selector: 'myComponent')",
         "class MyComponent {",
-        "  String field;",
         "}"));
     contextHelper.addSource("/entry-point.html", createHtmlWithAngular());
     addIndexSource("/my_template.html", createSource(//
         "    <div>",
-        "      {{ctrl.newField}}",
+        "      {{ctrl.noMethod()}}",
         "    </div>"));
     contextHelper.addSource("/my_styles.css", "");
     contextHelper.runTasks();
@@ -114,12 +112,11 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
         "    publishAs: 'ctrl',",
         "    selector: 'myComponent')",
         "class MyComponent {",
-        "  String field;",
         "}"));
     Source entrySource = contextHelper.addSource("/entry-point.html", createHtmlWithAngular());
     addIndexSource("/my_template.html", createSource(//
         "    <div>",
-        "      {{ctrl.noSuchField}}",
+        "      {{ctrl.noMethod()}}",
         "    </div>"));
     contextHelper.addSource("/my_styles.css", "");
     contextHelper.runTasks();
@@ -597,7 +594,8 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
         "</html>"));
     contextHelper.runTasks();
     resolveIndex();
-    assertErrors(indexSource, StaticWarningCode.UNDEFINED_IDENTIFIER);
+    // no errors, because we decided to ignore them at the moment
+    assertNoErrors();
     // "ctrl" is not resolved
     SimpleIdentifier identifier = findIdentifier("ctrl");
     assertNull(identifier.getBestElement());
@@ -623,6 +621,39 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
         "  </body>",
         "</html>"));
     assertResolvedIdentifier("ctrl.", "MyController");
+  }
+
+  public void test_resolveExpression_ignoreUnresolved() throws Exception {
+    resolveMainSource(createSource("",//
+        "import 'angular.dart';",
+        "",
+        "@NgController(",
+        "    selector: '[my-controller]',",
+        "    publishAs: 'ctrl')",
+        "class MyController {",
+        "  Map map;",
+        "  Object obj;",
+        "}"));
+    resolveIndex(createSource(//
+        "<html ng-app>",
+        "  <body>",
+        "    <div my-controller>",
+        "      {{ctrl.map.property}}",
+        "      {{ctrl.obj.property}}",
+        "      {{invisibleScopeProperty}}",
+        "    </div>",
+        "    <script type='application/dart' src='main.dart'></script>",
+        "  </body>",
+        "</html>"));
+    assertNoErrors();
+    // "ctrl.map" and "ctrl.obj" are resolved
+    assertResolvedIdentifier("map", "Map<dynamic, dynamic>");
+    assertResolvedIdentifier("obj", "Object");
+    // ...but not "invisibleScopeProperty"
+    {
+      SimpleIdentifier identifier = findIdentifier("invisibleScopeProperty");
+      assertNull(identifier.getBestElement());
+    }
   }
 
   public void test_resolveExpression_inAttribute() throws Exception {

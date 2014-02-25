@@ -44,6 +44,8 @@ import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.error.AngularCode;
 import com.google.dart.engine.error.ErrorCode;
+import com.google.dart.engine.error.StaticTypeWarningCode;
+import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.html.ast.XmlAttributeNode;
 import com.google.dart.engine.html.ast.XmlExpression;
@@ -91,6 +93,25 @@ import java.util.Set;
  * Instances of the class {@link AngularHtmlUnitResolver} resolve Angular specific expressions.
  */
 public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
+  private static class FilteringAnalysisErrorListener implements AnalysisErrorListener {
+    private final AnalysisErrorListener listener;
+
+    public FilteringAnalysisErrorListener(AnalysisErrorListener listener) {
+      this.listener = listener;
+    }
+
+    @Override
+    public void onError(AnalysisError error) {
+      ErrorCode errorCode = error.getErrorCode();
+      if (errorCode == StaticWarningCode.UNDEFINED_GETTER
+          || errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER
+          || errorCode == StaticTypeWarningCode.UNDEFINED_GETTER) {
+        return;
+      }
+      listener.onError(error);
+    }
+  }
+
   private static class FoundAppError extends Error {
   }
 
@@ -222,7 +243,7 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
 
   private final InternalAnalysisContext context;
   private final TypeProvider typeProvider;
-  private final AnalysisErrorListener errorListener;
+  private final FilteringAnalysisErrorListener errorListener;
 
   private final Source source;
   private final LineInfo lineInfo;
@@ -249,7 +270,7 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
       throws AnalysisException {
     this.context = context;
     this.typeProvider = context.getTypeProvider();
-    this.errorListener = errorListener;
+    this.errorListener = new FilteringAnalysisErrorListener(errorListener);
     this.source = source;
     this.lineInfo = lineInfo;
     this.unit = unit;
