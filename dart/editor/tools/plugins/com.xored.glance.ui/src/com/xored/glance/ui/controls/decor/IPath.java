@@ -10,8 +10,8 @@ import org.eclipse.swt.widgets.Composite;
 
 public interface IPath {
 
-  public void select(Composite composite);
-
   public void discardSelection();
+
+  public void select(Composite composite);
 
 }

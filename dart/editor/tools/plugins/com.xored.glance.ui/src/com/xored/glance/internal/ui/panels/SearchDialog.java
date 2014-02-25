@@ -6,9 +6,6 @@
  *******************************************************************************/
 package com.xored.glance.internal.ui.panels;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.PopupDialog;
 import org.eclipse.jface.layout.GridDataFactory;
@@ -27,13 +24,72 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * @author Yuri Strot
  */
 public class SearchDialog extends PopupDialog {
 
+  private Composite titleArea;
+
+  protected Text titleText;
+
+  private Font infoFont;
+
+  private Label info;
+
+  private Label progress;
+
+  private Control separator;
+
+  private static final GridDataFactory LAYOUTDATA_GRAB_BOTH = GridDataFactory.fillDefaults().grab(
+      true,
+      true);
+
+  private static final GridLayoutFactory POPUP_LAYOUT_FACTORY = GridLayoutFactory.fillDefaults().margins(
+      POPUP_MARGINWIDTH,
+      POPUP_MARGINHEIGHT).spacing(POPUP_HORIZONTALSPACING, POPUP_VERTICALSPACING);
+
+  protected static final String HELP_TEXT = "Enter search text";
+
   public SearchDialog(final Shell parent) {
     super(parent, SWT.RESIZE, true, false, false, true, false, null, null);
+  }
+
+  protected void applyBackgroundColor(final Color color) {
+    applyBackgroundColor(color, titleArea);
+  }
+
+  protected void applyColors(final Composite composite) {
+    applyForegroundColor(getForeground(), composite);
+    applyBackgroundColor(getBackground(), composite);
+  }
+
+  protected void applyFonts(final Composite composite) {
+    Dialog.applyDialogFont(composite);
+
+    if (info != null) {
+      final Font font = info.getFont();
+      final FontData[] fontDatas = font.getFontData();
+      for (int i = 0; i < fontDatas.length; i++) {
+        fontDatas[i].setHeight(fontDatas[i].getHeight() * 9 / 10);
+      }
+      infoFont = new Font(info.getDisplay(), fontDatas);
+      info.setFont(infoFont);
+    }
+  }
+
+  @Override
+  protected void configureShell(final Shell shell) {
+    super.configureShell(shell);
+    shell.addDisposeListener(new DisposeListener() {
+      @Override
+      public void widgetDisposed(final DisposeEvent e) {
+        handleClose();
+      }
+    });
   }
 
   @Override
@@ -77,38 +133,24 @@ public class SearchDialog extends PopupDialog {
   }
 
   @Override
-  protected void setInfoText(final String text) {
-    info.setText(text);
-  }
-
-  protected void applyColors(final Composite composite) {
-    applyForegroundColor(getForeground(), composite);
-    applyBackgroundColor(getBackground(), composite);
-  }
-
-  protected void applyFonts(final Composite composite) {
-    Dialog.applyDialogFont(composite);
-
-    if (info != null) {
-      final Font font = info.getFont();
-      final FontData[] fontDatas = font.getFontData();
-      for (int i = 0; i < fontDatas.length; i++) {
-        fontDatas[i].setHeight(fontDatas[i].getHeight() * 9 / 10);
-      }
-      infoFont = new Font(info.getDisplay(), fontDatas);
-      info.setFont(infoFont);
+  protected List<Control> getBackgroundColorExclusions() {
+    final List<Control> list = copyControls(super.getBackgroundColorExclusions());
+    if (separator != null) {
+      list.add(separator);
     }
+    return list;
   }
 
   @Override
-  protected void configureShell(final Shell shell) {
-    super.configureShell(shell);
-    shell.addDisposeListener(new DisposeListener() {
-      @Override
-      public void widgetDisposed(final DisposeEvent e) {
-        handleClose();
-      }
-    });
+  protected List<Control> getForegroundColorExclusions() {
+    final List<Control> list = copyControls(super.getForegroundColorExclusions());
+    if (info != null) {
+      list.add(info);
+    }
+    if (separator != null) {
+      list.add(separator);
+    }
+    return list;
   }
 
   protected void handleClose() {
@@ -116,6 +158,19 @@ public class SearchDialog extends PopupDialog {
       infoFont.dispose();
     }
     infoFont = null;
+  }
+
+  @Override
+  protected void setInfoText(final String text) {
+    info.setText(text);
+  }
+
+  private List<Control> copyControls(List<?> list) {
+    List<Control> result = new ArrayList<Control>(list.size());
+    for (Control control : result) {
+      result.add(control);
+    }
+    return result;
   }
 
   /**
@@ -129,52 +184,5 @@ public class SearchDialog extends PopupDialog {
     GridDataFactory.fillDefaults().align(SWT.FILL, SWT.CENTER).grab(true, false).applyTo(separator);
     return separator;
   }
-
-  @Override
-  protected List<Control> getForegroundColorExclusions() {
-    final List<Control> list = copyControls(super.getForegroundColorExclusions());
-    if (info != null)
-      list.add(info);
-    if (separator != null)
-      list.add(separator);
-    return list;
-  }
-
-  @Override
-  protected List<Control> getBackgroundColorExclusions() {
-    final List<Control> list = copyControls(super.getBackgroundColorExclusions());
-    if (separator != null)
-      list.add(separator);
-    return list;
-  }
-
-  private List<Control> copyControls(List<?> list) {
-    List<Control> result = new ArrayList<Control>(list.size());
-    for (Control control : result) {
-      result.add(control);
-    }
-    return result;
-  }
-
-  protected void applyBackgroundColor(final Color color) {
-    applyBackgroundColor(color, titleArea);
-  }
-
-  private Composite titleArea;
-
-  protected Text titleText;
-  private Font infoFont;
-  private Label info;
-  private Label progress;
-  private Control separator;
-
-  private static final GridDataFactory LAYOUTDATA_GRAB_BOTH = GridDataFactory.fillDefaults().grab(
-      true,
-      true);
-  private static final GridLayoutFactory POPUP_LAYOUT_FACTORY = GridLayoutFactory.fillDefaults().margins(
-      POPUP_MARGINWIDTH,
-      POPUP_MARGINHEIGHT).spacing(POPUP_HORIZONTALSPACING, POPUP_VERTICALSPACING);
-
-  protected static final String HELP_TEXT = "Enter search text";
 
 }

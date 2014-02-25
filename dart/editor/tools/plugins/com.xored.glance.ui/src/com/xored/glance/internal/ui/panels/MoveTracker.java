@@ -18,6 +18,12 @@ import org.eclipse.swt.widgets.Listener;
  */
 public class MoveTracker implements Listener {
 
+  private Cursor cursor;
+
+  private Point iLocation;
+
+  private Control control;
+
   public MoveTracker(Control control) {
     this.control = control;
     cursor = new Cursor(control.getDisplay(), SWT.CURSOR_SIZEALL);
@@ -57,9 +63,5 @@ public class MoveTracker implements Listener {
 
   protected void handleDrag(int dx, int dy) {
   }
-
-  private Cursor cursor;
-  private Point iLocation;
-  private Control control;
 
 }

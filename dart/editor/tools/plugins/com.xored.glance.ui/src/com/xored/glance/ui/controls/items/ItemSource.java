@@ -6,10 +6,12 @@
  *******************************************************************************/
 package com.xored.glance.ui.controls.items;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import com.xored.glance.ui.sources.BaseTextSource;
+import com.xored.glance.ui.sources.ColorManager;
+import com.xored.glance.ui.sources.ITextBlock;
+import com.xored.glance.ui.sources.ITextSourceListener;
+import com.xored.glance.ui.sources.Match;
+import com.xored.glance.ui.sources.SourceSelection;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyleRange;
@@ -21,12 +23,10 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Item;
 
-import com.xored.glance.ui.sources.BaseTextSource;
-import com.xored.glance.ui.sources.ColorManager;
-import com.xored.glance.ui.sources.ITextBlock;
-import com.xored.glance.ui.sources.ITextSourceListener;
-import com.xored.glance.ui.sources.Match;
-import com.xored.glance.ui.sources.SourceSelection;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Yuri Strot
@@ -36,50 +36,18 @@ public abstract class ItemSource extends BaseTextSource implements SelectionList
   protected ItemDecorator decorator;
   protected Composite composite;
 
+  private Match selection;
+
+  private Map<ItemCell, List<Match>> cellToMatches;
+
   public ItemSource(Composite composite) {
     decorator = new ItemDecorator(composite, getItemProvider());
     this.composite = composite;
   }
 
-  /**
-   * @return the composite
-   */
-  public Composite getControl() {
-    return composite;
-  }
-
-  protected abstract ItemProvider getItemProvider();
-
-  protected abstract void collectCells(List<ItemCell> cells);
-
-  public List<ItemCell> getCells() {
-    List<ItemCell> cells = decorator.getCells();
-    if (cells == null) {
-      cells = new ArrayList<ItemCell>();
-      collectCells(cells);
-      decorator.setCells(cells);
-    }
-    return cells;
-  }
-
   @Override
-  public ITextBlock[] getBlocks() {
-    return getCells().toArray(new ITextBlock[getCells().size()]);
-  }
-
-  public Font getFont() {
-    return composite.getFont();
-  }
-
-  @Override
-  public void select(Match match) {
-    if (match != null) {
-      Item item = getCell(match).getItem();
-      getItemProvider().show(item);
-      getItemProvider().select(item);
-    }
-
-    setMatch(match);
+  public void addTextSourceListener(ITextSourceListener listener) {
+    decorator.addTextSourceListener(listener);
   }
 
   @Override
@@ -91,31 +59,34 @@ public abstract class ItemSource extends BaseTextSource implements SelectionList
   }
 
   @Override
+  public ITextBlock[] getBlocks() {
+    return getCells().toArray(new ITextBlock[getCells().size()]);
+  }
+
+  public List<ItemCell> getCells() {
+    List<ItemCell> cells = decorator.getCells();
+    if (cells == null) {
+      cells = new ArrayList<ItemCell>();
+      collectCells(cells);
+      decorator.setCells(cells);
+    }
+    return cells;
+  }
+
+  /**
+   * @return the composite
+   */
+  public Composite getControl() {
+    return composite;
+  }
+
+  public Font getFont() {
+    return composite.getFont();
+  }
+
+  @Override
   public boolean isDisposed() {
     return decorator.isDisposed();
-  }
-
-  @Override
-  public void widgetDefaultSelected(SelectionEvent e) {
-    fireSelectionChanged();
-  }
-
-  @Override
-  public void widgetSelected(SelectionEvent e) {
-    fireSelectionChanged();
-  }
-
-  protected void fireSelectionChanged() {
-    SourceSelection selection = getSelection();
-    ITextSourceListener[] listeners = decorator.getListeners();
-    for (ITextSourceListener listener : listeners) {
-      listener.selectionChanged(selection);
-    }
-  }
-
-  @Override
-  public void show(Match[] matches) {
-    setMatches(matches);
   }
 
   @Override
@@ -124,8 +95,14 @@ public abstract class ItemSource extends BaseTextSource implements SelectionList
   }
 
   @Override
-  public void addTextSourceListener(ITextSourceListener listener) {
-    decorator.addTextSourceListener(listener);
+  public void select(Match match) {
+    if (match != null) {
+      Item item = getCell(match).getItem();
+      getItemProvider().show(item);
+      getItemProvider().select(item);
+    }
+
+    setMatch(match);
   }
 
   public void setMatch(Match match) {
@@ -140,10 +117,12 @@ public abstract class ItemSource extends BaseTextSource implements SelectionList
       cell2 = getCell(selection);
       updateCell(cell2);
     }
-    if (cell1 != null)
+    if (cell1 != null) {
       decorator.redraw(cell1);
-    if (cell2 != null && cell2 != cell1)
+    }
+    if (cell2 != null && cell2 != cell1) {
       decorator.redraw(cell2);
+    }
   }
 
   public void setMatches(Match[] matches) {
@@ -163,6 +142,37 @@ public abstract class ItemSource extends BaseTextSource implements SelectionList
     }
     decorator.redraw();
   }
+
+  @Override
+  public void show(Match[] matches) {
+    setMatches(matches);
+  }
+
+  @Override
+  public void widgetDefaultSelected(SelectionEvent e) {
+    fireSelectionChanged();
+  }
+
+  @Override
+  public void widgetSelected(SelectionEvent e) {
+    fireSelectionChanged();
+  }
+
+  protected abstract void collectCells(List<ItemCell> cells);
+
+  protected void fireSelectionChanged() {
+    SourceSelection selection = getSelection();
+    ITextSourceListener[] listeners = decorator.getListeners();
+    for (ITextSourceListener listener : listeners) {
+      listener.selectionChanged(selection);
+    }
+  }
+
+  protected ItemCell getCell(Match match) {
+    return (ItemCell) match.getBlock();
+  }
+
+  protected abstract ItemProvider getItemProvider();
 
   protected void updateCell(ItemCell cell) {
     List<StyleRange> list = new ArrayList<StyleRange>();
@@ -202,11 +212,4 @@ public abstract class ItemSource extends BaseTextSource implements SelectionList
     }
     return new StyleRange(match.getOffset(), match.getLength(), fgColor, bgColor);
   }
-
-  protected ItemCell getCell(Match match) {
-    return (ItemCell) match.getBlock();
-  }
-
-  private Match selection;
-  private Map<ItemCell, List<Match>> cellToMatches;
 }

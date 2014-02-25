@@ -14,6 +14,8 @@ import org.eclipse.swt.events.SelectionListener;
  */
 public abstract class SelectionAdapter implements SelectionListener {
 
+  public abstract void selected(SelectionEvent e);
+
   @Override
   public final void widgetDefaultSelected(SelectionEvent e) {
     selected(e);
@@ -23,7 +25,5 @@ public abstract class SelectionAdapter implements SelectionListener {
   public final void widgetSelected(SelectionEvent e) {
     selected(e);
   }
-
-  public abstract void selected(SelectionEvent e);
 
 }

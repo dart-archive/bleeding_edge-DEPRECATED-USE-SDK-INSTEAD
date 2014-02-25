@@ -3,11 +3,11 @@
  */
 package com.xored.glance.internal.ui;
 
+import com.xored.glance.internal.ui.search.SearchManager;
+
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
-
-import com.xored.glance.internal.ui.search.SearchManager;
 
 /**
  * @author Yuri Strot

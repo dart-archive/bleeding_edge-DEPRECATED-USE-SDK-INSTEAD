@@ -6,15 +6,15 @@
  *******************************************************************************/
 package com.xored.glance.ui.controls.table;
 
-import java.util.List;
-
-import org.eclipse.swt.widgets.Table;
-import org.eclipse.swt.widgets.TableItem;
-
 import com.xored.glance.ui.controls.items.ItemCell;
 import com.xored.glance.ui.controls.items.ItemProvider;
 import com.xored.glance.ui.controls.items.ItemSource;
 import com.xored.glance.ui.sources.SourceSelection;
+
+import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.TableItem;
+
+import java.util.List;
 
 /**
  * @author Yuri Strot
@@ -27,14 +27,14 @@ public class TableSource extends ItemSource {
   }
 
   @Override
-  public Table getControl() {
-    return (Table) super.getControl();
-  }
-
-  @Override
   public void dispose() {
     getControl().removeSelectionListener(this);
     super.dispose();
+  }
+
+  @Override
+  public Table getControl() {
+    return (Table) super.getControl();
   }
 
   @Override
@@ -56,8 +56,9 @@ public class TableSource extends ItemSource {
     Table table = getControl();
     TableItem[] items = table.getItems();
     int columns = table.getColumnCount();
-    if (columns == 0)
+    if (columns == 0) {
       columns = 1;
+    }
     for (int i = 0; i < items.length; i++) {
       for (int j = 0; j < columns; j++) {
         cells.add(new ItemCell(items[i], j, getItemProvider()));

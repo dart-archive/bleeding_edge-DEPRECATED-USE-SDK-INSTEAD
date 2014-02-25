@@ -6,48 +6,18 @@
  *******************************************************************************/
 package com.xored.glance.internal.ui.search;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.xored.glance.ui.sources.ITextBlock;
 import com.xored.glance.ui.sources.ITextBlockListener;
 import com.xored.glance.ui.sources.Match;
 import com.xored.glance.ui.sources.TextChangedEvent;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * @author Yuri Strot
  */
 public class SearchScopeEntry implements ITextBlockListener, Comparable<SearchScopeEntry> {
-
-  public SearchScopeEntry(ITextBlock block, IMatchListener listener) {
-    this.block = block;
-    this.listener = listener;
-    init();
-  }
-
-  public void setStart(int start) {
-    synchronized (MONITOR) {
-      this.start = start;
-    }
-  }
-
-  public int getStart() {
-    synchronized (MONITOR) {
-      return start;
-    }
-  }
-
-  protected void addMatch(Match match) {
-    synchronized (MONITOR) {
-      matches.add(nextMatchIndex, match);
-      nextMatchIndex++;
-      listener.added(this, match);
-    }
-  }
-
-  public void dispose() {
-    block.removeTextBlockListener(this);
-  }
 
   interface IMatchListener {
 
@@ -56,10 +26,24 @@ public class SearchScopeEntry implements ITextBlockListener, Comparable<SearchSc
     public void cleared(SearchScopeEntry entry);
   }
 
-  @Override
-  public void textChanged(TextChangedEvent event) {
-    clear();
-    listener.cleared(this);
+  private Object MONITOR = new Object();
+
+  private IMatchListener listener;
+
+  private String text;
+
+  private ITextBlock block;
+
+  private int start;
+
+  private int nextMatchIndex;
+
+  private List<Match> matches;
+
+  public SearchScopeEntry(ITextBlock block, IMatchListener listener) {
+    this.block = block;
+    this.listener = listener;
+    init();
   }
 
   @Override
@@ -67,45 +51,8 @@ public class SearchScopeEntry implements ITextBlockListener, Comparable<SearchSc
     return block.compareTo(entry.block);
   }
 
-  protected void init() {
-    clear();
-    block.addTextBlockListener(this);
-  }
-
-  protected void clear() {
-    synchronized (MONITOR) {
-      doClear();
-    }
-  }
-
-  protected void doClear() {
-    matches = new ArrayList<Match>();
-    text = block.getText();
-    nextMatchIndex = 0;
-  }
-
-  protected void addMatchToBegin() {
-    synchronized (MONITOR) {
-      nextMatchIndex = 0;
-    }
-  }
-
-  /**
-   * @return the text
-   */
-  public String getText() {
-    synchronized (MONITOR) {
-      return text;
-    }
-  }
-
-  /**
-   * @return the matches
-   */
-  public List<Match> getMatches() {
-    synchronized (MONITOR) {
-      return matches;
-    }
+  public void dispose() {
+    block.removeTextBlockListener(this);
   }
 
   /**
@@ -122,12 +69,71 @@ public class SearchScopeEntry implements ITextBlockListener, Comparable<SearchSc
     return listener;
   }
 
-  private Object MONITOR = new Object();
-  private IMatchListener listener;
-  private String text;
-  private ITextBlock block;
-  private int start;
-  private int nextMatchIndex;
-  private List<Match> matches;
+  /**
+   * @return the matches
+   */
+  public List<Match> getMatches() {
+    synchronized (MONITOR) {
+      return matches;
+    }
+  }
+
+  public int getStart() {
+    synchronized (MONITOR) {
+      return start;
+    }
+  }
+
+  /**
+   * @return the text
+   */
+  public String getText() {
+    synchronized (MONITOR) {
+      return text;
+    }
+  }
+
+  public void setStart(int start) {
+    synchronized (MONITOR) {
+      this.start = start;
+    }
+  }
+
+  @Override
+  public void textChanged(TextChangedEvent event) {
+    clear();
+    listener.cleared(this);
+  }
+
+  protected void addMatch(Match match) {
+    synchronized (MONITOR) {
+      matches.add(nextMatchIndex, match);
+      nextMatchIndex++;
+      listener.added(this, match);
+    }
+  }
+
+  protected void addMatchToBegin() {
+    synchronized (MONITOR) {
+      nextMatchIndex = 0;
+    }
+  }
+
+  protected void clear() {
+    synchronized (MONITOR) {
+      doClear();
+    }
+  }
+
+  protected void doClear() {
+    matches = new ArrayList<Match>();
+    text = block.getText();
+    nextMatchIndex = 0;
+  }
+
+  protected void init() {
+    clear();
+    block.addTextBlockListener(this);
+  }
 
 }

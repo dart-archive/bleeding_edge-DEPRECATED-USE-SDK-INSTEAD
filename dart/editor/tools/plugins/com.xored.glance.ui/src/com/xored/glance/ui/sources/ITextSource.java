@@ -14,6 +14,15 @@ import org.eclipse.core.runtime.IProgressMonitor;
 public interface ITextSource {
 
   /**
+   * Add text source listener
+   * 
+   * @param listener text source listener
+   */
+  public void addTextSourceListener(ITextSourceListener listener);
+
+  public void dispose();
+
+  /**
    * Return text blocks associated with this source
    * 
    * @return text blocks
@@ -21,11 +30,25 @@ public interface ITextSource {
   public ITextBlock[] getBlocks();
 
   /**
-   * Add text source listener
+   * Return current source selection. This selection using to identify where start search
    * 
-   * @param listener text source listener
+   * @return source selection
    */
-  public void addTextSourceListener(ITextSourceListener listener);
+  public SourceSelection getSelection();
+
+  /**
+   * @param monitor
+   */
+  public void index(IProgressMonitor monitor);
+
+  /**
+   * Called before search started
+   */
+  public void init();
+
+  public boolean isDisposed();
+
+  public boolean isIndexRequired();
 
   /**
    * Remove text source listener
@@ -33,13 +56,6 @@ public interface ITextSource {
    * @param listener text source listener
    */
   public void removeTextSourceListener(ITextSourceListener listener);
-
-  /**
-   * Return current source selection. This selection using to identify where start search
-   * 
-   * @return source selection
-   */
-  public SourceSelection getSelection();
 
   /**
    * Focus match
@@ -54,21 +70,5 @@ public interface ITextSource {
    * @param matches
    */
   public void show(Match[] matches);
-
-  /**
-   * Called before search started
-   */
-  public void init();
-
-  /**
-   * @param monitor
-   */
-  public void index(IProgressMonitor monitor);
-
-  public boolean isIndexRequired();
-
-  public boolean isDisposed();
-
-  public void dispose();
 
 }

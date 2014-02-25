@@ -11,9 +11,9 @@ package com.xored.glance.ui.sources;
  */
 public interface ITextBlock extends Comparable<ITextBlock> {
 
-  public String getText();
-
   public void addTextBlockListener(ITextBlockListener listener);
+
+  public String getText();
 
   public void removeTextBlockListener(ITextBlockListener listener);
 

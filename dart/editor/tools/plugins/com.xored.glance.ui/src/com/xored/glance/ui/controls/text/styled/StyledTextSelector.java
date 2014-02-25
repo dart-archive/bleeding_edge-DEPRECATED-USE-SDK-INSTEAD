@@ -32,11 +32,6 @@ public class StyledTextSelector extends TextSelector {
   }
 
   @Override
-  protected void setSelection(int offset, int length) {
-    text.setSelectionRange(offset, length);
-  }
-
-  @Override
   protected void reveal(int offset, int length) {
     Region region = getSelection();
     if (region.getOffset() == offset && region.getLength() == length) {
@@ -49,6 +44,11 @@ public class StyledTextSelector extends TextSelector {
         text.setSelectionRange(region.getOffset(), region.getLength());
       }
     }
+  }
+
+  @Override
+  protected void setSelection(int offset, int length) {
+    text.setSelectionRange(offset, length);
   }
 
 }

@@ -6,12 +6,12 @@
  ******************************************************************************/
 package com.xored.glance.ui.controls.tree;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.widgets.TreeItem;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class TreeNode implements DisposeListener {
 
@@ -31,11 +31,6 @@ public class TreeNode implements DisposeListener {
     }
   }
 
-  @Override
-  public void widgetDisposed(DisposeEvent e) {
-    close();
-  }
-
   public void add(TreeNode[] nodes) {
     for (TreeNode node : nodes) {
       doAdd(node);
@@ -43,20 +38,46 @@ public class TreeNode implements DisposeListener {
     notifyRoot(TreeNode.EMPTY, nodes);
   }
 
-  public void remove(TreeNode[] nodes) {
-    doRemove(nodes);
-    notifyRoot(nodes, TreeNode.EMPTY);
+  public int compareTo(TreeNode that) {
+    int[] index = that.index;
+    for (int i = 0; i < index.length && i < this.index.length; i++) {
+      int diff = this.index[i] - index[i];
+      if (diff != 0) {
+        return diff;
+      }
+    }
+    return this.index.length - index.length;
   }
 
   public TreeNode[] getChildren() {
     return kids.toArray(new TreeNode[0]);
   }
 
-  void notifyRoot(TreeNode[] removed, TreeNode[] added) {
-    TreeContent root = getRoot();
-    if (root != null) {
-      root.changed(getContent(removed), getContent(added));
+  public void remove(TreeNode[] nodes) {
+    doRemove(nodes);
+    notifyRoot(nodes, TreeNode.EMPTY);
+  }
+
+  @Override
+  public String toString() {
+    int iMax = items.size() - 1;
+    if (iMax == -1) {
+      return "[]";
     }
+    StringBuilder b = new StringBuilder();
+    b.append('[');
+    for (int i = 0;; i++) {
+      b.append(items.get(i));
+      if (i == iMax) {
+        return b.append(']').toString();
+      }
+      b.append(", ");
+    }
+  }
+
+  @Override
+  public void widgetDisposed(DisposeEvent e) {
+    close();
   }
 
   protected void close() {
@@ -72,13 +93,11 @@ public class TreeNode implements DisposeListener {
     }
   }
 
-  TreeItemContent[] getContent(TreeNode[] nodes) {
-    List<TreeItemContent> content = new ArrayList<TreeItemContent>();
-    nodes = collect(nodes);
-    for (TreeNode node : nodes) {
-      content.addAll(node.items);
+  void collect(TreeNode item, List<TreeNode> items) {
+    items.add(item);
+    for (TreeNode kid : item.kids) {
+      collect(kid, items);
     }
-    return content.toArray(new TreeItemContent[0]);
   }
 
   TreeNode[] collect(TreeNode[] items) {
@@ -87,23 +106,6 @@ public class TreeNode implements DisposeListener {
       collect(item, result);
     }
     return result.toArray(new TreeNode[0]);
-  }
-
-  void collect(TreeNode item, List<TreeNode> items) {
-    items.add(item);
-    for (TreeNode kid : item.kids) {
-      collect(kid, items);
-    }
-  }
-
-  TreeContent getRoot() {
-    TreeNode node = this;
-    while (node != null) {
-      if (node instanceof TreeContent)
-        return (TreeContent) node;
-      node = node.parent;
-    }
-    return null;
   }
 
   void doAdd(TreeNode node) {
@@ -126,6 +128,33 @@ public class TreeNode implements DisposeListener {
     }
   }
 
+  TreeItemContent[] getContent(TreeNode[] nodes) {
+    List<TreeItemContent> content = new ArrayList<TreeItemContent>();
+    nodes = collect(nodes);
+    for (TreeNode node : nodes) {
+      content.addAll(node.items);
+    }
+    return content.toArray(new TreeItemContent[0]);
+  }
+
+  TreeContent getRoot() {
+    TreeNode node = this;
+    while (node != null) {
+      if (node instanceof TreeContent) {
+        return (TreeContent) node;
+      }
+      node = node.parent;
+    }
+    return null;
+  }
+
+  void notifyRoot(TreeNode[] removed, TreeNode[] added) {
+    TreeContent root = getRoot();
+    if (root != null) {
+      root.changed(getContent(removed), getContent(added));
+    }
+  }
+
   void recalc(int[] parent, int cur) {
     if (parent != null) {
       index = new int[parent.length + 1];
@@ -134,32 +163,6 @@ public class TreeNode implements DisposeListener {
       for (int i = 0; i < kids.size(); i++) {
         kids.get(i).recalc(index, i);
       }
-    }
-  }
-
-  public int compareTo(TreeNode that) {
-    int[] index = that.index;
-    for (int i = 0; i < index.length && i < this.index.length; i++) {
-      int diff = this.index[i] - index[i];
-      if (diff != 0) {
-        return diff;
-      }
-    }
-    return this.index.length - index.length;
-  }
-
-  @Override
-  public String toString() {
-    int iMax = items.size() - 1;
-    if (iMax == -1)
-      return "[]";
-    StringBuilder b = new StringBuilder();
-    b.append('[');
-    for (int i = 0;; i++) {
-      b.append(items.get(i));
-      if (i == iMax)
-        return b.append(']').toString();
-      b.append(", ");
     }
   }
 

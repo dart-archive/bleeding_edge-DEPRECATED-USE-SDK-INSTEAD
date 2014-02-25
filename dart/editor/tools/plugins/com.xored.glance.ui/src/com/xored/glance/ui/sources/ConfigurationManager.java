@@ -13,14 +13,14 @@ public final class ConfigurationManager {
 
   private static ConfigurationManager INSTANCE;
 
-  private ConfigurationManager() {
-  }
-
   public static ConfigurationManager getInstance() {
     if (INSTANCE == null) {
       INSTANCE = new ConfigurationManager();
     }
     return INSTANCE;
+  }
+
+  private ConfigurationManager() {
   }
 
   public int getMaxIndexingDepth() {

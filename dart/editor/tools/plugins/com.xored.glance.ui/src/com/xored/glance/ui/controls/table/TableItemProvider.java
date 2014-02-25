@@ -6,6 +6,8 @@
  *******************************************************************************/
 package com.xored.glance.ui.controls.table;
 
+import com.xored.glance.ui.controls.items.ItemProvider;
+
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.Image;
@@ -14,15 +16,10 @@ import org.eclipse.swt.widgets.Item;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
 
-import com.xored.glance.ui.controls.items.ItemProvider;
-
 /**
  * @author Yuri Strot
  */
 public class TableItemProvider implements ItemProvider {
-
-  private TableItemProvider() {
-  }
 
   private static TableItemProvider INSTANCE;
 
@@ -35,6 +32,33 @@ public class TableItemProvider implements ItemProvider {
 
   public static TableItem getItem(Item item) {
     return (TableItem) item;
+  }
+
+  private TableItemProvider() {
+  }
+
+  /*
+   * (non-Javadoc)
+   * 
+   * @see com.xored.glance.ui.controls.items.ItemProvider#compare(org.eclipse.swt.widgets.Item,
+   * org.eclipse.swt.widgets.Item)
+   */
+  @Override
+  public int compare(Item item1, Item item2) {
+    if (item1.equals(item2)) {
+      return 0;
+    }
+    Table table = getItem(item1).getParent();
+    TableItem[] items = table.getItems();
+    for (TableItem item : items) {
+      if (item1.equals(item)) {
+        return -1;
+      }
+      if (item2.equals(item)) {
+        return 1;
+      }
+    }
+    return 0;
   }
 
   /*
@@ -51,11 +75,31 @@ public class TableItemProvider implements ItemProvider {
   /*
    * (non-Javadoc)
    * 
+   * @see com.xored.glance.internal.items.ItemProvider#getBounds(org.eclipse.swt .widgets.Item, int)
+   */
+  @Override
+  public Rectangle getBounds(Item item, int index) {
+    return getItem(item).getBounds(index);
+  }
+
+  /*
+   * (non-Javadoc)
+   * 
    * @see com.xored.glance.internal.items.ItemProvider#getColumnCount(org.eclipse .swt.widgets.Item)
    */
   @Override
   public int getColumnCount(Item item) {
     return getItem(item).getParent().getColumnCount();
+  }
+
+  /*
+   * (non-Javadoc)
+   * 
+   * @see com.xored.glance.internal.items.ItemProvider#getFont(org.eclipse.swt. widgets.Item, int)
+   */
+  @Override
+  public Font getFont(Item item, int index) {
+    return getItem(item).getFont(index);
   }
 
   /*
@@ -67,16 +111,6 @@ public class TableItemProvider implements ItemProvider {
   @Override
   public Color getForeground(Item item, int index) {
     return getItem(item).getForeground(index);
-  }
-
-  /*
-   * (non-Javadoc)
-   * 
-   * @see com.xored.glance.internal.items.ItemProvider#getText(org.eclipse.swt. widgets.Item, int)
-   */
-  @Override
-  public String getText(Item item, int index) {
-    return getItem(item).getText(index);
   }
 
   /*
@@ -103,6 +137,16 @@ public class TableItemProvider implements ItemProvider {
   /*
    * (non-Javadoc)
    * 
+   * @see com.xored.glance.internal.items.ItemProvider#getText(org.eclipse.swt. widgets.Item, int)
+   */
+  @Override
+  public String getText(Item item, int index) {
+    return getItem(item).getText(index);
+  }
+
+  /*
+   * (non-Javadoc)
+   * 
    * @see com.xored.glance.internal.items.ItemProvider#getTextBounds(org.eclipse .swt.widgets.Item,
    * int)
    */
@@ -114,21 +158,12 @@ public class TableItemProvider implements ItemProvider {
   /*
    * (non-Javadoc)
    * 
-   * @see com.xored.glance.internal.items.ItemProvider#getBounds(org.eclipse.swt .widgets.Item, int)
+   * @see com.xored.glance.internal.items.ItemProvider#select(org.eclipse.swt.widgets .Item)
    */
   @Override
-  public Rectangle getBounds(Item item, int index) {
-    return getItem(item).getBounds(index);
-  }
-
-  /*
-   * (non-Javadoc)
-   * 
-   * @see com.xored.glance.internal.items.ItemProvider#getFont(org.eclipse.swt. widgets.Item, int)
-   */
-  @Override
-  public Font getFont(Item item, int index) {
-    return getItem(item).getFont(index);
+  public void select(Item item) {
+    TableItem tItem = getItem(item);
+    tItem.getParent().setSelection(tItem);
   }
 
   /*
@@ -140,38 +175,6 @@ public class TableItemProvider implements ItemProvider {
   public void show(Item item) {
     TableItem tItem = getItem(item);
     tItem.getParent().showItem(tItem);
-  }
-
-  /*
-   * (non-Javadoc)
-   * 
-   * @see com.xored.glance.ui.controls.items.ItemProvider#compare(org.eclipse.swt.widgets.Item,
-   * org.eclipse.swt.widgets.Item)
-   */
-  @Override
-  public int compare(Item item1, Item item2) {
-    if (item1.equals(item2))
-      return 0;
-    Table table = getItem(item1).getParent();
-    TableItem[] items = table.getItems();
-    for (TableItem item : items) {
-      if (item1.equals(item))
-        return -1;
-      if (item2.equals(item))
-        return 1;
-    }
-    return 0;
-  }
-
-  /*
-   * (non-Javadoc)
-   * 
-   * @see com.xored.glance.internal.items.ItemProvider#select(org.eclipse.swt.widgets .Item)
-   */
-  @Override
-  public void select(Item item) {
-    TableItem tItem = getItem(item);
-    tItem.getParent().setSelection(tItem);
   }
 
 }
