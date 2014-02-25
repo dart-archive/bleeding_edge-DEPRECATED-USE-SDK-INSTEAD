@@ -490,14 +490,21 @@ public class CorrectionUtils {
   }
 
   /**
-   * @return the {@link Expression} qualified if given node is name part of {@link PropertyAccess}.
-   *         May be <code>null</code>.
+   * @return the {@link Expression} qualified if given node is name part of a {@link PropertyAccess}
+   *         or {@link PrefixedIdentifier}. May be <code>null</code>.
    */
   public static Expression getNodeQualifier(SimpleIdentifier node) {
-    if (node.getParent() instanceof PropertyAccess) {
-      PropertyAccess propertyAccess = (PropertyAccess) node.getParent();
+    ASTNode parent = node.getParent();
+    if (parent instanceof PropertyAccess) {
+      PropertyAccess propertyAccess = (PropertyAccess) parent;
       if (propertyAccess.getPropertyName() == node) {
         return propertyAccess.getTarget();
+      }
+    }
+    if (parent instanceof PrefixedIdentifier) {
+      PrefixedIdentifier prefixed = (PrefixedIdentifier) parent;
+      if (prefixed.getIdentifier() == node) {
+        return prefixed.getPrefix();
       }
     }
     return null;

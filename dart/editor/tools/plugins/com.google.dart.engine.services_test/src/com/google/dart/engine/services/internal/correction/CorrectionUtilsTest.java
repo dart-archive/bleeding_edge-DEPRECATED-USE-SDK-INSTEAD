@@ -915,7 +915,29 @@ public class CorrectionUtilsTest extends AbstractDartTest {
     assert_getNodePrefix("var a;", "");
   }
 
-  public void test_getNodeQualifier() throws Exception {
+  public void test_getNodeQualifier_PrefixedIdentifier() throws Exception {
+    SimpleIdentifier name = ASTFactory.identifier("");
+    // no parent
+    assertSame(null, CorrectionUtils.getNodeQualifier(name));
+    // not PrefixedIdentifier
+    {
+      ASTFactory.namedExpression("label", name);
+      assertSame(null, CorrectionUtils.getNodeQualifier(name));
+    }
+    // not "identifier" in PrefixedIdentifier
+    {
+      ASTFactory.identifier(name, ASTFactory.identifier("otherName"));
+      assertSame(null, CorrectionUtils.getNodeQualifier(name));
+    }
+    // OK, "identifier" in PrefixedIdentifier
+    {
+      SimpleIdentifier target = ASTFactory.identifier("A");
+      ASTFactory.identifier(target, name);
+      assertSame(target, CorrectionUtils.getNodeQualifier(name));
+    }
+  }
+
+  public void test_getNodeQualifier_PropertyAccess() throws Exception {
     SimpleIdentifier name = ASTFactory.identifier("");
     // no parent
     assertSame(null, CorrectionUtils.getNodeQualifier(name));

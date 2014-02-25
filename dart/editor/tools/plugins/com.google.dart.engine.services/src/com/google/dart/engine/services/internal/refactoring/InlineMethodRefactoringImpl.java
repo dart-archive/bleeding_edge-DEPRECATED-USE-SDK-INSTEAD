@@ -439,12 +439,24 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
     return expr.getBestParameterElement();
   }
 
+  /**
+   * If the given {@link ASTNode} is a some {@link ClassDeclaration}, returns the
+   * {@link ClassElement}. Otherwise returns {@code null}.
+   */
+  private static ClassElement getEnclosingClassElement(ASTNode node) {
+    ClassDeclaration enclosingClassNode = node.getAncestor(ClassDeclaration.class);
+    if (enclosingClassNode != null) {
+      return enclosingClassNode.getElement();
+    }
+    return null;
+  }
+
   private final AssistContext context;
   private SourceChangeManager safeManager;
   private SourceChangeManager previewManager;
   private Mode initialMode;
-  private List<ReferenceProcessor> referenceProcessors = Lists.newArrayList();
 
+  private List<ReferenceProcessor> referenceProcessors = Lists.newArrayList();
   private boolean requiresPreview;
   private Mode currentMode;
   private boolean deleteSource;
@@ -453,9 +465,10 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
   private CorrectionUtils methodUtils;
   private ASTNode methodNode;
   private FormalParameterList methodParameters;
-  private FunctionBody methodBody;
 
+  private FunctionBody methodBody;
   private Expression methodExpression;
+
   private SourcePart methodExpressionPart;
 
   private SourcePart methodStatementsPart;
@@ -794,17 +807,14 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
     }
     // fields
     {
-      ClassDeclaration enclosingClassNode = node.getAncestor(ClassDeclaration.class);
-      if (enclosingClassNode != null) {
-        ClassElement enclosingClassElement = enclosingClassNode.getElement();
-        if (enclosingClassElement != null) {
-          Set<ClassElement> elements = Sets.newHashSet(enclosingClassElement);
-          elements.addAll(HierarchyUtils.getSuperClasses(enclosingClassElement));
-          for (ClassElement classElement : elements) {
-            List<Element> classMembers = CorrectionUtils.getChildren(classElement);
-            for (Element classMemberElement : classMembers) {
-              result.add(classMemberElement.getDisplayName());
-            }
+      ClassElement enclosingClassElement = getEnclosingClassElement(node);
+      if (enclosingClassElement != null) {
+        Set<ClassElement> elements = Sets.newHashSet(enclosingClassElement);
+        elements.addAll(HierarchyUtils.getSuperClasses(enclosingClassElement));
+        for (ClassElement classElement : elements) {
+          List<Element> classMembers = CorrectionUtils.getChildren(classElement);
+          for (Element classMemberElement : classMembers) {
+            result.add(classMemberElement.getDisplayName());
           }
         }
       }
