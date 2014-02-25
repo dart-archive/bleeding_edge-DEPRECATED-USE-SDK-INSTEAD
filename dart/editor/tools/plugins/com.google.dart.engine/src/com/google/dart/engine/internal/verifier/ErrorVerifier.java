@@ -141,6 +141,7 @@ import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.sdk.SdkLibrary;
+import com.google.dart.engine.source.Source;
 import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
@@ -3541,11 +3542,17 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       return false;
     }
     if (!rightType.isAssignableTo(leftType)) {
+      String leftName = leftType.getDisplayName();
+      String rightName = rightType.getDisplayName();
+      if (leftName.equals(rightName)) {
+        leftName = getExtendedDisplayName(leftType);
+        rightName = getExtendedDisplayName(rightType);
+      }
       errorReporter.reportError(
           StaticTypeWarningCode.INVALID_ASSIGNMENT,
           node.getRightHandSide(),
-          rightType.getDisplayName(),
-          leftType.getDisplayName());
+          rightName,
+          leftName);
       return true;
     }
     return false;
@@ -3568,11 +3575,13 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     Type staticRightType = getStaticType(rhs);
     boolean isStaticAssignable = staticRightType.isAssignableTo(leftType);
     if (!isStaticAssignable) {
-      errorReporter.reportError(
-          StaticTypeWarningCode.INVALID_ASSIGNMENT,
-          rhs,
-          staticRightType.getDisplayName(),
-          leftType.getDisplayName());
+      String leftName = leftType.getDisplayName();
+      String rightName = staticRightType.getDisplayName();
+      if (leftName.equals(rightName)) {
+        leftName = getExtendedDisplayName(leftType);
+        rightName = getExtendedDisplayName(staticRightType);
+      }
+      errorReporter.reportError(StaticTypeWarningCode.INVALID_ASSIGNMENT, rhs, rightName, leftName);
       return true;
     }
     // TODO(brianwilkerson) Define a hint corresponding to the warning and report it if appropriate.
@@ -5258,6 +5267,24 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     }
     // done
     return hasProblem;
+  }
+
+  /**
+   * Return a display name for the given type that includes the path to the compilation unit in
+   * which the type is defined.
+   * 
+   * @param type the type for which an extended display name is to be returned
+   * @return a display name that can help distiguish between two types with the same name
+   */
+  private String getExtendedDisplayName(Type type) {
+    Element element = type.getElement();
+    if (element != null) {
+      Source source = element.getSource();
+      if (source != null) {
+        return type.getDisplayName() + " (" + source.getFullName() + ")";
+      }
+    }
+    return type.getDisplayName();
   }
 
   /**
