@@ -3145,7 +3145,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
           cache.storedAst(source);
 
           ChangeNoticeImpl notice = getNotice(source);
-          notice.setErrors(dartEntry.getAllErrors(), dartCopy.getValue(SourceEntry.LINE_INFO));
+          notice.setErrors(dartCopy.getAllErrors(), dartCopy.getValue(SourceEntry.LINE_INFO));
 
           // Verify that the incrementally parsed and resolved unit in the incremental cache
           // is structurally equivalent to the fully parsed unit
@@ -3243,7 +3243,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
           cache.storedAst(source);
 
           ChangeNoticeImpl notice = getNotice(source);
-          notice.setErrors(htmlEntry.getAllErrors(), lineInfo);
+          notice.setErrors(htmlCopy.getAllErrors(), lineInfo);
         } else {
           htmlCopy.recordParseError();
           cache.removedAst(source);
