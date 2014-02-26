@@ -442,7 +442,7 @@ public class InheritanceManager {
     //
     InterfaceType[] mixins = classElt.getMixins();
     for (int i = mixins.length - 1; i >= 0; i--) {
-      recordMapWithClassMembers(resultMap, mixins[i]);
+      recordMapWithClassMembersFromMixin(resultMap, mixins[i]);
     }
 
     classLookup.put(classElt, resultMap);
@@ -860,6 +860,38 @@ public class InheritanceManager {
     for (PropertyAccessorElement accessor : accessors) {
       if (accessor.isAccessibleIn(library) && !accessor.isStatic()) {
         map.put(accessor.getName(), accessor);
+      }
+    }
+  }
+
+  /**
+   * Similar to {@link #recordMapWithClassMembers(MemberMap, InterfaceType)}, but only puts values
+   * into the map if the additional executable doesn't replace a concrete member with an abstract
+   * member, ex: NonErrorResolverTest.test_nonAbstractClassInheritsAbstractMemberOne_mixin_*()
+   * 
+   * @param map some non-{@code null} map to put the methods and accessors from the passed
+   *          {@link ClassElement} into
+   * @param type the type that will be recorded into the passed map
+   */
+  private void recordMapWithClassMembersFromMixin(MemberMap map, InterfaceType type) {
+    MethodElement[] methods = type.getMethods();
+    for (MethodElement method : methods) {
+      if (method.isAccessibleIn(library) && !method.isStatic()) {
+        String methodName = method.getName();
+        ExecutableElement elementInMap = map.get(methodName);
+        if (elementInMap == null || (elementInMap != null && !method.isAbstract())) {
+          map.put(methodName, method);
+        }
+      }
+    }
+    PropertyAccessorElement[] accessors = type.getAccessors();
+    for (PropertyAccessorElement accessor : accessors) {
+      if (accessor.isAccessibleIn(library) && !accessor.isStatic()) {
+        String accessorName = accessor.getName();
+        ExecutableElement elementInMap = map.get(accessorName);
+        if (elementInMap == null || (elementInMap != null && !accessor.isAbstract())) {
+          map.put(accessorName, accessor);
+        }
       }
     }
   }
