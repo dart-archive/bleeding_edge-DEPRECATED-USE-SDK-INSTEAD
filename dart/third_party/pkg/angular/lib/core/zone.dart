@@ -1,7 +1,8 @@
 part of angular.core;
 
 typedef void ZoneOnTurn();
-typedef void ZoneOnError(dynamic error, dynamic stacktrace, LongStackTrace longStacktrace);
+typedef void ZoneOnError(dynamic error, dynamic stacktrace,
+                         LongStackTrace longStacktrace);
 
 /**
  * Contains the locations of runAsync calls across VM turns.
@@ -14,12 +15,11 @@ class LongStackTrace {
   LongStackTrace(this.reason, this.stacktrace, this.parent);
 
   toString() {
-    List<String> frames = '${this.stacktrace}'.split('\n');
-    frames = frames.where((frame) {
-      return frame.indexOf('(dart:') == -1 && // skip dart runtime libs
-             frame.indexOf('(package:angular/zone.dart') == -1; // skip angular zone
-    }).toList();
-    frames.insert(0, reason);
+    List<String> frames = '${this.stacktrace}'.split('\n')
+        .where((frame) =>
+            frame.indexOf('(dart:') == -1 && // skip dart runtime libs
+            frame.indexOf('(package:angular/zone.dart') == -1 // skip angular zone
+        ).toList()..insert(0, reason);
     var parent = this.parent == null ? '' : this.parent;
     return '${frames.join("\n    ")}\n$parent';
   }
@@ -29,8 +29,13 @@ class LongStackTrace {
  * A better zone API which implements onTurnDone.
  */
 class NgZone {
-  NgZone() {
-    _zone = async.Zone.current.fork(specification: new async.ZoneSpecification(
+  final async.Zone _outerZone;
+  async.Zone _zone;
+
+  NgZone()
+      : _outerZone = async.Zone.current
+  {
+    _zone = _outerZone.fork(specification: new async.ZoneSpecification(
         run: _onRun,
         runUnary: _onRunUnary,
         scheduleMicrotask: _onScheduleMicrotask,
@@ -38,7 +43,6 @@ class NgZone {
     ));
   }
 
-  async.Zone _zone;
 
   List _asyncQueue = [];
   bool _errorThrownFromOnRun = false;
@@ -53,42 +57,36 @@ class NgZone {
       rethrow;
     } finally {
       _runningInTurn--;
-      if (_runningInTurn == 0)
-        _finishTurn(zone, delegate);
+      if (_runningInTurn == 0) _finishTurn(zone, delegate);
     }
   }
   // Called from the parent zone.
-  _onRun(async.Zone self, async.ZoneDelegate delegate, async.Zone zone, fn()) {
-    return _onRunBase(self, delegate, zone, () => delegate.run(zone, fn));
-  }
+  _onRun(async.Zone self, async.ZoneDelegate delegate, async.Zone zone, fn()) =>
+    _onRunBase(self, delegate, zone, () => delegate.run(zone, fn));
 
-  _onRunUnary(async.Zone self, async.ZoneDelegate delegate, async.Zone zone, fn(args), args) {
-    return _onRunBase(self, delegate, zone, () => delegate.runUnary(zone, fn, args));
-  }
+  _onRunUnary(async.Zone self, async.ZoneDelegate delegate, async.Zone zone,
+              fn(args), args) =>
+    _onRunBase(self, delegate, zone, () => delegate.runUnary(zone, fn, args));
 
-  _onScheduleMicrotask(async.Zone self, async.ZoneDelegate delegate, async.Zone zone, fn()) {
+  _onScheduleMicrotask(async.Zone self, async.ZoneDelegate delegate,
+                       async.Zone zone, fn()) {
     _asyncQueue.add(() => delegate.run(zone, fn));
-    if (_runningInTurn == 0 && !_inFinishTurn) {
-      _finishTurn(zone, delegate);
-    }
+    if (_runningInTurn == 0 && !_inFinishTurn)  _finishTurn(zone, delegate);
   }
 
-  _uncaughtError(async.Zone self, async.ZoneDelegate delegate, async.Zone zone, e, StackTrace s) {
-    if (!_errorThrownFromOnRun) {
-      onError(e, s, _longStacktrace);
-    }
+  _uncaughtError(async.Zone self, async.ZoneDelegate delegate, async.Zone zone,
+                 e, StackTrace s) {
+    if (!_errorThrownFromOnRun) onError(e, s, _longStacktrace);
     _errorThrownFromOnRun = false;
   }
 
   var _inFinishTurn = false;
   _finishTurn(zone, delegate) {
-    if (_inFinishTurn) {
-      return;
-    }
+    if (_inFinishTurn) return;
     _inFinishTurn = true;
     try {
       // Two loops here: the inner one runs all queued microtasks,
-      // the outer runs onTurnDone (e.g. scope.$digest) and then
+      // the outer runs onTurnDone (e.g. scope.digest) and then
       // any microtasks which may have been queued from onTurnDone.
       do {
         while (!_asyncQueue.isEmpty) {
@@ -133,7 +131,9 @@ class NgZone {
   }
 
   _getStacktrace() {
-    try { throw []; } catch (e, s) {
+    try {
+      throw [];
+    } catch (e, s) {
       return s;
     }
   }
@@ -145,6 +145,22 @@ class NgZone {
    * Returns the return value of body.
    */
   run(body()) => _zone.run(body);
+
+  /**
+   * Allows one to escape the auto-digest mechanism of Angular.
+   *
+   *     myFunction(NgZone zone, Element element) {
+   *       element.onClick.listen(() {
+   *         // auto-digest will run after element click.
+   *       });
+   *       zone.runOutsideAngular(() {
+   *         element.onMouseMove.listen(() {
+   *           // auto-digest will NOT run after mouse move
+   *         });
+   *       });
+   *     }
+   */
+  runOutsideAngular(body()) => _outerZone.run(body);
 
   assertInTurn() {
     assert(_runningInTurn > 0 || _inFinishTurn);

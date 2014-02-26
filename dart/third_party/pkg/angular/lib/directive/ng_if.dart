@@ -14,27 +14,34 @@ abstract class _NgUnlessIfAttrDirectiveBase {
    * The new child scope.  This child scope is recreated whenever the `ng-if`
    * subtree is inserted into the DOM and destroyed when it's removed from the
    * DOM.  Refer
-   * https://github.com/angular/angular.js/wiki/The-Nuances-of-Scope-Prototypal-Inheritance prototypal inheritance
+   * https://github.com/angular/angular.js/wiki/The-Nuances-of-Scope-prototypical-Inheritance prototypical inheritance
    */
   Scope _childScope;
 
-  _NgUnlessIfAttrDirectiveBase(this._boundBlockFactory, this._blockHole, this._scope);
+  _NgUnlessIfAttrDirectiveBase(this._boundBlockFactory, this._blockHole,
+                               this._scope);
 
   // Override in subclass.
   set condition(value);
 
   void _ensureBlockExists() {
     if (_block == null) {
-      _childScope = _scope.$new();
+      _childScope = _scope.createChild(new PrototypeMap(_scope.context));
       _block = _boundBlockFactory(_childScope);
-      _block.insertAfter(_blockHole);
+      var insertBlock = _block;
+      _scope.rootScope.domWrite(() {
+        insertBlock.insertAfter(_blockHole);
+      });
     }
   }
 
   void _ensureBlockDestroyed() {
     if (_block != null) {
-      _block.remove();
-      _childScope.$destroy();
+      var removeBlock = _block;
+      _scope.rootScope.domWrite(() {
+        removeBlock.remove();
+      });
+      _childScope.destroy();
       _block = null;
       _childScope = null;
     }
@@ -56,7 +63,7 @@ abstract class _NgUnlessIfAttrDirectiveBase {
  * Whenever the subtree is inserted into the DOM, it always gets a new child
  * scope.  This child scope is destroyed when the subtree is removed from the
  * DOM.  Refer
- * https://github.com/angular/angular.js/wiki/The-Nuances-of-Scope-Prototypal-Inheritance prototypal inheritance
+ * https://github.com/angular/angular.js/wiki/The-Nuances-of-Scope-prototypical-Inheritance prototypical inheritance
  *
  * This has an important implication when `ng-model` is used inside an `ng-if`
  * to bind to a javascript primitive defined in the parent scope.  In such a
@@ -88,14 +95,15 @@ abstract class _NgUnlessIfAttrDirectiveBase {
     map: const {'.': '=>condition'})
 class NgIfDirective extends _NgUnlessIfAttrDirectiveBase {
   NgIfDirective(BoundBlockFactory boundBlockFactory,
-                    BlockHole blockHole,
-                    Scope scope): super(boundBlockFactory, blockHole, scope);
+                BlockHole blockHole,
+                Scope scope): super(boundBlockFactory, blockHole, scope);
 
   set condition(value) {
-      if (toBool(value))
-        _ensureBlockExists();
-      else
-        _ensureBlockDestroyed();
+    if (toBool(value)) {
+      _ensureBlockExists();
+    } else {
+      _ensureBlockDestroyed();
+    }
   }
 }
 
@@ -115,7 +123,7 @@ class NgIfDirective extends _NgUnlessIfAttrDirectiveBase {
  * Whenever the subtree is inserted into the DOM, it always gets a new child
  * scope.  This child scope is destroyed when the subtree is removed from the
  * DOM.  Refer
- * https://github.com/angular/angular.js/wiki/The-Nuances-of-Scope-Prototypal-Inheritance prototypal inheritance
+ * https://github.com/angular/angular.js/wiki/The-Nuances-of-Scope-prototypical-Inheritance prototypical inheritance
  *
  * This has an important implication when `ng-model` is used inside an
  * `ng-unless` to bind to a javascript primitive defined in the parent scope.
@@ -149,13 +157,14 @@ class NgIfDirective extends _NgUnlessIfAttrDirectiveBase {
 class NgUnlessDirective extends _NgUnlessIfAttrDirectiveBase {
 
   NgUnlessDirective(BoundBlockFactory boundBlockFactory,
-                        BlockHole blockHole,
-                        Scope scope): super(boundBlockFactory, blockHole, scope);
+                    BlockHole blockHole,
+                    Scope scope): super(boundBlockFactory, blockHole, scope);
 
   set condition(value) {
-    if (!toBool(value))
+    if (!toBool(value)) {
       _ensureBlockExists();
-    else
+    } else {
       _ensureBlockDestroyed();
+    }
   }
 }

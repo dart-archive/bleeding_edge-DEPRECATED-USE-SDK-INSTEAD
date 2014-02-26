@@ -6,14 +6,20 @@ library di.src.reflected_type;
     override: 'di.src.reflected_type')
 import 'dart:mirrors';
 
+Map<ClassMirror, Type> _cache = <ClassMirror, Type>{};
+
 // Horrible hack to work around: http://dartbug.com/12607
 Type getReflectedTypeWorkaround(ClassMirror cls) {
   // On Dart VM, just return reflectedType.
   if (1.0 is! int) return cls.reflectedType;
-
-  var mangledName = reflect(cls).getField(_mangledNameField).reflectee;
-  Type type = _jsHelper.invoke(#createRuntimeType, [mangledName]).reflectee;
-  return type;
+  if (!cls.isOriginalDeclaration) {
+    cls = cls.originalDeclaration;
+  }
+  if (_cache[cls] == null) {
+    var mangledName = reflect(cls).getField(_mangledNameField).reflectee;
+    _cache[cls] = _jsHelper.invoke(#createRuntimeType, [mangledName]).reflectee;
+  }
+  return _cache[cls];
 }
 
 final LibraryMirror _jsHelper =
