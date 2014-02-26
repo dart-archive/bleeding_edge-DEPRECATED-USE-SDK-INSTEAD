@@ -33,6 +33,7 @@ import com.google.dart.engine.ast.InstanceCreationExpression;
 import com.google.dart.engine.ast.ListLiteral;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.MethodInvocation;
+import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.PrefixExpression;
 import com.google.dart.engine.ast.PropertyAccess;
 import com.google.dart.engine.ast.SimpleFormalParameter;
@@ -574,9 +575,10 @@ public class EngineSemanticProcessor extends SemanticProcessor {
         super.visitMethodDeclaration(node);
         IMethodBinding binding = (IMethodBinding) context.getNodeBinding(node);
         String name = node.getName().getName();
-        if ("accept".equals(name) && node.getParameters().getParameters().size() == 1) {
+        NodeList<FormalParameter> parameters = getParameters(node);
+        if ("accept".equals(name) && parameters.size() == 1) {
           node.setReturnType(null);
-          FormalParameter formalParameter = node.getParameters().getParameters().get(0);
+          FormalParameter formalParameter = parameters.get(0);
           ((SimpleFormalParameter) formalParameter).getType().setTypeArguments(null);
         }
         if (isMethodInClass(binding, "ensureVmIsExecutable", "com.google.dart.engine.sdk.DartSdk")) {
@@ -586,8 +588,8 @@ public class EngineSemanticProcessor extends SemanticProcessor {
         if (isMethodInClass(
             binding,
             "getContentsFromFile",
-            "com.google.dart.engine.source.FileBasedSource")) {
-          SimpleIdentifier receiverIdent = node.getParameters().getParameters().get(0).getIdentifier();
+            "com.google.dart.engine.source.FileBasedSource") && parameters.size() == 1) {
+          SimpleIdentifier receiverIdent = parameters.get(0).getIdentifier();
           Block tryCacheBlock = block();
           ExpressionStatement statement = expressionStatement(methodInvocation(
               receiverIdent,
@@ -658,6 +660,13 @@ public class EngineSemanticProcessor extends SemanticProcessor {
           }
         }
         return super.visitTypeName(node);
+      }
+
+      private NodeList<FormalParameter> getParameters(MethodDeclaration node) {
+        if (node.getParameters() == null) {
+          return new NodeList<FormalParameter>(null);
+        }
+        return node.getParameters().getParameters();
       }
     });
   }
