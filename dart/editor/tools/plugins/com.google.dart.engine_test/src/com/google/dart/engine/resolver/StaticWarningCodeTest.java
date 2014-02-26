@@ -1307,7 +1307,7 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_invalidGetterOverrideReturnType_twoMethods() throws Exception {
+  public void test_invalidGetterOverrideReturnType_twoInterfaces() throws Exception {
     // test from language/override_inheritance_field_test_11.dart
     Source source = addSource(createSource(//
         "abstract class I {",
@@ -1351,6 +1351,23 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_invalidMethodOverrideNormalParamType_twoInterfaces() throws Exception {
+    Source source = addSource(createSource(//
+        "abstract class I {",
+        "  m(int n);",
+        "}",
+        "abstract class J {",
+        "  m(num n);",
+        "}",
+        "abstract class A implements I, J {}",
+        "class B extends A {",
+        "  m(String n) {}",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE);
+    verify(source);
+  }
+
   public void test_invalidMethodOverrideOptionalParamType() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
@@ -1358,6 +1375,23 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "}",
         "class B implements A {",
         "  m([String a]) {}",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.INVALID_METHOD_OVERRIDE_OPTIONAL_PARAM_TYPE);
+    verify(source);
+  }
+
+  public void test_invalidMethodOverrideOptionalParamType_twoInterfaces() throws Exception {
+    Source source = addSource(createSource(//
+        "abstract class I {",
+        "  m([int n]);",
+        "}",
+        "abstract class J {",
+        "  m([num n]);",
+        "}",
+        "abstract class A implements I, J {}",
+        "class B extends A {",
+        "  m([String n]) {}",
         "}"));
     resolve(source);
     assertErrors(source, StaticWarningCode.INVALID_METHOD_OVERRIDE_OPTIONAL_PARAM_TYPE);
@@ -1377,7 +1411,7 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_invalidMethodOverrideReturnType_interface2() throws Exception {
+  public void test_invalidMethodOverrideReturnType_interface_grandparent() throws Exception {
     Source source = addSource(createSource(//
         "abstract class A {",
         "  int m();",
@@ -1418,7 +1452,7 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_invalidMethodOverrideReturnType_superclass2() throws Exception {
+  public void test_invalidMethodOverrideReturnType_superclass_grandparent() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
         "  int m() { return 0; }",
@@ -1427,6 +1461,23 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "}",
         "class C extends B {",
         "  String m() { return 'a'; }",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.INVALID_METHOD_OVERRIDE_RETURN_TYPE);
+    verify(source);
+  }
+
+  public void test_invalidMethodOverrideReturnType_twoInterfaces() throws Exception {
+    Source source = addSource(createSource(//
+        "abstract class I {",
+        "  int m();",
+        "}",
+        "abstract class J {",
+        "  num m();",
+        "}",
+        "abstract class A implements I, J {}",
+        "class B extends A {",
+        "  String m() => '';",
         "}"));
     resolve(source);
     assertErrors(source, StaticWarningCode.INVALID_METHOD_OVERRIDE_RETURN_TYPE);
@@ -1563,7 +1614,7 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_invalidSetterOverrideNormalParamType_twoMethods() throws Exception {
+  public void test_invalidSetterOverrideNormalParamType_twoInterfaces() throws Exception {
     // test from language/override_inheritance_field_test_34.dart
     Source source = addSource(createSource(//
         "abstract class I {",

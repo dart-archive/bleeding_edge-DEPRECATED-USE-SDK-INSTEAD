@@ -30,6 +30,7 @@ import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
 import com.google.dart.engine.internal.element.MethodElementImpl;
 import com.google.dart.engine.internal.element.ParameterElementImpl;
+import com.google.dart.engine.internal.element.PropertyAccessorElementImpl;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.utilities.dart.ParameterKind;
@@ -497,7 +498,137 @@ public class InheritanceManagerTest extends EngineTestCase {
     assertNoErrors(classA);
   }
 
-  public void test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_threeMethods()
+  public void test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_2_getters()
+      throws Exception {
+    // class I1 { int get g; }
+    // class I2 { num get g; }
+    // class A implements I1, I2 {}
+    ClassElementImpl classI1 = classElement("I1");
+    String accessorName = "g";
+    PropertyAccessorElement getter1 = getterElement(accessorName, false, typeProvider.getIntType());
+    classI1.setAccessors(new PropertyAccessorElement[] {getter1});
+
+    ClassElementImpl classI2 = classElement("I2");
+    PropertyAccessorElement getter2 = getterElement(accessorName, false, typeProvider.getNumType());
+    classI2.setAccessors(new PropertyAccessorElement[] {getter2});
+
+    ClassElementImpl classA = classElement("A");
+    classA.setInterfaces(new InterfaceType[] {classI1.getType(), classI2.getType()});
+
+    MemberMap mapA = inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
+    assertEquals(numOfMembersInObject + 1, mapA.getSize());
+    PropertyAccessorElement syntheticAccessor = getterElement(
+        accessorName,
+        false,
+        typeProvider.getDynamicType());
+    assertEquals(syntheticAccessor.getType(), mapA.get(accessorName).getType());
+    assertNoErrors(classA);
+  }
+
+  public void test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_2_methods()
+      throws Exception {
+    // class I1 { dynamic m(int); }
+    // class I2 { dynamic m(num); }
+    // class A implements I1, I2 {}
+    ClassElementImpl classI1 = classElement("I1");
+    String methodName = "m";
+    MethodElementImpl methodM1 = methodElement(methodName, typeProvider.getDynamicType());
+    ParameterElementImpl parameter1 = new ParameterElementImpl(identifier("a0"));
+    parameter1.setType(typeProvider.getIntType());
+    parameter1.setParameterKind(ParameterKind.REQUIRED);
+    methodM1.setParameters(new ParameterElement[] {parameter1});
+    classI1.setMethods(new MethodElement[] {methodM1});
+
+    ClassElementImpl classI2 = classElement("I2");
+    MethodElementImpl methodM2 = methodElement(methodName, typeProvider.getDynamicType());
+    ParameterElementImpl parameter2 = new ParameterElementImpl(identifier("a0"));
+    parameter2.setType(typeProvider.getNumType());
+    parameter2.setParameterKind(ParameterKind.REQUIRED);
+    methodM2.setParameters(new ParameterElement[] {parameter2});
+    classI2.setMethods(new MethodElement[] {methodM2});
+
+    ClassElementImpl classA = classElement("A");
+    classA.setInterfaces(new InterfaceType[] {classI1.getType(), classI2.getType()});
+
+    MemberMap mapA = inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
+    assertEquals(numOfMembersInObject + 1, mapA.getSize());
+    MethodElement syntheticMethod = methodElement(
+        methodName,
+        typeProvider.getDynamicType(),
+        typeProvider.getDynamicType());
+    assertEquals(syntheticMethod.getType(), mapA.get(methodName).getType());
+    assertNoErrors(classA);
+  }
+
+  public void test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_2_setters()
+      throws Exception {
+    // class I1 { set s(int); }
+    // class I2 { set s(num); }
+    // class A implements I1, I2 {}
+    ClassElementImpl classI1 = classElement("I1");
+    String accessorName = "s";
+    PropertyAccessorElement setter1 = setterElement(accessorName, false, typeProvider.getIntType());
+    classI1.setAccessors(new PropertyAccessorElement[] {setter1});
+
+    ClassElementImpl classI2 = classElement("I2");
+    PropertyAccessorElement setter2 = setterElement(accessorName, false, typeProvider.getNumType());
+    classI2.setAccessors(new PropertyAccessorElement[] {setter2});
+
+    ClassElementImpl classA = classElement("A");
+    classA.setInterfaces(new InterfaceType[] {classI1.getType(), classI2.getType()});
+
+    MemberMap mapA = inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
+    assertEquals(numOfMembersInObject + 1, mapA.getSize());
+    PropertyAccessorElementImpl syntheticAccessor = setterElement(
+        accessorName,
+        false,
+        typeProvider.getDynamicType());
+    syntheticAccessor.setReturnType(typeProvider.getDynamicType());
+    assertEquals(syntheticAccessor.getType(), mapA.get(accessorName + "=").getType());
+    assertNoErrors(classA);
+  }
+
+  public void test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_3_getters()
+      throws Exception {
+    // class A {}
+    // class B extends A {}
+    // class C extends B {}
+    // class I1 { A get g; }
+    // class I2 { B get g; }
+    // class I3 { C get g; }
+    // class D implements I1, I2, I3 {}
+    ClassElementImpl classA = classElement("A");
+    ClassElementImpl classB = classElement("B", classA.getType());
+    ClassElementImpl classC = classElement("C", classB.getType());
+
+    ClassElementImpl classI1 = classElement("I1");
+    String accessorName = "g";
+    PropertyAccessorElement getter1 = getterElement(accessorName, false, classA.getType());
+    classI1.setAccessors(new PropertyAccessorElement[] {getter1});
+
+    ClassElementImpl classI2 = classElement("I2");
+    PropertyAccessorElement getter2 = getterElement(accessorName, false, classB.getType());
+    classI2.setAccessors(new PropertyAccessorElement[] {getter2});
+
+    ClassElementImpl classI3 = classElement("I3");
+    PropertyAccessorElement getter3 = getterElement(accessorName, false, classC.getType());
+    classI3.setAccessors(new PropertyAccessorElement[] {getter3});
+
+    ClassElementImpl classD = classElement("D");
+    classD.setInterfaces(new InterfaceType[] {
+        classI1.getType(), classI2.getType(), classI3.getType()});
+
+    MemberMap mapD = inheritanceManager.getMapOfMembersInheritedFromInterfaces(classD);
+    assertEquals(numOfMembersInObject + 1, mapD.getSize());
+    PropertyAccessorElement syntheticAccessor = getterElement(
+        accessorName,
+        false,
+        typeProvider.getDynamicType());
+    assertEquals(syntheticAccessor.getType(), mapD.get(accessorName).getType());
+    assertNoErrors(classD);
+  }
+
+  public void test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_3_methods()
       throws Exception {
     // class A {}
     // class B extends A {}
@@ -549,26 +680,63 @@ public class InheritanceManagerTest extends EngineTestCase {
     assertNoErrors(classD);
   }
 
-  public void test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_twoMethods()
+  public void test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_3_setters()
       throws Exception {
-    // class I1 { dynamic m(int); }
-    // class I2 { dynamic m(num); }
+    // class A {}
+    // class B extends A {}
+    // class C extends B {}
+    // class I1 { set s(A); }
+    // class I2 { set s(B); }
+    // class I3 { set s(C); }
+    // class D implements I1, I2, I3 {}
+    ClassElementImpl classA = classElement("A");
+    ClassElementImpl classB = classElement("B", classA.getType());
+    ClassElementImpl classC = classElement("C", classB.getType());
+
+    ClassElementImpl classI1 = classElement("I1");
+    String accessorName = "s";
+    PropertyAccessorElement setter1 = setterElement(accessorName, false, classA.getType());
+    classI1.setAccessors(new PropertyAccessorElement[] {setter1});
+
+    ClassElementImpl classI2 = classElement("I2");
+    PropertyAccessorElement setter2 = setterElement(accessorName, false, classB.getType());
+    classI2.setAccessors(new PropertyAccessorElement[] {setter2});
+
+    ClassElementImpl classI3 = classElement("I3");
+    PropertyAccessorElement setter3 = setterElement(accessorName, false, classC.getType());
+    classI3.setAccessors(new PropertyAccessorElement[] {setter3});
+
+    ClassElementImpl classD = classElement("D");
+    classD.setInterfaces(new InterfaceType[] {
+        classI1.getType(), classI2.getType(), classI3.getType()});
+
+    MemberMap mapD = inheritanceManager.getMapOfMembersInheritedFromInterfaces(classD);
+    assertEquals(numOfMembersInObject + 1, mapD.getSize());
+    PropertyAccessorElementImpl syntheticAccessor = setterElement(
+        accessorName,
+        false,
+        typeProvider.getDynamicType());
+    syntheticAccessor.setReturnType(typeProvider.getDynamicType());
+    assertEquals(syntheticAccessor.getType(), mapD.get(accessorName + "=").getType());
+    assertNoErrors(classD);
+  }
+
+  public void test_getMapOfMembersInheritedFromInterfaces_union_oneSubtype_2_methods()
+      throws Exception {
+    // class I1 { int m(); }
+    // class I2 { int m([int]); }
     // class A implements I1, I2 {}
     ClassElementImpl classI1 = classElement("I1");
     String methodName = "m";
-    MethodElementImpl methodM1 = methodElement(methodName, typeProvider.getDynamicType());
-    ParameterElementImpl parameter1 = new ParameterElementImpl(identifier("a0"));
-    parameter1.setType(typeProvider.getIntType());
-    parameter1.setParameterKind(ParameterKind.REQUIRED);
-    methodM1.setParameters(new ParameterElement[] {parameter1});
+    MethodElement methodM1 = methodElement(methodName, typeProvider.getIntType());
     classI1.setMethods(new MethodElement[] {methodM1});
 
     ClassElementImpl classI2 = classElement("I2");
-    MethodElementImpl methodM2 = methodElement(methodName, typeProvider.getDynamicType());
-    ParameterElementImpl parameter2 = new ParameterElementImpl(identifier("a0"));
-    parameter2.setType(typeProvider.getNumType());
-    parameter2.setParameterKind(ParameterKind.REQUIRED);
-    methodM2.setParameters(new ParameterElement[] {parameter2});
+    MethodElementImpl methodM2 = methodElement(methodName, typeProvider.getIntType());
+    ParameterElementImpl parameter1 = new ParameterElementImpl(identifier("a1"));
+    parameter1.setType(typeProvider.getIntType());
+    parameter1.setParameterKind(ParameterKind.POSITIONAL);
+    methodM2.setParameters(new ParameterElement[] {parameter1});
     classI2.setMethods(new MethodElement[] {methodM2});
 
     ClassElementImpl classA = classElement("A");
@@ -576,15 +744,51 @@ public class InheritanceManagerTest extends EngineTestCase {
 
     MemberMap mapA = inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
     assertEquals(numOfMembersInObject + 1, mapA.getSize());
-    MethodElement syntheticMethod = methodElement(
-        methodName,
-        typeProvider.getDynamicType(),
-        typeProvider.getDynamicType());
-    assertEquals(syntheticMethod.getType(), mapA.get(methodName).getType());
+    assertSame(methodM2, mapA.get(methodName));
     assertNoErrors(classA);
   }
 
-  public void test_getMapOfMembersInheritedFromInterfaces_union_oneSubtype_fourMethods()
+  public void test_getMapOfMembersInheritedFromInterfaces_union_oneSubtype_3_methods()
+      throws Exception {
+    // class I1 { int m(); }
+    // class I2 { int m([int]); }
+    // class I3 { int m([int, int]); }
+    // class A implements I1, I2, I3 {}
+    ClassElementImpl classI1 = classElement("I1");
+    String methodName = "m";
+    MethodElementImpl methodM1 = methodElement(methodName, typeProvider.getIntType());
+    classI1.setMethods(new MethodElement[] {methodM1});
+
+    ClassElementImpl classI2 = classElement("I2");
+    MethodElementImpl methodM2 = methodElement(methodName, typeProvider.getIntType());
+    ParameterElementImpl parameter1 = new ParameterElementImpl(identifier("a1"));
+    parameter1.setType(typeProvider.getIntType());
+    parameter1.setParameterKind(ParameterKind.POSITIONAL);
+    methodM1.setParameters(new ParameterElement[] {parameter1});
+    classI2.setMethods(new MethodElement[] {methodM2});
+
+    ClassElementImpl classI3 = classElement("I3");
+    MethodElementImpl methodM3 = methodElement(methodName, typeProvider.getIntType());
+    ParameterElementImpl parameter2 = new ParameterElementImpl(identifier("a2"));
+    parameter2.setType(typeProvider.getIntType());
+    parameter2.setParameterKind(ParameterKind.POSITIONAL);
+    ParameterElementImpl parameter3 = new ParameterElementImpl(identifier("a3"));
+    parameter3.setType(typeProvider.getIntType());
+    parameter3.setParameterKind(ParameterKind.POSITIONAL);
+    methodM3.setParameters(new ParameterElement[] {parameter2, parameter3});
+    classI3.setMethods(new MethodElement[] {methodM3});
+
+    ClassElementImpl classA = classElement("A");
+    classA.setInterfaces(new InterfaceType[] {
+        classI1.getType(), classI2.getType(), classI3.getType()});
+
+    MemberMap mapA = inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
+    assertEquals(numOfMembersInObject + 1, mapA.getSize());
+    assertSame(methodM3, mapA.get(methodName));
+    assertNoErrors(classA);
+  }
+
+  public void test_getMapOfMembersInheritedFromInterfaces_union_oneSubtype_4_methods()
       throws Exception {
     // class I1 { int m(); }
     // class I2 { int m(); }
@@ -626,73 +830,6 @@ public class InheritanceManagerTest extends EngineTestCase {
     MemberMap mapA = inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
     assertEquals(numOfMembersInObject + 1, mapA.getSize());
     assertSame(methodM4, mapA.get(methodName));
-    assertNoErrors(classA);
-  }
-
-  public void test_getMapOfMembersInheritedFromInterfaces_union_oneSubtype_threeMethods()
-      throws Exception {
-    // class I1 { int m(); }
-    // class I2 { int m([int]); }
-    // class I3 { int m([int, int]); }
-    // class A implements I1, I2, I3 {}
-    ClassElementImpl classI1 = classElement("I1");
-    String methodName = "m";
-    MethodElementImpl methodM1 = methodElement(methodName, typeProvider.getIntType());
-    classI1.setMethods(new MethodElement[] {methodM1});
-
-    ClassElementImpl classI2 = classElement("I2");
-    MethodElementImpl methodM2 = methodElement(methodName, typeProvider.getIntType());
-    ParameterElementImpl parameter1 = new ParameterElementImpl(identifier("a1"));
-    parameter1.setType(typeProvider.getIntType());
-    parameter1.setParameterKind(ParameterKind.POSITIONAL);
-    methodM1.setParameters(new ParameterElement[] {parameter1});
-    classI2.setMethods(new MethodElement[] {methodM2});
-
-    ClassElementImpl classI3 = classElement("I3");
-    MethodElementImpl methodM3 = methodElement(methodName, typeProvider.getIntType());
-    ParameterElementImpl parameter2 = new ParameterElementImpl(identifier("a2"));
-    parameter2.setType(typeProvider.getIntType());
-    parameter2.setParameterKind(ParameterKind.POSITIONAL);
-    ParameterElementImpl parameter3 = new ParameterElementImpl(identifier("a3"));
-    parameter3.setType(typeProvider.getIntType());
-    parameter3.setParameterKind(ParameterKind.POSITIONAL);
-    methodM3.setParameters(new ParameterElement[] {parameter2, parameter3});
-    classI3.setMethods(new MethodElement[] {methodM3});
-
-    ClassElementImpl classA = classElement("A");
-    classA.setInterfaces(new InterfaceType[] {
-        classI1.getType(), classI2.getType(), classI3.getType()});
-
-    MemberMap mapA = inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
-    assertEquals(numOfMembersInObject + 1, mapA.getSize());
-    assertSame(methodM3, mapA.get(methodName));
-    assertNoErrors(classA);
-  }
-
-  public void test_getMapOfMembersInheritedFromInterfaces_union_oneSubtype_twoMethods()
-      throws Exception {
-    // class I1 { int m(); }
-    // class I2 { int m([int]); }
-    // class A implements I1, I2 {}
-    ClassElementImpl classI1 = classElement("I1");
-    String methodName = "m";
-    MethodElement methodM1 = methodElement(methodName, typeProvider.getIntType());
-    classI1.setMethods(new MethodElement[] {methodM1});
-
-    ClassElementImpl classI2 = classElement("I2");
-    MethodElementImpl methodM2 = methodElement(methodName, typeProvider.getIntType());
-    ParameterElementImpl parameter1 = new ParameterElementImpl(identifier("a1"));
-    parameter1.setType(typeProvider.getIntType());
-    parameter1.setParameterKind(ParameterKind.POSITIONAL);
-    methodM2.setParameters(new ParameterElement[] {parameter1});
-    classI2.setMethods(new MethodElement[] {methodM2});
-
-    ClassElementImpl classA = classElement("A");
-    classA.setInterfaces(new InterfaceType[] {classI1.getType(), classI2.getType()});
-
-    MemberMap mapA = inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
-    assertEquals(numOfMembersInObject + 1, mapA.getSize());
-    assertSame(methodM2, mapA.get(methodName));
     assertNoErrors(classA);
   }
 
