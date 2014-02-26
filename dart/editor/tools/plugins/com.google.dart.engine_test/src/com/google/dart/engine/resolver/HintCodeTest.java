@@ -689,6 +689,51 @@ public class HintCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_overrideOnNonOverridingGetter_invalid() throws Exception {
+    Source source = addSource(createSource(//
+        "library dart.core;",
+        "const override = null;",
+        "class A {",
+        "}",
+        "class B extends A {",
+        "  @override",
+        "  int get m => 1;",
+        "}"));
+    resolve(source);
+    assertErrors(source, HintCode.OVERRIDE_ON_NON_OVERRIDING_GETTER);
+    verify(source);
+  }
+
+  public void test_overrideOnNonOverridingMethod_invalid() throws Exception {
+    Source source = addSource(createSource(//
+        "library dart.core;",
+        "const override = null;",
+        "class A {",
+        "}",
+        "class B extends A {",
+        "  @override",
+        "  int m() => 1;",
+        "}"));
+    resolve(source);
+    assertErrors(source, HintCode.OVERRIDE_ON_NON_OVERRIDING_METHOD);
+    verify(source);
+  }
+
+  public void test_overrideOnNonOverridingSetter_invalid() throws Exception {
+    Source source = addSource(createSource(//
+        "library dart.core;",
+        "const override = null;",
+        "class A {",
+        "}",
+        "class B extends A {",
+        "  @override",
+        "  set m(int x) {}",
+        "}"));
+    resolve(source);
+    assertErrors(source, HintCode.OVERRIDE_ON_NON_OVERRIDING_SETTER);
+    verify(source);
+  }
+
   public void test_typeCheck_type_is_Null() throws Exception {
     Source source = addSource(createSource(//
         "m(i) {",

@@ -218,6 +218,11 @@ public class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   }
 
   @Override
+  public boolean isOverride() {
+    return false;
+  }
+
+  @Override
   public boolean isPrivate() {
     String name = getDisplayName();
     if (name == null) {

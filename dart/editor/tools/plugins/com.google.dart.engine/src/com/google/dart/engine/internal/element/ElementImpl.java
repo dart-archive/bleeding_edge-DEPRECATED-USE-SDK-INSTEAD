@@ -220,6 +220,16 @@ public abstract class ElementImpl implements Element {
   }
 
   @Override
+  public boolean isOverride() {
+    for (ElementAnnotation annotation : metadata) {
+      if (annotation.isOverride()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @Override
   public boolean isPrivate() {
     String name = getDisplayName();
     if (name == null) {

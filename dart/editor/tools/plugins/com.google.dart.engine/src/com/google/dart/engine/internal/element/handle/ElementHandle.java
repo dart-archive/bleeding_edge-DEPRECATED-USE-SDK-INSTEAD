@@ -240,6 +240,11 @@ public abstract class ElementHandle implements Element {
   }
 
   @Override
+  public boolean isOverride() {
+    return getActualElement().isOverride();
+  }
+
+  @Override
   public boolean isPrivate() {
     return getActualElement().isPrivate();
   }

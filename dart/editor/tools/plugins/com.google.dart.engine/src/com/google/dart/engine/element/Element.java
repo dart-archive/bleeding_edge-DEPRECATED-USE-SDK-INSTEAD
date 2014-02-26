@@ -213,6 +213,13 @@ public interface Element {
   public boolean isDeprecated();
 
   /**
+   * Return {@code true} if this element has an annotation of the form '@override'.
+   * 
+   * @return {@code true} if this element is overridden
+   */
+  public boolean isOverride();
+
+  /**
    * Return {@code true} if this element is private. Private elements are visible only within the
    * library in which they are declared.
    * 

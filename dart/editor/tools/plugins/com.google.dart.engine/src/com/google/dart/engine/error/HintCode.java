@@ -92,6 +92,21 @@ public enum HintCode implements ErrorCode {
       "Either add a return statement or change the return type to 'void'"),
 
   /**
+   * A getter with the override annotation does not override an existing getter.
+   */
+  OVERRIDE_ON_NON_OVERRIDING_GETTER("Getter does not override an inherited getter"),
+
+  /**
+   * A method with the override annotation does not override an existing method.
+   */
+  OVERRIDE_ON_NON_OVERRIDING_METHOD("Method does not override an inherited method"),
+
+  /**
+   * A setter with the override annotation does not override an existing setter.
+   */
+  OVERRIDE_ON_NON_OVERRIDING_SETTER("Setter does not override an inherited setter"),
+
+  /**
    * It is not in best practice to declare a private method that happens to override the method in a
    * superclass- depending on where the superclass is (either in the same library, or out of the
    * same library), behavior can be different.

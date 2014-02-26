@@ -146,6 +146,11 @@ public abstract class Member implements Element {
   }
 
   @Override
+  public boolean isOverride() {
+    return baseElement.isOverride();
+  }
+
+  @Override
   public boolean isPrivate() {
     return baseElement.isPrivate();
   }

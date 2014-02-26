@@ -290,6 +290,102 @@ public class NonHintCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_overrideOnNonOverridingGetter_inInterface() throws Exception {
+    Source source = addSource(createSource(//
+        "library dart.core;",
+        "const override = null;",
+        "class A {",
+        "  int get m => 0;",
+        "}",
+        "class B implements A {",
+        "  @override",
+        "  int get m => 1;",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_overrideOnNonOverridingGetter_inSuperclass() throws Exception {
+    Source source = addSource(createSource(//
+        "library dart.core;",
+        "const override = null;",
+        "class A {",
+        "  int get m => 0;",
+        "}",
+        "class B extends A {",
+        "  @override",
+        "  int get m => 1;",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_overrideOnNonOverridingMethod_inInterface() throws Exception {
+    Source source = addSource(createSource(//
+        "library dart.core;",
+        "const override = null;",
+        "class A {",
+        "  int m() => 0;",
+        "}",
+        "class B implements A {",
+        "  @override",
+        "  int m() => 1;",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_overrideOnNonOverridingMethod_inSuperclass() throws Exception {
+    Source source = addSource(createSource(//
+        "library dart.core;",
+        "const override = null;",
+        "class A {",
+        "  int m() => 0;",
+        "}",
+        "class B extends A {",
+        "  @override",
+        "  int m() => 1;",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_overrideOnNonOverridingSetter_inInterface() throws Exception {
+    Source source = addSource(createSource(//
+        "library dart.core;",
+        "const override = null;",
+        "class A {",
+        "  set m(int x) {}",
+        "}",
+        "class B implements A {",
+        "  @override",
+        "  set m(int x) {}",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_overrideOnNonOverridingSetter_inSuperclass() throws Exception {
+    Source source = addSource(createSource(//
+        "library dart.core;",
+        "const override = null;",
+        "class A {",
+        "  set m(int x) {}",
+        "}",
+        "class B extends A {",
+        "  @override",
+        "  set m(int x) {}",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
   public void test_proxy_annotation_prefixed() throws Exception {
     Source source = addSource(createSource(//
         "library L;",
