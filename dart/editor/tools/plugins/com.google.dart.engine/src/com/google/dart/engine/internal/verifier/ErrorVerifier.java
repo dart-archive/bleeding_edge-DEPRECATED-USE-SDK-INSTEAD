@@ -1216,9 +1216,6 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   private boolean checkForAllInvalidOverrideErrorCodes(ExecutableElement executableElement,
       ExecutableElement overriddenExecutable, ParameterElement[] parameters,
       ASTNode[] parameterLocations, SimpleIdentifier errorNameTarget) {
-    String executableElementName = executableElement.getName();
-    boolean executableElementPrivate = Identifier.isPrivateName(executableElementName);
-
     boolean isGetter = false;
     boolean isSetter = false;
     if (executableElement instanceof PropertyAccessorElement) {
@@ -1226,6 +1223,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       isGetter = accessorElement.isGetter();
       isSetter = accessorElement.isSetter();
     }
+    String executableElementName = executableElement.getName();
 
     // SWC.INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC
     if (overriddenExecutable == null) {
@@ -1234,6 +1232,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
         InterfaceType superclassType = enclosingClass.getSupertype();
         ClassElement superclassElement = superclassType == null ? null
             : superclassType.getElement();
+        boolean executableElementPrivate = Identifier.isPrivateName(executableElementName);
         while (superclassElement != null && !visitedClasses.contains(superclassElement)) {
           visitedClasses.add(superclassElement);
           LibraryElement superclassLibrary = superclassElement.getLibrary();
