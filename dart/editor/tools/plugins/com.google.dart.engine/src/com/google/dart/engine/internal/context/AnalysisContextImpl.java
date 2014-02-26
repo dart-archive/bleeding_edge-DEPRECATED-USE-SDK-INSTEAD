@@ -1067,13 +1067,16 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       throws AnalysisException {
     DartEntry dartEntry = getReadableDartEntry(source);
     if (dartEntry == null) {
-      throw new AnalysisException("internalScanTokenStream invoked for non-Dart file: "
+      throw new AnalysisException("internalParseCompilationUnit invoked for non-Dart file: "
           + source.getFullName());
     }
     dartEntry = cacheDartParseData(source, dartEntry, DartEntry.PARSED_UNIT);
-    return new TimestampedData<CompilationUnit>(
-        dartEntry.getModificationTime(),
-        dartEntry.getAnyParsedCompilationUnit());
+    CompilationUnit unit = dartEntry.getAnyParsedCompilationUnit();
+    if (unit == null) {
+      throw new AnalysisException("internalParseCompilationUnit could not cache a parsed unit: "
+          + source.getFullName(), dartEntry.getException());
+    }
+    return new TimestampedData<CompilationUnit>(dartEntry.getModificationTime(), unit);
   }
 
   @Override
