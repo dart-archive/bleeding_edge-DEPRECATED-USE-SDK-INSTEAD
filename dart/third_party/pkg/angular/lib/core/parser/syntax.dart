@@ -3,7 +3,6 @@ library angular.core.parser.syntax;
 import 'package:angular/core/parser/parser.dart' show LocalsWrapper;
 import 'package:angular/core/parser/unparser.dart' show Unparser;
 import 'package:angular/core/parser/utils.dart' show EvalError;
-import 'package:angular/core/module.dart';
 
 abstract class Visitor {
   visit(Expression expression)
@@ -57,7 +56,7 @@ abstract class Expression {
   bool get isAssignable => false;
   bool get isChain => false;
 
-  eval(scope, [FilterMap filters = defaultFilterMap])
+  eval(scope)
       => throw new EvalError("Cannot evaluate $this");
   assign(scope, value)
       => throw new EvalError("Cannot assign to $this");
@@ -200,15 +199,4 @@ class LiteralObject extends Literal {
   final List<Expression> values;
   LiteralObject(this.keys, this.values);
   accept(Visitor visitor) => visitor.visitLiteralObject(this);
-}
-
-const defaultFilterMap = const _DefaultFilterMap();
-
-class _DefaultFilterMap implements FilterMap {
-  const _DefaultFilterMap();
-
-  call(name) => throw 'No NgFilter: $name found!';
-  Type operator[](annotation) => null;
-  forEach(fn) { }
-  annotationsFor(type) => null;
 }

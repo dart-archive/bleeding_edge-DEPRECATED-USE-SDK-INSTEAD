@@ -30,6 +30,7 @@ module.exports = function(config) {
       'karma-dart',
       'karma-chrome-launcher',
       'karma-script-launcher',
+      'karma-phantomjs-launcher',
       'karma-junit-reporter',
       '../../../karma-parser-generator',
       '../../../karma-parser-getter-setter'

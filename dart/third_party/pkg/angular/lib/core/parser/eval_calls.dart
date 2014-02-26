@@ -3,59 +3,58 @@ library angular.core.parser.eval_calls;
 import 'dart:mirrors';
 import 'package:angular/core/parser/syntax.dart' as syntax;
 import 'package:angular/core/parser/utils.dart';
-import 'package:angular/core/module.dart';
 
 class CallScope extends syntax.CallScope with CallReflective {
   final Symbol symbol;
   CallScope(name, arguments)
       : super(name, arguments)
-      , symbol = newSymbol(name);
-  eval(scope, [FilterMap filters]) => _eval(scope, scope);
+      , symbol = new Symbol(name);
+  eval(scope) => _eval(scope, scope);
 }
 
 class CallMember extends syntax.CallMember with CallReflective {
   final Symbol symbol;
   CallMember(object, name, arguments)
       : super(object, name, arguments)
-      , symbol = newSymbol(name);
-  eval(scope, [FilterMap filters]) => _eval(scope, object.eval(scope, filters));
+      , symbol = new Symbol(name);
+  eval(scope) => _eval(scope, object.eval(scope));
 }
 
 class CallScopeFast0 extends syntax.CallScope with CallFast {
   final Function function;
   CallScopeFast0(name, arguments, this.function) : super(name, arguments);
-  eval(scope, [FilterMap filters]) => _evaluate0(scope);
+  eval(scope) => _evaluate0(scope);
 }
 
 class CallScopeFast1 extends syntax.CallScope with CallFast {
   final Function function;
   CallScopeFast1(name, arguments, this.function) : super(name, arguments);
-  eval(scope, [FilterMap filters]) => _evaluate1(scope, arguments[0].eval(scope, filters));
+  eval(scope) => _evaluate1(scope, arguments[0].eval(scope));
 }
 
 class CallMemberFast0 extends syntax.CallMember with CallFast {
   final Function function;
   CallMemberFast0(object, name, arguments, this.function)
       : super(object, name, arguments);
-  eval(scope, [FilterMap filters]) => _evaluate0(object.eval(scope, filters));
+  eval(scope) => _evaluate0(object.eval(scope));
 }
 
 class CallMemberFast1 extends syntax.CallMember with CallFast {
   final Function function;
   CallMemberFast1(object, name, arguments, this.function)
       : super(object, name, arguments);
-  eval(scope, [FilterMap filters]) => _evaluate1(object.eval(scope, filters),
-      arguments[0].eval(scope, filters));
+  eval(scope) => _evaluate1(object.eval(scope),
+      arguments[0].eval(scope));
 }
 
 class CallFunction extends syntax.CallFunction {
   CallFunction(function, arguments) : super(function, arguments);
-  eval(scope, [FilterMap filters]) {
-    var function  = this.function.eval(scope, filters);
+  eval(scope) {
+    var function  = this.function.eval(scope);
     if (function is !Function) {
       throw new EvalError('${this.function} is not a function');
     } else {
-      return relaxFnApply(function, evalList(scope, arguments, filters));
+      return relaxFnApply(function, evalList(scope, arguments));
     }
   }
 }
@@ -94,9 +93,6 @@ abstract class CallReflective {
       _cachedKind = CACHED_MAP;
       _cachedValue = null;
       return relaxFnApply(ensureFunctionFromMap(holder, name), arguments);
-    } else if (symbol == null) {
-      _cachedHolder = UNINITIALIZED;
-      throw new EvalError("Undefined function $name");
     } else {
       InstanceMirror mirror = reflect(holder);
       _cachedKind = CACHED_FUNCTION;

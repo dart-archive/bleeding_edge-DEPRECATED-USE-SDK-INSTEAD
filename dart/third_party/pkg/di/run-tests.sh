@@ -7,11 +7,10 @@ echo "run type factories generator for tests"
 
 echo "run tests in dart"
 dart --checked test/main.dart
-dart --checked test/generator_test.dart
 
 echo "run dart2js on tests"
 mkdir -p out
-dart2js --minify -c test/main.dart -o out/main.dart.js
+dart2js -c test/main.dart -o out/main.dart.js
 
 echo "run tests in node"
 node out/main.dart.js

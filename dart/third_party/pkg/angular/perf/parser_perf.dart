@@ -28,8 +28,7 @@ main() {
   var generatedParser = new DynamicInjector(
       modules: [new Module()
         ..type(Parser, implementedBy: StaticParser)
-        ..type(ParserBackend, implementedBy: DynamicParserBackend)
-        ..value(StaticParserFunctions, generated_functions.functions())],
+        ..value(StaticParserFunctions, generated_functions.functions(filterMap))],
       allowImplicitInjection:true).get(Parser);
 
   var hybridParser = new DynamicInjector(

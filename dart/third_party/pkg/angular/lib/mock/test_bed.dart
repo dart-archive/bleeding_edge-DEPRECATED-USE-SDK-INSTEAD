@@ -34,9 +34,9 @@ class TestBed {
    *
    * An option [scope] parameter can be supplied to link it with non root scope.
    */
-  Element compile(html, {Scope scope, DirectiveMap directives}) {
+  Element compile(html, {Scope scope}) {
     var injector = this.injector;
-    if (scope != null) {
+    if(scope != null) {
       injector = injector.createChild([new Module()..value(Scope, scope)]);
     }
     if (html is String) {
@@ -49,10 +49,7 @@ class TestBed {
       throw 'Expecting: String, Node, or List<Node> got $html.';
     }
     rootElement = rootElements[0];
-    if (directives == null) {
-      directives = injector.get(DirectiveMap);
-    }
-    rootBlock = compiler(rootElements, directives)(injector, rootElements);
+    rootBlock = compiler(rootElements)(injector, rootElements);
     return rootElement;
   }
 
@@ -63,7 +60,7 @@ class TestBed {
     var div = new DivElement();
     div.setInnerHtml(html, treeSanitizer: new NullTreeSanitizer());
     var nodes = [];
-    for (var node in div.nodes) {
+    for(var node in div.nodes) {
       nodes.add(node);
     }
     return nodes;
@@ -75,8 +72,6 @@ class TestBed {
    */
   triggerEvent(element, name, [type='MouseEvent']) {
     element.dispatchEvent(new Event.eventType(type, name));
-    // Since we are manually triggering event we need to simpulate apply();
-    rootScope.apply();
   }
 
   /**
@@ -86,6 +81,5 @@ class TestBed {
   selectOption(element, text) {
     element.querySelectorAll('option').forEach((o) => o.selected = o.text == text);
     triggerEvent(element, 'change');
-    rootScope.apply();
   }
 }

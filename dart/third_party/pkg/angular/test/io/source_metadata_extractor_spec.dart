@@ -6,13 +6,13 @@ import 'package:angular/tools/source_metadata_extractor.dart';
 import '../jasmine_syntax.dart';
 import 'package:unittest/unittest.dart';
 
-main() => describe('source_metadata_extractor', () {
+main() => describe('source_metadata_extarctor', () {
   it('should extract all attribute mappings including annotations', () {
     var sourceCrawler = new SourceCrawlerImpl(['packages/']);
-    var sourceMetadataExtractor = new SourceMetadataExtractor();
+    var sourceMetadataExtractor = new SourceMetadataExtractor(sourceCrawler);
     List<DirectiveInfo> directives =
         sourceMetadataExtractor
-            .gatherDirectiveInfo('test/io/test_files/main.dart', sourceCrawler);
+            .gatherDirectiveInfo('test/io/test_files/main.dart');
 
     expect(directives, hasLength(2));
 

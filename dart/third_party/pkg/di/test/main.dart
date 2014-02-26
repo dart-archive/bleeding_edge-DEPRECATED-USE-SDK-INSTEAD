@@ -32,21 +32,17 @@ class Injectable {
 // just some classes for testing
 @Injectable()
 class Engine {
-  final String id = 'v8-id';
+  String id = 'v8-id';
 }
 
 @Injectable()
 class MockEngine implements Engine {
-  final String id = 'mock-id';
+  String id = 'mock-id';
 }
 
 @Injectable()
 class MockEngine2 implements Engine {
   String id = 'mock-id-2';
-}
-
-class HiddenConstructor {
-  HiddenConstructor._();
 }
 
 @Injectable()
@@ -55,13 +51,6 @@ class Car {
   Injector injector;
 
   Car(this.engine, this.injector);
-}
-
-class Lemon {
-  final engine;
-  final Injector injector;
-
-  Lemon(this.engine, this.injector);
 }
 
 class NumDependency {
@@ -100,7 +89,9 @@ int compareIntAsc(int a, int b) => b.compareTo(a);
 class WithTypeDefDependency {
   CompareInt compare;
 
-  WithTypeDefDependency(this.compare);
+  WithTypeDefDependency(CompareInt c) {
+    compare = c;
+  }
 }
 
 class MultipleConstructors {
@@ -119,23 +110,6 @@ class ClassOne implements InterfaceOne {
 }
 
 @Injectable()
-class ParameterizedType<T1, T2> {
-  ParameterizedType();
-}
-
-@Injectable()
-class ParameterizedDependency {
-  final ParameterizedType<bool, int> _p;
-  ParameterizedDependency(this._p);
-}
-
-@Injectable()
-class GenericParameterizedDependency {
-  final ParameterizedType _p;
-  GenericParameterizedDependency(this._p);
-}
-
-@Injectable()
 class Log {
   var log = [];
 
@@ -150,12 +124,12 @@ void main() {
   createInjectorSpec('DynamicInjector',
       (modules, [name]) => new DynamicInjector(modules: modules, name: name));
 
+  // Initialize generated type factories.
+  type_factories_gen.main();
+
   createInjectorSpec('StaticInjector',
       (modules, [name]) => new StaticInjector(modules: modules, name: name,
           typeFactories: type_factories_gen.typeFactories));
-
-  dynamicInjectorTest();
-  staticInjectorTest();
 }
 
 typedef Injector InjectorFactory(List<Module> modules, [String name]);
@@ -187,25 +161,6 @@ createInjectorSpec(String injectorName, InjectorFactory injectorFactory) {
 
       expect(instance, instanceOf(Car));
       expect(instance.engine.id, toEqual('v8-id'));
-    });
-
-
-    it('should inject generic parameterized types', () {
-      var injector = injectorFactory([new Module()
-            ..type(ParameterizedType)
-            ..type(GenericParameterizedDependency)
-      ]);
-      expect(injector.get(GenericParameterizedDependency),
-          new isInstanceOf<GenericParameterizedDependency>());
-    });
-
-
-    xit('should error while resolving parameterized types', () {
-      var injector = injectorFactory([new Module()
-            ..type(ParameterizedType)
-            ..type(ParameterizedDependency)
-      ]);
-      expect(() => injector.get(ParameterizedDependency), throws);
     });
 
 
@@ -338,7 +293,8 @@ createInjectorSpec(String injectorName, InjectorFactory injectorFactory) {
     });
 
 
-    it('should inject a typedef', () {
+    // Typedef injection is not supported in dart2js: http://dartbug.com/11612
+    xit('should inject a typedef', () {
       var module = new Module()..value(CompareInt, compareIntAsc);
 
       var injector = injectorFactory([module]);
@@ -349,12 +305,14 @@ createInjectorSpec(String injectorName, InjectorFactory injectorFactory) {
     });
 
 
-    it('should throw an exception when injecting typedef without providing it', () {
+    // Typedef injection is not supported in dart2js: http://dartbug.com/11612
+    xit('should throw an exception when injecting typedef without providing it', () {
       var injector = injectorFactory([new Module()..type(WithTypeDefDependency)]);
 
       expect(() {
         injector.get(WithTypeDefDependency);
-      }, throws);
+      }, toThrow(NoProviderError, 'No provider found for CompareInt! '
+      '(resolving WithTypeDefDependency -> CompareInt)'));
     });
 
 
@@ -558,135 +516,4 @@ createInjectorSpec(String injectorName, InjectorFactory injectorFactory) {
 
   });
 
-}
-
-void dynamicInjectorTest() {
-  describe('DynamicInjector', () {
-
-    it('should throw a comprehensible error message on untyped argument', () {
-      var module = new Module()..type(Lemon)..type(Engine);
-      var injector = new DynamicInjector(modules : [module]);
-
-      expect(() {
-        injector.get(Lemon);
-      }, toThrow(NoProviderError, "The 'engine' parameter must be typed "
-          "(resolving Lemon)"));
-    });
-
-    it('should throw a comprehensible error message when no default constructor found', () {
-      var module = new Module()..type(HiddenConstructor);
-      var injector = new DynamicInjector(modules: [module]);
-
-      expect(() {
-        injector.get(HiddenConstructor);
-      }, toThrow(NoProviderError, startsWith('Unable to find default '
-          'constructor for HiddenConstructor. Make sure class has a '
-          'default constructor.')));
-    });
-
-  });
-}
-
-void staticInjectorTest() {
-  describe('StaticInjector', () {
-
-    it('should use type factories passed in the constructor', () {
-      var module = new Module()
-          ..type(Engine);
-      var injector = new StaticInjector(modules: [module], typeFactories: {
-        Engine: (f) => new Engine()
-      });
-
-      var engine;
-      expect(() {
-        engine = injector.get(Engine);
-      }, isNot(throws));
-      expect(engine, new isInstanceOf<Engine>());
-    });
-
-    it('should use type factories passes in one module', () {
-      var module = new Module()
-          ..type(Engine)
-          ..typeFactories = {
-            Engine: (f) => new Engine()
-          };
-      var injector = new StaticInjector(modules: [module]);
-
-      var engine;
-      expect(() {
-        engine = injector.get(Engine);
-      }, isNot(throws));
-      expect(engine, new isInstanceOf<Engine>());
-    });
-
-    it('should use type factories passes in many modules', () {
-      var module1 = new Module()
-          ..type(Engine)
-          ..typeFactories = {
-            Engine: (f) => new Engine()
-          };
-      var module2 = new Module()
-          ..type(Car)
-          ..typeFactories = {
-            Car: (f) => new Car(f(Engine), f(Injector))
-          };
-
-      var injector = new StaticInjector(modules: [module1, module2]);
-
-      var engine;
-      expect(() {
-        engine = injector.get(Car);
-      }, isNot(throws));
-      expect(engine, new isInstanceOf<Car>());
-    });
-
-    it('should use type factories passes in hierarchical module', () {
-      var module = new Module()
-          ..type(Engine)
-          ..typeFactories = {
-            Engine: (f) => new Engine()
-          };
-
-      module.install(new Module()
-         ..type(Car)
-         ..typeFactories = {
-            Car: (f) => new Car(f(Engine), f(Injector))
-         });
-
-      var injector = new StaticInjector(modules: [module]);
-
-      var engine;
-      expect(() {
-        engine = injector.get(Car);
-      }, isNot(throws));
-      expect(engine, new isInstanceOf<Car>());
-    });
-
-    it('should find type factories from parent injector', () {
-      var module1 = new Module()
-          ..type(Engine)
-          ..typeFactories = {
-            Engine: (f) => new Engine()
-          };
-      var module2 = new Module()
-          ..type(Car)
-          ..typeFactories = {
-            Car: (f) => new Car(f(Engine), f(Injector))
-          };
-
-      var rootInjector = new StaticInjector(modules: [module1]);
-      var childInjector = rootInjector.createChild([module2]);
-
-      expect(() {
-        rootInjector.get(Car);
-      }, throws);
-
-      var engine;
-      expect(() {
-        engine = childInjector.get(Car);
-      }, isNot(throws));
-      expect(engine, new isInstanceOf<Car>());
-    });
-
-  });
 }

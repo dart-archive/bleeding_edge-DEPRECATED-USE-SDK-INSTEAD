@@ -4,6 +4,7 @@ import 'package:analyzer/src/generated/ast.dart';
 
 import 'package:angular/tools/source_crawler.dart';
 import 'package:angular/tools/common.dart';
+import 'package:angular/utils.dart';
 
 const String _COMPONENT = '-component';
 const String _DIRECTIVE = '-directive';
@@ -19,15 +20,16 @@ const Map<String, String> _attrAnnotationsToSpec = const {
 };
 
 class SourceMetadataExtractor {
+  SourceCrawler sourceCrawler;
   DirectiveMetadataCollectingVisitor metadataVisitor;
 
-  SourceMetadataExtractor([ this.metadataVisitor ]) {
+  SourceMetadataExtractor(this.sourceCrawler, [ this.metadataVisitor ]) {
     if (metadataVisitor == null) {
       metadataVisitor = new DirectiveMetadataCollectingVisitor();
     }
   }
 
-  List<DirectiveInfo> gatherDirectiveInfo(root, SourceCrawler sourceCrawler) {
+  List<DirectiveInfo> gatherDirectiveInfo(root) {
     sourceCrawler.crawl(root, metadataVisitor);
 
     List<DirectiveInfo> directives = <DirectiveInfo>[];
@@ -40,13 +42,13 @@ class SourceMetadataExtractor {
             .firstWhere((specPrefix) => mappingSpec.startsWith(specPrefix),
                 orElse: () => throw '$mappingSpec no matching spec');
         if (spec != '@') {
-          dirInfo.expressionAttrs.add(attrName);
+          dirInfo.expressionAttrs.add(snakecase(attrName));
         }
         if (mappingSpec.length == 1) { // Shorthand. Remove.
           // TODO(pavelgj): Figure out if short-hand LHS should be expanded
           // and added to the expressions list.
           if (attrName != '.') {
-            dirInfo.expressions.add(attrName);
+            dirInfo.expressions.add(_maybeCamelCase(attrName));
           }
         } else {
           mappingSpec = mappingSpec.substring(spec.length);
@@ -58,6 +60,7 @@ class SourceMetadataExtractor {
       });
 
       meta.exportExpressionAttrs.forEach((attr) {
+        attr = snakecase(attr);
         if (!dirInfo.expressionAttrs.contains(attr)) {
           dirInfo.expressionAttrs.add(attr);
         }
@@ -71,7 +74,7 @@ class SourceMetadataExtractor {
 
 
       // No explicit selector specified on the directive, compute one.
-      var className = meta.className;
+      var className = snakecase(meta.className);
       if (dirInfo.selector == null) {
         if (meta.type == COMPONENT) {
           if (className.endsWith(_COMPONENT)) {
@@ -90,7 +93,8 @@ class SourceMetadataExtractor {
             dirInfo.selector = className.
                 substring(0, className.length - _DIRECTIVE.length);
           } else {
-            throw "Directive name '$className' must have a \$selector field.";
+            throw "Directive name '$className' must end with $_DIRECTIVE, "
+            "$_ATTR_DIRECTIVE, $_COMPONENT or have a \$selector field.";
           }
         }
       }
@@ -113,6 +117,8 @@ class SourceMetadataExtractor {
     return directives;
   }
 }
+
+String _maybeCamelCase(String s) => (s.indexOf('-') > -1) ? camelcase(s) : s;
 
 class DirectiveMetadataCollectingVisitor {
   List<DirectiveMetadata> metadata = <DirectiveMetadata>[];

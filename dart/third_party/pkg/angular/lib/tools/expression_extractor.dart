@@ -1,6 +1,5 @@
 library angular.tools.html_expression_extractor;
 
-import 'dart:async';
 import 'dart:io';
 import 'package:angular/tools/html_extractor.dart';
 import 'package:angular/tools/source_metadata_extractor.dart';
@@ -14,7 +13,6 @@ import 'package:di/dynamic_injector.dart';
 
 import 'package:angular/core/module.dart';
 import 'package:angular/core/parser/parser.dart';
-import 'package:angular/tools/parser_getter_setter/generator.dart';
 import 'package:angular/tools/parser_generator/generator.dart';
 
 main(args) {
@@ -28,11 +26,11 @@ main(args) {
   var packageRoots =
       (args.length < 6) ? [Platform.packageRoot] : args.sublist(5);
   var sourceCrawler = new SourceCrawlerImpl(packageRoots);
-  var sourceMetadataExtractor = new SourceMetadataExtractor();
+  var sourceMetadataExtractor = new SourceMetadataExtractor(sourceCrawler);
   List<DirectiveInfo> directives =
-      sourceMetadataExtractor.gatherDirectiveInfo(args[0], sourceCrawler);
-  var htmlExtractor = new HtmlExpressionExtractor(directives);
-  htmlExtractor.crawl(args[1], ioService);
+      sourceMetadataExtractor.gatherDirectiveInfo(args[0]);
+  var htmlExtractor = new HtmlExpressionExtractor(directives, ioService);
+  htmlExtractor.crawl(args[1]);
 
   var expressions = htmlExtractor.expressions;
   expressions.add('null');
@@ -55,19 +53,14 @@ main(args) {
   printer.printSrc('// Found ${expressions.length} expressions');
   Module module = new Module()
       ..type(Parser, implementedBy: DynamicParser)
-      ..type(ParserBackend, implementedBy: DartGetterSetterGen)
+      ..type(ParserBackend, implementedBy: DynamicParserBackend)
       ..type(FilterMap, implementedBy: NullFilterMap)
       ..value(SourcePrinter, printer);
   Injector injector =
       new DynamicInjector(modules: [module], allowImplicitInjection: true);
 
-  runZoned(() {
-    // Run the generator.
-    injector.get(ParserGetterSetter).generateParser(htmlExtractor.expressions);
-  }, zoneSpecification: new ZoneSpecification(print: (_, __, ___, String line) {
-    printer.printSrc(line);
-  }));
-
+  // Run the generator.
+  injector.get(ParserGenerator).generateParser(htmlExtractor.expressions);
 
   // Output footer last.
   if (footerFile != '') {

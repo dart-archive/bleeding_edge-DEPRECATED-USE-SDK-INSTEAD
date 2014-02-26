@@ -9,7 +9,7 @@ main() {
     beforeEach(inject((TestBed tb) => _ = tb));
 
     it('should set ignore all other markup/directives on the descendent nodes',
-          inject((Scope scope, Injector injector, Compiler compiler, DirectiveMap directives) {
+          inject((Scope scope, Injector injector, Compiler compiler) {
       var element = $('<div>' +
                       '  <span id="s1">{{a}}</span>' +
                       '  <span id="s2" ng-bind="b"></span>' +
@@ -19,10 +19,10 @@ main() {
                       '  <span id="s3">{{a}}</span>' +
                       '  <span id="s4" ng-bind="b"></span>' +
                       '</div>');
-      compiler(element, directives)(injector, element);
-      scope.context['a'] = "one";
-      scope.context['b'] = "two";
-      scope.apply();
+      compiler(element)(injector, element);
+      scope.a = "one";
+      scope.b = "two";
+      scope.$digest();
       // Bindings not contained by ng-non-bindable should resolve.
       expect(element.find("#s1").text().trim()).toEqual('one');
       expect(element.find("#s2").text().trim()).toEqual('two');

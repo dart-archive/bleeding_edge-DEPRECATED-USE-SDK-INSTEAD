@@ -16,18 +16,21 @@ part of angular.directive;
  */
 @NgDirective(
   selector: '[ng-bind-html]',
-  map: const {'ng-bind-html': '=>value'})
+  map: const {'ngBindHtml': '=>value'})
 class NgBindHtmlDirective {
-  final dom.Element element;
-  final dom.NodeValidator validator;
-  
-  NgBindHtmlDirective(this.element, dom.NodeValidator this.validator);
+  // The default HTML sanitizer.  Eventually, we'll make this configurable or
+  // use an optionally loaded `$sanitize` service.
+  static final dom.NodeValidator validator = new dom.NodeValidatorBuilder.common();
+
+  dom.Element element;
+
+  NgBindHtmlDirective(this.element);
 
   /**
    * Parsed expression from the `ng-bind-html` attribute.  The result of this
    * expression is innerHTML'd according to the rules specified in this class'
-   * documentation.
+   * documention.
    */
-  set value(value) => element.setInnerHtml(value == null ? '' : value.toString(),
-                                           validator: validator);
+  set value(value) => element.setInnerHtml((value == null ? '' : value.toString()),
+                                           validator: validator) ;
 }

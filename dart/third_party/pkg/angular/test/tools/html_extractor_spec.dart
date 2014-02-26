@@ -16,8 +16,8 @@ main() => describe('html_extractor', () {
       '''
     });
 
-    var extractor = new HtmlExpressionExtractor([]);
-    extractor.crawl('/', ioService);
+    var extractor = new HtmlExpressionExtractor([], ioService);
+    extractor.crawl('/');
     expect(extractor.expressions.toList()..sort(),
         equals(['aux', 'ctrl.bar']));
   });
@@ -29,8 +29,8 @@ main() => describe('html_extractor', () {
       '''
     });
 
-    var extractor = new HtmlExpressionExtractor([]);
-    extractor.crawl('/', ioService);
+    var extractor = new HtmlExpressionExtractor([], ioService);
+    extractor.crawl('/');
     expect(extractor.expressions.toList()..sort(),
         equals(['aux', 'ctrl.bar']));
   });
@@ -42,8 +42,8 @@ main() => describe('html_extractor', () {
       '''
     });
 
-    var extractor = new HtmlExpressionExtractor([]);
-    extractor.crawl('/', ioService);
+    var extractor = new HtmlExpressionExtractor([], ioService);
+    extractor.crawl('/');
     expect(extractor.expressions.toList()..sort(),
         equals(['ctrl.bar']));
   });
@@ -53,8 +53,8 @@ main() => describe('html_extractor', () {
 
     var extractor = new HtmlExpressionExtractor([
       new DirectiveInfo('', [], ['foo', 'bar'])
-    ]);
-    extractor.crawl('/', ioService);
+    ], ioService);
+    extractor.crawl('/');
     expect(extractor.expressions.toList()..sort(),
         equals(['bar', 'foo']));
   });
@@ -68,8 +68,8 @@ main() => describe('html_extractor', () {
 
     var extractor = new HtmlExpressionExtractor([
       new DirectiveInfo('foo', ['bar'])
-    ]);
-    extractor.crawl('/', ioService);
+    ], ioService);
+    extractor.crawl('/');
     expect(extractor.expressions.toList()..sort(),
         equals(['ctrl.baz']));
   });
@@ -83,8 +83,8 @@ main() => describe('html_extractor', () {
 
     var extractor = new HtmlExpressionExtractor([
       new DirectiveInfo('[ng-repeat]', ['ng-repeat'])
-    ]);
-    extractor.crawl('/', ioService);
+    ], ioService);
+    extractor.crawl('/');
     // Basically we don't want to extract "foo in ctrl.bar".
     expect(extractor.expressions.toList()..sort(),
         equals(['ctrl.bar']));

@@ -1,11 +1,10 @@
 /**
- * The [routing] library makes it easier to build large single-page
- * applications. The library lets you map the browser address bar to semantic
- * structure of your application and keeps them in sync.
+ * The [routing] library makes it easier to build large single-page applications. The
+ * library lets you map the browser address bar to semantic structure of your
+ * application and keeps them in sync.
  *
- * Angular uses the [route_hierarchical] package to define application routes
- * and to provide custom tools to make it easier to use routing with Angular
- * templates.
+ * Angular uses the [route_hierarchical] package to define application routes and
+ * to provide custom tools to make it easier to use routing with Angular templates.
  *
  * Lets consider a simple recipe book application. The application might have
  * the following pages:
@@ -24,35 +23,39 @@
  *
  *
  * Lets try to define those routes in Angular. To get started we need to
- * provide an implementation of [RouteInitializerFn] function.
+ * provide an implementation of [RouteInitializer] interface.
  *
- *    void initRoutes(Router router, ViewFactory view) {
- *       // define routes here.
- *    }
+ *     class RecipesRouteInitializer implements RouteInitializer {
+ *       void init(Router router, ViewFactory view) {
+ *         // define routes here.
+ *       }
+ *     }
  *
  *     var module = new Module()
- *       ..factory(RouteInitializerFn, (_) => initRoutes);
+ *       ..type(RouteInitializer, implementedBy: RecipesRouteInitializer);
  *
  *  Lets see how we could define our routes using the routing framework:
  *
- *     void initRoutes(Router router, ViewFactory view) {
- *       router
- *         ..addRoute(
- *            name: 'recipes',
- *            path: '/recipes',
- *            enter: view('recipes.html'))
- *         ..addRoute(
- *            name: 'addRecipe',
- *            path: '/addRecipe',
- *            enter: view('addRecipe.html'))
- *         ..addRoute(
- *            name: 'viewRecipe',
- *            path: '/recipe/:recipeId/view',
- *            enter: view('viewRecipe.html'))
- *         ..addRoute(
- *            name: 'editRecipe',
- *            path: '/recipe/:recipeId/edit',
- *            enter: view('editRecipe.html'));
+ *     class RecipesRouteInitializer implements RouteInitializer {
+ *       void init(Router router, ViewFactory view) {
+ *         router
+ *           ..addRoute(
+ *              name: 'recipes',
+ *              path: '/recipes',
+ *              enter: view('recipes.html'))
+ *           ..addRoute(
+ *              name: 'addRecipe',
+ *              path: '/addRecipe',
+ *              enter: view('addRecipe.html'))
+ *           ..addRoute(
+ *              name: 'viewRecipe',
+ *              path: '/recipe/:recipeId/view',
+ *              enter: view('viewRecipe.html'))
+ *           ..addRoute(
+ *              name: 'editRecipe',
+ *              path: '/recipe/:recipeId/edit',
+ *              enter: view('editRecipe.html'));
+ *       }
  *     }
  *
  *  We defined 4 routes and for each route we set views (templates) to be
@@ -121,30 +124,31 @@
  *  The routing framework allows us to define trees of routes. In our recipes
  *  example we could have defined our routes like this:
  *
- *     void initRoutes(Router router, ViewFactory view) {
- *       router
- *         ..addRoute(
- *            name: 'recipes',
- *            path: '/recipes',
- *            enter: view('recipes.html'))
- *         ..addRoute(
- *            name: 'addRecipe',
- *            path: '/addRecipe',
- *            enter: view('addRecipe.html'))
- *         ..addRoute(
- *            name: 'recipe',
- *            path: '/recipe/:recipeId',
- *            mount: (Route route) => route
- *               ..addRoute(
- *                  name: 'view',
- *                  path: '/view',
- *                  enter: view('viewRecipe.html'))
- *               ..addRoute(
- *                  name: 'edit',
- *                  path: '/edit',
- *                  enter: view('editRecipe.html')));
+ *     class RecipesRouteInitializer implements RouteInitializer {
+ *       void init(Router router, ViewFactory view) {
+ *         router
+ *           ..addRoute(
+ *              name: 'recipes',
+ *              path: '/recipes',
+ *              enter: view('recipes.html'))
+ *           ..addRoute(
+ *              name: 'addRecipe',
+ *              path: '/addRecipe',
+ *              enter: view('addRecipe.html'))
+ *           ..addRoute(
+ *              name: 'recipe',
+ *              path: '/recipe/:recipeId',
+ *              mount: (Route route) => route
+ *                 ..addRoute(
+ *                    name: 'view',
+ *                    path: '/view',
+ *                    enter: view('viewRecipe.html'))
+ *                 ..addRoute(
+ *                    name: 'edit',
+ *                    path: '/edit',
+ *                    enter: view('editRecipe.html')));
+ *       }
  *     }
- *   }
  */
 library angular.routing;
 
@@ -171,7 +175,6 @@ class NgRoutingModule extends Module {
     type(NgRoutingHelper);
     value(RouteProvider, null);
     value(RouteInitializer, null);
-    value(RouteInitializerFn, null);
 
     // directives
     value(NgViewDirective, null);

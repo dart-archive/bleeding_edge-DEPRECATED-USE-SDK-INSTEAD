@@ -28,9 +28,9 @@ class ParserGenerator {
   }
 
   generateParser(Iterable<String> expressions) {
-    print("StaticParserFunctions functions()");
+    print("StaticParserFunctions functions(FilterLookup filters)");
     print("    => new StaticParserFunctions(");
-    print("           buildEval(), buildAssign());");
+    print("           buildEval(filters), buildAssign(filters));");
     print("");
 
     // Compute the function maps.
@@ -50,7 +50,7 @@ class ParserGenerator {
 
   void generateBuildFunction(String name, Map map) {
     String mapLiteral = map.keys.map((e) => '    "$e": ${map[e]}').join(',\n');
-    print("Map<String, Function> $name() {");
+    print("Map<String, Function> $name(FilterLookup filters) {");
     print("  return {\n$mapLiteral\n  };");
     print("}");
     print("");
@@ -74,7 +74,7 @@ class ParserGenerator {
   }
 
   String getCode(Expression e, bool assign) {
-    String args = assign ? "scope, value" : "scope, filters";
+    String args = assign ? "scope, value" : "scope";
     String code = _codegen.generate(e, assign);
     if (e.isChain) {
       code = code.replaceAll('\n', '\n      ');

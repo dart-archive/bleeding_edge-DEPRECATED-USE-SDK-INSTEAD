@@ -15,7 +15,7 @@ main() {
       module.type(DynamicParser, implementedBy: AlwaysThrowError);
 
       module.factory(StaticParserFunctions, (Injector injector) {
-        return generated_functions.functions();
+        return generated_functions.functions(injector.get(FilterMap));
       });
     }));
     parser_spec.main();

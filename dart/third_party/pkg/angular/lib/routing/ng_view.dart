@@ -9,32 +9,33 @@ part of angular.routing;
  * [NgViewDirective] can work with [NgViewDirective] to define nested views
  * for hierarchical routes. For example:
  *
- *     void initRoutes(Router router, ViewFactory view) {
- *       router.root
- *         ..addRoute(
- *             name: 'library',
- *             path: '/library',
- *             enter: view('library.html'),
- *             mount: (Route route) => route
- *               ..addRoute(
- *                   name: 'all',
- *                   path: '/all',
- *                   enter: view('book_list.html'))
- *               ..addRoute(
- *                   name: 'book',
- *                   path: '/:bookId',
- *                   mount: (Route route) => route
- *                     ..addRoute(
- *                         name: 'overview',
- *                         path: '/overview',
- *                         defaultRoute: true,
- *                         enter: view('book_overview.html'))
- *                     ..addRoute(
- *                         name: 'read',
- *                         path: '/read',
- *                         enter: view('book_read.html'))));
+ *     class MyRouteInitializer implements RouteInitializer {
+ *       void init(Router router, ViewFactory view) {
+ *         router.root
+ *           ..addRoute(
+ *               name: 'library',
+ *               path: '/library',
+ *               enter: view('library.html'),
+ *               mount: (Route route) => route
+ *                 ..addRoute(
+ *                     name: 'all',
+ *                     path: '/all',
+ *                     enter: view('book_list.html'))
+ *                 ..addRoute(
+ *                     name: 'book',
+ *                     path: '/:bookId',
+ *                     mount: (Route route) => route
+ *                       ..addRoute(
+ *                           name: 'overview',
+ *                           path: '/overview',
+ *                           defaultRoute: true,
+ *                           enter: view('book_overview.html'))
+ *                       ..addRoute(
+ *                           name: 'read',
+ *                           path: '/read',
+ *                           enter: view('book_read.html'))));
+ *       }
  *     }
- *   }
  *
  * index.html:
  *
@@ -58,35 +59,36 @@ part of angular.routing;
 @NgDirective(
     selector: 'ng-view',
     publishTypes: const [RouteProvider],
-    visibility: NgDirective.CHILDREN_VISIBILITY)
+    visibility: NgDirective.CHILDREN_VISIBILITY
+)
 class NgViewDirective implements NgDetachAware, RouteProvider {
   final NgRoutingHelper locationService;
   final BlockCache blockCache;
+  final Scope scope;
   final Injector injector;
   final Element element;
-  final Scope scope;
   RouteHandle _route;
 
   Block _previousBlock;
   Scope _previousScope;
   Route _viewRoute;
 
-  NgViewDirective(this.element, this.blockCache,
-                  Injector injector, Router router,
-                  this.scope)
-      : injector = injector,
-        locationService = injector.get(NgRoutingHelper)
-  {
+  NgViewDirective(this.element, this.blockCache, this.scope, Injector injector, Router router)
+      : injector = injector, locationService = injector.get(NgRoutingHelper) {
     RouteProvider routeProvider = injector.parent.get(NgViewDirective);
-    _route = routeProvider != null ?
-        routeProvider.route.newHandle() :
-        router.root.newHandle();
+    if (routeProvider != null) {
+      _route = routeProvider.route.newHandle();
+    } else {
+      _route = router.root.newHandle();
+    }
     locationService._registerPortal(this);
     _maybeReloadViews();
   }
 
   void _maybeReloadViews() {
-    if (_route.isActive) locationService._reloadViews(startingFrom: _route);
+    if (_route.isActive) {
+      locationService._reloadViews(startingFrom: _route);
+    }
   }
 
   detach() {
@@ -94,7 +96,7 @@ class NgViewDirective implements NgDetachAware, RouteProvider {
     locationService._unregisterPortal(this);
   }
 
-  _show(String templateUrl, Route route, List<Module> modules) {
+  _show(String templateUrl, Route route) {
     assert(route.isActive);
 
     if (_viewRoute != null) return;
@@ -108,28 +110,23 @@ class NgViewDirective implements NgDetachAware, RouteProvider {
       _cleanUp();
     });
 
-    var viewInjector = injector;
-    if (modules != null) {
-      viewInjector = forceNewDirectivesAndFilters(viewInjector, modules);
-    }
-
-    var newDirectives = viewInjector.get(DirectiveMap);
-    blockCache.fromUrl(templateUrl, newDirectives).then((blockFactory) {
+    blockCache.fromUrl(templateUrl).then((blockFactory) {
       _cleanUp();
-      _previousScope = scope.createChild(new PrototypeMap(scope.context));
+      _previousScope = scope.$new();
       _previousBlock = blockFactory(
-          viewInjector.createChild(
-              [new Module()..value(Scope, _previousScope)]));
+          injector.createChild([new Module()..value(Scope, _previousScope)]));
 
       _previousBlock.elements.forEach((elm) => element.append(elm));
     });
   }
 
   _cleanUp() {
-    if (_previousBlock == null) return;
+    if (_previousBlock == null) {
+      return;
+    }
 
     _previousBlock.remove();
-    _previousScope.destroy();
+    _previousScope.$destroy();
 
     _previousBlock = null;
     _previousScope = null;

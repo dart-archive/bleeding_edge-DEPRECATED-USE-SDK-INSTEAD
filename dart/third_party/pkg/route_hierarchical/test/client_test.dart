@@ -1,14 +1,16 @@
 import 'dart:async';
+import 'dart:html';
 
 import 'package:unittest/unittest.dart';
 import 'package:unittest/mock.dart';
+import 'package:unittest/html_enhanced_config.dart';
 import 'package:route_hierarchical/client.dart';
 import 'package:route_hierarchical/url_pattern.dart';
 
 import 'mocks.dart';
 
 main() {
-  unittestConfiguration.timeout = new Duration(seconds: 1);
+  useHtmlEnhancedConfiguration();
 
   test('paths are routed to routes added with addRoute', () {
     Router router = new Router();
@@ -17,9 +19,8 @@ main() {
         path: '/foo',
         enter: expectAsync1((RouteEvent e) {
           expect(e.path, '/foo');
-          expect(router.root.getRoute('foo').isActive, isTrue);
         }));
-    return router.route('/foo');
+    router.route('/foo');
   });
 
   group('hierarchical routing', () {
@@ -36,8 +37,6 @@ main() {
           path: parentPath,
           enter: expectAsync1((RouteEvent e) {
             expect(e.path, expectedParentPath);
-            expect(e.route, isNotNull);
-            expect(e.route.name, 'parent');
           }),
           mount: (Route child) {
             child.addRoute(
@@ -74,13 +73,10 @@ main() {
 
     test('should leave previous route and enter new', () {
       Map<String, int> counters = <String, int>{
-        'fooPreEnter': 0,
         'fooEnter': 0,
         'fooLeave': 0,
-        'barPreEnter': 0,
         'barEnter': 0,
         'barLeave': 0,
-        'bazPreEnter': 0,
         'bazEnter': 0,
         'bazLeave': 0
       };
@@ -88,55 +84,43 @@ main() {
       router.root
         ..addRoute(path: '/foo',
             name: 'foo',
-            preEnter: (RouteEvent e) => counters['fooPreEnter']++,
             enter: (RouteEvent e) => counters['fooEnter']++,
             leave: (RouteEvent e) => counters['fooLeave']++,
             mount: (Route route) => route
               ..addRoute(path: '/bar',
                   name: 'bar',
-                  preEnter: (RouteEvent e) => counters['barPreEnter']++,
                   enter: (RouteEvent e) => counters['barEnter']++,
                   leave: (RouteEvent e) => counters['barLeave']++)
               ..addRoute(path: '/baz',
                   name: 'baz',
-                  preEnter: (RouteEvent e) => counters['bazPreEnter']++,
                   enter: (RouteEvent e) => counters['bazEnter']++,
                   leave: (RouteEvent e) => counters['bazLeave']++));
 
       expect(counters, {
-        'fooPreEnter': 0,
         'fooEnter': 0,
         'fooLeave': 0,
-        'barPreEnter': 0,
         'barEnter': 0,
         'barLeave': 0,
-        'bazPreEnter': 0,
         'bazEnter': 0,
         'bazLeave': 0
       });
 
       router.route('/foo/bar').then(expectAsync1((_) {
         expect(counters, {
-          'fooPreEnter': 1,
           'fooEnter': 1,
           'fooLeave': 0,
-          'barPreEnter': 1,
           'barEnter': 1,
           'barLeave': 0,
-          'bazPreEnter': 0,
           'bazEnter': 0,
           'bazLeave': 0
         });
 
         router.route('/foo/baz').then(expectAsync1((_) {
           expect(counters, {
-            'fooPreEnter': 1,
             'fooEnter': 1,
             'fooLeave': 0,
-            'barPreEnter': 1,
             'barEnter': 1,
             'barLeave': 1,
-            'bazPreEnter': 1,
             'bazEnter': 1,
             'bazLeave': 0
           });
@@ -154,10 +138,10 @@ main() {
         ..addRoute(name: 'foo', path: '/foo',
             mount: (Route child) => child
               ..addRoute(name: 'bar', path: '/bar',
-                  enter: (RouteEnterEvent e) => barEntered = true,
-                  leave: (RouteLeaveEvent e) => e.allowLeave(completer.future))
+                  enter: (RouteEvent e) => barEntered = true,
+                  leave: (RouteEvent e) => e.allowLeave(completer.future))
               ..addRoute(name: 'baz', path: '/baz',
-                  enter: (RouteEnterEvent e) => bazEntered = true));
+                  enter: (RouteEvent e) => bazEntered = true));
 
       router.route('/foo/bar').then(expectAsync1((_) {
         expect(barEntered, true);
@@ -175,36 +159,6 @@ main() {
 
     test('should veto navigation', () {
       _testAllowLeave(false);
-    });
-  });
-
-  group('preEnter', () {
-
-    _testAllowEnter(bool allowEnter) {
-      Completer<bool> completer = new Completer<bool>();
-      bool barEntered = false;
-
-      Router router = new Router();
-      router.root
-        ..addRoute(name: 'foo', path: '/foo',
-            mount: (Route child) => child
-              ..addRoute(name: 'bar', path: '/bar',
-                  enter: (RouteEnterEvent e) => barEntered = true,
-                  preEnter: (RoutePreEnterEvent e) =>
-                      e.allowEnter(completer.future)));
-
-      router.route('/foo/bar').then(expectAsync1((_) {
-        expect(barEntered, allowEnter);
-      }));
-      completer.complete(allowEnter);
-    }
-
-    test('should allow navigation', () {
-      _testAllowEnter(true);
-    });
-
-    test('should veto navigation', () {
-      _testAllowEnter(false);
     });
   });
 

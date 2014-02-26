@@ -1,17 +1,21 @@
 part of angular.core;
 
+String _startSymbol = '{{';
+String _endSymbol = '}}';
+int _startSymbolLength = _startSymbol.length;
+int _endSymbolLength = _endSymbol.length;
+
 class Interpolation {
   final String template;
   final List<String> seperators;
-  final List<String> expressions;
+  final List<Getter> watchExpressions;
   Function setter = (_) => _;
 
-  Interpolation(this.template, this.seperators, this.expressions);
+  Interpolation(this.template, this.seperators, this.watchExpressions);
 
-  String call(List parts, [_]) {
-    if (parts == null) return seperators.join('');
+  String call(List parts, [_, __]) {
     var str = [];
-    for (var i = 0; i < parts.length; i++) {
+    for(var i = 0, ii = parts.length; i < ii; i++) {
       str.add(seperators[i]);
       var value = parts[i];
       str.add(value == null ? '' : '$value');
@@ -44,13 +48,8 @@ class Interpolate {
    *      have embedded expression in order to return an interpolation function.
    *      Strings with no embedded expression will return null for the
    *      interpolation function.
-   * - `startSymbol`: The symbol to start interpolation. '{{' by default.
-   * - `endSymbol`: The symbol to end interpolation. '}}' by default.
    */
-  Interpolation call(String template, [bool mustHaveExpression = false,
-      String startSymbol = '{{', String endSymbol = '}}']) {
-    int startSymbolLength = startSymbol.length;
-    int endSymbolLength = endSymbol.length;
+  Interpolation call(String template, [bool mustHaveExpression = false]) {
     int startIndex;
     int endIndex;
     int index = 0;
@@ -59,15 +58,16 @@ class Interpolate {
     bool shouldAddSeparator = true;
     String exp;
     List<String> separators = [];
-    List<String> expressions = [];
+    List<Getter> watchExpressions = [];
 
     while(index < length) {
-      if ( ((startIndex = template.indexOf(startSymbol, index)) != -1) &&
-           ((endIndex = template.indexOf(endSymbol, startIndex + startSymbolLength)) != -1) ) {
+      if ( ((startIndex = template.indexOf(_startSymbol, index)) != -1) &&
+           ((endIndex = template.indexOf(_endSymbol, startIndex + _startSymbolLength)) != -1) ) {
         separators.add(template.substring(index, startIndex));
-        exp = template.substring(startIndex + startSymbolLength, endIndex);
-        expressions.add(exp);
-        index = endIndex + endSymbolLength;
+        exp = template.substring(startIndex + _startSymbolLength, endIndex);
+        Expression expression = _parse(exp);
+        watchExpressions.add(expression.eval);
+        index = endIndex + _endSymbolLength;
         hasInterpolation = true;
       } else {
         // we did not find anything, so we have to add the remainder to the chunks array
@@ -79,8 +79,8 @@ class Interpolate {
     if (shouldAddSeparator) {
       separators.add('');
     }
-    return (!mustHaveExpression || hasInterpolation)
-        ? new Interpolation(template, separators, expressions)
-        : null;
+    if (!mustHaveExpression  || hasInterpolation) {
+      return new Interpolation(template, separators, watchExpressions);
+    }
   }
 }

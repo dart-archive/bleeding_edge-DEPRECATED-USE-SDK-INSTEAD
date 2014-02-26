@@ -70,6 +70,7 @@
 library js;
 
 import 'dart:js' as js;
+@MirrorsUsed(symbols: '*')
 import 'dart:mirrors';
 
 /**
@@ -258,8 +259,8 @@ class FunctionProxy extends Proxy<FunctionProxy> implements Function {
   final _thisArg;
 
   FunctionProxy._(js.JsFunction jsFunction, {thisArg}) :
-      _jsFunction = jsFunction,
-      _thisArg = thisArg,
+      this._jsFunction = jsFunction,
+      this._thisArg = thisArg,
       super._(jsFunction);
 
   factory FunctionProxy(Function f) => new FunctionProxy._(

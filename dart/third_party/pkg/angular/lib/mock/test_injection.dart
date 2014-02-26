@@ -5,9 +5,8 @@ _SpecInjector _currentSpecInjector = null;
 class _SpecInjector {
   DynamicInjector moduleInjector;
   DynamicInjector injector;
-  dynamic injectiorCreateLocation;
-  final modules = <Module>[];
-  final initFns = <Function>[];
+  List<Module> modules = [];
+  List<Function> initFns = [];
 
   _SpecInjector() {
     var moduleModule = new Module()
@@ -24,13 +23,12 @@ class _SpecInjector {
   }
 
   module(fnOrModule, [declarationStack]) {
-    if (injectiorCreateLocation != null) {
-      throw "Injector already created at:\n$injectiorCreateLocation";
-    }
     try {
       if (fnOrModule is Function) {
         var initFn = moduleInjector.invoke(fnOrModule);
-        if (initFn is Function) initFns.add(initFn);
+        if (initFn is Function) {
+          initFns.add(initFn);
+        }
       } else if (fnOrModule is Module) {
         addModule(fnOrModule);
       } else {
@@ -44,7 +42,6 @@ class _SpecInjector {
   inject(Function fn, [declarationStack]) {
     try {
       if (injector == null) {
-        injectiorCreateLocation = declarationStack;
         injector = new DynamicInjector(modules: modules); // Implicit injection is disabled.
         initFns.forEach((fn) {
           injector.invoke(fn);
@@ -58,7 +55,6 @@ class _SpecInjector {
 
   reset() {
     injector = null;
-    injectiorCreateLocation = null;
   }
 }
 
@@ -85,12 +81,12 @@ class _SpecInjector {
  *
  */
 inject(Function fn) {
-  try {
-    throw '';
-  } catch (e, stack) {
-    return _currentSpecInjector == null
-        ? () => _currentSpecInjector.inject(fn, stack)
-        : _currentSpecInjector.inject(fn, stack);
+  try { throw ''; } catch (e, stack) {
+    if (_currentSpecInjector == null ) {
+      return () => _currentSpecInjector.inject(fn, stack);
+    } else {
+      return _currentSpecInjector.inject(fn, stack);
+    }
   }
 }
 
@@ -112,28 +108,27 @@ inject(Function fn) {
  *     });
  */
 module(fnOrModule) {
-  try {
-    throw '';
-  } catch(e, stack) {
-    return _currentSpecInjector == null
-        ? () => _currentSpecInjector.module(fnOrModule, stack)
-        : _currentSpecInjector.module(fnOrModule, stack);
+  try { throw ''; } catch(e, stack) {
+    if (_currentSpecInjector == null ) {
+      return () => _currentSpecInjector.module(fnOrModule, stack);
+    } else {
+      return _currentSpecInjector.module(fnOrModule, stack);
+    }
   }
 }
 
 /**
  * Call this method in your test harness [setUp] method to setup the injector.
  */
-void setUpInjector() {
+setUpInjector() {
   _currentSpecInjector = new _SpecInjector();
   _currentSpecInjector.module((Module m) {
-    m..install(new AngularModule())..install(new AngularMockModule());
+    m.install(new AngularModule());
+    m.install(new AngularMockModule());
   });
 }
 
 /**
  * Call this method in your test harness [tearDown] method to cleanup the injector.
  */
-void tearDownInjector() {
-  _currentSpecInjector = null;
-}
+tearDownInjector() => _currentSpecInjector = null;

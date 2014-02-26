@@ -19,11 +19,9 @@ Matcher toContain(expected) => contains(expected);
 Matcher toBe(expected) => same(expected);
 Matcher instanceOf(Type t) => new IsInstanceOfTypeMatcher(t);
 
-Matcher toThrow(Type exceptionClass, [message]) => message == null
-      ? new ThrowsMatcher(instanceOf(exceptionClass))
-      : new ThrowsMatcher(new ComplexExceptionMatcher(
-          instanceOf(exceptionClass),
-          message is Matcher ? message : toContain(message)));
+Matcher toThrow(Type exceptionClass, String message) =>
+  new ThrowsMatcher(new ComplexExceptionMatcher(
+      instanceOf(exceptionClass), toContain(message)));
 
 Matcher not(Matcher matcher) => new NegateMatcher(matcher);
 

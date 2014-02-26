@@ -11,5 +11,6 @@ main() {
     } else {
       return true;
     }
+    return true;
   });
 }

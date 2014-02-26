@@ -157,7 +157,7 @@ import 'urls.dart';
 import 'package:route_hierarchical/server.dart';
 import 'package:route_hierarchical/pattern.dart';
 
-HttpServer.bind('0.0.0.0', 8888).then((server) {
+HttpServer.bind().then((server) {
   var router = new Router(server)
     ..filter(matchesAny(allUrls), authFilter)
     ..serve(homeUrl).listen(serverHome)

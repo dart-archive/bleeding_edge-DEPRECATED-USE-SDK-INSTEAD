@@ -41,7 +41,6 @@ class DefaultOptionsComponent {
 main() {
   describe('shadow dom options', () {
     Compiler $compile;
-    DirectiveMap directives;
     Injector injector;
     Scope $rootScope;
 
@@ -54,7 +53,6 @@ main() {
         injector = _injector;
         $compile = injector.get(Compiler);
         $rootScope = injector.get(Scope);
-        directives = injector.get(DirectiveMap);
       };
     }));
 
@@ -64,7 +62,7 @@ main() {
           '<apply-author-style>not included</apply-author-style>' +
           '<default-options>not included</default-options>');
       element.forEach((elt) { document.body.append(elt); }); // we need the computed style.
-      $compile(element, directives)(injector, element);
+      $compile(element)(injector, element);
 
       microLeap();
       expect(element[1].shadowRoot.query('div').getComputedStyle().border).toContain('3px solid');
@@ -78,7 +76,7 @@ main() {
           '<reset-style-inheritance>not included</reset-style-inheritance>' +
           '<default-options>not included</default-options>');
       element.forEach((elt) { document.body.append(elt); }); // we need the computed style.
-      $compile(element, directives)(injector, element);
+      $compile(element)(injector, element);
 
       microLeap();
       expect(element[1].shadowRoot.query('div').getComputedStyle().fontSize).toEqual('16px');

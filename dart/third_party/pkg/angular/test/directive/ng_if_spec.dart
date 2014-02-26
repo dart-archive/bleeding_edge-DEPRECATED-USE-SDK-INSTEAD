@@ -9,13 +9,13 @@ class ChildController {
   ChildController(BoundBlockFactory boundBlockFactory,
                   BlockHole blockHole,
                   Scope scope) {
-    scope.context['setBy'] = 'childController';
+    scope.setBy = 'childController';
     boundBlockFactory(scope).insertAfter(blockHole);
   }
 }
 
 main() {
-  var compile, html, element, rootScope, logger, directives;
+  var compile, html, element, rootScope, logger;
 
   void configInjector() {
     module((Module module) {
@@ -26,25 +26,24 @@ main() {
   }
 
   void configState() {
-    inject((Scope scope, Compiler compiler, Injector injector, Logger _logger, DirectiveMap _directives) {
+    inject((Scope scope, Compiler compiler, Injector injector, Logger _logger) {
       rootScope = scope;
       logger = _logger;
       compile = (html, [applyFn]) {
         element = $(html);
-        compiler(element, _directives)(injector, element);
-        scope.apply(applyFn);
+        compiler(element)(injector, element);
+        scope.$apply(applyFn);
       };
-      directives = _directives;
     });
   }
 
-  they(should, htmlForElements, callback, [exclusive=false]) {
+  they(should, htmlForElements, callback) {
     htmlForElements.forEach((html) {
       var directiveName = html.contains('ng-if') ? 'ng-if' : 'ng-unless';
       describe(directiveName, () {
         beforeEach(configInjector);
         beforeEach(configState);
-        (exclusive ? iit : it)(should, () {
+        it(should, () {
           callback(html);
         });
       });
@@ -60,16 +59,16 @@ main() {
       expect(element.contents().length).toEqual(1);
       expect(element.find('span').html()).toEqual('');
 
-      rootScope.apply(() {
-        rootScope.context['isVisible'] = true;
+      rootScope.$apply(() {
+        rootScope['isVisible'] = true;
       });
 
       // The span node SHOULD exist in the DOM.
       expect(element.contents().length).toEqual(2);
       expect(element.find('span').html()).toEqual('content');
 
-      rootScope.apply(() {
-        rootScope.context['isVisible'] = false;
+      rootScope.$apply(() {
+        rootScope['isVisible'] = false;
       });
 
       expect(element.find('span').html()).toEqual('');
@@ -93,18 +92,18 @@ main() {
       '  <span id="outside">{{setBy}}</span>'.trim() +
       '</div>'],
     (html) {
-      rootScope.context['setBy'] = 'topLevel';
+      rootScope['setBy'] = 'topLevel';
       compile(html);
       expect(element.contents().length).toEqual(2);
 
-      rootScope.apply(() {
-        rootScope.context['isVisible'] = true;
+      rootScope.$apply(() {
+        rootScope['isVisible'] = true;
       });
       expect(element.contents().length).toEqual(3);
-      // The value on the parent scope.context['should'] be unchanged.
-      expect(rootScope.context['setBy']).toEqual('topLevel');
+      // The value on the parent scope should be unchanged.
+      expect(rootScope['setBy']).toEqual('topLevel');
       expect(element.find('#outside').html()).toEqual('topLevel');
-      // A child scope.context['must'] have been created and hold a different value.
+      // A child scope must have been created and hold a different value.
       expect(element.find('#inside').html()).toEqual('childController');
     }
   );
@@ -124,14 +123,14 @@ main() {
       '  <div ng-repeat="i in values"></div>'.trim() +
       '</div>'],
     (html) {
-      var values = rootScope.context['values'] = [1, 2, 3, 4];
+      var values = rootScope['values'] = [1, 2, 3, 4];
       compile(html);
       expect(element.contents().length).toBe(12);
-      rootScope.apply(() {
+      rootScope.$apply(() {
         values.removeRange(0, 1);
       });
       expect(element.contents().length).toBe(9);
-      rootScope.apply(() {
+      rootScope.$apply(() {
         values.insert(0, 1);
       });
       expect(element.contents().length).toBe(12);
@@ -143,17 +142,17 @@ main() {
       '<div><span class="my-class" ng-if="isVisible">content</span></div>',
       '<div><span class="my-class" ng-unless="!isVisible">content</span></div>'],
     (html) {
-      rootScope.context['isVisible'] = true;
+      rootScope['isVisible'] = true;
       compile(html);
       expect(element.contents().length).toEqual(2);
       element.find('span').removeClass('my-class');
       expect(element.find('span').hasClass('my-class')).not.toBe(true);
-      rootScope.apply(() {
-        rootScope.context['isVisible'] = false;
+      rootScope.$apply(() {
+        rootScope['isVisible'] = false;
       });
       expect(element.contents().length).toEqual(1);
-      rootScope.apply(() {
-        rootScope.context['isVisible'] = true;
+      rootScope.$apply(() {
+        rootScope['isVisible'] = true;
       });
       // The newly inserted node should be a copy of the compiled state.
       expect(element.find('span').hasClass('my-class')).toBe(true);
@@ -166,8 +165,8 @@ main() {
       '<div><span ng-click="click" ng-unless="!isVisible">content</span></div>'],
     (html) {
       compile(html);
-      rootScope.apply(() {
-        rootScope.context['isVisible'] = false;
+      rootScope.$apply(() {
+        rootScope['isVisible'] = false;
       });
       expect(element.find('span').html()).toEqual('');
     }
@@ -181,45 +180,18 @@ main() {
       compile(html);
       expect(element.find('span').html()).toEqual('');
 
-      rootScope.apply(() {
-        rootScope.context['isVisible'] = false;
+      rootScope.$apply(() {
+        rootScope['isVisible'] = false;
       });
       expect(element.find('span').html()).toEqual('');
       expect(logger.result()).toEqual('ALWAYS');
 
 
-      rootScope.apply(() {
-        rootScope.context['isVisible'] = true;
+      rootScope.$apply(() {
+        rootScope['isVisible'] = true;
       });
       expect(element.find('span').html()).toEqual('content');
       expect(logger.result()).toEqual('ALWAYS; JAMES');
-    }
-  );
-
-  they('should prevent other directives from running when disabled',
-  [
-    '<div><div ng-if="a"><div ng-if="b">content</div></div></div>',
-    '<div><div ng-unless="!a"><div ng-unless="!b">content</div></div></div>'],
-    (html) {
-      compile(html);
-      expect(element.find('span').html()).toEqual('');
-
-      expect(() {
-        rootScope.apply(() {
-          rootScope.context['a'] = true;
-          rootScope.context['b'] = false;
-        });
-      }).not.toThrow();
-      expect(element.find('span').html()).toEqual('');
-
-
-      expect(() {
-        rootScope.apply(() {
-          rootScope.context['a'] = false;
-          rootScope.context['b'] = true;
-        });
-      }).not.toThrow();
-      expect(element.find('span').html()).toEqual('');
     }
   );
 }

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+  </head>
+  <body>
+    <element name="x-company-info" constructor="CompanyInfoComponent" extends="div">
+      <template>
+        <ul class="nav nav-pills">
+          <li class="{{activeClass('info')}}">
+            <a href="{{infoUrl}}">Info</a>
+          </li>
+          <li class="{{activeClass('activities')}}">
+            <a href="{{activitiesUrl}}">Activities</a>
+          </li>
+          <li class="{{activeClass('notes')}}">
+            <a  href="{{notesUrl}}">Notes</a>
+          </li>
+        </ul>
+        <template if="section == 'info'">
+          <h2>{{company['name']}}: Info</h2>
+          <p>id: {{company['id']}}</p>
+          <p>revenue: {{company['revenue']}}</p>
+        </template>
+        <template if="section == 'activities'">
+          <h2>{{company['name']}}: Activities</h2>
+          <ul>
+            <li>a</li>
+            <li>b</li>
+            <li>c</li>
+            <li>d</li>
+            <li>e</li>
+            <li>f</li>
+            <li>g</li>
+          </ul>
+        </template>
+        <template if="section == 'notes'">
+          <h2>{{company['name']}}: Notes</h2>
+          <textarea></textarea><br/>
+          <button class="btn btn-primary">Add Note</button>
+        </template>
+        <script type="application/dart" src="company-info.dart"></script>
+      </template>
+    </element>
+  </body>
+</html>

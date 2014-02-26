@@ -15,14 +15,13 @@ part of angular.mock;
     selector: '[log]',
     map: const {
         'log': '@logMessage'
-    })
+    }
+)
 class LogAttrDirective implements NgAttachAware {
   final Logger log;
   String logMessage;
   LogAttrDirective(this.log);
-  void attach() {
-    log(logMessage == '' ? 'LOG' : logMessage);
-  }
+  attach() => log(logMessage == '' ? 'LOG' : logMessage);
 }
 
 /**
@@ -37,14 +36,12 @@ class LogAttrDirective implements NgAttachAware {
  *     expect(logger).toEqual(['foo', 'bar']);
  */
 class Logger extends ListBase {
-  final tokens = [];
+  final List tokens = [];
 
   /**
    * Add string token to the list.
    */
-  void call(text) {
-    tokens.add(text);
-  }
+  call(dynamic text) => tokens.add(text);
 
   /**
    * Return a `;` separated list of recorded tokens.
@@ -56,11 +53,7 @@ class Logger extends ListBase {
 
   operator [](int index) => tokens[index];
 
-  void operator []=(int index, value) {
-    tokens[index] = value;
-  }
+  void operator []=(int index, value) { tokens[index] = value; }
 
-  void set length(int newLength) {
-    tokens.length = newLength;
-  }
+  void set length(int newLength) { tokens.length = newLength; }
 }

@@ -12,12 +12,12 @@ main() => describe('SourceMetadataExtractor', () {
 
   it('should extract expressions and attribute names with expressions', () {
     var info = extractDirectiveInfo([
-      new DirectiveMetadata('FooComponent', COMPONENT, 'foo-component', {
+      new DirectiveMetadata('FooComponent', COMPONENT, null, {
         'barVal': '@bar',
-        'baz-expr1': '<=>baz1',
-        'baz-expr2': '=>baz2',
-        'baz-expr3': '=>!baz3',
-        'baz-callback': '&aux',
+        'bazExpr1': '<=>baz1',
+        'bazExpr2': '=>baz2',
+        'bazExpr3': '=>!baz3',
+        'bazCallback': '&aux',
       })
     ]);
 
@@ -36,7 +36,7 @@ main() => describe('SourceMetadataExtractor', () {
 
   it('should build a component selector if one is not explicitly specified', () {
     var info = extractDirectiveInfo([
-      new DirectiveMetadata('MyFooComponent', COMPONENT, 'my-foo', {
+      new DirectiveMetadata('MyFooComponent', COMPONENT, null, {
         'foo-expr': '=>fooExpr'
       })
     ]);
@@ -47,7 +47,7 @@ main() => describe('SourceMetadataExtractor', () {
 
   it('should build an element directive selector if one is not explicitly specified', () {
     var info = extractDirectiveInfo([
-      new DirectiveMetadata('MyFooDirective', DIRECTIVE, 'my-foo', {
+      new DirectiveMetadata('MyFooDirective', DIRECTIVE, null, {
         'foo-expr': '=>fooExpr'
       })
     ]);
@@ -58,7 +58,7 @@ main() => describe('SourceMetadataExtractor', () {
 
   it('should build an attr directive selector if one is not explicitly specified', () {
     var info = extractDirectiveInfo([
-      new DirectiveMetadata('MyFooAttrDirective', '[my-foo]', '[my-foo]', {
+      new DirectiveMetadata('MyFooAttrDirective', DIRECTIVE, null, {
         'foo-expr': '=>fooExpr'
       })
     ]);
@@ -69,7 +69,7 @@ main() => describe('SourceMetadataExtractor', () {
 
   it('should figure out attribute name if dot(.) is used', () {
     var info = extractDirectiveInfo([
-      new DirectiveMetadata('MyFooAttrDirective', DIRECTIVE, '[my-foo]', {
+      new DirectiveMetadata('MyFooAttrDirective', DIRECTIVE, null, {
         '.': '=>fooExpr'
       })
     ]);
@@ -119,8 +119,8 @@ flattenList(list, map) => list.map(map).fold([], (prev, exprs) =>
 List<DirectiveInfo> extractDirectiveInfo(List<DirectiveMetadata> metadata) {
   var sourceCrawler = new MockSourceCrawler();
   var metadataCollector = new MockDirectiveMetadataCollectingVisitor(metadata);
-  var extractor = new SourceMetadataExtractor(metadataCollector);
-  return extractor.gatherDirectiveInfo('', sourceCrawler);
+  var extractor = new SourceMetadataExtractor(sourceCrawler, metadataCollector);
+  return extractor.gatherDirectiveInfo('');
 }
 
 class MockDirectiveMetadataCollectingVisitor

@@ -4,10 +4,9 @@ class DevToolsTimelineProfiler extends Profiler {
   final dom.Console console = dom.window.console;
   String prefix = '';
 
-  String startTimer(String name, [String extraData]) {
+  int startTimer(String name, [String extraData]) {
     console.time('$prefix$name');
     prefix = '$prefix  ';
-    return name;
   }
 
   void stopTimer(dynamic name) {

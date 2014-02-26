@@ -28,7 +28,8 @@ part of angular.routing;
     selector: '[ng-bind-route]',
     map: const {
         'ng-bind-route': '@routeName'
-    })
+    }
+)
 class NgBindRouteDirective implements RouteProvider {
   Router _router;
   String routeName;
@@ -40,9 +41,13 @@ class NgBindRouteDirective implements RouteProvider {
   /// Returns the parent [RouteProvider].
   RouteProvider get _parent => _injector.parent.get(RouteProvider);
 
-  Route get route => routeName.startsWith('.') ?
-      _parent.route.getRoute(routeName.substring(1)) :
-      _router.root.getRoute(routeName);
+  Route get route {
+    if (routeName.startsWith('.')) {
+      return _parent.route.getRoute(routeName.substring(1));
+    } else {
+      return _router.root.getRoute(routeName);
+    }
+  }
 
   Map<String, String> get parameters {
     var res = <String, String>{};

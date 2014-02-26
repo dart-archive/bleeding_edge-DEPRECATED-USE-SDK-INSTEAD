@@ -17,25 +17,26 @@ part of angular.directive;
  */
 @NgDirective(
     selector: '[ng-include]',
-    map: const {'ng-include': '@url'})
+    map: const {'ng-include': '@url'} )
 class NgIncludeDirective {
 
-  final dom.Element element;
-  final Scope scope;
-  final BlockCache blockCache;
-  final Injector injector;
-  final DirectiveMap directives;
+  dom.Element element;
+  Scope scope;
+  BlockCache blockCache;
+  Injector injector;
 
   Block _previousBlock;
   Scope _previousScope;
 
-  NgIncludeDirective(this.element, this.scope, this.blockCache, this.injector, this.directives);
+  NgIncludeDirective(this.element, this.scope, this.blockCache, this.injector);
 
   _cleanUp() {
-    if (_previousBlock == null) return;
+    if (_previousBlock == null) {
+      return;
+    }
 
     _previousBlock.remove();
-    _previousScope.destroy();
+    _previousScope.$destroy();
     element.innerHtml = '';
 
     _previousBlock = null;
@@ -44,9 +45,8 @@ class NgIncludeDirective {
 
   _updateContent(createBlock) {
     // create a new scope
-    _previousScope = scope.createChild(new PrototypeMap(scope.context));
-    _previousBlock = createBlock(injector.createChild([new Module()
-        ..value(Scope, _previousScope)]));
+    _previousScope = scope.$new();
+    _previousBlock = createBlock(injector.createChild([new Module()..value(Scope, _previousScope)]));
 
     _previousBlock.elements.forEach((elm) => element.append(elm));
   }
@@ -55,7 +55,7 @@ class NgIncludeDirective {
   set url(value) {
     _cleanUp();
     if (value != null && value != '') {
-      blockCache.fromUrl(value, directives).then(_updateContent);
+      blockCache.fromUrl(value).then(_updateContent);
     }
   }
 }

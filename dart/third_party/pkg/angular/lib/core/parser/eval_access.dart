@@ -4,12 +4,11 @@ import 'dart:mirrors';
 import 'package:angular/core/parser/parser.dart';
 import 'package:angular/core/parser/syntax.dart' as syntax;
 import 'package:angular/core/parser/utils.dart';
-import 'package:angular/core/module.dart';
 
 class AccessScope extends syntax.AccessScope with AccessReflective {
   final Symbol symbol;
-  AccessScope(String name) : super(name), symbol = newSymbol(name);
-  eval(scope, [FilterMap filters]) => _eval(scope);
+  AccessScope(String name) : super(name), symbol = new Symbol(name);
+  eval(scope) => _eval(scope);
   assign(scope, value) => _assign(scope, scope, value);
 }
 
@@ -17,15 +16,14 @@ class AccessScopeFast extends syntax.AccessScope with AccessFast {
   final Getter getter;
   final Setter setter;
   AccessScopeFast(String name, this.getter, this.setter) : super(name);
-  eval(scope, [FilterMap filters]) => _eval(scope);
+  eval(scope) => _eval(scope);
   assign(scope, value) => _assign(scope, scope, value);
 }
 
 class AccessMember extends syntax.AccessMember with AccessReflective {
   final Symbol symbol;
-  AccessMember(object, String name)
-      : super(object, name), symbol = newSymbol(name);
-  eval(scope, [FilterMap filters]) => _eval(object.eval(scope, filters));
+  AccessMember(object, String name) : super(object, name), symbol = new Symbol(name);
+  eval(scope) => _eval(object.eval(scope));
   assign(scope, value) => _assign(scope, object.eval(scope), value);
   _assignToNonExisting(scope, value) => object.assign(scope, { name: value });
 }
@@ -35,15 +33,14 @@ class AccessMemberFast extends syntax.AccessMember with AccessFast {
   final Setter setter;
   AccessMemberFast(object, String name, this.getter, this.setter)
       : super(object, name);
-  eval(scope, [FilterMap filters]) => _eval(object.eval(scope, filters));
+  eval(scope) => _eval(object.eval(scope));
   assign(scope, value) => _assign(scope, object.eval(scope), value);
   _assignToNonExisting(scope, value) => object.assign(scope, { name: value });
 }
 
 class AccessKeyed extends syntax.AccessKeyed {
   AccessKeyed(object, key) : super(object, key);
-  eval(scope, [FilterMap filters]) =>
-      getKeyed(object.eval(scope, filters), key.eval(scope, filters));
+  eval(scope) => getKeyed(object.eval(scope), key.eval(scope));
   assign(scope, value) => setKeyed(object.eval(scope), key.eval(scope), value);
 }
 
@@ -70,7 +67,7 @@ abstract class AccessReflective {
     int cachedKind = _cachedKind;
     if (cachedKind == CACHED_MAP) return holder[name];
     var value = _cachedValue;
-    return (cachedKind == CACHED_FIELD && value != null)
+    return (cachedKind == CACHED_FIELD)
         ? value.getField(symbol).reflectee
         : value;
   }
@@ -84,9 +81,6 @@ abstract class AccessReflective {
       _cachedKind = CACHED_MAP;
       _cachedValue = null;
       return holder[name];
-    } else if (symbol == null) {
-      _cachedHolder = UNINITIALIZED;
-      return null;
     }
     InstanceMirror mirror = reflect(holder);
     try {
@@ -95,14 +89,10 @@ abstract class AccessReflective {
       _cachedValue = mirror;
       return result;
     } on NoSuchMethodError catch (e) {
-      if (isNoSuchMethodDueToGetField(e)) {
-        var result = createInvokeClosure(mirror, symbol);
-        if (result == null) rethrow;
-        _cachedKind = CACHED_VALUE;
-        return _cachedValue = result;
-      } else {
-        rethrow;
-      }
+      var result = createInvokeClosure(mirror, symbol);
+      if (result == null) rethrow;
+      _cachedKind = CACHED_VALUE;
+      return _cachedValue = result;
     } on UnsupportedError catch (e) {
       var result = createInvokeClosure(mirror, symbol);
       if (result == null) rethrow;
@@ -111,18 +101,12 @@ abstract class AccessReflective {
     }
   }
 
-  bool isNoSuchMethodDueToGetField(NoSuchMethodError e) {
-    var msg = e.toString();
-    return msg.indexOf("has no instance getter '$name'.") != -1 || // Dart VM
-           msg.indexOf('Cannot call "$name\$') != -1; // Dart2JS
-  }
-
   _assign(scope, holder, value) {
     if (holder is Map) {
       holder[name] = value;
     } else if (holder == null) {
       _assignToNonExisting(scope, value);
-    } else if (symbol != null) {
+    } else {
       reflect(holder).setField(symbol, value);
     }
     return value;

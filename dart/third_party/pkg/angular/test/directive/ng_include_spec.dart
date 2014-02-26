@@ -16,8 +16,8 @@ main() {
       expect(element.innerHtml).toEqual('');
 
       microLeap();  // load the template from cache.
-      scope.applyInZone(() {
-        scope.context['name'] = 'Vojta';
+      scope.$apply(() {
+        scope['name'] = 'Vojta';
       });
       expect(element.text).toEqual('my name is Vojta');
     })));
@@ -30,14 +30,14 @@ main() {
 
       expect(element.innerHtml).toEqual('');
 
-      scope.applyInZone(() {
-        scope.context['name'] = 'Vojta';
-        scope.context['template'] = 'tpl1.html';
+      scope.$apply(() {
+        scope['name'] = 'Vojta';
+        scope['template'] = 'tpl1.html';
       });
       expect(element.text).toEqual('My name is Vojta');
 
-      scope.applyInZone(() {
-        scope.context['template'] = 'tpl2.html';
+      scope.$apply(() {
+        scope['template'] = 'tpl2.html';
       });
       expect(element.text).toEqual('I am Vojta');
     })));

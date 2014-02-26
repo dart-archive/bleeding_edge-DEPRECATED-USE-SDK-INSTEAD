@@ -5,9 +5,7 @@ import 'dart:async';
 import 'dart:collection';
 
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/element.dart';
-import 'package:di/generator.dart';
+import 'package:angular/tools/source_crawler_impl.dart';
 
 const String PACKAGE_PREFIX = 'package:';
 const String DART_PACKAGE_PREFIX = 'dart:';
@@ -25,41 +23,38 @@ const SYSTEM_PACKAGE_ROOT = '%SYSTEM_PACKAGE_ROOT%';
 
 main(args) {
   if (args.length < 4) {
-    print('Usage: templace_cache_generator path_to_entry_point sdk_path '
-        'output package_root1,package_root2,...|$SYSTEM_PACKAGE_ROOT '
+    print('Usage: templace_cache_generator path_to_entry_point output '
+        'package_root1,package_root2,...|$SYSTEM_PACKAGE_ROOT '
         'patternUrl1,rewriteTo1;patternUrl2,rewriteTo2 '
         'blacklistClass1,blacklistClass2');
     exit(1);
   }
 
   var entryPoint = args[0];
-  var sdkPath = args[1];
-  var output = args[2];
-  var outputLibrary = args[3];
-  var packageRoots = args[4] == SYSTEM_PACKAGE_ROOT ?
-      [Platform.packageRoot] : args[4].split(',');
-  Map<RegExp, String> urlRewriters = parseUrlRemapping(args[5]);
-  Set<String> blacklistedClasses = (args.length > 6)
-      ? new Set.from(args[6].split(','))
+  var output = args[1];
+  var outputLibrary = args[2];
+  var packageRoots = args[3] == SYSTEM_PACKAGE_ROOT ?
+      [Platform.packageRoot] : args[3].split(',');
+  Map<RegExp, String> urlRewriters = parseUrlRemapping(args[4]);
+  Set<String> blacklistedClasses = (args.length > 5)
+      ? new Set.from(args[5].split(','))
       : new Set();
 
-  print('sdkPath: $sdkPath');
   print('entryPoint: $entryPoint');
   print('output: $output');
   print('outputLibrary: $outputLibrary');
   print('packageRoots: $packageRoots');
-  print('url rewritters: ' + args[5]);
+  print('url rewritters: ' + args[4]);
   print('blacklistedClasses: ' + blacklistedClasses.join(', '));
 
 
   Map<String, String> templates = {};
 
-  var c = new SourceCrawler(sdkPath, packageRoots);
+  var c = new SourceCrawlerImpl(packageRoots);
   var visitor =
       new TemplateCollectingVisitor(templates, blacklistedClasses, c);
-  c.crawl(entryPoint,
-      (CompilationUnitElement compilationUnit, SourceFile source) =>
-          visitor(compilationUnit, source.canonicalPath));
+  c.crawl(entryPoint, (CompilationUnit compilationUnit) =>
+      visitor(compilationUnit));
 
   var sink = new File(output).openWrite();
   return printTemplateCache(
@@ -88,24 +83,21 @@ printTemplateCache(Map<String, String> templateKeyMap,
 
   outSink.write(fileHeader(outputLibrary));
 
-  Future future = new Future.value(0);
-  List uris = templateKeyMap.keys.toList()..sort()..forEach((uri) {
-    var templateFile = templateKeyMap[uri];
-    future = future.then((_) {
-      return new File(templateFile).readAsString().then((fileStr) {
-        fileStr = fileStr.replaceAll('"""', r'\"\"\"');
-        String resultUri = uri;
-        urlRewriters.forEach((regexp, replacement) {
-          resultUri = resultUri.replaceFirst(regexp, replacement);
-        });
-        outSink.write(
-            'tc.put("$resultUri", new HttpResponse(200, r"""$fileStr"""));\n');
+  List<Future> reads = <Future>[];
+  templateKeyMap.forEach((uri, templateFile) {
+    reads.add(new File(templateFile).readAsString().then((fileStr) {
+      fileStr = fileStr.replaceAll('"""', r'\"\"\"');
+      String resultUri = uri;
+      urlRewriters.forEach((regexp, replacement) {
+        resultUri = resultUri.replaceFirst(regexp, replacement);
       });
-    });
+      outSink.write(
+          'tc.put("$resultUri", new HttpResponse(200, r"""$fileStr"""));\n');
+    }));
   });
 
   // Wait until all templates files are processed.
-  return future.then((_) {
+  return Future.wait(reads).then((_) {
     outSink.write(FILE_FOOTER);
   });
 }
@@ -113,14 +105,12 @@ printTemplateCache(Map<String, String> templateKeyMap,
 class TemplateCollectingVisitor {
   Map<String, String> templates;
   Set<String> blacklistedClasses;
-  SourceCrawler sourceCrawler;
+  SourceCrawlerImpl sourceCrawlerImpl;
 
   TemplateCollectingVisitor(this.templates, this.blacklistedClasses,
-      this.sourceCrawler);
+      this.sourceCrawlerImpl);
 
-  call(CompilationUnitElement cue, String srcPath) {
-    CompilationUnit cu = sourceCrawler.context
-        .resolveCompilationUnit(cue.source, cue.library);
+  call(CompilationUnit cu) {
     cu.declarations.forEach((CompilationUnitMember declaration) {
       // We only care about classes.
       if (declaration is! ClassDeclaration) return;
@@ -129,6 +119,7 @@ class TemplateCollectingVisitor {
       bool cache = true;
       clazz.metadata.forEach((Annotation ann) {
         if (ann.arguments == null) return; // Ignore non-class annotations.
+        // TODO(tsander): Add library name as class name could conflict.
         if (blacklistedClasses.contains(clazz.name.name)) return;
 
         switch (ann.name.name) {
@@ -139,10 +130,7 @@ class TemplateCollectingVisitor {
         }
       });
       if (cache && cacheUris.isNotEmpty) {
-        var srcDirUri = new Uri.file(srcPath);
-        Source currentSrcDir = sourceCrawler.context.sourceFactory
-            .resolveUri2(null, srcDirUri);
-        cacheUris..sort()..forEach((uri) => storeUriAsset(uri, currentSrcDir));
+        cacheUris.forEach((uri) => storeUriAsset(uri));
       }
     });
   }
@@ -152,15 +140,8 @@ class TemplateCollectingVisitor {
       if (arg is NamedExpression) {
         NamedExpression namedArg = arg;
         var paramName = namedArg.name.label.name;
-        if (paramName == 'templateUrl') {
+        if (paramName == 'templateUrl' || paramName == 'cssUrl') {
           cacheUris.add(assertString(namedArg.expression).stringValue);
-        } else if (paramName == 'cssUrl') {
-          if (namedArg.expression is StringLiteral) {
-            cacheUris.add(assertString(namedArg.expression).stringValue);
-          } else {
-            cacheUris.addAll(assertList(namedArg.expression).elements.map((e) =>
-                assertString(e).stringValue));
-          }
         }
       }
     });
@@ -175,7 +156,7 @@ class TemplateCollectingVisitor {
         var paramName = namedArg.name.label.name;
         if (paramName == 'preCacheUrls') {
           assertList(namedArg.expression).elements
-            ..forEach((expression) =>
+            .forEach((expression) =>
                 cacheUris.add(assertString(expression).stringValue));
         }
         if (paramName == 'cache') {
@@ -186,24 +167,15 @@ class TemplateCollectingVisitor {
     return cache;
   }
 
-  void storeUriAsset(String uri, Source srcPath) {
-    String assetFileLocation = findAssetFileLocation(uri, srcPath);
+  void storeUriAsset(String uri) {
+    String assetFileLocation =
+        uri.startsWith('package:') ?
+            sourceCrawlerImpl.resolvePackagePath(uri) : uri;
     if (assetFileLocation == null) {
       print("Could not find asset for uri: $uri");
     } else {
       templates[uri] = assetFileLocation;
     }
-  }
-
-  String findAssetFileLocation(String uri, Source srcPath) {
-    if (uri.startsWith('/')) {
-      // Absolute Path from working directory.
-      return '.${uri}';
-    }
-    // Otherwise let the sourceFactory resolve for packages, and relative paths.
-    Source source = sourceCrawler.context.sourceFactory
-        .resolveUri(srcPath, uri);
-    return (source != null) ? source.fullName : null;
   }
 
   BooleanLiteral assertBoolean(Expression key) {

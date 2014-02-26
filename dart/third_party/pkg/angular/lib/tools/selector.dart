@@ -111,9 +111,17 @@ bool matchesNode(Node node, String selector) {
     });
 
     return stillGood;
-  } 
-    
-  throw new ArgumentError('Unsupported Selector: $selector');
+  } else {
+    throw new ArgumentError('Unsupported Selector: $selector');
+  }
+
+  switch(node.nodeType) {
+    case 1: // Element
+      break;
+    case 3: // Text Node
+      break;
+  }
+  return false;
 }
 
 String _matchingKey(Iterable keys, String attrName) =>

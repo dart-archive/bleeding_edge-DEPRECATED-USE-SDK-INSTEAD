@@ -22,7 +22,6 @@ typedef dynamic CreationStrategy(
  */
 typedef bool Visibility(Injector requesting, Injector defining);
 
-typedef Object TypeFactory(factory(Type));
 
 /**
  * A collection of type bindings. Once the module is passed into the injector,
@@ -32,26 +31,6 @@ typedef Object TypeFactory(factory(Type));
 class Module {
   final Map<Type, _Provider> _providers = <Type, _Provider>{};
   final List<Module> _childModules = <Module>[];
-  Map<Type, TypeFactory> _typeFactories = {};
-
-  Map<Type, TypeFactory> get typeFactories {
-    if (_childModules.isEmpty) {
-      return _typeFactories;
-    }
-    var tmp = new Map.from(_typeFactories);
-    _childModules.forEach((child) {
-      if (child.typeFactories != null) {
-        child.typeFactories.forEach((type, factory) {
-          tmp[type] = factory;
-        });
-      }
-    });
-    return tmp;
-  }
-
-  set typeFactories(Map<Type, TypeFactory> factories) {
-    _typeFactories = factories;
-  }
 
   Map<Type, _Provider> _providersCache;
 
@@ -60,7 +39,7 @@ class Module {
    * child (installed) modules.
    */
   Map<Type, _Provider> get _bindings {
-    if (_isDirty) {
+    if (_providersCache == null) {
       _providersCache = <Type, _Provider>{};
       _childModules.forEach((child) => _providersCache.addAll(child._bindings));
       _providersCache.addAll(_providers);
@@ -75,7 +54,7 @@ class Module {
    */
   void value(Type id, value,
       {CreationStrategy creation, Visibility visibility}) {
-    _dirty();
+    _providersCache = null;
     _providers[id] = new _ValueProvider(value, creation, visibility);
   }
 
@@ -88,7 +67,7 @@ class Module {
    */
   void type(Type id, {Type implementedBy, CreationStrategy creation,
       Visibility visibility}) {
-    _dirty();
+    _providersCache = null;
     _providers[id] = new _TypeProvider(
         implementedBy == null ? id : implementedBy, creation, visibility);
   }
@@ -101,7 +80,7 @@ class Module {
    */
   void factory(Type id, FactoryFn factoryFn,
       {CreationStrategy creation, Visibility visibility}) {
-    _dirty();
+    _providersCache = null;
     _providers[id] = new _FactoryProvider(factoryFn, creation, visibility);
   }
 
@@ -111,15 +90,8 @@ class Module {
    */
   void install(Module module) {
     _childModules.add(module);
-    _dirty();
-  }
-
-  _dirty() {
     _providersCache = null;
   }
-
-  bool get _isDirty =>
-      _providersCache == null || _childModules.any((m) => m._isDirty);
 }
 
 /** Deafault creation strategy is to instantiate on the defining injector. */

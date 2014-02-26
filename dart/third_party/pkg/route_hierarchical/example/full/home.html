@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+  </head>
+  <body>
+    <element name="x-home" constructor="HomeComponent" extends="div">
+      <template>
+        <h1>Welcome</h1>
+        <p>
+          Welcome the the route package sample page.
+        </p>
+        <h3>Quick links</h3>
+        <ul>
+          <li class="active">
+            <a href="{{links['100001']['info']}}">Company 100001</a>
+            (<a href="{{links['100001']['activities']}}">activities</a>,
+            <a href="{{links['100001']['notes']}}">notes</a>)
+          </li>
+          <li class="active">
+            <a href="{{links['111111']['info']}}">Company 111111</a>
+            (<a href="{{links['111111']['activities']}}">activities</a>,
+            <a href="{{links['111111']['notes']}}">notes</a>)
+          </li>
+        </ul>
+      </template>
+      <script type="application/dart" src="home.dart"></script>
+    </element>
+  </body>
+</html>
