@@ -631,16 +631,6 @@ public class DartCore extends Plugin implements DartSdkListener {
   }
 
   /**
-   * Answer the log used by {@link #logError(String)} and other local methods for logging errors,
-   * warnings, and information.
-   * 
-   * @return the log (not <code>null</code>)
-   */
-  public static ILog getPluginLog() {
-    return PLUGIN_LOG != null ? PLUGIN_LOG : getPlugin().getLog();
-  }
-
-  /**
    * Answer the unique project manager used for analysis of anything in the workspace.
    * 
    * @return the manager (not {@code null})
@@ -1176,7 +1166,10 @@ public class DartCore extends Plugin implements DartSdkListener {
   public static void logInformation(String message, Throwable exception) {
 
     if (DartCoreDebug.VERBOSE) {
-      getPluginLog().log(new Status(Status.INFO, PLUGIN_ID, "INFO: " + message, exception));
+      ILog pluginLog = getPluginLog();
+      if (pluginLog != null) {
+        pluginLog.log(new Status(Status.INFO, PLUGIN_ID, "INFO: " + message, exception));
+      }
     }
 
     instrumentationLogErrorImpl(message, exception);
@@ -1349,6 +1342,21 @@ public class DartCore extends Plugin implements DartSdkListener {
 
   }
 
+  /**
+   * Answer the log used by {@link #logError(String)} and other local methods for logging errors,
+   * warnings, and information.
+   * 
+   * @return the {@link ILog} or {@code null} if not accessible (for example during platform
+   *         shutdown)
+   */
+  private static ILog getPluginLog() {
+    try {
+      return PLUGIN_LOG != null ? PLUGIN_LOG : getPlugin().getLog();
+    } catch (Throwable e) {
+      return null;
+    }
+  }
+
   private static void instrumentationLogErrorImpl(String message, Throwable exception) {
     if (instrumentationLogErrorEnabled) {
 
@@ -1392,7 +1400,10 @@ public class DartCore extends Plugin implements DartSdkListener {
   }
 
   private static void logErrorImpl(String message, Throwable exception) {
-    getPluginLog().log(new Status(Status.ERROR, PLUGIN_ID, message, exception));
+    ILog pluginLog = getPluginLog();
+    if (pluginLog != null) {
+      pluginLog.log(new Status(Status.ERROR, PLUGIN_ID, message, exception));
+    }
   }
 
   private IEclipsePreferences prefs;
