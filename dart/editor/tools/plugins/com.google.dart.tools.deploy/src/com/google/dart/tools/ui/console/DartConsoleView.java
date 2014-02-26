@@ -193,7 +193,6 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
       } else {
         setEnabled(false);
       }
-
     }
   }
 
@@ -201,6 +200,7 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
 
   private Composite parent;
   private IConsole console;
+  private Object consoleLock = new Object();
 
   private IPageBookViewPage page;
 
@@ -266,7 +266,9 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
     // We recycle the console; remove any contributions from the previous ProcessConsole.
     clearToolBar();
 
-    this.console = inConsole;
+    synchronized (consoleLock) {
+      this.console = inConsole;
+    }
 
     // Add back our tolbar contributions.
     updateToolBar();
@@ -308,10 +310,12 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
 
     DartConsoleManager.getManager().consoleViewClosed(this);
 
-    if (console != null && isDead()) {
-      IProcess process = ((ProcessConsole) console).getProcess();
+    synchronized (consoleLock) {
+      if (console != null && isDead()) {
+        IProcess process = ((ProcessConsole) console).getProcess();
 
-      DebugPlugin.getDefault().getLaunchManager().removeLaunch(process.getLaunch());
+        DebugPlugin.getDefault().getLaunchManager().removeLaunch(process.getLaunch());
+      }
     }
 
     terminateAction.dispose();
@@ -345,14 +349,16 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
       return true;
     }
 
-    if (console instanceof ProcessConsole) {
-      ProcessConsole processConsole = (ProcessConsole) console;
+    synchronized (consoleLock) {
+      if (console instanceof ProcessConsole) {
+        ProcessConsole processConsole = (ProcessConsole) console;
 
-      if (processConsole.getProcess() == null) {
-        return true;
+        if (processConsole.getProcess() == null) {
+          return true;
+        }
+
+        return processConsole.getProcess().isTerminated();
       }
-
-      return processConsole.getProcess().isTerminated();
     }
 
     return false;
@@ -454,10 +460,12 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
   }
 
   private IProcess getProcess() {
-    if (console instanceof ProcessConsole) {
-      return ((ProcessConsole) console).getProcess();
-    } else {
-      return null;
+    synchronized (consoleLock) {
+      if (console instanceof ProcessConsole) {
+        return ((ProcessConsole) console).getProcess();
+      } else {
+        return null;
+      }
     }
   }
 
