@@ -183,6 +183,17 @@ public class TestProjects {
     return project;
   }
 
+  /**
+   * Answer a new simple non-pub project, but with "packages" folder.
+   * 
+   * @return a project (not {@code null})
+   */
+  public static MockProject newSimpleProjectWithPackages() {
+    MockProject project = newSimpleProject();
+    addPackages(project);
+    return project;
+  }
+
   private static void addPackages(MockContainer container) {
     MockFolder packages = container.addFolder(PACKAGES_DIRECTORY_NAME);
 
