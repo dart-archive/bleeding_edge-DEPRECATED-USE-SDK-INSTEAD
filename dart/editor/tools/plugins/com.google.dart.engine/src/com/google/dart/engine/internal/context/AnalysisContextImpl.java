@@ -30,6 +30,7 @@ import com.google.dart.engine.context.AnalysisOptions;
 import com.google.dart.engine.context.AnalysisResult;
 import com.google.dart.engine.context.ChangeNotice;
 import com.google.dart.engine.context.ChangeSet;
+import com.google.dart.engine.context.ObsoleteSourceAnalysisException;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementLocation;
@@ -394,39 +395,52 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     SourceEntry sourceEntry = getReadableSourceEntry(source);
     if (sourceEntry instanceof DartEntry) {
       ArrayList<AnalysisError> errors = new ArrayList<AnalysisError>();
-      DartEntry dartEntry = (DartEntry) sourceEntry;
-      ListUtilities.addAll(errors, getDartScanData(source, dartEntry, DartEntry.SCAN_ERRORS));
-      ListUtilities.addAll(errors, getDartParseData(source, dartEntry, DartEntry.PARSE_ERRORS));
-      dartEntry = getReadableDartEntry(source);
-      if (dartEntry.getValue(DartEntry.SOURCE_KIND) == SourceKind.LIBRARY) {
-        ListUtilities.addAll(
-            errors,
-            getDartResolutionData(source, source, dartEntry, DartEntry.RESOLUTION_ERRORS));
-        ListUtilities.addAll(
-            errors,
-            getDartVerificationData(source, source, dartEntry, DartEntry.VERIFICATION_ERRORS));
-        if (enableHints) {
-          ListUtilities.addAll(errors, getDartHintData(source, source, dartEntry, DartEntry.HINTS));
-        }
-      } else {
-        Source[] libraries = getLibrariesContaining(source);
-        for (Source librarySource : libraries) {
+      try {
+        DartEntry dartEntry = (DartEntry) sourceEntry;
+        ListUtilities.addAll(errors, getDartScanData(source, dartEntry, DartEntry.SCAN_ERRORS));
+        dartEntry = getReadableDartEntry(source);
+        ListUtilities.addAll(errors, getDartParseData(source, dartEntry, DartEntry.PARSE_ERRORS));
+        dartEntry = getReadableDartEntry(source);
+        if (dartEntry.getValue(DartEntry.SOURCE_KIND) == SourceKind.LIBRARY) {
           ListUtilities.addAll(
               errors,
-              getDartResolutionData(source, librarySource, dartEntry, DartEntry.RESOLUTION_ERRORS));
+              getDartResolutionData(source, source, dartEntry, DartEntry.RESOLUTION_ERRORS));
+          dartEntry = getReadableDartEntry(source);
           ListUtilities.addAll(
               errors,
-              getDartVerificationData(
-                  source,
-                  librarySource,
-                  dartEntry,
-                  DartEntry.VERIFICATION_ERRORS));
+              getDartVerificationData(source, source, dartEntry, DartEntry.VERIFICATION_ERRORS));
           if (enableHints) {
+            dartEntry = getReadableDartEntry(source);
             ListUtilities.addAll(
                 errors,
-                getDartHintData(source, librarySource, dartEntry, DartEntry.HINTS));
+                getDartHintData(source, source, dartEntry, DartEntry.HINTS));
+          }
+        } else {
+          Source[] libraries = getLibrariesContaining(source);
+          for (Source librarySource : libraries) {
+            ListUtilities.addAll(
+                errors,
+                getDartResolutionData(source, librarySource, dartEntry, DartEntry.RESOLUTION_ERRORS));
+            dartEntry = getReadableDartEntry(source);
+            ListUtilities.addAll(
+                errors,
+                getDartVerificationData(
+                    source,
+                    librarySource,
+                    dartEntry,
+                    DartEntry.VERIFICATION_ERRORS));
+            if (enableHints) {
+              dartEntry = getReadableDartEntry(source);
+              ListUtilities.addAll(
+                  errors,
+                  getDartHintData(source, librarySource, dartEntry, DartEntry.HINTS));
+            }
           }
         }
+      } catch (ObsoleteSourceAnalysisException exception) {
+        AnalysisEngine.getInstance().getLogger().logInformation(
+            "Could not compute errors",
+            exception);
       }
       if (errors.isEmpty()) {
         return AnalysisError.NO_ERRORS;
@@ -434,7 +448,13 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       return errors.toArray(new AnalysisError[errors.size()]);
     } else if (sourceEntry instanceof HtmlEntry) {
       HtmlEntry htmlEntry = (HtmlEntry) sourceEntry;
-      return getHtmlResolutionData(source, htmlEntry, HtmlEntry.RESOLUTION_ERRORS);
+      try {
+        return getHtmlResolutionData(source, htmlEntry, HtmlEntry.RESOLUTION_ERRORS);
+      } catch (ObsoleteSourceAnalysisException exception) {
+        AnalysisEngine.getInstance().getLogger().logInformation(
+            "Could not compute errors",
+            exception);
+      }
     }
     return AnalysisError.NO_ERRORS;
   }
@@ -477,10 +497,16 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   @Override
   public LineInfo computeLineInfo(Source source) throws AnalysisException {
     SourceEntry sourceEntry = getReadableSourceEntry(source);
-    if (sourceEntry instanceof HtmlEntry) {
-      return getHtmlParseData(source, SourceEntry.LINE_INFO, null);
-    } else if (sourceEntry instanceof DartEntry) {
-      return getDartScanData(source, SourceEntry.LINE_INFO, null);
+    try {
+      if (sourceEntry instanceof HtmlEntry) {
+        return getHtmlParseData(source, SourceEntry.LINE_INFO, null);
+      } else if (sourceEntry instanceof DartEntry) {
+        return getDartScanData(source, SourceEntry.LINE_INFO, null);
+      }
+    } catch (ObsoleteSourceAnalysisException exception) {
+      AnalysisEngine.getInstance().getLogger().logInformation(
+          "Could not compute " + SourceEntry.LINE_INFO.toString(),
+          exception);
     }
     return null;
   }
@@ -1156,6 +1182,10 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     long performStart = System.currentTimeMillis();
     try {
       task.perform(resultRecorder);
+    } catch (ObsoleteSourceAnalysisException exception) {
+      AnalysisEngine.getInstance().getLogger().logInformation(
+          "Could not perform analysis task: " + taskDescriptor,
+          exception);
     } catch (AnalysisException exception) {
       if (!(exception.getCause() instanceof IOException)) {
         AnalysisEngine.getInstance().getLogger().logError(
@@ -1949,7 +1979,14 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     if (dartEntry == null) {
       return defaultValue;
     }
-    return getDartDependencyData(source, dartEntry, descriptor);
+    try {
+      return getDartDependencyData(source, dartEntry, descriptor);
+    } catch (ObsoleteSourceAnalysisException exception) {
+      AnalysisEngine.getInstance().getLogger().logInformation(
+          "Could not compute " + descriptor.toString(),
+          exception);
+      return defaultValue;
+    }
   }
 
   /**
@@ -2013,7 +2050,14 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     if (dartEntry == null) {
       return defaultValue;
     }
-    return getDartParseData(source, dartEntry, descriptor);
+    try {
+      return getDartParseData(source, dartEntry, descriptor);
+    } catch (ObsoleteSourceAnalysisException exception) {
+      AnalysisEngine.getInstance().getLogger().logInformation(
+          "Could not compute " + descriptor.toString(),
+          exception);
+      return defaultValue;
+    }
   }
 
   /**
@@ -2060,7 +2104,14 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     if (dartEntry == null) {
       return defaultValue;
     }
-    return getDartResolutionData(unitSource, librarySource, dartEntry, descriptor);
+    try {
+      return getDartResolutionData(unitSource, librarySource, dartEntry, descriptor);
+    } catch (ObsoleteSourceAnalysisException exception) {
+      AnalysisEngine.getInstance().getLogger().logInformation(
+          "Could not compute " + descriptor.toString(),
+          exception);
+      return defaultValue;
+    }
   }
 
   /**
@@ -2098,7 +2149,14 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     if (dartEntry == null) {
       return defaultValue;
     }
-    return getDartScanData(source, dartEntry, descriptor);
+    try {
+      return getDartScanData(source, dartEntry, descriptor);
+    } catch (ObsoleteSourceAnalysisException exception) {
+      AnalysisEngine.getInstance().getLogger().logInformation(
+          "Could not compute " + descriptor.toString(),
+          exception);
+      return defaultValue;
+    }
   }
 
   /**
@@ -2165,7 +2223,14 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     if (htmlEntry == null) {
       return defaultValue;
     }
-    return getHtmlResolutionData(source, htmlEntry, descriptor);
+    try {
+      return getHtmlResolutionData(source, htmlEntry, descriptor);
+    } catch (ObsoleteSourceAnalysisException exception) {
+      AnalysisEngine.getInstance().getLogger().logInformation(
+          "Could not compute " + descriptor.toString(),
+          exception);
+      return defaultValue;
+    }
   }
 
   /**
@@ -2921,7 +2986,9 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     DartEntry dartEntry = null;
     synchronized (cacheLock) {
       SourceEntry sourceEntry = cache.get(source);
-      if (!(sourceEntry instanceof DartEntry)) {
+      if (sourceEntry == null) {
+        throw new ObsoleteSourceAnalysisException(source);
+      } else if (!(sourceEntry instanceof DartEntry)) {
         // This shouldn't be possible because we should never have performed the task if the source
         // didn't represent a Dart file, but check to be safe.
         throw new AnalysisException(
@@ -3006,7 +3073,9 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         // We don't have any information about which sources to mark as invalid other than the library
         // source.
         SourceEntry sourceEntry = cache.get(librarySource);
-        if (!(sourceEntry instanceof DartEntry)) {
+        if (sourceEntry == null) {
+          throw new ObsoleteSourceAnalysisException(librarySource);
+        } else if (!(sourceEntry instanceof DartEntry)) {
           // This shouldn't be possible because we should never have performed the task if the source
           // didn't represent a Dart file, but check to be safe.
           throw new AnalysisException(
@@ -3136,7 +3205,9 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     DartEntry dartEntry = null;
     synchronized (cacheLock) {
       SourceEntry sourceEntry = cache.get(source);
-      if (!(sourceEntry instanceof DartEntry)) {
+      if (sourceEntry == null) {
+        throw new ObsoleteSourceAnalysisException(source);
+      } else if (!(sourceEntry instanceof DartEntry)) {
         // This shouldn't be possible because we should never have performed the task if the source
         // didn't represent a Dart file, but check to be safe.
         throw new AnalysisException(
@@ -3239,7 +3310,9 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     HtmlEntry htmlEntry = null;
     synchronized (cacheLock) {
       SourceEntry sourceEntry = cache.get(source);
-      if (!(sourceEntry instanceof HtmlEntry)) {
+      if (sourceEntry == null) {
+        throw new ObsoleteSourceAnalysisException(source);
+      } else if (!(sourceEntry instanceof HtmlEntry)) {
         // This shouldn't be possible because we should never have performed the task if the source
         // didn't represent an HTML file, but check to be safe.
         throw new AnalysisException(
@@ -3338,7 +3411,9 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     HtmlEntry htmlEntry = null;
     synchronized (cacheLock) {
       SourceEntry sourceEntry = cache.get(source);
-      if (!(sourceEntry instanceof HtmlEntry)) {
+      if (sourceEntry == null) {
+        throw new ObsoleteSourceAnalysisException(source);
+      } else if (!(sourceEntry instanceof HtmlEntry)) {
         // This shouldn't be possible because we should never have performed the task if the source
         // didn't represent an HTML file, but check to be safe.
         throw new AnalysisException(
@@ -3423,7 +3498,9 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     HtmlEntry htmlEntry = null;
     synchronized (cacheLock) {
       SourceEntry sourceEntry = cache.get(source);
-      if (!(sourceEntry instanceof HtmlEntry)) {
+      if (sourceEntry == null) {
+        throw new ObsoleteSourceAnalysisException(source);
+      } else if (!(sourceEntry instanceof HtmlEntry)) {
         // This shouldn't be possible because we should never have performed the task if the source
         // didn't represent an HTML file, but check to be safe.
         throw new AnalysisException(
@@ -3511,7 +3588,9 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     DartEntry dartEntry = null;
     synchronized (cacheLock) {
       SourceEntry sourceEntry = cache.get(source);
-      if (!(sourceEntry instanceof DartEntry)) {
+      if (sourceEntry == null) {
+        throw new ObsoleteSourceAnalysisException(source);
+      } else if (!(sourceEntry instanceof DartEntry)) {
         // This shouldn't be possible because we should never have performed the task if the source
         // didn't represent a Dart file, but check to be safe.
         throw new AnalysisException(
@@ -3606,7 +3685,9 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     DartEntry dartEntry = null;
     synchronized (cacheLock) {
       SourceEntry sourceEntry = cache.get(unitSource);
-      if (!(sourceEntry instanceof DartEntry)) {
+      if (sourceEntry == null) {
+        throw new ObsoleteSourceAnalysisException(unitSource);
+      } else if (!(sourceEntry instanceof DartEntry)) {
         // This shouldn't be possible because we should never have performed the task if the source
         // didn't represent a Dart file, but check to be safe.
         throw new AnalysisException(
@@ -3689,7 +3770,9 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     HtmlEntry htmlEntry = null;
     synchronized (cacheLock) {
       SourceEntry sourceEntry = cache.get(source);
-      if (!(sourceEntry instanceof HtmlEntry)) {
+      if (sourceEntry == null) {
+        throw new ObsoleteSourceAnalysisException(source);
+      } else if (!(sourceEntry instanceof HtmlEntry)) {
         // This shouldn't be possible because we should never have performed the task if the source
         // didn't represent an HTML file, but check to be safe.
         throw new AnalysisException(
@@ -3779,7 +3862,9 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     DartEntry dartEntry = null;
     synchronized (cacheLock) {
       SourceEntry sourceEntry = cache.get(source);
-      if (!(sourceEntry instanceof DartEntry)) {
+      if (sourceEntry == null) {
+        throw new ObsoleteSourceAnalysisException(source);
+      } else if (!(sourceEntry instanceof DartEntry)) {
         // This shouldn't be possible because we should never have performed the task if the source
         // didn't represent a Dart file, but check to be safe.
         throw new AnalysisException(
