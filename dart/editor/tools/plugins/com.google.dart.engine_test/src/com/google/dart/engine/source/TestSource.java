@@ -13,6 +13,8 @@
  */
 package com.google.dart.engine.source;
 
+import com.google.dart.engine.internal.context.TimestampedData;
+
 import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
 
 import java.io.File;
@@ -53,6 +55,11 @@ public class TestSource extends FileBasedSource {
    */
   public TestSource(String contents) {
     this(createFile("/test.dart"), contents);
+  }
+
+  @Override
+  protected TimestampedData<CharSequence> getContentsFromFile() throws Exception {
+    return new TimestampedData<CharSequence>(0L, contents);
   }
 
   @Override

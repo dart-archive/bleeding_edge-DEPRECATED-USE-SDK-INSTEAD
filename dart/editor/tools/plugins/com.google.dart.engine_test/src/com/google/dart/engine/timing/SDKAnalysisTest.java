@@ -31,20 +31,6 @@ import com.google.dart.engine.source.SourceFactory;
 import junit.framework.TestCase;
 
 public class SDKAnalysisTest extends TestCase {
-  private static class ScanResult {
-    /**
-     * The first token in the token stream.
-     */
-    private Token token;
-
-    /**
-     * Initialize a newly created result object to be empty.
-     */
-    private ScanResult() {
-      super();
-    }
-  }
-
   public void test_parseTimeAnalysis() throws AnalysisException {
     DartSdk sdk = DirectoryBasedDartSdk.getDefaultSdk();
     SourceFactory sourceFactory = new SourceFactory(new DartUriResolver(sdk), new FileUriResolver());
@@ -108,18 +94,12 @@ public class SDKAnalysisTest extends TestCase {
 
   private void internalParse(AnalysisContext context, final Source source,
       final AnalysisErrorListener errorListener) throws AnalysisException {
-    final ScanResult result = new ScanResult();
-    Source.ContentReceiver receiver = new Source.ContentReceiver() {
-      @Override
-      public void accept(CharSequence contents, long modificationTime) {
-        Scanner scanner = new Scanner(source, new CharSequenceReader(contents), errorListener);
-        result.token = scanner.tokenize();
-      }
-    };
     try {
-      context.getContents(source, receiver);
+      Scanner scanner = new Scanner(source, new CharSequenceReader(
+          context.getContents(source).getData()), errorListener);
+      Token token = scanner.tokenize();
       Parser parser = new Parser(source, AnalysisErrorListener.NULL_LISTENER);
-      parser.parseCompilationUnit(result.token);
+      parser.parseCompilationUnit(token);
     } catch (Exception exception) {
       throw new AnalysisException(exception);
     }
@@ -127,15 +107,10 @@ public class SDKAnalysisTest extends TestCase {
 
   private void internalScan(AnalysisContext context, final Source source,
       final AnalysisErrorListener errorListener) throws AnalysisException {
-    Source.ContentReceiver receiver = new Source.ContentReceiver() {
-      @Override
-      public void accept(CharSequence contents, long modificationTime) {
-        Scanner scanner = new Scanner(source, new CharSequenceReader(contents), errorListener);
-        scanner.tokenize();
-      }
-    };
     try {
-      context.getContents(source, receiver);
+      Scanner scanner = new Scanner(source, new CharSequenceReader(
+          context.getContents(source).getData()), errorListener);
+      scanner.tokenize();
     } catch (Exception exception) {
       throw new AnalysisException(exception);
     }

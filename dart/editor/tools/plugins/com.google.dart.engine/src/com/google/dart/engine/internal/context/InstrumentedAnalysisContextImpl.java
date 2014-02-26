@@ -304,6 +304,12 @@ public class InstrumentedAnalysisContextImpl implements InternalAnalysisContext 
   }
 
   @Override
+  public TimestampedData<CharSequence> getContents(Source source) throws Exception {
+    return basis.getContents(source);
+  }
+
+  @Override
+  @SuppressWarnings("deprecation")
   public void getContents(Source source, ContentReceiver receiver) throws Exception {
     basis.getContents(source, receiver);
   }

@@ -16,6 +16,7 @@ import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.internal.context.AnalysisErrorInfoImpl;
 import com.google.dart.engine.internal.context.AnalysisOptionsImpl;
+import com.google.dart.engine.internal.context.TimestampedData;
 import com.google.dart.engine.source.ContentCache;
 import com.google.dart.engine.source.DirectoryBasedSourceContainer;
 import com.google.dart.engine.source.FileBasedSource;
@@ -259,6 +260,16 @@ public class MockContext implements AnalysisContext {
   }
 
   @Override
+  public TimestampedData<CharSequence> getContents(Source source) throws Exception {
+    String contents = contentCache.getContents(source);
+    if (contents != null) {
+      return new TimestampedData<CharSequence>(contentCache.getModificationStamp(source), contents);
+    }
+    return source.getContents();
+  }
+
+  @Override
+  @SuppressWarnings("deprecation")
   public void getContents(Source source, ContentReceiver receiver) throws Exception {
     String contents = contentCache.getContents(source);
     if (contents != null) {

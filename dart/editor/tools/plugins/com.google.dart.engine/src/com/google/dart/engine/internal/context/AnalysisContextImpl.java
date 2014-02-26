@@ -621,6 +621,16 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @Override
+  public TimestampedData<CharSequence> getContents(Source source) throws Exception {
+    String contents = contentCache.getContents(source);
+    if (contents != null) {
+      return new TimestampedData<CharSequence>(contentCache.getModificationStamp(source), contents);
+    }
+    return source.getContents();
+  }
+
+  @Override
+  @SuppressWarnings("deprecation")
   public void getContents(Source source, ContentReceiver receiver) throws Exception {
     String contents = contentCache.getContents(source);
     if (contents != null) {
@@ -1691,7 +1701,15 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       // If not, compute the information. Unless the modification date of the source continues to
       // change, this loop will eventually terminate.
       //
-      dartEntry = (DartEntry) new ScanDartTask(this, source).perform(resultRecorder);
+      // TODO(brianwilkerson) Convert this to get the contents from the cache. (I'm not sure how
+      // that would work in an asynchronous environment.)
+      try {
+        dartEntry = (DartEntry) new ScanDartTask(this, source, getContents(source)).perform(resultRecorder);
+      } catch (AnalysisException exception) {
+        throw exception;
+      } catch (Exception exception) {
+        throw new AnalysisException(exception);
+      }
       state = dartEntry.getState(descriptor);
     }
     return dartEntry;
@@ -2257,10 +2275,19 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       CacheState scanErrorsState = dartEntry.getState(DartEntry.SCAN_ERRORS);
       if (scanErrorsState == CacheState.INVALID
           || (isPriority && scanErrorsState == CacheState.FLUSHED)) {
-        DartEntryImpl dartCopy = dartEntry.getWritableCopy();
-        dartCopy.setState(DartEntry.SCAN_ERRORS, CacheState.IN_PROCESS);
-        cache.put(source, dartCopy);
-        return new ScanDartTask(this, source);
+        // TODO(brianwilkerson) Convert this to get the contents from the cache or to asynchronously
+        // request the contents if they are not in the cache.
+        try {
+          DartEntryImpl dartCopy = dartEntry.getWritableCopy();
+          dartCopy.setState(DartEntry.SCAN_ERRORS, CacheState.IN_PROCESS);
+          cache.put(source, dartCopy);
+          return new ScanDartTask(this, source, getContents(source));
+        } catch (Exception exception) {
+          DartEntryImpl dartCopy = dartEntry.getWritableCopy();
+          dartCopy.recordScanError();
+          dartCopy.setException(new AnalysisException(exception));
+          cache.put(source, dartCopy);
+        }
       }
       CacheState parseErrorsState = dartEntry.getState(DartEntry.PARSE_ERRORS);
       if (parseErrorsState == CacheState.INVALID

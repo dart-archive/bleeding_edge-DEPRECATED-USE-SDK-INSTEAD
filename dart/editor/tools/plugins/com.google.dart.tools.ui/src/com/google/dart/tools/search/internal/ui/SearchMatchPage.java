@@ -511,20 +511,6 @@ public abstract class SearchMatchPage extends SearchPage {
    * Helper for transforming offsets in the some {@link Source} into {@link SourceLine} objects.
    */
   private static class SourceLineProvider {
-    /**
-     * @return the {@link String} content of the given {@link Source}.
-     */
-    private static String getSourceContent(AnalysisContext context, Source source) throws Exception {
-      final String result[] = {null};
-      context.getContents(source, new Source.ContentReceiver() {
-        @Override
-        public void accept(CharSequence contents, long modificationTime) {
-          result[0] = contents.toString();
-        }
-      });
-      return result[0];
-    }
-
     private final Map<Source, String> sourceContentMap = Maps.newHashMap();
 
     /**
@@ -551,7 +537,7 @@ public abstract class SearchMatchPage extends SearchPage {
       String content = sourceContentMap.get(source);
       if (content == null) {
         try {
-          content = getSourceContent(context, source);
+          content = context.getContents(source).getData().toString();
           sourceContentMap.put(source, content);
         } catch (Throwable e) {
           return null;

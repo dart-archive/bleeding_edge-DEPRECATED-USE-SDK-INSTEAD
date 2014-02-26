@@ -14,6 +14,7 @@
 package com.google.dart.engine.source;
 
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.internal.context.TimestampedData;
 
 import java.net.URI;
 
@@ -67,15 +68,28 @@ public interface Source {
   public boolean exists();
 
   /**
+   * Get the contents and timestamp of this source.
+   * <p>
+   * Clients should consider using the the method {@link AnalysisContext#getContents(Source)}
+   * because contexts can have local overrides of the content of a source that the source is not
+   * aware of.
+   * 
+   * @return the contents and timestamp of the source
+   * @throws Exception if the contents of this source could not be accessed
+   */
+  public TimestampedData<CharSequence> getContents() throws Exception;
+
+  /**
    * Get the contents of this source and pass it to the given content receiver.
    * <p>
    * Clients should consider using the the method
-   * {@link AnalysisContext#getModificationStamp(Source)} because contexts can have local overrides
-   * of the content of a source that the source is not aware of.
+   * {@link AnalysisContext#getContents(Source, ContentReceiver)} because contexts can have local
+   * overrides of the content of a source that the source is not aware of.
    * 
    * @param receiver the content receiver to which the content of this source will be passed
    * @throws Exception if the contents of this source could not be accessed
    */
+  @Deprecated
   public void getContents(ContentReceiver receiver) throws Exception;
 
   /**

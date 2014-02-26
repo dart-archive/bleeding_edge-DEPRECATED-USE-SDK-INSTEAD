@@ -18,6 +18,7 @@ import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
 import com.google.dart.engine.internal.context.PerformanceStatistics;
 import com.google.dart.engine.internal.context.RecordingErrorListener;
+import com.google.dart.engine.internal.context.TimestampedData;
 import com.google.dart.engine.scanner.CharSequenceReader;
 import com.google.dart.engine.scanner.Scanner;
 import com.google.dart.engine.scanner.Token;
@@ -35,19 +36,24 @@ public class ScanDartTask extends AnalysisTask {
   private Source source;
 
   /**
-   * The time at which the contents of the source were last modified.
+   * The contents of the source.
    */
-  private long modificationTime = -1L;
+  private CharSequence content;
 
   /**
-   * The line information that was produced.
+   * The time at which the contents of the source were last modified.
    */
-  private LineInfo lineInfo;
+  private long modificationTime;
 
   /**
    * The token stream that was produced by scanning the source.
    */
   private Token tokenStream;
+
+  /**
+   * The line information that was produced.
+   */
+  private LineInfo lineInfo;
 
   /**
    * The errors that were produced by scanning the source.
@@ -59,10 +65,14 @@ public class ScanDartTask extends AnalysisTask {
    * 
    * @param context the context in which the task is to be performed
    * @param source the source to be parsed
+   * @param contentData the time-stamped contents of the source
    */
-  public ScanDartTask(InternalAnalysisContext context, Source source) {
+  public ScanDartTask(InternalAnalysisContext context, Source source,
+      TimestampedData<CharSequence> contentData) {
     super(context);
     this.source = source;
+    this.content = contentData.getData();
+    this.modificationTime = contentData.getModificationTime();
   }
 
   @Override
@@ -130,35 +140,17 @@ public class ScanDartTask extends AnalysisTask {
   @Override
   protected void internalPerform() throws AnalysisException {
     final RecordingErrorListener errorListener = new RecordingErrorListener();
-    final Token[] token = {null};
-    //
-    // Scan the contents of the file.
-    //
-    Source.ContentReceiver receiver = new Source.ContentReceiver() {
-      @Override
-      public void accept(CharSequence contents, long modificationTime) {
-        ScanDartTask.this.modificationTime = modificationTime;
-        TimeCounterHandle timeCounterScan = PerformanceStatistics.scan.start();
-        try {
-          Scanner scanner = new Scanner(source, new CharSequenceReader(contents), errorListener);
-          scanner.setPreserveComments(getContext().getAnalysisOptions().getPreserveComments());
-          token[0] = scanner.tokenize();
-          lineInfo = new LineInfo(scanner.getLineStarts());
-        } finally {
-          timeCounterScan.stop();
-        }
-      }
-    };
+    TimeCounterHandle timeCounterScan = PerformanceStatistics.scan.start();
     try {
-      getContext().getContents(source, receiver);
+      Scanner scanner = new Scanner(source, new CharSequenceReader(content), errorListener);
+      scanner.setPreserveComments(getContext().getAnalysisOptions().getPreserveComments());
+      tokenStream = scanner.tokenize();
+      lineInfo = new LineInfo(scanner.getLineStarts());
+      errors = errorListener.getErrors(source);
     } catch (Exception exception) {
-      modificationTime = getContext().getModificationStamp(source);
       throw new AnalysisException(exception);
+    } finally {
+      timeCounterScan.stop();
     }
-    if (token[0] == null) {
-      throw new AnalysisException("Could not get contents for '" + source.getFullName() + "'");
-    }
-    tokenStream = token[0];
-    errors = errorListener.getErrors(source);
   }
 }

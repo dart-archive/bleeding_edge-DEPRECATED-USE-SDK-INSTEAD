@@ -40,12 +40,7 @@ public class DartStatusContext extends RefactoringStatusContext implements IAdap
     ExecutionUtils.runIgnore(new RunnableEx() {
       @Override
       public void run() throws Exception {
-        context.getContents(source, new Source.ContentReceiver() {
-          @Override
-          public void accept(CharSequence contents, long modificationTime) {
-            result[0] = contents.toString();
-          }
-        });
+        result[0] = context.getContents(source).getData().toString();
       }
     });
     return result[0];

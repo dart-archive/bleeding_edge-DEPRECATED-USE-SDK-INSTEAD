@@ -72,20 +72,6 @@ import java.util.List;
  */
 public class MoveResourceParticipant extends MoveParticipant {
   /**
-   * @return the {@link String} content of the given {@link Source}.
-   */
-  private static String getSourceContent(AnalysisContext context, Source source) throws Exception {
-    final String result[] = {null};
-    context.getContents(source, new Source.ContentReceiver() {
-      @Override
-      public void accept(CharSequence contents, long modificationTime) {
-        result[0] = contents.toString();
-      }
-    });
-    return result[0];
-  }
-
-  /**
    * @return the Java {@link File} which corresponds to the given {@link Source}, may be
    *         {@code null} if cannot be determined.
    */
@@ -102,7 +88,7 @@ public class MoveResourceParticipant extends MoveParticipant {
     AnalysisContext context = element.getContext();
     Source source = element.getSource();
     int offset = match.getSourceRange().getOffset() + "'".length();
-    String content = getSourceContent(context, source);
+    String content = context.getContents(source).getData().toString();
     return content.startsWith("package:", offset);
   }
 

@@ -18,6 +18,7 @@ import com.google.dart.engine.context.AnalysisContextFactory;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
+import com.google.dart.engine.internal.context.TimestampedData;
 import com.google.dart.engine.source.FileUriResolver;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceFactory;
@@ -62,7 +63,7 @@ public class ResolveDartLibraryTaskTest extends EngineTestCase {
   public void test_perform_exception() throws AnalysisException {
     final Source source = new TestSource() {
       @Override
-      public void getContents(ContentReceiver receiver) throws Exception {
+      public TimestampedData<CharSequence> getContents() throws Exception {
         throw new IOException();
       }
     };

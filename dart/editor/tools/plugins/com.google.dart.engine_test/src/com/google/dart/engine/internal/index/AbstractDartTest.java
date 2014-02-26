@@ -89,14 +89,7 @@ public class AbstractDartTest extends TestCase {
    * @return the {@link String} content of the given {@link Source}.
    */
   public static String getSourceContent(Source source) throws Exception {
-    final String result[] = {null};
-    analysisContext.getContents(source, new Source.ContentReceiver() {
-      @Override
-      public void accept(CharSequence contents, long modificationTime) {
-        result[0] = contents.toString();
-      }
-    });
-    return result[0];
+    return analysisContext.getContents(source).getData().toString();
   }
 
   /**
@@ -365,12 +358,7 @@ public class AbstractDartTest extends TestCase {
   protected final void parseTestUnits(Source... sources) throws Exception {
     Source librarySource = sources[0];
     testSource = sources[1];
-    analysisContext.getContents(testSource, new Source.ContentReceiver() {
-      @Override
-      public void accept(CharSequence contents, long modificationTime) {
-        testCode = contents.toString();
-      }
-    });
+    testCode = analysisContext.getContents(testSource).getData().toString();
     // fill AnalysisContext
     {
       ChangeSet changeSet = new ChangeSet();

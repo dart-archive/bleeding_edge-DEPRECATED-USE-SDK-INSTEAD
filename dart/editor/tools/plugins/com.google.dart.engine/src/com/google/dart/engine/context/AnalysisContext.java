@@ -21,6 +21,7 @@ import com.google.dart.engine.element.HtmlElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.html.ast.HtmlUnit;
+import com.google.dart.engine.internal.context.TimestampedData;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.Source.ContentReceiver;
 import com.google.dart.engine.source.SourceContainer;
@@ -196,6 +197,18 @@ public interface AnalysisContext {
   public CompilationUnitElement getCompilationUnitElement(Source unitSource, Source librarySource);
 
   /**
+   * Get the contents and timestamp of the given source.
+   * <p>
+   * This method should be used rather than the method {@link Source#getContents()} because contexts
+   * can have local overrides of the content of a source that the source is not aware of.
+   * 
+   * @param source the source whose content is to be returned
+   * @return the contents and timestamp of the source
+   * @throws Exception if the contents of the source could not be accessed
+   */
+  public TimestampedData<CharSequence> getContents(Source source) throws Exception;
+
+  /**
    * Get the contents of the given source and pass it to the given content receiver.
    * <p>
    * This method should be used rather than the method {@link Source#getContents(ContentReceiver)}
@@ -206,6 +219,7 @@ public interface AnalysisContext {
    * @param receiver the content receiver to which the content of the source will be passed
    * @throws Exception if the contents of the source could not be accessed
    */
+  @Deprecated
   public void getContents(Source source, ContentReceiver receiver) throws Exception;
 
   /**

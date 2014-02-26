@@ -16,6 +16,7 @@ package com.google.dart.tools.core.model;
 
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
+import com.google.dart.engine.internal.context.TimestampedData;
 import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
 import com.google.dart.engine.sdk.SdkLibrary;
 import com.google.dart.engine.source.DartUriResolver;
@@ -122,6 +123,11 @@ public class DartSdkManager {
       if (DART_CORE.equals(dartUri)) {
         if (coreSource == null) {
           coreSource = new FileBasedSource(new File("core.dart"), UriKind.DART_URI) {
+            @Override
+            public TimestampedData<CharSequence> getContents() throws Exception {
+              return new TimestampedData<CharSequence>(0L, "library dart.core;");
+            };
+
             @Override
             public void getContents(com.google.dart.engine.source.Source.ContentReceiver receiver)
                 throws Exception {

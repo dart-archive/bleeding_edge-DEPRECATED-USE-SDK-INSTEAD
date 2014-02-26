@@ -26,7 +26,6 @@ import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.ast.IncrementalASTCloner;
 import com.google.dart.engine.utilities.collection.TokenMap;
 import com.google.dart.engine.utilities.io.PrintStringWriter;
-import com.google.dart.engine.utilities.source.LineInfo;
 
 import junit.framework.TestCase;
 
@@ -41,7 +40,12 @@ public class IncrementalASTClonerTest extends TestCase {
       for (String path : args) {
         File file = new File(path);
         if (file.exists()) {
-          traverse(file);
+          try {
+            traverse(file);
+          } catch (Exception exception) {
+            exception.printStackTrace();
+            fail();
+          }
         } else {
           System.out.println("File does not exist: " + file);
         }
@@ -52,39 +56,13 @@ public class IncrementalASTClonerTest extends TestCase {
     }
   }
 
-  private static void scan(File dartFile) {
+  private static void scan(File dartFile) throws Exception {
     fileCount++;
     final FileBasedSource source = new FileBasedSource(dartFile);
 
-    final Token[] tokens = new Token[1];
-    final LineInfo[] lineInfo = new LineInfo[1];
-    Source.ContentReceiver receiver = new Source.ContentReceiver() {
-      @Override
-      public void accept(CharSequence contents, long modificationTime) {
-        Scanner scanner = new Scanner(
-            source,
-            new CharSequenceReader(contents),
-            AnalysisErrorListener.NULL_LISTENER);
-        tokens[0] = scanner.tokenize();
-        lineInfo[0] = new LineInfo(scanner.getLineStarts());
-      }
-    };
-
     // Two identical token streams
-    try {
-      source.getContents(receiver);
-    } catch (Exception e) {
-      e.printStackTrace();
-      fail();
-    }
-    final Token oldTokens = tokens[0];
-    try {
-      source.getContents(receiver);
-    } catch (Exception e) {
-      e.printStackTrace();
-      fail();
-    }
-    final Token newTokens = tokens[0];
+    final Token oldTokens = scan(source);
+    final Token newTokens = scan(source);
 
     // Parse using the first token stream
     Parser parser = new Parser(source, AnalysisErrorListener.NULL_LISTENER);
@@ -131,7 +109,15 @@ public class IncrementalASTClonerTest extends TestCase {
 
   }
 
-  private static void traverse(File file) {
+  private static Token scan(Source source) throws Exception {
+    Scanner scanner = new Scanner(
+        source,
+        new CharSequenceReader(source.getContents().getData()),
+        AnalysisErrorListener.NULL_LISTENER);
+    return scanner.tokenize();
+  }
+
+  private static void traverse(File file) throws Exception {
     if (file.isDirectory()) {
       for (File child : file.listFiles()) {
         traverse(child);

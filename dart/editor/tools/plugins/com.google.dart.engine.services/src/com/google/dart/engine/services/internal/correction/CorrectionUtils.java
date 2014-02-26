@@ -657,14 +657,7 @@ public class CorrectionUtils {
    * @return the {@link String} content of the given {@link Source}.
    */
   public static String getSourceContent(AnalysisContext context, Source source) throws Exception {
-    final String result[] = {null};
-    context.getContents(source, new Source.ContentReceiver() {
-      @Override
-      public void accept(CharSequence contents, long modificationTime) {
-        result[0] = contents.toString();
-      }
-    });
-    return result[0];
+    return context.getContents(source).getData().toString();
   }
 
   /**

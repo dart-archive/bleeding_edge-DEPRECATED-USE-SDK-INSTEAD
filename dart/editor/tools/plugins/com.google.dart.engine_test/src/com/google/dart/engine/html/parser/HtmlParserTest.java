@@ -22,7 +22,6 @@ import com.google.dart.engine.html.parser.XmlValidator.Tag;
 import com.google.dart.engine.html.scanner.AbstractScanner;
 import com.google.dart.engine.html.scanner.StringScanner;
 import com.google.dart.engine.html.scanner.Token;
-import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.TestSource;
 import com.google.dart.engine.utilities.source.LineInfo;
 
@@ -172,21 +171,13 @@ public class HtmlParserTest extends EngineTestCase {
   }
 
   protected HtmlUnit parse(String contents) throws Exception {
-    final TestSource source = new TestSource(createFile("/test.dart"), contents);
-    final Token[] token = {null};
-    final LineInfo[] lineInfo = {null};
-    Source.ContentReceiver receiver = new Source.ContentReceiver() {
-      @Override
-      public void accept(CharSequence contents, long modificationTime) {
-        AbstractScanner scanner = new StringScanner(source, contents);
-        scanner.setPassThroughElements(new String[] {TAG_SCRIPT});
-        token[0] = scanner.tokenize();
-        lineInfo[0] = new LineInfo(scanner.getLineStarts());
-      }
-    };
-    source.getContents(receiver);
+    TestSource source = new TestSource(createFile("/test.dart"), contents);
+    AbstractScanner scanner = new StringScanner(source, contents);
+    scanner.setPassThroughElements(new String[] {TAG_SCRIPT});
+    Token token = scanner.tokenize();
+    LineInfo lineInfo = new LineInfo(scanner.getLineStarts());
     GatheringErrorListener errorListener = new GatheringErrorListener();
-    HtmlUnit unit = new HtmlParser(source, errorListener).parse(token[0], lineInfo[0]);
+    HtmlUnit unit = new HtmlParser(source, errorListener).parse(token, lineInfo);
     errorListener.assertNoErrors();
     return unit;
   }

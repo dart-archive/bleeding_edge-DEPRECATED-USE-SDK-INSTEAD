@@ -60,6 +60,7 @@ import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.TypeParameterElement;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
+import com.google.dart.engine.internal.context.TimestampedData;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.services.change.Edit;
 import com.google.dart.engine.services.change.SourceChange;
@@ -80,12 +81,7 @@ import static com.google.dart.engine.ast.ASTFactory.propertyAccess;
 import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeStartEnd;
 import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeStartLength;
 
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
-
 import static org.fest.assertions.Assertions.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -1717,17 +1713,11 @@ public class CorrectionUtilsTest extends AbstractDartTest {
     // mock content
     final CharBuffer charBuffer = mock(CharBuffer.class);
     when(charBuffer.toString()).thenReturn("// 0123");
-    doAnswer(new Answer<Void>() {
-      @Override
-      public Void answer(InvocationOnMock invocation) throws Throwable {
-        ((Source.ContentReceiver) invocation.getArguments()[0]).accept(charBuffer, 0L);
-        return null;
-      }
-    }).when(source).getContents(any(Source.ContentReceiver.class));
+    when(source.getContents()).thenReturn(new TimestampedData<CharSequence>(0L, charBuffer));
     // create CorrectionUtils, ask content
     CorrectionUtils utils = new CorrectionUtils(unit);
     // verify that content was requested
-    verify(source).getContents(any(Source.ContentReceiver.class));
+    verify(source).getContents();
     assertEquals("// 0123", utils.getText());
   }
 

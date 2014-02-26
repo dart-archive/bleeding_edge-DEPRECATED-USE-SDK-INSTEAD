@@ -396,30 +396,16 @@ public class AnalysisContextImplTest extends EngineTestCase {
 
   public void test_getContents_fromSource() throws Exception {
     final String content = "library lib;";
-    final boolean[] gotContents = {false};
-    context.getContents(new TestSource(content), new Source.ContentReceiver() {
-      @Override
-      public void accept(CharSequence contents, long modificationTime) {
-        gotContents[0] = true;
-        assertEquals(content, contents.toString());
-      }
-    });
-    assertTrue("Failed to get contents", gotContents[0]);
+    TimestampedData<CharSequence> contents = context.getContents(new TestSource(content));
+    assertEquals(content, contents.getData().toString());
   }
 
   public void test_getContents_overridden() throws Exception {
     final String content = "library lib;";
     Source source = new TestSource();
     context.setContents(source, content);
-    final boolean[] gotContents = {false};
-    context.getContents(source, new Source.ContentReceiver() {
-      @Override
-      public void accept(CharSequence contents, long modificationTime) {
-        gotContents[0] = true;
-        assertEquals(content, contents.toString());
-      }
-    });
-    assertTrue("Failed to get contents", gotContents[0]);
+    TimestampedData<CharSequence> contents = context.getContents(source);
+    assertEquals(content, contents.getData().toString());
   }
 
   public void test_getContents_unoverridden() throws Exception {
@@ -427,15 +413,8 @@ public class AnalysisContextImplTest extends EngineTestCase {
     Source source = new TestSource(content);
     context.setContents(source, "part of lib;");
     context.setContents(source, null);
-    final boolean[] gotContents = {false};
-    context.getContents(source, new Source.ContentReceiver() {
-      @Override
-      public void accept(CharSequence contents, long modificationTime) {
-        gotContents[0] = true;
-        assertEquals(content, contents.toString());
-      }
-    });
-    assertTrue("Failed to get contents", gotContents[0]);
+    TimestampedData<CharSequence> contents = context.getContents(source);
+    assertEquals(content, contents.getData().toString());
   }
 
   public void test_getElement() throws Exception {
@@ -981,12 +960,7 @@ public class AnalysisContextImplTest extends EngineTestCase {
         "int ya = 0;");
     assertNull(getIncrementalAnalysisCache(context));
     context.setChangedContents(librarySource, newCode, offset, 0, 1);
-    context.getContents(librarySource, new Source.ContentReceiver() {
-      @Override
-      public void accept(CharSequence contents, long modificationTime) {
-        assertEquals(newCode, contents);
-      }
-    });
+    assertEquals(newCode, context.getContents(librarySource).getData());
     IncrementalAnalysisCache incrementalCache = getIncrementalAnalysisCache(context);
     assertEquals(librarySource, incrementalCache.getLibrarySource());
     assertSame(unit, incrementalCache.getResolvedUnit());
@@ -1010,12 +984,7 @@ public class AnalysisContextImplTest extends EngineTestCase {
         "library lib;",
         "int ya = 0;");
     context.setChangedContents(librarySource, newCode, offset, 0, 1);
-    context.getContents(librarySource, new Source.ContentReceiver() {
-      @Override
-      public void accept(CharSequence contents, long modificationTime) {
-        assertEquals(newCode, contents);
-      }
-    });
+    assertEquals(newCode, context.getContents(librarySource).getData());
     assertNull(getIncrementalAnalysisCache(context));
   }
 
@@ -1164,7 +1133,7 @@ public class AnalysisContextImplTest extends EngineTestCase {
   private Source addSourceWithException(String fileName) {
     Source source = new FileBasedSource(createFile(fileName)) {
       @Override
-      public void getContents(ContentReceiver receiver) throws Exception {
+      public TimestampedData<CharSequence> getContents() throws Exception {
         throw new IOException("I/O Exception while getting the contents of " + getFullName());
       }
     };

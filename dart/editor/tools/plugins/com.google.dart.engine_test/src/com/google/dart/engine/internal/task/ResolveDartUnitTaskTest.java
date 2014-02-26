@@ -19,6 +19,7 @@ import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
+import com.google.dart.engine.internal.context.TimestampedData;
 import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
 import com.google.dart.engine.internal.element.ConstructorElementImpl;
@@ -77,7 +78,7 @@ public class ResolveDartUnitTaskTest extends EngineTestCase {
     LibraryElementImpl element = library(context, "lib");
     final Source source = new TestSource() {
       @Override
-      public void getContents(ContentReceiver receiver) throws Exception {
+      public TimestampedData<CharSequence> getContents() throws Exception {
         throw new IOException();
       }
     };

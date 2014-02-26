@@ -25,6 +25,7 @@ import com.google.dart.engine.html.scanner.StringScanner;
 import com.google.dart.engine.html.scanner.Token;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
 import com.google.dart.engine.internal.context.RecordingErrorListener;
+import com.google.dart.engine.internal.context.TimestampedData;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.source.LineInfo;
 
@@ -159,26 +160,20 @@ public class ParseHtmlTask extends AnalysisTask {
 
   @Override
   protected void internalPerform() throws AnalysisException {
-    final Token[] token = {null};
-    Source.ContentReceiver receiver = new Source.ContentReceiver() {
-      @Override
-      public void accept(CharSequence contents, long modificationTime) {
-        ParseHtmlTask.this.modificationTime = modificationTime;
-        AbstractScanner scanner = new StringScanner(source, contents);
-        scanner.setPassThroughElements(new String[] {TAG_SCRIPT});
-        token[0] = scanner.tokenize();
-        lineInfo = new LineInfo(scanner.getLineStarts());
-      }
-    };
     try {
-      getContext().getContents(source, receiver);
+      TimestampedData<CharSequence> contents = getContext().getContents(source);
+      modificationTime = contents.getModificationTime();
+      AbstractScanner scanner = new StringScanner(source, contents.getData());
+      scanner.setPassThroughElements(new String[] {TAG_SCRIPT});
+      Token token = scanner.tokenize();
+      lineInfo = new LineInfo(scanner.getLineStarts());
+      RecordingErrorListener errorListener = new RecordingErrorListener();
+      unit = new HtmlParser(source, errorListener).parse(token, lineInfo);
+      errors = errorListener.getErrors(source);
+      referencedLibraries = getLibrarySources();
     } catch (Exception exception) {
       throw new AnalysisException(exception);
     }
-    final RecordingErrorListener errorListener = new RecordingErrorListener();
-    unit = new HtmlParser(source, errorListener).parse(token[0], lineInfo);
-    errors = errorListener.getErrors(source);
-    referencedLibraries = getLibrarySources();
   }
 
   /**
