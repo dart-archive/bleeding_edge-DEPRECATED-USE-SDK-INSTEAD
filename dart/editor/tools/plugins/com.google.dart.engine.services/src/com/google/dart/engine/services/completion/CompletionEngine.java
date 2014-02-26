@@ -28,7 +28,6 @@ import com.google.dart.engine.ast.BooleanLiteral;
 import com.google.dart.engine.ast.BreakStatement;
 import com.google.dart.engine.ast.CatchClause;
 import com.google.dart.engine.ast.ClassDeclaration;
-import com.google.dart.engine.ast.ClassMember;
 import com.google.dart.engine.ast.ClassTypeAlias;
 import com.google.dart.engine.ast.Combinator;
 import com.google.dart.engine.ast.Comment;
@@ -172,6 +171,83 @@ public class CompletionEngine {
     @Override
     public Void visitNode(ASTNode node) {
       return null;
+    }
+  }
+
+  class CommentReferenceCompleter extends AstNodeClassifier {
+    private final SimpleIdentifier identifier;
+    private final NameCollector names;
+    private final Set<Element> enclosingElements = Sets.newHashSet();
+
+    public CommentReferenceCompleter(SimpleIdentifier identifier) {
+      this.identifier = identifier;
+      filter = new Filter(identifier);
+      names = collectTopLevelElementVisibleAt(identifier);
+    }
+
+    @Override
+    public Void visitClassDeclaration(ClassDeclaration node) {
+      ClassElement classElement = node.getElement();
+      names.addNamesDefinedByHierarchy(classElement, false);
+      enclosingElements.add(classElement);
+      return null;
+    }
+
+    @Override
+    public Void visitComment(Comment node) {
+      node.getParent().accept(this);
+      // propose names
+      for (Element element : names.getUniqueElements()) {
+        CompletionProposal proposal = createProposal(element, identifier);
+        if (proposal != null) {
+          // we don't want to add arguments, just names
+          if (element instanceof MethodElement || element instanceof FunctionElement) {
+            proposal.setKind(ProposalKind.METHOD_NAME);
+          }
+          // elevate priority for local elements
+          if (enclosingElements.contains(element.getEnclosingElement())) {
+            proposal.setRelevance(CompletionProposal.RELEVANCE_HIGH);
+          }
+          // propose
+          requestor.accept(proposal);
+        }
+      }
+      // done
+      return null;
+    }
+
+    @Override
+    public Void visitConstructorDeclaration(ConstructorDeclaration node) {
+      visitExecutableDeclaration(node);
+      // pass through
+      return node.getParent().accept(this);
+    }
+
+    @Override
+    public Void visitFunctionDeclaration(FunctionDeclaration node) {
+      visitExecutableDeclaration(node);
+      return null;
+    }
+
+    @Override
+    public Void visitFunctionTypeAlias(FunctionTypeAlias node) {
+      FunctionTypeAliasElement element = node.getElement();
+      names.mergeNames(element.getParameters());
+      enclosingElements.add(element);
+      return null;
+    }
+
+    @Override
+    public Void visitMethodDeclaration(MethodDeclaration node) {
+      visitExecutableDeclaration(node);
+      // pass through
+      return node.getParent().accept(this);
+    }
+
+    private void visitExecutableDeclaration(Declaration node) {
+      ExecutableElement element = (ExecutableElement) node.getElement();
+      names.mergeNames(element.getParameters());
+      enclosingElements.add(element);
     }
   }
 
@@ -557,8 +633,9 @@ public class CompletionEngine {
 
     @Override
     public Void visitCommentReference(CommentReference node) {
-      analyzeCommentReference(completionNode);
-      return null;
+      ASTNode comment = node.getParent();
+      CommentReferenceCompleter visitor = new CommentReferenceCompleter(completionNode);
+      return comment.accept(visitor);
     }
 
     @Override
@@ -1707,67 +1784,6 @@ public class CompletionEngine {
         for (ConstructorElement constructor : classElement.getConstructors()) {
           pNamedConstructor(classElement, constructor, identifier);
         }
-      }
-    }
-  }
-
-  void analyzeCommentReference(SimpleIdentifier identifier) {
-    filter = new Filter(identifier);
-    NameCollector names = collectTopLevelElementVisibleAt(identifier);
-    Set<Element> enclosingElements = Sets.newHashSet();
-    // names from commented node
-    {
-      ASTNode parent2 = identifier.getParent().getParent();
-      if (parent2 instanceof Comment) {
-        ASTNode commentParent = parent2.getParent();
-        // function comment
-        if (commentParent instanceof FunctionDeclaration) {
-          FunctionDeclaration function = (FunctionDeclaration) commentParent;
-          ExecutableElement functionElement = function.getElement();
-          names.mergeNames(functionElement.getParameters());
-          enclosingElements.add(functionElement);
-        }
-        // function type alias comment
-        if (commentParent instanceof FunctionTypeAlias) {
-          FunctionTypeAlias function = (FunctionTypeAlias) commentParent;
-          FunctionTypeAliasElement functionElement = function.getElement();
-          names.mergeNames(functionElement.getParameters());
-          enclosingElements.add(functionElement);
-        }
-        // method comment
-        boolean isMethod = commentParent instanceof MethodDeclaration;
-        boolean isConstructor = commentParent instanceof ConstructorDeclaration;
-        if (isMethod || isConstructor) {
-          ClassMember member = (ClassMember) commentParent;
-          ExecutableElement memberElement = (ExecutableElement) member.getElement();
-          names.mergeNames(memberElement.getParameters());
-          enclosingElements.add(memberElement);
-          // pass through
-          commentParent = member.getParent();
-        }
-        // class comment
-        if (commentParent instanceof ClassDeclaration) {
-          ClassDeclaration classDeclaration = (ClassDeclaration) commentParent;
-          ClassElement classElement = classDeclaration.getElement();
-          names.addNamesDefinedByHierarchy(classElement, false);
-          enclosingElements.add(classElement);
-        }
-      }
-    }
-    // propose names
-    for (Element element : names.getUniqueElements()) {
-      CompletionProposal proposal = createProposal(element, identifier);
-      if (proposal != null) {
-        // we don't want to add arguments, just names
-        if (element instanceof MethodElement || element instanceof FunctionElement) {
-          proposal.setKind(ProposalKind.METHOD_NAME);
-        }
-        // elevate priority for local elements
-        if (enclosingElements.contains(element.getEnclosingElement())) {
-          proposal.setRelevance(CompletionProposal.RELEVANCE_HIGH);
-        }
-        // propose
-        requestor.accept(proposal);
       }
     }
   }
