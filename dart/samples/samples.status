@@ -31,12 +31,6 @@ polymer_intl: Skip
 [ $runtime == vm || $runtime == d8 || $runtime == jsshell ]
 third_party/todomvc: Skip # uses dart:html
 
-[ $compiler == none && $runtime == drt ]
-third_party/todomvc: Fail # Issue 17097
-
-[ $compiler == none && $runtime == dartium ]
-third_party/todomvc: Timeout # Issue 17097
-
 [ $compiler == dart2js && $browser ]
 
 [ $compiler == dart2js && $runtime == none ]
