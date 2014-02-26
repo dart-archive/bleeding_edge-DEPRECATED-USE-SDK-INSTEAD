@@ -7,7 +7,7 @@ part of angular.directive;
  *
  * @description
  * Modifies the default behavior of the html A tag so that the default action is prevented when
- * the href attribute is empty.
+ * the a href is empty or it contains `ng-click` directive.
  *
  * This change permits the easy creation of action links with the `ngClick` directive
  * without changing the location or causing page reloads, e.g.:
@@ -15,10 +15,11 @@ part of angular.directive;
  */
 @NgDirective(selector: 'a[href]')
 class NgADirective {
-  dom.Element element;
+  final dom.Element element;
 
-  NgADirective(dom.Element element) {
-    if (element.attributes["href"] == "") {
+  NgADirective(this.element) {
+    if (element.attributes["href"] == "" ||
+        element.attributes.containsKey('ng-click')) {
       element.onClick.listen((event) {
         if (element.attributes["href"] == "") {
           event.preventDefault();

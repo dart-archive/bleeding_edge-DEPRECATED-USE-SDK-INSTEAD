@@ -1,0 +1,17 @@
+language: node_js
+node_js:
+  - 0.10
+
+env:
+  matrix:
+    - JOB=unit-stable
+    - JOB=unit-dev
+
+before_script:
+  - ./scripts/travis/setup.sh
+
+script:
+  - ./scripts/travis/build.sh
+
+after_success:
+  - ./scripts/travis/benchmark.sh

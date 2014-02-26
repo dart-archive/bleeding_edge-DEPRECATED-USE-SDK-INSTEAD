@@ -27,6 +27,9 @@ import '../_specs.dart';
 @NgDirective(selector: '[my-model][my-required]')
                                               class _TwoDirectives {}
 
+@NgDirective(selector: '[two-directives]') class _OneOfTwoDirectives {}
+@NgDirective(selector: '[two-directives]') class _TwoOfTwoDirectives {}
+
 
 main() {
   describe('Selector', () {
@@ -55,7 +58,9 @@ main() {
         ..type(_Attribute)
         ..type(_Structural)
         ..type(_IgnoreChildren)
-        ..type(_TwoDirectives);
+        ..type(_TwoDirectives)
+        ..type(_OneOfTwoDirectives)
+        ..type(_TwoOfTwoDirectives);
     }));
     beforeEach(inject((DirectiveMap directives) {
       selector = directiveSelectorFactory(directives);
@@ -182,6 +187,14 @@ main() {
               { "selector": '[my-model][my-required]', "value": '', "element": element}
           ]));
     });
+
+    it('should match an two directives with the same selector', () {
+      expect(selector(element = e('<div two-directives></div>')),
+        toEqualsDirectiveInfos([
+          { "selector": '[two-directives]', "value": '', "element": element},
+          { "selector": '[two-directives]', "value": '', "element": element}
+      ]));
+    });
   });
 }
 
@@ -199,7 +212,7 @@ class DirectiveInfosMatcher extends Matcher {
   bool matches(directiveRefs, matchState) {
     var pass = expected.length == directiveRefs.length;
     if (pass) {
-      for(var i = 0, ii = expected.length; i < ii; i++) {
+      for (var i = 0, ii = expected.length; i < ii; i++) {
         DirectiveRef directiveRef = directiveRefs[i];
         var expectedMap = expected[i];
 

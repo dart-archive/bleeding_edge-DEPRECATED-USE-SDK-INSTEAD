@@ -51,7 +51,7 @@ main() => describe('http', () {
   }));
 
   afterEach(inject((ExceptionHandler eh, Scope scope) {
-    scope.$digest();
+    scope.apply();
     backend.verifyNoOutstandingRequest();
     (eh as LoggingExceptionHandler).assertEmpty();
   }));
@@ -826,7 +826,7 @@ main() => describe('http', () {
               callback();
             });
 
-        //$rootScope.$apply(() {
+        //$rootScope.apply(() {
           canceler.resolve();
         //});
 
@@ -1321,10 +1321,11 @@ main() => describe('http', () {
 });
 
 class FakeFile implements File {
-  final DateTime lastModifiedDate = null;
-  final String name = null;
-  final String relativePath = null;
-  final int size = 0;
-  final String type = null;
+  DateTime get lastModifiedDate => null;
+  String get name => null;
+  String get relativePath => null;
+  int get size => 0;
+  String get type => null;
   Blob slice([int start, int end, String contentType]) => null;
+  int get lastModified => new DateTime.now().millisecondsSinceEpoch;
 }
