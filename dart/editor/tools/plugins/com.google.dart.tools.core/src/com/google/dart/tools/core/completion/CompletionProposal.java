@@ -16,7 +16,6 @@ package com.google.dart.tools.core.completion;
 import com.google.dart.engine.element.Element;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.completion.InternalCompletionProposal;
-import com.google.dart.tools.core.model.DartModifiers;
 import com.google.dart.tools.core.model.DartProject;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -1303,20 +1302,6 @@ public class CompletionProposal {
    * @param key the key, or <code>null</code> if none
    */
   public void setKey(char[] key) {
-    // default overridden by concrete implementation
-  }
-
-  /**
-   * Sets the modifier flags relevant in the context.
-   * <p>
-   * If not set, defaults to none.
-   * <p>
-   * The completion engine creates instances of this class and sets its properties; this method is
-   * not intended to be used by other clients.
-   * 
-   * @param modifiers the modifier flags, or <code>null</code> if none
-   */
-  public void setModifiers(DartModifiers modifiers) {
     // default overridden by concrete implementation
   }
 

@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.core.model;
 
-import com.google.dart.compiler.DartSource;
 import com.google.dart.tools.core.problem.ProblemRequestor;
 import com.google.dart.tools.core.workingcopy.WorkingCopyOwner;
 
@@ -125,18 +124,6 @@ public interface SourceFileElement<E> extends OpenableElement, SourceReference {
   public void discardWorkingCopy() throws DartModelException;
 
   /**
-   * Find and return the working copy for this element, given a {@link WorkingCopyOwner}. If no
-   * working copy has been created for this element associated with this working copy owner, return
-   * <code>null</code>.
-   * <p>
-   * Users of this method must not destroy the resulting working copy.
-   * 
-   * @param owner the given {@link WorkingCopyOwner}
-   * @return the found working copy for this element
-   */
-  public E findWorkingCopy(WorkingCopyOwner owner);
-
-  /**
    * Return the modification stamp associated with this element, or {@link IResource#NULL_STAMP} if
    * this element does not exist or if the modification stamp cannot be accessed. The modification
    * stamp for a element changes every time the element changes but stays constant if the element
@@ -145,14 +132,6 @@ public interface SourceFileElement<E> extends OpenableElement, SourceReference {
    * @return the modification stamp associated with this element
    */
   public long getModificationStamp();
-
-  /**
-   * Return the owner of this working copy, or <code>null</code> if this is the primary working
-   * copy, or if this is not a working copy.
-   * 
-   * @return the owner of this working copy
-   */
-  public WorkingCopyOwner getOwner();
 
   /**
    * Returns the primary Dart element (whose owner is the primary owner) this working copy was
@@ -164,11 +143,6 @@ public interface SourceFileElement<E> extends OpenableElement, SourceReference {
    *         is primary
    */
   public E getPrimary();
-
-  /**
-   * Return the file management object for this element.
-   */
-  public DartSource getSourceRef() throws DartModelException;
 
   /**
    * Return a new working copy of this element if it is a primary element, or this element if it is
@@ -237,39 +211,9 @@ public interface SourceFileElement<E> extends OpenableElement, SourceReference {
       throws DartModelException;
 
   /**
-   * Return <code>true</code> if the resource of this working copy has changed since the inception
-   * of this working copy. Return <code>false</code> if this element is not in working copy mode.
-   * 
-   * @return <code>true</code> if the resource has changed
-   */
-  public boolean hasResourceChanged();
-
-  /**
-   * Return <code>true</code> if this element is a primary working copy.
-   * 
-   * @return <code>true</code> if this element is a primary working copy
-   */
-  public boolean isPrimary();
-
-  /**
    * Return <code>true</code> if this element is a working copy.
    * 
    * @return <code>true</code> if this element is a working copy
    */
   public boolean isWorkingCopy();
-
-  /**
-   * Restore the contents of this working copy to the current contents of this working copy's
-   * original element. Has no effect if this element is not a working copy.
-   * <p>
-   * Note: This is the inverse of committing the content of the working copy to the original element
-   * with {@link #commitWorkingCopy(boolean, IProgressMonitor)}.
-   * 
-   * @throws DartModelException if the contents of the original element cannot be accessed. Reasons
-   *           include:
-   *           <ul>
-   *           <li> The original Dart element does not exist (ELEMENT_DOES_NOT_EXIST)</li>
-   *           </ul>
-   */
-  public void restore() throws DartModelException;
 }

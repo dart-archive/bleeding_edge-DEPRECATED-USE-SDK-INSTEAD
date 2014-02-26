@@ -22,7 +22,6 @@ import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.model.TypeHierarchy;
 import com.google.dart.tools.ui.DartX;
-import com.google.dart.tools.ui.text.editor.tmp.JavaScriptCore;
 
 import org.eclipse.core.resources.IStorage;
 
@@ -33,21 +32,6 @@ import java.util.List;
  * Utility methods for the Dart Model.
  */
 public final class DartModelUtil {
-
-  /**
-   * Only use this suffix for creating new .dart files. In general, use one of the three
-   * *JavaLike*(..) methods in JavaScriptCore.
-   * <p>
-   * Note: Unlike {@link JavaScriptCore#getJavaScriptLikeExtensions()}, this suffix includes a
-   * leading ".".
-   * </p>
-   * 
-   * @see JavaScriptCore#getJavaScriptLikeExtensions()
-   * @see JavaScriptCore#isJavaScriptLikeFileName(String)
-   * @see JavaScriptCore#removeJavaScriptLikeExtension(String).
-   */
-  public static final String DEFAULT_CU_SUFFIX = ".dart"; //$NON-NLS-1$
-
   /**
    * Concatenates two names. Uses a dot for separation. Both strings can be empty or
    * <code>null</code>.

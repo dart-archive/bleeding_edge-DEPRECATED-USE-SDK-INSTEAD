@@ -30,13 +30,6 @@ public interface Field extends TypeMember {
   public String getTypeName() throws DartModelException;
 
   /**
-   * Return <code>true</code> if this field is declared to be constant.
-   * 
-   * @return <code>true</code> if this field is const
-   */
-  public boolean isConstant();
-
-  /**
    * Return <code>true</code> if this field is declared to be final.
    * 
    * @return <code>true</code> if this field is final

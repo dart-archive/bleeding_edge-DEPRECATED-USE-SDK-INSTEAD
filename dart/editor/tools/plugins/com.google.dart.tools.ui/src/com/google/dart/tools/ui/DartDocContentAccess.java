@@ -15,7 +15,6 @@ package com.google.dart.tools.ui;
 
 import com.google.dart.core.ILocalVariable;
 import com.google.dart.core.util.DartDocCommentReader;
-import com.google.dart.core.util.MethodOverrideTester;
 import com.google.dart.core.util.SequenceReader;
 import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.buffer.Buffer;
@@ -24,7 +23,6 @@ import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.model.OpenableElement;
 import com.google.dart.tools.core.model.Type;
-import com.google.dart.tools.core.model.TypeHierarchy;
 import com.google.dart.tools.core.model.TypeMember;
 
 import org.eclipse.core.runtime.CoreException;
@@ -268,25 +266,6 @@ public class DartDocContentAccess {
   }
 
   private static Reader findDocInHierarchy(Method method) throws DartModelException {
-    Type type = method.getDeclaringType();
-    if (type == null) {
-      return null;
-    }
-    TypeHierarchy hierarchy = type.newSupertypeHierarchy(null);
-
-    MethodOverrideTester tester = new MethodOverrideTester(type, hierarchy);
-
-    Type[] superTypes = hierarchy.getAllSuperclasses(type);
-    for (int i = 0; i < superTypes.length; i++) {
-      Type curr = superTypes[i];
-      Method overridden = tester.findOverriddenMethodInType(curr, method);
-      if (overridden != null) {
-        Reader reader = getContentReader(overridden, false);
-        if (reader != null) {
-          return reader;
-        }
-      }
-    }
     return null;
   }
 

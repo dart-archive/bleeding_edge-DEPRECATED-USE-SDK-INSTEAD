@@ -15,7 +15,6 @@ package com.google.dart.tools.ui.internal.text.editor;
 
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.SimpleIdentifier;
 
@@ -86,14 +85,8 @@ public final class SemanticToken {
       } catch (BadLocationException e) {
         return null;
       }
-    } else {
-      SourceInfo sourceInfo = nodeOld.getSourceInfo();
-      try {
-        return document.get(sourceInfo.getOffset(), sourceInfo.getLength());
-      } catch (BadLocationException e) {
-        return null;
-      }
     }
+    return null;
   }
 
   /**

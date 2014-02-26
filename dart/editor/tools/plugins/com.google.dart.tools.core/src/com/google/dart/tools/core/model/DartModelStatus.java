@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.core.model;
 
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IStatus;
 
 /**
@@ -32,26 +31,10 @@ import org.eclipse.core.runtime.IStatus;
  * <li>elements - optional handles to Dart elements associated with the failure</li>
  * <li>string - optional string associated with the failure</li>
  * </ul>
+ * 
  * @coverage dart.tools.core.model
  */
 public interface DartModelStatus extends IStatus {
-  /**
-   * Return an array containing any Dart elements associated with the failure (see specification of
-   * the status code), or an empty array if no elements are related to this particular status code.
-   * 
-   * @return the list of Dart element culprits
-   * @see DartModelStatusConstants
-   */
-  public DartElement[] getElements();
-
-  /**
-   * Return the path associated with the failure (see specification of the status code), or
-   * <code>null</code> if the failure does not include path information.
-   * 
-   * @return the path that caused the failure, or <code>null</code> if none
-   */
-  public IPath getPath();
-
   /**
    * Return <code>true</code> if this status indicates that a Dart model element does not exist.
    * This convenience method is equivalent to

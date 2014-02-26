@@ -147,9 +147,9 @@ public class GetterSetterCompletionProposal extends DartTypeCompletionProposal i
     CodeGenerationSettings settings = JavaPreferencesSettings.getCodeGenerationSettings(fField.getDartProject());
     boolean addComments = settings.createComments;
     Modifiers modifiers = Modifiers.NONE;
-    if (fField.getModifiers().isStatic()) {
-      modifiers.makeStatic();
-    }
+//    if (fField.getModifiers().isStatic()) {
+//      modifiers.makeStatic();
+//    }
 
     String stub;
     if (fIsGetter) {

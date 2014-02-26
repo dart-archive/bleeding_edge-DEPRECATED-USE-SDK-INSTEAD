@@ -13,9 +13,6 @@
  */
 package com.google.dart.tools.core.problem;
 
-import com.google.dart.compiler.ErrorCode;
-import com.google.dart.tools.core.internal.problem.ProblemSeverities;
-
 /**
  * The interface <code>Problem</code> defines the behavior of objects that represent a Dart problem,
  * as detected by the compiler or some of the underlying technology reusing the compiler. A problem
@@ -43,86 +40,9 @@ public interface Problem {
   public String[] getArguments();
 
   /**
-   * Return the problem id.
-   * 
-   * @return the problem id
-   */
-  public ErrorCode getID();
-
-  /**
    * Return a localized, human-readable message string which describes the problem.
    * 
    * @return a localized, human-readable message string which describes the problem
    */
   public String getMessage();
-
-  /**
-   * Return the file name in which the problem was found.
-   * 
-   * @return the file name in which the problem was found
-   */
-  public char[] getOriginatingFileName();
-
-  /**
-   * Return the end position of the problem (inclusive), or -1 if unknown.
-   * 
-   * @return the end position of the problem (inclusive), or -1 if unknown
-   */
-  public int getSourceEnd();
-
-  /**
-   * Return the line number in source where the problem begins.
-   * 
-   * @return the line number in source where the problem begins
-   */
-  public int getSourceLineNumber();
-
-  /**
-   * Return the start position of the problem (inclusive), or -1 if unknown.
-   * 
-   * @return the start position of the problem (inclusive), or -1 if unknown
-   */
-  public int getSourceStart();
-
-  /**
-   * Checks the severity to see if the Error bit is set.
-   * 
-   * @return <code>true</code> if the Error bit is set for the severity
-   */
-  public boolean isError();
-
-  /**
-   * @return <code>true</code> if {@link ProblemSeverities#Info}
-   */
-  public boolean isInfo();
-
-  /**
-   * Checks the severity to see if the Error bit is not set.
-   * 
-   * @return <code>true</code> if the Error bit is not set for the severity
-   */
-  public boolean isWarning();
-
-  /**
-   * Set the end position of the problem (inclusive), or -1 if unknown. Used for shifting problem
-   * positions.
-   * 
-   * @param sourceEnd the given end position
-   */
-  public void setSourceEnd(int sourceEnd);
-
-  /**
-   * Set the line number in source where the problem begins.
-   * 
-   * @param lineNumber the given line number
-   */
-  public void setSourceLineNumber(int lineNumber);
-
-  /**
-   * Set the start position of the problem (inclusive), or -1 if unknown. Used for shifting problem
-   * positions.
-   * 
-   * @param sourceStart the given start position
-   */
-  public void setSourceStart(int sourceStart);
 }

@@ -20,34 +20,10 @@ package com.google.dart.tools.core.model;
  * @coverage dart.tools.core.model
  */
 public interface Method extends TypeMember, DartFunction {
-
-  /**
-   * Return <code>true</code> if this method is declared abstract.
-   * 
-   * @return <code>true</code> if this method is declared abstract
-   */
-  public boolean isAbstract();
-
   /**
    * Return <code>true</code> if this method represents a constructor.
    * 
    * @return <code>true</code> if this method represents a constructor
    */
   public boolean isConstructor();
-
-  /**
-   * Return <code>true</code> if this method is declared as a factory method.
-   * 
-   * @return <code>true</code> if this method is declared as a factory method
-   */
-  public boolean isFactory();
-
-  /**
-   * Return <code>true</code> if this method represents an implicitly defined method. At the moment
-   * the only implicitly defined methods are zero-argument constructors in classes that have no
-   * explicitly defined constructors.
-   * 
-   * @return <code>true</code> if this method represents an implicitly defined method
-   */
-  public boolean isImplicit();
 }

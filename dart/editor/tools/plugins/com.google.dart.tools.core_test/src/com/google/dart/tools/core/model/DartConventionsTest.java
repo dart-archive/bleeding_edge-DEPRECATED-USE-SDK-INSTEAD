@@ -206,18 +206,4 @@ public class DartConventionsTest extends TestCase {
     // warning: first should be upper case
     validateWarning("type");
   }
-
-  /**
-   * Test for {@link DartConventions#validateVariableName(String)}.
-   */
-  public void test_validateVariableName() throws Exception {
-    elementName = "VariableName";
-    // OK
-    validateOK("variable");
-    validateOK("variable2");
-    validateOK("variableName");
-    validateOK("_variable");
-    // warning: first should be lower case
-    validateWarning("Variable");
-  }
 }

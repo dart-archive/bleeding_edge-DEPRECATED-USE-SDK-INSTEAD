@@ -16,7 +16,6 @@ package com.google.dart.tools.core.internal.completion;
 import com.google.dart.tools.core.completion.CompletionProposal;
 import com.google.dart.tools.core.completion.CompletionRequestor;
 import com.google.dart.tools.core.internal.util.CharOperation;
-import com.google.dart.tools.core.model.DartModifiers;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 
@@ -107,11 +106,6 @@ public class InternalCompletionProposal extends CompletionProposal {
    * Defaults to <code>null</code>.
    */
   private char[][] parameterNames = null;
-
-  /**
-   * Modifiers declared on a method or field. NB: Replaces flags.
-   */
-  private DartModifiers modifiers = null;
 
   private int receiverStart;
 
@@ -287,48 +281,6 @@ public class InternalCompletionProposal extends CompletionProposal {
   @Override
   public int getKind() {
     return this.completionKind;
-  }
-
-  /**
-   * Returns the modifier flags relevant in the context, or <code>Flags.AccDefault</code> if none.
-   * <p>
-   * This field is available for the following kinds of completion proposals:
-   * <ul>
-   * <li><code>ANNOTATION_ATTRIBUT_REF</code> - modifier flags of the attribute that is referenced;
-   * <li><code>ANONYMOUS_CLASS_DECLARATION</code> - modifier flags of the constructor that is
-   * referenced</li>
-   * <li><code>FIELD_IMPORT</code> - modifier flags of the field that is imported.</li>
-   * <li><code>FIELD_REF</code> - modifier flags of the field that is referenced;
-   * <code>Flags.AccEnum</code> can be used to recognize references to enum constants</li>
-   * <li><code>FIELD_REF_WITH_CASTED_RECEIVER</code> - modifier flags of the field that is
-   * referenced.</li>
-   * <li><code>KEYWORD</code> - modifier flag corresponding to the modifier keyword</li>
-   * <li><code>LOCAL_VARIABLE_REF</code> - modifier flags of the local variable that is referenced</li>
-   * <li><code>METHOD_IMPORT</code> - modifier flags of the method that is imported;</li>
-   * <li><code>METHOD_REF</code> - modifier flags of the method that is referenced;
-   * <code>Flags.AccAnnotation</code> can be used to recognize references to annotation type members
-   * </li>
-   * <li><code>METHOD_REF_WITH_CASTED_RECEIVER</code> - modifier flags of the method that is
-   * referenced.</li>
-   * <li><code>METHOD_DECLARATION</code> - modifier flags for the method that is being implemented
-   * or overridden</li>
-   * <li><code>TYPE_IMPORT</code> - modifier flags of the type that is imported;
-   * <code>Flags.AccInterface</code> can be used to recognize references to interfaces,
-   * <code>Flags.AccEnum</code> enum types, and <code>Flags.AccAnnotation</code> annotation types</li>
-   * <li><code>TYPE_REF</code> - modifier flags of the type that is referenced;
-   * <code>Flags.AccInterface</code> can be used to recognize references to interfaces,
-   * <code>Flags.AccEnum</code> enum types, and <code>Flags.AccAnnotation</code> annotation types</li>
-   * <li><code>VARIABLE_DECLARATION</code> - modifier flags for the variable being declared</li>
-   * <li><code>POTENTIAL_METHOD_DECLARATION</code> - modifier flags for the method that is being
-   * created</li>
-   * </ul>
-   * For other kinds of completion proposals, this method returns <code>Flags.AccDefault</code>.
-   * </p>
-   * 
-   * @return the modifier flags, or <code>null</code> if none
-   */
-  public DartModifiers getModifiers() {
-    return this.modifiers;
   }
 
   /**
@@ -691,21 +643,6 @@ public class InternalCompletionProposal extends CompletionProposal {
   @Override
   public void setDeclarationSignature(char[] signature) {
     this.declarationSignature = signature;
-  }
-
-  /**
-   * Sets the modifier flags relevant in the context.
-   * <p>
-   * If not set, defaults to none.
-   * <p>
-   * The completion engine creates instances of this class and sets its properties; this method is
-   * not intended to be used by other clients.
-   * 
-   * @param modifiers the modifier flags, or <code>null</code> if none
-   */
-  @Override
-  public void setModifiers(DartModifiers modifiers) {
-    this.modifiers = modifiers;
   }
 
   /**
