@@ -1877,6 +1877,17 @@ public class CompletionTests extends CompletionTestCase {
         "}"), "1+String", "1-bool", "2-String");
   }
 
+  public void testCompletion_instanceCreation_unresolved() throws Exception {
+    test(src(//
+        "class A {",
+        "}",
+        "main() {",
+        "  new NoSuchClass(!1);",
+        "  new A.noSuchConstructor(!2);",
+        "}"), "1-int", "2-int");
+    // no checks, but no exceptions
+  }
+
   // TODO(scheglov)
 //  public void testCompletion_import_lib() throws Exception {
 //    addSource("/my_lib.dart", "");

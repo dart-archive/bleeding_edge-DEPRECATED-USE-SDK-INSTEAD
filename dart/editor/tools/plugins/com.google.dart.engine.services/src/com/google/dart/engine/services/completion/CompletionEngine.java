@@ -1903,7 +1903,10 @@ public class CompletionEngine {
     }
     if (argsParent instanceof InstanceCreationExpression) {
       InstanceCreationExpression creation = (InstanceCreationExpression) argsParent;
-      parameters = ((ExecutableElement) creation.getStaticElement()).getParameters();
+      ConstructorElement element = creation.getStaticElement();
+      if (element != null) {
+        parameters = ((ExecutableElement) element).getParameters();
+      }
     }
     if (argsParent instanceof Annotation) {
       Annotation annotation = (Annotation) argsParent;
@@ -2080,7 +2083,16 @@ public class CompletionEngine {
   }
 
   void dispatchPrefixAnalysis(InstanceCreationExpression node) {
-    ClassElement classElement = (ClassElement) typeOf(node).getElement();
+    // prepare ClassElement
+    ClassElement classElement;
+    {
+      Element typeElement = typeOf(node).getElement();
+      if (!(typeElement instanceof ClassElement)) {
+        return;
+      }
+      classElement = (ClassElement) typeElement;
+    }
+    // prepare constructor name
     Identifier typeName = node.getConstructorName().getType().getName();
     SimpleIdentifier identifier = null;
     if (typeName instanceof SimpleIdentifier) {
@@ -2091,6 +2103,7 @@ public class CompletionEngine {
     if (identifier == null) {
       identifier = new Ident(node);
     }
+    // analyze constructor name
     analyzeConstructorTypeName(identifier);
     constructorReference(classElement, identifier);
   }
