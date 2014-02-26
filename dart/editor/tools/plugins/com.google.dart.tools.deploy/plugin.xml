@@ -137,11 +137,11 @@
             schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
             sequence="M1+SHIFT+M">
       </key>
-      <key
+      <!--key
             commandId="org.eclipse.ui.file.refresh"
             sequence="F5"
             schemeId="com.google.dart.tools.dartAcceleratorConfiguration">
-      </key>      
+      </key-->
       <key
             commandId="org.eclipse.ui.window.activateEditor"
             sequence="F12"
