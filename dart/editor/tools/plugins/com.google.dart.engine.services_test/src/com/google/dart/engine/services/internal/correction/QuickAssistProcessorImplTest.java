@@ -720,6 +720,14 @@ public class QuickAssistProcessorImplTest extends RefactoringImplTest {
     assert_importAddShow_BAD(initial, "import 'dart:math");
   }
 
+  public void test_importAddShow_BAD_unused() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "import 'dart:math';",
+        "");
+    assert_importAddShow_BAD(initial, "import 'dart:math");
+  }
+
   public void test_importAddShow_OK_onDirective() throws Exception {
     String initial = makeSource(
         "// filler filler filler filler filler filler filler filler filler filler",

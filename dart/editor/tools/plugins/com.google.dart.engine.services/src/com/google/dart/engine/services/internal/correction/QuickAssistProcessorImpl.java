@@ -676,6 +676,10 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
         }
       }
     }
+    // ignore if unused
+    if (referencedNames.isEmpty()) {
+      return;
+    }
     // prepare change
     String sb = " show " + StringUtils.join(referencedNames, ", ");
     addInsertEdit(importDirective.getEnd() - 1, sb.toString());

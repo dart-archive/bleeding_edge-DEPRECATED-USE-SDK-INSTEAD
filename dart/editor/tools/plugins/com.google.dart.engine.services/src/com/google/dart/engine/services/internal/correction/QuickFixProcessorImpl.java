@@ -355,6 +355,9 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
       if (errorCode == HintCode.UNNECESSARY_CAST) {
         addFix_removeUnnecessaryCast();
       }
+      if (errorCode == HintCode.UNUSED_IMPORT) {
+        addFix_removeUnusedImport();
+      }
       if (errorCode == ParserErrorCode.EXPECTED_TOKEN) {
         addFix_insertSemicolon();
       }
@@ -441,6 +444,7 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
         || errorCode == HintCode.DIVISION_OPTIMIZATION
         || errorCode == HintCode.TYPE_CHECK_IS_NOT_NULL || errorCode == HintCode.TYPE_CHECK_IS_NULL
         || errorCode == HintCode.UNNECESSARY_CAST || errorCode == ParserErrorCode.EXPECTED_TOKEN
+        || errorCode == HintCode.UNUSED_IMPORT
         || errorCode == ParserErrorCode.GETTER_WITH_PARAMETERS
         || errorCode == StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
         || errorCode == StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS
@@ -1228,6 +1232,18 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
     removeEnclosingParentheses(asExpression, expressionPrecedence);
     // done
     addUnitCorrectionProposal(CorrectionKind.QF_REMOVE_UNNECASSARY_CAST);
+  }
+
+  private void addFix_removeUnusedImport() {
+    // prepare ImportDirective
+    ImportDirective importDirective = node.getAncestor(ImportDirective.class);
+    if (importDirective == null) {
+      return;
+    }
+    // remove the whole line with import
+    addRemoveEdit(utils.getLinesRange(rangeNode(importDirective)));
+    // done
+    addUnitCorrectionProposal(CorrectionKind.QF_REMOVE_UNUSED_IMPORT);
   }
 
   private void addFix_undefinedClass_useSimilar() {

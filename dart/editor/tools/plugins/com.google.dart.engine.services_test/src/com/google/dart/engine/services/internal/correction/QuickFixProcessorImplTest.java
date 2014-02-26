@@ -1512,6 +1512,61 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
             ""));
   }
 
+  public void test_removeUnusedImport() throws Exception {
+    enableContextHints();
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "import 'dart:math';",
+        "",
+        "main() {",
+        "}");
+    assert_runProcessor(
+        CorrectionKind.QF_REMOVE_UNUSED_IMPORT,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "",
+            "main() {",
+            "}"));
+  }
+
+  public void test_removeUnusedImport_anotherImportOnLine() throws Exception {
+    enableContextHints();
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "import 'dart:math'; import 'dart:async';",
+        "",
+        "main() {",
+        "  Future f;",
+        "}");
+    assert_runProcessor(
+        CorrectionKind.QF_REMOVE_UNUSED_IMPORT,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "import 'dart:async';",
+            "",
+            "main() {",
+            "  Future f;",
+            "}"));
+  }
+
+  public void test_removeUnusedImport_severalLines() throws Exception {
+    enableContextHints();
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "import ",
+        "  'dart:math';",
+        "",
+        "main() {",
+        "}");
+    assert_runProcessor(
+        CorrectionKind.QF_REMOVE_UNUSED_IMPORT,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "",
+            "main() {",
+            "}"));
+  }
+
   public void test_undefinedClass_useSimilar_fromThisLibrary() throws Exception {
     prepareProblemWithFix(
         "// filler filler filler filler filler filler filler filler filler filler",
