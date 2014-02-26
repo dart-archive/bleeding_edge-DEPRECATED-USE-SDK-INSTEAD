@@ -81,6 +81,15 @@ public class LightweightModel {
     getModel();
   }
 
+  private static boolean isWorkspaceClosed() {
+    try {
+      ResourcesPlugin.getWorkspace();
+      return false;
+    } catch (IllegalStateException ex) {
+      return true;
+    }
+  }
+
   protected ProjectManager projectManager;
 
   protected LightweightModel() {
@@ -327,7 +336,10 @@ public class LightweightModel {
           resourceMap.getResource(),
           IWorkspace.AVOID_UPDATE,
           new NullProgressMonitor());
-    } catch (CoreException e) {
+    } catch (Throwable e) {
+      if (isWorkspaceClosed()) {
+        return;
+      }
       DartCore.logError(e);
     }
   }
