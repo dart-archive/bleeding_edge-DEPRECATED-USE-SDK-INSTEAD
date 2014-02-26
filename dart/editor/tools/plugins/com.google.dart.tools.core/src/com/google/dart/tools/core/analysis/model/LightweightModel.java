@@ -314,7 +314,9 @@ public class LightweightModel {
           // system. I.e., if a file has been deleted on disk but the resources system does not yet
           // know about it. If this happens, we refresh the container and re-visit it.
           container.refreshLocal(IResource.DEPTH_INFINITE, new NullProgressMonitor());
-          container.accept(visitor);
+          if (container.exists()) {
+            container.accept(visitor);
+          }
         }
       }
     };
