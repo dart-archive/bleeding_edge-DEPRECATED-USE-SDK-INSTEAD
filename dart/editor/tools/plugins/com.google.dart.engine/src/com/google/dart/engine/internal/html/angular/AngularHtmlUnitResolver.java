@@ -182,6 +182,9 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
    */
   private static void addAngularElements(Set<AngularElement> angularElements,
       LibraryElement library, Set<LibraryElement> visited) {
+    if (library == null) {
+      return;
+    }
     if (!visited.add(library)) {
       return;
     }
