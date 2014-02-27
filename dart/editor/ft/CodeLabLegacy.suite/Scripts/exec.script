@@ -1,6 +1,6 @@
-params sutName
+params server, passwd, port
 
-Connect connectionInfo(sutName)
+Connect (serverID: server, portNum: port, password: passwd, visible: "No")
 util.startDartEditor
 Run "doit"
 util.stopDartEditor
