@@ -3,7 +3,7 @@
 	<classpathentry exported="true" kind="lib" path="lib/snakeyaml/1.10/snakeyaml-1.10.jar" sourcepath="lib/snakeyaml/1.10/snakeyaml-1.10.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/json/r2_20080312/json.jar" sourcepath="lib/json/r2_20080312/json-src.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/args4j/2.0.12/args4j-2.0.12.jar" sourcepath="lib/args4j/2.0.12/args4j-2.0.12-src.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/commons-lang/3.1/commons-lang3-3.1.jar" sourcepath="lib/commons-lang/3.1/commons-lang3-3.1-sources.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/commons-lang/3.2.1/commons-lang3-3.2.1.jar" sourcepath="lib/commons-lang/3.2.1/commons-lang3-3.2.1-sources.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/guava/r13/guava-13.0.1.jar" sourcepath="lib/guava/r13/guava-13.0.1-sources.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
