@@ -100,6 +100,11 @@ public class VmConnection {
     listeners.add(listener);
   }
 
+  public void callToString(final VmValue object, final VmCallback<VmValue> callback)
+      throws IOException {
+    evaluateObject(object.getIsolate(), object, "toString()", callback);
+  }
+
   public void close() throws IOException {
     if (socket != null) {
       socket.close();

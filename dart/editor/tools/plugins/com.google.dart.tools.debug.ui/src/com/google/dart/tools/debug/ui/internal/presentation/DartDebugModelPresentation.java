@@ -106,7 +106,12 @@ public class DartDebugModelPresentation implements IDebugModelPresentation,
     } else if (value instanceof ServerDebugValue) {
       ServerDebugValue debugValue = (ServerDebugValue) value;
 
-      listener.detailComputed(value, debugValue.getDetailValue());
+      debugValue.computeDetail(new DartiumDebugValue.ValueCallback() {
+        @Override
+        public void detailComputed(String stringValue) {
+          listener.detailComputed(value, stringValue);
+        }
+      });
     } else {
       listener.detailComputed(value, null);
     }
