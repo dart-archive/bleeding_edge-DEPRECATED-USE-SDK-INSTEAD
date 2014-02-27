@@ -10,6 +10,7 @@ import com.google.dart.engine.index.Index;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
 import com.google.dart.engine.internal.index.IndexImpl;
 import com.google.dart.engine.internal.index.operation.OperationQueue;
+import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.io.PrintStringWriter;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.Project;
@@ -20,9 +21,11 @@ import com.google.dart.tools.core.internal.builder.AnalysisWorker;
 import org.apache.commons.lang3.ArrayUtils;
 import org.eclipse.jface.layout.PixelConverter;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
+import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.ITreeViewerListener;
 import org.eclipse.jface.viewers.TreeExpansionEvent;
+import org.eclipse.jface.viewers.TreeSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.TreeViewerColumn;
 import org.eclipse.jface.viewers.Viewer;
@@ -31,8 +34,8 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
+import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
@@ -44,6 +47,7 @@ import org.eclipse.swt.widgets.TreeColumn;
 import org.eclipse.ui.part.ViewPart;
 
 import java.lang.reflect.Field;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -99,6 +103,7 @@ public class AnalysisView extends ViewPart {
     private int inProcessCount;
     private int invalidCount;
     private int validCount;
+    private Source[] sources;
     private AnalysisException[] exceptions;
 
     public AnalysisContextData(String name, AnalysisContentStatistics statistics,
@@ -113,6 +118,7 @@ public class AnalysisView extends ViewPart {
         invalidCount += row.getInvalidCount();
         validCount += row.getValidCount();
       }
+      this.sources = statistics.getSources();
       this.exceptions = statistics.getExceptions();
     }
 
@@ -135,6 +141,10 @@ public class AnalysisView extends ViewPart {
 
     public int getInvalidCount() {
       return invalidCount;
+    }
+
+    public Source[] getSources() {
+      return sources;
     }
 
     public int getValidCount() {
@@ -378,14 +388,22 @@ public class AnalysisView extends ViewPart {
     });
 
     Menu menu = new Menu(viewer.getTree());
-    MenuItem copyItem = new MenuItem(menu, SWT.PUSH);
-    copyItem.setText("Copy Exceptions");
-    copyItem.addSelectionListener(new SelectionListener() {
+    MenuItem copySourcesItem = new MenuItem(menu, SWT.PUSH);
+    copySourcesItem.setText("Copy Sources");
+    copySourcesItem.addSelectionListener(new SelectionAdapter() {
       @Override
-      public void widgetDefaultSelected(SelectionEvent event) {
-        // never called
+      public void widgetSelected(SelectionEvent event) {
+        ISelection selection = viewer.getSelection();
+        if (selection instanceof TreeSelection) {
+          AnalysisContextData data = (AnalysisContextData) ((TreeSelection) selection).getFirstElement();
+          copySources(data);
+        }
       }
-
+    });
+    new MenuItem(menu, SWT.SEPARATOR);
+    MenuItem copyExceptionsItem = new MenuItem(menu, SWT.PUSH);
+    copyExceptionsItem.setText("Copy All Exceptions");
+    copyExceptionsItem.addSelectionListener(new SelectionAdapter() {
       @Override
       public void widgetSelected(SelectionEvent event) {
         copyExceptions();
@@ -439,6 +457,12 @@ public class AnalysisView extends ViewPart {
     clipboard.setContents(new Object[] {getExceptionsText()}, new Transfer[] {textTransfer});
   }
 
+  private void copySources(AnalysisContextData data) {
+    Clipboard clipboard = new Clipboard(viewer.getTree().getDisplay());
+    TextTransfer textTransfer = TextTransfer.getInstance();
+    clipboard.setContents(new Object[] {getSourcesText(data)}, new Transfer[] {textTransfer});
+  }
+
   private Font getBoldFont() {
     if (boldFont == null) {
       Font defaultFont = viewer.getTree().getFont();
@@ -489,6 +513,22 @@ public class AnalysisView extends ViewPart {
       redColor = new Color(defaultFont.getDevice(), 255, 223, 223);
     }
     return redColor;
+  }
+
+  private String getSourcesText(AnalysisContextData data) {
+    Source[] sources = data.getSources();
+    int count = sources.length;
+    String[] paths = new String[count];
+    for (int i = 0; i < count; i++) {
+      paths[i] = sources[i].getFullName();
+    }
+    Arrays.sort(paths);
+    @SuppressWarnings("resource")
+    PrintStringWriter writer = new PrintStringWriter();
+    for (int i = 0; i < count; i++) {
+      writer.println(paths[i]);
+    }
+    return writer.toString();
   }
 
   private void refreshUI() {

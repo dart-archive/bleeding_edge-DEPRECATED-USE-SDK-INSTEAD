@@ -1019,16 +1019,17 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     AnalysisContentStatisticsImpl statistics = new AnalysisContentStatisticsImpl();
     synchronized (cacheLock) {
       for (Entry<Source, SourceEntry> mapEntry : cache.entrySet()) {
+        statistics.addSource(mapEntry.getKey());
         SourceEntry entry = mapEntry.getValue();
         if (entry instanceof DartEntry) {
           Source source = mapEntry.getKey();
           DartEntry dartEntry = (DartEntry) entry;
           SourceKind kind = dartEntry.getValue(DartEntry.SOURCE_KIND);
           // get library independent values
+          statistics.putCacheItem(dartEntry, SourceEntry.LINE_INFO);
           statistics.putCacheItem(dartEntry, DartEntry.PARSE_ERRORS);
           statistics.putCacheItem(dartEntry, DartEntry.PARSED_UNIT);
           statistics.putCacheItem(dartEntry, DartEntry.SOURCE_KIND);
-          statistics.putCacheItem(dartEntry, SourceEntry.LINE_INFO);
           if (kind == SourceKind.LIBRARY) {
             statistics.putCacheItem(dartEntry, DartEntry.ELEMENT);
             statistics.putCacheItem(dartEntry, DartEntry.EXPORTED_LIBRARIES);
@@ -1048,8 +1049,14 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
             statistics.putCacheItem(dartEntry, librarySource, DartEntry.RESOLVED_UNIT);
             statistics.putCacheItem(dartEntry, librarySource, DartEntry.VERIFICATION_ERRORS);
           }
-//        } else if (entry instanceof HtmlEntry) {
-//          HtmlEntry htmlEntry = (HtmlEntry) entry;
+        } else if (entry instanceof HtmlEntry) {
+          HtmlEntry htmlEntry = (HtmlEntry) entry;
+          statistics.putCacheItem(htmlEntry, SourceEntry.LINE_INFO);
+          statistics.putCacheItem(htmlEntry, HtmlEntry.PARSE_ERRORS);
+          statistics.putCacheItem(htmlEntry, HtmlEntry.PARSED_UNIT);
+          statistics.putCacheItem(htmlEntry, HtmlEntry.RESOLUTION_ERRORS);
+          statistics.putCacheItem(htmlEntry, HtmlEntry.RESOLVED_UNIT);
+          statistics.putCacheItem(htmlEntry, HtmlEntry.HINTS);
         }
       }
     }
