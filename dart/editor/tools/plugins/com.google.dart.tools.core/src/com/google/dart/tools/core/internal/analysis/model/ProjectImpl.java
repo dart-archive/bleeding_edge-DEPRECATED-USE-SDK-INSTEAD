@@ -40,6 +40,7 @@ import com.google.dart.tools.core.analysis.model.ResourceMap;
 import com.google.dart.tools.core.internal.builder.DeltaAdapter;
 import com.google.dart.tools.core.internal.builder.DeltaProcessor;
 import com.google.dart.tools.core.internal.builder.ResourceDeltaEvent;
+import com.google.dart.tools.core.utilities.io.FileUtilities;
 
 import static com.google.dart.tools.core.DartCore.PACKAGES_DIRECTORY_NAME;
 import static com.google.dart.tools.core.DartCore.PUBSPEC_FILE_NAME;
@@ -313,7 +314,9 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
     if (source == null) {
       return null;
     }
-    IPath path = new Path(source.getFullName());
+    String pathName = source.getFullName();
+    String pathNameFS = FileUtilities.getFileSystemCase(pathName);
+    IPath path = new Path(pathNameFS);
     IPath projPath = getResourceLocation();
     if (projPath != null && projPath.isPrefixOf(path)) {
       IPath relPath = path.removeFirstSegments(projPath.segmentCount());
