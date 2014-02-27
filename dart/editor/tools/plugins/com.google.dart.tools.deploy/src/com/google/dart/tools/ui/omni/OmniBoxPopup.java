@@ -666,6 +666,9 @@ public class OmniBoxPopup extends BasePopupDialog {
   }
 
   void refresh(String filter) {
+    if (table.isDisposed()) {
+      return;
+    }
     searchText = filterControl.getText();
     searchItemCount = computeNumberOfItems();
     searchFilter = filter;
