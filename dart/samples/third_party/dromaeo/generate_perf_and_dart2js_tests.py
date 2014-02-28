@@ -8,6 +8,10 @@ import re
 import subprocess
 import sys
 
+# Compile the Dart dromaeo test down to JavaScript, and also insert two scripts
+# that enable us to run this test as a browser test with the Dart browser
+# controller.
+
 SAMPLES_PATH = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DART_PATH = os.path.dirname(SAMPLES_PATH)
 TOOLS_PATH = os.path.join(DART_PATH, 'tools')
@@ -15,13 +19,8 @@ TOOLS_PATH = os.path.join(DART_PATH, 'tools')
 sys.path.append(TOOLS_PATH)
 import utils
 
-EXECUTABLE_MAP = {
-    'frog': 'frogc',
-    'dart2js': 'dart2js'
-}
-
 def Compile(source, target, compiler):
-  executable = EXECUTABLE_MAP[compiler]
+  executable = 'dart2js'
   binary = os.path.abspath(os.path.join(DART_PATH,
                                         utils.GetBuildRoot(utils.GuessOS(),
                                                            'release', 'ia32'),
@@ -76,5 +75,17 @@ tests = glob.glob('tests/dom-*-html.html')
 for test in tests:
   HtmlConvert(test, 'dart2js')
 
+# Update index.html to run as a performance test with the dart browser
+# controller. Output the result as index-dart.html.
+with open('index.html', 'r') as infile:
+  with open('index-dart.html', 'w') as outfile:
+    for line in infile:
+      if re.search('<script src="../../../pkg/browser/lib/dart.js">', line):
+        line += ('  <script src="../../../tools/testing/dart/test_controller' +
+            '.js"></script>\n  <script src="../../../tools/testing/dart/' +
+            'perf_test_controller.js"></script>\n')
+      outfile.write(line)
+
 # Compile driver to index-js.html.
-HtmlConvert('index.html', 'dart2js')
+HtmlConvert('index-dart.html', 'dart2js')
+os.rename('index-dart-js.html', 'index-js.html')

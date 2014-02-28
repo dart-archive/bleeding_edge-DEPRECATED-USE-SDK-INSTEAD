@@ -39,7 +39,7 @@ function _postMessage(command, data) {
   if (data) {
     payload['data'] = data;
   }
-  window.top.postMessage(JSON.stringify(payload), '*');
+  window.parent.postMessage(JSON.stringify(payload), '*');
 }
 
 function test(name, fn) {
