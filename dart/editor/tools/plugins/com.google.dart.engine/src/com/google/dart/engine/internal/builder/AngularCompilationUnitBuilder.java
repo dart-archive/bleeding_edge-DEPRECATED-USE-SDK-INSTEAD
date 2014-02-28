@@ -63,6 +63,7 @@ import com.google.dart.engine.internal.element.angular.AngularComponentElementIm
 import com.google.dart.engine.internal.element.angular.AngularControllerElementImpl;
 import com.google.dart.engine.internal.element.angular.AngularDirectiveElementImpl;
 import com.google.dart.engine.internal.element.angular.AngularFilterElementImpl;
+import com.google.dart.engine.internal.element.angular.AngularHasClassSelectorElementImpl;
 import com.google.dart.engine.internal.element.angular.AngularPropertyElementImpl;
 import com.google.dart.engine.internal.element.angular.AngularScopePropertyElementImpl;
 import com.google.dart.engine.internal.element.angular.AngularTagSelectorElementImpl;
@@ -181,10 +182,16 @@ public class AngularCompilationUnitBuilder {
   public static AngularSelectorElement parseSelector(int offset, String text) {
     // [attribute]
     if (StringUtilities.startsWithChar(text, '[') && StringUtilities.endsWithChar(text, ']')) {
-      int nameOffset = offset + "[".length();
+      int nameOffset = offset + 1;
       String attributeName = text.substring(1, text.length() - 1);
       // TODO(scheglov) report warning if there are spaces between [ and identifier
       return new HasAttributeSelectorElementImpl(attributeName, nameOffset);
+    }
+    // .class
+    if (StringUtilities.startsWithChar(text, '.')) {
+      int nameOffset = offset + 1;
+      String className = text.substring(1, text.length());
+      return new AngularHasClassSelectorElementImpl(className, nameOffset);
     }
     // tag[attribute]
     if (StringUtilities.endsWithChar(text, ']')) {

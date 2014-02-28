@@ -33,11 +33,16 @@ import com.google.dart.engine.element.angular.AngularScopePropertyElement;
 import com.google.dart.engine.element.angular.AngularSelectorElement;
 import com.google.dart.engine.element.angular.AngularViewElement;
 import com.google.dart.engine.error.AngularCode;
+import com.google.dart.engine.html.ast.XmlTagNode;
+import com.google.dart.engine.internal.element.angular.AngularHasClassSelectorElementImpl;
 import com.google.dart.engine.internal.element.angular.AngularScopePropertyElementImpl;
 import com.google.dart.engine.internal.element.angular.AngularTagSelectorElementImpl;
 import com.google.dart.engine.internal.element.angular.HasAttributeSelectorElementImpl;
 import com.google.dart.engine.internal.element.angular.IsTagHasAttributeSelectorElementImpl;
 import com.google.dart.engine.internal.html.angular.AngularTest;
+
+import static com.google.dart.engine.html.HtmlFactory.attribute;
+import static com.google.dart.engine.html.HtmlFactory.tagNode;
 
 public class AngularCompilationUnitBuilderTest extends AngularTest {
   @SuppressWarnings("unchecked")
@@ -864,6 +869,23 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
     AngularSelectorElement selector = AngularCompilationUnitBuilder.parseSelector(42, "[name]");
     assertHasAttributeSelector(selector, "name");
     assertEquals(42 + 1, selector.getNameOffset());
+  }
+
+  public void test_parseSelector_hasClass() throws Exception {
+    AngularSelectorElement selector = AngularCompilationUnitBuilder.parseSelector(42, ".my-class");
+    AngularHasClassSelectorElementImpl classSelector = (AngularHasClassSelectorElementImpl) selector;
+    assertEquals("my-class", classSelector.getName());
+    assertEquals(".my-class", classSelector.toString());
+    assertEquals(42 + 1, selector.getNameOffset());
+    // test apply()
+    {
+      XmlTagNode node = tagNode("div", attribute("class", "one two"));
+      assertFalse(classSelector.apply(node));
+    }
+    {
+      XmlTagNode node = tagNode("div", attribute("class", "one my-class two"));
+      assertTrue(classSelector.apply(node));
+    }
   }
 
   public void test_parseSelector_isTag() throws Exception {
