@@ -38,6 +38,20 @@ public final class StringUtilities {
   private static final Interner<String> INTERNER = Interners.newWeakInterner();
 
   /**
+   * Abbreviates a String using ellipses inserted at left.
+   */
+  public static String abbreviateLeft(String s, int width) {
+    int length = s.length();
+    if (length > width) {
+      if (width < 4) {
+        throw new IllegalArgumentException("Minimal width is 4");
+      }
+      return "..." + s.substring(length - (width - 3));
+    }
+    return s;
+  }
+
+  /**
    * Return {@code true} if the three-character substring occurs at the end of the given string.
    * 
    * @param string the string being searched

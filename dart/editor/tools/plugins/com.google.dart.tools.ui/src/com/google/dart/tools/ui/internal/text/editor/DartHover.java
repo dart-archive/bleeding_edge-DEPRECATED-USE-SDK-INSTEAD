@@ -19,11 +19,14 @@ import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.visitor.ElementLocator;
+import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
+import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.type.Type;
+import com.google.dart.engine.utilities.general.StringUtilities;
 import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.utilities.dartdoc.DartDocUtilities;
 import com.google.dart.tools.ui.internal.actions.NewSelectionConverter;
@@ -131,6 +134,7 @@ public class DartHover implements ITextHover, ITextHoverExtension, ITextHoverExt
 
     private Composite container;
     private TextSection elementSection;
+    private TextSection librarySection;
     private AnnotationsSection problemsSection;
     private DocSection docSection;
     private TextSection staticTypeSection;
@@ -169,6 +173,7 @@ public class DartHover implements ITextHover, ITextHoverExtension, ITextHoverExt
       hoverInfo = null;
       // Hide all sections.
       setGridVisible(elementSection, false);
+      setGridVisible(librarySection, false);
       setGridVisible(problemsSection, false);
       setGridVisible(docSection, false);
       setGridVisible(staticTypeSection, false);
@@ -197,6 +202,19 @@ public class DartHover implements ITextHover, ITextHoverExtension, ITextHoverExt
           setGridVisible(elementSection, true);
           elementSection.setTitle(WordUtils.capitalize(element.getKind().getDisplayName()));
           elementSection.setText(text);
+        }
+        // show Library
+        {
+          LibraryElement library = element.getLibrary();
+          CompilationUnitElement unit = element.getAncestor(CompilationUnitElement.class);
+          if (library != null && unit != null) {
+            String unitName = unit.getSource().getFullName();
+            String libraryName = library.getDisplayName();
+            String text = StringUtilities.abbreviateLeft(libraryName, 25) + " | "
+                + StringUtilities.abbreviateLeft(unitName, 35);
+            setGridVisible(librarySection, true);
+            librarySection.setText(text);
+          }
         }
         // Dart Doc
         try {
@@ -264,6 +282,7 @@ public class DartHover implements ITextHover, ITextHoverExtension, ITextHoverExt
       container = toolkit.createComposite(parent);
       GridLayoutFactory.create(container);
       elementSection = new TextSection(container, "Element");
+      librarySection = new TextSection(container, "Library");
       problemsSection = new AnnotationsSection(container, "Problems");
       docSection = new DocSection(container, "Documentation");
       staticTypeSection = new TextSection(container, "Static type");
