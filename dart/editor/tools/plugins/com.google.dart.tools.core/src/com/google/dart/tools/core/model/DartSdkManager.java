@@ -129,7 +129,7 @@ public class DartSdkManager {
             };
 
             @Override
-            public void getContents(com.google.dart.engine.source.Source.ContentReceiver receiver)
+            public void getContentsToReceiver(com.google.dart.engine.source.Source.ContentReceiver receiver)
                 throws Exception {
               receiver.accept("library dart.core;", 0L);
             };

@@ -73,9 +73,8 @@ import com.google.dart.engine.internal.element.angular.IsTagHasAttributeSelector
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
+import com.google.dart.engine.utilities.general.ObjectUtilities;
 import com.google.dart.engine.utilities.general.StringUtilities;
-
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 
@@ -738,7 +737,7 @@ public class AngularCompilationUnitBuilder {
           PrefixedIdentifier prefixed = (PrefixedIdentifier) target;
           SimpleIdentifier prefix = prefixed.getPrefix();
           SimpleIdentifier identifier = prefixed.getIdentifier();
-          return StringUtils.equals(identifier.getName(), "context") && isScope(prefix);
+          return ObjectUtilities.equals(identifier.getName(), "context") && isScope(prefix);
         }
         return false;
       }

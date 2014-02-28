@@ -54,7 +54,6 @@ import com.google.dart.java2dart.util.JavaUtils;
 
 import static com.google.dart.java2dart.util.ASTFactory.assignmentExpression;
 import static com.google.dart.java2dart.util.ASTFactory.binaryExpression;
-import static com.google.dart.java2dart.util.ASTFactory.block;
 import static com.google.dart.java2dart.util.ASTFactory.blockFunctionBody;
 import static com.google.dart.java2dart.util.ASTFactory.expressionFunctionBody;
 import static com.google.dart.java2dart.util.ASTFactory.expressionStatement;
@@ -63,13 +62,16 @@ import static com.google.dart.java2dart.util.ASTFactory.formalParameterList;
 import static com.google.dart.java2dart.util.ASTFactory.functionDeclaration;
 import static com.google.dart.java2dart.util.ASTFactory.functionExpression;
 import static com.google.dart.java2dart.util.ASTFactory.identifier;
+import static com.google.dart.java2dart.util.ASTFactory.instanceCreationExpression;
 import static com.google.dart.java2dart.util.ASTFactory.integer;
 import static com.google.dart.java2dart.util.ASTFactory.methodDeclaration;
 import static com.google.dart.java2dart.util.ASTFactory.methodInvocation;
 import static com.google.dart.java2dart.util.ASTFactory.parenthesizedExpression;
 import static com.google.dart.java2dart.util.ASTFactory.prefixExpression;
 import static com.google.dart.java2dart.util.ASTFactory.propertyAccess;
+import static com.google.dart.java2dart.util.ASTFactory.returnStatement;
 import static com.google.dart.java2dart.util.ASTFactory.simpleFormalParameter;
+import static com.google.dart.java2dart.util.ASTFactory.throwExpression;
 import static com.google.dart.java2dart.util.ASTFactory.typeName;
 import static com.google.dart.java2dart.util.ASTFactory.variableDeclaration;
 
@@ -540,13 +542,13 @@ public class EngineSemanticProcessor extends SemanticProcessor {
       @Override
       public Void visitFieldDeclaration(FieldDeclaration node) {
         super.visitFieldDeclaration(node);
-        ClassDeclaration parentClass = (ClassDeclaration) node.getParent();
-        if (parentClass.getName().getName().equals("FileBasedSource")) {
-          for (VariableDeclaration field : node.getFields().getVariables()) {
-            if (field.getName().getName().equals("_UTF_8_CHARSET")) {
-              parentClass.getMembers().remove(node);
-            }
-          }
+        if (hasField(node, "FileBasedSource", "_UTF_8_CHARSET")) {
+          removeNode(node);
+          return null;
+        }
+        if (hasField(node, "InstrumentedAnalysisContextImpl", "_uiThread")) {
+          removeNode(node);
+          return null;
         }
         return null;
       }
@@ -587,16 +589,35 @@ public class EngineSemanticProcessor extends SemanticProcessor {
         }
         if (isMethodInClass(
             binding,
+            "setUIThread",
+            "com.google.dart.engine.internal.context.InstrumentedAnalysisContextImpl")
+            || isMethodInClass(
+                binding,
+                "checkThread",
+                "com.google.dart.engine.internal.context.InstrumentedAnalysisContextImpl")) {
+          removeNode(node);
+          return null;
+        }
+        if (isMethodInClass(
+            binding,
             "getContentsFromFile",
+            "com.google.dart.engine.source.FileBasedSource") && parameters.size() == 0) {
+          Statement statement = returnStatement(instanceCreationExpression(
+              Keyword.NEW,
+              typeName("TimestampedData", typeName("String")),
+              methodInvocation(identifier("_file"), identifier("lastModified")),
+              methodInvocation(identifier("_file"), identifier("readAsStringSync"))));
+          node.setBody(blockFunctionBody(statement));
+          return null;
+        }
+        if (isMethodInClass(
+            binding,
+            "getContentsFromFileToReceiver",
             "com.google.dart.engine.source.FileBasedSource") && parameters.size() == 1) {
-          SimpleIdentifier receiverIdent = parameters.get(0).getIdentifier();
-          Block tryCacheBlock = block();
-          ExpressionStatement statement = expressionStatement(methodInvocation(
-              receiverIdent,
-              "accept",
-              methodInvocation(identifier("file"), "readAsStringSync"),
-              methodInvocation(identifier("file"), "lastModified")));
-          node.setBody(blockFunctionBody(tryCacheBlock, statement));
+          Statement statement = expressionStatement(throwExpression(instanceCreationExpression(
+              Keyword.NEW,
+              typeName("UnsupportedOperationException"))));
+          node.setBody(blockFunctionBody(statement));
           return null;
         }
         return null;
@@ -606,6 +627,14 @@ public class EngineSemanticProcessor extends SemanticProcessor {
       public Void visitMethodInvocation(MethodInvocation node) {
         ASTNode parent = node.getParent();
         List<Expression> args = node.getArgumentList().getArguments();
+        if (isMethodInClass(
+            node,
+            "checkThread",
+            "com.google.dart.engine.internal.context.InstrumentedAnalysisContextImpl")) {
+          Statement statement = node.getAncestor(Statement.class);
+          removeNode(statement);
+          return null;
+        }
         if (isMethodInClass(node, "toArray", "com.google.dart.engine.utilities.collection.IntList")) {
           replaceNode(node, node.getTarget());
           return null;
@@ -667,6 +696,18 @@ public class EngineSemanticProcessor extends SemanticProcessor {
           return new NodeList<FormalParameter>(null);
         }
         return node.getParameters().getParameters();
+      }
+
+      private boolean hasField(FieldDeclaration node, String className, String fieldName) {
+        ClassDeclaration parentClass = (ClassDeclaration) node.getParent();
+        if (parentClass.getName().getName().equals(className)) {
+          for (VariableDeclaration field : node.getFields().getVariables()) {
+            if (field.getName().getName().equals(fieldName)) {
+              return true;
+            }
+          }
+        }
+        return false;
       }
     });
   }

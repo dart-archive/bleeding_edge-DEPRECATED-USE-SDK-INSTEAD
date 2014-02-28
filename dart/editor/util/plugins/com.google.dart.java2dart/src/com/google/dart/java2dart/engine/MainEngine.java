@@ -687,7 +687,8 @@ public class MainEngine {
     unit.getDirectives().add(importDirective("scanner.dart", null, importShowCombinator("Keyword")));
     unit.getDirectives().add(importDirective("ast.dart", null));
     unit.getDirectives().add(importDirective("sdk.dart", null, importShowCombinator("DartSdk")));
-    unit.getDirectives().add(importDirective("html.dart", null, importShowCombinator("XmlTagNode")));
+    unit.getDirectives().add(
+        importDirective("html.dart", null, importShowCombinator("XmlAttributeNode", "XmlTagNode")));
     unit.getDirectives().add(
         importDirective("engine.dart", null, importShowCombinator("AnalysisContext")));
     unit.getDirectives().add(
@@ -1094,6 +1095,7 @@ public class MainEngine {
     unit.getDirectives().add(importDirective(src_package + "element.dart", null));
     unit.getDirectives().add(importDirective(src_package + "resolver.dart", null));
     unit.getDirectives().add(importDirective(src_package + "engine.dart", null));
+    unit.getDirectives().add(importDirective(src_package + "utilities_dart.dart", null));
     unit.getDirectives().add(importDirective(src_package + "java_engine_io.dart", null));
     unit.getDirectives().add(
         importDirective(src_package + "sdk.dart", null, importShowCombinator("DartSdk")));
@@ -1254,7 +1256,7 @@ public class MainEngine {
         importDirective(
             "engine.dart",
             null,
-            importShowCombinator("AnalysisContext", "AnalysisEngine")));
+            importShowCombinator("AnalysisContext", "AnalysisEngine", "TimestampedData")));
     unit.getDirectives().add(exportDirective("source.dart"));
     for (Entry<File, List<CompilationUnitMember>> entry : context.getFileToMembers().entrySet()) {
       File file = entry.getKey();
@@ -1285,7 +1287,10 @@ public class MainEngine {
     unit.getDirectives().add(importDirective("java_core.dart", null));
     unit.getDirectives().add(importDirective("sdk.dart", null, importShowCombinator("DartSdk")));
     unit.getDirectives().add(
-        importDirective("engine.dart", null, importShowCombinator("AnalysisContext")));
+        importDirective(
+            "engine.dart",
+            null,
+            importShowCombinator("AnalysisContext", "TimestampedData")));
     for (Entry<File, List<CompilationUnitMember>> entry : context.getFileToMembers().entrySet()) {
       File file = entry.getKey();
       if (isEnginePath(file, "source/Source.java")
@@ -1322,11 +1327,7 @@ public class MainEngine {
             src_package + "element.dart",
             null,
             importShowCombinator("InterfaceType", "MethodElement", "PropertyAccessorElement")));
-    unit.getDirectives().add(
-        importDirective(
-            src_package + "engine.dart",
-            null,
-            importShowCombinator("AnalysisContext", "AnalysisContextImpl", "RecordingErrorListener")));
+    unit.getDirectives().add(importDirective(src_package + "engine.dart", null));
     unit.getDirectives().add(importDirective("package:unittest/unittest.dart", "_ut"));
     List<Statement> mainStatements = Lists.newArrayList();
     for (Entry<File, List<CompilationUnitMember>> entry : context.getFileToMembers().entrySet()) {

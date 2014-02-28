@@ -8,7 +8,7 @@ class TestSource implements Source {
   AnalysisContext get context {
     throw new UnsupportedOperationException();
   }
-  void getContents(Source_ContentReceiver receiver) {
+  void getContentsToReceiver(Source_ContentReceiver receiver) {
     throw new UnsupportedOperationException();
   }
   String get fullName {
@@ -34,6 +34,9 @@ class TestSource implements Source {
     throw new UnsupportedOperationException();
   }
   UriKind get uriKind {
+    throw new UnsupportedOperationException();
+  }
+  TimestampedData<String> get contents {
     throw new UnsupportedOperationException();
   }
 }

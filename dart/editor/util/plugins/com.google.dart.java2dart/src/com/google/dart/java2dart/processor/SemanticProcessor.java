@@ -16,6 +16,8 @@ package com.google.dart.java2dart.processor;
 
 import com.google.common.base.Objects;
 import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.Block;
+import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.java2dart.Context;
@@ -39,6 +41,19 @@ public abstract class SemanticProcessor {
       node = node.getParent();
     };
     return (E) node;
+  }
+
+  public static void removeNode(ASTNode node) {
+    ASTNode parent = node.getParent();
+    if (parent instanceof Block) {
+      ((Block) parent).getStatements().remove(node);
+      return;
+    }
+    if (parent instanceof ClassDeclaration) {
+      ((ClassDeclaration) parent).getMembers().remove(node);
+      return;
+    }
+    throw new IllegalArgumentException("Unsupported parent type: " + parent.getClass());
   }
 
   /**

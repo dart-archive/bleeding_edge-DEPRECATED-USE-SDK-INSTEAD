@@ -99,10 +99,10 @@ public class FileBasedSource implements Source {
   }
 
   @Override
-  public void getContents(ContentReceiver receiver) throws Exception {
+  public void getContentsToReceiver(ContentReceiver receiver) throws Exception {
     TimeCounterHandle handle = PerformanceStatistics.io.start();
     try {
-      getContentsFromFile(receiver);
+      getContentsFromFileToReceiver(receiver);
     } finally {
       handle.stop();
     }
@@ -232,9 +232,9 @@ public class FileBasedSource implements Source {
    * 
    * @param receiver the content receiver to which the content of this source will be passed
    * @throws Exception if the contents of this source could not be accessed
-   * @see #getContents(ContentReceiver)
+   * @see #getContentsToReceiver(ContentReceiver)
    */
-  protected void getContentsFromFile(ContentReceiver receiver) throws Exception {
+  protected void getContentsFromFileToReceiver(ContentReceiver receiver) throws Exception {
     String contents;
     long modificationTime = file.lastModified();
     RandomAccessFile randomAccessFile = new RandomAccessFile(file, "r");

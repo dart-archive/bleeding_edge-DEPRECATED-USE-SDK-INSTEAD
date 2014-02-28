@@ -310,8 +310,8 @@ public class InstrumentedAnalysisContextImpl implements InternalAnalysisContext 
 
   @Override
   @SuppressWarnings("deprecation")
-  public void getContents(Source source, ContentReceiver receiver) throws Exception {
-    basis.getContents(source, receiver);
+  public void getContentsToReceiver(Source source, ContentReceiver receiver) throws Exception {
+    basis.getContentsToReceiver(source, receiver);
   }
 
   @Override

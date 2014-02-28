@@ -657,13 +657,13 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
 
   @Override
   @SuppressWarnings("deprecation")
-  public void getContents(Source source, ContentReceiver receiver) throws Exception {
+  public void getContentsToReceiver(Source source, ContentReceiver receiver) throws Exception {
     String contents = contentCache.getContents(source);
     if (contents != null) {
       receiver.accept(contents, contentCache.getModificationStamp(source));
       return;
     }
-    source.getContents(receiver);
+    source.getContentsToReceiver(receiver);
   }
 
   @Override

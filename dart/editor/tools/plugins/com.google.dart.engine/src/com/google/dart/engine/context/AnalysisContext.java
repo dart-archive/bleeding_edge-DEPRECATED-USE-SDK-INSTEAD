@@ -211,7 +211,7 @@ public interface AnalysisContext {
   /**
    * Get the contents of the given source and pass it to the given content receiver.
    * <p>
-   * This method should be used rather than the method {@link Source#getContents(ContentReceiver)}
+   * This method should be used rather than the method {@link Source#getContentsToReceiver(ContentReceiver)}
    * because contexts can have local overrides of the content of a source that the source is not
    * aware of.
    * 
@@ -220,7 +220,7 @@ public interface AnalysisContext {
    * @throws Exception if the contents of the source could not be accessed
    */
   @Deprecated
-  public void getContents(Source source, ContentReceiver receiver) throws Exception;
+  public void getContentsToReceiver(Source source, ContentReceiver receiver) throws Exception;
 
   /**
    * Return the element referenced by the given location, or {@code null} if the element is not
