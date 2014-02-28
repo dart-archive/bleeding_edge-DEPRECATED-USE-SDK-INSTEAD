@@ -15,19 +15,9 @@ package com.google.dart.tools.wst.ui;
 
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.html.ast.HtmlUnit;
-import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
-import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.Project;
-import com.google.dart.tools.core.internal.util.ResourceUtil;
-import com.google.dart.tools.deploy.Activator;
 
-import org.eclipse.core.filebuffers.FileBuffers;
-import org.eclipse.core.filebuffers.ITextFileBuffer;
-import org.eclipse.core.filebuffers.ITextFileBufferManager;
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IResource;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IDocumentListener;
@@ -36,8 +26,6 @@ import org.eclipse.wst.sse.ui.internal.reconcile.validator.ISourceValidator;
 import org.eclipse.wst.validation.internal.provisional.core.IReporter;
 import org.eclipse.wst.validation.internal.provisional.core.IValidationContext;
 import org.eclipse.wst.validation.internal.provisional.core.IValidator;
-
-import java.io.File;
 
 /**
  * Bridge between WST HTML document and resolved {@link HtmlUnit}.
@@ -56,9 +44,7 @@ public class HtmlReconcilerHook implements ISourceValidator, IValidator {
   };
 
   private IDocument document;
-  private File file;
-  private IResource resource;
-  private Project project;
+  private StructuredDocumentDartInfo documentInfo;
 
   public HtmlReconcilerHook() {
   }
@@ -71,28 +57,11 @@ public class HtmlReconcilerHook implements ISourceValidator, IValidator {
   @Override
   public void connect(IDocument document) {
     this.document = document;
-    // prepare File
-    ITextFileBufferManager fileManager = FileBuffers.getTextFileBufferManager();
-    ITextFileBuffer fileBuffer = fileManager.getTextFileBuffer(document);
-    try {
-      file = fileBuffer.getFileStore().toLocalFile(0, null);
-    } catch (CoreException ex) {
-      Activator.logError(ex);
+    this.documentInfo = StructuredDocumentDartInfo.create(document);
+    // we need it
+    if (documentInfo == null) {
       return;
     }
-    // prepare IResource
-    IResource resource = ResourceUtil.getResource(file);
-    if (resource == null) {
-      this.document = null;
-      this.file = null;
-      this.project = null;
-      this.resource = null;
-      return;
-    }
-    this.resource = resource;
-    // prepare model Project
-    IProject resourceProject = resource.getProject();
-    project = DartCore.getProjectManager().getProject(resourceProject);
     // track changes
     document.addDocumentListener(documentListener);
     HtmlReconcilerManager.getInstance().reconcileWith(document, this);
@@ -107,18 +76,19 @@ public class HtmlReconcilerHook implements ISourceValidator, IValidator {
     document.removeDocumentListener(documentListener);
     DartReconcilerManager.getInstance().reconcileWith(document, null);
     this.document = null;
-    this.file = null;
-    this.project = null;
-    this.resource = null;
+    this.documentInfo = null;
   }
 
   public HtmlUnit getResolvedUnit() {
-    AnalysisContext context = getContext();
-    Source source = getSource();
-    if (context == null || source == null) {
-      return null;
+    if (documentInfo != null) {
+      AnalysisContext context = documentInfo.getContext();
+      Source source = documentInfo.getSource();
+      if (context == null || source == null) {
+        return null;
+      }
+      return context.getResolvedHtmlUnit(source);
     }
-    return context.getResolvedHtmlUnit(source);
+    return null;
   }
 
   @Override
@@ -133,18 +103,6 @@ public class HtmlReconcilerHook implements ISourceValidator, IValidator {
     // Not used, but WST expects IValidator
   }
 
-  private AnalysisContext getContext() {
-    return DartCore.getProjectManager().getContext(resource);
-  }
-
-  private Source getSource() {
-    AnalysisContext analysisContext = getContext();
-    if (analysisContext == null) {
-      return null;
-    }
-    return new FileBasedSource(file);
-  }
-
   /**
    * Notify the context that the source has changed.
    * <p>
@@ -155,10 +113,13 @@ public class HtmlReconcilerHook implements ISourceValidator, IValidator {
    * @param code the new source code or {@code null} if the source should be pulled from disk
    */
   private void sourceChanged(String code) {
-    AnalysisContext context = getContext();
-    Source source = getSource();
-    if (context != null && source != null) {
-      HtmlReconcilerManager.performUpdateInBackground(project, context, source, code);
+    if (documentInfo != null) {
+      AnalysisContext context = documentInfo.getContext();
+      Source source = documentInfo.getSource();
+      if (context != null && source != null) {
+        Project project = documentInfo.getProject();
+        HtmlReconcilerManager.performUpdateInBackground(project, context, source, code);
+      }
     }
   }
 }

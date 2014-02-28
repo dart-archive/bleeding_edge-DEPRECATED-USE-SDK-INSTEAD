@@ -27,7 +27,6 @@ import com.google.dart.tools.core.analysis.model.ResolvedEvent;
 import com.google.dart.tools.core.analysis.model.ResolvedHtmlEvent;
 import com.google.dart.tools.core.internal.builder.AnalysisManager;
 import com.google.dart.tools.core.internal.builder.AnalysisWorker;
-import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.text.DocumentEvent;
@@ -40,26 +39,10 @@ import org.eclipse.jface.text.reconciler.IReconcilingStrategy;
 import org.eclipse.jface.text.reconciler.IReconcilingStrategyExtension;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
-import org.eclipse.swt.events.FocusEvent;
-import org.eclipse.swt.events.FocusListener;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.ui.IEditorPart;
-import org.eclipse.ui.IEditorReference;
-import org.eclipse.ui.IWorkbench;
-import org.eclipse.ui.IWorkbenchPage;
-import org.eclipse.ui.IWorkbenchWindow;
-import org.eclipse.ui.PlatformUI;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcilingStrategyExtension {
-
-  /**
-   * The display in which the editor is visible.
-   */
-  private final Display display;
 
   /**
    * The editor containing the document with source to be reconciled (not {@code null}).
@@ -162,20 +145,7 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
   public DartReconcilingStrategy(DartReconcilingEditor editor, AnalysisManager analysisManager) {
     this.editor = editor;
     this.analysisManager = analysisManager;
-    this.display = Display.getDefault();
     editor.setDartReconcilingStrategy(this);
-
-    // Prioritize analysis when editor becomes active
-    editor.addViewerFocusListener(new FocusListener() {
-      @Override
-      public void focusGained(FocusEvent e) {
-        updateAnalysisPriorityOrder(true);
-      }
-
-      @Override
-      public void focusLost(FocusEvent e) {
-      }
-    });
 
     // Cleanup the receiver when editor is closed
     editor.addViewerDisposeListener(new DisposeListener() {
@@ -195,14 +165,12 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
     // clear the cached source content to ensure the source will be read from disk
     document.removeDocumentListener(documentListener);
     AnalysisWorker.removeListener(analysisListener);
-    updateAnalysisPriorityOrder(false);
     sourceChanged(null);
     performAnalysisInBackground();
   }
 
   @Override
   public void initialReconcile() {
-    updateAnalysisPriorityOrder(true);
     if (!applyResolvedUnit()) {
       try {
         AnalysisContext context = editor.getInputAnalysisContext();
@@ -279,79 +247,6 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
 
   @Override
   public void setProgressMonitor(IProgressMonitor monitor) {
-  }
-
-  /**
-   * Answer the visible editors displaying source for the given context. This must be called on the
-   * UI thread because it accesses windows, pages, and editors.
-   * 
-   * @param context the context (not {@code null})
-   * @return a list of sources (not {@code null}, contains no {@code null}s)
-   */
-  protected List<Source> getVisibleSourcesForContext(final AnalysisContext context) {
-    final ArrayList<Source> sources = new ArrayList<Source>();
-    IWorkbench workbench = PlatformUI.getWorkbench();
-    for (IWorkbenchWindow window : workbench.getWorkbenchWindows()) {
-      for (IWorkbenchPage page : window.getPages()) {
-        IEditorReference[] allEditors = page.getEditorReferences();
-        for (IEditorReference editorRef : allEditors) {
-          IEditorPart part = editorRef.getEditor(false);
-          if (part instanceof DartEditor) {
-            DartEditor otherEditor = (DartEditor) part;
-            if (otherEditor.getInputAnalysisContext() == context && otherEditor.isVisible()) {
-              Source otherSource = otherEditor.getInputSource();
-              if (otherSource != null) {
-                sources.add(otherSource);
-              }
-            }
-          }
-        }
-      }
-    }
-    return sources;
-  }
-
-  /**
-   * Update the order in which sources are analyzed in the context associated with the editor. This
-   * is called once per instantiated editor on startup and then once for each editor as it becomes
-   * active. For example, if there are 2 of 7 editors visible on startup, then this will be called
-   * for the 2 visible editors.
-   * 
-   * @param isOpen {@code true} if the editor is open and the source should be the first source
-   *          analyzed or {@code false} if the editor is closed and the source should be removed
-   *          from the priority list.
-   */
-  protected void updateAnalysisPriorityOrder(final boolean isOpen) {
-    // Bug 13972 :: Don't use sync as it can deadlock with debugger view when clicking rapidly
-    display.asyncExec(new Runnable() {
-      @Override
-      public void run() {
-        updateAnalysisPriorityOrderOnUiThread(isOpen);
-      }
-    });
-  }
-
-  /**
-   * Update the order in which sources are analyzed in the context associated with the editor. This
-   * is called once per instantiated editor on startup and then once for each editor as it becomes
-   * active. For example, if there are 2 of 7 editors visible on startup, then this will be called
-   * for the 2 visible editors. MUST be called on the UI thread.
-   * 
-   * @param isOpen {@code true} if the editor is open and the source should be the first source
-   *          analyzed or {@code false} if the editor is closed and the source should be removed
-   *          from the priority list.
-   */
-  protected void updateAnalysisPriorityOrderOnUiThread(boolean isOpen) {
-    AnalysisContext context = editor.getInputAnalysisContext();
-    Source source = editor.getInputSource();
-    if (context != null && source != null) {
-      final List<Source> sources = getVisibleSourcesForContext(context);
-      sources.remove(source);
-      if (isOpen) {
-        sources.add(0, source);
-      }
-      context.setAnalysisPriorityOrder(sources);
-    }
   }
 
   /**

@@ -36,7 +36,6 @@ import org.eclipse.jface.text.Document;
 import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.reconciler.DirtyRegion;
 import org.eclipse.swt.events.DisposeListener;
-import org.eclipse.swt.events.FocusListener;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -127,7 +126,6 @@ public class DartReconcilingStrategyTest extends TestCase {
   private final class MockEditor implements DartReconcilingEditor {
     private CompilationUnit appliedUnit = null;
     private DisposeListener disposeListener = null;
-    private FocusListener focusListener = null;
 
     @Override
     public void addViewerDisposeListener(DisposeListener listener) {
@@ -135,14 +133,6 @@ public class DartReconcilingStrategyTest extends TestCase {
         throw new RuntimeException("dispose listener already added");
       }
       disposeListener = listener;
-    }
-
-    @Override
-    public void addViewerFocusListener(FocusListener listener) {
-      if (focusListener != null) {
-        throw new RuntimeException("focus listener already added");
-      }
-      focusListener = listener;
     }
 
     @Override
@@ -195,17 +185,7 @@ public class DartReconcilingStrategyTest extends TestCase {
   MockContext mockContext = new MockContext();
   Document mockDocument = new Document(INITIAL_CONTENTS);
   MockAnalysisManager analysisManager = new MockAnalysisManager();
-  List<Source> visibleSources = Arrays.asList(mockSource);
   DartReconcilingStrategy strategy = new DartReconcilingStrategy(mockEditor, analysisManager) {
-    @Override
-    protected List<Source> getVisibleSourcesForContext(AnalysisContext context) {
-      return new ArrayList<Source>(visibleSources);
-    };
-
-    @Override
-    protected void updateAnalysisPriorityOrder(boolean isOpen) {
-      updateAnalysisPriorityOrderOnUiThread(isOpen);
-    };
   };
 
   /**
@@ -215,13 +195,10 @@ public class DartReconcilingStrategyTest extends TestCase {
     mockContext.setContentsForTest(mockSource, INITIAL_CONTENTS);
     mockContext.setAnalysisPriorityOrder(Arrays.asList(new Source[] {mockSource}));
 
-    visibleSources = Arrays.asList();
     mockEditor.getDisposeListener().widgetDisposed(null);
 
     // Assert reconciler requested background analysis
     analysisManager.assertBackgroundAnalysis(1);
-
-    assertEquals(0, mockContext.getPriorityOrder().size());
   }
 
   /**
@@ -258,9 +235,6 @@ public class DartReconcilingStrategyTest extends TestCase {
 
     mockContext.assertSetChangedContentsCount(0, 0, 0, 0);
     mockContext.assertSetContentsCount(0);
-    assertEquals(1, mockContext.getPriorityOrder().size());
-    assertSame(mockSource, mockContext.getPriorityOrder().get(0));
-    assertNotNull(mockEditor.getAppliedCompilationUnit());
     analysisManager.assertBackgroundAnalysis(1);
 
     analysisManager.performAnalysis(null);
@@ -280,10 +254,7 @@ public class DartReconcilingStrategyTest extends TestCase {
 
     mockContext.assertSetChangedContentsCount(0, 0, 0, 0);
     mockContext.assertSetContentsCount(0);
-    assertEquals(1, mockContext.getPriorityOrder().size());
-    assertSame(mockSource, mockContext.getPriorityOrder().get(0));
     assertNotNull(mockEditor.getAppliedCompilationUnit());
-    analysisManager.assertBackgroundAnalysis(1);
   }
 
   /**

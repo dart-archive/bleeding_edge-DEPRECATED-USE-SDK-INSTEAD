@@ -68,6 +68,7 @@ import com.google.dart.tools.ui.internal.formatter.DartFormatter.FormattedSource
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.text.IProductConstants;
 import com.google.dart.tools.ui.internal.text.ProductProperties;
+import com.google.dart.tools.ui.internal.text.dart.DartPrioritySourceEditor;
 import com.google.dart.tools.ui.internal.text.dart.DartReconcilingEditor;
 import com.google.dart.tools.ui.internal.text.dart.DartReconcilingStrategy;
 import com.google.dart.tools.ui.internal.text.dart.hover.SourceViewerInformationControl;
@@ -236,7 +237,7 @@ import java.util.Map;
  */
 @SuppressWarnings({"unused", "deprecation"})
 public abstract class DartEditor extends AbstractDecoratedTextEditor implements
-    IViewPartInputProvider, DartReconcilingEditor {
+    IViewPartInputProvider, DartReconcilingEditor, DartPrioritySourceEditor {
 
   /**
    * Adapts an options {@link IEclipsePreferences} to
@@ -2576,6 +2577,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
   /**
    * @return {@code true} if the editor's content is visible
    */
+  @Override
   public boolean isVisible() {
     ISourceViewer viewer = getViewer();
     if (viewer != null) {

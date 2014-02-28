@@ -21,6 +21,7 @@ import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.instrumentation.InstrumentationLogger;
 import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.ui.feedback.FeedbackUtils;
+import com.google.dart.tools.ui.internal.text.dart.DartPrioritySourcesHelper;
 import com.google.dart.tools.ui.internal.text.editor.AutoSaveHelper;
 
 import org.eclipse.core.runtime.jobs.Job;
@@ -53,6 +54,7 @@ public class DartUIStartup implements IStartup {
     try {
       reportPlatformStatistics();
       reportDartCoreDebug();
+      DartPrioritySourcesHelper.start();
 
       CmdLineFileProcessor.process(CmdLineOptions.getOptions());
       instrumentation.metric("OpenInitialFilesAndFolders", "Complete");
