@@ -34,6 +34,19 @@
                Create a new Dart file
             </description>
       </wizard>
+      <wizard
+            canFinishEarly="false"
+            category="com.google.dart.eclipse.wizards.projects"
+            class="com.google.dart.eclipse.wizards.ImportFolderWizard"
+            finalPerspective="com.google.dart.tools.ui.DartPerspective"
+            icon="icons/newprj_wiz.gif"
+            id="com.google.dart.eclipse.ui.wizard.newProjectSource"
+            name="Dart Project from Existing Source"
+            project="true">
+         <description>
+            Create a new Dart project from existing source
+         </description>
+      </wizard>
       
       <!-- TODO(pquitslund): the New Application Wizard needs an update     
       
@@ -233,7 +246,13 @@
                   <instanceof value="org.eclipse.core.filesystem.IFileStore"/>
                </or>
             </parentExpression>
-         </commonSorter>        
+         </commonSorter>
+         <commonWizard
+               menuGroupId="com.google.dart.eclipse.wizards.projects"
+               type="new"
+               wizardId="com.google.dart.eclipse.ui.wizard.newProjectSource">
+            <enablement></enablement>
+         </commonWizard>
         
       </navigatorContent>
    </extension>
@@ -529,6 +548,20 @@
                menubarPath="org.eclipse.ui.projectConfigure/additions">
          </action>
       </objectContribution>
+   </extension>
+   <extension
+         point="org.eclipse.ui.importWizards">
+      <category
+            id="com.google.dart.eclipse.ui.wizards.import"
+            name="Dart">
+      </category>
+      <wizard
+            category="com.google.dart.eclipse.ui.wizards.import"
+            class="com.google.dart.eclipse.wizards.ImportFolderWizard"
+            icon="icons/newprj_wiz.gif"
+            id="com.google.dart.eclipse.ui.import.folder"
+            name="Existing Source">
+      </wizard>
    </extension>
 
 </plugin>
