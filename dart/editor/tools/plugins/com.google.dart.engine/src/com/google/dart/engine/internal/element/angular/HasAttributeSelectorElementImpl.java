@@ -14,13 +14,15 @@
 
 package com.google.dart.engine.internal.element.angular;
 
+import com.google.dart.engine.element.angular.AngularHasAttributeSelectorElement;
 import com.google.dart.engine.element.angular.AngularSelectorElement;
 import com.google.dart.engine.html.ast.XmlTagNode;
 
 /**
  * Implementation of {@link AngularSelectorElement} based on presence of attribute.
  */
-public class HasAttributeSelectorElementImpl extends AngularSelectorElementImpl {
+public class HasAttributeSelectorElementImpl extends AngularSelectorElementImpl implements
+    AngularHasAttributeSelectorElement {
   public HasAttributeSelectorElementImpl(String attributeName, int offset) {
     super(attributeName, offset);
   }
@@ -32,7 +34,9 @@ public class HasAttributeSelectorElementImpl extends AngularSelectorElementImpl 
   }
 
   @Override
-  public String getDisplayName() {
-    return "[" + super.getDisplayName() + "]";
+  protected void appendTo(StringBuilder builder) {
+    builder.append("[");
+    builder.append(getName());
+    builder.append("]");
   }
 }

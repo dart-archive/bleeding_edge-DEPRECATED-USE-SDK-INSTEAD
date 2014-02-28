@@ -18,6 +18,7 @@ import com.google.dart.engine.services.internal.correction.AbstractDartTest;
 import com.google.dart.engine.services.refactoring.NamingConventions;
 import com.google.dart.engine.services.status.RefactoringStatusSeverity;
 
+import static com.google.dart.engine.services.refactoring.NamingConventions.validateAngularAttributeName;
 import static com.google.dart.engine.services.refactoring.NamingConventions.validateAngularComponentName;
 import static com.google.dart.engine.services.refactoring.NamingConventions.validateAngularControllerName;
 import static com.google.dart.engine.services.refactoring.NamingConventions.validateAngularFilterName;
@@ -40,6 +41,53 @@ import static com.google.dart.engine.services.refactoring.NamingConventions.vali
  * Test for {@link NamingConventions}.
  */
 public class NamingConventionsTest extends AbstractDartTest {
+  public void test_validateAngularAttribute_blank() throws Exception {
+    assertRefactoringStatus(
+        validateAngularAttributeName(" "),
+        RefactoringStatusSeverity.ERROR,
+        "Attribute name must not be blank.");
+    assertRefactoringStatus(
+        validateAngularAttributeName(" "),
+        RefactoringStatusSeverity.ERROR,
+        "Attribute name must not be blank.");
+  }
+
+  public void test_validateAngularAttribute_hasBlank() throws Exception {
+    assertRefactoringStatus(
+        validateAngularAttributeName("my- bad-name"),
+        RefactoringStatusSeverity.ERROR,
+        "Attribute name must not contain ' '.");
+  }
+
+  public void test_validateAngularAttribute_hasDot() throws Exception {
+    assertRefactoringStatus(
+        validateAngularAttributeName("my.bad.name"),
+        RefactoringStatusSeverity.ERROR,
+        "Attribute name must not contain '.'.");
+  }
+
+  public void test_validateAngularAttribute_notIdentifierStart() throws Exception {
+    assertRefactoringStatus(
+        validateAngularAttributeName("2my-bad-name"),
+        RefactoringStatusSeverity.ERROR,
+        "Attribute name must not start with '2'.");
+  }
+
+  public void test_validateAngularAttribute_null() throws Exception {
+    assertRefactoringStatus(
+        validateAngularAttributeName(null),
+        RefactoringStatusSeverity.ERROR,
+        "Attribute name must not be null.");
+  }
+
+  public void test_validateAngularAttribute_OK_oneIdentifier() throws Exception {
+    assertRefactoringStatusOK(validateAngularAttributeName("name"));
+  }
+
+  public void test_validateAngularAttribute_OK_severalIdentifiers() throws Exception {
+    assertRefactoringStatusOK(validateAngularAttributeName("my-property-name"));
+  }
+
   public void test_validateAngularComponentName_blank() throws Exception {
     assertRefactoringStatus(
         validateAngularComponentName(" name"),

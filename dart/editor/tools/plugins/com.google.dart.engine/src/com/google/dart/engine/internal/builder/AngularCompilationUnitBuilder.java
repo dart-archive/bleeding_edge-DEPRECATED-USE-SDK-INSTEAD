@@ -47,6 +47,7 @@ import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.element.angular.AngularComponentElement;
 import com.google.dart.engine.element.angular.AngularDirectiveElement;
 import com.google.dart.engine.element.angular.AngularElement;
+import com.google.dart.engine.element.angular.AngularHasSelectorElement;
 import com.google.dart.engine.element.angular.AngularPropertyElement;
 import com.google.dart.engine.element.angular.AngularPropertyKind;
 import com.google.dart.engine.element.angular.AngularScopePropertyElement;
@@ -108,7 +109,6 @@ public class AngularCompilationUnitBuilder {
     }
     SimpleStringLiteral literal = (SimpleStringLiteral) node;
     // maybe has AngularElement
-    // TODO(scheglov) add test
     {
       Element element = literal.getToolkitElement();
       if (element instanceof AngularElement) {
@@ -134,17 +134,17 @@ public class AngularCompilationUnitBuilder {
           return toolkitObject;
         }
       }
+      // try selector
+      if (toolkitObject instanceof AngularHasSelectorElement) {
+        AngularHasSelectorElement hasSelector = (AngularHasSelectorElement) toolkitObject;
+        AngularSelectorElement selector = hasSelector.getSelector();
+        if (isNameCoveredByLiteral(selector, node)) {
+          return selector;
+        }
+      }
       // try properties of AngularComponentElement
       if (toolkitObject instanceof AngularComponentElement) {
         AngularComponentElement component = (AngularComponentElement) toolkitObject;
-        // try selector
-        {
-          AngularSelectorElement selector = component.getSelector();
-          if (isNameCoveredByLiteral(selector, node)) {
-            return selector;
-          }
-        }
-        // try properties
         properties = component.getProperties();
       }
       // try properties of AngularDirectiveElement
@@ -469,7 +469,7 @@ public class AngularCompilationUnitBuilder {
       element.setTemplateUriOffset(templateUriOffset);
       element.setStyleUri(styleUri);
       element.setStyleUriOffset(styleUriOffset);
-      element.setProperties(parseNgComponentProperties(true));
+      element.setProperties(parseNgComponentProperties());
       element.setScopeProperties(parseScopeProperties());
       classToolkitObjects.add(element);
     }
@@ -478,12 +478,10 @@ public class AngularCompilationUnitBuilder {
   /**
    * Parses {@link AngularPropertyElement}s from {@link #annotation} and {@link #classDeclaration}.
    */
-  private AngularPropertyElement[] parseNgComponentProperties(boolean fromFields) {
+  private AngularPropertyElement[] parseNgComponentProperties() {
     List<AngularPropertyElement> properties = Lists.newArrayList();
     parseNgComponentProperties_fromMap(properties);
-    if (fromFields) {
-      parseNgComponentProperties_fromFields(properties);
-    }
+    parseNgComponentProperties_fromFields(properties);
     return properties.toArray(new AngularPropertyElement[properties.size()]);
   }
 
@@ -657,7 +655,7 @@ public class AngularCompilationUnitBuilder {
       int offset = annotation.getOffset();
       AngularDirectiveElementImpl element = new AngularDirectiveElementImpl(offset);
       element.setSelector(selector);
-      element.setProperties(parseNgComponentProperties(false));
+      element.setProperties(parseNgComponentProperties());
       classToolkitObjects.add(element);
     }
   }

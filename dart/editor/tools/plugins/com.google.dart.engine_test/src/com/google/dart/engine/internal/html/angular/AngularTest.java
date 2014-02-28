@@ -122,17 +122,18 @@ abstract public class AngularTest extends EngineTestCase {
   }
 
   protected final AnalysisContextHelper contextHelper = new AnalysisContextHelper();
-  protected AnalysisContext context;
 
+  protected AnalysisContext context;
   protected String mainContent;
   protected Source mainSource;
   protected CompilationUnit mainUnit;
-  protected CompilationUnitElement mainUnitElement;
 
+  protected CompilationUnitElement mainUnitElement;
   protected String indexContent;
   protected Source indexSource;
   protected HtmlUnit indexUnit;
   protected HtmlElement indexHtmlUnit;
+
   protected CompilationUnitElement indexDartUnitElement;
 
   /**
@@ -336,6 +337,14 @@ abstract public class AngularTest extends EngineTestCase {
   protected final void resolveMain() throws Exception {
     mainUnit = contextHelper.resolveDefiningUnit(mainSource);
     mainUnitElement = mainUnit.getElement();
+  }
+
+  /**
+   * Resolves {@link #mainSource}.
+   */
+  protected final void resolveMainNoErrors() throws Exception {
+    resolveMain();
+    assertNoErrors(mainSource);
   }
 
   protected final void resolveMainSource(String content) throws Exception {

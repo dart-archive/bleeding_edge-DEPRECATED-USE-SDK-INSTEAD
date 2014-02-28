@@ -17,6 +17,7 @@ import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.element.ToolkitObjectElement;
@@ -280,30 +281,61 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
     }
   }
 
+  public void test_NgDirective_resolvedExpression() throws Exception {
+    addMainSource(createSource("",//
+        "import 'angular.dart';",
+        "",
+        "@NgDirective(selector: '[my-directive]')",
+        "class MyDirective {",
+        "  @NgOneWay('my-property')",
+        "  String condition;",
+        "}"));
+    resolveIndexNoErrors(createHtmlWithMyController(//
+        "<input type='text' ng-model='name'>",
+        "<div my-directive my-property='name != null'>",
+        "</div>"));
+    resolveMainNoErrors();
+    // "my-directive" attribute was resolved
+    {
+      AngularSelectorElement selector = findMainElement(
+          ElementKind.ANGULAR_SELECTOR,
+          "my-directive");
+      XmlAttributeNode attrNodeSelector = HtmlUnitUtils.getAttributeNode(
+          indexUnit,
+          findOffset("my-directive"));
+      assertNotNull(attrNodeSelector);
+      assertSame(selector, attrNodeSelector.getElement());
+    }
+    // "my-property" attribute was resolved
+    {
+      XmlAttributeNode attrNodeProperty = HtmlUnitUtils.getAttributeNode(
+          indexUnit,
+          findOffset("my-property='"));
+      AngularPropertyElement propertyElement = (AngularPropertyElement) attrNodeProperty.getElement();
+      assertNotNull(propertyElement);
+      assertSame(AngularPropertyKind.ONE_WAY, propertyElement.getPropertyKind());
+      assertEquals("condition", propertyElement.getField().getName());
+    }
+    // "name" expression was resolved
+    assertNotNull(findIdentifier("name != null"));
+  }
+
   public void test_NgDirective_resolvedExpression_attrString() throws Exception {
     addMainSource(createSource("",//
         "import 'angular.dart';",
         "",
-        "@NgDirective(",
-        "    selector: '[my-directive]',",
-        "    map: const {'my-directive' : '@condition'})",
+        "@NgDirective(selector: '[my-directive])",
         "class MyDirective {",
-        "  set condition(value) {}",
+        "  @NgAttr('my-property')",
+        "  String property;",
         "}"));
     resolveIndexNoErrors(createHtmlWithMyController(//
         "<input type='text' ng-model='name'>",
-        "<div my-directive='name != null'>",
+        "<div my-directive my-property='name != null'>",
         "</div>"));
-    // @condition means "string attribute", which we don't parse
+    resolveMain();
+    // @NgAttr means "string attribute", which we don't parse
     assertNull(findIdentifierMaybe("name != null"));
-    // "my-directive" attribute was resolved
-    XmlAttributeNode attrNode = HtmlUnitUtils.getAttributeNode(
-        indexUnit,
-        findOffset("my-directive='"));
-    assertNotNull(attrNode);
-    AngularPropertyElement propertyElement = (AngularPropertyElement) attrNode.getElement();
-    assertNotNull(propertyElement);
-    assertSame(AngularPropertyKind.ATTR, propertyElement.getPropertyKind());
   }
 
   public void test_NgDirective_resolvedExpression_dotAsName() throws Exception {
@@ -322,33 +354,6 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
         "</div>"));
     // "name" attribute was resolved
     assertNotNull(findIdentifier("name != null"));
-  }
-
-  public void test_NgDirective_resolvedExpression_oneWay() throws Exception {
-    addMainSource(createSource("",//
-        "import 'angular.dart';",
-        "",
-        "@NgDirective(",
-        "    selector: '[my-directive]',",
-        "    map: const {'my-directive' : '=>condition'})",
-        "class MyDirective {",
-        "  set condition(value) {}",
-        "}"));
-    resolveIndexNoErrors(createHtmlWithMyController(//
-        "<input type='text' ng-model='name'>",
-        "<div my-directive='name != null'>",
-        "</div>"));
-    // "name" expression was resolved
-    assertNotNull(findIdentifier("name != null"));
-    // "my-directive" attribute was resolved
-    XmlAttributeNode attrNode = HtmlUnitUtils.getAttributeNode(
-        indexUnit,
-        findOffset("my-directive='"));
-    assertNotNull(attrNode);
-    AngularPropertyElement propertyElement = (AngularPropertyElement) attrNode.getElement();
-    assertNotNull(propertyElement);
-    assertSame(AngularPropertyKind.ONE_WAY, propertyElement.getPropertyKind());
-    assertEquals("condition", propertyElement.getField().getName());
   }
 
   /**

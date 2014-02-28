@@ -36,19 +36,32 @@ class NgDirectiveElementProcessor extends NgDirectiveProcessor {
 
   @Override
   public void apply(AngularHtmlUnitResolver resolver, XmlTagNode node) {
+    String selectorAttributeName = null;
+    {
+      AngularSelectorElement selector = element.getSelector();
+      if (selector instanceof HasAttributeSelectorElementImpl) {
+        selectorAttributeName = ((HasAttributeSelectorElementImpl) selector).getName();
+        // resolve attribute expression
+        XmlAttributeNode attribute = node.getAttribute(selectorAttributeName);
+        if (attribute != null) {
+          attribute.setElement(selector);
+        }
+      }
+    }
+    //
     for (AngularPropertyElement property : element.getProperties()) {
       // prepare attribute name
       String name = property.getName();
       if (name.equals(".")) {
-        AngularSelectorElement selector = element.getSelector();
-        if (selector instanceof HasAttributeSelectorElementImpl) {
-          name = ((HasAttributeSelectorElementImpl) selector).getName();
-        }
+        name = selectorAttributeName;
       }
       // resolve attribute expression
       XmlAttributeNode attribute = node.getAttribute(name);
       if (attribute != null) {
-        attribute.setElement(property);
+        // if not resolved as the selector, resolve as a property
+        if (!name.equals(selectorAttributeName)) {
+          attribute.setElement(property);
+        }
         // resolve if binding
         if (property.getPropertyKind() != AngularPropertyKind.ATTR) {
           resolver.pushNameScope();

@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.internal.builder;
 
+import com.google.dart.engine.ast.ASTFactory;
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.SimpleStringLiteral;
@@ -32,12 +33,35 @@ import com.google.dart.engine.element.angular.AngularScopePropertyElement;
 import com.google.dart.engine.element.angular.AngularSelectorElement;
 import com.google.dart.engine.element.angular.AngularViewElement;
 import com.google.dart.engine.error.AngularCode;
+import com.google.dart.engine.internal.element.angular.AngularScopePropertyElementImpl;
 import com.google.dart.engine.internal.element.angular.AngularTagSelectorElementImpl;
 import com.google.dart.engine.internal.element.angular.HasAttributeSelectorElementImpl;
 import com.google.dart.engine.internal.element.angular.IsTagHasAttributeSelectorElementImpl;
 import com.google.dart.engine.internal.html.angular.AngularTest;
 
 public class AngularCompilationUnitBuilderTest extends AngularTest {
+  @SuppressWarnings("unchecked")
+  protected static <T extends AngularElement> T getAngularElement(Element element,
+      Class<T> angularElementType) {
+    ToolkitObjectElement[] toolkitObjects = null;
+    if (element instanceof ClassElement) {
+      ClassElement classElement = (ClassElement) element;
+      toolkitObjects = classElement.getToolkitObjects();
+    }
+    if (element instanceof LocalVariableElement) {
+      LocalVariableElement variableElement = (LocalVariableElement) element;
+      toolkitObjects = variableElement.getToolkitObjects();
+    }
+    if (toolkitObjects != null) {
+      for (ToolkitObjectElement toolkitObject : toolkitObjects) {
+        if (angularElementType.isInstance(toolkitObject)) {
+          return (T) toolkitObject;
+        }
+      }
+    }
+    return null;
+  }
+
   private static void assertHasAttributeSelector(AngularSelectorElement selector, String name) {
     assertInstanceOf(HasAttributeSelectorElementImpl.class, selector);
     assertEquals(name, ((HasAttributeSelectorElementImpl) selector).getName());
@@ -176,6 +200,17 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
     assertEquals("my-dir", property.getName());
   }
 
+  public void test_getElement_directive_selector() throws Exception {
+    resolveMainSource(createAngularSource(//
+        "@NgDirective(selector: '[my-dir]')",
+        "class MyDirective {}"));
+    SimpleStringLiteral node = findMainNode("my-dir]'", SimpleStringLiteral.class);
+    int offset = node.getOffset();
+    // find AngularSelectorElement
+    Element element = AngularCompilationUnitBuilder.getElement(node, offset);
+    assertInstanceOf(AngularSelectorElement.class, element);
+  }
+
   public void test_getElement_filter_name() throws Exception {
     resolveMainSource(createAngularSource(//
         "@NgFilter(name: 'myFilter')",
@@ -228,6 +263,13 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
     // no Element
     Element element = AngularCompilationUnitBuilder.getElement(node, offset);
     assertNull(element);
+  }
+
+  public void test_getElement_SimpleStringLiteral_withToolkitElement() throws Exception {
+    SimpleStringLiteral literal = ASTFactory.string("foo");
+    Element element = new AngularScopePropertyElementImpl("foo", 0, null);
+    literal.setToolkitElement(element);
+    assertSame(element, AngularCompilationUnitBuilder.getElement(literal, -1));
   }
 
   public void test_NgComponent_bad_cannotParseSelector() throws Exception {
@@ -715,6 +757,8 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
         "class MyDirective {",
         "  set myPropA(value) {}",
         "  set myPropB(value) {}",
+        "  @NgTwoWay('my-prop-c')",
+        "  String myPropC;",
         "}");
     resolveMainSourceNoErrors(mainContent);
     // prepare AngularDirectiveElement
@@ -729,7 +773,7 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
     assertHasAttributeSelector(directive.getSelector(), "my-dir");
     // verify properties
     AngularPropertyElement[] properties = directive.getProperties();
-    assertLength(2, properties);
+    assertLength(3, properties);
     assertProperty(
         properties[0],
         "my-dir",
@@ -744,6 +788,13 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
         AngularPropertyKind.CALLBACK,
         "myPropB",
         findMainOffset("myPropB'"));
+    assertProperty(
+        properties[2],
+        "my-prop-c",
+        findMainOffset("my-prop-c'"),
+        AngularPropertyKind.TWO_WAY,
+        "myPropC",
+        -1);
   }
 
   public void test_NgDirective_bad_cannotParseSelector() throws Exception {
@@ -886,27 +937,5 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
    */
   private <T extends ASTNode> T findMainNode(String search, Class<T> clazz) {
     return findNode(mainUnit, mainContent, search, clazz);
-  }
-
-  @SuppressWarnings("unchecked")
-  private <T extends AngularElement> T getAngularElement(Element element,
-      Class<T> angularElementType) {
-    ToolkitObjectElement[] toolkitObjects = null;
-    if (element instanceof ClassElement) {
-      ClassElement classElement = (ClassElement) element;
-      toolkitObjects = classElement.getToolkitObjects();
-    }
-    if (element instanceof LocalVariableElement) {
-      LocalVariableElement variableElement = (LocalVariableElement) element;
-      toolkitObjects = variableElement.getToolkitObjects();
-    }
-    if (toolkitObjects != null) {
-      for (ToolkitObjectElement toolkitObject : toolkitObjects) {
-        if (angularElementType.isInstance(toolkitObject)) {
-          return (T) toolkitObject;
-        }
-      }
-    }
-    return null;
   }
 }

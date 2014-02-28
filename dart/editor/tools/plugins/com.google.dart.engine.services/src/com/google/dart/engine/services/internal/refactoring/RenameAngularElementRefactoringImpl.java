@@ -33,6 +33,7 @@ import java.util.List;
  */
 abstract public class RenameAngularElementRefactoringImpl extends RenameRefactoringImpl {
   protected final AngularElement element;
+  protected SourceChangeManager changeManager;
 
   public RenameAngularElementRefactoringImpl(SearchEngine searchEngine, AngularElement element) {
     super(searchEngine, element);
@@ -63,7 +64,7 @@ abstract public class RenameAngularElementRefactoringImpl extends RenameRefactor
   public Change createChange(ProgressMonitor pm) throws Exception {
     pm = checkProgressMonitor(pm);
     try {
-      SourceChangeManager changeManager = new SourceChangeManager();
+      changeManager = new SourceChangeManager();
       // update declaration
       {
         Source elementSource = element.getSource();
@@ -77,6 +78,8 @@ abstract public class RenameAngularElementRefactoringImpl extends RenameRefactor
         SourceChange refChange = changeManager.get(reference.source);
         addReferenceEdit(refChange, reference);
       }
+      // additional changes
+      createAdditionalChanges();
       // return CompositeChange
       CompositeChange compositeChange = new CompositeChange(getRefactoringName());
       compositeChange.add(changeManager.getChanges());
@@ -95,4 +98,10 @@ abstract public class RenameAngularElementRefactoringImpl extends RenameRefactor
    * Check if the given name is valid for the {@link AngularElement} being renamed.
    */
   protected abstract RefactoringStatus checkNameSyntax(String newName);
+
+  /**
+   * Subclasses may override this method to contribute additional changes to {@link #changeManager}.
+   */
+  protected void createAdditionalChanges() throws Exception {
+  }
 }

@@ -22,6 +22,7 @@ import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.FieldFormalParameterElement;
 import com.google.dart.engine.element.FunctionElement;
+import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.element.MethodElement;
@@ -29,10 +30,12 @@ import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.angular.AngularComponentElement;
 import com.google.dart.engine.element.angular.AngularControllerElement;
+import com.google.dart.engine.element.angular.AngularDirectiveElement;
 import com.google.dart.engine.element.angular.AngularFilterElement;
-import com.google.dart.engine.element.angular.AngularTagSelectorElement;
+import com.google.dart.engine.element.angular.AngularHasAttributeSelectorElement;
 import com.google.dart.engine.element.angular.AngularPropertyElement;
 import com.google.dart.engine.element.angular.AngularScopePropertyElement;
+import com.google.dart.engine.element.angular.AngularTagSelectorElement;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.engine.services.internal.correction.AbstractDartTest;
@@ -45,11 +48,13 @@ import com.google.dart.engine.services.internal.refactoring.InlineMethodRefactor
 import com.google.dart.engine.services.internal.refactoring.RenameAngularComponentRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.RenameAngularControllerRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.RenameAngularFilterRefactoringImpl;
+import com.google.dart.engine.services.internal.refactoring.RenameAngularHasAttributeSelectorRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.RenameAngularPropertyRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.RenameAngularScopePropertyRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.RenameAngularTagSelectorRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.RenameClassMemberRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.RenameConstructorRefactoringImpl;
+import com.google.dart.engine.services.internal.refactoring.RenameImportRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.RenameLibraryRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.RenameLocalRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.RenameUnitMemberRefactoringImpl;
@@ -137,11 +142,31 @@ public class RefactoringFactoryTest extends AbstractDartTest {
     assertThat(refactoring).isInstanceOf(RenameAngularFilterRefactoringImpl.class);
   }
 
+  public void test_createRenameRefactoring_AngularHasAttributeSelectorElement() throws Exception {
+    AngularHasAttributeSelectorElement element = mock(AngularHasAttributeSelectorElement.class);
+    // create refactoring
+    Refactoring refactoring = createRenameRefactoring(searchEngine, element);
+    assertThat(refactoring).isInstanceOf(RenameAngularHasAttributeSelectorRefactoringImpl.class);
+  }
+
   public void test_createRenameRefactoring_AngularPropertyElement() throws Exception {
     AngularPropertyElement element = mock(AngularPropertyElement.class);
     // create refactoring
     Refactoring refactoring = createRenameRefactoring(searchEngine, element);
     assertThat(refactoring).isInstanceOf(RenameAngularPropertyRefactoringImpl.class);
+  }
+
+  public void test_createRenameRefactoring_AngularPropertyElement_ofDirective() throws Exception {
+    AngularDirectiveElement directive = mock(AngularDirectiveElement.class);
+    AngularHasAttributeSelectorElement selector = mock(AngularHasAttributeSelectorElement.class);
+    when(selector.getName()).thenReturn("test");
+    when(directive.getSelector()).thenReturn(selector);
+    AngularPropertyElement element = mock(AngularPropertyElement.class);
+    when(element.getEnclosingElement()).thenReturn(directive);
+    when(element.getName()).thenReturn("test");
+    // create refactoring
+    Refactoring refactoring = createRenameRefactoring(searchEngine, element);
+    assertThat(refactoring).isInstanceOf(RenameAngularHasAttributeSelectorRefactoringImpl.class);
   }
 
   public void test_createRenameRefactoring_AngularScopePropertyElement() throws Exception {
@@ -193,6 +218,13 @@ public class RefactoringFactoryTest extends AbstractDartTest {
     assertThat(refactoring).isInstanceOf(RenameConstructorRefactoringImpl.class);
   }
 
+  public void test_createRenameRefactoring_ImportElement() throws Exception {
+    ImportElement element = mock(ImportElement.class);
+    // create refactoring
+    Refactoring refactoring = createRenameRefactoring(searchEngine, element);
+    assertThat(refactoring).isInstanceOf(RenameImportRefactoringImpl.class);
+  }
+
   public void test_createRenameRefactoring_LibraryElement() throws Exception {
     LibraryElement element = mock(LibraryElement.class);
     when(element.getEnclosingElement()).thenReturn(enclosingClass);
@@ -223,6 +255,16 @@ public class RefactoringFactoryTest extends AbstractDartTest {
     // create refactoring
     Refactoring refactoring = createRenameRefactoring(searchEngine, element);
     assertThat(refactoring).isInstanceOf(RenameLocalRefactoringImpl.class);
+  }
+
+  public void test_createRenameRefactoring_PropertyAccessorElement_inClass() throws Exception {
+    FieldElement field = mock(FieldElement.class);
+    when(field.getEnclosingElement()).thenReturn(enclosingClass);
+    PropertyAccessorElement element = mock(PropertyAccessorElement.class);
+    when(element.getVariable()).thenReturn(field);
+    // create refactoring
+    Refactoring refactoring = createRenameRefactoring(searchEngine, element);
+    assertThat(refactoring).isInstanceOf(RenameClassMemberRefactoringImpl.class);
   }
 
   public void test_createRenameRefactoring_unitMember_ClassElement() throws Exception {
