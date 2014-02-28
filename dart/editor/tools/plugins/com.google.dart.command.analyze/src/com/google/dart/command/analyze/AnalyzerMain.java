@@ -213,12 +213,14 @@ public class AnalyzerMain {
 
   protected void showPerformanceResults(long startTime) {
     long totalTime = System.currentTimeMillis() - startTime;
+    long ioTime = PerformanceStatistics.io.getResult();
     long scanTime = PerformanceStatistics.scan.getResult();
     long parseTime = PerformanceStatistics.parse.getResult();
     long resolveTime = PerformanceStatistics.resolve.getResult();
     long errorsTime = PerformanceStatistics.errors.getResult();
     long hintsTime = PerformanceStatistics.hints.getResult();
     long angularTime = PerformanceStatistics.angular.getResult();
+    System.out.println("io:" + ioTime);
     System.out.println("scan:" + scanTime);
     System.out.println("parse:" + parseTime);
     System.out.println("resolve:" + resolveTime);
@@ -226,7 +228,7 @@ public class AnalyzerMain {
     System.out.println("hints:" + hintsTime);
     System.out.println("angular:" + angularTime);
     System.out.println("other:"
-        + (totalTime - (scanTime + parseTime + resolveTime + errorsTime + hintsTime + angularTime)));
+        + (totalTime - (ioTime + scanTime + parseTime + resolveTime + errorsTime + hintsTime + angularTime)));
     System.out.println("total:" + totalTime);
   }
 

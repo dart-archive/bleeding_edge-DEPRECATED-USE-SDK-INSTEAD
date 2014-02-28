@@ -14,7 +14,9 @@
 package com.google.dart.engine.source;
 
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.internal.context.PerformanceStatistics;
 import com.google.dart.engine.internal.context.TimestampedData;
+import com.google.dart.engine.utilities.general.TimeCounter.TimeCounterHandle;
 import com.google.dart.engine.utilities.io.FileUtilities;
 
 import java.io.File;
@@ -88,12 +90,22 @@ public class FileBasedSource implements Source {
 
   @Override
   public TimestampedData<CharSequence> getContents() throws Exception {
-    return getContentsFromFile();
+    TimeCounterHandle handle = PerformanceStatistics.io.start();
+    try {
+      return getContentsFromFile();
+    } finally {
+      handle.stop();
+    }
   }
 
   @Override
   public void getContents(ContentReceiver receiver) throws Exception {
-    getContentsFromFile(receiver);
+    TimeCounterHandle handle = PerformanceStatistics.io.start();
+    try {
+      getContentsFromFile(receiver);
+    } finally {
+      handle.stop();
+    }
   }
 
   @Override
