@@ -19,4 +19,6 @@ public interface ISearchListener {
 
   public void firstFound(Match match);
 
+  public void setMatchIndex(int index);
+
 }

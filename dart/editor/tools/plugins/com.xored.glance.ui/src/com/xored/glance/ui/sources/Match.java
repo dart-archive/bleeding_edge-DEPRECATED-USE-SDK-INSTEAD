@@ -16,6 +16,8 @@ public class Match implements Comparable<Match> {
 
   private int length;
 
+  private int index;
+
   public Match(ITextBlock block, int offset, int length) {
     this.block = block;
     this.offset = offset;
@@ -68,6 +70,10 @@ public class Match implements Comparable<Match> {
     return block;
   }
 
+  public int getIndex() {
+    return index;
+  }
+
   /**
    * @return the length
    */
@@ -90,6 +96,10 @@ public class Match implements Comparable<Match> {
     result = prime * result + length;
     result = prime * result + offset;
     return result;
+  }
+
+  public void setIndex(int index) {
+    this.index = index;
   }
 
 }

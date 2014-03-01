@@ -40,6 +40,8 @@ public class SearchManager {
 
   private class SearchListener implements ISearchListener {
 
+    private Match firstMatch;
+
     @Override
     public void allFound(final Match[] matches) {
       if (panel != null) {
@@ -51,6 +53,10 @@ public class SearchManager {
     public void finished() {
       if (panel != null) {
         panel.finished();
+        if (firstMatch != null) {
+          panel.setMatchIndex(firstMatch.getIndex());
+          firstMatch = null;
+        }
       }
     }
 
@@ -58,15 +64,31 @@ public class SearchManager {
     public void firstFound(final Match match) {
       if (panel != null) {
         panel.firstFound(match);
+        firstMatch = match;
+      }
+    }
+
+    @Override
+    public void setMatchIndex(int index) {
+      if (panel != null) {
+        panel.setMatchIndex(index);
       }
     }
   }
+
   private class SearchPanelListener implements ISearchPanelListener {
 
     private final ISearchPanel panel;
 
     public SearchPanelListener(final ISearchPanel panel) {
       this.panel = panel;
+    }
+
+    @Override
+    public void clearStatus() {
+      if (panel != null) {
+        panel.clearStatus();
+      }
     }
 
     @Override

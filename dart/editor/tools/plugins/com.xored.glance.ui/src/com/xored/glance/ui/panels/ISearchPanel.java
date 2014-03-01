@@ -25,6 +25,8 @@ public interface ISearchPanel extends ISearchListener {
 
   public void clearHistory();
 
+  public void clearStatus();
+
   public void closePanel();
 
   public void findNext();

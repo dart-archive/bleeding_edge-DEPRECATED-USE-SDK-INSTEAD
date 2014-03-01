@@ -10,6 +10,8 @@ import com.xored.glance.internal.ui.search.SearchRule;
  */
 public interface ISearchPanelListener {
 
+  public void clearStatus();
+
   public void close();
 
   public void findNext();

@@ -74,7 +74,11 @@ public abstract class AbstractSearchScope implements IMatchListener, ITextSource
     for (SearchScopeEntry entry : entries) {
       matches.addAll(entry.getMatches());
     }
-    return matches.toArray(new Match[matches.size()]);
+    Match[] ms = matches.toArray(new Match[matches.size()]);
+    for (int i = 0; i < ms.length; i++) {
+      ms[i].setIndex(i + 1);
+    }
+    return ms;
   }
 
   @Override

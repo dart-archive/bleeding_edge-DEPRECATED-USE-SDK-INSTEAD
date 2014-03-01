@@ -118,6 +118,10 @@ public class PopupSearchDialog extends SearchPanel {
   }
 
   @Override
+  public void clearStatus() {
+  }
+
+  @Override
   public void closePanel() {
     popup.close();
   }
@@ -133,6 +137,10 @@ public class PopupSearchDialog extends SearchPanel {
 
   public int open() {
     return popup.open();
+  }
+
+  @Override
+  public void setMatchIndex(int index) {
   }
 
   @Override
