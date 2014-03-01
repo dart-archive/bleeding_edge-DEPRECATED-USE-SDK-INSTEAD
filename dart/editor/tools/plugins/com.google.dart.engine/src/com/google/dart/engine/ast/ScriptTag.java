@@ -26,7 +26,7 @@ import com.google.dart.engine.scanner.Token;
  * 
  * @coverage dart.engine.ast
  */
-public class ScriptTag extends ASTNode {
+public class ScriptTag extends AstNode {
   /**
    * The token representing this script tag.
    */
@@ -42,7 +42,7 @@ public class ScriptTag extends ASTNode {
   }
 
   @Override
-  public <R> R accept(ASTVisitor<R> visitor) {
+  public <R> R accept(AstVisitor<R> visitor) {
     return visitor.visitScriptTag(this);
   }
 
@@ -75,7 +75,7 @@ public class ScriptTag extends ASTNode {
   }
 
   @Override
-  public void visitChildren(ASTVisitor<?> visitor) {
+  public void visitChildren(AstVisitor<?> visitor) {
     // There are no children to visit.
   }
 }

@@ -20,11 +20,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Instances of the class {@code ASTCloner} implement an object that will clone any AST structure
+ * Instances of the class {@code AstCloner} implement an object that will clone any AST structure
  * that it visits. The cloner will only clone the structure, it will not preserve any resolution
  * results or properties associated with the nodes.
  */
-public class ASTCloner implements ASTVisitor<ASTNode> {
+public class AstCloner implements AstVisitor<AstNode> {
   @Override
   public AdjacentStrings visitAdjacentStrings(AdjacentStrings node) {
     return new AdjacentStrings(clone(node.getStrings()));
@@ -62,7 +62,7 @@ public class ASTCloner implements ASTVisitor<ASTNode> {
   }
 
   @Override
-  public ASTNode visitAssertStatement(AssertStatement node) {
+  public AstNode visitAssertStatement(AssertStatement node) {
     return new AssertStatement(
         node.getKeyword(),
         node.getLeftParenthesis(),
@@ -606,7 +606,7 @@ public class ASTCloner implements ASTVisitor<ASTNode> {
   }
 
   @Override
-  public ASTNode visitNativeClause(NativeClause node) {
+  public AstNode visitNativeClause(NativeClause node) {
     return new NativeClause(node.getKeyword(), clone(node.getName()));
   }
 
@@ -779,7 +779,7 @@ public class ASTCloner implements ASTVisitor<ASTNode> {
   }
 
   @Override
-  public ASTNode visitSymbolLiteral(SymbolLiteral node) {
+  public AstNode visitSymbolLiteral(SymbolLiteral node) {
     return new SymbolLiteral(node.getPoundSign(), node.getComponents());
   }
 
@@ -886,7 +886,7 @@ public class ASTCloner implements ASTVisitor<ASTNode> {
   }
 
   @SuppressWarnings("unchecked")
-  private <E extends ASTNode> E clone(E node) {
+  private <E extends AstNode> E clone(E node) {
     if (node == null) {
       return null;
     }
@@ -894,7 +894,7 @@ public class ASTCloner implements ASTVisitor<ASTNode> {
   }
 
   @SuppressWarnings("unchecked")
-  private <E extends ASTNode> List<E> clone(NodeList<E> nodes) {
+  private <E extends AstNode> List<E> clone(NodeList<E> nodes) {
     int count = nodes.size();
     ArrayList<E> clonedNodes = new ArrayList<E>(count);
     for (int i = 0; i < count; i++) {

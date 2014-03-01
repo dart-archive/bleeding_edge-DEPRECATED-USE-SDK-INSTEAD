@@ -19,7 +19,7 @@ import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.ClassDeclaration;
@@ -57,7 +57,7 @@ import com.google.dart.engine.ast.UriBasedDirective;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationList;
 import com.google.dart.engine.ast.WithClause;
-import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
+import com.google.dart.engine.ast.visitor.GeneralizingAstVisitor;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ConstructorElement;
@@ -101,7 +101,7 @@ import java.util.Set;
  * 
  * @coverage dart.engine.index
  */
-public class IndexContributor extends GeneralizingASTVisitor<Void> {
+public class IndexContributor extends GeneralizingAstVisitor<Void> {
   /**
    * Information about {@link ImportElement} and place where it is referenced using
    * {@link PrefixElement}.
@@ -140,7 +140,7 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
   public static ImportElementInfo getImportElementInfo(SimpleIdentifier prefixNode) {
     ImportElementInfo info = new ImportElementInfo();
     // prepare environment
-    ASTNode parent = prefixNode.getParent();
+    AstNode parent = prefixNode.getParent();
     CompilationUnit unit = prefixNode.getAncestor(CompilationUnit.class);
     LibraryElement libraryElement = unit.getElement().getLibrary();
     // prepare used element
@@ -298,9 +298,9 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
       return location;
     }
     // should be LHS of assignment
-    ASTNode parent;
+    AstNode parent;
     {
-      ASTNode node = identifier;
+      AstNode node = identifier;
       parent = node.getParent();
       // new T().field = x;
       if (parent instanceof PropertyAccess) {
@@ -333,7 +333,7 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
    * @return {@code true} if given "node" is part of an import {@link Combinator}.
    */
   private static boolean isIdentifierInImportCombinator(SimpleIdentifier node) {
-    ASTNode parent = node.getParent();
+    AstNode parent = node.getParent();
     return parent instanceof Combinator;
   }
 
@@ -341,7 +341,7 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
    * @return {@code true} if given "node" is part of {@link PrefixedIdentifier} "prefix.node".
    */
   private static boolean isIdentifierInPrefixedIdentifier(SimpleIdentifier node) {
-    ASTNode parent = node.getParent();
+    AstNode parent = node.getParent();
     return parent instanceof PrefixedIdentifier
         && ((PrefixedIdentifier) parent).getIdentifier() == node;
   }
@@ -351,7 +351,7 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
    *         method invocation.
    */
   private static boolean isQualified(SimpleIdentifier node) {
-    ASTNode parent = node.getParent();
+    AstNode parent = node.getParent();
     if (parent instanceof PrefixedIdentifier) {
       return ((PrefixedIdentifier) parent).getIdentifier() == node;
     }
@@ -819,9 +819,9 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
   }
 
   /**
-   * @return the {@link Location} representing location of the {@link ASTNode}.
+   * @return the {@link Location} representing location of the {@link AstNode}.
    */
-  private Location createLocation(ASTNode node) {
+  private Location createLocation(AstNode node) {
     return createLocation(node.getOffset(), node.getLength());
   }
 
@@ -855,7 +855,7 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
    *         not be indexed again.
    */
   private boolean isAlreadyHandledName(SimpleIdentifier node) {
-    ASTNode parent = node.getParent();
+    AstNode parent = node.getParent();
     if (parent instanceof MethodInvocation) {
       Element element = node.getStaticElement();
       if (element instanceof MethodElement || element instanceof FunctionElement) {

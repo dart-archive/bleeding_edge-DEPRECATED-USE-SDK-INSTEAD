@@ -13,7 +13,7 @@
  */
 package com.google.dart.tools.ui.text.folding;
 
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.ClassMember;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.CompilationUnitMember;
@@ -21,7 +21,7 @@ import com.google.dart.engine.ast.Directive;
 import com.google.dart.engine.ast.NamespaceDirective;
 import com.google.dart.engine.ast.Statement;
 import com.google.dart.engine.ast.visitor.BreadthFirstVisitor;
-import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
+import com.google.dart.engine.ast.visitor.GeneralizingAstVisitor;
 import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.error.BooleanErrorListener;
 import com.google.dart.engine.scanner.CharSequenceReader;
@@ -74,7 +74,7 @@ public class DartFoldingStructureProvider implements IDartFoldingStructureProvid
    */
   protected static class DartProjectionAnnotation extends ProjectionAnnotation {
 
-    private ASTNode node;
+    private AstNode node;
     private boolean isComment;
 
     /**
@@ -86,7 +86,7 @@ public class DartFoldingStructureProvider implements IDartFoldingStructureProvid
      * @param isComment <code>true</code> for a foldable comment, <code>false</code> for a foldable
      *          code element
      */
-    public DartProjectionAnnotation(boolean isCollapsed, ASTNode node, boolean isComment) {
+    public DartProjectionAnnotation(boolean isCollapsed, AstNode node, boolean isComment) {
       super(isCollapsed);
       this.node = node;
       this.isComment = isComment;
@@ -100,7 +100,7 @@ public class DartFoldingStructureProvider implements IDartFoldingStructureProvid
           "\tcomment: \t" + isComment() + "\n"; //$NON-NLS-1$ //$NON-NLS-2$
     }
 
-    ASTNode getElement() {
+    AstNode getElement() {
       return node;
     }
 
@@ -108,7 +108,7 @@ public class DartFoldingStructureProvider implements IDartFoldingStructureProvid
       return isComment;
     }
 
-    void setElement(ASTNode element) {
+    void setElement(AstNode element) {
       node = element;
     }
 
@@ -128,7 +128,7 @@ public class DartFoldingStructureProvider implements IDartFoldingStructureProvid
     private ProjectionAnnotationModel model;
     private IDocument document;
     private boolean allowCollapsing;
-    private ASTNode firstRef;
+    private AstNode firstRef;
     private boolean hasHeaderComment;
     private Map<DartProjectionAnnotation, Position> map = new LinkedHashMap<DartProjectionAnnotation, Position>();
     private TokenStream tokenStream;
@@ -238,7 +238,7 @@ public class DartFoldingStructureProvider implements IDartFoldingStructureProvid
       return document;
     }
 
-    private ASTNode getFirstRef() {
+    private AstNode getFirstRef() {
       return firstRef;
     }
 
@@ -255,7 +255,7 @@ public class DartFoldingStructureProvider implements IDartFoldingStructureProvid
       return hasHeaderComment;
     }
 
-    private void setFirstRef(ASTNode type) {
+    private void setFirstRef(AstNode type) {
       if (hasFirstRef()) {
         throw new IllegalStateException();
       }
@@ -272,7 +272,7 @@ public class DartFoldingStructureProvider implements IDartFoldingStructureProvid
   }
 
   private static class CollapsibleNodeClassifier extends
-      GeneralizingASTVisitor<CollapsibleNodeType> {
+      GeneralizingAstVisitor<CollapsibleNodeType> {
 
     @Override
     public CollapsibleNodeType visitClassMember(ClassMember node) {
@@ -295,7 +295,7 @@ public class DartFoldingStructureProvider implements IDartFoldingStructureProvid
     }
 
     @Override
-    public CollapsibleNodeType visitNode(ASTNode node) {
+    public CollapsibleNodeType visitNode(AstNode node) {
       return CollapsibleNodeType.NONE;
     }
 
@@ -410,9 +410,9 @@ public class DartFoldingStructureProvider implements IDartFoldingStructureProvid
    */
   private static class DartElementPosition extends Position implements IProjectionPosition {
 
-    private ASTNode fMember;
+    private AstNode fMember;
 
-    public DartElementPosition(int offset, int length, ASTNode member) {
+    public DartElementPosition(int offset, int length, AstNode member) {
       super(offset, length);
       Assert.isNotNull(member);
       fMember = member;
@@ -468,7 +468,7 @@ public class DartFoldingStructureProvider implements IDartFoldingStructureProvid
       return null;
     }
 
-    public void setMember(ASTNode member) {
+    public void setMember(AstNode member) {
       Assert.isNotNull(member);
       fMember = member;
     }
@@ -493,7 +493,7 @@ public class DartFoldingStructureProvider implements IDartFoldingStructureProvid
     @Override
     public boolean match(DartProjectionAnnotation annotation) {
       if (!annotation.isComment() && !annotation.isMarkedDeleted()) {
-        ASTNode element = annotation.getElement();
+        AstNode element = annotation.getElement();
         return element.accept(this) != CollapsibleNodeType.NONE;
       }
       return false;
@@ -599,7 +599,7 @@ public class DartFoldingStructureProvider implements IDartFoldingStructureProvid
   /* context and listeners */
   private CompilationUnitEditor dartEditor;
   private ProjectionListener projectionListener;
-  private ASTNode fInput;
+  private AstNode fInput;
 
   /* preferences */
   private boolean collapseDartDoc = false;
@@ -720,7 +720,7 @@ public class DartFoldingStructureProvider implements IDartFoldingStructureProvid
   }
 
   /**
-   * Computes the folding structure for a given {@link ASTNode Dart node}. Computed projection
+   * Computes the folding structure for a given {@link AstNode Dart node}. Computed projection
    * annotations are
    * {@link DartFoldingStructureProvider.FoldingStructureComputationContext#addProjectionRange(DartFoldingStructureProvider.DartProjectionAnnotation, Position)
    * added} to the computation context.
@@ -737,7 +737,7 @@ public class DartFoldingStructureProvider implements IDartFoldingStructureProvid
    * @param node the Dart AST node to compute the folding structure for
    * @param ctx the computation context
    */
-  protected void computeFoldingStructure(ASTNode node, FoldingStructureComputationContext ctx) {
+  protected void computeFoldingStructure(AstNode node, FoldingStructureComputationContext ctx) {
 
     boolean collapse = false;
     boolean collapseCode = true;
@@ -806,7 +806,7 @@ public class DartFoldingStructureProvider implements IDartFoldingStructureProvid
    * @param ctx the folding context
    * @return the regions to be folded
    */
-  protected IRegion[] computeProjectionRanges(ASTNode reference,
+  protected IRegion[] computeProjectionRanges(AstNode reference,
       FoldingStructureComputationContext ctx) {
     SourceRange range = new SourceRange(reference.getOffset(), reference.getLength());
     if (!isAvailable(range)) {
@@ -887,7 +887,7 @@ public class DartFoldingStructureProvider implements IDartFoldingStructureProvid
    * @param node the AST node to remember
    * @return a folding position corresponding to <code>aligned</code>
    */
-  protected Position createMemberPosition(IRegion aligned, ASTNode node) {
+  protected Position createMemberPosition(IRegion aligned, AstNode node) {
     return new DartElementPosition(aligned.getOffset(), aligned.getLength(), node);
   }
 
@@ -928,8 +928,8 @@ public class DartFoldingStructureProvider implements IDartFoldingStructureProvid
     return dartEditor != null;
   }
 
-  private Map<ASTNode, List<Tuple>> computeCurrentStructure(FoldingStructureComputationContext ctx) {
-    Map<ASTNode, List<Tuple>> map = new HashMap<ASTNode, List<Tuple>>();
+  private Map<AstNode, List<Tuple>> computeCurrentStructure(FoldingStructureComputationContext ctx) {
+    Map<AstNode, List<Tuple>> map = new HashMap<AstNode, List<Tuple>>();
     ProjectionAnnotationModel model = ctx.getModel();
     @SuppressWarnings("unchecked")
     Iterator<Object> e = model.getAnnotationIterator();
@@ -973,7 +973,7 @@ public class DartFoldingStructureProvider implements IDartFoldingStructureProvid
       ctx.setScannerSource(source);
       BreadthFirstVisitor<Void> v = new BreadthFirstVisitor<Void>() {
         @Override
-        public Void visitNode(ASTNode node) {
+        public Void visitNode(AstNode node) {
           computeFoldingStructure(node, ctx);
           super.visitNode(node);
           return null;
@@ -1169,10 +1169,10 @@ public class DartFoldingStructureProvider implements IDartFoldingStructureProvid
         addToDeletions = false;
       }
       if (match != null) {
-        ASTNode element = match.annotation.getElement();
+        AstNode element = match.annotation.getElement();
         deleted.setElement(element);
         deletedPosition.setLength(match.position.getLength());
-        if (deletedPosition instanceof DartElementPosition && element instanceof ASTNode) {
+        if (deletedPosition instanceof DartElementPosition && element instanceof AstNode) {
           DartElementPosition jep = (DartElementPosition) deletedPosition;
           jep.setMember(element);
         }
@@ -1231,12 +1231,12 @@ public class DartFoldingStructureProvider implements IDartFoldingStructureProvid
     List<DartProjectionAnnotation> updates = new ArrayList<DartProjectionAnnotation>();
     computeFoldingStructure(ctx);
     Map<DartProjectionAnnotation, Position> newStructure = ctx.map;
-    Map<ASTNode, List<Tuple>> oldStructure = computeCurrentStructure(ctx);
+    Map<AstNode, List<Tuple>> oldStructure = computeCurrentStructure(ctx);
     Iterator<DartProjectionAnnotation> e = newStructure.keySet().iterator();
     while (e.hasNext()) {
       DartProjectionAnnotation newAnnotation = e.next();
       Position newPosition = newStructure.get(newAnnotation);
-      ASTNode element = newAnnotation.getElement();
+      AstNode element = newAnnotation.getElement();
       List<Tuple> annotations = oldStructure.get(element);
       if (annotations == null) {
         additions.put(newAnnotation, newPosition);

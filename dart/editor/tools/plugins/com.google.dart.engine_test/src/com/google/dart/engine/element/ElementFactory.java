@@ -41,8 +41,8 @@ import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
 import com.google.dart.engine.utilities.dart.ParameterKind;
 
-import static com.google.dart.engine.ast.ASTFactory.identifier;
-import static com.google.dart.engine.ast.ASTFactory.libraryIdentifier;
+import static com.google.dart.engine.ast.AstFactory.identifier;
+import static com.google.dart.engine.ast.AstFactory.libraryIdentifier;
 import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
 
 /**

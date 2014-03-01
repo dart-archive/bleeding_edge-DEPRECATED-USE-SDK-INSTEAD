@@ -63,7 +63,7 @@ public class FieldDeclaration extends ClassMember {
   }
 
   @Override
-  public <R> R accept(ASTVisitor<R> visitor) {
+  public <R> R accept(AstVisitor<R> visitor) {
     return visitor.visitFieldDeclaration(this);
   }
 
@@ -142,7 +142,7 @@ public class FieldDeclaration extends ClassMember {
   }
 
   @Override
-  public void visitChildren(ASTVisitor<?> visitor) {
+  public void visitChildren(AstVisitor<?> visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(fieldList, visitor);
   }

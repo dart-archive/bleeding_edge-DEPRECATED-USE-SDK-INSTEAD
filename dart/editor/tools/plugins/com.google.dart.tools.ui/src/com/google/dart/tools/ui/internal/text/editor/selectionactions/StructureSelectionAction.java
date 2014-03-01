@@ -13,9 +13,9 @@
  */
 package com.google.dart.tools.ui.internal.text.editor.selectionactions;
 
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.CompilationUnit;
-import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
+import com.google.dart.engine.ast.visitor.GeneralizingAstVisitor;
 import com.google.dart.engine.services.util.SelectionAnalyzer;
 import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
@@ -34,7 +34,7 @@ public abstract class StructureSelectionAction extends Action {
   public static final String ENCLOSING = "SelectEnclosingElement"; //$NON-NLS-1$
   public static final String HISTORY = "RestoreLastSelection"; //$NON-NLS-1$
 
-  protected static SourceRange getLastCoveringNodeRange(SourceRange oldSourceRange, ASTNode sr,
+  protected static SourceRange getLastCoveringNodeRange(SourceRange oldSourceRange, AstNode sr,
       SelectionAnalyzer selAnalyzer) {
     if (selAnalyzer.getCoveringNode() == null) {
       return oldSourceRange;
@@ -43,7 +43,7 @@ public abstract class StructureSelectionAction extends Action {
     }
   }
 
-  protected static SourceRange getSelectedNodeSourceRange(ASTNode sr, ASTNode nodeToSelect) {
+  protected static SourceRange getSelectedNodeSourceRange(AstNode sr, AstNode nodeToSelect) {
     int offset = nodeToSelect.getOffset();
     int end = Math.min(sr.getLength(), nodeToSelect.getOffset() + nodeToSelect.getLength());
     return createSourceRange(offset, end);
@@ -57,15 +57,15 @@ public abstract class StructureSelectionAction extends Action {
     return new SourceRange(Math.max(0, offset), length);
   }
 
-  static List<ASTNode> getSiblingNodes(ASTNode node) {
-    final List<ASTNode> children = new ArrayList<ASTNode>();
+  static List<AstNode> getSiblingNodes(AstNode node) {
+    final List<AstNode> children = new ArrayList<AstNode>();
     if (node.getParent() == null) {
       children.add(node);
       return children;
     }
-    GeneralizingASTVisitor<Void> childVisitor = new GeneralizingASTVisitor<Void>() {
+    GeneralizingAstVisitor<Void> childVisitor = new GeneralizingAstVisitor<Void>() {
       @Override
-      public Void visitNode(ASTNode node) {
+      public Void visitNode(AstNode node) {
         children.add(node);
         return null;
       }
@@ -92,7 +92,7 @@ public abstract class StructureSelectionAction extends Action {
     this.selectionHistory = history;
   }
 
-  public final SourceRange getNewSelectionRange(SourceRange oldSourceRange, ASTNode node) {
+  public final SourceRange getNewSelectionRange(SourceRange oldSourceRange, AstNode node) {
     CompilationUnit compilationUnit = editor.getInputUnit();
     if (compilationUnit == null) {
       return oldSourceRange;
@@ -138,7 +138,7 @@ public abstract class StructureSelectionAction extends Action {
   /**
    * Subclasses determine the actual new selection.
    */
-  abstract SourceRange internalGetNewSelectionRange(SourceRange oldSourceRange, ASTNode node,
+  abstract SourceRange internalGetNewSelectionRange(SourceRange oldSourceRange, AstNode node,
       SelectionAnalyzer selAnalyzer);
 
 }

@@ -22,7 +22,7 @@ import com.google.dart.engine.scanner.Scanner;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.TestSource;
-import com.google.dart.engine.utilities.ast.ASTComparator;
+import com.google.dart.engine.utilities.ast.AstComparator;
 
 public class IncrementalParserTest extends EngineTestCase {
   public void test_delete_everything() {
@@ -293,7 +293,7 @@ public class IncrementalParserTest extends EngineTestCase {
     // Validate that the results of the incremental parse are the same as the full parse of the
     // modified source.
     //
-    assertTrue(ASTComparator.equals(modifiedUnit, incrementalUnit));
+    assertTrue(AstComparator.equals(modifiedUnit, incrementalUnit));
     // TODO(brianwilkerson) Verify that the errors are correct?
   }
 }

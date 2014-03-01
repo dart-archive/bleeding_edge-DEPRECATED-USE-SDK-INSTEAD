@@ -32,7 +32,7 @@ import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationList;
-import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
+import com.google.dart.engine.ast.visitor.GeneralizingAstVisitor;
 import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.java2dart.Context;
@@ -65,7 +65,7 @@ public class CollectionSemanticProcessor extends SemanticProcessor {
 
   @Override
   public void process(final CompilationUnit unit) {
-    unit.accept(new GeneralizingASTVisitor<Void>() {
+    unit.accept(new GeneralizingAstVisitor<Void>() {
       @Override
       public Void visitCompilationUnit(CompilationUnit node) {
         List<CompilationUnitMember> declarations = Lists.newArrayList(unit.getDeclarations());

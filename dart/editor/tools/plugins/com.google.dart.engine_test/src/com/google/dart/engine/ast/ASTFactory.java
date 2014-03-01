@@ -26,7 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * The class {@code ASTFactory} defines utility methods that can be used to create AST nodes. The
+ * The class {@code AstFactory} defines utility methods that can be used to create AST nodes. The
  * nodes that are created are complete in the sense that all of the tokens that would have been
  * associated with the nodes by a parser are also created, but the token stream is not constructed.
  * None of the nodes are resolved.
@@ -37,7 +37,7 @@ import java.util.List;
  * second is places where a shorter name seemed unambiguous and easier to read, such as using
  * 'identifier' rather than 'prefixedIdentifier', or 'integer' rather than 'integerLiteral'.
  */
-public final class ASTFactory {
+public final class AstFactory {
   public static AdjacentStrings adjacentStrings(StringLiteral... strings) {
     return new AdjacentStrings(list(strings));
   }
@@ -1156,6 +1156,6 @@ public final class ASTFactory {
   /**
    * Prevent the creation of instances of this class.
    */
-  private ASTFactory() {
+  private AstFactory() {
   }
 }

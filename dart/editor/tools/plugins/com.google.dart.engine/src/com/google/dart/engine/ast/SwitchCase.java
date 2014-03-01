@@ -49,7 +49,7 @@ public class SwitchCase extends SwitchMember {
   }
 
   @Override
-  public <R> R accept(ASTVisitor<R> visitor) {
+  public <R> R accept(AstVisitor<R> visitor) {
     return visitor.visitSwitchCase(this);
   }
 
@@ -72,7 +72,7 @@ public class SwitchCase extends SwitchMember {
   }
 
   @Override
-  public void visitChildren(ASTVisitor<?> visitor) {
+  public void visitChildren(AstVisitor<?> visitor) {
     getLabels().accept(visitor);
     safelyVisitChild(expression, visitor);
     getStatements().accept(visitor);

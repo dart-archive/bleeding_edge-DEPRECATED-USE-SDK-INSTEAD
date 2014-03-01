@@ -89,7 +89,7 @@ public abstract class TypedLiteral extends Literal {
   }
 
   @Override
-  public void visitChildren(ASTVisitor<?> visitor) {
+  public void visitChildren(AstVisitor<?> visitor) {
     safelyVisitChild(typeArguments, visitor);
   }
 }

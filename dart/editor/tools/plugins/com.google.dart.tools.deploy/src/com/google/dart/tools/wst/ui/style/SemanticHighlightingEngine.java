@@ -13,9 +13,9 @@
  */
 package com.google.dart.tools.wst.ui.style;
 
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.SimpleIdentifier;
-import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
+import com.google.dart.engine.ast.visitor.GeneralizingAstVisitor;
 import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.ui.internal.text.editor.SemanticHighlighting;
 import com.google.dart.tools.ui.internal.text.editor.SemanticHighlightingManager.Highlighting;
@@ -38,7 +38,7 @@ public class SemanticHighlightingEngine {
   /**
    * Collects styled text regions from the AST for highlighting.
    */
-  private class PositionCollector extends GeneralizingASTVisitor<Void> {
+  private class PositionCollector extends GeneralizingAstVisitor<Void> {
     /**
      * Cache tokens for performance.
      */
@@ -50,7 +50,7 @@ public class SemanticHighlightingEngine {
     }
 
     @Override
-    public Void visitNode(ASTNode node) {
+    public Void visitNode(AstNode node) {
       processNode(token, node);
       return super.visitNode(node);
     }
@@ -90,7 +90,7 @@ public class SemanticHighlightingEngine {
     this.highlightings = highlightings;
   }
 
-  public void analyze(IDocument document, int deltaOffset, ASTNode node,
+  public void analyze(IDocument document, int deltaOffset, AstNode node,
       Collection<StyleRange> positions) {
     this.document = document;
     this.deltaOffset = deltaOffset;
@@ -98,7 +98,7 @@ public class SemanticHighlightingEngine {
     node.accept(this.collector);
   }
 
-  private final void processNode(SemanticToken token, ASTNode node) {
+  private final void processNode(SemanticToken token, AstNode node) {
     // update token
     token.update(node);
     token.attachSource(document);

@@ -15,7 +15,7 @@
 package com.google.dart.tools.ui.internal.text.editor;
 
 import com.google.common.collect.Lists;
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.visitor.ElementLocator;
@@ -184,7 +184,7 @@ public class DartHover implements ITextHover, ITextHoverExtension, ITextHoverExt
         return;
       }
       hoverInfo = (HoverInfo) input;
-      ASTNode node = hoverInfo.node;
+      AstNode node = hoverInfo.node;
       Element element = hoverInfo.element;
       // Element
       if (element != null) {
@@ -232,7 +232,7 @@ public class DartHover implements ITextHover, ITextHoverExtension, ITextHoverExt
         Expression expression = (Expression) node;
         // parameter
         {
-          ASTNode n = expression;
+          AstNode n = expression;
           while (n != null) {
             if (n instanceof Expression) {
               ParameterElement parameterElement = ((Expression) n).getBestParameterElement();
@@ -339,11 +339,11 @@ public class DartHover implements ITextHover, ITextHoverExtension, ITextHoverExt
   }
 
   private static class HoverInfo {
-    ASTNode node;
+    AstNode node;
     Element element;
     List<Annotation> annotations;
 
-    public HoverInfo(ASTNode node, Element element, List<Annotation> annotations) {
+    public HoverInfo(AstNode node, Element element, List<Annotation> annotations) {
       this.node = node;
       this.element = element;
       this.annotations = annotations;
@@ -492,7 +492,7 @@ public class DartHover implements ITextHover, ITextHoverExtension, ITextHoverExt
       List<Annotation> annotations = getAnnotations(hoverRegion);
       // prepare node
       int offset = hoverRegion.getOffset();
-      ASTNode node = NewSelectionConverter.getNodeAtOffset(editor, offset);
+      AstNode node = NewSelectionConverter.getNodeAtOffset(editor, offset);
       if (node instanceof MethodDeclaration) {
         MethodDeclaration method = (MethodDeclaration) node;
         node = method.getName();

@@ -14,7 +14,7 @@
 package com.google.dart.engine.internal.html.angular;
 
 import com.google.dart.engine.EngineTestCase;
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.SimpleIdentifier;
@@ -247,9 +247,9 @@ abstract public class AngularTest extends EngineTestCase {
   }
 
   /**
-   * @return {@link ASTNode} which has required offset and type.
+   * @return {@link AstNode} which has required offset and type.
    */
-  protected final <E extends ASTNode> E findExpression(int offset, Class<E> clazz) {
+  protected final <E extends AstNode> E findExpression(int offset, Class<E> clazz) {
     Expression expression = HtmlUnitUtils.getExpression(indexUnit, offset);
     return expression != null ? expression.getAncestor(clazz) : null;
   }

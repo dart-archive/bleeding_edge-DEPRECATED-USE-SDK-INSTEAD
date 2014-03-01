@@ -56,7 +56,7 @@ public class PartDirective extends UriBasedDirective {
   }
 
   @Override
-  public <R> R accept(ASTVisitor<R> visitor) {
+  public <R> R accept(AstVisitor<R> visitor) {
     return visitor.visitPartDirective(this);
   }
 

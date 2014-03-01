@@ -13,7 +13,7 @@
  */
 package com.google.dart.engine.internal.constant;
 
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.error.ErrorCode;
@@ -30,7 +30,7 @@ public class ErrorResult extends EvaluationResultImpl {
     /**
      * The node against which the error should be reported.
      */
-    private ASTNode node;
+    private AstNode node;
 
     /**
      * The error code for the error to be generated.
@@ -44,7 +44,7 @@ public class ErrorResult extends EvaluationResultImpl {
      * @param node the node against which the error should be reported
      * @param errorCode the error code for the error to be generated
      */
-    public ErrorData(ASTNode node, ErrorCode errorCode) {
+    public ErrorData(AstNode node, ErrorCode errorCode) {
       this.node = node;
       this.errorCode = errorCode;
     }
@@ -63,7 +63,7 @@ public class ErrorResult extends EvaluationResultImpl {
      * 
      * @return the node against which the error should be reported
      */
-    public ASTNode getNode() {
+    public AstNode getNode() {
       return node;
     }
   }
@@ -80,7 +80,7 @@ public class ErrorResult extends EvaluationResultImpl {
    * @param node the node against which the error should be reported
    * @param errorCode the error code for the error to be generated
    */
-  public ErrorResult(ASTNode node, ErrorCode errorCode) {
+  public ErrorResult(AstNode node, ErrorCode errorCode) {
     errors.add(new ErrorData(node, errorCode));
   }
 
@@ -103,7 +103,7 @@ public class ErrorResult extends EvaluationResultImpl {
   }
 
   @Override
-  public EvaluationResultImpl applyBooleanConversion(TypeProvider typeProvider, ASTNode node) {
+  public EvaluationResultImpl applyBooleanConversion(TypeProvider typeProvider, AstNode node) {
     return this;
   }
 
@@ -228,7 +228,7 @@ public class ErrorResult extends EvaluationResultImpl {
   }
 
   @Override
-  public EvaluationResultImpl performToString(TypeProvider typeProvider, ASTNode node) {
+  public EvaluationResultImpl performToString(TypeProvider typeProvider, AstNode node) {
     return this;
   }
 

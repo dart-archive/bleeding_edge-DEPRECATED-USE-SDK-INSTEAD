@@ -66,7 +66,7 @@ public class VariableDeclaration extends Declaration {
   }
 
   @Override
-  public <R> R accept(ASTVisitor<R> visitor) {
+  public <R> R accept(AstVisitor<R> visitor) {
     return visitor.visitVariableDeclaration(this);
   }
 
@@ -79,7 +79,7 @@ public class VariableDeclaration extends Declaration {
     Comment comment = super.getDocumentationComment();
     if (comment == null) {
       if (getParent() != null && getParent().getParent() != null) {
-        ASTNode node = getParent().getParent();
+        AstNode node = getParent().getParent();
         if (node instanceof AnnotatedNode) {
           return ((AnnotatedNode) node).getDocumentationComment();
         }
@@ -136,7 +136,7 @@ public class VariableDeclaration extends Declaration {
    * @return {@code true} if this variable was declared with the 'const' modifier
    */
   public boolean isConst() {
-    ASTNode parent = getParent();
+    AstNode parent = getParent();
     return parent instanceof VariableDeclarationList
         && ((VariableDeclarationList) parent).isConst();
   }
@@ -149,7 +149,7 @@ public class VariableDeclaration extends Declaration {
    * @return {@code true} if this variable was declared with the 'final' modifier
    */
   public boolean isFinal() {
-    ASTNode parent = getParent();
+    AstNode parent = getParent();
     return parent instanceof VariableDeclarationList
         && ((VariableDeclarationList) parent).isFinal();
   }
@@ -182,7 +182,7 @@ public class VariableDeclaration extends Declaration {
   }
 
   @Override
-  public void visitChildren(ASTVisitor<?> visitor) {
+  public void visitChildren(AstVisitor<?> visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(name, visitor);
     safelyVisitChild(initializer, visitor);

@@ -21,7 +21,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.io.Files;
 import com.google.dart.engine.AnalysisEngine;
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.AsExpression;
 import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.CatchClause;
@@ -41,7 +41,7 @@ import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationList;
 import com.google.dart.engine.ast.visitor.NodeLocator;
-import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
+import com.google.dart.engine.ast.visitor.RecursiveAstVisitor;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisErrorInfo;
 import com.google.dart.engine.context.AnalysisResult;
@@ -884,7 +884,7 @@ public class MainEngine {
         unit,
         "ht",
         new String[] {"com.google.dart.engine.html."});
-    unit.accept(new RecursiveASTVisitor<Void>() {
+    unit.accept(new RecursiveAstVisitor<Void>() {
       @Override
       public Void visitCatchClause(CatchClause node) {
         TypeName exceptionType = node.getExceptionType();
@@ -1439,11 +1439,11 @@ public class MainEngine {
       AnalysisError[] errors = errorInfo.getErrors();
       for (AnalysisError error : errors) {
         if (error.getErrorCode() == HintCode.UNNECESSARY_CAST) {
-          ASTNode node = new NodeLocator(error.getOffset()).searchWithin(unit);
+          AstNode node = new NodeLocator(error.getOffset()).searchWithin(unit);
           AsExpression asExpression = node.getAncestor(AsExpression.class);
           if (asExpression != null) {
             // remove "as" and its enclosing ()
-            ASTNode enclosing = asExpression;
+            AstNode enclosing = asExpression;
             if (enclosing.getParent() instanceof ParenthesizedExpression) {
               enclosing = enclosing.getParent();
             }
@@ -1465,9 +1465,9 @@ public class MainEngine {
   }
 
   /**
-   * @return the formatted Dart source dump of the given {@link ASTNode}.
+   * @return the formatted Dart source dump of the given {@link AstNode}.
    */
-  private static String getFormattedSource(ASTNode node) {
+  private static String getFormattedSource(AstNode node) {
     PrintStringWriter writer = new PrintStringWriter();
     writer.append(HEADER);
     node.accept(new ToFormattedSourceVisitor(writer));

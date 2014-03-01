@@ -26,7 +26,7 @@ import com.google.dart.engine.scanner.Token;
  * 
  * @coverage dart.engine.ast
  */
-public class ExtendsClause extends ASTNode {
+public class ExtendsClause extends AstNode {
   /**
    * The token representing the 'extends' keyword.
    */
@@ -49,7 +49,7 @@ public class ExtendsClause extends ASTNode {
   }
 
   @Override
-  public <R> R accept(ASTVisitor<R> visitor) {
+  public <R> R accept(AstVisitor<R> visitor) {
     return visitor.visitExtendsClause(this);
   }
 
@@ -100,7 +100,7 @@ public class ExtendsClause extends ASTNode {
   }
 
   @Override
-  public void visitChildren(ASTVisitor<?> visitor) {
+  public void visitChildren(AstVisitor<?> visitor) {
     safelyVisitChild(superclass, visitor);
   }
 }

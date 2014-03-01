@@ -19,7 +19,7 @@ import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.ArgumentList;
 import com.google.dart.engine.ast.AsExpression;
 import com.google.dart.engine.ast.BinaryExpression;
@@ -244,9 +244,9 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
   /**
    * @return <code>true</code> if given {@link DartNode} could be type name.
    */
-  private static boolean mayBeTypeIdentifier(ASTNode node) {
+  private static boolean mayBeTypeIdentifier(AstNode node) {
     if (node instanceof SimpleIdentifier) {
-      ASTNode parent = node.getParent();
+      AstNode parent = node.getParent();
       if (parent instanceof TypeName) {
         return true;
       }
@@ -272,9 +272,9 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
   private File unitLibraryFile;
 
   private File unitLibraryFolder;
-  private ASTNode node;
+  private AstNode node;
 
-  private ASTNode coveredNode;
+  private AstNode coveredNode;
   private int selectionOffset;
   private int selectionLength;
 
@@ -319,7 +319,7 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
     }
     // prepare CorrectionUtils
     utils = new CorrectionUtils(unit);
-    node = utils.findNode(selectionOffset, ASTNode.class);
+    node = utils.findNode(selectionOffset, AstNode.class);
     coveredNode = new NodeLocator(selectionOffset, selectionOffset + selectionLength).searchWithin(unit);
     //
     final InstrumentationBuilder instrumentation = Instrumentation.builder(this.getClass());
@@ -1297,7 +1297,7 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
     String eol = utils.getEndOfLine();
     int insertOffset;
     String sourcePrefix;
-    ASTNode enclosingMember = node.getAncestor(CompilationUnitMember.class);
+    AstNode enclosingMember = node.getAncestor(CompilationUnitMember.class);
     insertOffset = enclosingMember.getEnd();
     sourcePrefix = eol + eol;
     // build method source
@@ -1533,7 +1533,7 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
   }
 
   private void addFix_useEffectiveIntegerDivision() throws Exception {
-    for (ASTNode n = node; n != null; n = n.getParent()) {
+    for (AstNode n = node; n != null; n = n.getParent()) {
       if (n instanceof MethodInvocation && n.getOffset() == selectionOffset
           && n.getLength() == selectionLength) {
         MethodInvocation invocation = (MethodInvocation) n;

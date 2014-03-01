@@ -33,7 +33,7 @@ import java.util.List;
  * 
  * @coverage dart.engine.ast
  */
-public class ArgumentList extends ASTNode {
+public class ArgumentList extends AstNode {
   /**
    * The left parenthesis.
    */
@@ -81,7 +81,7 @@ public class ArgumentList extends ASTNode {
   }
 
   @Override
-  public <R> R accept(ASTVisitor<R> visitor) {
+  public <R> R accept(AstVisitor<R> visitor) {
     return visitor.visitArgumentList(this);
   }
 
@@ -175,7 +175,7 @@ public class ArgumentList extends ASTNode {
   }
 
   @Override
-  public void visitChildren(ASTVisitor<?> visitor) {
+  public void visitChildren(AstVisitor<?> visitor) {
     arguments.accept(visitor);
   }
 

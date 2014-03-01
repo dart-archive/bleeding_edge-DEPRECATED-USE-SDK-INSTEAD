@@ -15,7 +15,7 @@ package com.google.dart.tools.ui.internal.text.editor;
 
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.SimpleIdentifier;
 
 import org.eclipse.jface.text.BadLocationException;
@@ -27,7 +27,7 @@ import org.eclipse.jface.text.IDocument;
 public final class SemanticToken {
 
   private DartNode nodeOld;
-  private ASTNode node;
+  private AstNode node;
   private IDocument document;
 
   /**
@@ -50,7 +50,7 @@ public final class SemanticToken {
   /**
    * @return the {@link ASNode}.
    */
-  public ASTNode getNode() {
+  public AstNode getNode() {
     return node;
   }
 
@@ -92,9 +92,9 @@ public final class SemanticToken {
   /**
    * Update this token with the given AST node.
    * 
-   * @param node the {@link ASTNode}
+   * @param node the {@link AstNode}
    */
-  public void update(ASTNode node) {
+  public void update(AstNode node) {
     clear();
     this.node = node;
   }

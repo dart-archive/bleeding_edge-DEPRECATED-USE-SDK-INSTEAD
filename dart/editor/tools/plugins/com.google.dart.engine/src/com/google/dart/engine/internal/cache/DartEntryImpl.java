@@ -20,7 +20,7 @@ import com.google.dart.engine.internal.scope.Namespace;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceKind;
-import com.google.dart.engine.utilities.ast.ASTCloner;
+import com.google.dart.engine.utilities.ast.AstCloner;
 import com.google.dart.engine.utilities.collection.BooleanArray;
 import com.google.dart.engine.utilities.collection.ListUtilities;
 
@@ -494,7 +494,7 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
   public CompilationUnit getResolvableCompilationUnit() {
     if (parsedUnitState == CacheState.VALID) {
       if (parsedUnitAccessed) {
-        return (CompilationUnit) parsedUnit.accept(new ASTCloner());
+        return (CompilationUnit) parsedUnit.accept(new AstCloner());
       }
       CompilationUnit unit = parsedUnit;
       parsedUnitState = CacheState.FLUSHED;
@@ -505,7 +505,7 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     ResolutionState state = resolutionState;
     while (state != null) {
       if (state.resolvedUnitState == CacheState.VALID) {
-        return (CompilationUnit) state.resolvedUnit.accept(new ASTCloner());
+        return (CompilationUnit) state.resolvedUnit.accept(new AstCloner());
       }
       state = state.nextState;
     };

@@ -13,7 +13,7 @@
  */
 package com.google.dart.engine.internal.error;
 
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
@@ -68,7 +68,7 @@ public class ErrorReporter {
    * @param node the node specifying the location of the error
    * @param arguments the arguments to the error, used to compose the error message
    */
-  public AnalysisErrorWithProperties newErrorWithProperties(ErrorCode errorCode, ASTNode node,
+  public AnalysisErrorWithProperties newErrorWithProperties(ErrorCode errorCode, AstNode node,
       Object... arguments) {
     return new AnalysisErrorWithProperties(
         source,
@@ -94,7 +94,7 @@ public class ErrorReporter {
    * @param node the node specifying the location of the error
    * @param arguments the arguments to the error, used to compose the error message
    */
-  public void reportError(ErrorCode errorCode, ASTNode node, Object... arguments) {
+  public void reportError(ErrorCode errorCode, AstNode node, Object... arguments) {
     reportError(errorCode, node.getOffset(), node.getLength(), arguments);
   }
 

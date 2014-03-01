@@ -17,7 +17,7 @@ package com.google.dart.tools.ui.internal.text.editor;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.visitor.ElementLocator;
 import com.google.dart.engine.element.Element;
 
@@ -26,18 +26,18 @@ import org.eclipse.core.resources.IFile;
 import java.util.List;
 
 /**
- * Lightweight container of {@link ASTNode} and its name.
+ * Lightweight container of {@link AstNode} and its name.
  */
 public class LightNodeElement {
   private final IFile contextFile;
   private final LightNodeElement parent;
-  private final ASTNode node;
+  private final AstNode node;
   private final int nameOffset;
   private final int nameLength;
   private final String name;
   public final List<LightNodeElement> children = Lists.newArrayList();
 
-  LightNodeElement(IFile contextFile, LightNodeElement parent, ASTNode node, ASTNode nameNode,
+  LightNodeElement(IFile contextFile, LightNodeElement parent, AstNode node, AstNode nameNode,
       String name) {
     Preconditions.checkNotNull(node);
     Preconditions.checkNotNull(nameNode);
@@ -53,7 +53,7 @@ public class LightNodeElement {
   }
 
   /**
-   * @return <code>true</code> underlying {@link ASTNode} contains given "offset".
+   * @return <code>true</code> underlying {@link AstNode} contains given "offset".
    */
   public boolean contains(int offset) {
     return node.getOffset() <= offset && offset <= node.getEnd();
@@ -81,7 +81,7 @@ public class LightNodeElement {
   }
 
   /**
-   * @return the resolved {@link Element} for wrapped {@link ASTNode}. May be <code>null</code>.
+   * @return the resolved {@link Element} for wrapped {@link AstNode}. May be <code>null</code>.
    */
   public Element getElement() {
     return ElementLocator.locate(node);
@@ -99,7 +99,7 @@ public class LightNodeElement {
     return nameOffset;
   }
 
-  public ASTNode getNode() {
+  public AstNode getNode() {
     return node;
   }
 

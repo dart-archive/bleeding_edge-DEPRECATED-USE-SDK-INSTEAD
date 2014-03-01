@@ -98,7 +98,7 @@ public class ClassTypeAlias extends TypeAlias {
   }
 
   @Override
-  public <R> R accept(ASTVisitor<R> visitor) {
+  public <R> R accept(AstVisitor<R> visitor) {
     return visitor.visitClassTypeAlias(this);
   }
 
@@ -236,7 +236,7 @@ public class ClassTypeAlias extends TypeAlias {
   }
 
   @Override
-  public void visitChildren(ASTVisitor<?> visitor) {
+  public void visitChildren(AstVisitor<?> visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(name, visitor);
     safelyVisitChild(typeParameters, visitor);

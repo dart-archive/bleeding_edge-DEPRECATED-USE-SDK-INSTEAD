@@ -29,13 +29,13 @@ import com.google.dart.engine.ast.PrefixExpression;
 import com.google.dart.engine.ast.RedirectingConstructorInvocation;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.SuperConstructorInvocation;
-import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
+import com.google.dart.engine.ast.visitor.GeneralizingAstVisitor;
 
 /**
  * Instances of the class {@code ResolutionEraser} remove any resolution information from an AST
  * structure when used to visit that structure.
  */
-public class ResolutionEraser extends GeneralizingASTVisitor<Void> {
+public class ResolutionEraser extends GeneralizingAstVisitor<Void> {
   @Override
   public Void visitAssignmentExpression(AssignmentExpression node) {
     node.setStaticElement(null);

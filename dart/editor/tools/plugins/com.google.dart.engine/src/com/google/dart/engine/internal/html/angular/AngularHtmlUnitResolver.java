@@ -17,7 +17,7 @@ package com.google.dart.engine.internal.html.angular;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.dart.engine.AnalysisEngine;
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.SimpleIdentifier;
@@ -551,9 +551,9 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
   }
 
   /**
-   * Reports given {@link ErrorCode} at the given {@link ASTNode}.
+   * Reports given {@link ErrorCode} at the given {@link AstNode}.
    */
-  void reportError(ASTNode node, ErrorCode errorCode, Object... arguments) {
+  void reportError(AstNode node, ErrorCode errorCode, Object... arguments) {
     reportError(node.getOffset(), node.getLength(), errorCode, arguments);
   }
 
@@ -579,9 +579,9 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
   }
 
   /**
-   * Resolves given {@link ASTNode} using {@link #resolver}.
+   * Resolves given {@link AstNode} using {@link #resolver}.
    */
-  void resolveNode(ASTNode node) {
+  void resolveNode(AstNode node) {
     node.accept(resolver);
   }
 

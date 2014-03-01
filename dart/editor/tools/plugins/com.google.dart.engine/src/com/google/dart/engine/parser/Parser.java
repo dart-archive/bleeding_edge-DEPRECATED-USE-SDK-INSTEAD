@@ -5776,7 +5776,7 @@ public class Parser {
    * @param node the node specifying the location of the error
    * @param arguments the arguments to the error, used to compose the error message
    */
-  private void reportError(ParserErrorCode errorCode, ASTNode node, Object... arguments) {
+  private void reportError(ParserErrorCode errorCode, AstNode node, Object... arguments) {
     reportError(new AnalysisError(source, node.getOffset(), node.getLength(), errorCode, arguments));
   }
 

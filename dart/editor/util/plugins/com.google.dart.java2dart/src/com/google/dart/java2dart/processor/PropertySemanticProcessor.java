@@ -43,7 +43,7 @@ import com.google.dart.engine.ast.ThisExpression;
 import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationList;
-import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
+import com.google.dart.engine.ast.visitor.RecursiveAstVisitor;
 import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.java2dart.Context;
@@ -145,7 +145,7 @@ public class PropertySemanticProcessor extends SemanticProcessor {
    */
   private static boolean onlyBasicGettersSetters(CompilationUnit unit) {
     final AtomicBoolean result = new AtomicBoolean();
-    unit.accept(new RecursiveASTVisitor<Void>() {
+    unit.accept(new RecursiveAstVisitor<Void>() {
       @Override
       public Void visitVariableDeclaration(VariableDeclaration node) {
         if (node.getName().getName().equals("_onlyBasicGettersSetters")) {
@@ -225,7 +225,7 @@ public class PropertySemanticProcessor extends SemanticProcessor {
 
   public void convertToFields(CompilationUnit unit) {
     final Set<IBinding> overriddenMethods = getOverriddenMethods(unit);
-    unit.accept(new RecursiveASTVisitor<Void>() {
+    unit.accept(new RecursiveAstVisitor<Void>() {
       @Override
       public Void visitClassDeclaration(ClassDeclaration node) {
         List<FieldPropertyInfo> properties = getFieldProperties(node);
@@ -256,7 +256,7 @@ public class PropertySemanticProcessor extends SemanticProcessor {
    * {@link PropertyAccess} in references.
    */
   private void convertGettersSetters(CompilationUnit unit) {
-    unit.accept(new RecursiveASTVisitor<Void>() {
+    unit.accept(new RecursiveAstVisitor<Void>() {
       @Override
       public Void visitFieldDeclaration(FieldDeclaration node) {
         if (context.getPrivateClassMembers().contains(node)) {
@@ -447,7 +447,7 @@ public class PropertySemanticProcessor extends SemanticProcessor {
 
   private List<FieldPropertyInfo> getFieldProperties(final ClassDeclaration classDeclaration) {
     final Map<String, FieldPropertyInfo> properties = Maps.newHashMap();
-    classDeclaration.accept(new RecursiveASTVisitor<Void>() {
+    classDeclaration.accept(new RecursiveAstVisitor<Void>() {
       @Override
       public Void visitMethodDeclaration(MethodDeclaration node) {
         // we need getter or setter
@@ -577,7 +577,7 @@ public class PropertySemanticProcessor extends SemanticProcessor {
 
   private Set<IBinding> getOverriddenMethods(CompilationUnit unit) {
     final Set<IBinding> overriddenMethods = Sets.newHashSet();
-    unit.accept(new RecursiveASTVisitor<Void>() {
+    unit.accept(new RecursiveAstVisitor<Void>() {
       @Override
       public Void visitMethodDeclaration(MethodDeclaration node) {
         IMethodBinding binding = (IMethodBinding) context.getNodeBinding(node);

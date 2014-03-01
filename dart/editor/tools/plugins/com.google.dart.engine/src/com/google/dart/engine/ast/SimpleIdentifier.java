@@ -76,7 +76,7 @@ public class SimpleIdentifier extends Identifier {
   }
 
   @Override
-  public <R> R accept(ASTVisitor<R> visitor) {
+  public <R> R accept(AstVisitor<R> visitor) {
     return visitor.visitSimpleIdentifier(this);
   }
 
@@ -141,7 +141,7 @@ public class SimpleIdentifier extends Identifier {
    * @return {@code true} if this identifier is the name being declared in a declaration
    */
   public boolean inDeclarationContext() {
-    ASTNode parent = getParent();
+    AstNode parent = getParent();
     if (parent instanceof CatchClause) {
       CatchClause clause = (CatchClause) parent;
       return this == clause.getExceptionParameter() || this == clause.getStackTraceParameter();
@@ -183,8 +183,8 @@ public class SimpleIdentifier extends Identifier {
    * @return {@code true} if this expression is in a context where a getter will be invoked
    */
   public boolean inGetterContext() {
-    ASTNode parent = getParent();
-    ASTNode target = this;
+    AstNode parent = getParent();
+    AstNode target = this;
     // skip prefix
     if (parent instanceof PrefixedIdentifier) {
       PrefixedIdentifier prefixed = (PrefixedIdentifier) parent;
@@ -225,8 +225,8 @@ public class SimpleIdentifier extends Identifier {
    * @return {@code true} if this expression is in a context where a setter will be invoked
    */
   public boolean inSetterContext() {
-    ASTNode parent = getParent();
-    ASTNode target = this;
+    AstNode parent = getParent();
+    AstNode target = this;
     // skip prefix
     if (parent instanceof PrefixedIdentifier) {
       PrefixedIdentifier prefixed = (PrefixedIdentifier) parent;
@@ -297,7 +297,7 @@ public class SimpleIdentifier extends Identifier {
   }
 
   @Override
-  public void visitChildren(ASTVisitor<?> visitor) {
+  public void visitChildren(AstVisitor<?> visitor) {
     // There are no children to visit.
   }
 
@@ -308,7 +308,7 @@ public class SimpleIdentifier extends Identifier {
    * @param element the element to be associated with this identifier
    * @return the element to be associated with this identifier
    */
-  private Element validateElement(ASTNode parent, Class<? extends Element> expectedClass,
+  private Element validateElement(AstNode parent, Class<? extends Element> expectedClass,
       Element element) {
     if (!expectedClass.isInstance(element)) {
       AnalysisEngine.getInstance().getLogger().logInformation(
@@ -331,7 +331,7 @@ public class SimpleIdentifier extends Identifier {
     if (element == null) {
       return null;
     }
-    ASTNode parent = getParent();
+    AstNode parent = getParent();
     if (parent instanceof ClassDeclaration && ((ClassDeclaration) parent).getName() == this) {
       return validateElement(parent, ClassElement.class, element);
     } else if (parent instanceof ClassTypeAlias && ((ClassTypeAlias) parent).getName() == this) {

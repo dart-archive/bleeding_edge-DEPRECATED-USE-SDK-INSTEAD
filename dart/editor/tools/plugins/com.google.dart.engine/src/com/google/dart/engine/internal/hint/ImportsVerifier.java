@@ -23,7 +23,7 @@ import com.google.dart.engine.ast.LibraryDirective;
 import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.PrefixedIdentifier;
 import com.google.dart.engine.ast.SimpleIdentifier;
-import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
+import com.google.dart.engine.ast.visitor.RecursiveAstVisitor;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ImportElement;
@@ -51,7 +51,7 @@ import java.util.HashMap;
  * 
  * @coverage dart.engine.resolver
  */
-public class ImportsVerifier extends RecursiveASTVisitor<Void> {
+public class ImportsVerifier extends RecursiveAstVisitor<Void> {
 
   /**
    * This is set to {@code true} if the current compilation unit which is being visited is the

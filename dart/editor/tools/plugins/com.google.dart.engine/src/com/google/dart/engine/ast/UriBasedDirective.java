@@ -76,7 +76,7 @@ public abstract class UriBasedDirective extends Directive {
   }
 
   @Override
-  public void visitChildren(ASTVisitor<?> visitor) {
+  public void visitChildren(AstVisitor<?> visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(uri, visitor);
   }

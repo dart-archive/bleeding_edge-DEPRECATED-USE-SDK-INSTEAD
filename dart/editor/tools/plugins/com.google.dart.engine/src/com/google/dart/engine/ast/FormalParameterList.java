@@ -49,7 +49,7 @@ import java.util.List;
  * 
  * @coverage dart.engine.ast
  */
-public class FormalParameterList extends ASTNode {
+public class FormalParameterList extends AstNode {
   /**
    * The left parenthesis.
    */
@@ -96,7 +96,7 @@ public class FormalParameterList extends ASTNode {
   }
 
   @Override
-  public <R> R accept(ASTVisitor<R> visitor) {
+  public <R> R accept(AstVisitor<R> visitor) {
     return visitor.visitFormalParameterList(this);
   }
 
@@ -213,7 +213,7 @@ public class FormalParameterList extends ASTNode {
   }
 
   @Override
-  public void visitChildren(ASTVisitor<?> visitor) {
+  public void visitChildren(AstVisitor<?> visitor) {
     parameters.accept(visitor);
   }
 }

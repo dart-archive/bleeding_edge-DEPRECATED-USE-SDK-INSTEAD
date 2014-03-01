@@ -26,5 +26,5 @@ package com.google.dart.engine.ast;
  * 
  * @coverage dart.engine.ast
  */
-public abstract class FunctionBody extends ASTNode {
+public abstract class FunctionBody extends AstNode {
 }

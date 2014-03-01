@@ -29,7 +29,7 @@ import com.google.dart.engine.scanner.Token;
  * 
  * @coverage dart.engine.ast
  */
-public class CatchClause extends ASTNode {
+public class CatchClause extends AstNode {
   /**
    * The token representing the 'on' keyword, or {@code null} if there is no 'on' keyword.
    */
@@ -106,7 +106,7 @@ public class CatchClause extends ASTNode {
   }
 
   @Override
-  public <R> R accept(ASTVisitor<R> visitor) {
+  public <R> R accept(AstVisitor<R> visitor) {
     return visitor.visitCatchClause(this);
   }
 
@@ -291,7 +291,7 @@ public class CatchClause extends ASTNode {
   }
 
   @Override
-  public void visitChildren(ASTVisitor<?> visitor) {
+  public void visitChildren(AstVisitor<?> visitor) {
     safelyVisitChild(exceptionType, visitor);
     safelyVisitChild(exceptionParameter, visitor);
     safelyVisitChild(stackTraceParameter, visitor);

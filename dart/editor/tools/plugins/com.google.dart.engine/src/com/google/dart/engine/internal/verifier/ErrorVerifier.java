@@ -13,7 +13,7 @@
  */
 package com.google.dart.engine.internal.verifier;
 
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.Annotation;
 import com.google.dart.engine.ast.ArgumentDefinitionTest;
 import com.google.dart.engine.ast.ArgumentList;
@@ -93,7 +93,7 @@ import com.google.dart.engine.ast.VariableDeclarationList;
 import com.google.dart.engine.ast.VariableDeclarationStatement;
 import com.google.dart.engine.ast.WhileStatement;
 import com.google.dart.engine.ast.WithClause;
-import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
+import com.google.dart.engine.ast.visitor.RecursiveAstVisitor;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
@@ -165,7 +165,7 @@ import java.util.Set;
  * 
  * @coverage dart.engine.resolver
  */
-public class ErrorVerifier extends RecursiveASTVisitor<Void> {
+public class ErrorVerifier extends RecursiveAstVisitor<Void> {
   /**
    * This enum holds one of four states of a field initialization state through a constructor
    * signature, not initialized, initialized in the field declaration, initialized in the field
@@ -1215,7 +1215,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    */
   private boolean checkForAllInvalidOverrideErrorCodes(ExecutableElement executableElement,
       ExecutableElement overriddenExecutable, ParameterElement[] parameters,
-      ASTNode[] parameterLocations, SimpleIdentifier errorNameTarget) {
+      AstNode[] parameterLocations, SimpleIdentifier errorNameTarget) {
     boolean isGetter = false;
     boolean isSetter = false;
     if (executableElement instanceof PropertyAccessorElement) {
@@ -1408,7 +1408,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       if (!overriddenNamedPTEntry.getValue().isAssignableTo(overridingType)) {
         // lookup the parameter for the error to select
         ParameterElement parameterToSelect = null;
-        ASTNode parameterLocationToSelect = null;
+        AstNode parameterLocationToSelect = null;
         for (int i = 0; i < parameters.length; i++) {
           ParameterElement parameter = parameters[i];
           if (parameter.getParameterKind() == ParameterKind.NAMED
@@ -1436,7 +1436,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     // parameter elements from the method we are overriding.
     //
     boolean foundError = false;
-    ArrayList<ASTNode> formalParameters = new ArrayList<ASTNode>();
+    ArrayList<AstNode> formalParameters = new ArrayList<AstNode>();
     ArrayList<ParameterElementImpl> parameterElts = new ArrayList<ParameterElementImpl>();
     ArrayList<ParameterElementImpl> overriddenParameterElts = new ArrayList<ParameterElementImpl>();
     ParameterElement[] overriddenPEs = overriddenExecutable.getParameters();
@@ -1520,7 +1520,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   /**
    * This checks the passed executable element against override-error codes. This method computes
    * the passed executableElement is overriding and calls
-   * {@link #checkForAllInvalidOverrideErrorCodes(ExecutableElement, ExecutableElement, ParameterElement[], ASTNode[], SimpleIdentifier)}
+   * {@link #checkForAllInvalidOverrideErrorCodes(ExecutableElement, ExecutableElement, ParameterElement[], AstNode[], SimpleIdentifier)}
    * when the {@link InheritanceManager} returns a {@link MultiplyInheritedExecutableElement}, this
    * method loops through the array in the {@link MultiplyInheritedExecutableElement}.
    * 
@@ -1530,7 +1530,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * @return {@code true} if and only if an error code is generated on the passed node
    */
   private boolean checkForAllInvalidOverrideErrorCodes(ExecutableElement executableElement,
-      ParameterElement[] parameters, ASTNode[] parameterLocations, SimpleIdentifier errorNameTarget) {
+      ParameterElement[] parameters, AstNode[] parameterLocations, SimpleIdentifier errorNameTarget) {
     //
     // Compute the overridden executable from the InheritanceManager
     //
@@ -1593,14 +1593,14 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
         hasProblems |= checkForAllInvalidOverrideErrorCodes(
             getter,
             ParameterElementImpl.EMPTY_ARRAY,
-            ASTNode.EMPTY_ARRAY,
+            AstNode.EMPTY_ARRAY,
             fieldName);
       }
       if (setter != null) {
         hasProblems |= checkForAllInvalidOverrideErrorCodes(
             setter,
             setter.getParameters(),
-            new ASTNode[] {fieldName},
+            new AstNode[] {fieldName},
             fieldName);
       }
     }
@@ -1629,8 +1629,8 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     FormalParameterList formalParameterList = node.getParameters();
     NodeList<FormalParameter> parameterList = formalParameterList != null
         ? formalParameterList.getParameters() : null;
-    ASTNode[] parameters = parameterList != null
-        ? parameterList.toArray(new ASTNode[parameterList.size()]) : null;
+    AstNode[] parameters = parameterList != null
+        ? parameterList.toArray(new AstNode[parameterList.size()]) : null;
     return checkForAllInvalidOverrideErrorCodes(
         executableElement,
         executableElement.getParameters(),
@@ -2074,7 +2074,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     NodeList<Statement> statements = node.getStatements();
     if (statements.isEmpty()) {
       // fall-through without statements at all
-      ASTNode parent = node.getParent();
+      AstNode parent = node.getParent();
       if (parent instanceof SwitchStatement) {
         SwitchStatement switchStatement = (SwitchStatement) parent;
         NodeList<SwitchMember> members = switchStatement.getMembers();
@@ -3039,7 +3039,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
         // if the violating type happens to be 'num', we need to rule out the case where the
         // enclosing class is 'int' or 'double'
         if (superType.equals(typeProvider.getNumType())) {
-          ASTNode grandParent = typeName.getParent().getParent();
+          AstNode grandParent = typeName.getParent().getParent();
           // Note: this is a corner case that won't happen often, so adding a field currentClass
           // (see currentFunction) to ErrorVerifier isn't worth if for this case, but if the field
           // currentClass is added, then this message should become a todo to not lookup the
@@ -3279,7 +3279,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       return false;
     }
     // comment
-    ASTNode parent = node.getParent();
+    AstNode parent = node.getParent();
     if (parent instanceof CommentReference) {
       return false;
     }
@@ -5515,10 +5515,10 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   }
 
   /**
-   * @return {@code true} if the given {@link ASTNode} is the part of constant constructor
+   * @return {@code true} if the given {@link AstNode} is the part of constant constructor
    *         invocation.
    */
-  private boolean isInConstConstructorInvocation(ASTNode node) {
+  private boolean isInConstConstructorInvocation(AstNode node) {
     InstanceCreationExpression creation = node.getAncestor(InstanceCreationExpression.class);
     if (creation == null) {
       return false;
@@ -5581,7 +5581,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * @return {@code true} if the given 'this' expression is in the valid context
    */
   private boolean isThisInValidContext(ThisExpression node) {
-    for (ASTNode n = node; n != null; n = n.getParent()) {
+    for (AstNode n = node; n != null; n = n.getParent()) {
       if (n instanceof CompilationUnit) {
         return false;
       }
@@ -5612,7 +5612,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     if (node.inDeclarationContext()) {
       return true;
     }
-    ASTNode parent = node.getParent();
+    AstNode parent = node.getParent();
     if (parent instanceof ConstructorName || parent instanceof MethodInvocation
         || parent instanceof PropertyAccess || parent instanceof SuperConstructorInvocation) {
       return true;

@@ -19,7 +19,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.AdjacentStrings;
 import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.BinaryExpression;
@@ -51,8 +51,8 @@ import com.google.dart.engine.ast.ThisExpression;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationList;
 import com.google.dart.engine.ast.VariableDeclarationStatement;
-import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
-import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
+import com.google.dart.engine.ast.visitor.GeneralizingAstVisitor;
+import com.google.dart.engine.ast.visitor.RecursiveAstVisitor;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
@@ -118,7 +118,7 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
   private class ReferenceProcessor {
     private final Source refSource;
     private final CorrectionUtils refUtils;
-    private final ASTNode node;
+    private final AstNode node;
     private final SourceRange refLineRange;
     private final String refPrefix;
     private boolean argsHaveSideEffect;
@@ -131,7 +131,7 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
       CompilationUnit refUnit = refElement.getUnit();
       refUtils = new CorrectionUtils(refUnit);
       // prepare node and environment
-      node = refUtils.findNode(reference.getSourceRange().getOffset(), ASTNode.class);
+      node = refUtils.findNode(reference.getSourceRange().getOffset(), AstNode.class);
       Statement refStatement = node.getAncestor(Statement.class);
       if (refStatement != null) {
         refLineRange = refUtils.getLinesRange(ImmutableList.of(refStatement));
@@ -150,7 +150,7 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
     }
 
     void checkForSideEffects() throws Exception {
-      ASTNode nodeParent = node.getParent();
+      AstNode nodeParent = node.getParent();
       // may be invocation of inline method
       if (nodeParent instanceof MethodInvocation) {
         MethodInvocation invocation = (MethodInvocation) nodeParent;
@@ -170,7 +170,7 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
     }
 
     void process(RefactoringStatus status) throws Exception {
-      ASTNode nodeParent = node.getParent();
+      AstNode nodeParent = node.getParent();
       // may be only single place should be inlined
       if (!shouldProcess()) {
         return;
@@ -231,7 +231,7 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
       }
     }
 
-    private boolean canInlineBody(ASTNode usage) {
+    private boolean canInlineBody(AstNode usage) {
       // no statements, usually just expression
       if (methodStatementsPart == null) {
         // empty method, inline as closure
@@ -242,8 +242,8 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
         return true;
       }
       // analyze point of invocation
-      ASTNode parent = usage.getParent();
-      ASTNode parent2 = parent.getParent();
+      AstNode parent = usage.getParent();
+      AstNode parent2 = parent.getParent();
       // OK, if statement in block
       if (parent instanceof Statement) {
         return parent2 instanceof Block;
@@ -262,7 +262,7 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
       if (methodExpressionPart != null) {
         if (parent instanceof VariableDeclaration) {
           if (parent2 instanceof VariableDeclarationList) {
-            ASTNode parent3 = parent2.getParent();
+            AstNode parent3 = parent2.getParent();
             return parent3 instanceof VariableDeclarationStatement
                 && parent3.getParent() instanceof Block;
           }
@@ -440,10 +440,10 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
   }
 
   /**
-   * If the given {@link ASTNode} is a some {@link ClassDeclaration}, returns the
+   * If the given {@link AstNode} is a some {@link ClassDeclaration}, returns the
    * {@link ClassElement}. Otherwise returns {@code null}.
    */
-  private static ClassElement getEnclosingClassElement(ASTNode node) {
+  private static ClassElement getEnclosingClassElement(AstNode node) {
     ClassDeclaration enclosingClassNode = node.getAncestor(ClassDeclaration.class);
     if (enclosingClassNode != null) {
       return enclosingClassNode.getElement();
@@ -463,7 +463,7 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
   private ExecutableElement methodElement;
   private CompilationUnit methodUnit;
   private CorrectionUtils methodUtils;
-  private ASTNode methodNode;
+  private AstNode methodNode;
   private FormalParameterList methodParameters;
 
   private FunctionBody methodBody;
@@ -618,9 +618,9 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
       result = new SourcePart(sourceRange, source, prefix);
     }
     // remember parameters and variables occurrences
-    methodUnit.accept(new GeneralizingASTVisitor<Void>() {
+    methodUnit.accept(new GeneralizingAstVisitor<Void>() {
       @Override
-      public Void visitNode(ASTNode node) {
+      public Void visitNode(AstNode node) {
         SourceRange nodeRange = rangeNode(node);
         if (!sourceRange.intersects(nodeRange)) {
           return null;
@@ -642,7 +642,7 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
       private void addInstanceFieldQualifier(SimpleIdentifier node) {
         PropertyAccessorElement accessor = CorrectionUtils.getPropertyAccessorElement(node);
         if (isFieldAccessorElement(accessor)) {
-          ASTNode qualifier = CorrectionUtils.getNodeQualifier(node);
+          AstNode qualifier = CorrectionUtils.getNodeQualifier(node);
           if (qualifier == null || qualifier instanceof ThisExpression) {
             if (accessor.isStatic()) {
               String className = accessor.getEnclosingElement().getDisplayName();
@@ -695,7 +695,7 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
    * @return the source which should replace given invocation with given arguments.
    */
   private String getMethodSourceForInvocation(SourcePart part, CorrectionUtils utils,
-      ASTNode contextNode, Expression targetExpression, List<Expression> arguments) {
+      AstNode contextNode, Expression targetExpression, List<Expression> arguments) {
     // prepare edits to replace parameters with arguments
     List<Edit> edits = Lists.newArrayList();
     for (Entry<ParameterElement, List<ParameterOccurrence>> entry : part.parameters.entrySet()) {
@@ -766,7 +766,7 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
     return CorrectionUtils.applyReplaceEdits(part.source, edits);
   }
 
-  private SourceRange getNamesConflictingRange(ASTNode node) {
+  private SourceRange getNamesConflictingRange(AstNode node) {
     // may be Block
     Block block = node.getAncestor(Block.class);
     if (block != null) {
@@ -775,7 +775,7 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
       return rangeStartEnd(offset, endOffset);
     }
     // may be whole executable
-    ASTNode executableNode = CorrectionUtils.getEnclosingExecutableNode(node);
+    AstNode executableNode = CorrectionUtils.getEnclosingExecutableNode(node);
     if (executableNode != null) {
       return rangeNode(executableNode);
     }
@@ -786,7 +786,7 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
   /**
    * @return the names which will shadow or will be shadowed by any declaration at "node".
    */
-  private Set<String> getNamesConflictingWithLocal(CompilationUnit unit, ASTNode node) {
+  private Set<String> getNamesConflictingWithLocal(CompilationUnit unit, AstNode node) {
     final Set<String> result = Sets.newHashSet();
     // local variables and functions
     {
@@ -886,7 +886,7 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
     methodParameters = null;
     methodBody = null;
     // prepare selected SimpleIdentifier
-    ASTNode selectedNode = context.getCoveringNode();
+    AstNode selectedNode = context.getCoveringNode();
     if (!(selectedNode instanceof SimpleIdentifier)) {
       return RefactoringStatus.createFatalErrorStatus("Method declaration or reference must be selected to activate this refactoring.");
     }
@@ -957,7 +957,7 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
         }
       }
       // check if more than one return
-      body.accept(new RecursiveASTVisitor<Void>() {
+      body.accept(new RecursiveAstVisitor<Void>() {
         private int numReturns = 0;
 
         @Override

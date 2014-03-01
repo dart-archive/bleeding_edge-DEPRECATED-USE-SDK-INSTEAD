@@ -14,7 +14,7 @@
 
 package com.google.dart.tools.ui.internal.text.editor;
 
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.visitor.ElementLocator;
 import com.google.dart.engine.element.Element;
@@ -204,7 +204,7 @@ public class DartTextHover extends DefaultTextHover implements ITextHoverExtensi
   private String getDartDocHover(IRegion region) {
     if (editor != null) {
       int offset = region.getOffset();
-      ASTNode node = NewSelectionConverter.getNodeAtOffset(editor, offset);
+      AstNode node = NewSelectionConverter.getNodeAtOffset(editor, offset);
       if (node == null) {
         return null;
       }

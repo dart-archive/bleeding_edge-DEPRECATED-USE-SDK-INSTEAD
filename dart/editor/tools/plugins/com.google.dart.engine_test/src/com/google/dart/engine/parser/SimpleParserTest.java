@@ -29,8 +29,8 @@ import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.utilities.dart.ParameterKind;
 
-import static com.google.dart.engine.ast.ASTFactory.typeArgumentList;
-import static com.google.dart.engine.ast.ASTFactory.typeName;
+import static com.google.dart.engine.ast.AstFactory.typeArgumentList;
+import static com.google.dart.engine.ast.AstFactory.typeName;
 import static com.google.dart.engine.scanner.TokenFactory.token;
 
 import junit.framework.AssertionFailedError;

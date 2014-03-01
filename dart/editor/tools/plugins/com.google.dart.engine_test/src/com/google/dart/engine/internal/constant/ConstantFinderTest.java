@@ -19,9 +19,9 @@ import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.scanner.Keyword;
 
-import static com.google.dart.engine.ast.ASTFactory.integer;
-import static com.google.dart.engine.ast.ASTFactory.variableDeclaration;
-import static com.google.dart.engine.ast.ASTFactory.variableDeclarationList;
+import static com.google.dart.engine.ast.AstFactory.integer;
+import static com.google.dart.engine.ast.AstFactory.variableDeclaration;
+import static com.google.dart.engine.ast.AstFactory.variableDeclarationList;
 import static com.google.dart.engine.element.ElementFactory.localVariableElement;
 
 import java.util.HashMap;

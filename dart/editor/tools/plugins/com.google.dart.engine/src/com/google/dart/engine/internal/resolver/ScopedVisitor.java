@@ -13,7 +13,7 @@
  */
 package com.google.dart.engine.internal.resolver;
 
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.Block;
 import com.google.dart.engine.ast.CatchClause;
 import com.google.dart.engine.ast.ClassDeclaration;
@@ -44,7 +44,7 @@ import com.google.dart.engine.ast.TopLevelVariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationStatement;
 import com.google.dart.engine.ast.WhileStatement;
-import com.google.dart.engine.ast.visitor.UnifyingASTVisitor;
+import com.google.dart.engine.ast.visitor.UnifyingAstVisitor;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.LabelElement;
@@ -69,7 +69,7 @@ import com.google.dart.engine.source.Source;
  * 
  * @coverage dart.engine.resolver
  */
-public abstract class ScopedVisitor extends UnifyingASTVisitor<Void> {
+public abstract class ScopedVisitor extends UnifyingAstVisitor<Void> {
   /**
    * The element for the library containing the compilation unit being visited.
    */
@@ -527,7 +527,7 @@ public abstract class ScopedVisitor extends UnifyingASTVisitor<Void> {
    * @param node the node specifying the location of the error
    * @param arguments the arguments to the error, used to compose the error message
    */
-  protected void reportError(ErrorCode errorCode, ASTNode node, Object... arguments) {
+  protected void reportError(ErrorCode errorCode, AstNode node, Object... arguments) {
     errorListener.onError(new AnalysisError(
         source,
         node.getOffset(),
@@ -569,7 +569,7 @@ public abstract class ScopedVisitor extends UnifyingASTVisitor<Void> {
    * 
    * @param node the node to be visited
    */
-  protected void safelyVisit(ASTNode node) {
+  protected void safelyVisit(AstNode node) {
     if (node != null) {
       node.accept(this);
     }

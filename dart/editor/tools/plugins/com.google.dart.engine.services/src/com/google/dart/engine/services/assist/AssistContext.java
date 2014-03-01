@@ -13,7 +13,7 @@
  */
 package com.google.dart.engine.services.assist;
 
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.visitor.ElementLocator;
 import com.google.dart.engine.ast.visitor.NodeLocator;
@@ -34,8 +34,8 @@ public class AssistContext {
   private final CompilationUnit compilationUnit;
   private final int selectionOffset;
   private final int selectionLength;
-  private ASTNode coveredNode;
-  private ASTNode coveringNode;
+  private AstNode coveredNode;
+  private AstNode coveringNode;
   private Element coveredElement;
   private boolean coveredElementFound;
 
@@ -78,7 +78,7 @@ public class AssistContext {
   public Element getCoveredElement() {
     if (!coveredElementFound) {
       coveredElementFound = true;
-      ASTNode coveredNode = getCoveredNode();
+      AstNode coveredNode = getCoveredNode();
       if (coveredNode == null) {
         return null;
       }
@@ -88,9 +88,9 @@ public class AssistContext {
   }
 
   /**
-   * @return the {@link ASTNode} that is covered by the selection.
+   * @return the {@link AstNode} that is covered by the selection.
    */
-  public ASTNode getCoveredNode() {
+  public AstNode getCoveredNode() {
     if (coveredNode == null) {
       NodeLocator locator = new NodeLocator(selectionOffset, selectionOffset);
       coveredNode = locator.searchWithin(compilationUnit);
@@ -101,7 +101,7 @@ public class AssistContext {
   /**
    * @return the ASTNode that covers the selection.
    */
-  public ASTNode getCoveringNode() {
+  public AstNode getCoveringNode() {
     if (coveringNode == null) {
       NodeLocator locator = new NodeLocator(selectionOffset, selectionOffset + selectionLength);
       coveringNode = locator.searchWithin(compilationUnit);

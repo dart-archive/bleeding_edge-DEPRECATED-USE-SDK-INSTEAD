@@ -13,7 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.text.editor.selectionactions;
 
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.services.util.SelectionAnalyzer;
 import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
@@ -37,9 +37,9 @@ public class StructureSelectEnclosingAction extends StructureSelectionAction {
   }
 
   @Override
-  SourceRange internalGetNewSelectionRange(SourceRange oldSourceRange, ASTNode node,
+  SourceRange internalGetNewSelectionRange(SourceRange oldSourceRange, AstNode node,
       SelectionAnalyzer selAnalyzer) {
-    ASTNode first = selAnalyzer.getFirstSelectedNode();
+    AstNode first = selAnalyzer.getFirstSelectedNode();
     if (first == null || first.getParent() == null) {
       return getLastCoveringNodeRange(oldSourceRange, node, selAnalyzer);
     }

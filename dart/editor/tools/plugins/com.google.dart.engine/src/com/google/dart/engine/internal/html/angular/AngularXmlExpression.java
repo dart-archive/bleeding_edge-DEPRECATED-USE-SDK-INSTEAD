@@ -14,7 +14,7 @@
 
 package com.google.dart.engine.internal.html.angular;
 
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.visitor.ElementLocator;
 import com.google.dart.engine.ast.visitor.NodeLocator;
 import com.google.dart.engine.element.Element;
@@ -66,11 +66,11 @@ public abstract class AngularXmlExpression extends XmlExpression {
   }
 
   /**
-   * If the given {@link ASTNode} has an {@link Element} at the given offset, then returns
+   * If the given {@link AstNode} has an {@link Element} at the given offset, then returns
    * {@link Reference} with this {@link Element}.
    */
-  private Reference getReference(ASTNode root, int offset) {
-    ASTNode node = new NodeLocator(offset).searchWithin(root);
+  private Reference getReference(AstNode root, int offset) {
+    AstNode node = new NodeLocator(offset).searchWithin(root);
     if (node != null) {
       Element element = ElementLocator.locate(node);
       return new Reference(element, node.getOffset(), node.getLength());

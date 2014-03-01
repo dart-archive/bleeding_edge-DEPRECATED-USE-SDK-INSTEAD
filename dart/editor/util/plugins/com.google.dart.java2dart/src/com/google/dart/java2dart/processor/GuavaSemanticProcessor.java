@@ -14,12 +14,12 @@
 
 package com.google.dart.java2dart.processor;
 
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.PrefixExpression;
-import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
+import com.google.dart.engine.ast.visitor.GeneralizingAstVisitor;
 import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.java2dart.Context;
@@ -38,7 +38,7 @@ import java.util.List;
  * {@link SemanticProcessor} for Google Guava.
  */
 public class GuavaSemanticProcessor extends SemanticProcessor {
-  private static boolean isNegationParent(ASTNode node) {
+  private static boolean isNegationParent(AstNode node) {
     if (node.getParent() instanceof PrefixExpression) {
       PrefixExpression prefixExpression = (PrefixExpression) node.getParent();
       return prefixExpression.getOperator().getType() == TokenType.BANG;
@@ -52,13 +52,13 @@ public class GuavaSemanticProcessor extends SemanticProcessor {
 
   @Override
   public void process(final CompilationUnit unit) {
-    unit.accept(new GeneralizingASTVisitor<Void>() {
+    unit.accept(new GeneralizingAstVisitor<Void>() {
       @Override
       public Void visitMethodInvocation(MethodInvocation node) {
         super.visitMethodInvocation(node);
         List<Expression> args = node.getArgumentList().getArguments();
         if (isMethodInClass(node, "equal", "com.google.common.base.Objects")) {
-          ASTNode toReplace = node;
+          AstNode toReplace = node;
           TokenType operator = TokenType.EQ_EQ;
           if (isNegationParent(node)) {
             operator = TokenType.BANG_EQ;

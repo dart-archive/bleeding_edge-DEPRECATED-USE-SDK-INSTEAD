@@ -25,7 +25,7 @@ import java.io.PrintWriter;
  * 
  * @coverage dart.engine.ast
  */
-public class ToSourceVisitor implements ASTVisitor<Void> {
+public class ToSourceVisitor implements AstVisitor<Void> {
   /**
    * The writer to which the source is to be written.
    */
@@ -963,7 +963,7 @@ public class ToSourceVisitor implements ASTVisitor<Void> {
    * 
    * @param node the node to be visited
    */
-  private void visit(ASTNode node) {
+  private void visit(AstNode node) {
     if (node != null) {
       node.accept(this);
     }
@@ -975,7 +975,7 @@ public class ToSourceVisitor implements ASTVisitor<Void> {
    * @param suffix the suffix to be printed if there is a node to visit
    * @param node the node to be visited
    */
-  private void visit(ASTNode node, String suffix) {
+  private void visit(AstNode node, String suffix) {
     if (node != null) {
       node.accept(this);
       writer.print(suffix);
@@ -988,7 +988,7 @@ public class ToSourceVisitor implements ASTVisitor<Void> {
    * @param prefix the prefix to be printed if there is a node to visit
    * @param node the node to be visited
    */
-  private void visit(String prefix, ASTNode node) {
+  private void visit(String prefix, AstNode node) {
     if (node != null) {
       writer.print(prefix);
       node.accept(this);
@@ -1027,7 +1027,7 @@ public class ToSourceVisitor implements ASTVisitor<Void> {
    * @param nodes the nodes to be printed
    * @param separator the separator to be printed between adjacent nodes
    */
-  private void visitList(NodeList<? extends ASTNode> nodes) {
+  private void visitList(NodeList<? extends AstNode> nodes) {
     visitList(nodes, "");
   }
 
@@ -1037,7 +1037,7 @@ public class ToSourceVisitor implements ASTVisitor<Void> {
    * @param nodes the nodes to be printed
    * @param separator the separator to be printed between adjacent nodes
    */
-  private void visitList(NodeList<? extends ASTNode> nodes, String separator) {
+  private void visitList(NodeList<? extends AstNode> nodes, String separator) {
     if (nodes != null) {
       int size = nodes.size();
       for (int i = 0; i < size; i++) {
@@ -1056,7 +1056,7 @@ public class ToSourceVisitor implements ASTVisitor<Void> {
    * @param separator the separator to be printed between adjacent nodes
    * @param suffix the suffix to be printed if the list is not empty
    */
-  private void visitList(NodeList<? extends ASTNode> nodes, String separator, String suffix) {
+  private void visitList(NodeList<? extends AstNode> nodes, String separator, String suffix) {
     if (nodes != null) {
       int size = nodes.size();
       if (size > 0) {
@@ -1078,7 +1078,7 @@ public class ToSourceVisitor implements ASTVisitor<Void> {
    * @param nodes the nodes to be printed
    * @param separator the separator to be printed between adjacent nodes
    */
-  private void visitList(String prefix, NodeList<? extends ASTNode> nodes, String separator) {
+  private void visitList(String prefix, NodeList<? extends AstNode> nodes, String separator) {
     if (nodes != null) {
       int size = nodes.size();
       if (size > 0) {

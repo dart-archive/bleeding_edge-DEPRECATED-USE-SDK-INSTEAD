@@ -15,7 +15,7 @@
 package com.google.dart.java2dart.processor;
 
 import com.google.common.base.Objects;
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.Block;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.CompilationUnit;
@@ -32,19 +32,19 @@ import org.eclipse.jdt.core.dom.IMethodBinding;
  */
 public abstract class SemanticProcessor {
   /**
-   * @return the {@link ASTNode} of given {@link Class} which is given {@link ASTNode} itself, or
+   * @return the {@link AstNode} of given {@link Class} which is given {@link AstNode} itself, or
    *         one of its parents.
    */
   @SuppressWarnings("unchecked")
-  public static <E extends ASTNode> E getAncestor(ASTNode node, Class<E> enclosingClass) {
+  public static <E extends AstNode> E getAncestor(AstNode node, Class<E> enclosingClass) {
     while (node != null && !enclosingClass.isInstance(node)) {
       node = node.getParent();
     };
     return (E) node;
   }
 
-  public static void removeNode(ASTNode node) {
-    ASTNode parent = node.getParent();
+  public static void removeNode(AstNode node) {
+    AstNode parent = node.getParent();
     if (parent instanceof Block) {
       ((Block) parent).getStatements().remove(node);
       return;
@@ -59,7 +59,7 @@ public abstract class SemanticProcessor {
   /**
    * Replaces "node" with "replacement" in parent of "node".
    */
-  public static void replaceNode(ASTNode node, ASTNode replacement) {
+  public static void replaceNode(AstNode node, AstNode replacement) {
     SyntaxTranslator.replaceNode(node.getParent(), node, replacement);
   }
 

@@ -18,7 +18,7 @@ import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.internal.element.VariableElementImpl;
 
-import static com.google.dart.engine.ast.ASTFactory.identifier;
+import static com.google.dart.engine.ast.AstFactory.identifier;
 import static com.google.dart.engine.element.ElementFactory.localVariableElement;
 
 import java.util.Set;

@@ -13,7 +13,7 @@
  */
 package com.google.dart.engine.internal.constant;
 
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.internal.resolver.TypeProvider;
@@ -34,7 +34,7 @@ public abstract class EvaluationResultImpl {
    * @return the result of applying boolean conversion to the given value
    */
   public abstract EvaluationResultImpl applyBooleanConversion(TypeProvider typeProvider,
-      ASTNode node);
+      AstNode node);
 
   public abstract EvaluationResultImpl bitAnd(TypeProvider typeProvider, BinaryExpression node,
       EvaluationResultImpl rightOperand);
@@ -89,7 +89,7 @@ public abstract class EvaluationResultImpl {
   public abstract EvaluationResultImpl notEqual(TypeProvider typeProvider, BinaryExpression node,
       EvaluationResultImpl rightOperand);
 
-  public abstract EvaluationResultImpl performToString(TypeProvider typeProvider, ASTNode node);
+  public abstract EvaluationResultImpl performToString(TypeProvider typeProvider, AstNode node);
 
   public abstract EvaluationResultImpl remainder(TypeProvider typeProvider, BinaryExpression node,
       EvaluationResultImpl rightOperand);

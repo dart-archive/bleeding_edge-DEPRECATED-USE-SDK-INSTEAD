@@ -13,13 +13,13 @@
  */
 package com.google.dart.engine.parser;
 
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.visitor.NodeLocator;
 import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.source.Source;
-import com.google.dart.engine.utilities.ast.IncrementalASTCloner;
+import com.google.dart.engine.utilities.ast.IncrementalAstCloner;
 import com.google.dart.engine.utilities.collection.TokenMap;
 
 /**
@@ -45,7 +45,7 @@ public class IncrementalParser {
   /**
    * The node in the AST structure that contains the revised content.
    */
-  private ASTNode updatedNode;
+  private AstNode updatedNode;
 
   /**
    * Initialize a newly created incremental parser to parse a portion of the content of the given
@@ -67,7 +67,7 @@ public class IncrementalParser {
    * 
    * @return the updated node
    */
-  public ASTNode getUpdatedNode() {
+  public AstNode getUpdatedNode() {
     return updatedNode;
   }
 
@@ -84,10 +84,10 @@ public class IncrementalParser {
    * @param originalEnd the offset in the original source of the last character that was modified
    */
   @SuppressWarnings("unchecked")
-  public <E extends ASTNode> E reparse(E originalStructure, Token leftToken, Token rightToken,
+  public <E extends AstNode> E reparse(E originalStructure, Token leftToken, Token rightToken,
       int originalStart, int originalEnd) {
-    ASTNode oldNode = null;
-    ASTNode newNode = null;
+    AstNode oldNode = null;
+    AstNode newNode = null;
     //
     // Find the first token that needs to be re-parsed.
     //
@@ -118,7 +118,7 @@ public class IncrementalParser {
     Parser parser = new Parser(source, errorListener);
     parser.setCurrentToken(parseToken);
     while (newNode == null) {
-      ASTNode parent = oldNode.getParent();
+      AstNode parent = oldNode.getParent();
       if (parent == null) {
         parseToken = findFirstToken(parseToken);
         parser.setCurrentToken(parseToken);
@@ -160,7 +160,7 @@ public class IncrementalParser {
       return (E) newNode;
     }
     ResolutionCopier.copyResolutionData(oldNode, newNode);
-    IncrementalASTCloner cloner = new IncrementalASTCloner(oldNode, newNode, tokenMap);
+    IncrementalAstCloner cloner = new IncrementalAstCloner(oldNode, newNode, tokenMap);
     return (E) originalStructure.accept(cloner);
   }
 

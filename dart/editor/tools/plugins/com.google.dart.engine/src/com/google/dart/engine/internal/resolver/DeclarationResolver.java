@@ -14,7 +14,7 @@
 package com.google.dart.engine.internal.resolver;
 
 import com.google.dart.engine.AnalysisEngine;
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.CatchClause;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.ClassTypeAlias;
@@ -45,7 +45,7 @@ import com.google.dart.engine.ast.SwitchCase;
 import com.google.dart.engine.ast.SwitchDefault;
 import com.google.dart.engine.ast.TypeParameter;
 import com.google.dart.engine.ast.VariableDeclaration;
-import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
+import com.google.dart.engine.ast.visitor.RecursiveAstVisitor;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
@@ -73,7 +73,7 @@ import com.google.dart.engine.utilities.io.PrintStringWriter;
  * Instances of the class {@code DeclarationResolver} are used to resolve declarations in an AST
  * structure to already built elements.
  */
-public class DeclarationResolver extends RecursiveASTVisitor<Void> {
+public class DeclarationResolver extends RecursiveAstVisitor<Void> {
   /**
    * The compilation unit containing the AST nodes being visited.
    */
@@ -605,7 +605,7 @@ public class DeclarationResolver extends RecursiveASTVisitor<Void> {
       writer.println("DeclarationResolver.getElementForParameter() is visiting a parameter that "
           + "does not appear to be in a method or function.");
       writer.println("Ancestors:");
-      ASTNode parent = node.getParent();
+      AstNode parent = node.getParent();
       while (parent != null) {
         writer.println(parent.getClass().getName());
         writer.println("---------");

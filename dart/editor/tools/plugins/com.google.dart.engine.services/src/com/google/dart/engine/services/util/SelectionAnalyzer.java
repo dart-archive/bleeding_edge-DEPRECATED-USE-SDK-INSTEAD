@@ -15,8 +15,8 @@ package com.google.dart.engine.services.util;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.google.dart.engine.ast.ASTNode;
-import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
+import com.google.dart.engine.ast.AstNode;
+import com.google.dart.engine.ast.visitor.GeneralizingAstVisitor;
 import com.google.dart.engine.utilities.source.SourceRange;
 
 import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeNode;
@@ -25,12 +25,12 @@ import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeSt
 import java.util.List;
 
 /**
- * Abstract visitor for visiting {@link ASTNode}s covered by the selection {@link SourceRange}.
+ * Abstract visitor for visiting {@link AstNode}s covered by the selection {@link SourceRange}.
  */
-public class SelectionAnalyzer extends GeneralizingASTVisitor<Void> {
+public class SelectionAnalyzer extends GeneralizingAstVisitor<Void> {
   protected final SourceRange selection;
-  private ASTNode coveringNode;
-  private List<ASTNode> selectedNodes;
+  private AstNode coveringNode;
+  private List<AstNode> selectedNodes;
 
   public SelectionAnalyzer(SourceRange selection) {
     assert selection != null;
@@ -38,17 +38,17 @@ public class SelectionAnalyzer extends GeneralizingASTVisitor<Void> {
   }
 
   /**
-   * @return the {@link ASTNode} with the shortest length which completely covers the specified
+   * @return the {@link AstNode} with the shortest length which completely covers the specified
    *         selection.
    */
-  public ASTNode getCoveringNode() {
+  public AstNode getCoveringNode() {
     return coveringNode;
   }
 
   /**
-   * @return the first selected {@link ASTNode}, may be <code>null</code>.
+   * @return the first selected {@link AstNode}, may be <code>null</code>.
    */
-  public ASTNode getFirstSelectedNode() {
+  public AstNode getFirstSelectedNode() {
     if (selectedNodes == null || selectedNodes.isEmpty()) {
       return null;
     }
@@ -56,9 +56,9 @@ public class SelectionAnalyzer extends GeneralizingASTVisitor<Void> {
   }
 
   /**
-   * @return the last selected {@link ASTNode}, may be <code>null</code>.
+   * @return the last selected {@link AstNode}, may be <code>null</code>.
    */
-  public ASTNode getLastSelectedNode() {
+  public AstNode getLastSelectedNode() {
     if (selectedNodes == null || selectedNodes.isEmpty()) {
       return null;
     }
@@ -66,22 +66,22 @@ public class SelectionAnalyzer extends GeneralizingASTVisitor<Void> {
   }
 
   /**
-   * @return the {@link SourceRange} which covers selected {@link ASTNode}s, may be
-   *         <code>null</code> if no {@link ASTNode}s under selection.
+   * @return the {@link SourceRange} which covers selected {@link AstNode}s, may be
+   *         <code>null</code> if no {@link AstNode}s under selection.
    */
   public SourceRange getSelectedNodeRange() {
     if (selectedNodes == null || selectedNodes.isEmpty()) {
       return null;
     }
-    ASTNode firstNode = selectedNodes.get(0);
-    ASTNode lastNode = selectedNodes.get(selectedNodes.size() - 1);
+    AstNode firstNode = selectedNodes.get(0);
+    AstNode lastNode = selectedNodes.get(selectedNodes.size() - 1);
     return rangeStartEnd(firstNode, lastNode);
   }
 
   /**
-   * @return the {@link ASTNode}s fully covered by the selection {@link SourceRange}.
+   * @return the {@link AstNode}s fully covered by the selection {@link SourceRange}.
    */
-  public List<ASTNode> getSelectedNodes() {
+  public List<AstNode> getSelectedNodes() {
     if (selectedNodes == null || selectedNodes.isEmpty()) {
       return ImmutableList.of();
     }
@@ -89,7 +89,7 @@ public class SelectionAnalyzer extends GeneralizingASTVisitor<Void> {
   }
 
   /**
-   * @return <code>true</code> if there are {@link ASTNode} fully covered by the selection
+   * @return <code>true</code> if there are {@link AstNode} fully covered by the selection
    *         {@link SourceRange}.
    */
   public boolean hasSelectedNodes() {
@@ -97,7 +97,7 @@ public class SelectionAnalyzer extends GeneralizingASTVisitor<Void> {
   }
 
   @Override
-  public Void visitNode(ASTNode node) {
+  public Void visitNode(AstNode node) {
     SourceRange nodeRange = rangeNode(node);
     if (selection.covers(nodeRange)) {
       if (isFirstNode()) {
@@ -124,32 +124,32 @@ public class SelectionAnalyzer extends GeneralizingASTVisitor<Void> {
   }
 
   /**
-   * Adds first selected {@link ASTNode}.
+   * Adds first selected {@link AstNode}.
    */
-  protected void handleFirstSelectedNode(ASTNode node) {
+  protected void handleFirstSelectedNode(AstNode node) {
     selectedNodes = Lists.newArrayList();
     selectedNodes.add(node);
   }
 
   /**
-   * Adds second or more selected {@link ASTNode}.
+   * Adds second or more selected {@link AstNode}.
    */
-  protected void handleNextSelectedNode(ASTNode node) {
+  protected void handleNextSelectedNode(AstNode node) {
     if (getFirstSelectedNode().getParent() == node.getParent()) {
       selectedNodes.add(node);
     }
   }
 
   /**
-   * Notifies that selection ends in given {@link ASTNode}.
+   * Notifies that selection ends in given {@link AstNode}.
    */
-  protected void handleSelectionEndsIn(ASTNode node) {
+  protected void handleSelectionEndsIn(AstNode node) {
   }
 
   /**
-   * Notifies that selection starts in given {@link ASTNode}.
+   * Notifies that selection starts in given {@link AstNode}.
    */
-  protected void handleSelectionStartsIn(ASTNode node) {
+  protected void handleSelectionStartsIn(AstNode node) {
   }
 
   /**

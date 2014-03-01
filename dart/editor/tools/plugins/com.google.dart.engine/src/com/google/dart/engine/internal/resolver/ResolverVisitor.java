@@ -13,7 +13,7 @@
  */
 package com.google.dart.engine.internal.resolver;
 
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.ArgumentList;
 import com.google.dart.engine.ast.AsExpression;
 import com.google.dart.engine.ast.AssertStatement;
@@ -70,7 +70,7 @@ import com.google.dart.engine.ast.ThrowExpression;
 import com.google.dart.engine.ast.TopLevelVariableDeclaration;
 import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.WhileStatement;
-import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
+import com.google.dart.engine.ast.visitor.RecursiveAstVisitor;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementKind;
@@ -693,7 +693,7 @@ public class ResolverVisitor extends ScopedVisitor {
   }
 
   @Override
-  public Void visitNode(ASTNode node) {
+  public Void visitNode(AstNode node) {
     node.visitChildren(this);
     node.accept(elementResolver);
     node.accept(typeAnalyzer);
@@ -967,7 +967,7 @@ public class ResolverVisitor extends ScopedVisitor {
    * @param arguments the arguments to the error, used to compose the error message
    */
   protected void reportErrorProxyConditionalAnalysisError(Element enclosingElement,
-      ErrorCode errorCode, ASTNode node, Object... arguments) {
+      ErrorCode errorCode, AstNode node, Object... arguments) {
     proxyConditionalAnalysisErrors.add(new ProxyConditionalAnalysisError(
         enclosingElement,
         new AnalysisError(getSource(), node.getOffset(), node.getLength(), errorCode, arguments)));
@@ -1068,7 +1068,7 @@ public class ResolverVisitor extends ScopedVisitor {
    * If the variable <i>v</i> is accessed by a closure in <i>s<sub>1</sub></i> then the variable
    * <i>v</i> is not potentially mutated anywhere in the scope of <i>v</i>.
    */
-  private void clearTypePromotionsIfAccessedInClosureAndProtentiallyMutated(ASTNode target) {
+  private void clearTypePromotionsIfAccessedInClosureAndProtentiallyMutated(AstNode target) {
     for (Element element : promoteManager.getPromotedElements()) {
       if (((VariableElementImpl) element).isPotentiallyMutatedInScope()) {
         if (isVariableAccessedInClosure(element, target)) {
@@ -1084,7 +1084,7 @@ public class ResolverVisitor extends ScopedVisitor {
    * <p>
    * <i>v</i> is not potentially mutated in <i>s<sub>1</sub></i> or within a closure.
    */
-  private void clearTypePromotionsIfPotentiallyMutatedIn(ASTNode target) {
+  private void clearTypePromotionsIfPotentiallyMutatedIn(AstNode target) {
     for (Element element : promoteManager.getPromotedElements()) {
       if (isVariablePotentiallyMutatedIn(element, target)) {
         promoteManager.setType(element, null);
@@ -1238,16 +1238,16 @@ public class ResolverVisitor extends ScopedVisitor {
 
   /**
    * Return {@code true} if the given variable is accessed within a closure in the given
-   * {@link ASTNode} and also mutated somewhere in variable scope. This information is only
+   * {@link AstNode} and also mutated somewhere in variable scope. This information is only
    * available for local variables (including parameters).
    * 
    * @param variable the variable to check
-   * @param target the {@link ASTNode} to check within
+   * @param target the {@link AstNode} to check within
    * @return {@code true} if this variable is potentially mutated somewhere in the given ASTNode
    */
-  private boolean isVariableAccessedInClosure(final Element variable, ASTNode target) {
+  private boolean isVariableAccessedInClosure(final Element variable, AstNode target) {
     final boolean[] result = {false};
-    target.accept(new RecursiveASTVisitor<Void>() {
+    target.accept(new RecursiveAstVisitor<Void>() {
       private boolean inClosure = false;
 
       @Override
@@ -1277,15 +1277,15 @@ public class ResolverVisitor extends ScopedVisitor {
 
   /**
    * Return {@code true} if the given variable is potentially mutated somewhere in the given
-   * {@link ASTNode}. This information is only available for local variables (including parameters).
+   * {@link AstNode}. This information is only available for local variables (including parameters).
    * 
    * @param variable the variable to check
-   * @param target the {@link ASTNode} to check within
+   * @param target the {@link AstNode} to check within
    * @return {@code true} if this variable is potentially mutated somewhere in the given ASTNode
    */
-  private boolean isVariablePotentiallyMutatedIn(final Element variable, ASTNode target) {
+  private boolean isVariablePotentiallyMutatedIn(final Element variable, AstNode target) {
     final boolean[] result = {false};
-    target.accept(new RecursiveASTVisitor<Void>() {
+    target.accept(new RecursiveAstVisitor<Void>() {
       @Override
       public Void visitSimpleIdentifier(SimpleIdentifier node) {
         if (result[0]) {

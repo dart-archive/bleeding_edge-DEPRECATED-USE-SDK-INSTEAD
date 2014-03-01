@@ -30,7 +30,7 @@ import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.RedirectingConstructorInvocation;
 import com.google.dart.engine.ast.Statement;
 import com.google.dart.engine.ast.SuperConstructorInvocation;
-import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
+import com.google.dart.engine.ast.visitor.GeneralizingAstVisitor;
 import com.google.dart.java2dart.Context;
 import com.google.dart.java2dart.Context.ConstructorDescription;
 
@@ -120,7 +120,7 @@ public class ConstructorSemanticProcessor extends SemanticProcessor {
 
   @Override
   public void process(CompilationUnit unit) {
-    unit.accept(new GeneralizingASTVisitor<Void>() {
+    unit.accept(new GeneralizingAstVisitor<Void>() {
       List<ConstructorDeclaration> allConstructors = Lists.newArrayList();;
 
       @Override

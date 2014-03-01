@@ -16,18 +16,18 @@ package com.google.dart.engine.ast.visitor;
 import com.google.dart.engine.ast.*;
 
 /**
- * Instances of the class {@code UnifyingASTVisitor} implement an AST visitor that will recursively
+ * Instances of the class {@code UnifyingAstVisitor} implement an AST visitor that will recursively
  * visit all of the nodes in an AST structure (like instances of the class
- * {@link RecursiveASTVisitor}). In addition, every node will also be visited by using a single
- * unified {@link #visitNode(ASTNode)} method.
+ * {@link RecursiveAstVisitor}). In addition, every node will also be visited by using a single
+ * unified {@link #visitNode(AstNode)} method.
  * <p>
  * Subclasses that override a visit method must either invoke the overridden visit method or
- * explicitly invoke the more general {@link #visitNode(ASTNode)} method. Failure to do so will
+ * explicitly invoke the more general {@link #visitNode(AstNode)} method. Failure to do so will
  * cause the children of the visited node to not be visited.
  * 
  * @coverage dart.engine.ast
  */
-public class UnifyingASTVisitor<R> implements ASTVisitor<R> {
+public class UnifyingAstVisitor<R> implements AstVisitor<R> {
   @Override
   public R visitAdjacentStrings(AdjacentStrings node) {
     return visitNode(node);
@@ -363,7 +363,7 @@ public class UnifyingASTVisitor<R> implements ASTVisitor<R> {
     return visitNode(node);
   }
 
-  public R visitNode(ASTNode node) {
+  public R visitNode(AstNode node) {
     node.visitChildren(this);
     return null;
   }

@@ -30,7 +30,7 @@ import com.google.dart.engine.scanner.Token;
  * 
  * @coverage dart.engine.ast
  */
-public class Annotation extends ASTNode {
+public class Annotation extends AstNode {
   /**
    * The at sign that introduced the annotation.
    */
@@ -89,7 +89,7 @@ public class Annotation extends ASTNode {
   }
 
   @Override
-  public <R> R accept(ASTVisitor<R> visitor) {
+  public <R> R accept(AstVisitor<R> visitor) {
     return visitor.visitAnnotation(this);
   }
 
@@ -229,7 +229,7 @@ public class Annotation extends ASTNode {
   }
 
   @Override
-  public void visitChildren(ASTVisitor<?> visitor) {
+  public void visitChildren(AstVisitor<?> visitor) {
     safelyVisitChild(name, visitor);
     safelyVisitChild(constructorName, visitor);
     safelyVisitChild(arguments, visitor);

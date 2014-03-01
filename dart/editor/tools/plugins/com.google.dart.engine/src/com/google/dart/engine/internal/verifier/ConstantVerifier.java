@@ -35,7 +35,7 @@ import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.SuperConstructorInvocation;
 import com.google.dart.engine.ast.SwitchCase;
 import com.google.dart.engine.ast.VariableDeclaration;
-import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
+import com.google.dart.engine.ast.visitor.RecursiveAstVisitor;
 import com.google.dart.engine.constant.DartObject;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
@@ -72,7 +72,7 @@ import java.util.HashSet;
  * 
  * @coverage dart.engine.resolver
  */
-public class ConstantVerifier extends RecursiveASTVisitor<Void> {
+public class ConstantVerifier extends RecursiveAstVisitor<Void> {
   /**
    * The error reporter by which errors will be reported.
    */

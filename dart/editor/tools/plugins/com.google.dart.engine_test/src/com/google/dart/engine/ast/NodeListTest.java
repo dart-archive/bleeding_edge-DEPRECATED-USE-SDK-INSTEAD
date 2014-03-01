@@ -15,19 +15,19 @@ package com.google.dart.engine.ast;
 
 import com.google.dart.engine.EngineTestCase;
 
-import static com.google.dart.engine.ast.ASTFactory.argumentList;
-import static com.google.dart.engine.ast.ASTFactory.booleanLiteral;
-import static com.google.dart.engine.ast.ASTFactory.integer;
-import static com.google.dart.engine.ast.ASTFactory.parenthesizedExpression;
+import static com.google.dart.engine.ast.AstFactory.argumentList;
+import static com.google.dart.engine.ast.AstFactory.booleanLiteral;
+import static com.google.dart.engine.ast.AstFactory.integer;
+import static com.google.dart.engine.ast.AstFactory.parenthesizedExpression;
 
 import java.util.ArrayList;
 
 public class NodeListTest extends EngineTestCase {
   public void test_add() {
-    ASTNode parent = argumentList();
-    ASTNode firstNode = booleanLiteral(true);
-    ASTNode secondNode = booleanLiteral(false);
-    NodeList<ASTNode> list = new NodeList<ASTNode>(parent);
+    AstNode parent = argumentList();
+    AstNode firstNode = booleanLiteral(true);
+    AstNode secondNode = booleanLiteral(false);
+    NodeList<AstNode> list = new NodeList<AstNode>(parent);
     list.add(0, secondNode);
     list.add(0, firstNode);
     assertSize(2, list);
@@ -36,7 +36,7 @@ public class NodeListTest extends EngineTestCase {
     assertSame(parent, firstNode.getParent());
     assertSame(parent, secondNode.getParent());
 
-    ASTNode thirdNode = booleanLiteral(false);
+    AstNode thirdNode = booleanLiteral(false);
     list.add(1, thirdNode);
     assertSize(3, list);
     assertSame(firstNode, list.get(0));
@@ -48,7 +48,7 @@ public class NodeListTest extends EngineTestCase {
   }
 
   public void test_add_negative() {
-    NodeList<ASTNode> list = new NodeList<ASTNode>(argumentList());
+    NodeList<AstNode> list = new NodeList<AstNode>(argumentList());
     try {
       list.add(-1, booleanLiteral(true));
       fail("Expected IndexOutOfBoundsException");
@@ -58,7 +58,7 @@ public class NodeListTest extends EngineTestCase {
   }
 
   public void test_add_tooBig() {
-    NodeList<ASTNode> list = new NodeList<ASTNode>(argumentList());
+    NodeList<AstNode> list = new NodeList<AstNode>(argumentList());
     try {
       list.add(1, booleanLiteral(true));
       fail("Expected IndexOutOfBoundsException");
@@ -68,13 +68,13 @@ public class NodeListTest extends EngineTestCase {
   }
 
   public void test_addAll() {
-    ASTNode parent = argumentList();
-    ArrayList<ASTNode> firstNodes = new ArrayList<ASTNode>();
-    ASTNode firstNode = booleanLiteral(true);
-    ASTNode secondNode = booleanLiteral(false);
+    AstNode parent = argumentList();
+    ArrayList<AstNode> firstNodes = new ArrayList<AstNode>();
+    AstNode firstNode = booleanLiteral(true);
+    AstNode secondNode = booleanLiteral(false);
     firstNodes.add(firstNode);
     firstNodes.add(secondNode);
-    NodeList<ASTNode> list = new NodeList<ASTNode>(parent);
+    NodeList<AstNode> list = new NodeList<AstNode>(parent);
     list.addAll(firstNodes);
     assertSize(2, list);
     assertSame(firstNode, list.get(0));
@@ -82,9 +82,9 @@ public class NodeListTest extends EngineTestCase {
     assertSame(parent, firstNode.getParent());
     assertSame(parent, secondNode.getParent());
 
-    ArrayList<ASTNode> secondNodes = new ArrayList<ASTNode>();
-    ASTNode thirdNode = booleanLiteral(true);
-    ASTNode fourthNode = booleanLiteral(false);
+    ArrayList<AstNode> secondNodes = new ArrayList<AstNode>();
+    AstNode thirdNode = booleanLiteral(true);
+    AstNode fourthNode = booleanLiteral(false);
     secondNodes.add(thirdNode);
     secondNodes.add(fourthNode);
     list.addAll(secondNodes);
@@ -100,23 +100,23 @@ public class NodeListTest extends EngineTestCase {
   }
 
   public void test_create() {
-    ASTNode owner = argumentList();
-    NodeList<ASTNode> list = NodeList.create(owner);
+    AstNode owner = argumentList();
+    NodeList<AstNode> list = NodeList.create(owner);
     assertNotNull(list);
     assertSize(0, list);
     assertSame(owner, list.getOwner());
   }
 
   public void test_creation() {
-    ASTNode owner = argumentList();
-    NodeList<ASTNode> list = new NodeList<ASTNode>(owner);
+    AstNode owner = argumentList();
+    NodeList<AstNode> list = new NodeList<AstNode>(owner);
     assertNotNull(list);
     assertSize(0, list);
     assertSame(owner, list.getOwner());
   }
 
   public void test_get_negative() {
-    NodeList<ASTNode> list = new NodeList<ASTNode>(argumentList());
+    NodeList<AstNode> list = new NodeList<AstNode>(argumentList());
     try {
       list.get(-1);
       fail("Expected IndexOutOfBoundsException");
@@ -126,7 +126,7 @@ public class NodeListTest extends EngineTestCase {
   }
 
   public void test_get_tooBig() {
-    NodeList<ASTNode> list = new NodeList<ASTNode>(argumentList());
+    NodeList<AstNode> list = new NodeList<AstNode>(argumentList());
     try {
       list.get(1);
       fail("Expected IndexOutOfBoundsException");
@@ -136,39 +136,39 @@ public class NodeListTest extends EngineTestCase {
   }
 
   public void test_getBeginToken_empty() {
-    NodeList<ASTNode> list = new NodeList<ASTNode>(argumentList());
+    NodeList<AstNode> list = new NodeList<AstNode>(argumentList());
     assertNull(list.getBeginToken());
   }
 
   public void test_getBeginToken_nonEmpty() {
-    NodeList<ASTNode> list = new NodeList<ASTNode>(argumentList());
-    ASTNode node = parenthesizedExpression(booleanLiteral(true));
+    NodeList<AstNode> list = new NodeList<AstNode>(argumentList());
+    AstNode node = parenthesizedExpression(booleanLiteral(true));
     list.add(node);
     assertSame(node.getBeginToken(), list.getBeginToken());
   }
 
   public void test_getEndToken_empty() {
-    NodeList<ASTNode> list = new NodeList<ASTNode>(argumentList());
+    NodeList<AstNode> list = new NodeList<AstNode>(argumentList());
     assertNull(list.getEndToken());
   }
 
   public void test_getEndToken_nonEmpty() {
-    NodeList<ASTNode> list = new NodeList<ASTNode>(argumentList());
-    ASTNode node = parenthesizedExpression(booleanLiteral(true));
+    NodeList<AstNode> list = new NodeList<AstNode>(argumentList());
+    AstNode node = parenthesizedExpression(booleanLiteral(true));
     list.add(node);
     assertSame(node.getEndToken(), list.getEndToken());
   }
 
   public void test_indexOf() {
-    ArrayList<ASTNode> nodes = new ArrayList<ASTNode>();
-    ASTNode firstNode = booleanLiteral(true);
-    ASTNode secondNode = booleanLiteral(false);
-    ASTNode thirdNode = booleanLiteral(true);
-    ASTNode fourthNode = booleanLiteral(false);
+    ArrayList<AstNode> nodes = new ArrayList<AstNode>();
+    AstNode firstNode = booleanLiteral(true);
+    AstNode secondNode = booleanLiteral(false);
+    AstNode thirdNode = booleanLiteral(true);
+    AstNode fourthNode = booleanLiteral(false);
     nodes.add(firstNode);
     nodes.add(secondNode);
     nodes.add(thirdNode);
-    NodeList<ASTNode> list = new NodeList<ASTNode>(argumentList());
+    NodeList<AstNode> list = new NodeList<AstNode>(argumentList());
     list.addAll(nodes);
     assertSize(3, list);
 
@@ -180,14 +180,14 @@ public class NodeListTest extends EngineTestCase {
   }
 
   public void test_remove() {
-    ArrayList<ASTNode> nodes = new ArrayList<ASTNode>();
-    ASTNode firstNode = booleanLiteral(true);
-    ASTNode secondNode = booleanLiteral(false);
-    ASTNode thirdNode = booleanLiteral(true);
+    ArrayList<AstNode> nodes = new ArrayList<AstNode>();
+    AstNode firstNode = booleanLiteral(true);
+    AstNode secondNode = booleanLiteral(false);
+    AstNode thirdNode = booleanLiteral(true);
     nodes.add(firstNode);
     nodes.add(secondNode);
     nodes.add(thirdNode);
-    NodeList<ASTNode> list = new NodeList<ASTNode>(argumentList());
+    NodeList<AstNode> list = new NodeList<AstNode>(argumentList());
     list.addAll(nodes);
     assertSize(3, list);
 
@@ -198,7 +198,7 @@ public class NodeListTest extends EngineTestCase {
   }
 
   public void test_remove_negative() {
-    NodeList<ASTNode> list = new NodeList<ASTNode>(argumentList());
+    NodeList<AstNode> list = new NodeList<AstNode>(argumentList());
     try {
       list.remove(-1);
       fail("Expected IndexOutOfBoundsException");
@@ -208,7 +208,7 @@ public class NodeListTest extends EngineTestCase {
   }
 
   public void test_remove_tooBig() {
-    NodeList<ASTNode> list = new NodeList<ASTNode>(argumentList());
+    NodeList<AstNode> list = new NodeList<AstNode>(argumentList());
     try {
       list.remove(1);
       fail("Expected IndexOutOfBoundsException");
@@ -218,18 +218,18 @@ public class NodeListTest extends EngineTestCase {
   }
 
   public void test_set() {
-    ArrayList<ASTNode> nodes = new ArrayList<ASTNode>();
-    ASTNode firstNode = booleanLiteral(true);
-    ASTNode secondNode = booleanLiteral(false);
-    ASTNode thirdNode = booleanLiteral(true);
+    ArrayList<AstNode> nodes = new ArrayList<AstNode>();
+    AstNode firstNode = booleanLiteral(true);
+    AstNode secondNode = booleanLiteral(false);
+    AstNode thirdNode = booleanLiteral(true);
     nodes.add(firstNode);
     nodes.add(secondNode);
     nodes.add(thirdNode);
-    NodeList<ASTNode> list = new NodeList<ASTNode>(argumentList());
+    NodeList<AstNode> list = new NodeList<AstNode>(argumentList());
     list.addAll(nodes);
     assertSize(3, list);
 
-    ASTNode fourthNode = integer(0);
+    AstNode fourthNode = integer(0);
     assertSame(secondNode, list.set(1, fourthNode));
     assertSize(3, list);
     assertSame(firstNode, list.get(0));
@@ -238,8 +238,8 @@ public class NodeListTest extends EngineTestCase {
   }
 
   public void test_set_negative() {
-    ASTNode node = booleanLiteral(true);
-    NodeList<ASTNode> list = new NodeList<ASTNode>(argumentList());
+    AstNode node = booleanLiteral(true);
+    NodeList<AstNode> list = new NodeList<AstNode>(argumentList());
     try {
       list.set(-1, node);
       fail("Expected IndexOutOfBoundsException");
@@ -249,8 +249,8 @@ public class NodeListTest extends EngineTestCase {
   }
 
   public void test_set_tooBig() {
-    ASTNode node = booleanLiteral(true);
-    NodeList<ASTNode> list = new NodeList<ASTNode>(argumentList());
+    AstNode node = booleanLiteral(true);
+    NodeList<AstNode> list = new NodeList<AstNode>(argumentList());
     try {
       list.set(1, node);
       fail("Expected IndexOutOfBoundsException");

@@ -15,7 +15,7 @@
 package com.google.dart.tools.ui.internal.text.editor;
 
 import com.google.common.collect.Lists;
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.ClassDeclaration;
@@ -36,7 +36,7 @@ import com.google.dart.engine.ast.TopLevelVariableDeclaration;
 import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationStatement;
-import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
+import com.google.dart.engine.ast.visitor.RecursiveAstVisitor;
 import com.google.dart.engine.element.Element;
 import com.google.dart.tools.ui.DartElementImageDescriptor;
 import com.google.dart.tools.ui.DartPluginImages;
@@ -198,7 +198,7 @@ public class LightNodeElements {
     private static final Point SIZE = new Point(22, 16);
     private static final ImageDescriptorRegistry registry = DartToolsPlugin.getImageDescriptorRegistry();
 
-    private static ImageDescriptor getBaseImageDescriptor(ASTNode node, boolean isPrivate) {
+    private static ImageDescriptor getBaseImageDescriptor(AstNode node, boolean isPrivate) {
       if (node instanceof ClassDeclaration) {
         return isPrivate ? DartPluginImages.DESC_DART_CLASS_PRIVATE
             : DartPluginImages.DESC_DART_CLASS_PUBLIC;
@@ -219,7 +219,7 @@ public class LightNodeElements {
       return null;
     }
 
-    private static ImageDescriptor getImageDescriptor(ASTNode node, boolean isPrivate) {
+    private static ImageDescriptor getImageDescriptor(AstNode node, boolean isPrivate) {
       ImageDescriptor base = getBaseImageDescriptor(node, isPrivate);
       if (base == null) {
         return null;
@@ -260,7 +260,7 @@ public class LightNodeElements {
     public Image getImage(Object o) {
       LightNodeElement element = (LightNodeElement) o;
       boolean isPrivate = element.isPrivate();;
-      ASTNode node = element.getNode();
+      AstNode node = element.getNode();
       ImageDescriptor descriptor = getImageDescriptor(node, isPrivate);
       if (descriptor != null) {
         return registry.get(descriptor);
@@ -273,7 +273,7 @@ public class LightNodeElements {
       StyledString styledString = new StyledString(getText(obj));
       // prepare object elements
       LightNodeElement lightElement = (LightNodeElement) obj;
-      ASTNode node = lightElement.getNode();
+      AstNode node = lightElement.getNode();
       // prepare parameters
       FormalParameterList parameters = null;
       TypeName returnType = null;
@@ -323,16 +323,16 @@ public class LightNodeElements {
   private static final IStyledLabelProvider LABEL_PROVIDER = new NodeLabelProvider();
 
   /**
-   * @return the {@link LightNodeElement} for given {@link ASTNode}, may be <code>null</code> if
+   * @return the {@link LightNodeElement} for given {@link AstNode}, may be <code>null</code> if
    *         given is not declaration and does not have reasonable declaration child.
    */
-  public static LightNodeElement createLightNodeElement(IFile contextFile, ASTNode node) {
+  public static LightNodeElement createLightNodeElement(IFile contextFile, AstNode node) {
     if (node == null) {
       return null;
     }
     // prepare "childNode"
-    ASTNode childNode = null;
-    ASTNode parentNode = null;
+    AstNode childNode = null;
+    AstNode parentNode = null;
     if (childNode == null) {
       FunctionDeclaration function = node.getAncestor(FunctionDeclaration.class);
       if (function != null) {
@@ -448,11 +448,11 @@ public class LightNodeElements {
   }
 
   private static void addLocalFunctions(final IFile contextFile, final LightNodeElement parent,
-      ASTNode in) {
+      AstNode in) {
     if (in == null) {
       return;
     }
-    in.accept(new RecursiveASTVisitor<Void>() {
+    in.accept(new RecursiveAstVisitor<Void>() {
       @Override
       public Void visitAssignmentExpression(AssignmentExpression node) {
         return null;
@@ -487,7 +487,7 @@ public class LightNodeElements {
   }
 
   private static LightNodeElement createLightNodeElement(final IFile contextFile,
-      LightNodeElement parent, ASTNode node, boolean withChildren) {
+      LightNodeElement parent, AstNode node, boolean withChildren) {
     // VariableDeclaration
     if (node instanceof VariableDeclaration) {
       VariableDeclaration variable = (VariableDeclaration) node;

@@ -1,6 +1,6 @@
 package com.google.dart.engine.services.completion;
 
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.Annotation;
 import com.google.dart.engine.ast.ArgumentDefinitionTest;
 import com.google.dart.engine.ast.ArgumentList;
@@ -26,23 +26,23 @@ import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationList;
 import com.google.dart.engine.ast.WhileStatement;
 import com.google.dart.engine.ast.WithClause;
-import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
+import com.google.dart.engine.ast.visitor.GeneralizingAstVisitor;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
 
 /**
  * @coverage com.google.dart.engine.services.completion
  */
-class ContextAnalyzer extends GeneralizingASTVisitor<Void> {
+class ContextAnalyzer extends GeneralizingAstVisitor<Void> {
   CompletionState state;
-  ASTNode completionNode;
-  ASTNode child;
+  AstNode completionNode;
+  AstNode child;
   boolean inExpression;
   boolean inIdentifier;
   boolean inTypeName;
   boolean maybeInvocationArgument = true;
 
-  ContextAnalyzer(CompletionState state, ASTNode completionNode) {
+  ContextAnalyzer(CompletionState state, AstNode completionNode) {
     this.state = state;
     this.completionNode = completionNode;
   }
@@ -145,9 +145,9 @@ class ContextAnalyzer extends GeneralizingASTVisitor<Void> {
   }
 
   @Override
-  public Void visitNode(ASTNode node) {
+  public Void visitNode(AstNode node) {
     // Walk UP the tree, not down.
-    ASTNode parent = node.getParent();
+    AstNode parent = node.getParent();
     updateIfShouldGetTargetParameter(node, parent);
     if (parent != null) {
       child = node;
@@ -254,7 +254,7 @@ class ContextAnalyzer extends GeneralizingASTVisitor<Void> {
     }
   }
 
-  private void updateIfShouldGetTargetParameter(ASTNode node, ASTNode parent) {
+  private void updateIfShouldGetTargetParameter(AstNode node, AstNode parent) {
     if (!maybeInvocationArgument) {
       return;
     }

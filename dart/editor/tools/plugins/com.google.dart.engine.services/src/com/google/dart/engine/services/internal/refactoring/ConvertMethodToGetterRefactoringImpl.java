@@ -15,7 +15,7 @@
 package com.google.dart.engine.services.internal.refactoring;
 
 import com.google.common.collect.Sets;
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.FormalParameterList;
 import com.google.dart.engine.ast.FunctionDeclaration;
@@ -166,7 +166,7 @@ public class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl implem
     // prepare parameters
     FormalParameterList parameters;
     {
-      ASTNode node = element.getNode();
+      AstNode node = element.getNode();
       if (node instanceof MethodDeclaration) {
         parameters = ((MethodDeclaration) node).getParameters();
       } else {
@@ -195,7 +195,7 @@ public class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl implem
       MethodInvocation invocation;
       {
         CompilationUnit refUnit = refElement.getUnit();
-        ASTNode refNode = new NodeLocator(refRange.getOffset()).searchWithin(refUnit);
+        AstNode refNode = new NodeLocator(refRange.getOffset()).searchWithin(refUnit);
         invocation = refNode.getAncestor(MethodInvocation.class);
       }
       // we need invocation

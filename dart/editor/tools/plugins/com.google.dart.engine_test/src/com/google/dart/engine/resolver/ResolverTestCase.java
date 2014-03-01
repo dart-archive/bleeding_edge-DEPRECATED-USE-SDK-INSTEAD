@@ -33,8 +33,8 @@ import com.google.dart.engine.internal.resolver.TypeProvider;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
 
-import static com.google.dart.engine.ast.ASTFactory.identifier;
-import static com.google.dart.engine.ast.ASTFactory.libraryIdentifier;
+import static com.google.dart.engine.ast.AstFactory.identifier;
+import static com.google.dart.engine.ast.AstFactory.libraryIdentifier;
 import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
 
 import junit.framework.AssertionFailedError;

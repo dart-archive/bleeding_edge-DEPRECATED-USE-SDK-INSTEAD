@@ -13,7 +13,7 @@
  */
 package com.google.dart.engine.internal.element;
 
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.ast.MethodDeclaration;
@@ -108,7 +108,7 @@ public class PropertyAccessorElementImpl extends ExecutableElementImpl implement
   }
 
   @Override
-  public ASTNode getNode() throws AnalysisException {
+  public AstNode getNode() throws AnalysisException {
     if (isSynthetic()) {
       return null;
     }

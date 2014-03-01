@@ -13,7 +13,7 @@
  */
 package com.google.dart.engine.internal.scope;
 
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.ClassTypeAlias;
 import com.google.dart.engine.ast.CompilationUnit;
@@ -41,7 +41,7 @@ public final class ScopeBuilder {
    * @throws AnalysisException if the AST structure has not been resolved or is not part of a
    *           {@link CompilationUnit}
    */
-  public static Scope scopeFor(ASTNode node, AnalysisErrorListener errorListener)
+  public static Scope scopeFor(AstNode node, AnalysisErrorListener errorListener)
       throws AnalysisException {
     if (node == null) {
       throw new AnalysisException("Cannot create scope: node is null");
@@ -49,7 +49,7 @@ public final class ScopeBuilder {
       ScopeBuilder builder = new ScopeBuilder(errorListener);
       return builder.scopeForAstNode(node);
     }
-    ASTNode parent = node.getParent();
+    AstNode parent = node.getParent();
     if (parent == null) {
       throw new AnalysisException("Cannot create scope: node is not part of a CompilationUnit");
     }
@@ -76,18 +76,18 @@ public final class ScopeBuilder {
    * Return the scope in which the given AST structure should be resolved.
    * <p>
    * <b>Note:</b> This method needs to be kept in sync with
-   * {@link IncrementalResolver#canBeResolved(ASTNode)}.
+   * {@link IncrementalResolver#canBeResolved(AstNode)}.
    * 
    * @param node the root of the AST structure to be resolved
    * @return the scope in which the given AST structure should be resolved
    * @throws AnalysisException if the AST structure has not been resolved or is not part of a
    *           {@link CompilationUnit}
    */
-  private Scope scopeForAstNode(ASTNode node) throws AnalysisException {
+  private Scope scopeForAstNode(AstNode node) throws AnalysisException {
     if (node instanceof CompilationUnit) {
       return scopeForCompilationUnit((CompilationUnit) node);
     }
-    ASTNode parent = node.getParent();
+    AstNode parent = node.getParent();
     if (parent == null) {
       throw new AnalysisException("Cannot create scope: node is not part of a CompilationUnit");
     }

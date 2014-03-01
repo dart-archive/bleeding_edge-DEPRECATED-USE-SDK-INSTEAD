@@ -18,7 +18,7 @@ import com.google.dart.engine.internal.cache.DartEntry;
 import com.google.dart.engine.internal.cache.DartEntryImpl;
 import com.google.dart.engine.internal.cache.SourceEntry;
 import com.google.dart.engine.source.Source;
-import com.google.dart.engine.utilities.ast.ASTComparator;
+import com.google.dart.engine.utilities.ast.AstComparator;
 
 /**
  * Instances of the class {@code IncrementalAnalysisCache} hold information used to perform
@@ -150,7 +150,7 @@ public class IncrementalAnalysisCache {
   public static IncrementalAnalysisCache verifyStructure(IncrementalAnalysisCache cache,
       Source source, CompilationUnit unit) {
     if (cache != null && unit != null && cache.source.equals(source)) {
-      if (!ASTComparator.equals(cache.resolvedUnit, unit)) {
+      if (!AstComparator.equals(cache.resolvedUnit, unit)) {
         return null;
       }
     }

@@ -13,7 +13,7 @@
  */
 package com.google.dart.engine.internal.scope;
 
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.element.CompilationUnitElement;
@@ -178,7 +178,7 @@ public abstract class Scope {
    * @param identifier the identifier whose source is to be returned
    * @return the source that contains the given identifier
    */
-  protected final Source getSource(ASTNode node) {
+  protected final Source getSource(AstNode node) {
     CompilationUnit unit = node.getAncestor(CompilationUnit.class);
     if (unit != null) {
       CompilationUnitElement unitElement = unit.getElement();

@@ -16,10 +16,10 @@ package com.google.dart.tools.ui.internal.text.editor;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.Uninterruptibles;
 import com.google.dart.compiler.ast.DartUnit;
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.SimpleIdentifier;
-import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
+import com.google.dart.engine.ast.visitor.GeneralizingAstVisitor;
 import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.text.dart.IDartReconcilingListener;
@@ -54,14 +54,14 @@ public class SemanticHighlightingReconciler implements IDartReconcilingListener,
   /**
    * Collects positions from the AST.
    */
-  private class PositionCollector extends GeneralizingASTVisitor<Void> {
+  private class PositionCollector extends GeneralizingAstVisitor<Void> {
     /**
      * Cache tokens for performance.
      */
     private final SemanticToken token = new SemanticToken();
 
     @Override
-    public Void visitNode(ASTNode node) {
+    public Void visitNode(AstNode node) {
       processNode(token, node);
       return super.visitNode(node);
     }
@@ -333,7 +333,7 @@ public class SemanticHighlightingReconciler implements IDartReconcilingListener,
     fPresenter = null;
   }
 
-  private final void processNode(SemanticToken token, ASTNode node) {
+  private final void processNode(SemanticToken token, AstNode node) {
     ISourceViewer sourceViewer = this.fSourceViewer;
     if (sourceViewer == null) {
       return;

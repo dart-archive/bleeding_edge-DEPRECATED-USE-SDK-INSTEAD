@@ -13,7 +13,7 @@
  */
 package com.google.dart.engine.internal.resolver;
 
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.AsExpression;
 import com.google.dart.engine.ast.CatchClause;
 import com.google.dart.engine.ast.ClassDeclaration;
@@ -46,7 +46,7 @@ import com.google.dart.engine.ast.TypeParameter;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationList;
 import com.google.dart.engine.ast.WithClause;
-import com.google.dart.engine.ast.visitor.UnifyingASTVisitor;
+import com.google.dart.engine.ast.visitor.UnifyingAstVisitor;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
@@ -122,7 +122,7 @@ public class TypeResolverVisitor extends ScopedVisitor {
    * @return {@code true} if given {@link TypeName} is used as a type annotation.
    */
   private static boolean isTypeAnnotation(TypeName node) {
-    ASTNode parent = node.getParent();
+    AstNode parent = node.getParent();
     if (parent instanceof VariableDeclarationList) {
       return ((VariableDeclarationList) parent).getType() == node;
     }
@@ -472,7 +472,7 @@ public class TypeResolverVisitor extends ScopedVisitor {
       // If not, the look to see whether we might have created the wrong AST structure for a
       // constructor name. If so, fix the AST structure and then proceed.
       //
-      ASTNode parent = node.getParent();
+      AstNode parent = node.getParent();
       if (typeName instanceof PrefixedIdentifier && parent instanceof ConstructorName
           && argumentList == null) {
         ConstructorName name = (ConstructorName) parent;
@@ -608,7 +608,7 @@ public class TypeResolverVisitor extends ScopedVisitor {
       } else if (isTypeNameInTypeArgumentList(node)) {
         reportError(StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT, typeName, typeName.getName());
       } else {
-        ASTNode parent = typeName.getParent();
+        AstNode parent = typeName.getParent();
         while (parent instanceof TypeName) {
           parent = parent.getParent();
         }
@@ -749,7 +749,7 @@ public class TypeResolverVisitor extends ScopedVisitor {
     // parameters can be correctly resolved.
     //
     final ArrayList<ClassMember> nonFields = new ArrayList<ClassMember>();
-    node.visitChildren(new UnifyingASTVisitor<Void>() {
+    node.visitChildren(new UnifyingAstVisitor<Void>() {
       @Override
       public Void visitConstructorDeclaration(ConstructorDeclaration node) {
         nonFields.add(node);
@@ -763,7 +763,7 @@ public class TypeResolverVisitor extends ScopedVisitor {
       }
 
       @Override
-      public Void visitNode(ASTNode node) {
+      public Void visitNode(AstNode node) {
         return node.accept(TypeResolverVisitor.this);
       }
     });
@@ -913,7 +913,7 @@ public class TypeResolverVisitor extends ScopedVisitor {
    *         were provided
    */
   private ErrorCode getInvalidTypeParametersErrorCode(TypeName node) {
-    ASTNode parent = node.getParent();
+    AstNode parent = node.getParent();
     if (parent instanceof ConstructorName) {
       parent = parent.getParent();
       if (parent instanceof InstanceCreationExpression) {
@@ -935,7 +935,7 @@ public class TypeResolverVisitor extends ScopedVisitor {
    *         redirected constructor, or {@code null} otherwise
    */
   private RedirectingConstructorKind getRedirectingConstructorKind(TypeName typeName) {
-    ASTNode parent = typeName.getParent();
+    AstNode parent = typeName.getParent();
     if (parent instanceof ConstructorName) {
       ConstructorName constructorName = (ConstructorName) parent;
       parent = constructorName.getParent();
@@ -1022,7 +1022,7 @@ public class TypeResolverVisitor extends ScopedVisitor {
    * @return {@code true} if the given type name is used as the type in an as expression
    */
   private boolean isTypeNameInAsExpression(TypeName typeName) {
-    ASTNode parent = typeName.getParent();
+    AstNode parent = typeName.getParent();
     if (parent instanceof AsExpression) {
       AsExpression asExpression = (AsExpression) parent;
       return asExpression.getType() == typeName;
@@ -1037,7 +1037,7 @@ public class TypeResolverVisitor extends ScopedVisitor {
    * @return {@code true} if the given type name is used as the exception type in a catch clause
    */
   private boolean isTypeNameInCatchClause(TypeName typeName) {
-    ASTNode parent = typeName.getParent();
+    AstNode parent = typeName.getParent();
     if (parent instanceof CatchClause) {
       CatchClause catchClause = (CatchClause) parent;
       return catchClause.getExceptionType() == typeName;
@@ -1053,7 +1053,7 @@ public class TypeResolverVisitor extends ScopedVisitor {
    *         expression
    */
   private boolean isTypeNameInInstanceCreationExpression(TypeName typeName) {
-    ASTNode parent = typeName.getParent();
+    AstNode parent = typeName.getParent();
     if (parent instanceof ConstructorName
         && parent.getParent() instanceof InstanceCreationExpression) {
       ConstructorName constructorName = (ConstructorName) parent;
@@ -1069,7 +1069,7 @@ public class TypeResolverVisitor extends ScopedVisitor {
    * @return {@code true} if the given type name is used as the type in an is expression
    */
   private boolean isTypeNameInIsExpression(TypeName typeName) {
-    ASTNode parent = typeName.getParent();
+    AstNode parent = typeName.getParent();
     if (parent instanceof IsExpression) {
       IsExpression isExpression = (IsExpression) parent;
       return isExpression.getType() == typeName;

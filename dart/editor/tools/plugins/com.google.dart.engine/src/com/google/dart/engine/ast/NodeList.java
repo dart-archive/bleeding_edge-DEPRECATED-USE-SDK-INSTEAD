@@ -23,7 +23,7 @@ import java.util.Collection;
  * 
  * @coverage dart.engine.ast
  */
-public class NodeList<E extends ASTNode> extends AbstractList<E> {
+public class NodeList<E extends AstNode> extends AbstractList<E> {
   /**
    * Create an empty list with the given owner. This is a convenience method that allows the
    * compiler to determine the correct value of the type argument {@link #E} without needing to
@@ -32,26 +32,26 @@ public class NodeList<E extends ASTNode> extends AbstractList<E> {
    * @param owner the node that is the parent of each of the elements in the list
    * @return the list that was created
    */
-  public static <E extends ASTNode> NodeList<E> create(ASTNode owner) {
+  public static <E extends AstNode> NodeList<E> create(AstNode owner) {
     return new NodeList<E>(owner);
   }
 
   /**
    * The node that is the parent of each of the elements in the list.
    */
-  private final ASTNode owner;
+  private final AstNode owner;
 
   /**
    * The elements contained in the list.
    */
-  private ASTNode[] elements = ASTNode.EMPTY_ARRAY;
+  private AstNode[] elements = AstNode.EMPTY_ARRAY;
 
   /**
    * Initialize a newly created list of nodes to be empty.
    * 
    * @param owner the node that is the parent of each of the elements in the list
    */
-  public NodeList(ASTNode owner) {
+  public NodeList(AstNode owner) {
     this.owner = owner;
   }
 
@@ -60,8 +60,8 @@ public class NodeList<E extends ASTNode> extends AbstractList<E> {
    * 
    * @param visitor the visitor to be used to visit the elements of this list
    */
-  public void accept(ASTVisitor<?> visitor) {
-    for (ASTNode element : elements) {
+  public void accept(AstVisitor<?> visitor) {
+    for (AstNode element : elements) {
       element.accept(visitor);
     }
   }
@@ -74,9 +74,9 @@ public class NodeList<E extends ASTNode> extends AbstractList<E> {
     }
     owner.becomeParentOf(node);
     if (length == 0) {
-      elements = new ASTNode[] {node};
+      elements = new AstNode[] {node};
     } else {
-      ASTNode[] newElements = new ASTNode[length + 1];
+      AstNode[] newElements = new AstNode[length + 1];
       System.arraycopy(elements, 0, newElements, 0, index);
       newElements[index] = node;
       System.arraycopy(elements, index, newElements, index + 1, length - index);
@@ -89,7 +89,7 @@ public class NodeList<E extends ASTNode> extends AbstractList<E> {
     if (nodes != null && !nodes.isEmpty()) {
       int oldCount = elements.length;
       int newCount = nodes.size();
-      ASTNode[] newElements = new ASTNode[oldCount + newCount];
+      AstNode[] newElements = new AstNode[oldCount + newCount];
       System.arraycopy(elements, 0, newElements, 0, oldCount);
       int index = oldCount;
       for (E node : nodes) {
@@ -140,7 +140,7 @@ public class NodeList<E extends ASTNode> extends AbstractList<E> {
    * 
    * @return the node that is the parent of each of the elements in the list
    */
-  public ASTNode getOwner() {
+  public AstNode getOwner() {
     return owner;
   }
 
@@ -163,10 +163,10 @@ public class NodeList<E extends ASTNode> extends AbstractList<E> {
     E removedNode = (E) elements[index];
     int length = elements.length;
     if (length == 1) {
-      elements = ASTNode.EMPTY_ARRAY;
+      elements = AstNode.EMPTY_ARRAY;
       return removedNode;
     }
-    ASTNode[] newElements = new ASTNode[length - 1];
+    AstNode[] newElements = new AstNode[length - 1];
     System.arraycopy(elements, 0, newElements, 0, index);
     System.arraycopy(elements, index + 1, newElements, index, length - index - 1);
     elements = newElements;

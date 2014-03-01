@@ -13,7 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.actions;
 
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ConstructorElement;
@@ -157,7 +157,7 @@ public class ActionUtil {
 
   /**
    * @return the {@link Element} to perform action on, may be {@code null}. In the most cases as
-   *         simple as just {@link Element} of covered {@link ASTNode}, but sometimes we want to be
+   *         simple as just {@link Element} of covered {@link AstNode}, but sometimes we want to be
    *         smarter.
    */
   public static Element getActionElement(DartSelection selection) {

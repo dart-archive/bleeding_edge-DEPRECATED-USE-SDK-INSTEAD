@@ -13,7 +13,7 @@
  */
 package com.google.dart.engine.services.internal.refactoring;
 
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.PrefixedIdentifier;
@@ -70,7 +70,7 @@ public class ExtractExpressionAnalyzer extends SelectionAnalyzer {
         invalidSelection("Cannot extract a single method name.");
       }
       // name in property access
-      ASTNode parent = node.getParent();
+      AstNode parent = node.getParent();
       if (parent instanceof PrefixedIdentifier
           && ((PrefixedIdentifier) parent).getIdentifier() == node) {
         invalidSelection("Can not extract name part of a property access.");
@@ -97,7 +97,7 @@ public class ExtractExpressionAnalyzer extends SelectionAnalyzer {
     reset();
   }
 
-  private boolean isFirstSelectedNode(ASTNode node) {
+  private boolean isFirstSelectedNode(AstNode node) {
     return getFirstSelectedNode() == node;
   }
 }

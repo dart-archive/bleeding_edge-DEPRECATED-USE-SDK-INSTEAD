@@ -21,23 +21,23 @@ import com.google.dart.engine.scanner.Token;
  * structure to another as long as the structures of the corresponding children of a pair of nodes
  * are the same.
  */
-public class ResolutionCopier implements ASTVisitor<Boolean> {
+public class ResolutionCopier implements AstVisitor<Boolean> {
   /**
    * Copy resolution data from one node to another.
    * 
    * @param fromNode the node from which resolution information will be copied
    * @param toNode the node to which resolution information will be copied
    */
-  public static void copyResolutionData(ASTNode fromNode, ASTNode toNode) {
+  public static void copyResolutionData(AstNode fromNode, AstNode toNode) {
     ResolutionCopier copier = new ResolutionCopier();
     copier.isEqual(fromNode, toNode);
   }
 
   /**
    * The AST node with which the node being visited is to be compared. This is only valid at the
-   * beginning of each visit method (until {@link #isEqual(ASTNode, ASTNode)} is invoked).
+   * beginning of each visit method (until {@link #isEqual(AstNode, AstNode)} is invoked).
    */
-  private ASTNode toNode;
+  private AstNode toNode;
 
   @Override
   public Boolean visitAdjacentStrings(AdjacentStrings node) {
@@ -1169,7 +1169,7 @@ public class ResolutionCopier implements ASTVisitor<Boolean> {
    * @param toNode the node to which resolution information will be copied
    * @return {@code true} if the given AST nodes have the same structure
    */
-  private boolean isEqual(ASTNode fromNode, ASTNode toNode) {
+  private boolean isEqual(AstNode fromNode, AstNode toNode) {
     if (fromNode == null) {
       return toNode == null;
     } else if (toNode == null) {
@@ -1206,7 +1206,7 @@ public class ResolutionCopier implements ASTVisitor<Boolean> {
    * @return {@code true} if the given AST nodes have the same size and corresponding elements are
    *         equal
    */
-  private <E extends ASTNode> boolean isEqual(NodeList<E> first, NodeList<E> second) {
+  private <E extends AstNode> boolean isEqual(NodeList<E> first, NodeList<E> second) {
     if (first == null) {
       return second == null;
     } else if (second == null) {

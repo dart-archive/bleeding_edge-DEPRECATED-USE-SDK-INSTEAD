@@ -80,7 +80,7 @@ public abstract class NormalFormalParameter extends FormalParameter {
 
   @Override
   public ParameterKind getKind() {
-    ASTNode parent = getParent();
+    AstNode parent = getParent();
     if (parent instanceof DefaultFormalParameter) {
       return ((DefaultFormalParameter) parent).getKind();
     }
@@ -115,7 +115,7 @@ public abstract class NormalFormalParameter extends FormalParameter {
   }
 
   @Override
-  public void visitChildren(ASTVisitor<?> visitor) {
+  public void visitChildren(AstVisitor<?> visitor) {
     //
     // Note that subclasses are responsible for visiting the identifier because they often need to
     // visit other nodes before visiting the identifier.
@@ -124,7 +124,7 @@ public abstract class NormalFormalParameter extends FormalParameter {
       safelyVisitChild(comment, visitor);
       metadata.accept(visitor);
     } else {
-      for (ASTNode child : getSortedCommentAndAnnotations()) {
+      for (AstNode child : getSortedCommentAndAnnotations()) {
         child.accept(visitor);
       }
     }
@@ -150,12 +150,12 @@ public abstract class NormalFormalParameter extends FormalParameter {
    * @return the comment and annotations associated with this parameter in the order in which they
    *         appeared in the original source
    */
-  private ASTNode[] getSortedCommentAndAnnotations() {
-    ArrayList<ASTNode> childList = new ArrayList<ASTNode>();
+  private AstNode[] getSortedCommentAndAnnotations() {
+    ArrayList<AstNode> childList = new ArrayList<AstNode>();
     childList.add(comment);
     childList.addAll(metadata);
-    ASTNode[] children = childList.toArray(new ASTNode[childList.size()]);
-    Arrays.sort(children, ASTNode.LEXICAL_ORDER);
+    AstNode[] children = childList.toArray(new AstNode[childList.size()]);
+    Arrays.sort(children, AstNode.LEXICAL_ORDER);
     return children;
   }
 }

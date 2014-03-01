@@ -14,7 +14,7 @@
 
 package com.google.dart.engine.services.internal.refactoring;
 
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.Block;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.Expression;
@@ -78,7 +78,7 @@ public class InlineLocalRefactoringImpl extends RefactoringImpl implements Inlin
       // prepare variable
       variableElement = null;
       {
-        ASTNode coveringNode = context.getCoveringNode();
+        AstNode coveringNode = context.getCoveringNode();
         if (coveringNode instanceof SimpleIdentifier) {
           SimpleIdentifier coveringIdentifier = (SimpleIdentifier) coveringNode;
           Element element = coveringIdentifier.getBestElement();
@@ -205,8 +205,8 @@ public class InlineLocalRefactoringImpl extends RefactoringImpl implements Inlin
    * @return <code>true</code> if given offset of the reference has form <code>$name</code>.
    */
   private boolean isIdentifierInStringInterpolation(int offset) {
-    ASTNode node = utils.findNode(offset, ASTNode.class);
-    ASTNode parent = node.getParent();
+    AstNode node = utils.findNode(offset, AstNode.class);
+    AstNode parent = node.getParent();
     if (parent instanceof InterpolationExpression) {
       InterpolationExpression element = (InterpolationExpression) parent;
       return element.getBeginToken().getType() == TokenType.STRING_INTERPOLATION_IDENTIFIER;

@@ -23,7 +23,7 @@ import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.SimpleIdentifier;
-import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
+import com.google.dart.engine.ast.visitor.RecursiveAstVisitor;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
@@ -562,7 +562,7 @@ public class SimpleResolverTest extends ResolverTestCase {
     assertNotNull(unit);
     final boolean[] found = {false};
     final AnalysisException[] thrownException = new AnalysisException[1];
-    unit.accept(new RecursiveASTVisitor<Void>() {
+    unit.accept(new RecursiveAstVisitor<Void>() {
       @Override
       public Void visitSimpleIdentifier(SimpleIdentifier node) {
         if (node.getName().equals("myVar") && node.getParent() instanceof MethodInvocation) {

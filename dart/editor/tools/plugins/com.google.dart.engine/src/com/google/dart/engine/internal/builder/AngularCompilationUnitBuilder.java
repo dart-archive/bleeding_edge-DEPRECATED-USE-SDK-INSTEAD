@@ -16,7 +16,7 @@ package com.google.dart.engine.internal.builder;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.Annotation;
 import com.google.dart.engine.ast.ArgumentList;
 import com.google.dart.engine.ast.AssignmentExpression;
@@ -36,7 +36,7 @@ import com.google.dart.engine.ast.PrefixedIdentifier;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.SimpleStringLiteral;
 import com.google.dart.engine.ast.VariableDeclaration;
-import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
+import com.google.dart.engine.ast.visitor.RecursiveAstVisitor;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
@@ -102,7 +102,7 @@ public class AngularCompilationUnitBuilder {
   private static final String NG_ONE_WAY_ONE_TIME = "NgOneWayOneTime";
   private static final String NG_TWO_WAY = "NgTwoWay";
 
-  public static Element getElement(ASTNode node, int offset) {
+  public static Element getElement(AstNode node, int offset) {
     // maybe node is not SimpleStringLiteral
     if (!(node instanceof SimpleStringLiteral)) {
       return null;
@@ -241,7 +241,7 @@ public class AngularCompilationUnitBuilder {
    * Checks if the name range of the given {@link Element} is completely covered by the given
    * {@link SimpleStringLiteral}.
    */
-  private static boolean isNameCoveredByLiteral(Element element, ASTNode node) {
+  private static boolean isNameCoveredByLiteral(Element element, AstNode node) {
     if (element != null) {
       String name = element.getName();
       if (name != null) {
@@ -683,7 +683,7 @@ public class AngularCompilationUnitBuilder {
 
   private AngularScopePropertyElement[] parseScopeProperties() {
     final List<AngularScopePropertyElement> properties = Lists.newArrayList();
-    classDeclaration.accept(new RecursiveASTVisitor<Void>() {
+    classDeclaration.accept(new RecursiveAstVisitor<Void>() {
       @Override
       public Void visitAssignmentExpression(AssignmentExpression node) {
         addProperty(node);
@@ -762,7 +762,7 @@ public class AngularCompilationUnitBuilder {
    */
   private void parseViews() {
     final List<AngularViewElement> views = Lists.newArrayList();
-    unit.accept(new RecursiveASTVisitor<Void>() {
+    unit.accept(new RecursiveAstVisitor<Void>() {
       @Override
       public Void visitMethodInvocation(MethodInvocation node) {
         addView(node);
@@ -817,7 +817,7 @@ public class AngularCompilationUnitBuilder {
     }
   }
 
-  private void reportError(ASTNode node, ErrorCode errorCode, Object... arguments) {
+  private void reportError(AstNode node, ErrorCode errorCode, Object... arguments) {
     int offset = node.getOffset();
     int length = node.getLength();
     reportError(offset, length, errorCode, arguments);

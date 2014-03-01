@@ -14,7 +14,7 @@
 package com.google.dart.engine.ast.visitor;
 
 import com.google.dart.engine.EngineTestCase;
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.Combinator;
 import com.google.dart.engine.ast.Comment;
 import com.google.dart.engine.ast.CommentReference;
@@ -27,7 +27,7 @@ import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.utilities.io.PrintStringWriter;
 
-import static com.google.dart.engine.ast.ASTFactory.*;
+import static com.google.dart.engine.ast.AstFactory.*;
 import static com.google.dart.engine.scanner.TokenFactory.token;
 
 public class ToSourceVisitorTest extends EngineTestCase {
@@ -1526,7 +1526,7 @@ public class ToSourceVisitorTest extends EngineTestCase {
    * @param node the AST node being visited to produce the actual source
    * @throws AFE if the visitor does not produce the expected source for the given node
    */
-  private void assertSource(String expectedSource, ASTNode node) {
+  private void assertSource(String expectedSource, AstNode node) {
     PrintStringWriter writer = new PrintStringWriter();
     node.accept(new ToSourceVisitor(writer));
     assertEquals(expectedSource, writer.toString());

@@ -13,7 +13,7 @@
  */
 package com.google.dart.engine.internal.element.handle;
 
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisException;
@@ -210,7 +210,7 @@ public abstract class ElementHandle implements Element {
   }
 
   @Override
-  public ASTNode getNode() throws AnalysisException {
+  public AstNode getNode() throws AnalysisException {
     return getActualElement().getNode();
   }
 

@@ -16,7 +16,7 @@ package com.google.dart.java2dart;
 
 import com.google.common.base.Joiner;
 import com.google.common.io.Files;
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.utilities.io.PrintStringWriter;
 import com.google.dart.java2dart.util.ToFormattedSourceVisitor;
 
@@ -33,16 +33,16 @@ import java.io.File;
  */
 public class AbstractSemanticTest extends TestCase {
   /**
-   * @return the formatted Dart source dump of the given {@link ASTNode}.
+   * @return the formatted Dart source dump of the given {@link AstNode}.
    */
-  protected static String getFormattedSource(ASTNode node) {
+  protected static String getFormattedSource(AstNode node) {
     PrintStringWriter writer = new PrintStringWriter();
     node.accept(new ToFormattedSourceVisitor(writer));
     String result = writer.toString();
     return StringUtils.join(StringUtils.split(result, '\n'), "\n");
   }
 
-  protected static void printFormattedSource(ASTNode node) {
+  protected static void printFormattedSource(AstNode node) {
     String source = getFormattedSource(node);
     String[] lines = StringUtils.split(source, '\n');
     for (int i = 0; i < lines.length; i++) {

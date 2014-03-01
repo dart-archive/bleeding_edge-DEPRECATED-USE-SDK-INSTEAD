@@ -27,7 +27,7 @@ import com.google.dart.engine.scanner.Token;
  * 
  * @coverage dart.engine.ast
  */
-public abstract class Combinator extends ASTNode {
+public abstract class Combinator extends AstNode {
   /**
    * The keyword specifying what kind of processing is to be done on the imported names.
    */

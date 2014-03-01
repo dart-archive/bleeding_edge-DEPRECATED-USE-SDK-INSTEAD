@@ -37,5 +37,5 @@ package com.google.dart.engine.ast;
  * 
  * @coverage dart.engine.ast
  */
-public abstract class Statement extends ASTNode {
+public abstract class Statement extends AstNode {
 }

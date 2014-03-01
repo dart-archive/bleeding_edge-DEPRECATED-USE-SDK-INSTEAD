@@ -14,7 +14,7 @@
 package com.google.dart.engine.internal.constant;
 
 import com.google.dart.engine.AnalysisEngine;
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.element.CompilationUnitElement;
@@ -137,7 +137,7 @@ public class ConstantValueComputer {
     if (result instanceof ErrorResult) {
       ArrayList<AnalysisError> errors = new ArrayList<AnalysisError>();
       for (ErrorResult.ErrorData data : ((ErrorResult) result).getErrorData()) {
-        ASTNode node = data.getNode();
+        AstNode node = data.getNode();
         Source source = variable.getAncestor(CompilationUnitElement.class).getSource();
         errors.add(new AnalysisError(
             source,

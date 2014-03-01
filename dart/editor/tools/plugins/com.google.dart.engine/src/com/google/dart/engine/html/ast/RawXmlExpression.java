@@ -14,7 +14,7 @@
 
 package com.google.dart.engine.html.ast;
 
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.visitor.ElementLocator;
 import com.google.dart.engine.ast.visitor.NodeLocator;
@@ -55,7 +55,7 @@ public class RawXmlExpression extends XmlExpression {
 
   @Override
   public Reference getReference(int offset) {
-    ASTNode node = new NodeLocator(offset).searchWithin(expression);
+    AstNode node = new NodeLocator(offset).searchWithin(expression);
     if (node != null) {
       Element element = ElementLocator.locate(node);
       return new Reference(element, node.getOffset(), node.getLength());

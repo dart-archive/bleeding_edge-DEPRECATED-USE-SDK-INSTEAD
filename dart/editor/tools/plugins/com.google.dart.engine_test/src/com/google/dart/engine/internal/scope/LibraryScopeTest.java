@@ -26,7 +26,7 @@ import com.google.dart.engine.internal.element.LibraryElementImpl;
 import com.google.dart.engine.resolver.ResolverTestCase;
 import com.google.dart.engine.source.SourceFactory;
 
-import static com.google.dart.engine.ast.ASTFactory.identifier;
+import static com.google.dart.engine.ast.AstFactory.identifier;
 
 public class LibraryScopeTest extends ResolverTestCase {
   public void test_creation_empty() {

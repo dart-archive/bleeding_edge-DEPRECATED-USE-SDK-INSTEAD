@@ -15,7 +15,7 @@
 package com.google.dart.java2dart.processor;
 
 import com.google.common.collect.Sets;
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.CatchClause;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.CompilationUnit;
@@ -30,8 +30,8 @@ import com.google.dart.engine.ast.PrefixedIdentifier;
 import com.google.dart.engine.ast.PropertyAccess;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.VariableDeclaration;
-import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
-import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
+import com.google.dart.engine.ast.visitor.GeneralizingAstVisitor;
+import com.google.dart.engine.ast.visitor.RecursiveAstVisitor;
 import com.google.dart.java2dart.Context;
 import com.google.dart.java2dart.SyntaxTranslator;
 
@@ -51,7 +51,7 @@ import java.util.Set;
  */
 public class LocalVariablesSemanticProcessor extends SemanticProcessor {
 
-  private class ClassSensetiveVisitor extends RecursiveASTVisitor<Void> {
+  private class ClassSensetiveVisitor extends RecursiveAstVisitor<Void> {
     private Set<String> hierarchyNames;
     private Set<String> methodNames;
 
@@ -91,18 +91,18 @@ public class LocalVariablesSemanticProcessor extends SemanticProcessor {
       }
     }
 
-    void ensureHierarchyNames(ASTNode node) {
+    void ensureHierarchyNames(AstNode node) {
       if (hierarchyNames != null) {
         return;
       }
       hierarchyNames = context.getSuperMembersNames(node);
     }
 
-    void ensureMethodNames(ASTNode node) {
+    void ensureMethodNames(AstNode node) {
       methodNames = Sets.newHashSet();
       MethodDeclaration method = node.getAncestor(MethodDeclaration.class);
       if (method != null) {
-        method.accept(new RecursiveASTVisitor<Void>() {
+        method.accept(new RecursiveAstVisitor<Void>() {
           @Override
           public Void visitVariableDeclaration(VariableDeclaration node) {
             methodNames.add(node.getName().getName());
@@ -130,7 +130,7 @@ public class LocalVariablesSemanticProcessor extends SemanticProcessor {
     }
   }
 
-  private static ASTNode getExecutableNode(ASTNode node) {
+  private static AstNode getExecutableNode(AstNode node) {
     // method
     MethodDeclaration method = node.getAncestor(MethodDeclaration.class);
     if (method != null) {
@@ -145,14 +145,14 @@ public class LocalVariablesSemanticProcessor extends SemanticProcessor {
     return null;
   }
 
-  private static boolean isMethodInvocationName(ASTNode node) {
-    ASTNode parent = node.getParent();
+  private static boolean isMethodInvocationName(AstNode node) {
+    AstNode parent = node.getParent();
     return parent instanceof MethodInvocation
         && ((MethodInvocation) parent).getMethodName() == node;
   }
 
   private static boolean isQualifiedName(SimpleIdentifier node) {
-    ASTNode parent = node.getParent();
+    AstNode parent = node.getParent();
     if (parent instanceof PropertyAccess) {
       return ((PropertyAccess) parent).getPropertyName() == node;
     }
@@ -196,7 +196,7 @@ public class LocalVariablesSemanticProcessor extends SemanticProcessor {
     });
   }
 
-  private Expression getMemberQualifier(ASTNode node) {
+  private Expression getMemberQualifier(AstNode node) {
     IBinding binding = context.getNodeBinding(node);
     if (!Modifier.isStatic(binding.getModifiers())) {
       return thisExpression();
@@ -215,7 +215,7 @@ public class LocalVariablesSemanticProcessor extends SemanticProcessor {
   }
 
   private void qualifyShadowedMembers(CompilationUnit unit) {
-    unit.accept(new RecursiveASTVisitor<Void>() {
+    unit.accept(new RecursiveAstVisitor<Void>() {
       @Override
       public Void visitConstructorDeclaration(ConstructorDeclaration node) {
         qualifyShadowedNodes(node, node.getBody());
@@ -228,13 +228,13 @@ public class LocalVariablesSemanticProcessor extends SemanticProcessor {
         return null;
       }
 
-      private void qualifyShadowedNodes(ASTNode executableNode, ASTNode body) {
+      private void qualifyShadowedNodes(AstNode executableNode, AstNode body) {
         if (body == null) {
           return;
         }
         // prepare names of local variables defined in the same block
         final Set<String> definedVars = Sets.newHashSet();
-        executableNode.accept(new GeneralizingASTVisitor<Void>() {
+        executableNode.accept(new GeneralizingAstVisitor<Void>() {
           @Override
           public Void visitCatchClause(CatchClause node) {
             String name = node.getExceptionParameter().getName();
@@ -257,7 +257,7 @@ public class LocalVariablesSemanticProcessor extends SemanticProcessor {
           }
         });
         // check all field references that could be shadowed
-        body.accept(new RecursiveASTVisitor<Void>() {
+        body.accept(new RecursiveAstVisitor<Void>() {
           @Override
           public Void visitSimpleIdentifier(SimpleIdentifier node) {
             // check if shadowed
@@ -274,7 +274,7 @@ public class LocalVariablesSemanticProcessor extends SemanticProcessor {
               return null;
             }
             // replace shadowed unqualified reference with qualified one 
-            ASTNode parent = node.getParent();
+            AstNode parent = node.getParent();
             Expression qualifier = getMemberQualifier(node);
             if (isMethodInvocationName(node)) {
               MethodInvocation invocation = (MethodInvocation) parent;

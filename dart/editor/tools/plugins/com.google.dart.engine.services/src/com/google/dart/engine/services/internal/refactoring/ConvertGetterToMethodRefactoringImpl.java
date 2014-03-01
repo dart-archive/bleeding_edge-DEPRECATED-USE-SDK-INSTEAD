@@ -15,7 +15,7 @@
 package com.google.dart.engine.services.internal.refactoring;
 
 import com.google.common.collect.Sets;
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.context.AnalysisException;
@@ -153,7 +153,7 @@ public class ConvertGetterToMethodRefactoringImpl extends RefactoringImpl implem
     // prepare "get" keyword
     Token getKeyword = null;
     {
-      ASTNode node = element.getNode();
+      AstNode node = element.getNode();
       if (node instanceof MethodDeclaration) {
         getKeyword = ((MethodDeclaration) node).getPropertyKeyword();
       } else if (node instanceof FunctionDeclaration) {

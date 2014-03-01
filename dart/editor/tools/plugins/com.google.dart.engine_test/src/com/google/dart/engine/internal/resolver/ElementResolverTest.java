@@ -14,7 +14,7 @@
 package com.google.dart.engine.internal.resolver;
 
 import com.google.dart.engine.EngineTestCase;
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.BreakStatement;
@@ -70,33 +70,33 @@ import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
 import com.google.dart.engine.utilities.io.FileUtilities2;
 
-import static com.google.dart.engine.ast.ASTFactory.assignmentExpression;
-import static com.google.dart.engine.ast.ASTFactory.binaryExpression;
-import static com.google.dart.engine.ast.ASTFactory.breakStatement;
-import static com.google.dart.engine.ast.ASTFactory.constructorName;
-import static com.google.dart.engine.ast.ASTFactory.continueStatement;
-import static com.google.dart.engine.ast.ASTFactory.exportDirective;
-import static com.google.dart.engine.ast.ASTFactory.expressionFunctionBody;
-import static com.google.dart.engine.ast.ASTFactory.fieldFormalParameter;
-import static com.google.dart.engine.ast.ASTFactory.formalParameterList;
-import static com.google.dart.engine.ast.ASTFactory.hideCombinator;
-import static com.google.dart.engine.ast.ASTFactory.identifier;
-import static com.google.dart.engine.ast.ASTFactory.importDirective;
-import static com.google.dart.engine.ast.ASTFactory.indexExpression;
-import static com.google.dart.engine.ast.ASTFactory.instanceCreationExpression;
-import static com.google.dart.engine.ast.ASTFactory.integer;
-import static com.google.dart.engine.ast.ASTFactory.methodDeclaration;
-import static com.google.dart.engine.ast.ASTFactory.methodInvocation;
-import static com.google.dart.engine.ast.ASTFactory.namedExpression;
-import static com.google.dart.engine.ast.ASTFactory.nullLiteral;
-import static com.google.dart.engine.ast.ASTFactory.postfixExpression;
-import static com.google.dart.engine.ast.ASTFactory.prefixExpression;
-import static com.google.dart.engine.ast.ASTFactory.propertyAccess;
-import static com.google.dart.engine.ast.ASTFactory.showCombinator;
-import static com.google.dart.engine.ast.ASTFactory.superConstructorInvocation;
-import static com.google.dart.engine.ast.ASTFactory.superExpression;
-import static com.google.dart.engine.ast.ASTFactory.thisExpression;
-import static com.google.dart.engine.ast.ASTFactory.typeName;
+import static com.google.dart.engine.ast.AstFactory.assignmentExpression;
+import static com.google.dart.engine.ast.AstFactory.binaryExpression;
+import static com.google.dart.engine.ast.AstFactory.breakStatement;
+import static com.google.dart.engine.ast.AstFactory.constructorName;
+import static com.google.dart.engine.ast.AstFactory.continueStatement;
+import static com.google.dart.engine.ast.AstFactory.exportDirective;
+import static com.google.dart.engine.ast.AstFactory.expressionFunctionBody;
+import static com.google.dart.engine.ast.AstFactory.fieldFormalParameter;
+import static com.google.dart.engine.ast.AstFactory.formalParameterList;
+import static com.google.dart.engine.ast.AstFactory.hideCombinator;
+import static com.google.dart.engine.ast.AstFactory.identifier;
+import static com.google.dart.engine.ast.AstFactory.importDirective;
+import static com.google.dart.engine.ast.AstFactory.indexExpression;
+import static com.google.dart.engine.ast.AstFactory.instanceCreationExpression;
+import static com.google.dart.engine.ast.AstFactory.integer;
+import static com.google.dart.engine.ast.AstFactory.methodDeclaration;
+import static com.google.dart.engine.ast.AstFactory.methodInvocation;
+import static com.google.dart.engine.ast.AstFactory.namedExpression;
+import static com.google.dart.engine.ast.AstFactory.nullLiteral;
+import static com.google.dart.engine.ast.AstFactory.postfixExpression;
+import static com.google.dart.engine.ast.AstFactory.prefixExpression;
+import static com.google.dart.engine.ast.AstFactory.propertyAccess;
+import static com.google.dart.engine.ast.AstFactory.showCombinator;
+import static com.google.dart.engine.ast.AstFactory.superConstructorInvocation;
+import static com.google.dart.engine.ast.AstFactory.superExpression;
+import static com.google.dart.engine.ast.AstFactory.thisExpression;
+import static com.google.dart.engine.ast.AstFactory.typeName;
 import static com.google.dart.engine.element.ElementFactory.classElement;
 import static com.google.dart.engine.element.ElementFactory.constructorElement;
 import static com.google.dart.engine.element.ElementFactory.exportFor;
@@ -789,7 +789,7 @@ public class ElementResolverTest extends EngineTestCase {
    * @param enclosingClass the element representing the class enclosing the identifier
    * @return the element to which the expression was resolved
    */
-  private void resolveInClass(ASTNode node, ClassElement enclosingClass) {
+  private void resolveInClass(AstNode node, ClassElement enclosingClass) {
     try {
       Field enclosingClassField = visitor.getClass().getDeclaredField("enclosingClass");
       enclosingClassField.setAccessible(true);
@@ -824,7 +824,7 @@ public class ElementResolverTest extends EngineTestCase {
    *          being resolved
    * @return the element to which the expression was resolved
    */
-  private void resolveNode(ASTNode node, Element... definedElements) {
+  private void resolveNode(AstNode node, Element... definedElements) {
     try {
       Field scopeField = visitor.getClass().getSuperclass().getDeclaredField("nameScope");
       scopeField.setAccessible(true);

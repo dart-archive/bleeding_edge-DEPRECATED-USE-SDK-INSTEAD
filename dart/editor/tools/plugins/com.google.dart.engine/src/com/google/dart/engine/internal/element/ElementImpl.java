@@ -13,7 +13,7 @@
  */
 package com.google.dart.engine.internal.element;
 
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.ast.visitor.NodeLocator;
@@ -174,8 +174,8 @@ public abstract class ElementImpl implements Element {
   }
 
   @Override
-  public ASTNode getNode() throws AnalysisException {
-    return getNode(ASTNode.class);
+  public AstNode getNode() throws AnalysisException {
+    return getNode(AstNode.class);
   }
 
   @Override
@@ -324,15 +324,15 @@ public abstract class ElementImpl implements Element {
   }
 
   /**
-   * Return the resolved {@link ASTNode} of the given type enclosing {@link #getNameOffset()}.
+   * Return the resolved {@link AstNode} of the given type enclosing {@link #getNameOffset()}.
    */
-  protected <T extends ASTNode> T getNode(Class<T> clazz) throws AnalysisException {
+  protected <T extends AstNode> T getNode(Class<T> clazz) throws AnalysisException {
     CompilationUnit unit = getUnit();
     if (unit == null) {
       return null;
     }
     int offset = getNameOffset();
-    ASTNode node = new NodeLocator(offset).searchWithin(unit);
+    AstNode node = new NodeLocator(offset).searchWithin(unit);
     if (node == null) {
       return null;
     }

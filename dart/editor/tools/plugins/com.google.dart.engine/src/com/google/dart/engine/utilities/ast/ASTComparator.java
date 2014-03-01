@@ -18,10 +18,10 @@ import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.utilities.general.ObjectUtilities;
 
 /**
- * Instances of the class {@code ASTComparator} compare the structure of two ASTNodes to see whether
+ * Instances of the class {@code AstComparator} compare the structure of two ASTNodes to see whether
  * they are equal.
  */
-public class ASTComparator implements ASTVisitor<Boolean> {
+public class AstComparator implements AstVisitor<Boolean> {
   /**
    * Return {@code true} if the two AST nodes are equal.
    * 
@@ -30,15 +30,15 @@ public class ASTComparator implements ASTVisitor<Boolean> {
    * @return {@code true} if the two AST nodes are equal
    */
   public static boolean equals(CompilationUnit first, CompilationUnit second) {
-    ASTComparator comparator = new ASTComparator();
+    AstComparator comparator = new AstComparator();
     return comparator.isEqual(first, second);
   }
 
   /**
    * The AST node with which the node being visited is to be compared. This is only valid at the
-   * beginning of each visit method (until {@link #isEqual(ASTNode, ASTNode)} is invoked).
+   * beginning of each visit method (until {@link #isEqual(AstNode, AstNode)} is invoked).
    */
-  private ASTNode other;
+  private AstNode other;
 
   @Override
   public Boolean visitAdjacentStrings(AdjacentStrings node) {
@@ -942,7 +942,7 @@ public class ASTComparator implements ASTVisitor<Boolean> {
    * @param second the second node being compared
    * @return {@code true} if the given AST nodes have the same structure
    */
-  private boolean isEqual(ASTNode first, ASTNode second) {
+  private boolean isEqual(AstNode first, AstNode second) {
     if (first == null) {
       return second == null;
     } else if (second == null) {
@@ -963,7 +963,7 @@ public class ASTComparator implements ASTVisitor<Boolean> {
    * @return {@code true} if the given AST nodes have the same size and corresponding elements are
    *         equal
    */
-  private <E extends ASTNode> boolean isEqual(NodeList<E> first, NodeList<E> second) {
+  private <E extends AstNode> boolean isEqual(NodeList<E> first, NodeList<E> second) {
     if (first == null) {
       return second == null;
     } else if (second == null) {

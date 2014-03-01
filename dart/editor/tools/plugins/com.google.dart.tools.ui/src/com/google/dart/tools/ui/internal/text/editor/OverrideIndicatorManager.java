@@ -16,7 +16,7 @@ package com.google.dart.tools.ui.internal.text.editor;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.SimpleIdentifier;
-import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
+import com.google.dart.engine.ast.visitor.GeneralizingAstVisitor;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
@@ -52,7 +52,7 @@ import java.util.Map;
  */
 public class OverrideIndicatorManager {
 
-  public static class OverriddenElementFinder extends GeneralizingASTVisitor<Void> {
+  public static class OverriddenElementFinder extends GeneralizingAstVisitor<Void> {
 
     private Map<Annotation, Position> annotationMap = new HashMap<Annotation, Position>();
 

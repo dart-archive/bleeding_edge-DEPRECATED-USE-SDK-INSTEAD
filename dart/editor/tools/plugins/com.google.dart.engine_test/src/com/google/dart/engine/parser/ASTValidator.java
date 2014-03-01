@@ -13,19 +13,19 @@
  */
 package com.google.dart.engine.parser;
 
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.CompilationUnit;
-import com.google.dart.engine.ast.visitor.UnifyingASTVisitor;
+import com.google.dart.engine.ast.visitor.UnifyingAstVisitor;
 
 import junit.framework.Assert;
 
 import java.util.ArrayList;
 
 /**
- * Instances of the class {@code ASTValidator} are used to validate the correct construction of an
+ * Instances of the class {@code AstValidator} are used to validate the correct construction of an
  * AST structure.
  */
-public class ASTValidator extends UnifyingASTVisitor<Void> {
+public class AstValidator extends UnifyingAstVisitor<Void> {
   /**
    * A list containing the errors found while traversing the AST structure.
    */
@@ -48,7 +48,7 @@ public class ASTValidator extends UnifyingASTVisitor<Void> {
   }
 
   @Override
-  public Void visitNode(ASTNode node) {
+  public Void visitNode(AstNode node) {
     validate(node);
     return super.visitNode(node);
   }
@@ -58,8 +58,8 @@ public class ASTValidator extends UnifyingASTVisitor<Void> {
    * 
    * @param node the AST node being validated
    */
-  private void validate(ASTNode node) {
-    ASTNode parent = node.getParent();
+  private void validate(AstNode node) {
+    AstNode parent = node.getParent();
     if (node instanceof CompilationUnit) {
       if (parent != null) {
         errors.add("Compilation units should not have a parent");

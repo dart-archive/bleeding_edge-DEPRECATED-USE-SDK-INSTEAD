@@ -17,7 +17,7 @@ package com.google.dart.java2dart;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.ArgumentList;
 import com.google.dart.engine.ast.AsExpression;
 import com.google.dart.engine.ast.AssignmentExpression;
@@ -70,7 +70,7 @@ import com.google.dart.engine.ast.TypeParameterList;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationList;
 import com.google.dart.engine.ast.WhileStatement;
-import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
+import com.google.dart.engine.ast.visitor.RecursiveAstVisitor;
 import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.StringToken;
 import com.google.dart.engine.scanner.Token;
@@ -171,8 +171,8 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
   /**
    * Replaces "node" with "replacement" in parent of "node".
    */
-  public static void replaceNode(ASTNode parent, ASTNode node, ASTNode replacement) {
-    Class<? extends ASTNode> parentClass = parent.getClass();
+  public static void replaceNode(AstNode parent, AstNode node, AstNode replacement) {
+    Class<? extends AstNode> parentClass = parent.getClass();
     // try get/set methods
     try {
       for (Method getMethod : parentClass.getMethods()) {
@@ -325,7 +325,7 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
   private final Context context;
   private final String javaSource;
 
-  private ASTNode result;
+  private AstNode result;
 
   private final List<CompilationUnitMember> artificialUnitDeclarations = Lists.newArrayList();
 
@@ -1714,7 +1714,7 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
   /**
    * Set {@link #result} and return <code>false</code> - we don't want normal JDT visiting.
    */
-  private boolean done(ASTNode node) {
+  private boolean done(AstNode node) {
     result = node;
     return false;
   }
@@ -1797,7 +1797,7 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
       if (enclosingTypeBinding != null) {
         enclosingTypeRef = identifier(enclosingTypeBinding.getName() + "_this");
         // add enclosing class references
-        innerClass.accept(new RecursiveASTVisitor<Void>() {
+        innerClass.accept(new RecursiveAstVisitor<Void>() {
           @Override
           public Void visitMethodInvocation(MethodInvocation node) {
             Expression target = node.getTarget();
@@ -1815,7 +1815,7 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
 
           @Override
           public Void visitSimpleIdentifier(SimpleIdentifier node) {
-            ASTNode target = null;
+            AstNode target = null;
             if (node.getParent() instanceof PrefixedIdentifier) {
               return null;
             }
@@ -1863,14 +1863,14 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
   }
 
   /**
-   * Recursively translates given {@link org.eclipse.jdt.core.dom.ASTNode} to Dart {@link ASTNode}.
+   * Recursively translates given {@link org.eclipse.jdt.core.dom.ASTNode} to Dart {@link AstNode}.
    * 
-   * @return the corresponding Dart {@link ASTNode}, may be <code>null</code> if <code>null</code>
+   * @return the corresponding Dart {@link AstNode}, may be <code>null</code> if <code>null</code>
    *         argument was given; not <code>null</code> if argument is not <code>null</code> (if
    *         translation is not implemented, exception will be thrown).
    */
   @SuppressWarnings("unchecked")
-  private <T extends ASTNode> T translate(final org.eclipse.jdt.core.dom.ASTNode node) {
+  private <T extends AstNode> T translate(final org.eclipse.jdt.core.dom.ASTNode node) {
     if (node == null) {
       return null;
     }

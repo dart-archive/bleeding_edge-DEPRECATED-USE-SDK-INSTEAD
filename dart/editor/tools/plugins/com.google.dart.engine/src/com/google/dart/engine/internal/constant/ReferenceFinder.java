@@ -14,7 +14,7 @@
 package com.google.dart.engine.internal.constant;
 
 import com.google.dart.engine.ast.SimpleIdentifier;
-import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
+import com.google.dart.engine.ast.visitor.RecursiveAstVisitor;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.VariableElement;
@@ -23,7 +23,7 @@ import com.google.dart.engine.element.VariableElement;
  * Instances of the class {@code ReferenceFinder} add reference information for a given variable to
  * the bi-directional mapping used to order the evaluation of constants.
  */
-public class ReferenceFinder extends RecursiveASTVisitor<Void> {
+public class ReferenceFinder extends RecursiveAstVisitor<Void> {
   /**
    * The element representing the variable whose initializer will be visited.
    */

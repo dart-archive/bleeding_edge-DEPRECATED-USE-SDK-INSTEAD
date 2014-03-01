@@ -19,11 +19,11 @@ import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.internal.object.DartObjectImpl;
 import com.google.dart.engine.internal.resolver.TestTypeProvider;
 
-import static com.google.dart.engine.ast.ASTFactory.booleanLiteral;
-import static com.google.dart.engine.ast.ASTFactory.conditionalExpression;
-import static com.google.dart.engine.ast.ASTFactory.identifier;
-import static com.google.dart.engine.ast.ASTFactory.integer;
-import static com.google.dart.engine.ast.ASTFactory.nullLiteral;
+import static com.google.dart.engine.ast.AstFactory.booleanLiteral;
+import static com.google.dart.engine.ast.AstFactory.conditionalExpression;
+import static com.google.dart.engine.ast.AstFactory.identifier;
+import static com.google.dart.engine.ast.AstFactory.integer;
+import static com.google.dart.engine.ast.AstFactory.nullLiteral;
 
 public class ConstantVisitorTest extends EngineTestCase {
   public void test_visitConditionalExpression_false() {

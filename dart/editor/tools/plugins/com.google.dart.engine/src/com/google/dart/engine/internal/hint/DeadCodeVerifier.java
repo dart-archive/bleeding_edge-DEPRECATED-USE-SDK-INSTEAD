@@ -13,7 +13,7 @@
  */
 package com.google.dart.engine.internal.hint;
 
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.Block;
 import com.google.dart.engine.ast.BooleanLiteral;
@@ -29,7 +29,7 @@ import com.google.dart.engine.ast.Statement;
 import com.google.dart.engine.ast.TryStatement;
 import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.WhileStatement;
-import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
+import com.google.dart.engine.ast.visitor.RecursiveAstVisitor;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.PropertyInducingElement;
@@ -50,7 +50,7 @@ import java.util.ArrayList;
  * 
  * @coverage dart.engine.resolver
  */
-public class DeadCodeVerifier extends RecursiveASTVisitor<Void> {
+public class DeadCodeVerifier extends RecursiveAstVisitor<Void> {
 
   /**
    * The error reporter by which errors will be reported.
@@ -347,7 +347,7 @@ public class DeadCodeVerifier extends RecursiveASTVisitor<Void> {
    * 
    * @param node the node to be visited
    */
-  private void safelyVisit(ASTNode node) {
+  private void safelyVisit(AstNode node) {
     if (node != null) {
       node.accept(this);
     }

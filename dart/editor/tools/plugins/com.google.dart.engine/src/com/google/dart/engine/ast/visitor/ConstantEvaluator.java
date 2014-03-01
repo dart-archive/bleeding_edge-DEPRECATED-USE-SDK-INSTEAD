@@ -13,7 +13,7 @@
  */
 package com.google.dart.engine.ast.visitor;
 
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.AdjacentStrings;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.BooleanLiteral;
@@ -86,7 +86,7 @@ import java.util.HashMap;
  * 
  * @coverage dart.engine.ast
  */
-public class ConstantEvaluator extends GeneralizingASTVisitor<Object> {
+public class ConstantEvaluator extends GeneralizingAstVisitor<Object> {
   /**
    * The value returned for expressions (or non-expression nodes) that are not compile-time constant
    * expressions.
@@ -352,7 +352,7 @@ public class ConstantEvaluator extends GeneralizingASTVisitor<Object> {
   }
 
   @Override
-  public Object visitNode(ASTNode node) {
+  public Object visitNode(AstNode node) {
     return NOT_A_CONSTANT;
   }
 

@@ -31,9 +31,9 @@ import com.google.dart.engine.internal.element.LibraryElementImpl;
 import com.google.dart.engine.resolver.ResolverTestCase;
 import com.google.dart.engine.source.SourceFactory;
 
-import static com.google.dart.engine.ast.ASTFactory.identifier;
-import static com.google.dart.engine.ast.ASTFactory.methodDeclaration;
-import static com.google.dart.engine.ast.ASTFactory.typeName;
+import static com.google.dart.engine.ast.AstFactory.identifier;
+import static com.google.dart.engine.ast.AstFactory.methodDeclaration;
+import static com.google.dart.engine.ast.AstFactory.typeName;
 import static com.google.dart.engine.element.ElementFactory.classElement;
 import static com.google.dart.engine.element.ElementFactory.importFor;
 import static com.google.dart.engine.element.ElementFactory.prefix;

@@ -109,7 +109,7 @@ public class IndexExpression extends Expression {
   }
 
   @Override
-  public <R> R accept(ASTVisitor<R> visitor) {
+  public <R> R accept(AstVisitor<R> visitor) {
     return visitor.visitIndexExpression(this);
   }
 
@@ -206,7 +206,7 @@ public class IndexExpression extends Expression {
    */
   public Expression getRealTarget() {
     if (isCascaded()) {
-      ASTNode ancestor = getParent();
+      AstNode ancestor = getParent();
       while (!(ancestor instanceof CascadeExpression)) {
         if (ancestor == null) {
           return target;
@@ -260,7 +260,7 @@ public class IndexExpression extends Expression {
    * @return {@code true} if this expression is in a context where the operator '[]' will be invoked
    */
   public boolean inGetterContext() {
-    ASTNode parent = getParent();
+    AstNode parent = getParent();
     if (parent instanceof AssignmentExpression) {
       AssignmentExpression assignment = (AssignmentExpression) parent;
       if (assignment.getLeftHandSide() == this
@@ -282,7 +282,7 @@ public class IndexExpression extends Expression {
    *         invoked
    */
   public boolean inSetterContext() {
-    ASTNode parent = getParent();
+    AstNode parent = getParent();
     if (parent instanceof PrefixExpression) {
       return ((PrefixExpression) parent).getOperator().getType().isIncrementOperator();
     } else if (parent instanceof PostfixExpression) {
@@ -382,7 +382,7 @@ public class IndexExpression extends Expression {
   }
 
   @Override
-  public void visitChildren(ASTVisitor<?> visitor) {
+  public void visitChildren(AstVisitor<?> visitor) {
     safelyVisitChild(target, visitor);
     safelyVisitChild(index, visitor);
   }

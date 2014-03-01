@@ -21,7 +21,7 @@ import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationList;
-import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
+import com.google.dart.engine.ast.visitor.GeneralizingAstVisitor;
 import com.google.dart.java2dart.Context;
 
 import static com.google.dart.java2dart.util.ASTFactory.asExpression;
@@ -39,7 +39,7 @@ public class TypeSemanticProcessor extends SemanticProcessor {
 
   @Override
   public void process(CompilationUnit unit) {
-    unit.accept(new GeneralizingASTVisitor<Void>() {
+    unit.accept(new GeneralizingAstVisitor<Void>() {
       @Override
       public Void visitVariableDeclaration(VariableDeclaration node) {
         Expression initializer = node.getInitializer();

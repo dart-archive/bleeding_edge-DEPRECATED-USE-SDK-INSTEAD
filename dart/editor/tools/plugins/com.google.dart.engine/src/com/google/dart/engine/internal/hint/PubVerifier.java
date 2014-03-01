@@ -13,11 +13,11 @@
  */
 package com.google.dart.engine.internal.hint;
 
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.ImportDirective;
 import com.google.dart.engine.ast.StringLiteral;
-import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
+import com.google.dart.engine.ast.visitor.RecursiveAstVisitor;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.error.PubSuggestionCode;
@@ -33,7 +33,7 @@ import java.io.File;
  * Instances of the class {@code PubVerifier} traverse an AST structure looking for deviations from
  * pub best practices.
  */
-public class PubVerifier extends RecursiveASTVisitor<Void> {
+public class PubVerifier extends RecursiveAstVisitor<Void> {
 
   private static final String PUBSPEC_YAML = "pubspec.yaml";
 
@@ -202,7 +202,7 @@ public class PubVerifier extends RecursiveASTVisitor<Void> {
    * @param node the node (not {@code null})
    * @return the source or {@code null} if it could not be determined
    */
-  private Source getSource(ASTNode node) {
+  private Source getSource(AstNode node) {
     Source source = null;
     CompilationUnit unit = node.getAncestor(CompilationUnit.class);
     if (unit != null) {

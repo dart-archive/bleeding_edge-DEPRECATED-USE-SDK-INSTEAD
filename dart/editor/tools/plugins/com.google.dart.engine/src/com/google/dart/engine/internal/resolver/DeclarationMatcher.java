@@ -13,7 +13,7 @@
  */
 package com.google.dart.engine.internal.resolver;
 
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.CatchClause;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.ClassMember;
@@ -43,7 +43,7 @@ import com.google.dart.engine.ast.SwitchCase;
 import com.google.dart.engine.ast.SwitchDefault;
 import com.google.dart.engine.ast.TypeParameter;
 import com.google.dart.engine.ast.VariableDeclaration;
-import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
+import com.google.dart.engine.ast.visitor.RecursiveAstVisitor;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ConstructorElement;
@@ -74,7 +74,7 @@ import java.util.HashSet;
  * Instances of the class {@code DeclarationMatcher} determine whether the element model defined by
  * a given AST structure matches an existing element model.
  */
-public class DeclarationMatcher extends RecursiveASTVisitor<Void> {
+public class DeclarationMatcher extends RecursiveAstVisitor<Void> {
   /**
    * Instances of the class {@code DeclarationMismatchException} represent an exception that is
    * thrown when the element model defined by a given AST structure does not match an existing
@@ -144,7 +144,7 @@ public class DeclarationMatcher extends RecursiveASTVisitor<Void> {
    * @return {@code true} if the AST structure defines the same elements as those in the given
    *         element model
    */
-  public boolean matches(ASTNode node, Element element) {
+  public boolean matches(AstNode node, Element element) {
     captureEnclosingElements(element);
     gatherElements(element);
     try {

@@ -22,7 +22,7 @@ import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.FileUriResolver;
 import com.google.dart.engine.source.SourceFactory;
 
-import static com.google.dart.engine.ast.ASTFactory.libraryIdentifier;
+import static com.google.dart.engine.ast.AstFactory.libraryIdentifier;
 import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
 
 public class LibraryTest extends EngineTestCase {

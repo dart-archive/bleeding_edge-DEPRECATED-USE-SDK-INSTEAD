@@ -19,7 +19,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.Block;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.ClassMember;
@@ -44,8 +44,8 @@ import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationList;
 import com.google.dart.engine.ast.VariableDeclarationStatement;
-import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
-import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
+import com.google.dart.engine.ast.visitor.GeneralizingAstVisitor;
+import com.google.dart.engine.ast.visitor.RecursiveAstVisitor;
 import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.java2dart.Context;
@@ -110,7 +110,7 @@ public class EngineSemanticProcessor extends SemanticProcessor {
     if (node instanceof ClassDeclaration) {
       ClassDeclaration classDeclaration = (ClassDeclaration) node;
       if (classDeclaration.getName().getName().equals("TestAll")) {
-        node.accept(new RecursiveASTVisitor<Void>() {
+        node.accept(new RecursiveAstVisitor<Void>() {
           @Override
           public Void visitMethodInvocation(MethodInvocation node) {
             if (node.getMethodName().getName().equals("addTestSuite")) {
@@ -131,8 +131,8 @@ public class EngineSemanticProcessor extends SemanticProcessor {
    * Generates "invokeParserMethodImpl" and supporting Dart code.
    */
   public static void replaceReflectionMethods(final Context context, final PrintWriter pw,
-      ASTNode node) {
-    node.accept(new RecursiveASTVisitor<Void>() {
+      AstNode node) {
+    node.accept(new RecursiveAstVisitor<Void>() {
       @Override
       public Void visitClassDeclaration(ClassDeclaration node) {
         List<ClassMember> members = Lists.newArrayList(node.getMembers());
@@ -244,7 +244,7 @@ public class EngineSemanticProcessor extends SemanticProcessor {
     final Map<String, String> varToMethod = Maps.newHashMap();
     final Set<Pair<String, String>> refClassFields = Sets.newHashSet();
     final String accessorSuffix = "_J2DAccessor";
-    unit.accept(new RecursiveASTVisitor<Void>() {
+    unit.accept(new RecursiveAstVisitor<Void>() {
 
       @Override
       public Void visitBlock(Block node) {
@@ -372,7 +372,7 @@ public class EngineSemanticProcessor extends SemanticProcessor {
       }
     });
     // generate private field accessors
-    unit.accept(new RecursiveASTVisitor<Void>() {
+    unit.accept(new RecursiveAstVisitor<Void>() {
       @Override
       public Void visitClassDeclaration(ClassDeclaration node) {
         String className = node.getName().getName();
@@ -416,9 +416,9 @@ public class EngineSemanticProcessor extends SemanticProcessor {
     });
   }
 
-  static void useImportPrefix(final Context context, final ASTNode rootNode,
+  static void useImportPrefix(final Context context, final AstNode rootNode,
       final String prefixName, final String[] packageNames) {
-    rootNode.accept(new RecursiveASTVisitor<Void>() {
+    rootNode.accept(new RecursiveAstVisitor<Void>() {
       @Override
       public Void visitMethodInvocation(MethodInvocation node) {
         super.visitMethodInvocation(node);
@@ -505,7 +505,7 @@ public class EngineSemanticProcessor extends SemanticProcessor {
       }
     }
     // process nodes
-    unit.accept(new GeneralizingASTVisitor<Void>() {
+    unit.accept(new GeneralizingAstVisitor<Void>() {
       @Override
       public Void visitClassDeclaration(ClassDeclaration node) {
         // visit copy of members (we modify them)
@@ -625,7 +625,7 @@ public class EngineSemanticProcessor extends SemanticProcessor {
 
       @Override
       public Void visitMethodInvocation(MethodInvocation node) {
-        ASTNode parent = node.getParent();
+        AstNode parent = node.getParent();
         List<Expression> args = node.getArgumentList().getArguments();
         if (isMethodInClass(
             node,

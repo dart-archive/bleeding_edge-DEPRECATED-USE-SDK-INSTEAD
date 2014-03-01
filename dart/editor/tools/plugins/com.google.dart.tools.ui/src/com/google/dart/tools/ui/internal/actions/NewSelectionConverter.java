@@ -13,7 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.actions;
 
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.ConstructorDeclaration;
@@ -23,7 +23,7 @@ import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.visitor.ElementLocator;
-import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
+import com.google.dart.engine.ast.visitor.GeneralizingAstVisitor;
 import com.google.dart.engine.ast.visitor.NodeLocator;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.services.assist.AssistContext;
@@ -58,7 +58,7 @@ public class NewSelectionConverter {
    * @return the associated element
    */
   public static Element getElementAtOffset(DartEditor editor, int caret) {
-    ASTNode node = getNodeAtOffset(editor, caret);
+    AstNode node = getNodeAtOffset(editor, caret);
     if (node == null) {
       return null;
     }
@@ -78,7 +78,7 @@ public class NewSelectionConverter {
 
     CompilationUnit cu = editor.getInputUnit();
 
-    ASTNode node = new NodeLocator(offset, offset + length).searchWithin(cu);
+    AstNode node = new NodeLocator(offset, offset + length).searchWithin(cu);
     if (node == null) {
       return null;
     }
@@ -103,7 +103,7 @@ public class NewSelectionConverter {
 
   public static Element getElementEnclosingOffset(CompilationUnit unit, final int offset) {
     final Element result[] = new Element[] {null};
-    unit.accept(new GeneralizingASTVisitor<Void>() {
+    unit.accept(new GeneralizingAstVisitor<Void>() {
       @Override
       public Void visitClassDeclaration(ClassDeclaration node) {
         if (isNodeEnclosingOffset(node)) {
@@ -153,14 +153,14 @@ public class NewSelectionConverter {
       }
 
       @Override
-      public Void visitNode(ASTNode node) {
+      public Void visitNode(AstNode node) {
         if (isNodeEnclosingOffset(node)) {
           super.visitNode(node);
         }
         return null;
       }
 
-      private boolean isNodeEnclosingOffset(ASTNode node) {
+      private boolean isNodeEnclosingOffset(AstNode node) {
         return node.getOffset() <= offset && offset <= node.getEnd();
       }
     });
@@ -168,13 +168,13 @@ public class NewSelectionConverter {
   }
 
   /**
-   * Get the {@link ASTNode} associated with the selected portion of the given editor.
+   * Get the {@link AstNode} associated with the selected portion of the given editor.
    * 
    * @param editor the editor
    * @param caret the caret position in the editor
-   * @return the associated {@link ASTNode}
+   * @return the associated {@link AstNode}
    */
-  public static ASTNode getNodeAtOffset(DartEditor editor, int caret) {
+  public static AstNode getNodeAtOffset(DartEditor editor, int caret) {
     CompilationUnit cu = editor.getInputUnit();
     if (cu == null) {
       return null;

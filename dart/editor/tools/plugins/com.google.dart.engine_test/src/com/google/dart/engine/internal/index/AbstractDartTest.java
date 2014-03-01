@@ -18,10 +18,10 @@ import com.google.common.base.CharMatcher;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Sets;
 import com.google.dart.engine.AnalysisEngine;
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.SimpleIdentifier;
-import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
+import com.google.dart.engine.ast.visitor.GeneralizingAstVisitor;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.element.CompilationUnitElement;
@@ -59,14 +59,14 @@ public class AbstractDartTest extends TestCase {
   protected static AnalysisContext analysisContext;
 
   /**
-   * @return {@link ASTNode} which has required offset and type.
+   * @return {@link AstNode} which has required offset and type.
    */
-  public static <E extends ASTNode> E findNode(ASTNode root, final int offset, final Class<E> clazz) {
+  public static <E extends AstNode> E findNode(AstNode root, final int offset, final Class<E> clazz) {
     final AtomicReference<E> resultRef = new AtomicReference<E>();
-    root.accept(new GeneralizingASTVisitor<Void>() {
+    root.accept(new GeneralizingAstVisitor<Void>() {
       @Override
       @SuppressWarnings("unchecked")
-      public Void visitNode(ASTNode node) {
+      public Void visitNode(AstNode node) {
         if (node.getOffset() <= offset && offset < node.getEnd() && clazz.isInstance(node)) {
           resultRef.set((E) node);
         }
@@ -271,16 +271,16 @@ public class AbstractDartTest extends TestCase {
   }
 
   /**
-   * @return {@link ASTNode} form {@link #testUnit} which has required offset and type.
+   * @return {@link AstNode} form {@link #testUnit} which has required offset and type.
    */
-  protected final <E extends ASTNode> E findNode(int offset, Class<E> clazz) {
+  protected final <E extends AstNode> E findNode(int offset, Class<E> clazz) {
     return findNode(testUnit, offset, clazz);
   }
 
   /**
-   * @return {@link ASTNode} from {@link #testUnit} which starts at given text has has given type.
+   * @return {@link AstNode} from {@link #testUnit} which starts at given text has has given type.
    */
-  protected final <E extends ASTNode> E findNode(String search, Class<E> clazz) {
+  protected final <E extends AstNode> E findNode(String search, Class<E> clazz) {
     int offset = findOffset(search);
     return findNode(testUnit, offset, clazz);
   }

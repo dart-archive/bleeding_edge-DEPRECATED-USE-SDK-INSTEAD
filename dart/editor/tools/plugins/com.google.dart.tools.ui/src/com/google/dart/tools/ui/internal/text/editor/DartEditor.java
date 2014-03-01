@@ -17,7 +17,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.dart.compiler.ast.DartUnit;
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.ClassMember;
 import com.google.dart.engine.ast.CompilationUnitMember;
@@ -2806,7 +2806,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
 //      caret = offset + styledText.getCaretOffset();
 //    }
 
-    ASTNode node = new NodeLocator(caret).searchWithin(unit);
+    AstNode node = new NodeLocator(caret).searchWithin(unit);
 
     // May be whitespace between class declaration {}, try to find class member.
     if (node instanceof ClassDeclaration) {
@@ -4263,11 +4263,11 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     }
 
     DartX.todo("marking");
-    Collection<ASTNode> matches = null;
+    Collection<AstNode> matches = null;
 
     NodeLocator locator = new NodeLocator(selection.getOffset(), selection.getOffset()
         + selection.getLength());
-    ASTNode selectedNode = locator.searchWithin(unit);
+    AstNode selectedNode = locator.searchWithin(unit);
 
 //    try {
 //      if (astRoot.getLibrary() == null) {
@@ -4354,8 +4354,8 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
 
     Position[] positions = new Position[matches.size()];
     int i = 0;
-    for (Iterator<ASTNode> each = matches.iterator(); each.hasNext();) {
-      ASTNode currentNode = each.next();
+    for (Iterator<AstNode> each = matches.iterator(); each.hasNext();) {
+      AstNode currentNode = each.next();
       positions[i++] = new Position(currentNode.getOffset(), currentNode.getLength());
     }
 

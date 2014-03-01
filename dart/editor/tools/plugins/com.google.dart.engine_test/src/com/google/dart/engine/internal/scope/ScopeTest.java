@@ -22,7 +22,7 @@ import com.google.dart.engine.error.ErrorSeverity;
 import com.google.dart.engine.error.GatheringErrorListener;
 import com.google.dart.engine.resolver.ResolverTestCase;
 
-import static com.google.dart.engine.ast.ASTFactory.identifier;
+import static com.google.dart.engine.ast.AstFactory.identifier;
 import static com.google.dart.engine.element.ElementFactory.localVariableElement;
 
 public class ScopeTest extends ResolverTestCase {

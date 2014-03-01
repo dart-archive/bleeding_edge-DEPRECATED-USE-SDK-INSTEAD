@@ -14,17 +14,17 @@
 package com.google.dart.engine.ast.visitor;
 
 import com.google.dart.engine.AnalysisEngine;
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 
 /**
- * Instances of the class {@code NodeLocator} locate the {@link ASTNode AST node} associated with a
+ * Instances of the class {@code NodeLocator} locate the {@link AstNode AST node} associated with a
  * source range, given the AST structure built from the source. More specifically, they will return
- * the {@link ASTNode AST node} with the shortest length whose source range completely encompasses
+ * the {@link AstNode AST node} with the shortest length whose source range completely encompasses
  * the specified range.
  * 
  * @coverage dart.engine.ast
  */
-public class NodeLocator extends UnifyingASTVisitor<Void> {
+public class NodeLocator extends UnifyingAstVisitor<Void> {
   /**
    * Instances of the class {@code NodeFoundException} are used to cancel visiting after a node has
    * been found.
@@ -47,10 +47,10 @@ public class NodeLocator extends UnifyingASTVisitor<Void> {
    * The element that was found that corresponds to the given source range, or {@code null} if there
    * is no such element.
    */
-  private ASTNode foundNode;
+  private AstNode foundNode;
 
   /**
-   * Initialize a newly created locator to locate one or more {@link ASTNode AST nodes} by locating
+   * Initialize a newly created locator to locate one or more {@link AstNode AST nodes} by locating
    * the node within an AST structure that corresponds to the given offset in the source.
    * 
    * @param offset the offset used to identify the node
@@ -60,7 +60,7 @@ public class NodeLocator extends UnifyingASTVisitor<Void> {
   }
 
   /**
-   * Initialize a newly created locator to locate one or more {@link ASTNode AST nodes} by locating
+   * Initialize a newly created locator to locate one or more {@link AstNode AST nodes} by locating
    * the node within an AST structure that corresponds to the given range of characters in the
    * source.
    * 
@@ -78,7 +78,7 @@ public class NodeLocator extends UnifyingASTVisitor<Void> {
    * 
    * @return the node that was found
    */
-  public ASTNode getFoundNode() {
+  public AstNode getFoundNode() {
     return foundNode;
   }
 
@@ -90,7 +90,7 @@ public class NodeLocator extends UnifyingASTVisitor<Void> {
    * @param node the AST node within which to search
    * @return the element that was found
    */
-  public ASTNode searchWithin(ASTNode node) {
+  public AstNode searchWithin(AstNode node) {
     if (node == null) {
       return null;
     }
@@ -108,7 +108,7 @@ public class NodeLocator extends UnifyingASTVisitor<Void> {
   }
 
   @Override
-  public Void visitNode(ASTNode node) {
+  public Void visitNode(AstNode node) {
     int start = node.getOffset();
     int end = start + node.getLength();
     if (end < startOffset) {

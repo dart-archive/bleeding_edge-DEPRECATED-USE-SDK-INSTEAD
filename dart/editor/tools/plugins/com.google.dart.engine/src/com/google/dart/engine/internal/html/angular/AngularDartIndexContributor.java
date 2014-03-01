@@ -17,7 +17,7 @@ package com.google.dart.engine.internal.html.angular;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.CompilationUnitMember;
-import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
+import com.google.dart.engine.ast.visitor.GeneralizingAstVisitor;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
@@ -35,7 +35,7 @@ import com.google.dart.engine.internal.index.IndexConstants;
  * 
  * @coverage dart.engine.index
  */
-public class AngularDartIndexContributor extends GeneralizingASTVisitor<Void> {
+public class AngularDartIndexContributor extends GeneralizingAstVisitor<Void> {
   private final IndexStore store;
 
   public AngularDartIndexContributor(IndexStore store) {

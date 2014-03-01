@@ -17,7 +17,7 @@ import com.google.common.base.CharMatcher;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.AsExpression;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.Block;
@@ -49,7 +49,7 @@ import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.Statement;
 import com.google.dart.engine.ast.StringLiteral;
 import com.google.dart.engine.ast.TypeName;
-import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
+import com.google.dart.engine.ast.visitor.GeneralizingAstVisitor;
 import com.google.dart.engine.ast.visitor.NodeLocator;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.CompilationUnitElement;
@@ -217,9 +217,9 @@ public class CorrectionUtils {
   }
 
   /**
-   * @return <code>true</code> if given {@link SourceRange} covers given {@link ASTNode}.
+   * @return <code>true</code> if given {@link SourceRange} covers given {@link AstNode}.
    */
-  public static boolean covers(SourceRange r, ASTNode node) {
+  public static boolean covers(SourceRange r, AstNode node) {
     SourceRange nodeRange = rangeNode(node);
     return r.covers(nodeRange);
   }
@@ -310,9 +310,9 @@ public class CorrectionUtils {
   }
 
   /**
-   * @return the {@link ExecutableElement} of the enclosing executable {@link ASTNode}.
+   * @return the {@link ExecutableElement} of the enclosing executable {@link AstNode}.
    */
-  public static ExecutableElement getEnclosingExecutableElement(ASTNode node) {
+  public static ExecutableElement getEnclosingExecutableElement(AstNode node) {
     while (node != null) {
       if (node instanceof FunctionDeclaration) {
         return ((FunctionDeclaration) node).getElement();
@@ -329,9 +329,9 @@ public class CorrectionUtils {
   }
 
   /**
-   * @return the enclosing executable {@link ASTNode}.
+   * @return the enclosing executable {@link AstNode}.
    */
-  public static ASTNode getEnclosingExecutableNode(ASTNode node) {
+  public static AstNode getEnclosingExecutableNode(AstNode node) {
     while (node != null) {
       if (node instanceof FunctionDeclaration) {
         return node;
@@ -378,12 +378,12 @@ public class CorrectionUtils {
   }
 
   /**
-   * @return {@link #getExpressionPrecedence(ASTNode)} for parent node, or {@code 0} if parent node
+   * @return {@link #getExpressionPrecedence(AstNode)} for parent node, or {@code 0} if parent node
    *         is {@link ParenthesizedExpression}. The reason is that {@code (expr)} is always
    *         executed after {@code expr}.
    */
-  public static int getExpressionParentPrecedence(ASTNode node) {
-    ASTNode parent = node.getParent();
+  public static int getExpressionParentPrecedence(AstNode node) {
+    AstNode parent = node.getParent();
     if (parent instanceof ParenthesizedExpression) {
       return 0;
     }
@@ -394,7 +394,7 @@ public class CorrectionUtils {
    * @return the precedence of the given node - result of {@link Expression#getPrecedence()} if an
    *         {@link Expression}, negative otherwise.
    */
-  public static int getExpressionPrecedence(ASTNode node) {
+  public static int getExpressionPrecedence(AstNode node) {
     if (node instanceof Expression) {
       return ((Expression) node).getPrecedence();
     }
@@ -462,21 +462,21 @@ public class CorrectionUtils {
   }
 
   /**
-   * @return the nearest common ancestor {@link ASTNode} of the given {@link ASTNode}s.
+   * @return the nearest common ancestor {@link AstNode} of the given {@link AstNode}s.
    */
-  public static ASTNode getNearestCommonAncestor(List<ASTNode> nodes) {
+  public static AstNode getNearestCommonAncestor(List<AstNode> nodes) {
     // may be no nodes
     if (nodes.isEmpty()) {
       return null;
     }
     // prepare parents
-    List<List<ASTNode>> parents = Lists.newArrayList();
-    for (ASTNode node : nodes) {
+    List<List<AstNode>> parents = Lists.newArrayList();
+    for (AstNode node : nodes) {
       parents.add(getParents(node));
     }
     // find min length
     int minLength = Integer.MAX_VALUE;
-    for (List<ASTNode> parentList : parents) {
+    for (List<AstNode> parentList : parents) {
       minLength = Math.min(minLength, parentList.size());
     }
     // find deepest parent
@@ -494,7 +494,7 @@ public class CorrectionUtils {
    *         or {@link PrefixedIdentifier}. May be <code>null</code>.
    */
   public static Expression getNodeQualifier(SimpleIdentifier node) {
-    ASTNode parent = node.getParent();
+    AstNode parent = node.getParent();
     if (parent instanceof PropertyAccess) {
       PropertyAccess propertyAccess = (PropertyAccess) parent;
       if (propertyAccess.getPropertyName() == node) {
@@ -527,7 +527,7 @@ public class CorrectionUtils {
    * @see #getPrecedence(Expression)
    */
   public static int getParentPrecedence(Expression expression) {
-    ASTNode parent = expression.getParent();
+    AstNode parent = expression.getParent();
     if (parent instanceof Expression) {
       return getPrecedence((Expression) parent);
     }
@@ -535,11 +535,11 @@ public class CorrectionUtils {
   }
 
   /**
-   * @return parent {@link ASTNode}s from {@link CompilationUnit} (at index "0") to the given one.
+   * @return parent {@link AstNode}s from {@link CompilationUnit} (at index "0") to the given one.
    */
-  public static List<ASTNode> getParents(ASTNode node) {
-    LinkedList<ASTNode> parents = Lists.newLinkedList();
-    ASTNode current = node;
+  public static List<AstNode> getParents(AstNode node) {
+    LinkedList<AstNode> parents = Lists.newLinkedList();
+    AstNode current = node;
     do {
       parents.addFirst(current.getParent());
       current = current.getParent();
@@ -580,11 +580,11 @@ public class CorrectionUtils {
   }
 
   /**
-   * If given {@link ASTNode} is name of qualified property extraction, returns target from which
+   * If given {@link AstNode} is name of qualified property extraction, returns target from which
    * this property is extracted. Otherwise {@code null}.
    */
-  public static Expression getQualifiedPropertyTarget(ASTNode node) {
-    ASTNode parent = node.getParent();
+  public static Expression getQualifiedPropertyTarget(AstNode node) {
+    AstNode parent = node.getParent();
     if (parent instanceof PrefixedIdentifier) {
       PrefixedIdentifier prefixed = (PrefixedIdentifier) parent;
       if (prefixed.getIdentifier() == node) {
@@ -788,11 +788,11 @@ public class CorrectionUtils {
    *         {@link NamedExpression}.
    */
   public static boolean isNamedExpressionName(SimpleIdentifier node) {
-    ASTNode parent = node.getParent();
+    AstNode parent = node.getParent();
     if (parent instanceof Label) {
       Label label = (Label) parent;
       if (label.getLabel() == node) {
-        ASTNode parent2 = label.getParent();
+        AstNode parent2 = label.getParent();
         if (parent2 instanceof NamedExpression) {
           return ((NamedExpression) parent2).getName() == label;
         }
@@ -970,7 +970,7 @@ public class CorrectionUtils {
   private static List<Expression> getOperandsInOrderFor(BinaryExpression groupRoot) {
     final List<Expression> operands = Lists.newArrayList();
     final TokenType groupOperatorType = groupRoot.getOperator().getType();
-    groupRoot.accept(new GeneralizingASTVisitor<Void>() {
+    groupRoot.accept(new GeneralizingAstVisitor<Void>() {
       @Override
       public Void visitExpression(Expression node) {
         if (node instanceof BinaryExpression
@@ -1035,8 +1035,8 @@ public class CorrectionUtils {
   /**
    * @return the enclosing node with given {@link Class}.
    */
-  public <T extends ASTNode> T findNode(int offset, Class<T> clazz) {
-    ASTNode node = new NodeLocator(offset).searchWithin(unit);
+  public <T extends AstNode> T findNode(int offset, Class<T> clazz) {
+    AstNode node = new NodeLocator(offset).searchWithin(unit);
     if (node != null) {
       return node.getAncestor(clazz);
     }
@@ -1397,9 +1397,9 @@ public class CorrectionUtils {
 
   /**
    * @return the line prefix consisting of spaces and tabs on the left from the given
-   *         {@link ASTNode}.
+   *         {@link AstNode}.
    */
-  public String getNodePrefix(ASTNode node) {
+  public String getNodePrefix(AstNode node) {
     int offset = node.getOffset();
     // function literal is special, it uses offset of enclosing line
     if (node instanceof FunctionExpression) {
@@ -1482,7 +1482,7 @@ public class CorrectionUtils {
   /**
    * @return the given range of text from unit.
    */
-  public String getText(ASTNode node) {
+  public String getText(AstNode node) {
     return getText(node.getOffset(), node.getLength());
   }
 
@@ -1607,7 +1607,7 @@ public class CorrectionUtils {
    * @return <code>true</code> if "selection" covers "node" and there are any non-whitespace tokens
    *         between "selection" and "node" start/end.
    */
-  public boolean selectionIncludesNonWhitespaceOutsideNode(SourceRange selection, ASTNode node) {
+  public boolean selectionIncludesNonWhitespaceOutsideNode(SourceRange selection, AstNode node) {
     return selectionIncludesNonWhitespaceOutsideRange(selection, rangeNode(node));
   }
 

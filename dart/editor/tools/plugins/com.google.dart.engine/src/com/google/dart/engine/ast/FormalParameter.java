@@ -29,7 +29,7 @@ import com.google.dart.engine.utilities.dart.ParameterKind;
  * 
  * @coverage dart.engine.ast
  */
-public abstract class FormalParameter extends ASTNode {
+public abstract class FormalParameter extends AstNode {
   /**
    * Return the element representing this parameter, or {@code null} if this parameter has not been
    * resolved.

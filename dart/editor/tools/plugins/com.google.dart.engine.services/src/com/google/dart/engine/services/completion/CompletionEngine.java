@@ -16,7 +16,7 @@ package com.google.dart.engine.services.completion;
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.Annotation;
 import com.google.dart.engine.ast.ArgumentList;
 import com.google.dart.engine.ast.AsExpression;
@@ -92,7 +92,7 @@ import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationList;
 import com.google.dart.engine.ast.WhileStatement;
 import com.google.dart.engine.ast.WithClause;
-import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
+import com.google.dart.engine.ast.visitor.GeneralizingAstVisitor;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.ClassElement;
@@ -167,9 +167,9 @@ import java.util.regex.Pattern;
  */
 public class CompletionEngine {
 
-  abstract class AstNodeClassifier extends GeneralizingASTVisitor<Void> {
+  abstract class AstNodeClassifier extends GeneralizingAstVisitor<Void> {
     @Override
-    public Void visitNode(ASTNode node) {
+    public Void visitNode(AstNode node) {
       return null;
     }
   }
@@ -279,7 +279,7 @@ public class CompletionEngine {
     }
 
     public void addLocalNames(SimpleIdentifier identifier) {
-      ASTNode node = identifier;
+      AstNode node = identifier;
       Declaration decl;
       while ((decl = node.getAncestor(Declaration.class)) != null) {
         Element declElement = decl.getElement();
@@ -548,16 +548,16 @@ public class CompletionEngine {
   private class Ident extends EphemeralIdentifier {
     private String name;
 
-    Ident(ASTNode parent) {
+    Ident(AstNode parent) {
       super(parent, completionLocation());
     }
 
-    Ident(ASTNode parent, String name, int offset) {
+    Ident(AstNode parent, String name, int offset) {
       super(parent, offset);
       this.name = name;
     }
 
-    Ident(ASTNode parent, Token name) {
+    Ident(AstNode parent, Token name) {
       super(parent, name.getOffset());
       this.name = name.getLexeme();
     }
@@ -633,7 +633,7 @@ public class CompletionEngine {
 
     @Override
     public Void visitCommentReference(CommentReference node) {
-      ASTNode comment = node.getParent();
+      AstNode comment = node.getParent();
       CommentReferenceCompleter visitor = new CommentReferenceCompleter(completionNode);
       return comment.accept(visitor);
     }
@@ -889,7 +889,7 @@ public class CompletionEngine {
 
     @Override
     public Void visitTypeName(TypeName node) {
-      ASTNode parent = node.getParent();
+      AstNode parent = node.getParent();
       if (parent != null) {
         TypeNameCompleter visitor = new TypeNameCompleter(completionNode, node);
         return parent.accept(visitor);
@@ -1435,7 +1435,7 @@ public class CompletionEngine {
 
     @Override
     public Void visitSimpleIdentifier(SimpleIdentifier node) {
-      ASTNode parent = node.getParent();
+      AstNode parent = node.getParent();
       if (parent != null) {
         IdentifierCompleter visitor = new IdentifierCompleter(node);
         return parent.accept(visitor);
@@ -1445,7 +1445,7 @@ public class CompletionEngine {
 
     @Override
     public Void visitSimpleStringLiteral(SimpleStringLiteral node) {
-      ASTNode parent = node.getParent();
+      AstNode parent = node.getParent();
       if (parent instanceof Directive) {
         StringCompleter visitor = new StringCompleter(node);
         return parent.accept(visitor);
@@ -1756,7 +1756,7 @@ public class CompletionEngine {
   public void complete(AssistContext context) {
     this.context = context;
     requestor.beginReporting();
-    ASTNode completionNode = context.getCoveredNode();
+    AstNode completionNode = context.getCoveredNode();
     if (completionNode != null) {
       state.setContext(completionNode);
       TerminalNodeCompleter visitor = new TerminalNodeCompleter();
@@ -1892,7 +1892,7 @@ public class CompletionEngine {
     filter = new Filter(identifier);
     // prepare parameters
     ParameterElement[] parameters = null;
-    ASTNode argsParent = args.getParent();
+    AstNode argsParent = args.getParent();
     if (argsParent instanceof MethodInvocation) {
       MethodInvocation invocation = (MethodInvocation) argsParent;
       Element nameElement = invocation.getMethodName().getStaticElement();
@@ -2375,7 +2375,7 @@ public class CompletionEngine {
     return subtypes;
   }
 
-  private NameCollector collectIdentifiersVisibleAt(ASTNode ident) {
+  private NameCollector collectIdentifiersVisibleAt(AstNode ident) {
     NameCollector names = new NameCollector();
     ScopedNameFinder finder = new ScopedNameFinder(completionLocation());
     ident.accept(finder);
@@ -2389,7 +2389,7 @@ public class CompletionEngine {
     return names;
   }
 
-  private NameCollector collectTopLevelElementVisibleAt(ASTNode ident) {
+  private NameCollector collectTopLevelElementVisibleAt(AstNode ident) {
     NameCollector names = new NameCollector();
     names.addTopLevelNames(getCurrentLibrary(), TopLevelNamesKind.DECLARED_AND_IMPORTS);
     return names;
@@ -2413,12 +2413,12 @@ public class CompletionEngine {
     return SearchScopeFactory.createUniverseScope();
   }
 
-  private <X extends ASTNode> List<FormalParameter> copyWithout(NodeList<X> oldList,
-      final ASTNode deletion) {
+  private <X extends AstNode> List<FormalParameter> copyWithout(NodeList<X> oldList,
+      final AstNode deletion) {
     final List<FormalParameter> newList = new ArrayList<FormalParameter>(oldList.size() - 1);
-    oldList.accept(new GeneralizingASTVisitor<Void>() {
+    oldList.accept(new GeneralizingAstVisitor<Void>() {
       @Override
-      public Void visitNode(ASTNode node) {
+      public Void visitNode(AstNode node) {
         if (node != deletion) {
           newList.add((FormalParameter) node);
         }
@@ -3045,8 +3045,8 @@ public class CompletionEngine {
   }
 
   // Find the parent declaration of the given node and extract the name of the type it is defining.
-  private SimpleIdentifier typeDeclarationName(ASTNode node) {
-    ASTNode parent = node;
+  private SimpleIdentifier typeDeclarationName(AstNode node) {
+    AstNode parent = node;
     while (parent != null) {
       if (parent instanceof ClassDeclaration) {
         return ((ClassDeclaration) parent).getName();
@@ -3151,8 +3151,8 @@ public class CompletionEngine {
     return type;
   }
 
-  private Type typeOfContainingClass(ASTNode node) {
-    ASTNode parent = node;
+  private Type typeOfContainingClass(AstNode node) {
+    AstNode parent = node;
     while (parent != null) {
       if (parent instanceof ClassDeclaration) {
         return ((ClassDeclaration) parent).getElement().getType();

@@ -13,7 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.text.dart;
 
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.Block;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.DoStatement;
@@ -23,7 +23,7 @@ import com.google.dart.engine.ast.IfStatement;
 import com.google.dart.engine.ast.Statement;
 import com.google.dart.engine.ast.WhileStatement;
 import com.google.dart.engine.ast.visitor.NodeLocator;
-import com.google.dart.engine.ast.visitor.SimpleASTVisitor;
+import com.google.dart.engine.ast.visitor.SimpleAstVisitor;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.internal.context.RecordingErrorListener;
@@ -81,7 +81,7 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
     }
   }
 
-  private class NodeBracketer extends SimpleASTVisitor<Void> {
+  private class NodeBracketer extends SimpleAstVisitor<Void> {
     private boolean result = true;
     private CompilationUnitInfo info;
     private IDocument document;
@@ -242,7 +242,7 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
     return -1;
   }
 
-  private static IRegion createRegion(ASTNode node, int delta) {
+  private static IRegion createRegion(AstNode node, int delta) {
     return node == null ? null : new Region(node.getOffset() + delta, node.getLength());
   }
 
@@ -1072,7 +1072,7 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
     }
 
     final int relativeOffset = offset - info.delta;
-    ASTNode node = new NodeLocator(relativeOffset).searchWithin(compilationUnit);
+    AstNode node = new NodeLocator(relativeOffset).searchWithin(compilationUnit);
 
     if (length == 0) {
       while (node != null

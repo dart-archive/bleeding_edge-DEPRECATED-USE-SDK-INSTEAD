@@ -65,7 +65,7 @@ import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationList;
 import com.google.dart.engine.ast.VariableDeclarationStatement;
 import com.google.dart.engine.ast.WhileStatement;
-import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
+import com.google.dart.engine.ast.visitor.GeneralizingAstVisitor;
 import com.google.dart.engine.scanner.TokenType;
 
 /**
@@ -73,7 +73,7 @@ import com.google.dart.engine.scanner.TokenType;
  * to terminate by executing a {@code return} statement, {@code throw} expression, {@code rethrow}
  * expression, or simple infinite loop such as {@code while(true)}.
  */
-public class ExitDetector extends GeneralizingASTVisitor<Boolean> {
+public class ExitDetector extends GeneralizingAstVisitor<Boolean> {
 
   /**
    * Set to {@code true} when a {@code break} is encountered, and reset to {@code false} when a

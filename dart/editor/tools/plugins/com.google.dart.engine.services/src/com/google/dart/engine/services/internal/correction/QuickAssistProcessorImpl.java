@@ -17,7 +17,7 @@ package com.google.dart.engine.services.internal.correction;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.Block;
@@ -151,15 +151,15 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
    * @return <code>true</code> if selection covers operator of the given {@link BinaryExpression}.
    */
   private static int isOperatorSelected(BinaryExpression binaryExpression, int offset, int length) {
-    ASTNode left = binaryExpression.getLeftOperand();
-    ASTNode right = binaryExpression.getRightOperand();
+    AstNode left = binaryExpression.getLeftOperand();
+    AstNode right = binaryExpression.getRightOperand();
     if (isSelectingOperator(left, right, offset, length)) {
       return left.getEndToken().getEnd();
     }
     return -1;
   }
 
-  private static boolean isSelectingOperator(ASTNode n1, ASTNode n2, int offset, int length) {
+  private static boolean isSelectingOperator(AstNode n1, AstNode n2, int offset, int length) {
     // between the nodes
     if (offset >= n1.getEndToken().getEnd() && offset + length <= n2.getOffset()) {
       return true;
@@ -195,7 +195,7 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
   private AnalysisContext analysisContext;
   private Source source;
   private CompilationUnit unit;
-  private ASTNode node;
+  private AstNode node;
 
   private Source unitLibrarySource;
   private LibraryElement unitLibraryElement;
@@ -401,7 +401,7 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
     // prepare prefix
     String prefix;
     {
-      ASTNode bodyParent = body.getParent();
+      AstNode bodyParent = body.getParent();
       prefix = utils.getNodePrefix(bodyParent);
     }
     // add change
@@ -447,7 +447,7 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
 
   void addProposal_convertToIsNot_onIs() throws Exception {
     // may be child of "is"
-    ASTNode node = this.node;
+    AstNode node = this.node;
     while (node != null && !(node instanceof IsExpression)) {
       node = node.getParent();
     }
@@ -460,13 +460,13 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
       return;
     }
     // prepare enclosing ()
-    ASTNode parent = isExpression.getParent();
+    AstNode parent = isExpression.getParent();
     if (!(parent instanceof ParenthesizedExpression)) {
       return;
     }
     ParenthesizedExpression parExpression = (ParenthesizedExpression) parent;
     // prepare enclosing !()
-    ASTNode parent2 = parent.getParent();
+    AstNode parent2 = parent.getParent();
     if (!(parent2 instanceof PrefixExpression)) {
       return;
     }
@@ -532,11 +532,11 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
    */
   void addProposal_convertToIsNotEmpty() throws Exception {
     // prepare "expr.isEmpty"
-    ASTNode isEmptyAccess = null;
+    AstNode isEmptyAccess = null;
     SimpleIdentifier isEmptyIdentifier = null;
     if (node instanceof SimpleIdentifier) {
       SimpleIdentifier identifier = (SimpleIdentifier) node;
-      ASTNode parent = identifier.getParent();
+      AstNode parent = identifier.getParent();
       // normal case (but rare)
       if (parent instanceof PropertyAccess) {
         PropertyAccess propertyAccess = (PropertyAccess) parent;
@@ -713,7 +713,7 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
 
   void addProposal_joinIfStatementInner() throws Exception {
     // climb up condition to the (supposedly) "if" statement
-    ASTNode node = this.node;
+    AstNode node = this.node;
     while (node instanceof Expression) {
       node = node.getParent();
     }
@@ -770,7 +770,7 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
 
   void addProposal_joinIfStatementOuter() throws Exception {
     // climb up condition to the (supposedly) "if" statement
-    ASTNode node = this.node;
+    AstNode node = this.node;
     while (node instanceof Expression) {
       node = node.getParent();
     }
@@ -783,7 +783,7 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
       return;
     }
     // prepare outer "if" statement
-    ASTNode parent = targetIfStatement.getParent();
+    AstNode parent = targetIfStatement.getParent();
     if (parent instanceof Block) {
       parent = parent.getParent();
     }
@@ -846,7 +846,7 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
       return;
     }
     int declOffset = element.getNameOffset();
-    ASTNode declNode = new NodeLocator(declOffset).searchWithin(unit);
+    AstNode declNode = new NodeLocator(declOffset).searchWithin(unit);
     if (declNode != null && declNode.getParent() instanceof VariableDeclaration
         && ((VariableDeclaration) declNode.getParent()).getName() == declNode
         && declNode.getParent().getParent() instanceof VariableDeclarationList
@@ -945,8 +945,8 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
   }
 
   void addProposal_removeTypeAnnotation() throws Exception {
-    ASTNode typeStart = null;
-    ASTNode typeEnd = null;
+    AstNode typeStart = null;
+    AstNode typeEnd = null;
     // try top-level variable
     {
       TopLevelVariableDeclaration declaration = node.getAncestor(TopLevelVariableDeclaration.class);
@@ -1280,10 +1280,10 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
       SourceRange selection = rangeStartLength(selectionOffset, selectionLength);
       StatementAnalyzer selectionAnalyzer = new StatementAnalyzer(unit, selection);
       unit.accept(selectionAnalyzer);
-      List<ASTNode> selectedNodes = selectionAnalyzer.getSelectedNodes();
+      List<AstNode> selectedNodes = selectionAnalyzer.getSelectedNodes();
       // convert nodes to statements
       selectedStatements = Lists.newArrayList();
-      for (ASTNode selectedNode : selectedNodes) {
+      for (AstNode selectedNode : selectedNodes) {
         if (selectedNode instanceof Statement) {
           selectedStatements.add((Statement) selectedNode);
         }
@@ -1732,7 +1732,7 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
   /**
    * @return the part of {@link #unit} source.
    */
-  private String getSource(ASTNode node) {
+  private String getSource(AstNode node) {
     return utils.getText(node);
   }
 

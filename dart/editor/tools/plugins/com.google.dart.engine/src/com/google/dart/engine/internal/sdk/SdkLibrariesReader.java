@@ -21,7 +21,7 @@ import com.google.dart.engine.ast.MapLiteralEntry;
 import com.google.dart.engine.ast.NamedExpression;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.SimpleStringLiteral;
-import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
+import com.google.dart.engine.ast.visitor.RecursiveAstVisitor;
 import com.google.dart.engine.error.BooleanErrorListener;
 import com.google.dart.engine.parser.Parser;
 import com.google.dart.engine.scanner.CharSequenceReader;
@@ -59,7 +59,7 @@ import java.util.List;
  * @coverage dart.engine.sdk
  */
 public class SdkLibrariesReader {
-  public static class LibraryBuilder extends RecursiveASTVisitor<Void> {
+  public static class LibraryBuilder extends RecursiveAstVisitor<Void> {
     /**
      * The prefix added to the name of a library to form the URI used in code to reference the
      * library.

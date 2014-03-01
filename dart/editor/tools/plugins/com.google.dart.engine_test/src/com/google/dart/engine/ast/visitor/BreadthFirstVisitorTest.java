@@ -13,7 +13,7 @@
  */
 package com.google.dart.engine.ast.visitor;
 
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.FunctionDeclaration;
@@ -45,10 +45,10 @@ public class BreadthFirstVisitorTest extends ParserTestCase {
         "  }",
         "}");
     CompilationUnit unit = parseCompilationUnit(source);
-    final ArrayList<ASTNode> nodes = new ArrayList<ASTNode>();
+    final ArrayList<AstNode> nodes = new ArrayList<AstNode>();
     BreadthFirstVisitor<Void> visitor = new BreadthFirstVisitor<Void>() {
       @Override
-      public Void visitNode(ASTNode node) {
+      public Void visitNode(AstNode node) {
         nodes.add(node);
         return super.visitNode(node);
       }

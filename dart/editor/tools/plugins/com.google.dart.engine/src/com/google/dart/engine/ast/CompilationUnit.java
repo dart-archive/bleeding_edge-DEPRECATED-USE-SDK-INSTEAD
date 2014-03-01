@@ -48,7 +48,7 @@ import java.util.List;
  * 
  * @coverage dart.engine.ast
  */
-public class CompilationUnit extends ASTNode {
+public class CompilationUnit extends AstNode {
   /**
    * The first token in the token stream that was parsed to form this compilation unit.
    */
@@ -106,7 +106,7 @@ public class CompilationUnit extends ASTNode {
   }
 
   @Override
-  public <R> R accept(ASTVisitor<R> visitor) {
+  public <R> R accept(AstVisitor<R> visitor) {
     return visitor.visitCompilationUnit(this);
   }
 
@@ -209,13 +209,13 @@ public class CompilationUnit extends ASTNode {
   }
 
   @Override
-  public void visitChildren(ASTVisitor<?> visitor) {
+  public void visitChildren(AstVisitor<?> visitor) {
     safelyVisitChild(scriptTag, visitor);
     if (directivesAreBeforeDeclarations()) {
       directives.accept(visitor);
       declarations.accept(visitor);
     } else {
-      for (ASTNode child : getSortedDirectivesAndDeclarations()) {
+      for (AstNode child : getSortedDirectivesAndDeclarations()) {
         child.accept(visitor);
       }
     }
@@ -242,12 +242,12 @@ public class CompilationUnit extends ASTNode {
    * @return the directives and declarations in this compilation unit in the order in which they
    *         appeared in the original source
    */
-  private ASTNode[] getSortedDirectivesAndDeclarations() {
-    ArrayList<ASTNode> childList = new ArrayList<ASTNode>();
+  private AstNode[] getSortedDirectivesAndDeclarations() {
+    ArrayList<AstNode> childList = new ArrayList<AstNode>();
     childList.addAll(directives);
     childList.addAll(declarations);
-    ASTNode[] children = childList.toArray(new ASTNode[childList.size()]);
-    Arrays.sort(children, ASTNode.LEXICAL_ORDER);
+    AstNode[] children = childList.toArray(new AstNode[childList.size()]);
+    Arrays.sort(children, AstNode.LEXICAL_ORDER);
     return children;
   }
 }

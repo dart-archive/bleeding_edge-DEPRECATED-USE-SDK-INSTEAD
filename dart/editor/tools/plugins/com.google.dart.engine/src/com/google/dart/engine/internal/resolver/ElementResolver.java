@@ -14,8 +14,8 @@
 package com.google.dart.engine.internal.resolver;
 
 import com.google.dart.engine.AnalysisEngine;
-import com.google.dart.engine.ast.ASTNode;
-import com.google.dart.engine.ast.ASTVisitor;
+import com.google.dart.engine.ast.AstNode;
+import com.google.dart.engine.ast.AstVisitor;
 import com.google.dart.engine.ast.AnnotatedNode;
 import com.google.dart.engine.ast.Annotation;
 import com.google.dart.engine.ast.ArgumentList;
@@ -70,7 +70,7 @@ import com.google.dart.engine.ast.TopLevelVariableDeclaration;
 import com.google.dart.engine.ast.TypeParameter;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationList;
-import com.google.dart.engine.ast.visitor.SimpleASTVisitor;
+import com.google.dart.engine.ast.visitor.SimpleAstVisitor;
 import com.google.dart.engine.context.AnalysisOptions;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
@@ -173,7 +173,7 @@ import java.util.HashSet;
  * 
  * @coverage dart.engine.resolver
  */
-public class ElementResolver extends SimpleASTVisitor<Void> {
+public class ElementResolver extends SimpleAstVisitor<Void> {
   /**
    * Instances of the class {@code SyntheticIdentifier} implement an identifier that can be used to
    * look up names in the lexical scope when there is no identifier in the AST structure. There is
@@ -196,7 +196,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     }
 
     @Override
-    public <R> R accept(ASTVisitor<R> visitor) {
+    public <R> R accept(AstVisitor<R> visitor) {
       return null;
     }
 
@@ -236,7 +236,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     }
 
     @Override
-    public void visitChildren(ASTVisitor<?> visitor) {
+    public void visitChildren(AstVisitor<?> visitor) {
     }
   }
 
@@ -264,7 +264,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
    * @return {@code true} if the given identifier is the return type of a constructor declaration.
    */
   private static boolean isConstructorReturnType(SimpleIdentifier identifier) {
-    ASTNode parent = identifier.getParent();
+    AstNode parent = identifier.getParent();
     if (parent instanceof ConstructorDeclaration) {
       return ((ConstructorDeclaration) parent).getReturnType() == identifier;
     }
@@ -278,7 +278,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
    *         declaration.
    */
   private static boolean isFactoryConstructorReturnType(SimpleIdentifier node) {
-    ASTNode parent = node.getParent();
+    AstNode parent = node.getParent();
     if (parent instanceof ConstructorDeclaration) {
       ConstructorDeclaration constructor = (ConstructorDeclaration) parent;
       return constructor.getReturnType() == node && constructor.getFactoryKeyword() != null;
@@ -293,7 +293,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
    * @return {@code true} if the 'super' expression is in a valid context
    */
   private static boolean isSuperInValidContext(SuperExpression node) {
-    for (ASTNode n = node; n != null; n = n.getParent()) {
+    for (AstNode n = node; n != null; n = n.getParent()) {
       if (n instanceof CompilationUnit) {
         return false;
       }
@@ -1721,7 +1721,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
    * @return {@code true} if the given node is the prefix in an import directive
    */
   private boolean isValidAsPrefix(SimpleIdentifier node) {
-    ASTNode parent = node.getParent();
+    AstNode parent = node.getParent();
     if (parent instanceof ImportDirective) {
       return ((ImportDirective) parent).getPrefix() == node;
     } else if (parent instanceof PrefixedIdentifier) {
@@ -1912,7 +1912,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
    * @param labelNode the node representing the label being looked up
    * @return the element corresponding to the given label node in the current scope
    */
-  private LabelElementImpl lookupLabel(ASTNode parentNode, SimpleIdentifier labelNode) {
+  private LabelElementImpl lookupLabel(AstNode parentNode, SimpleIdentifier labelNode) {
     LabelScope labelScope = resolver.getLabelScope();
     LabelElementImpl labelElement = null;
     if (labelNode == null) {

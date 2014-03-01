@@ -16,7 +16,7 @@ package com.google.dart.engine.ast.visitor;
 import com.google.dart.engine.ast.*;
 
 /**
- * Instances of the class {@code RecursiveASTVisitor} implement an AST visitor that will recursively
+ * Instances of the class {@code RecursiveAstVisitor} implement an AST visitor that will recursively
  * visit all of the nodes in an AST structure. For example, using an instance of this class to visit
  * a {@link Block} will also cause all of the statements in the block to be visited.
  * <p>
@@ -26,7 +26,7 @@ import com.google.dart.engine.ast.*;
  * 
  * @coverage dart.engine.ast
  */
-public class RecursiveASTVisitor<R> implements ASTVisitor<R> {
+public class RecursiveAstVisitor<R> implements AstVisitor<R> {
   @Override
   public R visitAdjacentStrings(AdjacentStrings node) {
     node.visitChildren(this);

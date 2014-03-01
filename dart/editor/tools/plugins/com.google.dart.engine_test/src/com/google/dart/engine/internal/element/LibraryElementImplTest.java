@@ -22,8 +22,8 @@ import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.source.SourceFactory;
 
-import static com.google.dart.engine.ast.ASTFactory.identifier;
-import static com.google.dart.engine.ast.ASTFactory.libraryIdentifier;
+import static com.google.dart.engine.ast.AstFactory.identifier;
+import static com.google.dart.engine.ast.AstFactory.libraryIdentifier;
 import static com.google.dart.engine.element.ElementFactory.compilationUnit;
 import static com.google.dart.engine.element.ElementFactory.exportFor;
 import static com.google.dart.engine.element.ElementFactory.importFor;

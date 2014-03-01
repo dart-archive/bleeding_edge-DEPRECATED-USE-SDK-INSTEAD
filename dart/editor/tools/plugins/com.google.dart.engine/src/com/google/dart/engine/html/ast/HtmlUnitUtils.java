@@ -14,7 +14,7 @@
 
 package com.google.dart.engine.html.ast;
 
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.visitor.ElementLocator;
 import com.google.dart.engine.ast.visitor.NodeLocator;
@@ -179,12 +179,12 @@ public class HtmlUnitUtils {
   }
 
   /**
-   * Returns the {@link Expression} that is part of the given root {@link ASTNode} and encloses the
+   * Returns the {@link Expression} that is part of the given root {@link AstNode} and encloses the
    * given offset.
    */
-  private static Expression getExpressionAt(ASTNode root, int offset) {
+  private static Expression getExpressionAt(AstNode root, int offset) {
     if (root.getOffset() <= offset && offset < root.getEnd()) {
-      ASTNode dartNode = new NodeLocator(offset).searchWithin(root);
+      AstNode dartNode = new NodeLocator(offset).searchWithin(root);
       if (dartNode instanceof Expression) {
         return (Expression) dartNode;
       }

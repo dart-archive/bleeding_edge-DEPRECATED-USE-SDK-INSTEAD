@@ -13,7 +13,7 @@
  */
 package com.google.dart.engine.integration;
 
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.visitor.ToSourceVisitor;
 import com.google.dart.engine.error.AnalysisErrorListener;
@@ -23,7 +23,7 @@ import com.google.dart.engine.scanner.Scanner;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
-import com.google.dart.engine.utilities.ast.IncrementalASTCloner;
+import com.google.dart.engine.utilities.ast.IncrementalAstCloner;
 import com.google.dart.engine.utilities.collection.TokenMap;
 import com.google.dart.engine.utilities.io.PrintStringWriter;
 
@@ -31,7 +31,7 @@ import junit.framework.TestCase;
 
 import java.io.File;
 
-public class IncrementalASTClonerTest extends TestCase {
+public class IncrementalAstClonerTest extends TestCase {
   private static int fileCount;
   private static int scanCount;
 
@@ -98,8 +98,8 @@ public class IncrementalASTClonerTest extends TestCase {
     }
 
     // Clone AST
-    IncrementalASTCloner cloner = new IncrementalASTCloner(null, null, tokenMap);
-    ASTNode newUnit = oldUnit.accept(cloner);
+    IncrementalAstCloner cloner = new IncrementalAstCloner(null, null, tokenMap);
+    AstNode newUnit = oldUnit.accept(cloner);
     assertNotNull(newUnit);
     writer = new PrintStringWriter();
     oldUnit.accept(new ToSourceVisitor(writer));

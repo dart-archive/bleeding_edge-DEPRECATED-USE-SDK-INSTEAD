@@ -14,7 +14,7 @@
 package com.google.dart.engine.internal.hint;
 
 import com.google.dart.engine.ast.MethodDeclaration;
-import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
+import com.google.dart.engine.ast.visitor.RecursiveAstVisitor;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
@@ -29,7 +29,7 @@ import com.google.dart.engine.internal.resolver.InheritanceManager;
  * Instances of the class {@code OverrideVerifier} visit all of the declarations in a compilation
  * unit to verify that if they have an override annotation it is being used correctly.
  */
-public class OverrideVerifier extends RecursiveASTVisitor<Void> {
+public class OverrideVerifier extends RecursiveAstVisitor<Void> {
   /**
    * The inheritance manager used to find overridden methods.
    */

@@ -22,21 +22,21 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * The abstract class {@code ASTNode} defines the behavior common to all nodes in the AST structure
+ * The abstract class {@code AstNode} defines the behavior common to all nodes in the AST structure
  * for a Dart program.
  * 
  * @coverage dart.engine.ast
  */
-public abstract class ASTNode {
+public abstract class AstNode {
   /**
    * An empty array of ast nodes.
    */
-  public static final ASTNode[] EMPTY_ARRAY = new ASTNode[0];
+  public static final AstNode[] EMPTY_ARRAY = new AstNode[0];
 
   /**
    * The parent of the node, or {@code null} if the node is the root of an AST structure.
    */
-  private ASTNode parent;
+  private AstNode parent;
 
   /**
    * A table mapping the names of properties to their values, or {@code null} if this node does not
@@ -50,9 +50,9 @@ public abstract class ASTNode {
    * offset of the second node, zero (0) if the nodes have the same offset, and a positive value if
    * if the offset of the first node is greater than the offset of the second node.
    */
-  public static final Comparator<ASTNode> LEXICAL_ORDER = new Comparator<ASTNode>() {
+  public static final Comparator<AstNode> LEXICAL_ORDER = new Comparator<AstNode>() {
     @Override
-    public int compare(ASTNode first, ASTNode second) {
+    public int compare(AstNode first, AstNode second) {
       return second.getOffset() - first.getOffset();
     }
   };
@@ -63,7 +63,7 @@ public abstract class ASTNode {
    * @param visitor the visitor that will visit this node
    * @return the value returned by the visitor as a result of visiting this node
    */
-  public abstract <R> R accept(ASTVisitor<R> visitor);
+  public abstract <R> R accept(AstVisitor<R> visitor);
 
   /**
    * Return the node of the given class that most immediately encloses this node, or {@code null} if
@@ -73,8 +73,8 @@ public abstract class ASTNode {
    * @return the node of the given type that encloses this node
    */
   @SuppressWarnings("unchecked")
-  public <E extends ASTNode> E getAncestor(Class<E> enclosingClass) {
-    ASTNode node = this;
+  public <E extends AstNode> E getAncestor(Class<E> enclosingClass) {
+    AstNode node = this;
     while (node != null && !enclosingClass.isInstance(node)) {
       node = node.getParent();
     }
@@ -144,7 +144,7 @@ public abstract class ASTNode {
    * 
    * @return the parent of this node, or {@code null} if none
    */
-  public ASTNode getParent() {
+  public AstNode getParent() {
     return parent;
   }
 
@@ -167,9 +167,9 @@ public abstract class ASTNode {
    * 
    * @return the node at the root of this node's AST structure
    */
-  public final ASTNode getRoot() {
-    ASTNode root = this;
-    ASTNode parent = getParent();
+  public final AstNode getRoot() {
+    AstNode root = this;
+    AstNode parent = getParent();
     while (parent != null) {
       root = parent;
       parent = root.getParent();
@@ -234,7 +234,7 @@ public abstract class ASTNode {
    * 
    * @param visitor the visitor that will be used to visit the children of this node
    */
-  public abstract void visitChildren(ASTVisitor<?> visitor);
+  public abstract void visitChildren(AstVisitor<?> visitor);
 
   /**
    * Make this node the parent of the given child node.
@@ -242,9 +242,9 @@ public abstract class ASTNode {
    * @param child the node that will become a child of this node
    * @return the node that was made a child of this node
    */
-  protected <T extends ASTNode> T becomeParentOf(T child) {
+  protected <T extends AstNode> T becomeParentOf(T child) {
     if (child != null) {
-      ASTNode node = child; // Java 7 access rules require a temp of a concrete type.
+      AstNode node = child; // Java 7 access rules require a temp of a concrete type.
       node.setParent(this);
     }
     return child;
@@ -256,7 +256,7 @@ public abstract class ASTNode {
    * @param child the child to be visited
    * @param visitor the visitor that will be used to visit the child
    */
-  protected void safelyVisitChild(ASTNode child, ASTVisitor<?> visitor) {
+  protected void safelyVisitChild(AstNode child, AstVisitor<?> visitor) {
     if (child != null) {
       child.accept(visitor);
     }
@@ -267,7 +267,7 @@ public abstract class ASTNode {
    * 
    * @param newParent the node that is to be made the parent of this node
    */
-  private void setParent(ASTNode newParent) {
+  private void setParent(AstNode newParent) {
     parent = newParent;
   }
 }

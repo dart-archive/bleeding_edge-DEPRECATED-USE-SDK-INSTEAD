@@ -13,7 +13,7 @@
  */
 package com.google.dart.engine.internal.resolver;
 
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.ConstructorName;
 import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.FunctionExpression;
@@ -106,7 +106,7 @@ public class VariableResolverVisitor extends ScopedVisitor {
       return null;
     }
     // Ignore if qualified.
-    ASTNode parent = node.getParent();
+    AstNode parent = node.getParent();
     if (parent instanceof PrefixedIdentifier
         && ((PrefixedIdentifier) parent).getIdentifier() == node) {
       return null;

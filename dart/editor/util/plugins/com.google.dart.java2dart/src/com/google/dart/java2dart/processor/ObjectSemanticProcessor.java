@@ -15,7 +15,7 @@
 package com.google.dart.java2dart.processor;
 
 import com.google.common.collect.Lists;
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.AsExpression;
 import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.BinaryExpression;
@@ -36,7 +36,7 @@ import com.google.dart.engine.ast.StringInterpolation;
 import com.google.dart.engine.ast.SuperConstructorInvocation;
 import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.VariableDeclaration;
-import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
+import com.google.dart.engine.ast.visitor.GeneralizingAstVisitor;
 import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.java2dart.Context;
@@ -103,7 +103,7 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
 
   @Override
   public void process(CompilationUnit unit) {
-    unit.accept(new GeneralizingASTVisitor<Void>() {
+    unit.accept(new GeneralizingAstVisitor<Void>() {
       @Override
       public Void visitAsExpression(AsExpression node) {
         super.visitAsExpression(node);
@@ -114,8 +114,8 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
         if (JavaUtils.isTypeNamed(expressionTypeBinding, "double")) {
           if (JavaUtils.isTypeNamed(targetTypeBinding, "int")
               || JavaUtils.isTypeNamed(targetTypeBinding, "long")) {
-            ASTNode nodeToReplace = node;
-            ASTNode parent = node.getParent();
+            AstNode nodeToReplace = node;
+            AstNode parent = node.getParent();
             if (parent instanceof ParenthesizedExpression) {
               nodeToReplace = parent;
             }
@@ -331,7 +331,7 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
           }
         }
         if (name.equals("equals") && args.size() == 1) {
-          ASTNode parent = node.getParent();
+          AstNode parent = node.getParent();
           if (target == null) {
             target = thisExpression();
           }

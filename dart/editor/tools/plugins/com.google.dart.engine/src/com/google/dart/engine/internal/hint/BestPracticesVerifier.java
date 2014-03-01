@@ -13,7 +13,7 @@
  */
 package com.google.dart.engine.internal.hint;
 
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.AsExpression;
 import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.BinaryExpression;
@@ -41,7 +41,7 @@ import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.SuperConstructorInvocation;
 import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.VariableDeclaration;
-import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
+import com.google.dart.engine.ast.visitor.RecursiveAstVisitor;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
@@ -64,7 +64,7 @@ import com.google.dart.engine.type.TypeParameterType;
  * 
  * @coverage dart.engine.resolver
  */
-public class BestPracticesVerifier extends RecursiveASTVisitor<Void> {
+public class BestPracticesVerifier extends RecursiveAstVisitor<Void> {
 
   private static final String GETTER = "getter";
 
@@ -302,7 +302,7 @@ public class BestPracticesVerifier extends RecursiveASTVisitor<Void> {
    * @return {@code true} if and only if a hint code is generated on the passed node
    * @see HintCode#DEPRECATED_MEMBER_USE
    */
-  private boolean checkForDeprecatedMemberUse(Element element, ASTNode node) {
+  private boolean checkForDeprecatedMemberUse(Element element, AstNode node) {
     if (element != null && element.isDeprecated()) {
       String displayName = element.getDisplayName();
       if (element instanceof ConstructorElement) {
@@ -321,7 +321,7 @@ public class BestPracticesVerifier extends RecursiveASTVisitor<Void> {
   }
 
   /**
-   * For {@link SimpleIdentifier}s, only call {@link #checkForDeprecatedMemberUse(Element, ASTNode)}
+   * For {@link SimpleIdentifier}s, only call {@link #checkForDeprecatedMemberUse(Element, AstNode)}
    * if the node is not in a declaration context.
    * <p>
    * Also, if the identifier is a constructor name in a constructor invocation, then calls to the
@@ -338,7 +338,7 @@ public class BestPracticesVerifier extends RecursiveASTVisitor<Void> {
     if (identifier.inDeclarationContext()) {
       return false;
     }
-    ASTNode parent = identifier.getParent();
+    AstNode parent = identifier.getParent();
     if ((parent instanceof ConstructorName && identifier == ((ConstructorName) parent).getName())
         || (parent instanceof SuperConstructorInvocation && identifier == ((SuperConstructorInvocation) parent).getConstructorName())
         || parent instanceof HideCombinator) {

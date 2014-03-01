@@ -30,8 +30,8 @@ import com.google.dart.engine.source.SourceKind;
 import com.google.dart.engine.source.TestSource;
 import com.google.dart.engine.utilities.source.LineInfo;
 
-import static com.google.dart.engine.ast.ASTFactory.compilationUnit;
-import static com.google.dart.engine.ast.ASTFactory.libraryIdentifier;
+import static com.google.dart.engine.ast.AstFactory.compilationUnit;
+import static com.google.dart.engine.ast.AstFactory.libraryIdentifier;
 import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
 
 import java.util.HashMap;

@@ -13,7 +13,7 @@
  */
 package com.google.dart.engine.internal.element;
 
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.context.AnalysisContext;
@@ -183,7 +183,7 @@ public class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   }
 
   @Override
-  public ASTNode getNode() throws AnalysisException {
+  public AstNode getNode() throws AnalysisException {
     return null;
   }
 

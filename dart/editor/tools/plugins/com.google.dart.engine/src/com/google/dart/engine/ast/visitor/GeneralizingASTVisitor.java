@@ -16,13 +16,13 @@ package com.google.dart.engine.ast.visitor;
 import com.google.dart.engine.ast.*;
 
 /**
- * Instances of the class {@code GeneralizingASTVisitor} implement an AST visitor that will
+ * Instances of the class {@code GeneralizingAstVisitor} implement an AST visitor that will
  * recursively visit all of the nodes in an AST structure (like instances of the class
- * {@link RecursiveASTVisitor}). In addition, when a node of a specific type is visited not only
+ * {@link RecursiveAstVisitor}). In addition, when a node of a specific type is visited not only
  * will the visit method for that specific type of node be invoked, but additional methods for the
  * superclasses of that node will also be invoked. For example, using an instance of this class to
  * visit a {@link Block} will cause the method {@link #visitBlock(Block)} to be invoked but will
- * also cause the methods {@link #visitStatement(Statement)} and {@link #visitNode(ASTNode)} to be
+ * also cause the methods {@link #visitStatement(Statement)} and {@link #visitNode(AstNode)} to be
  * subsequently invoked. This allows visitors to be written that visit all statements without
  * needing to override the visit method for each of the specific subclasses of {@link Statement}.
  * <p>
@@ -33,7 +33,7 @@ import com.google.dart.engine.ast.*;
  * 
  * @coverage dart.engine.ast
  */
-public class GeneralizingASTVisitor<R> implements ASTVisitor<R> {
+public class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   @Override
   public R visitAdjacentStrings(AdjacentStrings node) {
     return visitStringLiteral(node);
@@ -425,7 +425,7 @@ public class GeneralizingASTVisitor<R> implements ASTVisitor<R> {
     return visitFunctionBody(node);
   }
 
-  public R visitNode(ASTNode node) {
+  public R visitNode(AstNode node) {
     node.visitChildren(this);
     return null;
   }

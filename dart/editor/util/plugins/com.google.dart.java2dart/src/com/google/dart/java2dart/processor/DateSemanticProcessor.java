@@ -20,7 +20,7 @@ import com.google.dart.engine.ast.InstanceCreationExpression;
 import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.TypeName;
-import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
+import com.google.dart.engine.ast.visitor.GeneralizingAstVisitor;
 import com.google.dart.java2dart.Context;
 import com.google.dart.java2dart.util.JavaUtils;
 
@@ -43,7 +43,7 @@ public class DateSemanticProcessor extends SemanticProcessor {
 
   @Override
   public void process(CompilationUnit unit) {
-    unit.accept(new GeneralizingASTVisitor<Void>() {
+    unit.accept(new GeneralizingAstVisitor<Void>() {
       @Override
       public Void visitInstanceCreationExpression(InstanceCreationExpression node) {
         super.visitInstanceCreationExpression(node);

@@ -13,7 +13,7 @@
  */
 package com.google.dart.engine.services.internal.refactoring;
 
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.ConstructorInitializer;
 import com.google.dart.engine.ast.Expression;
@@ -117,20 +117,20 @@ public class ExtractMethodAnalyzer extends StatementAnalyzer {
   }
 
   @Override
-  protected void handleNextSelectedNode(ASTNode node) {
+  protected void handleNextSelectedNode(AstNode node) {
     super.handleNextSelectedNode(node);
     checkParent(node);
   }
 
   @Override
-  protected void handleSelectionEndsIn(ASTNode node) {
+  protected void handleSelectionEndsIn(AstNode node) {
     super.handleSelectionEndsIn(node);
     invalidSelection("The selection does not cover a set of statements or an expression. "
         + "Extend selection to a valid range.");
   }
 
-  private void checkParent(ASTNode node) {
-    ASTNode firstParent = getFirstSelectedNode().getParent();
+  private void checkParent(AstNode node) {
+    AstNode firstParent = getFirstSelectedNode().getParent();
     do {
       node = node.getParent();
       if (node == firstParent) {
@@ -140,7 +140,7 @@ public class ExtractMethodAnalyzer extends StatementAnalyzer {
     invalidSelection("Not all selected statements are enclosed by the same parent statement.");
   }
 
-  private boolean isFirstSelectedNode(ASTNode node) {
+  private boolean isFirstSelectedNode(AstNode node) {
     return getFirstSelectedNode() == node;
   }
 }

@@ -17,7 +17,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.dart.engine.AnalysisEngine;
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.AnnotatedNode;
 import com.google.dart.engine.ast.Comment;
 import com.google.dart.engine.ast.CompilationUnit;
@@ -367,7 +367,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       return null;
     }
     NodeLocator locator = new NodeLocator(element.getNameOffset());
-    ASTNode nameNode = locator.searchWithin(unit);
+    AstNode nameNode = locator.searchWithin(unit);
     while (nameNode != null) {
       if (nameNode instanceof AnnotatedNode) {
         Comment comment = ((AnnotatedNode) nameNode).getDocumentationComment();

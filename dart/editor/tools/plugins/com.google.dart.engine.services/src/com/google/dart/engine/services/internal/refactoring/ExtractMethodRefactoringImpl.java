@@ -18,7 +18,7 @@ import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.Block;
 import com.google.dart.engine.ast.ClassDeclaration;
@@ -37,8 +37,8 @@ import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.Statement;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.WhileStatement;
-import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
-import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
+import com.google.dart.engine.ast.visitor.GeneralizingAstVisitor;
+import com.google.dart.engine.ast.visitor.RecursiveAstVisitor;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.VariableElement;
@@ -116,11 +116,11 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
   }
 
   /**
-   * @return {@code true} if the given {@link ASTNode} has {@link MethodInvocation}.
+   * @return {@code true} if the given {@link AstNode} has {@link MethodInvocation}.
    */
-  private static boolean hasMethodInvocation(ASTNode node) {
+  private static boolean hasMethodInvocation(AstNode node) {
     final boolean[] result = {false};
-    node.accept(new RecursiveASTVisitor<Void>() {
+    node.accept(new RecursiveAstVisitor<Void>() {
       @Override
       public Void visitMethodInvocation(MethodInvocation node) {
         result[0] = true;
@@ -159,7 +159,7 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
   private final Map<String, Parameter> parametersMap = Maps.newHashMap();
   private Type returnType;
   private String returnVariableName;
-  private ASTNode parentMember;
+  private AstNode parentMember;
   private Expression selectionExpression;
 
   private FunctionExpression selectionFunctionExpression;
@@ -436,7 +436,7 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
 
   @Override
   public String getRefactoringName() {
-    ASTNode coveringNode = context.getCoveringNode();
+    AstNode coveringNode = context.getCoveringNode();
     if (coveringNode != null && coveringNode.getAncestor(ClassDeclaration.class) != null) {
       return "Extract Method";
     }
@@ -544,7 +544,7 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
       }
     }
     // check selected nodes
-    List<ASTNode> selectedNodes = selectionAnalyzer.getSelectedNodes();
+    List<AstNode> selectedNodes = selectionAnalyzer.getSelectedNodes();
     if (!selectedNodes.isEmpty()) {
       parentMember = CorrectionUtils.getEnclosingExecutableNode(selectionAnalyzer.getCoveringNode());
       // single expression selected
@@ -552,7 +552,7 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
           && !utils.selectionIncludesNonWhitespaceOutsideNode(
               selectionRange,
               selectionAnalyzer.getFirstSelectedNode())) {
-        ASTNode selectedNode = selectionAnalyzer.getFirstSelectedNode();
+        AstNode selectedNode = selectionAnalyzer.getFirstSelectedNode();
         if (selectedNode instanceof Expression) {
           selectionExpression = (Expression) selectedNode;
           // additional check for closure
@@ -567,7 +567,7 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
       // statements selected
       {
         List<Statement> selectedStatements = Lists.newArrayList();
-        for (ASTNode selectedNode : selectedNodes) {
+        for (AstNode selectedNode : selectedNodes) {
           if (selectedNode instanceof Statement) {
             selectedStatements.add((Statement) selectedNode);
           }
@@ -602,7 +602,7 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
     source = CorrectionUtils.applyReplaceEdits(source, replaceEdits);
     // change indentation
     if (selectionFunctionExpression != null) {
-      ASTNode baseNode = selectionFunctionExpression.getAncestor(Statement.class);
+      AstNode baseNode = selectionFunctionExpression.getAncestor(Statement.class);
       if (baseNode != null) {
         String baseIndent = utils.getNodePrefix(baseNode);
         String targetIndent = utils.getNodePrefix(parentMember);
@@ -623,7 +623,7 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
     String originalSource = utils.getText(partRange.getOffset(), partRange.getLength());
     final SourcePattern pattern = new SourcePattern();
     final List<Edit> replaceEdits = Lists.newArrayList();
-    unitNode.accept(new GeneralizingASTVisitor<Void>() {
+    unitNode.accept(new GeneralizingAstVisitor<Void>() {
       @Override
       public Void visitSimpleIdentifier(SimpleIdentifier node) {
         SourceRange nodeRange = SourceRangeFactory.rangeNode(node);
@@ -678,7 +678,7 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
           return;
         }
         // don't allow cycles
-        statement.accept(new RecursiveASTVisitor<Void>() {
+        statement.accept(new RecursiveAstVisitor<Void>() {
           @Override
           public Void visitDoStatement(DoStatement node) {
             extractGetter = false;
@@ -717,14 +717,14 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
     final Map<String, String> patternToSelectionName = HashBiMap.create(
         selectionPattern.originalToPatternNames).inverse();
     // prepare context and enclosing parent - class or unit
-    ASTNode enclosingMemberParent;
+    AstNode enclosingMemberParent;
     {
-      ASTNode coveringNode = selectionAnalyzer.getCoveringNode();
-      ASTNode parentMember = CorrectionUtils.getEnclosingExecutableNode(coveringNode);
+      AstNode coveringNode = selectionAnalyzer.getCoveringNode();
+      AstNode parentMember = CorrectionUtils.getEnclosingExecutableNode(coveringNode);
       enclosingMemberParent = parentMember.getParent();
     }
     // visit nodes which will able to access extracted method
-    enclosingMemberParent.accept(new GeneralizingASTVisitor<Void>() {
+    enclosingMemberParent.accept(new GeneralizingAstVisitor<Void>() {
       boolean forceStatic = false;
 
       @Override
@@ -821,7 +821,7 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
   private RefactoringStatus initializeParameters() {
     RefactoringStatus result = new RefactoringStatus();
     final List<VariableElement> assignedUsedVariables = Lists.newArrayList();
-    unitNode.accept(new GeneralizingASTVisitor<Void>() {
+    unitNode.accept(new GeneralizingAstVisitor<Void>() {
       @Override
       public Void visitSimpleIdentifier(SimpleIdentifier node) {
         SourceRange nodeRange = SourceRangeFactory.rangeNode(node);
@@ -924,7 +924,7 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
    */
   private boolean isUsedAfterSelection(final VariableElement element) {
     final AtomicBoolean result = new AtomicBoolean();
-    parentMember.accept(new GeneralizingASTVisitor<Void>() {
+    parentMember.accept(new GeneralizingAstVisitor<Void>() {
       @Override
       public Void visitSimpleIdentifier(SimpleIdentifier node) {
         VariableElement nodeElement = CorrectionUtils.getLocalVariableElement(node);

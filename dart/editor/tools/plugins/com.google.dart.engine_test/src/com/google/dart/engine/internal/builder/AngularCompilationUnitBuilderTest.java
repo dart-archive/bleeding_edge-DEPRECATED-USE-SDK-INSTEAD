@@ -13,8 +13,8 @@
  */
 package com.google.dart.engine.internal.builder;
 
-import com.google.dart.engine.ast.ASTFactory;
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstFactory;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.SimpleStringLiteral;
 import com.google.dart.engine.element.ClassElement;
@@ -271,7 +271,7 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
   }
 
   public void test_getElement_SimpleStringLiteral_withToolkitElement() throws Exception {
-    SimpleStringLiteral literal = ASTFactory.string("foo");
+    SimpleStringLiteral literal = AstFactory.string("foo");
     Element element = new AngularScopePropertyElementImpl("foo", 0, null);
     literal.setToolkitElement(element);
     assertSame(element, AngularCompilationUnitBuilder.getElement(literal, -1));
@@ -955,9 +955,9 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
   }
 
   /**
-   * Find {@link ASTNode} of the given type in {@link #mainUnit}.
+   * Find {@link AstNode} of the given type in {@link #mainUnit}.
    */
-  private <T extends ASTNode> T findMainNode(String search, Class<T> clazz) {
+  private <T extends AstNode> T findMainNode(String search, Class<T> clazz) {
     return findNode(mainUnit, mainContent, search, clazz);
   }
 }

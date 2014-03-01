@@ -14,7 +14,7 @@
 package com.google.dart.engine.internal.resolver;
 
 import com.google.dart.engine.EngineTestCase;
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.CatchClause;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.ClassTypeAlias;
@@ -46,20 +46,20 @@ import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
 
-import static com.google.dart.engine.ast.ASTFactory.catchClause;
-import static com.google.dart.engine.ast.ASTFactory.classDeclaration;
-import static com.google.dart.engine.ast.ASTFactory.classTypeAlias;
-import static com.google.dart.engine.ast.ASTFactory.extendsClause;
-import static com.google.dart.engine.ast.ASTFactory.fieldFormalParameter;
-import static com.google.dart.engine.ast.ASTFactory.formalParameterList;
-import static com.google.dart.engine.ast.ASTFactory.identifier;
-import static com.google.dart.engine.ast.ASTFactory.implementsClause;
-import static com.google.dart.engine.ast.ASTFactory.libraryIdentifier;
-import static com.google.dart.engine.ast.ASTFactory.simpleFormalParameter;
-import static com.google.dart.engine.ast.ASTFactory.typeName;
-import static com.google.dart.engine.ast.ASTFactory.variableDeclaration;
-import static com.google.dart.engine.ast.ASTFactory.variableDeclarationList;
-import static com.google.dart.engine.ast.ASTFactory.withClause;
+import static com.google.dart.engine.ast.AstFactory.catchClause;
+import static com.google.dart.engine.ast.AstFactory.classDeclaration;
+import static com.google.dart.engine.ast.AstFactory.classTypeAlias;
+import static com.google.dart.engine.ast.AstFactory.extendsClause;
+import static com.google.dart.engine.ast.AstFactory.fieldFormalParameter;
+import static com.google.dart.engine.ast.AstFactory.formalParameterList;
+import static com.google.dart.engine.ast.AstFactory.identifier;
+import static com.google.dart.engine.ast.AstFactory.implementsClause;
+import static com.google.dart.engine.ast.AstFactory.libraryIdentifier;
+import static com.google.dart.engine.ast.AstFactory.simpleFormalParameter;
+import static com.google.dart.engine.ast.AstFactory.typeName;
+import static com.google.dart.engine.ast.AstFactory.variableDeclaration;
+import static com.google.dart.engine.ast.AstFactory.variableDeclarationList;
+import static com.google.dart.engine.ast.AstFactory.withClause;
 import static com.google.dart.engine.element.ElementFactory.classElement;
 import static com.google.dart.engine.element.ElementFactory.requiredParameter;
 import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
@@ -388,7 +388,7 @@ public class TypeResolverVisitorTest extends EngineTestCase {
    *          being resolved
    * @return the element to which the expression was resolved
    */
-  private void resolveNode(ASTNode node, Element... definedElements) {
+  private void resolveNode(AstNode node, Element... definedElements) {
     for (Element element : definedElements) {
       library.getLibraryScope().define(element);
     }

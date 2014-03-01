@@ -13,7 +13,7 @@
  */
 package com.google.dart.tools.ui.actions;
 
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.Block;
 import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.engine.services.refactoring.RefactoringFactory;
@@ -61,7 +61,7 @@ public class ExtractLocalAction extends AbstractRefactoringAction {
       return;
     }
     // prepare covered node
-    ASTNode coveredNode = context.getCoveredNode();
+    AstNode coveredNode = context.getCoveredNode();
     if (coveredNode == null) {
       setEnabled(false);
       return;

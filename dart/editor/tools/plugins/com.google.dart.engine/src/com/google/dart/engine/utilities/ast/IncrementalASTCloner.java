@@ -21,22 +21,22 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Instances of the class {@code IncrementalASTCloner} implement an object that will clone any AST
+ * Instances of the class {@code IncrementalAstCloner} implement an object that will clone any AST
  * structure that it visits. The cloner will clone the structure, replacing the specified ASTNode
  * with a new ASTNode, mapping the old token stream to a new token stream, and preserving resolution
  * results.
  */
-public class IncrementalASTCloner implements ASTVisitor<ASTNode> {
+public class IncrementalAstCloner implements AstVisitor<AstNode> {
 
   /**
    * The node to be replaced during the cloning process.
    */
-  private ASTNode oldNode;
+  private AstNode oldNode;
 
   /**
    * The replacement node used during the cloning process.
    */
-  private ASTNode newNode;
+  private AstNode newNode;
 
   /**
    * A mapping of old tokens to new tokens used during the cloning process.
@@ -51,7 +51,7 @@ public class IncrementalASTCloner implements ASTVisitor<ASTNode> {
    * @param newNode the replacement node
    * @param tokenMap a mapping of old tokens to new tokens (not {@code null})
    */
-  public IncrementalASTCloner(ASTNode oldNode, ASTNode newNode, TokenMap tokenMap) {
+  public IncrementalAstCloner(AstNode oldNode, AstNode newNode, TokenMap tokenMap) {
     this.oldNode = oldNode;
     this.newNode = newNode;
     this.tokenMap = tokenMap;
@@ -104,7 +104,7 @@ public class IncrementalASTCloner implements ASTVisitor<ASTNode> {
   }
 
   @Override
-  public ASTNode visitAssertStatement(AssertStatement node) {
+  public AstNode visitAssertStatement(AssertStatement node) {
     return new AssertStatement(
         map(node.getKeyword()),
         map(node.getLeftParenthesis()),
@@ -737,7 +737,7 @@ public class IncrementalASTCloner implements ASTVisitor<ASTNode> {
   }
 
   @Override
-  public ASTNode visitNativeClause(NativeClause node) {
+  public AstNode visitNativeClause(NativeClause node) {
     return new NativeClause(map(node.getKeyword()), clone(node.getName()));
   }
 
@@ -971,7 +971,7 @@ public class IncrementalASTCloner implements ASTVisitor<ASTNode> {
   }
 
   @Override
-  public ASTNode visitSymbolLiteral(SymbolLiteral node) {
+  public AstNode visitSymbolLiteral(SymbolLiteral node) {
     SymbolLiteral copy = new SymbolLiteral(map(node.getPoundSign()), map(node.getComponents()));
     copy.setPropagatedType(node.getPropagatedType());
     copy.setStaticType(node.getStaticType());
@@ -1089,7 +1089,7 @@ public class IncrementalASTCloner implements ASTVisitor<ASTNode> {
   }
 
   @SuppressWarnings("unchecked")
-  private <E extends ASTNode> E clone(E node) {
+  private <E extends AstNode> E clone(E node) {
     if (node == null) {
       return null;
     }
@@ -1099,7 +1099,7 @@ public class IncrementalASTCloner implements ASTVisitor<ASTNode> {
     return (E) node.accept(this);
   }
 
-  private <E extends ASTNode> List<E> clone(NodeList<E> nodes) {
+  private <E extends AstNode> List<E> clone(NodeList<E> nodes) {
     ArrayList<E> clonedNodes = new ArrayList<E>();
     for (E node : nodes) {
       clonedNodes.add(clone(node));

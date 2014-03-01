@@ -13,7 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.text.editor;
 
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.ConditionalExpression;
@@ -60,7 +60,7 @@ public class DartElementHyperlinkDetector extends AbstractHyperlinkDetector {
     }
   }
 
-  private Region getWordRegion(ASTNode node) {
+  private Region getWordRegion(AstNode node) {
     if (node instanceof BinaryExpression) {
       Token operator = ((BinaryExpression) node).getOperator();
       return new Region(operator.getOffset(), operator.getLength());
@@ -88,7 +88,7 @@ public class DartElementHyperlinkDetector extends AbstractHyperlinkDetector {
 
     int offset = region.getOffset();
 
-    ASTNode node = new NodeLocator(offset, offset + region.getLength()).searchWithin(cu);
+    AstNode node = new NodeLocator(offset, offset + region.getLength()).searchWithin(cu);
     if (node == null || node instanceof com.google.dart.engine.ast.CompilationUnit
         || node instanceof Directive || node instanceof Declaration
         || node instanceof InstanceCreationExpression || node instanceof PrefixExpression

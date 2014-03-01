@@ -47,7 +47,7 @@ public class AdjacentStrings extends StringLiteral {
   }
 
   @Override
-  public <R> R accept(ASTVisitor<R> visitor) {
+  public <R> R accept(AstVisitor<R> visitor) {
     return visitor.visitAdjacentStrings(this);
   }
 
@@ -71,7 +71,7 @@ public class AdjacentStrings extends StringLiteral {
   }
 
   @Override
-  public void visitChildren(ASTVisitor<?> visitor) {
+  public void visitChildren(AstVisitor<?> visitor) {
     strings.accept(visitor);
   }
 

@@ -16,7 +16,7 @@ package com.google.dart.tools.search.internal.ui;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.ClassMemberElement;
@@ -136,7 +136,7 @@ public class FindReferencesAction extends AbstractDartSelectionAction {
       return true;
     }
     // interesting elements
-    ASTNode node = getSelectionNode(selection);
+    AstNode node = getSelectionNode(selection);
     return isInterestingElement(node, element);
   }
 
@@ -163,7 +163,7 @@ public class FindReferencesAction extends AbstractDartSelectionAction {
   protected void doRun(DartSelection selection, Event event,
       UIInstrumentationBuilder instrumentation) {
     Element element = ActionUtil.getActionElement(selection);
-    ASTNode node = getSelectionNode(selection);
+    AstNode node = getSelectionNode(selection);
     doSearch(element, node);
   }
 
@@ -186,7 +186,7 @@ public class FindReferencesAction extends AbstractDartSelectionAction {
   /**
    * Asks {@link SearchView} to execute query and display results.
    */
-  private void doSearch(Element element, ASTNode node) {
+  private void doSearch(Element element, AstNode node) {
     // tweak
     element = DartElementUtil.getVariableIfSyntheticAccessor(element);
     if (element instanceof ImportElement) {

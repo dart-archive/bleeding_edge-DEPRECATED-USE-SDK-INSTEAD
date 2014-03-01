@@ -13,7 +13,7 @@
  */
 package com.google.dart.engine.internal.resolver;
 
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.AdjacentStrings;
 import com.google.dart.engine.ast.ArgumentDefinitionTest;
 import com.google.dart.engine.ast.ArgumentList;
@@ -60,8 +60,8 @@ import com.google.dart.engine.ast.ThrowExpression;
 import com.google.dart.engine.ast.TypeArgumentList;
 import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.VariableDeclaration;
-import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
-import com.google.dart.engine.ast.visitor.SimpleASTVisitor;
+import com.google.dart.engine.ast.visitor.GeneralizingAstVisitor;
+import com.google.dart.engine.ast.visitor.SimpleAstVisitor;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
@@ -98,7 +98,7 @@ import java.util.HashMap;
  * 
  * @coverage dart.engine.resolver
  */
-public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
+public class StaticTypeAnalyzer extends SimpleAstVisitor<Void> {
   /**
    * Create a table mapping HTML tag names to the names of the classes (in 'dart:html') that
    * implement those tags.
@@ -1452,7 +1452,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
     }
     if (body instanceof BlockFunctionBody) {
       final Type[] result = {null};
-      body.accept(new GeneralizingASTVisitor<Void>() {
+      body.accept(new GeneralizingAstVisitor<Void>() {
         @Override
         public Void visitExpression(Expression node) {
           // Don't visit expressions, there are no interesting return statements.
@@ -1792,7 +1792,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
    * @return {@code true} if the given node is not a type literal
    */
   private boolean isNotTypeLiteral(Identifier node) {
-    ASTNode parent = node.getParent();
+    AstNode parent = node.getParent();
     return parent instanceof TypeName
         || (parent instanceof PrefixedIdentifier && (parent.getParent() instanceof TypeName || ((PrefixedIdentifier) parent).getPrefix() == node))
         || (parent instanceof PropertyAccess && ((PropertyAccess) parent).getTarget() == node)

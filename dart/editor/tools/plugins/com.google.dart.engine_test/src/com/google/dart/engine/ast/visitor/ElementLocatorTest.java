@@ -13,7 +13,7 @@
  */
 package com.google.dart.engine.ast.visitor;
 
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.InstanceCreationExpression;
@@ -35,9 +35,9 @@ import com.google.dart.engine.resolver.ResolverTestCase;
 import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.source.Source;
 
-import static com.google.dart.engine.ast.ASTFactory.identifier;
-import static com.google.dart.engine.ast.ASTFactory.instanceCreationExpression;
-import static com.google.dart.engine.ast.ASTFactory.typeName;
+import static com.google.dart.engine.ast.AstFactory.identifier;
+import static com.google.dart.engine.ast.AstFactory.instanceCreationExpression;
+import static com.google.dart.engine.ast.AstFactory.typeName;
 import static com.google.dart.engine.element.ElementFactory.classElement;
 import static com.google.dart.engine.element.ElementFactory.constructorElement;
 
@@ -64,7 +64,7 @@ public class ElementLocatorTest extends ResolverTestCase {
   }
 
   public void test_arrayAccess() throws Exception {
-    ASTNode id = findNodeIndexedIn("\\[", 1, //
+    AstNode id = findNodeIndexedIn("\\[", 1, //
         "void main() {",
         "  List x = [1, 2];",
         "  var y = x[0];",
@@ -74,13 +74,13 @@ public class ElementLocatorTest extends ResolverTestCase {
   }
 
   public void test_binaryOp() throws Exception {
-    ASTNode id = findNodeIn("+", "var x = 3 + 4;");
+    AstNode id = findNodeIn("+", "var x = 3 + 4;");
     Element element = ElementLocator.locate(id);
     assertInstanceOf(MethodElement.class, element);
   }
 
   public void test_classElement() throws Exception {
-    ASTNode id = findNodeIn("A", "class A { }");
+    AstNode id = findNodeIn("A", "class A { }");
     Element element = ElementLocator.locate(id);
     assertInstanceOf(ClassElement.class, element);
   }
@@ -94,13 +94,13 @@ public class ElementLocatorTest extends ResolverTestCase {
 
   public void test_compilationUnitElement_part() throws Exception {
     addSource("/foo.dart", "part of app;");
-    ASTNode id = findNodeIn("'foo.dart'", "library app; part 'foo.dart';");
+    AstNode id = findNodeIn("'foo.dart'", "library app; part 'foo.dart';");
     Element element = ElementLocator.locate(id);
     assertInstanceOf(CompilationUnitElement.class, element);
   }
 
   public void test_ConstructorDeclaration() throws Exception {
-    ASTNode id = findNodeIndexedIn("bar", 0, //
+    AstNode id = findNodeIndexedIn("bar", 0, //
         "class A {",
         "  A.bar() {}",
         "}");
@@ -110,13 +110,13 @@ public class ElementLocatorTest extends ResolverTestCase {
   }
 
   public void test_fieldElement() throws Exception {
-    ASTNode id = findNodeIn("x", "class A { var x; }");
+    AstNode id = findNodeIn("x", "class A { var x; }");
     Element element = ElementLocator.locate(id);
     assertInstanceOf(FieldElement.class, element);
   }
 
   public void test_functionElement() throws Exception {
-    ASTNode id = findNodeIndexedIn("bar", 1, //
+    AstNode id = findNodeIndexedIn("bar", 1, //
         "int bar() => 42;",
         "void main() {",
         " var f = bar();",
@@ -126,7 +126,7 @@ public class ElementLocatorTest extends ResolverTestCase {
   }
 
   public void test_InstanceCreationExpression() throws Exception {
-    ASTNode node = findNodeIndexedIn("A(", 0, //
+    AstNode node = findNodeIndexedIn("A(", 0, //
         "class A {}",
         "void main() {",
         " new A();",
@@ -168,20 +168,20 @@ public class ElementLocatorTest extends ResolverTestCase {
 
   public void test_libraryElement_export() throws Exception {
     addSource("/foo.dart", "library foo;");
-    ASTNode id = findNodeIn("'foo.dart'", "export 'foo.dart';");
+    AstNode id = findNodeIn("'foo.dart'", "export 'foo.dart';");
     Element element = ElementLocator.locate(id);
     assertInstanceOf(LibraryElement.class, element);
   }
 
   public void test_libraryElement_import() throws Exception {
     addSource("/foo.dart", "library foo; class A {}");
-    ASTNode id = findNodeIn("'foo.dart'", "import 'foo.dart'; class B extends A {}");
+    AstNode id = findNodeIn("'foo.dart'", "import 'foo.dart'; class B extends A {}");
     Element element = ElementLocator.locate(id);
     assertInstanceOf(LibraryElement.class, element);
   }
 
   public void test_methodElement() throws Exception {
-    ASTNode id = findNodeIndexedIn("bar", 1, //
+    AstNode id = findNodeIndexedIn("bar", 1, //
         "class A {",
         "  int bar() => 42;",
         "}",
@@ -207,19 +207,19 @@ public class ElementLocatorTest extends ResolverTestCase {
   }
 
   public void test_postfixOp() throws Exception {
-    ASTNode id = findNodeIn("++", "int addOne(int x) => x++;");
+    AstNode id = findNodeIn("++", "int addOne(int x) => x++;");
     Element element = ElementLocator.locate(id);
     assertInstanceOf(MethodElement.class, element);
   }
 
   public void test_prefixOp() throws Exception {
-    ASTNode id = findNodeIn("++", "int addOne(int x) => ++x;");
+    AstNode id = findNodeIn("++", "int addOne(int x) => ++x;");
     Element element = ElementLocator.locate(id);
     assertInstanceOf(MethodElement.class, element);
   }
 
   public void test_propertAccessElement() throws Exception {
-    ASTNode id = findNodeIn("length", //
+    AstNode id = findNodeIn("length", //
         "void main() {",
         " int x = 'foo'.length;",
         "}");
@@ -243,7 +243,7 @@ public class ElementLocatorTest extends ResolverTestCase {
    * @return the matched node in the resolved AST for the given source lines
    * @throws Exception if source cannot be verified
    */
-  private ASTNode findNodeIn(String nodePattern, String... lines) throws Exception {
+  private AstNode findNodeIn(String nodePattern, String... lines) throws Exception {
     return findNodeIndexedIn(nodePattern, 0, lines);
   }
 
@@ -257,7 +257,7 @@ public class ElementLocatorTest extends ResolverTestCase {
    * @return the matched node in the resolved AST for the given source lines
    * @throws Exception if source cannot be verified
    */
-  private ASTNode findNodeIndexedIn(String nodePattern, int index, String... lines)
+  private AstNode findNodeIndexedIn(String nodePattern, int index, String... lines)
       throws Exception {
     String contents = createSource(lines);
     CompilationUnit cu = resolve(contents);
