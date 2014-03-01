@@ -1252,11 +1252,8 @@ public class MainEngine {
     unit.getDirectives().add(importDirective("source.dart", null));
     unit.getDirectives().add(importDirective("java_core.dart", null));
     unit.getDirectives().add(importDirective("java_io.dart", null));
-    unit.getDirectives().add(
-        importDirective(
-            "engine.dart",
-            null,
-            importShowCombinator("AnalysisContext", "AnalysisEngine", "TimestampedData")));
+    unit.getDirectives().add(importDirective("engine.dart", null));
+    unit.getDirectives().add(importDirective("utilities_general.dart", null));
     unit.getDirectives().add(exportDirective("source.dart"));
     for (Entry<File, List<CompilationUnitMember>> entry : context.getFileToMembers().entrySet()) {
       File file = entry.getKey();
