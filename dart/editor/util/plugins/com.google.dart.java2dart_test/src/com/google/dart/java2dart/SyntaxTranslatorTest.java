@@ -833,9 +833,7 @@ public class SyntaxTranslatorTest extends AbstractSemanticTest {
         "}");
     assertDartSource(//
         "/**",
-        " *",
         " * * foo bar",
-        " *",
         " */",
         "class A {",
         "}");
