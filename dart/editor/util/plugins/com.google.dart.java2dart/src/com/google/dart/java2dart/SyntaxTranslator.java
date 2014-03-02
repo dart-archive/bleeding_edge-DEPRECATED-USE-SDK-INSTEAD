@@ -1623,13 +1623,31 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
     }
 
     // <ul>, </ul>
-    // TODO: even better would be to remove these lines -
-    str = str.replaceAll("<ul>", "").replaceAll("</ul>", "");
+    str = deleteLinesContaining(str, "<ul>", false);
+    str = deleteLinesContaining(str, "</ul>", false);
 
     // <li>
     str = str.replaceAll("<li>", "* ").replaceAll("</li>", "");
 
+    // @coverage
+    str = deleteLinesContaining(str, "@coverage", true);
+
     return str;
+  }
+
+  private int backupOverBlankLine(String string, int first) {
+    int index = first - 1;
+    if (string.charAt(index) == '\r' && string.charAt(first) == '\n') {
+      index--;
+    }
+    char currentChar = string.charAt(index);
+    while (!isEol(currentChar)) {
+      if (!Character.isWhitespace(currentChar) && currentChar != '*') {
+        return first;
+      }
+      currentChar = string.charAt(--index);
+    }
+    return index;
   }
 
   private ClassDeclaration declareInnerClass(IMethodBinding constructorBinding,
@@ -1711,6 +1729,30 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
     return innerClass;
   }
 
+  private String deleteLineContaining(String string, int index, boolean includePreceeding) {
+    int first = index;
+    while (!isEol(string.charAt(first))) {
+      first--;
+    }
+    if (includePreceeding) {
+      first = backupOverBlankLine(string, first);
+    }
+    int last = index;
+    while (!isEol(string.charAt(last))) {
+      last++;
+    }
+    return string.substring(0, first + 1) + string.substring(last);
+  }
+
+  private String deleteLinesContaining(String string, String substring, boolean includePreceeding) {
+    int index = string.indexOf(substring);
+    while (index >= 0) {
+      string = deleteLineContaining(string, index, includePreceeding);
+      index = string.indexOf(substring);
+    }
+    return string;
+  }
+
   /**
    * Set {@link #result} and return <code>false</code> - we don't want normal JDT visiting.
    */
@@ -1765,6 +1807,10 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
   private String getJavaSource(org.eclipse.jdt.core.dom.ASTNode node) {
     int offset = node.getStartPosition();
     return javaSource.substring(offset, offset + node.getLength());
+  }
+
+  private boolean isEol(char character) {
+    return character == '\r' || character == '\n';
   }
 
   private boolean isNumberOrNull(Expression expression) {
