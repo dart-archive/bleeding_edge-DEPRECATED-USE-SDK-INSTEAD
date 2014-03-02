@@ -31,7 +31,7 @@ import java.util.List;
  * nodes that are created are complete in the sense that all of the tokens that would have been
  * associated with the nodes by a parser are also created, but the token stream is not constructed.
  */
-public final class ASTFactory {
+public final class AstFactory {
   public static AdjacentStrings adjacentStrings(StringLiteral... strings) {
     return new AdjacentStrings(list(strings));
   }
@@ -1383,6 +1383,6 @@ public final class ASTFactory {
   /**
    * Prevent the creation of instances of this class.
    */
-  private ASTFactory() {
+  private AstFactory() {
   }
 }

@@ -24,12 +24,12 @@ import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.java2dart.Context;
 
-import static com.google.dart.java2dart.util.ASTFactory.binaryExpression;
-import static com.google.dart.java2dart.util.ASTFactory.identifier;
-import static com.google.dart.java2dart.util.ASTFactory.instanceCreationExpression;
-import static com.google.dart.java2dart.util.ASTFactory.listLiteral;
-import static com.google.dart.java2dart.util.ASTFactory.mapLiteral;
-import static com.google.dart.java2dart.util.ASTFactory.typeName;
+import static com.google.dart.java2dart.util.AstFactory.binaryExpression;
+import static com.google.dart.java2dart.util.AstFactory.identifier;
+import static com.google.dart.java2dart.util.AstFactory.instanceCreationExpression;
+import static com.google.dart.java2dart.util.AstFactory.listLiteral;
+import static com.google.dart.java2dart.util.AstFactory.mapLiteral;
+import static com.google.dart.java2dart.util.AstFactory.typeName;
 import static com.google.dart.java2dart.util.TokenFactory.token;
 
 import java.util.List;

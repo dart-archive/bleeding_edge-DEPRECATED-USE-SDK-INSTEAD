@@ -35,9 +35,9 @@ import com.google.dart.engine.ast.visitor.RecursiveAstVisitor;
 import com.google.dart.java2dart.Context;
 import com.google.dart.java2dart.SyntaxTranslator;
 
-import static com.google.dart.java2dart.util.ASTFactory.identifier;
-import static com.google.dart.java2dart.util.ASTFactory.propertyAccess;
-import static com.google.dart.java2dart.util.ASTFactory.thisExpression;
+import static com.google.dart.java2dart.util.AstFactory.identifier;
+import static com.google.dart.java2dart.util.AstFactory.propertyAccess;
+import static com.google.dart.java2dart.util.AstFactory.thisExpression;
 
 import org.eclipse.jdt.core.dom.IBinding;
 import org.eclipse.jdt.core.dom.IMethodBinding;

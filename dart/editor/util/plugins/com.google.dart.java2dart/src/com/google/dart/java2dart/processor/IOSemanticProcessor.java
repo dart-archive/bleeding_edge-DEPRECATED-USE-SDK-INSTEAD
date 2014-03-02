@@ -26,10 +26,10 @@ import com.google.dart.engine.ast.visitor.GeneralizingAstVisitor;
 import com.google.dart.java2dart.Context;
 import com.google.dart.java2dart.util.JavaUtils;
 
-import static com.google.dart.java2dart.util.ASTFactory.identifier;
-import static com.google.dart.java2dart.util.ASTFactory.methodInvocation;
-import static com.google.dart.java2dart.util.ASTFactory.namedExpression;
-import static com.google.dart.java2dart.util.ASTFactory.propertyAccess;
+import static com.google.dart.java2dart.util.AstFactory.identifier;
+import static com.google.dart.java2dart.util.AstFactory.methodInvocation;
+import static com.google.dart.java2dart.util.AstFactory.namedExpression;
+import static com.google.dart.java2dart.util.AstFactory.propertyAccess;
 import static com.google.dart.java2dart.util.TokenFactory.token;
 
 import org.eclipse.jdt.core.dom.IMethodBinding;

@@ -20,7 +20,7 @@ import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.visitor.GeneralizingAstVisitor;
 import com.google.dart.java2dart.Context;
 
-import static com.google.dart.java2dart.util.ASTFactory.methodInvocation;
+import static com.google.dart.java2dart.util.AstFactory.methodInvocation;
 
 import java.util.List;
 

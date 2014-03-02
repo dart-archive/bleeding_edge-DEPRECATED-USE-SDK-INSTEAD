@@ -49,10 +49,10 @@ import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.java2dart.Context;
 import com.google.dart.java2dart.util.Bindings;
 
-import static com.google.dart.java2dart.util.ASTFactory.assignmentExpression;
-import static com.google.dart.java2dart.util.ASTFactory.emptyFunctionBody;
-import static com.google.dart.java2dart.util.ASTFactory.fieldFormalParameter;
-import static com.google.dart.java2dart.util.ASTFactory.propertyAccess;
+import static com.google.dart.java2dart.util.AstFactory.assignmentExpression;
+import static com.google.dart.java2dart.util.AstFactory.emptyFunctionBody;
+import static com.google.dart.java2dart.util.AstFactory.fieldFormalParameter;
+import static com.google.dart.java2dart.util.AstFactory.propertyAccess;
 import static com.google.dart.java2dart.util.TokenFactory.token;
 
 import org.apache.commons.lang3.StringUtils;

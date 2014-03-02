@@ -53,16 +53,16 @@ import com.google.dart.java2dart.processor.LocalVariablesSemanticProcessor;
 import com.google.dart.java2dart.util.Bindings;
 import com.google.dart.java2dart.util.JavaUtils;
 
-import static com.google.dart.java2dart.util.ASTFactory.assignmentExpression;
-import static com.google.dart.java2dart.util.ASTFactory.block;
-import static com.google.dart.java2dart.util.ASTFactory.blockFunctionBody;
-import static com.google.dart.java2dart.util.ASTFactory.compilationUnit;
-import static com.google.dart.java2dart.util.ASTFactory.constructorDeclaration;
-import static com.google.dart.java2dart.util.ASTFactory.expressionStatement;
-import static com.google.dart.java2dart.util.ASTFactory.formalParameterList;
-import static com.google.dart.java2dart.util.ASTFactory.identifier;
-import static com.google.dart.java2dart.util.ASTFactory.propertyAccess;
-import static com.google.dart.java2dart.util.ASTFactory.thisExpression;
+import static com.google.dart.java2dart.util.AstFactory.assignmentExpression;
+import static com.google.dart.java2dart.util.AstFactory.block;
+import static com.google.dart.java2dart.util.AstFactory.blockFunctionBody;
+import static com.google.dart.java2dart.util.AstFactory.compilationUnit;
+import static com.google.dart.java2dart.util.AstFactory.constructorDeclaration;
+import static com.google.dart.java2dart.util.AstFactory.expressionStatement;
+import static com.google.dart.java2dart.util.AstFactory.formalParameterList;
+import static com.google.dart.java2dart.util.AstFactory.identifier;
+import static com.google.dart.java2dart.util.AstFactory.propertyAccess;
+import static com.google.dart.java2dart.util.AstFactory.thisExpression;
 import static com.google.dart.java2dart.util.TokenFactory.token;
 
 import org.apache.commons.io.Charsets;

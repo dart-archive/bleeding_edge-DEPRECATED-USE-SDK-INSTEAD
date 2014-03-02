@@ -39,15 +39,15 @@ import com.google.dart.java2dart.Context;
 import com.google.dart.java2dart.util.JavaUtils;
 import com.google.dart.java2dart.util.TokenFactory;
 
-import static com.google.dart.java2dart.util.ASTFactory.assignmentExpression;
-import static com.google.dart.java2dart.util.ASTFactory.functionExpression;
-import static com.google.dart.java2dart.util.ASTFactory.functionExpressionInvocation;
-import static com.google.dart.java2dart.util.ASTFactory.identifier;
-import static com.google.dart.java2dart.util.ASTFactory.indexExpression;
-import static com.google.dart.java2dart.util.ASTFactory.instanceCreationExpression;
-import static com.google.dart.java2dart.util.ASTFactory.methodInvocation;
-import static com.google.dart.java2dart.util.ASTFactory.propertyAccess;
-import static com.google.dart.java2dart.util.ASTFactory.typeName;
+import static com.google.dart.java2dart.util.AstFactory.assignmentExpression;
+import static com.google.dart.java2dart.util.AstFactory.functionExpression;
+import static com.google.dart.java2dart.util.AstFactory.functionExpressionInvocation;
+import static com.google.dart.java2dart.util.AstFactory.identifier;
+import static com.google.dart.java2dart.util.AstFactory.indexExpression;
+import static com.google.dart.java2dart.util.AstFactory.instanceCreationExpression;
+import static com.google.dart.java2dart.util.AstFactory.methodInvocation;
+import static com.google.dart.java2dart.util.AstFactory.propertyAccess;
+import static com.google.dart.java2dart.util.AstFactory.typeName;
 import static com.google.dart.java2dart.util.TokenFactory.token;
 
 import org.eclipse.jdt.core.dom.IMethodBinding;

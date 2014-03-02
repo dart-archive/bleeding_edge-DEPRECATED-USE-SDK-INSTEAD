@@ -24,8 +24,8 @@ import com.google.dart.engine.ast.VariableDeclarationList;
 import com.google.dart.engine.ast.visitor.GeneralizingAstVisitor;
 import com.google.dart.java2dart.Context;
 
-import static com.google.dart.java2dart.util.ASTFactory.asExpression;
-import static com.google.dart.java2dart.util.ASTFactory.parenthesizedExpression;
+import static com.google.dart.java2dart.util.AstFactory.asExpression;
+import static com.google.dart.java2dart.util.AstFactory.parenthesizedExpression;
 
 import org.eclipse.jdt.core.dom.ITypeBinding;
 
