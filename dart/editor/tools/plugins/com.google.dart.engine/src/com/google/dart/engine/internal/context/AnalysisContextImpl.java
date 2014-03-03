@@ -17,8 +17,8 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.dart.engine.AnalysisEngine;
-import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.AnnotatedNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.Comment;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.visitor.NodeLocator;
@@ -3967,7 +3967,11 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       if (partEntry != null && partEntry != dartEntry) {
         DartEntryImpl partCopy = partEntry.getWritableCopy();
         partCopy.removeContainingLibrary(librarySource);
-        cache.put(partSource, partCopy);
+        if (partCopy.getLibrariesContaining().length == 0 && !exists(partSource)) {
+          cache.remove(partSource);
+        } else {
+          cache.put(partSource, partCopy);
+        }
       }
     }
   }
