@@ -19,7 +19,11 @@ TypeText "something"
 Wait 0.5
 util.newline
 Wait 0.5
-Click "check mark"
+put ImageRectangle("check mark") into checkRect
+Click center(checkRect)
+put bottomRight(checkRect) into UL
+put UL + (500,75) into BR
+set the searchRectangle to (UL,BR)
 WaitFor 5, (Text:"Clear",CaseSensitive:"yes",ValidCharacters:"*",dpi:94)
 Click (Text:"Clear",CaseSensitive:"yes",ValidCharacters:"*",dpi:94)
 set the searchRectangle to ()
