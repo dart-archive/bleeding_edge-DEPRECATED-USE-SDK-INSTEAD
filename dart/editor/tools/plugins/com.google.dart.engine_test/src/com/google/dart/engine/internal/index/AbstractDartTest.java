@@ -383,6 +383,7 @@ public class AbstractDartTest extends TestCase {
    * @return the {@link Source} which corresponds given path.
    */
   protected final Source setFileContent(String path, String content) {
+    ensureAnalysisContext();
     FileBasedSource source = new FileBasedSource(createFile("/" + path));
     sourceWithSetContent.add(source);
     analysisContext.setContents(source, content);
