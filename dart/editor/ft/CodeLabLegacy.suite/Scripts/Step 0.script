@@ -12,17 +12,6 @@ Click "red stripe"
 Click "delete file X"
 util.exitChromium
 
-util.selectContextMenuItem "app.dart", "Run as JavaScript"
-Wait 2
-WaitFor 30,"plus file"
-Click (Text:"Untitled",CaseSensitive:"yes")
-util.closeTab
-if (util.isMacOSX) then
-	Wait 1
-	TypeText CommandKey,Tab
-end if
-Wait 1
-
 set the SearchRectangle to ((0,100),(300,400))
 (*Click (Text:"document",CaseSensitive:"yes",ValidCharacters:"*",IgnoreSpaces:"yes",dpi:94)*)
 Click "lib expando"
