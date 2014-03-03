@@ -59,17 +59,17 @@ public class IncrementalAstCloner implements AstVisitor<AstNode> {
 
   @Override
   public AdjacentStrings visitAdjacentStrings(AdjacentStrings node) {
-    return new AdjacentStrings(clone(node.getStrings()));
+    return new AdjacentStrings(cloneNodeList(node.getStrings()));
   }
 
   @Override
   public Annotation visitAnnotation(Annotation node) {
     Annotation copy = new Annotation(
-        map(node.getAtSign()),
-        clone(node.getName()),
-        map(node.getPeriod()),
-        clone(node.getConstructorName()),
-        clone(node.getArguments()));
+        mapToken(node.getAtSign()),
+        cloneNode(node.getName()),
+        mapToken(node.getPeriod()),
+        cloneNode(node.getConstructorName()),
+        cloneNode(node.getArguments()));
     copy.setElement(node.getElement());
     return copy;
   }
@@ -77,8 +77,8 @@ public class IncrementalAstCloner implements AstVisitor<AstNode> {
   @Override
   public ArgumentDefinitionTest visitArgumentDefinitionTest(ArgumentDefinitionTest node) {
     ArgumentDefinitionTest copy = new ArgumentDefinitionTest(
-        map(node.getQuestion()),
-        clone(node.getIdentifier()));
+        mapToken(node.getQuestion()),
+        cloneNode(node.getIdentifier()));
     copy.setPropagatedType(node.getPropagatedType());
     copy.setStaticType(node.getStaticType());
     return copy;
@@ -87,17 +87,17 @@ public class IncrementalAstCloner implements AstVisitor<AstNode> {
   @Override
   public ArgumentList visitArgumentList(ArgumentList node) {
     return new ArgumentList(
-        map(node.getLeftParenthesis()),
-        clone(node.getArguments()),
-        map(node.getRightParenthesis()));
+        mapToken(node.getLeftParenthesis()),
+        cloneNodeList(node.getArguments()),
+        mapToken(node.getRightParenthesis()));
   }
 
   @Override
   public AsExpression visitAsExpression(AsExpression node) {
     AsExpression copy = new AsExpression(
-        clone(node.getExpression()),
-        map(node.getAsOperator()),
-        clone(node.getType()));
+        cloneNode(node.getExpression()),
+        mapToken(node.getAsOperator()),
+        cloneNode(node.getType()));
     copy.setPropagatedType(node.getPropagatedType());
     copy.setStaticType(node.getStaticType());
     return copy;
@@ -106,19 +106,19 @@ public class IncrementalAstCloner implements AstVisitor<AstNode> {
   @Override
   public AstNode visitAssertStatement(AssertStatement node) {
     return new AssertStatement(
-        map(node.getKeyword()),
-        map(node.getLeftParenthesis()),
-        clone(node.getCondition()),
-        map(node.getRightParenthesis()),
-        map(node.getSemicolon()));
+        mapToken(node.getKeyword()),
+        mapToken(node.getLeftParenthesis()),
+        cloneNode(node.getCondition()),
+        mapToken(node.getRightParenthesis()),
+        mapToken(node.getSemicolon()));
   }
 
   @Override
   public AssignmentExpression visitAssignmentExpression(AssignmentExpression node) {
     AssignmentExpression copy = new AssignmentExpression(
-        clone(node.getLeftHandSide()),
-        map(node.getOperator()),
-        clone(node.getRightHandSide()));
+        cloneNode(node.getLeftHandSide()),
+        mapToken(node.getOperator()),
+        cloneNode(node.getRightHandSide()));
     copy.setPropagatedElement(node.getPropagatedElement());
     copy.setPropagatedType(node.getPropagatedType());
     copy.setStaticElement(node.getStaticElement());
@@ -129,9 +129,9 @@ public class IncrementalAstCloner implements AstVisitor<AstNode> {
   @Override
   public BinaryExpression visitBinaryExpression(BinaryExpression node) {
     BinaryExpression copy = new BinaryExpression(
-        clone(node.getLeftOperand()),
-        map(node.getOperator()),
-        clone(node.getRightOperand()));
+        cloneNode(node.getLeftOperand()),
+        mapToken(node.getOperator()),
+        cloneNode(node.getRightOperand()));
     copy.setPropagatedElement(node.getPropagatedElement());
     copy.setPropagatedType(node.getPropagatedType());
     copy.setStaticElement(node.getStaticElement());
@@ -142,19 +142,19 @@ public class IncrementalAstCloner implements AstVisitor<AstNode> {
   @Override
   public Block visitBlock(Block node) {
     return new Block(
-        map(node.getLeftBracket()),
-        clone(node.getStatements()),
-        map(node.getRightBracket()));
+        mapToken(node.getLeftBracket()),
+        cloneNodeList(node.getStatements()),
+        mapToken(node.getRightBracket()));
   }
 
   @Override
   public BlockFunctionBody visitBlockFunctionBody(BlockFunctionBody node) {
-    return new BlockFunctionBody(clone(node.getBlock()));
+    return new BlockFunctionBody(cloneNode(node.getBlock()));
   }
 
   @Override
   public BooleanLiteral visitBooleanLiteral(BooleanLiteral node) {
-    BooleanLiteral copy = new BooleanLiteral(map(node.getLiteral()), node.getValue());
+    BooleanLiteral copy = new BooleanLiteral(mapToken(node.getLiteral()), node.getValue());
     copy.setPropagatedType(node.getPropagatedType());
     copy.setStaticType(node.getStaticType());
     return copy;
@@ -163,16 +163,16 @@ public class IncrementalAstCloner implements AstVisitor<AstNode> {
   @Override
   public BreakStatement visitBreakStatement(BreakStatement node) {
     return new BreakStatement(
-        map(node.getKeyword()),
-        clone(node.getLabel()),
-        map(node.getSemicolon()));
+        mapToken(node.getKeyword()),
+        cloneNode(node.getLabel()),
+        mapToken(node.getSemicolon()));
   }
 
   @Override
   public CascadeExpression visitCascadeExpression(CascadeExpression node) {
     CascadeExpression copy = new CascadeExpression(
-        clone(node.getTarget()),
-        clone(node.getCascadeSections()));
+        cloneNode(node.getTarget()),
+        cloneNodeList(node.getCascadeSections()));
     copy.setPropagatedType(node.getPropagatedType());
     copy.setStaticType(node.getStaticType());
     return copy;
@@ -181,75 +181,77 @@ public class IncrementalAstCloner implements AstVisitor<AstNode> {
   @Override
   public CatchClause visitCatchClause(CatchClause node) {
     return new CatchClause(
-        map(node.getOnKeyword()),
-        clone(node.getExceptionType()),
-        map(node.getCatchKeyword()),
-        map(node.getLeftParenthesis()),
-        clone(node.getExceptionParameter()),
-        map(node.getComma()),
-        clone(node.getStackTraceParameter()),
-        map(node.getRightParenthesis()),
-        clone(node.getBody()));
+        mapToken(node.getOnKeyword()),
+        cloneNode(node.getExceptionType()),
+        mapToken(node.getCatchKeyword()),
+        mapToken(node.getLeftParenthesis()),
+        cloneNode(node.getExceptionParameter()),
+        mapToken(node.getComma()),
+        cloneNode(node.getStackTraceParameter()),
+        mapToken(node.getRightParenthesis()),
+        cloneNode(node.getBody()));
   }
 
   @Override
   public ClassDeclaration visitClassDeclaration(ClassDeclaration node) {
     ClassDeclaration copy = new ClassDeclaration(
-        clone(node.getDocumentationComment()),
-        clone(node.getMetadata()),
-        map(node.getAbstractKeyword()),
-        map(node.getClassKeyword()),
-        clone(node.getName()),
-        clone(node.getTypeParameters()),
-        clone(node.getExtendsClause()),
-        clone(node.getWithClause()),
-        clone(node.getImplementsClause()),
-        map(node.getLeftBracket()),
-        clone(node.getMembers()),
-        map(node.getRightBracket()));
-    copy.setNativeClause(clone(node.getNativeClause()));
+        cloneNode(node.getDocumentationComment()),
+        cloneNodeList(node.getMetadata()),
+        mapToken(node.getAbstractKeyword()),
+        mapToken(node.getClassKeyword()),
+        cloneNode(node.getName()),
+        cloneNode(node.getTypeParameters()),
+        cloneNode(node.getExtendsClause()),
+        cloneNode(node.getWithClause()),
+        cloneNode(node.getImplementsClause()),
+        mapToken(node.getLeftBracket()),
+        cloneNodeList(node.getMembers()),
+        mapToken(node.getRightBracket()));
+    copy.setNativeClause(cloneNode(node.getNativeClause()));
     return copy;
   }
 
   @Override
   public ClassTypeAlias visitClassTypeAlias(ClassTypeAlias node) {
     return new ClassTypeAlias(
-        clone(node.getDocumentationComment()),
-        clone(node.getMetadata()),
-        map(node.getKeyword()),
-        clone(node.getName()),
-        clone(node.getTypeParameters()),
-        map(node.getEquals()),
-        map(node.getAbstractKeyword()),
-        clone(node.getSuperclass()),
-        clone(node.getWithClause()),
-        clone(node.getImplementsClause()),
-        map(node.getSemicolon()));
+        cloneNode(node.getDocumentationComment()),
+        cloneNodeList(node.getMetadata()),
+        mapToken(node.getKeyword()),
+        cloneNode(node.getName()),
+        cloneNode(node.getTypeParameters()),
+        mapToken(node.getEquals()),
+        mapToken(node.getAbstractKeyword()),
+        cloneNode(node.getSuperclass()),
+        cloneNode(node.getWithClause()),
+        cloneNode(node.getImplementsClause()),
+        mapToken(node.getSemicolon()));
   }
 
   @Override
   public Comment visitComment(Comment node) {
     if (node.isDocumentation()) {
-      return Comment.createDocumentationComment(map(node.getTokens()), clone(node.getReferences()));
+      return Comment.createDocumentationComment(
+          mapTokens(node.getTokens()),
+          cloneNodeList(node.getReferences()));
     } else if (node.isBlock()) {
-      return Comment.createBlockComment(map(node.getTokens()));
+      return Comment.createBlockComment(mapTokens(node.getTokens()));
     }
-    return Comment.createEndOfLineComment(map(node.getTokens()));
+    return Comment.createEndOfLineComment(mapTokens(node.getTokens()));
   }
 
   @Override
   public CommentReference visitCommentReference(CommentReference node) {
-    return new CommentReference(map(node.getNewKeyword()), clone(node.getIdentifier()));
+    return new CommentReference(mapToken(node.getNewKeyword()), cloneNode(node.getIdentifier()));
   }
 
   @Override
   public CompilationUnit visitCompilationUnit(CompilationUnit node) {
     CompilationUnit copy = new CompilationUnit(
-        map(node.getBeginToken()),
-        clone(node.getScriptTag()),
-        clone(node.getDirectives()),
-        clone(node.getDeclarations()),
-        map(node.getEndToken()));
+        mapToken(node.getBeginToken()),
+        cloneNode(node.getScriptTag()),
+        cloneNodeList(node.getDirectives()),
+        cloneNodeList(node.getDeclarations()),
+        mapToken(node.getEndToken()));
     copy.setLineInfo(node.getLineInfo());
     copy.setElement(node.getElement());
     return copy;
@@ -258,11 +260,11 @@ public class IncrementalAstCloner implements AstVisitor<AstNode> {
   @Override
   public ConditionalExpression visitConditionalExpression(ConditionalExpression node) {
     ConditionalExpression copy = new ConditionalExpression(
-        clone(node.getCondition()),
-        map(node.getQuestion()),
-        clone(node.getThenExpression()),
-        map(node.getColon()),
-        clone(node.getElseExpression()));
+        cloneNode(node.getCondition()),
+        mapToken(node.getQuestion()),
+        cloneNode(node.getThenExpression()),
+        mapToken(node.getColon()),
+        cloneNode(node.getElseExpression()));
     copy.setPropagatedType(node.getPropagatedType());
     copy.setStaticType(node.getStaticType());
     return copy;
@@ -271,19 +273,19 @@ public class IncrementalAstCloner implements AstVisitor<AstNode> {
   @Override
   public ConstructorDeclaration visitConstructorDeclaration(ConstructorDeclaration node) {
     ConstructorDeclaration copy = new ConstructorDeclaration(
-        clone(node.getDocumentationComment()),
-        clone(node.getMetadata()),
-        map(node.getExternalKeyword()),
-        map(node.getConstKeyword()),
-        map(node.getFactoryKeyword()),
-        clone(node.getReturnType()),
-        map(node.getPeriod()),
-        clone(node.getName()),
-        clone(node.getParameters()),
-        map(node.getSeparator()),
-        clone(node.getInitializers()),
-        clone(node.getRedirectedConstructor()),
-        clone(node.getBody()));
+        cloneNode(node.getDocumentationComment()),
+        cloneNodeList(node.getMetadata()),
+        mapToken(node.getExternalKeyword()),
+        mapToken(node.getConstKeyword()),
+        mapToken(node.getFactoryKeyword()),
+        cloneNode(node.getReturnType()),
+        mapToken(node.getPeriod()),
+        cloneNode(node.getName()),
+        cloneNode(node.getParameters()),
+        mapToken(node.getSeparator()),
+        cloneNodeList(node.getInitializers()),
+        cloneNode(node.getRedirectedConstructor()),
+        cloneNode(node.getBody()));
     copy.setElement(node.getElement());
     return copy;
   }
@@ -292,19 +294,19 @@ public class IncrementalAstCloner implements AstVisitor<AstNode> {
   public ConstructorFieldInitializer visitConstructorFieldInitializer(
       ConstructorFieldInitializer node) {
     return new ConstructorFieldInitializer(
-        map(node.getKeyword()),
-        map(node.getPeriod()),
-        clone(node.getFieldName()),
-        map(node.getEquals()),
-        clone(node.getExpression()));
+        mapToken(node.getKeyword()),
+        mapToken(node.getPeriod()),
+        cloneNode(node.getFieldName()),
+        mapToken(node.getEquals()),
+        cloneNode(node.getExpression()));
   }
 
   @Override
   public ConstructorName visitConstructorName(ConstructorName node) {
     ConstructorName copy = new ConstructorName(
-        clone(node.getType()),
-        map(node.getPeriod()),
-        clone(node.getName()));
+        cloneNode(node.getType()),
+        mapToken(node.getPeriod()),
+        cloneNode(node.getName()));
     copy.setStaticElement(node.getStaticElement());
     return copy;
   }
@@ -312,45 +314,45 @@ public class IncrementalAstCloner implements AstVisitor<AstNode> {
   @Override
   public ContinueStatement visitContinueStatement(ContinueStatement node) {
     return new ContinueStatement(
-        map(node.getKeyword()),
-        clone(node.getLabel()),
-        map(node.getSemicolon()));
+        mapToken(node.getKeyword()),
+        cloneNode(node.getLabel()),
+        mapToken(node.getSemicolon()));
   }
 
   @Override
   public DeclaredIdentifier visitDeclaredIdentifier(DeclaredIdentifier node) {
     return new DeclaredIdentifier(
-        clone(node.getDocumentationComment()),
-        clone(node.getMetadata()),
-        map(node.getKeyword()),
-        clone(node.getType()),
-        clone(node.getIdentifier()));
+        cloneNode(node.getDocumentationComment()),
+        cloneNodeList(node.getMetadata()),
+        mapToken(node.getKeyword()),
+        cloneNode(node.getType()),
+        cloneNode(node.getIdentifier()));
   }
 
   @Override
   public DefaultFormalParameter visitDefaultFormalParameter(DefaultFormalParameter node) {
     return new DefaultFormalParameter(
-        clone(node.getParameter()),
+        cloneNode(node.getParameter()),
         node.getKind(),
-        map(node.getSeparator()),
-        clone(node.getDefaultValue()));
+        mapToken(node.getSeparator()),
+        cloneNode(node.getDefaultValue()));
   }
 
   @Override
   public DoStatement visitDoStatement(DoStatement node) {
     return new DoStatement(
-        map(node.getDoKeyword()),
-        clone(node.getBody()),
-        map(node.getWhileKeyword()),
-        map(node.getLeftParenthesis()),
-        clone(node.getCondition()),
-        map(node.getRightParenthesis()),
-        map(node.getSemicolon()));
+        mapToken(node.getDoKeyword()),
+        cloneNode(node.getBody()),
+        mapToken(node.getWhileKeyword()),
+        mapToken(node.getLeftParenthesis()),
+        cloneNode(node.getCondition()),
+        mapToken(node.getRightParenthesis()),
+        mapToken(node.getSemicolon()));
   }
 
   @Override
   public DoubleLiteral visitDoubleLiteral(DoubleLiteral node) {
-    DoubleLiteral copy = new DoubleLiteral(map(node.getLiteral()), node.getValue());
+    DoubleLiteral copy = new DoubleLiteral(mapToken(node.getLiteral()), node.getValue());
     copy.setPropagatedType(node.getPropagatedType());
     copy.setStaticType(node.getStaticType());
     return copy;
@@ -358,23 +360,23 @@ public class IncrementalAstCloner implements AstVisitor<AstNode> {
 
   @Override
   public EmptyFunctionBody visitEmptyFunctionBody(EmptyFunctionBody node) {
-    return new EmptyFunctionBody(map(node.getSemicolon()));
+    return new EmptyFunctionBody(mapToken(node.getSemicolon()));
   }
 
   @Override
   public EmptyStatement visitEmptyStatement(EmptyStatement node) {
-    return new EmptyStatement(map(node.getSemicolon()));
+    return new EmptyStatement(mapToken(node.getSemicolon()));
   }
 
   @Override
   public ExportDirective visitExportDirective(ExportDirective node) {
     ExportDirective copy = new ExportDirective(
-        clone(node.getDocumentationComment()),
-        clone(node.getMetadata()),
-        map(node.getKeyword()),
-        clone(node.getUri()),
-        clone(node.getCombinators()),
-        map(node.getSemicolon()));
+        cloneNode(node.getDocumentationComment()),
+        cloneNodeList(node.getMetadata()),
+        mapToken(node.getKeyword()),
+        cloneNode(node.getUri()),
+        cloneNodeList(node.getCombinators()),
+        mapToken(node.getSemicolon()));
     copy.setElement(node.getElement());
     return copy;
   }
@@ -382,42 +384,42 @@ public class IncrementalAstCloner implements AstVisitor<AstNode> {
   @Override
   public ExpressionFunctionBody visitExpressionFunctionBody(ExpressionFunctionBody node) {
     return new ExpressionFunctionBody(
-        map(node.getFunctionDefinition()),
-        clone(node.getExpression()),
-        map(node.getSemicolon()));
+        mapToken(node.getFunctionDefinition()),
+        cloneNode(node.getExpression()),
+        mapToken(node.getSemicolon()));
   }
 
   @Override
   public ExpressionStatement visitExpressionStatement(ExpressionStatement node) {
-    return new ExpressionStatement(clone(node.getExpression()), map(node.getSemicolon()));
+    return new ExpressionStatement(cloneNode(node.getExpression()), mapToken(node.getSemicolon()));
   }
 
   @Override
   public ExtendsClause visitExtendsClause(ExtendsClause node) {
-    return new ExtendsClause(map(node.getKeyword()), clone(node.getSuperclass()));
+    return new ExtendsClause(mapToken(node.getKeyword()), cloneNode(node.getSuperclass()));
   }
 
   @Override
   public FieldDeclaration visitFieldDeclaration(FieldDeclaration node) {
     return new FieldDeclaration(
-        clone(node.getDocumentationComment()),
-        clone(node.getMetadata()),
-        map(node.getStaticKeyword()),
-        clone(node.getFields()),
-        map(node.getSemicolon()));
+        cloneNode(node.getDocumentationComment()),
+        cloneNodeList(node.getMetadata()),
+        mapToken(node.getStaticKeyword()),
+        cloneNode(node.getFields()),
+        mapToken(node.getSemicolon()));
   }
 
   @Override
   public FieldFormalParameter visitFieldFormalParameter(FieldFormalParameter node) {
     return new FieldFormalParameter(
-        clone(node.getDocumentationComment()),
-        clone(node.getMetadata()),
-        map(node.getKeyword()),
-        clone(node.getType()),
-        map(node.getThisToken()),
-        map(node.getPeriod()),
-        clone(node.getIdentifier()),
-        clone(node.getParameters()));
+        cloneNode(node.getDocumentationComment()),
+        cloneNodeList(node.getMetadata()),
+        mapToken(node.getKeyword()),
+        cloneNode(node.getType()),
+        mapToken(node.getThisToken()),
+        mapToken(node.getPeriod()),
+        cloneNode(node.getIdentifier()),
+        cloneNode(node.getParameters()));
   }
 
   @Override
@@ -425,72 +427,72 @@ public class IncrementalAstCloner implements AstVisitor<AstNode> {
     DeclaredIdentifier loopVariable = node.getLoopVariable();
     if (loopVariable == null) {
       return new ForEachStatement(
-          map(node.getForKeyword()),
-          map(node.getLeftParenthesis()),
-          clone(node.getIdentifier()),
-          map(node.getInKeyword()),
-          clone(node.getIterator()),
-          map(node.getRightParenthesis()),
-          clone(node.getBody()));
+          mapToken(node.getForKeyword()),
+          mapToken(node.getLeftParenthesis()),
+          cloneNode(node.getIdentifier()),
+          mapToken(node.getInKeyword()),
+          cloneNode(node.getIterator()),
+          mapToken(node.getRightParenthesis()),
+          cloneNode(node.getBody()));
     }
     return new ForEachStatement(
-        map(node.getForKeyword()),
-        map(node.getLeftParenthesis()),
-        clone(loopVariable),
-        map(node.getInKeyword()),
-        clone(node.getIterator()),
-        map(node.getRightParenthesis()),
-        clone(node.getBody()));
+        mapToken(node.getForKeyword()),
+        mapToken(node.getLeftParenthesis()),
+        cloneNode(loopVariable),
+        mapToken(node.getInKeyword()),
+        cloneNode(node.getIterator()),
+        mapToken(node.getRightParenthesis()),
+        cloneNode(node.getBody()));
   }
 
   @Override
   public FormalParameterList visitFormalParameterList(FormalParameterList node) {
     return new FormalParameterList(
-        map(node.getLeftParenthesis()),
-        clone(node.getParameters()),
-        map(node.getLeftDelimiter()),
-        map(node.getRightDelimiter()),
-        map(node.getRightParenthesis()));
+        mapToken(node.getLeftParenthesis()),
+        cloneNodeList(node.getParameters()),
+        mapToken(node.getLeftDelimiter()),
+        mapToken(node.getRightDelimiter()),
+        mapToken(node.getRightParenthesis()));
   }
 
   @Override
   public ForStatement visitForStatement(ForStatement node) {
     return new ForStatement(
-        map(node.getForKeyword()),
-        map(node.getLeftParenthesis()),
-        clone(node.getVariables()),
-        clone(node.getInitialization()),
-        map(node.getLeftSeparator()),
-        clone(node.getCondition()),
-        map(node.getRightSeparator()),
-        clone(node.getUpdaters()),
-        map(node.getRightParenthesis()),
-        clone(node.getBody()));
+        mapToken(node.getForKeyword()),
+        mapToken(node.getLeftParenthesis()),
+        cloneNode(node.getVariables()),
+        cloneNode(node.getInitialization()),
+        mapToken(node.getLeftSeparator()),
+        cloneNode(node.getCondition()),
+        mapToken(node.getRightSeparator()),
+        cloneNodeList(node.getUpdaters()),
+        mapToken(node.getRightParenthesis()),
+        cloneNode(node.getBody()));
   }
 
   @Override
   public FunctionDeclaration visitFunctionDeclaration(FunctionDeclaration node) {
     return new FunctionDeclaration(
-        clone(node.getDocumentationComment()),
-        clone(node.getMetadata()),
-        map(node.getExternalKeyword()),
-        clone(node.getReturnType()),
-        map(node.getPropertyKeyword()),
-        clone(node.getName()),
-        clone(node.getFunctionExpression()));
+        cloneNode(node.getDocumentationComment()),
+        cloneNodeList(node.getMetadata()),
+        mapToken(node.getExternalKeyword()),
+        cloneNode(node.getReturnType()),
+        mapToken(node.getPropertyKeyword()),
+        cloneNode(node.getName()),
+        cloneNode(node.getFunctionExpression()));
   }
 
   @Override
   public FunctionDeclarationStatement visitFunctionDeclarationStatement(
       FunctionDeclarationStatement node) {
-    return new FunctionDeclarationStatement(clone(node.getFunctionDeclaration()));
+    return new FunctionDeclarationStatement(cloneNode(node.getFunctionDeclaration()));
   }
 
   @Override
   public FunctionExpression visitFunctionExpression(FunctionExpression node) {
     FunctionExpression copy = new FunctionExpression(
-        clone(node.getParameters()),
-        clone(node.getBody()));
+        cloneNode(node.getParameters()),
+        cloneNode(node.getBody()));
     copy.setElement(node.getElement());
     copy.setPropagatedType(node.getPropagatedType());
     copy.setStaticType(node.getStaticType());
@@ -501,8 +503,8 @@ public class IncrementalAstCloner implements AstVisitor<AstNode> {
   public FunctionExpressionInvocation visitFunctionExpressionInvocation(
       FunctionExpressionInvocation node) {
     FunctionExpressionInvocation copy = new FunctionExpressionInvocation(
-        clone(node.getFunction()),
-        clone(node.getArgumentList()));
+        cloneNode(node.getFunction()),
+        cloneNode(node.getArgumentList()));
     copy.setPropagatedElement(node.getPropagatedElement());
     copy.setPropagatedType(node.getPropagatedType());
     copy.setStaticElement(node.getStaticElement());
@@ -513,78 +515,78 @@ public class IncrementalAstCloner implements AstVisitor<AstNode> {
   @Override
   public FunctionTypeAlias visitFunctionTypeAlias(FunctionTypeAlias node) {
     return new FunctionTypeAlias(
-        clone(node.getDocumentationComment()),
-        clone(node.getMetadata()),
-        map(node.getKeyword()),
-        clone(node.getReturnType()),
-        clone(node.getName()),
-        clone(node.getTypeParameters()),
-        clone(node.getParameters()),
-        map(node.getSemicolon()));
+        cloneNode(node.getDocumentationComment()),
+        cloneNodeList(node.getMetadata()),
+        mapToken(node.getKeyword()),
+        cloneNode(node.getReturnType()),
+        cloneNode(node.getName()),
+        cloneNode(node.getTypeParameters()),
+        cloneNode(node.getParameters()),
+        mapToken(node.getSemicolon()));
   }
 
   @Override
   public FunctionTypedFormalParameter visitFunctionTypedFormalParameter(
       FunctionTypedFormalParameter node) {
     return new FunctionTypedFormalParameter(
-        clone(node.getDocumentationComment()),
-        clone(node.getMetadata()),
-        clone(node.getReturnType()),
-        clone(node.getIdentifier()),
-        clone(node.getParameters()));
+        cloneNode(node.getDocumentationComment()),
+        cloneNodeList(node.getMetadata()),
+        cloneNode(node.getReturnType()),
+        cloneNode(node.getIdentifier()),
+        cloneNode(node.getParameters()));
   }
 
   @Override
   public HideCombinator visitHideCombinator(HideCombinator node) {
-    return new HideCombinator(map(node.getKeyword()), clone(node.getHiddenNames()));
+    return new HideCombinator(mapToken(node.getKeyword()), cloneNodeList(node.getHiddenNames()));
   }
 
   @Override
   public IfStatement visitIfStatement(IfStatement node) {
     return new IfStatement(
-        map(node.getIfKeyword()),
-        map(node.getLeftParenthesis()),
-        clone(node.getCondition()),
-        map(node.getRightParenthesis()),
-        clone(node.getThenStatement()),
-        map(node.getElseKeyword()),
-        clone(node.getElseStatement()));
+        mapToken(node.getIfKeyword()),
+        mapToken(node.getLeftParenthesis()),
+        cloneNode(node.getCondition()),
+        mapToken(node.getRightParenthesis()),
+        cloneNode(node.getThenStatement()),
+        mapToken(node.getElseKeyword()),
+        cloneNode(node.getElseStatement()));
   }
 
   @Override
   public ImplementsClause visitImplementsClause(ImplementsClause node) {
-    return new ImplementsClause(map(node.getKeyword()), clone(node.getInterfaces()));
+    return new ImplementsClause(mapToken(node.getKeyword()), cloneNodeList(node.getInterfaces()));
   }
 
   @Override
   public ImportDirective visitImportDirective(ImportDirective node) {
     return new ImportDirective(
-        clone(node.getDocumentationComment()),
-        clone(node.getMetadata()),
-        map(node.getKeyword()),
-        clone(node.getUri()),
-        map(node.getAsToken()),
-        clone(node.getPrefix()),
-        clone(node.getCombinators()),
-        map(node.getSemicolon()));
+        cloneNode(node.getDocumentationComment()),
+        cloneNodeList(node.getMetadata()),
+        mapToken(node.getKeyword()),
+        cloneNode(node.getUri()),
+        mapToken(node.getAsToken()),
+        cloneNode(node.getPrefix()),
+        cloneNodeList(node.getCombinators()),
+        mapToken(node.getSemicolon()));
   }
 
   @Override
   public IndexExpression visitIndexExpression(IndexExpression node) {
-    Token period = map(node.getPeriod());
+    Token period = mapToken(node.getPeriod());
     IndexExpression copy;
     if (period == null) {
       copy = new IndexExpression(
-          clone(node.getTarget()),
-          map(node.getLeftBracket()),
-          clone(node.getIndex()),
-          map(node.getRightBracket()));
+          cloneNode(node.getTarget()),
+          mapToken(node.getLeftBracket()),
+          cloneNode(node.getIndex()),
+          mapToken(node.getRightBracket()));
     } else {
       copy = new IndexExpression(
           period,
-          map(node.getLeftBracket()),
-          clone(node.getIndex()),
-          map(node.getRightBracket()));
+          mapToken(node.getLeftBracket()),
+          cloneNode(node.getIndex()),
+          mapToken(node.getRightBracket()));
     }
     copy.setAuxiliaryElements(node.getAuxiliaryElements());
     copy.setPropagatedElement(node.getPropagatedElement());
@@ -597,9 +599,9 @@ public class IncrementalAstCloner implements AstVisitor<AstNode> {
   @Override
   public InstanceCreationExpression visitInstanceCreationExpression(InstanceCreationExpression node) {
     InstanceCreationExpression copy = new InstanceCreationExpression(
-        map(node.getKeyword()),
-        clone(node.getConstructorName()),
-        clone(node.getArgumentList()));
+        mapToken(node.getKeyword()),
+        cloneNode(node.getConstructorName()),
+        cloneNode(node.getArgumentList()));
     copy.setPropagatedType(node.getPropagatedType());
     copy.setStaticElement(node.getStaticElement());
     copy.setStaticType(node.getStaticType());
@@ -608,7 +610,7 @@ public class IncrementalAstCloner implements AstVisitor<AstNode> {
 
   @Override
   public IntegerLiteral visitIntegerLiteral(IntegerLiteral node) {
-    IntegerLiteral copy = new IntegerLiteral(map(node.getLiteral()), node.getValue());
+    IntegerLiteral copy = new IntegerLiteral(mapToken(node.getLiteral()), node.getValue());
     copy.setPropagatedType(node.getPropagatedType());
     copy.setStaticType(node.getStaticType());
     return copy;
@@ -617,23 +619,23 @@ public class IncrementalAstCloner implements AstVisitor<AstNode> {
   @Override
   public InterpolationExpression visitInterpolationExpression(InterpolationExpression node) {
     return new InterpolationExpression(
-        map(node.getLeftBracket()),
-        clone(node.getExpression()),
-        map(node.getRightBracket()));
+        mapToken(node.getLeftBracket()),
+        cloneNode(node.getExpression()),
+        mapToken(node.getRightBracket()));
   }
 
   @Override
   public InterpolationString visitInterpolationString(InterpolationString node) {
-    return new InterpolationString(map(node.getContents()), node.getValue());
+    return new InterpolationString(mapToken(node.getContents()), node.getValue());
   }
 
   @Override
   public IsExpression visitIsExpression(IsExpression node) {
     IsExpression copy = new IsExpression(
-        clone(node.getExpression()),
-        map(node.getIsOperator()),
-        map(node.getNotOperator()),
-        clone(node.getType()));
+        cloneNode(node.getExpression()),
+        mapToken(node.getIsOperator()),
+        mapToken(node.getNotOperator()),
+        cloneNode(node.getType()));
     copy.setPropagatedType(node.getPropagatedType());
     copy.setStaticType(node.getStaticType());
     return copy;
@@ -641,27 +643,27 @@ public class IncrementalAstCloner implements AstVisitor<AstNode> {
 
   @Override
   public Label visitLabel(Label node) {
-    return new Label(clone(node.getLabel()), map(node.getColon()));
+    return new Label(cloneNode(node.getLabel()), mapToken(node.getColon()));
   }
 
   @Override
   public LabeledStatement visitLabeledStatement(LabeledStatement node) {
-    return new LabeledStatement(clone(node.getLabels()), clone(node.getStatement()));
+    return new LabeledStatement(cloneNodeList(node.getLabels()), cloneNode(node.getStatement()));
   }
 
   @Override
   public LibraryDirective visitLibraryDirective(LibraryDirective node) {
     return new LibraryDirective(
-        clone(node.getDocumentationComment()),
-        clone(node.getMetadata()),
-        map(node.getLibraryToken()),
-        clone(node.getName()),
-        map(node.getSemicolon()));
+        cloneNode(node.getDocumentationComment()),
+        cloneNodeList(node.getMetadata()),
+        mapToken(node.getLibraryToken()),
+        cloneNode(node.getName()),
+        mapToken(node.getSemicolon()));
   }
 
   @Override
   public LibraryIdentifier visitLibraryIdentifier(LibraryIdentifier node) {
-    LibraryIdentifier copy = new LibraryIdentifier(clone(node.getComponents()));
+    LibraryIdentifier copy = new LibraryIdentifier(cloneNodeList(node.getComponents()));
     copy.setPropagatedType(node.getPropagatedType());
     copy.setStaticType(node.getStaticType());
     return copy;
@@ -670,11 +672,11 @@ public class IncrementalAstCloner implements AstVisitor<AstNode> {
   @Override
   public ListLiteral visitListLiteral(ListLiteral node) {
     ListLiteral copy = new ListLiteral(
-        map(node.getConstKeyword()),
-        clone(node.getTypeArguments()),
-        map(node.getLeftBracket()),
-        clone(node.getElements()),
-        map(node.getRightBracket()));
+        mapToken(node.getConstKeyword()),
+        cloneNode(node.getTypeArguments()),
+        mapToken(node.getLeftBracket()),
+        cloneNodeList(node.getElements()),
+        mapToken(node.getRightBracket()));
     copy.setPropagatedType(node.getPropagatedType());
     copy.setStaticType(node.getStaticType());
     return copy;
@@ -683,11 +685,11 @@ public class IncrementalAstCloner implements AstVisitor<AstNode> {
   @Override
   public MapLiteral visitMapLiteral(MapLiteral node) {
     MapLiteral copy = new MapLiteral(
-        map(node.getConstKeyword()),
-        clone(node.getTypeArguments()),
-        map(node.getLeftBracket()),
-        clone(node.getEntries()),
-        map(node.getRightBracket()));
+        mapToken(node.getConstKeyword()),
+        cloneNode(node.getTypeArguments()),
+        mapToken(node.getLeftBracket()),
+        cloneNodeList(node.getEntries()),
+        mapToken(node.getRightBracket()));
     copy.setPropagatedType(node.getPropagatedType());
     copy.setStaticType(node.getStaticType());
     return copy;
@@ -696,33 +698,33 @@ public class IncrementalAstCloner implements AstVisitor<AstNode> {
   @Override
   public MapLiteralEntry visitMapLiteralEntry(MapLiteralEntry node) {
     return new MapLiteralEntry(
-        clone(node.getKey()),
-        map(node.getSeparator()),
-        clone(node.getValue()));
+        cloneNode(node.getKey()),
+        mapToken(node.getSeparator()),
+        cloneNode(node.getValue()));
   }
 
   @Override
   public MethodDeclaration visitMethodDeclaration(MethodDeclaration node) {
     return new MethodDeclaration(
-        clone(node.getDocumentationComment()),
-        clone(node.getMetadata()),
-        map(node.getExternalKeyword()),
-        map(node.getModifierKeyword()),
-        clone(node.getReturnType()),
-        map(node.getPropertyKeyword()),
-        map(node.getOperatorKeyword()),
-        clone(node.getName()),
-        clone(node.getParameters()),
-        clone(node.getBody()));
+        cloneNode(node.getDocumentationComment()),
+        cloneNodeList(node.getMetadata()),
+        mapToken(node.getExternalKeyword()),
+        mapToken(node.getModifierKeyword()),
+        cloneNode(node.getReturnType()),
+        mapToken(node.getPropertyKeyword()),
+        mapToken(node.getOperatorKeyword()),
+        cloneNode(node.getName()),
+        cloneNode(node.getParameters()),
+        cloneNode(node.getBody()));
   }
 
   @Override
   public MethodInvocation visitMethodInvocation(MethodInvocation node) {
     MethodInvocation copy = new MethodInvocation(
-        clone(node.getTarget()),
-        map(node.getPeriod()),
-        clone(node.getMethodName()),
-        clone(node.getArgumentList()));
+        cloneNode(node.getTarget()),
+        mapToken(node.getPeriod()),
+        cloneNode(node.getMethodName()),
+        cloneNode(node.getArgumentList()));
     copy.setPropagatedType(node.getPropagatedType());
     copy.setStaticType(node.getStaticType());
     return copy;
@@ -730,7 +732,9 @@ public class IncrementalAstCloner implements AstVisitor<AstNode> {
 
   @Override
   public NamedExpression visitNamedExpression(NamedExpression node) {
-    NamedExpression copy = new NamedExpression(clone(node.getName()), clone(node.getExpression()));
+    NamedExpression copy = new NamedExpression(
+        cloneNode(node.getName()),
+        cloneNode(node.getExpression()));
     copy.setPropagatedType(node.getPropagatedType());
     copy.setStaticType(node.getStaticType());
     return copy;
@@ -738,20 +742,20 @@ public class IncrementalAstCloner implements AstVisitor<AstNode> {
 
   @Override
   public AstNode visitNativeClause(NativeClause node) {
-    return new NativeClause(map(node.getKeyword()), clone(node.getName()));
+    return new NativeClause(mapToken(node.getKeyword()), cloneNode(node.getName()));
   }
 
   @Override
   public NativeFunctionBody visitNativeFunctionBody(NativeFunctionBody node) {
     return new NativeFunctionBody(
-        map(node.getNativeToken()),
-        clone(node.getStringLiteral()),
-        map(node.getSemicolon()));
+        mapToken(node.getNativeToken()),
+        cloneNode(node.getStringLiteral()),
+        mapToken(node.getSemicolon()));
   }
 
   @Override
   public NullLiteral visitNullLiteral(NullLiteral node) {
-    NullLiteral copy = new NullLiteral(map(node.getLiteral()));
+    NullLiteral copy = new NullLiteral(mapToken(node.getLiteral()));
     copy.setPropagatedType(node.getPropagatedType());
     copy.setStaticType(node.getStaticType());
     return copy;
@@ -760,9 +764,9 @@ public class IncrementalAstCloner implements AstVisitor<AstNode> {
   @Override
   public ParenthesizedExpression visitParenthesizedExpression(ParenthesizedExpression node) {
     ParenthesizedExpression copy = new ParenthesizedExpression(
-        map(node.getLeftParenthesis()),
-        clone(node.getExpression()),
-        map(node.getRightParenthesis()));
+        mapToken(node.getLeftParenthesis()),
+        cloneNode(node.getExpression()),
+        mapToken(node.getRightParenthesis()));
     copy.setPropagatedType(node.getPropagatedType());
     copy.setStaticType(node.getStaticType());
     return copy;
@@ -771,11 +775,11 @@ public class IncrementalAstCloner implements AstVisitor<AstNode> {
   @Override
   public PartDirective visitPartDirective(PartDirective node) {
     PartDirective copy = new PartDirective(
-        clone(node.getDocumentationComment()),
-        clone(node.getMetadata()),
-        map(node.getPartToken()),
-        clone(node.getUri()),
-        map(node.getSemicolon()));
+        cloneNode(node.getDocumentationComment()),
+        cloneNodeList(node.getMetadata()),
+        mapToken(node.getPartToken()),
+        cloneNode(node.getUri()),
+        mapToken(node.getSemicolon()));
     copy.setElement(node.getElement());
     return copy;
   }
@@ -783,12 +787,12 @@ public class IncrementalAstCloner implements AstVisitor<AstNode> {
   @Override
   public PartOfDirective visitPartOfDirective(PartOfDirective node) {
     PartOfDirective copy = new PartOfDirective(
-        clone(node.getDocumentationComment()),
-        clone(node.getMetadata()),
-        map(node.getPartToken()),
-        map(node.getOfToken()),
-        clone(node.getLibraryName()),
-        map(node.getSemicolon()));
+        cloneNode(node.getDocumentationComment()),
+        cloneNodeList(node.getMetadata()),
+        mapToken(node.getPartToken()),
+        mapToken(node.getOfToken()),
+        cloneNode(node.getLibraryName()),
+        mapToken(node.getSemicolon()));
     copy.setElement(node.getElement());
     return copy;
   }
@@ -796,8 +800,8 @@ public class IncrementalAstCloner implements AstVisitor<AstNode> {
   @Override
   public PostfixExpression visitPostfixExpression(PostfixExpression node) {
     PostfixExpression copy = new PostfixExpression(
-        clone(node.getOperand()),
-        map(node.getOperator()));
+        cloneNode(node.getOperand()),
+        mapToken(node.getOperator()));
     copy.setPropagatedElement(node.getPropagatedElement());
     copy.setPropagatedType(node.getPropagatedType());
     copy.setStaticElement(node.getStaticElement());
@@ -808,9 +812,9 @@ public class IncrementalAstCloner implements AstVisitor<AstNode> {
   @Override
   public PrefixedIdentifier visitPrefixedIdentifier(PrefixedIdentifier node) {
     PrefixedIdentifier copy = new PrefixedIdentifier(
-        clone(node.getPrefix()),
-        map(node.getPeriod()),
-        clone(node.getIdentifier()));
+        cloneNode(node.getPrefix()),
+        mapToken(node.getPeriod()),
+        cloneNode(node.getIdentifier()));
     copy.setPropagatedType(node.getPropagatedType());
     copy.setStaticType(node.getStaticType());
     return copy;
@@ -818,7 +822,9 @@ public class IncrementalAstCloner implements AstVisitor<AstNode> {
 
   @Override
   public PrefixExpression visitPrefixExpression(PrefixExpression node) {
-    PrefixExpression copy = new PrefixExpression(map(node.getOperator()), clone(node.getOperand()));
+    PrefixExpression copy = new PrefixExpression(
+        mapToken(node.getOperator()),
+        cloneNode(node.getOperand()));
     copy.setPropagatedElement(node.getPropagatedElement());
     copy.setPropagatedType(node.getPropagatedType());
     copy.setStaticElement(node.getStaticElement());
@@ -829,9 +835,9 @@ public class IncrementalAstCloner implements AstVisitor<AstNode> {
   @Override
   public PropertyAccess visitPropertyAccess(PropertyAccess node) {
     PropertyAccess copy = new PropertyAccess(
-        clone(node.getTarget()),
-        map(node.getOperator()),
-        clone(node.getPropertyName()));
+        cloneNode(node.getTarget()),
+        mapToken(node.getOperator()),
+        cloneNode(node.getPropertyName()));
     copy.setPropagatedType(node.getPropagatedType());
     copy.setStaticType(node.getStaticType());
     return copy;
@@ -841,17 +847,17 @@ public class IncrementalAstCloner implements AstVisitor<AstNode> {
   public RedirectingConstructorInvocation visitRedirectingConstructorInvocation(
       RedirectingConstructorInvocation node) {
     RedirectingConstructorInvocation copy = new RedirectingConstructorInvocation(
-        map(node.getKeyword()),
-        map(node.getPeriod()),
-        clone(node.getConstructorName()),
-        clone(node.getArgumentList()));
+        mapToken(node.getKeyword()),
+        mapToken(node.getPeriod()),
+        cloneNode(node.getConstructorName()),
+        cloneNode(node.getArgumentList()));
     copy.setStaticElement(node.getStaticElement());
     return copy;
   }
 
   @Override
   public RethrowExpression visitRethrowExpression(RethrowExpression node) {
-    RethrowExpression copy = new RethrowExpression(map(node.getKeyword()));
+    RethrowExpression copy = new RethrowExpression(mapToken(node.getKeyword()));
     copy.setPropagatedType(node.getPropagatedType());
     copy.setStaticType(node.getStaticType());
     return copy;
@@ -860,34 +866,34 @@ public class IncrementalAstCloner implements AstVisitor<AstNode> {
   @Override
   public ReturnStatement visitReturnStatement(ReturnStatement node) {
     return new ReturnStatement(
-        map(node.getKeyword()),
-        clone(node.getExpression()),
-        map(node.getSemicolon()));
+        mapToken(node.getKeyword()),
+        cloneNode(node.getExpression()),
+        mapToken(node.getSemicolon()));
   }
 
   @Override
   public ScriptTag visitScriptTag(ScriptTag node) {
-    return new ScriptTag(map(node.getScriptTag()));
+    return new ScriptTag(mapToken(node.getScriptTag()));
   }
 
   @Override
   public ShowCombinator visitShowCombinator(ShowCombinator node) {
-    return new ShowCombinator(map(node.getKeyword()), clone(node.getShownNames()));
+    return new ShowCombinator(mapToken(node.getKeyword()), cloneNodeList(node.getShownNames()));
   }
 
   @Override
   public SimpleFormalParameter visitSimpleFormalParameter(SimpleFormalParameter node) {
     return new SimpleFormalParameter(
-        clone(node.getDocumentationComment()),
-        clone(node.getMetadata()),
-        map(node.getKeyword()),
-        clone(node.getType()),
-        clone(node.getIdentifier()));
+        cloneNode(node.getDocumentationComment()),
+        cloneNodeList(node.getMetadata()),
+        mapToken(node.getKeyword()),
+        cloneNode(node.getType()),
+        cloneNode(node.getIdentifier()));
   }
 
   @Override
   public SimpleIdentifier visitSimpleIdentifier(SimpleIdentifier node) {
-    Token mappedToken = map(node.getToken());
+    Token mappedToken = mapToken(node.getToken());
     if (mappedToken == null) {
       // This only happens for SimpleIdentifiers created by the parser as part of scanning
       // documentation comments (the tokens for those identifiers are not in the original token
@@ -906,7 +912,7 @@ public class IncrementalAstCloner implements AstVisitor<AstNode> {
 
   @Override
   public SimpleStringLiteral visitSimpleStringLiteral(SimpleStringLiteral node) {
-    SimpleStringLiteral copy = new SimpleStringLiteral(map(node.getLiteral()), node.getValue());
+    SimpleStringLiteral copy = new SimpleStringLiteral(mapToken(node.getLiteral()), node.getValue());
     copy.setPropagatedType(node.getPropagatedType());
     copy.setStaticType(node.getStaticType());
     return copy;
@@ -914,7 +920,7 @@ public class IncrementalAstCloner implements AstVisitor<AstNode> {
 
   @Override
   public StringInterpolation visitStringInterpolation(StringInterpolation node) {
-    StringInterpolation copy = new StringInterpolation(clone(node.getElements()));
+    StringInterpolation copy = new StringInterpolation(cloneNodeList(node.getElements()));
     copy.setPropagatedType(node.getPropagatedType());
     copy.setStaticType(node.getStaticType());
     return copy;
@@ -923,17 +929,17 @@ public class IncrementalAstCloner implements AstVisitor<AstNode> {
   @Override
   public SuperConstructorInvocation visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     SuperConstructorInvocation copy = new SuperConstructorInvocation(
-        map(node.getKeyword()),
-        map(node.getPeriod()),
-        clone(node.getConstructorName()),
-        clone(node.getArgumentList()));
+        mapToken(node.getKeyword()),
+        mapToken(node.getPeriod()),
+        cloneNode(node.getConstructorName()),
+        cloneNode(node.getArgumentList()));
     copy.setStaticElement(node.getStaticElement());
     return copy;
   }
 
   @Override
   public SuperExpression visitSuperExpression(SuperExpression node) {
-    SuperExpression copy = new SuperExpression(map(node.getKeyword()));
+    SuperExpression copy = new SuperExpression(mapToken(node.getKeyword()));
     copy.setPropagatedType(node.getPropagatedType());
     copy.setStaticType(node.getStaticType());
     return copy;
@@ -942,37 +948,39 @@ public class IncrementalAstCloner implements AstVisitor<AstNode> {
   @Override
   public SwitchCase visitSwitchCase(SwitchCase node) {
     return new SwitchCase(
-        clone(node.getLabels()),
-        map(node.getKeyword()),
-        clone(node.getExpression()),
-        map(node.getColon()),
-        clone(node.getStatements()));
+        cloneNodeList(node.getLabels()),
+        mapToken(node.getKeyword()),
+        cloneNode(node.getExpression()),
+        mapToken(node.getColon()),
+        cloneNodeList(node.getStatements()));
   }
 
   @Override
   public SwitchDefault visitSwitchDefault(SwitchDefault node) {
     return new SwitchDefault(
-        clone(node.getLabels()),
-        map(node.getKeyword()),
-        map(node.getColon()),
-        clone(node.getStatements()));
+        cloneNodeList(node.getLabels()),
+        mapToken(node.getKeyword()),
+        mapToken(node.getColon()),
+        cloneNodeList(node.getStatements()));
   }
 
   @Override
   public SwitchStatement visitSwitchStatement(SwitchStatement node) {
     return new SwitchStatement(
-        map(node.getKeyword()),
-        map(node.getLeftParenthesis()),
-        clone(node.getExpression()),
-        map(node.getRightParenthesis()),
-        map(node.getLeftBracket()),
-        clone(node.getMembers()),
-        map(node.getRightBracket()));
+        mapToken(node.getKeyword()),
+        mapToken(node.getLeftParenthesis()),
+        cloneNode(node.getExpression()),
+        mapToken(node.getRightParenthesis()),
+        mapToken(node.getLeftBracket()),
+        cloneNodeList(node.getMembers()),
+        mapToken(node.getRightBracket()));
   }
 
   @Override
   public AstNode visitSymbolLiteral(SymbolLiteral node) {
-    SymbolLiteral copy = new SymbolLiteral(map(node.getPoundSign()), map(node.getComponents()));
+    SymbolLiteral copy = new SymbolLiteral(
+        mapToken(node.getPoundSign()),
+        mapTokens(node.getComponents()));
     copy.setPropagatedType(node.getPropagatedType());
     copy.setStaticType(node.getStaticType());
     return copy;
@@ -980,7 +988,7 @@ public class IncrementalAstCloner implements AstVisitor<AstNode> {
 
   @Override
   public ThisExpression visitThisExpression(ThisExpression node) {
-    ThisExpression copy = new ThisExpression(map(node.getKeyword()));
+    ThisExpression copy = new ThisExpression(mapToken(node.getKeyword()));
     copy.setPropagatedType(node.getPropagatedType());
     copy.setStaticType(node.getStaticType());
     return copy;
@@ -988,7 +996,9 @@ public class IncrementalAstCloner implements AstVisitor<AstNode> {
 
   @Override
   public ThrowExpression visitThrowExpression(ThrowExpression node) {
-    ThrowExpression copy = new ThrowExpression(map(node.getKeyword()), clone(node.getExpression()));
+    ThrowExpression copy = new ThrowExpression(
+        mapToken(node.getKeyword()),
+        cloneNode(node.getExpression()));
     copy.setPropagatedType(node.getPropagatedType());
     copy.setStaticType(node.getStaticType());
     return copy;
@@ -998,33 +1008,33 @@ public class IncrementalAstCloner implements AstVisitor<AstNode> {
   public TopLevelVariableDeclaration visitTopLevelVariableDeclaration(
       TopLevelVariableDeclaration node) {
     return new TopLevelVariableDeclaration(
-        clone(node.getDocumentationComment()),
-        clone(node.getMetadata()),
-        clone(node.getVariables()),
-        map(node.getSemicolon()));
+        cloneNode(node.getDocumentationComment()),
+        cloneNodeList(node.getMetadata()),
+        cloneNode(node.getVariables()),
+        mapToken(node.getSemicolon()));
   }
 
   @Override
   public TryStatement visitTryStatement(TryStatement node) {
     return new TryStatement(
-        map(node.getTryKeyword()),
-        clone(node.getBody()),
-        clone(node.getCatchClauses()),
-        map(node.getFinallyKeyword()),
-        clone(node.getFinallyBlock()));
+        mapToken(node.getTryKeyword()),
+        cloneNode(node.getBody()),
+        cloneNodeList(node.getCatchClauses()),
+        mapToken(node.getFinallyKeyword()),
+        cloneNode(node.getFinallyBlock()));
   }
 
   @Override
   public TypeArgumentList visitTypeArgumentList(TypeArgumentList node) {
     return new TypeArgumentList(
-        map(node.getLeftBracket()),
-        clone(node.getArguments()),
-        map(node.getRightBracket()));
+        mapToken(node.getLeftBracket()),
+        cloneNodeList(node.getArguments()),
+        mapToken(node.getRightBracket()));
   }
 
   @Override
   public TypeName visitTypeName(TypeName node) {
-    TypeName copy = new TypeName(clone(node.getName()), clone(node.getTypeArguments()));
+    TypeName copy = new TypeName(cloneNode(node.getName()), cloneNode(node.getTypeArguments()));
     copy.setType(node.getType());
     return copy;
   }
@@ -1032,64 +1042,66 @@ public class IncrementalAstCloner implements AstVisitor<AstNode> {
   @Override
   public TypeParameter visitTypeParameter(TypeParameter node) {
     return new TypeParameter(
-        clone(node.getDocumentationComment()),
-        clone(node.getMetadata()),
-        clone(node.getName()),
-        map(node.getKeyword()),
-        clone(node.getBound()));
+        cloneNode(node.getDocumentationComment()),
+        cloneNodeList(node.getMetadata()),
+        cloneNode(node.getName()),
+        mapToken(node.getKeyword()),
+        cloneNode(node.getBound()));
   }
 
   @Override
   public TypeParameterList visitTypeParameterList(TypeParameterList node) {
     return new TypeParameterList(
-        map(node.getLeftBracket()),
-        clone(node.getTypeParameters()),
-        map(node.getRightBracket()));
+        mapToken(node.getLeftBracket()),
+        cloneNodeList(node.getTypeParameters()),
+        mapToken(node.getRightBracket()));
   }
 
   @Override
   public VariableDeclaration visitVariableDeclaration(VariableDeclaration node) {
     return new VariableDeclaration(
         null,
-        clone(node.getMetadata()),
-        clone(node.getName()),
-        map(node.getEquals()),
-        clone(node.getInitializer()));
+        cloneNodeList(node.getMetadata()),
+        cloneNode(node.getName()),
+        mapToken(node.getEquals()),
+        cloneNode(node.getInitializer()));
   }
 
   @Override
   public VariableDeclarationList visitVariableDeclarationList(VariableDeclarationList node) {
     return new VariableDeclarationList(
         null,
-        clone(node.getMetadata()),
-        map(node.getKeyword()),
-        clone(node.getType()),
-        clone(node.getVariables()));
+        cloneNodeList(node.getMetadata()),
+        mapToken(node.getKeyword()),
+        cloneNode(node.getType()),
+        cloneNodeList(node.getVariables()));
   }
 
   @Override
   public VariableDeclarationStatement visitVariableDeclarationStatement(
       VariableDeclarationStatement node) {
-    return new VariableDeclarationStatement(clone(node.getVariables()), map(node.getSemicolon()));
+    return new VariableDeclarationStatement(
+        cloneNode(node.getVariables()),
+        mapToken(node.getSemicolon()));
   }
 
   @Override
   public WhileStatement visitWhileStatement(WhileStatement node) {
     return new WhileStatement(
-        map(node.getKeyword()),
-        map(node.getLeftParenthesis()),
-        clone(node.getCondition()),
-        map(node.getRightParenthesis()),
-        clone(node.getBody()));
+        mapToken(node.getKeyword()),
+        mapToken(node.getLeftParenthesis()),
+        cloneNode(node.getCondition()),
+        mapToken(node.getRightParenthesis()),
+        cloneNode(node.getBody()));
   }
 
   @Override
   public WithClause visitWithClause(WithClause node) {
-    return new WithClause(map(node.getWithKeyword()), clone(node.getMixinTypes()));
+    return new WithClause(mapToken(node.getWithKeyword()), cloneNodeList(node.getMixinTypes()));
   }
 
   @SuppressWarnings("unchecked")
-  private <E extends AstNode> E clone(E node) {
+  private <E extends AstNode> E cloneNode(E node) {
     if (node == null) {
       return null;
     }
@@ -1099,25 +1111,25 @@ public class IncrementalAstCloner implements AstVisitor<AstNode> {
     return (E) node.accept(this);
   }
 
-  private <E extends AstNode> List<E> clone(NodeList<E> nodes) {
+  private <E extends AstNode> List<E> cloneNodeList(NodeList<E> nodes) {
     ArrayList<E> clonedNodes = new ArrayList<E>();
     for (E node : nodes) {
-      clonedNodes.add(clone(node));
+      clonedNodes.add(cloneNode(node));
     }
     return clonedNodes;
   }
 
-  private Token map(Token oldToken) {
+  private Token mapToken(Token oldToken) {
     if (oldToken == null) {
       return null;
     }
     return tokenMap.get(oldToken);
   }
 
-  private Token[] map(Token[] oldTokens) {
+  private Token[] mapTokens(Token[] oldTokens) {
     Token[] newTokens = new Token[oldTokens.length];
     for (int index = 0; index < newTokens.length; index++) {
-      newTokens[index] = map(oldTokens[index]);
+      newTokens[index] = mapToken(oldTokens[index]);
     }
     return newTokens;
   }

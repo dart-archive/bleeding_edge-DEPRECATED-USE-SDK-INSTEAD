@@ -294,7 +294,8 @@ public class HtmlUnitBuilder implements XmlVisitor<Void> {
    * @param length the number of characters to be highlighted
    * @param arguments the arguments used to compose the error message
    */
-  private void reportError(ErrorCode errorCode, int offset, int length, Object... arguments) {
+  private void reportErrorForOffset(ErrorCode errorCode, int offset, int length,
+      Object... arguments) {
     errorListener.onError(new AnalysisError(
         htmlElement.getSource(),
         offset,
@@ -316,6 +317,6 @@ public class HtmlUnitBuilder implements XmlVisitor<Void> {
       Object... arguments) {
     int offset = attribute.getValueToken().getOffset() + 1;
     int length = attribute.getValueToken().getLength() - 2;
-    reportError(errorCode, offset, length, arguments);
+    reportErrorForOffset(errorCode, offset, length, arguments);
   }
 }

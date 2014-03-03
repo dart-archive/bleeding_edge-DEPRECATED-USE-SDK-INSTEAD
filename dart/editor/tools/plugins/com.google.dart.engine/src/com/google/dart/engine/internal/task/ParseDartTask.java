@@ -55,12 +55,12 @@ public class ParseDartTask extends AnalysisTask {
   /**
    * A flag indicating whether the source contains a 'part of' directive.
    */
-  private boolean hasPartOfDirective = false;
+  private boolean containsPartOfDirective = false;
 
   /**
    * A flag indicating whether the source contains a 'library' directive.
    */
-  private boolean hasLibraryDirective = false;
+  private boolean containsLibraryDirective = false;
 
   /**
    * Initialize a newly created task to perform analysis within the given context.
@@ -124,7 +124,7 @@ public class ParseDartTask extends AnalysisTask {
    * @return {@code true} if the source contains a 'library' directive
    */
   public boolean hasLibraryDirective() {
-    return hasLibraryDirective;
+    return containsLibraryDirective;
   }
 
   /**
@@ -134,7 +134,7 @@ public class ParseDartTask extends AnalysisTask {
    * @return {@code true} if the source contains a 'part of' directive
    */
   public boolean hasPartOfDirective() {
-    return hasPartOfDirective;
+    return containsPartOfDirective;
   }
 
   @Override
@@ -166,9 +166,9 @@ public class ParseDartTask extends AnalysisTask {
       errors = errorListener.getErrors(source);
       for (Directive directive : unit.getDirectives()) {
         if (directive instanceof LibraryDirective) {
-          hasLibraryDirective = true;
+          containsLibraryDirective = true;
         } else if (directive instanceof PartOfDirective) {
-          hasPartOfDirective = true;
+          containsPartOfDirective = true;
         }
       }
       unit.setLineInfo(context.getLineInfo(source));

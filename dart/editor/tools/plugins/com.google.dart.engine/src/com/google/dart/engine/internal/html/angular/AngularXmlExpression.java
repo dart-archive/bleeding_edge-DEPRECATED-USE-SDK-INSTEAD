@@ -43,20 +43,20 @@ public abstract class AngularXmlExpression extends XmlExpression {
   @Override
   public Reference getReference(int offset) {
     // main expression
-    Reference reference = getReference(expression.getExpression(), offset);
+    Reference reference = getReferenceAtNode(expression.getExpression(), offset);
     if (reference != null) {
       return reference;
     }
     // filters
     for (AngularFilterNode filter : expression.getFilters()) {
       // filter name
-      reference = getReference(filter.getName(), offset);
+      reference = getReferenceAtNode(filter.getName(), offset);
       if (reference != null) {
         return reference;
       }
       // filter arguments
       for (AngularFilterArgument filterArgument : filter.getArguments()) {
-        reference = getReference(filterArgument.getExpression(), offset);
+        reference = getReferenceAtNode(filterArgument.getExpression(), offset);
         if (reference != null) {
           return reference;
         }
@@ -69,7 +69,7 @@ public abstract class AngularXmlExpression extends XmlExpression {
    * If the given {@link AstNode} has an {@link Element} at the given offset, then returns
    * {@link Reference} with this {@link Element}.
    */
-  private Reference getReference(AstNode root, int offset) {
+  private Reference getReferenceAtNode(AstNode root, int offset) {
     AstNode node = new NodeLocator(offset).searchWithin(root);
     if (node != null) {
       Element element = ElementLocator.locate(node);

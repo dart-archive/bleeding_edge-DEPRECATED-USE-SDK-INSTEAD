@@ -14,12 +14,12 @@
 package com.google.dart.engine.internal.resolver;
 
 import com.google.dart.engine.AnalysisEngine;
-import com.google.dart.engine.ast.AstNode;
-import com.google.dart.engine.ast.AstVisitor;
 import com.google.dart.engine.ast.AnnotatedNode;
 import com.google.dart.engine.ast.Annotation;
 import com.google.dart.engine.ast.ArgumentList;
 import com.google.dart.engine.ast.AssignmentExpression;
+import com.google.dart.engine.ast.AstNode;
+import com.google.dart.engine.ast.AstVisitor;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.BreakStatement;
 import com.google.dart.engine.ast.ClassDeclaration;
@@ -669,7 +669,7 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
 
   @Override
   public Void visitFieldFormalParameter(FieldFormalParameter node) {
-    setMetadata(node.getElement(), node);
+    setMetadataForParameter(node.getElement(), node);
     return super.visitFieldFormalParameter(node);
   }
 
@@ -687,7 +687,7 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
       FunctionExpression functionExpression = (FunctionExpression) expression;
       ExecutableElement functionElement = functionExpression.getElement();
       ArgumentList argumentList = node.getArgumentList();
-      ParameterElement[] parameters = resolveArgumentsToParameters(
+      ParameterElement[] parameters = resolveArgumentsToFunction(
           false,
           argumentList,
           functionElement);
@@ -706,7 +706,7 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
 
   @Override
   public Void visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
-    setMetadata(node.getElement(), node);
+    setMetadataForParameter(node.getElement(), node);
     return null;
   }
 
@@ -820,7 +820,7 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
     ConstructorElement invokedConstructor = node.getConstructorName().getStaticElement();
     node.setStaticElement(invokedConstructor);
     ArgumentList argumentList = node.getArgumentList();
-    ParameterElement[] parameters = resolveArgumentsToParameters(
+    ParameterElement[] parameters = resolveArgumentsToFunction(
         node.isConst(),
         argumentList,
         invokedConstructor);
@@ -876,8 +876,11 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
       if (typeReference != null) {
         staticElement = propagatedElement = resolveElement(typeReference, methodName);
       } else {
-        staticElement = resolveInvokedElement(target, staticType, methodName);
-        propagatedElement = resolveInvokedElement(target, getPropagatedType(target), methodName);
+        staticElement = resolveInvokedElementWithTarget(target, staticType, methodName);
+        propagatedElement = resolveInvokedElementWithTarget(
+            target,
+            getPropagatedType(target),
+            methodName);
       }
     }
     staticElement = convertSetterToGetter(staticElement);
@@ -937,12 +940,12 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
       return null;
     }
     if (errorCode == StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION) {
-      resolver.reportError(
+      resolver.reportErrorForNode(
           StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION,
           methodName,
           methodName.getName());
     } else if (errorCode == CompileTimeErrorCode.UNDEFINED_FUNCTION) {
-      resolver.reportError(
+      resolver.reportErrorForNode(
           CompileTimeErrorCode.UNDEFINED_FUNCTION,
           methodName,
           methodName.getName());
@@ -994,7 +997,7 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
       // The error code will never be generated via type propagation
       Type targetType = getStaticType(target);
       String targetTypeName = targetType == null ? null : targetType.getName();
-      resolver.reportError(
+      resolver.reportErrorForNode(
           StaticTypeWarningCode.UNDEFINED_SUPER_METHOD,
           methodName,
           methodName.getName(),
@@ -1064,17 +1067,17 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
       }
       if (element == null) {
         if (identifier.inSetterContext()) {
-          resolver.reportError(
+          resolver.reportErrorForNode(
               StaticWarningCode.UNDEFINED_SETTER,
               identifier,
               identifier.getName(),
               prefixElement.getName());
         } else if (node.getParent() instanceof Annotation) {
           Annotation annotation = (Annotation) node.getParent();
-          resolver.reportError(CompileTimeErrorCode.INVALID_ANNOTATION, annotation);
+          resolver.reportErrorForNode(CompileTimeErrorCode.INVALID_ANNOTATION, annotation);
           return null;
         } else {
-          resolver.reportError(
+          resolver.reportErrorForNode(
               StaticWarningCode.UNDEFINED_GETTER,
               identifier,
               identifier.getName(),
@@ -1188,7 +1191,7 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
     }
     node.setStaticElement(element);
     ArgumentList argumentList = node.getArgumentList();
-    ParameterElement[] parameters = resolveArgumentsToParameters(false, argumentList, element);
+    ParameterElement[] parameters = resolveArgumentsToFunction(false, argumentList, element);
     if (parameters != null) {
       argumentList.setCorrespondingStaticParameters(parameters);
     }
@@ -1197,7 +1200,7 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
 
   @Override
   public Void visitSimpleFormalParameter(SimpleFormalParameter node) {
-    setMetadata(node.getElement(), node);
+    setMetadataForParameter(node.getElement(), node);
     return null;
   }
 
@@ -1230,17 +1233,17 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
     Element element = resolveSimpleIdentifier(node);
     ClassElement enclosingClass = resolver.getEnclosingClass();
     if (isFactoryConstructorReturnType(node) && element != enclosingClass) {
-      resolver.reportError(CompileTimeErrorCode.INVALID_FACTORY_NAME_NOT_A_CLASS, node);
+      resolver.reportErrorForNode(CompileTimeErrorCode.INVALID_FACTORY_NAME_NOT_A_CLASS, node);
     } else if (isConstructorReturnType(node) && element != enclosingClass) {
-      resolver.reportError(CompileTimeErrorCode.INVALID_CONSTRUCTOR_NAME, node);
+      resolver.reportErrorForNode(CompileTimeErrorCode.INVALID_CONSTRUCTOR_NAME, node);
       element = null;
     } else if (element == null || (element instanceof PrefixElement && !isValidAsPrefix(node))) {
       // TODO(brianwilkerson) Recover from this error.
       if (isConstructorReturnType(node)) {
-        resolver.reportError(CompileTimeErrorCode.INVALID_CONSTRUCTOR_NAME, node);
+        resolver.reportErrorForNode(CompileTimeErrorCode.INVALID_CONSTRUCTOR_NAME, node);
       } else if (node.getParent() instanceof Annotation) {
         Annotation annotation = (Annotation) node.getParent();
-        resolver.reportError(CompileTimeErrorCode.INVALID_ANNOTATION, annotation);
+        resolver.reportErrorForNode(CompileTimeErrorCode.INVALID_ANNOTATION, annotation);
       } else {
         resolver.reportErrorProxyConditionalAnalysisError(
             resolver.getEnclosingClass(),
@@ -1287,13 +1290,13 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
     ConstructorElement element = superType.lookUpConstructor(superName, definingLibrary);
     if (element == null) {
       if (name != null) {
-        resolver.reportError(
+        resolver.reportErrorForNode(
             CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER,
             node,
             superType.getDisplayName(),
             name);
       } else {
-        resolver.reportError(
+        resolver.reportErrorForNode(
             CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT,
             node,
             superType.getDisplayName());
@@ -1301,7 +1304,7 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
       return null;
     } else {
       if (element.isFactory()) {
-        resolver.reportError(CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR, node, element);
+        resolver.reportErrorForNode(CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR, node, element);
       }
     }
     if (name != null) {
@@ -1309,7 +1312,7 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
     }
     node.setStaticElement(element);
     ArgumentList argumentList = node.getArgumentList();
-    ParameterElement[] parameters = resolveArgumentsToParameters(
+    ParameterElement[] parameters = resolveArgumentsToFunction(
         isInConstConstructor(),
         argumentList,
         element);
@@ -1322,7 +1325,7 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
   @Override
   public Void visitSuperExpression(SuperExpression node) {
     if (!isSuperInValidContext(node)) {
-      resolver.reportError(CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT, node);
+      resolver.reportErrorForNode(CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT, node);
     }
     return super.visitSuperExpression(node);
   }
@@ -1516,12 +1519,12 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
               CALL_METHOD_NAME,
               definingLibrary);
           if (callMethod != null) {
-            return resolveArgumentsToParameters(false, argumentList, callMethod);
+            return resolveArgumentsToFunction(false, argumentList, callMethod);
           }
         } else if (getterReturnType instanceof FunctionType) {
           Element functionElement = ((FunctionType) getterReturnType).getElement();
           if (functionElement instanceof ExecutableElement) {
-            return resolveArgumentsToParameters(
+            return resolveArgumentsToFunction(
                 false,
                 argumentList,
                 (ExecutableElement) functionElement);
@@ -1529,7 +1532,7 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
         }
       }
     } else if (element instanceof ExecutableElement) {
-      return resolveArgumentsToParameters(false, argumentList, (ExecutableElement) element);
+      return resolveArgumentsToFunction(false, argumentList, (ExecutableElement) element);
     } else if (element instanceof VariableElement) {
       VariableElement variable = (VariableElement) element;
       Type type = promoteManager.getStaticType(variable);
@@ -1933,11 +1936,11 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
       }
     } else {
       if (labelScope == null) {
-        resolver.reportError(CompileTimeErrorCode.LABEL_UNDEFINED, labelNode, labelNode.getName());
+        resolver.reportErrorForNode(CompileTimeErrorCode.LABEL_UNDEFINED, labelNode, labelNode.getName());
       } else {
         labelElement = (LabelElementImpl) labelScope.lookup(labelNode);
         if (labelElement == null) {
-          resolver.reportError(CompileTimeErrorCode.LABEL_UNDEFINED, labelNode, labelNode.getName());
+          resolver.reportErrorForNode(CompileTimeErrorCode.LABEL_UNDEFINED, labelNode, labelNode.getName());
         } else {
           labelNode.setStaticElement(labelElement);
         }
@@ -1946,7 +1949,7 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
     if (labelElement != null) {
       ExecutableElement labelContainer = labelElement.getAncestor(ExecutableElement.class);
       if (labelContainer != resolver.getEnclosingFunction()) {
-        resolver.reportError(
+        resolver.reportErrorForNode(
             CompileTimeErrorCode.LABEL_IN_OUTER_SCOPE,
             labelNode,
             labelNode.getName());
@@ -2198,7 +2201,7 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
       return;
     }
     // resolve arguments to parameters
-    ParameterElement[] parameters = resolveArgumentsToParameters(true, argumentList, constructor);
+    ParameterElement[] parameters = resolveArgumentsToFunction(true, argumentList, constructor);
     if (parameters != null) {
       argumentList.setCorrespondingStaticParameters(parameters);
     }
@@ -2297,7 +2300,7 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
     }
     // we need constructor
     if (constructor == null) {
-      resolver.reportError(CompileTimeErrorCode.INVALID_ANNOTATION, annotation);
+      resolver.reportErrorForNode(CompileTimeErrorCode.INVALID_ANNOTATION, annotation);
       return;
     }
     // record element
@@ -2310,13 +2313,13 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
       PropertyAccessorElement accessorElement) {
     // accessor should be synthetic
     if (!accessorElement.isSynthetic()) {
-      resolver.reportError(CompileTimeErrorCode.INVALID_ANNOTATION, annotation);
+      resolver.reportErrorForNode(CompileTimeErrorCode.INVALID_ANNOTATION, annotation);
       return;
     }
     // variable should be constant
     VariableElement variableElement = accessorElement.getVariable();
     if (!variableElement.isConst()) {
-      resolver.reportError(CompileTimeErrorCode.INVALID_ANNOTATION, annotation);
+      resolver.reportErrorForNode(CompileTimeErrorCode.INVALID_ANNOTATION, annotation);
     }
     // OK
     return;
@@ -2333,7 +2336,7 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
    * @param executableElement the element that will be invoked with the arguments
    * @return the parameters that correspond to the arguments
    */
-  private ParameterElement[] resolveArgumentsToParameters(boolean reportError,
+  private ParameterElement[] resolveArgumentsToFunction(boolean reportError,
       ArgumentList argumentList, ExecutableElement executableElement) {
     if (executableElement == null) {
       return null;
@@ -2388,13 +2391,13 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
         if (element == null) {
           ErrorCode errorCode = reportError ? CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER
               : StaticWarningCode.UNDEFINED_NAMED_PARAMETER;
-          resolver.reportError(errorCode, nameNode, name);
+          resolver.reportErrorForNode(errorCode, nameNode, name);
         } else {
           resolvedParameters[i] = element;
           nameNode.setStaticElement(element);
         }
         if (!usedNames.add(name)) {
-          resolver.reportError(CompileTimeErrorCode.DUPLICATE_NAMED_ARGUMENT, nameNode, name);
+          resolver.reportErrorForNode(CompileTimeErrorCode.DUPLICATE_NAMED_ARGUMENT, nameNode, name);
         }
       } else {
         positionalArgumentCount++;
@@ -2406,7 +2409,7 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
     if (positionalArgumentCount < requiredParameters.size()) {
       ErrorCode errorCode = reportError ? CompileTimeErrorCode.NOT_ENOUGH_REQUIRED_ARGUMENTS
           : StaticWarningCode.NOT_ENOUGH_REQUIRED_ARGUMENTS;
-      resolver.reportError(
+      resolver.reportErrorForNode(
           errorCode,
           argumentList,
           requiredParameters.size(),
@@ -2414,7 +2417,7 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
     } else if (positionalArgumentCount > unnamedParameterCount) {
       ErrorCode errorCode = reportError ? CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS
           : StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS;
-      resolver.reportError(errorCode, argumentList, unnamedParameterCount, positionalArgumentCount);
+      resolver.reportErrorForNode(errorCode, argumentList, unnamedParameterCount, positionalArgumentCount);
     }
     return resolvedParameters;
   }
@@ -2474,50 +2477,6 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
   }
 
   /**
-   * Given an invocation of the form 'e.m(a1, ..., an)', resolve 'e.m' to the element being invoked.
-   * If the returned element is a method, then the method will be invoked. If the returned element
-   * is a getter, the getter will be invoked without arguments and the result of that invocation
-   * will then be invoked with the arguments.
-   * 
-   * @param target the target of the invocation ('e')
-   * @param targetType the type of the target
-   * @param methodName the name of the method being invoked ('m')
-   * @return the element being invoked
-   */
-  private Element resolveInvokedElement(Expression target, Type targetType,
-      SimpleIdentifier methodName) {
-    if (targetType instanceof InterfaceType) {
-      InterfaceType classType = (InterfaceType) targetType;
-      Element element = lookUpMethod(target, classType, methodName.getName());
-      if (element == null) {
-        //
-        // If there's no method, then it's possible that 'm' is a getter that returns a function.
-        //
-        element = lookUpGetter(target, classType, methodName.getName());
-      }
-      return element;
-    } else if (target instanceof SimpleIdentifier) {
-      Element targetElement = ((SimpleIdentifier) target).getStaticElement();
-      if (targetElement instanceof PrefixElement) {
-        //
-        // Look to see whether the name of the method is really part of a prefixed identifier for an
-        // imported top-level function or top-level getter that returns a function.
-        //
-        final String name = ((SimpleIdentifier) target).getName() + "." + methodName;
-        Identifier functionName = new SyntheticIdentifier(name);
-        Element element = resolver.getNameScope().lookup(functionName, definingLibrary);
-        if (element != null) {
-          // TODO(brianwilkerson) This isn't a method invocation, it's a function invocation where
-          // the function name is a prefixed identifier. Consider re-writing the AST.
-          return element;
-        }
-      }
-    }
-    // TODO(brianwilkerson) Report this error.
-    return null;
-  }
-
-  /**
    * Given an invocation of the form 'm(a1, ..., an)', resolve 'm' to the element being invoked. If
    * the returned element is a method, then the method will be invoked. If the returned element is a
    * getter, the getter will be invoked without arguments and the result of that invocation will
@@ -2550,6 +2509,50 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
     }
     // TODO(brianwilkerson) Report this error.
     return element;
+  }
+
+  /**
+   * Given an invocation of the form 'e.m(a1, ..., an)', resolve 'e.m' to the element being invoked.
+   * If the returned element is a method, then the method will be invoked. If the returned element
+   * is a getter, the getter will be invoked without arguments and the result of that invocation
+   * will then be invoked with the arguments.
+   * 
+   * @param target the target of the invocation ('e')
+   * @param targetType the type of the target
+   * @param methodName the name of the method being invoked ('m')
+   * @return the element being invoked
+   */
+  private Element resolveInvokedElementWithTarget(Expression target, Type targetType,
+      SimpleIdentifier methodName) {
+    if (targetType instanceof InterfaceType) {
+      InterfaceType classType = (InterfaceType) targetType;
+      Element element = lookUpMethod(target, classType, methodName.getName());
+      if (element == null) {
+        //
+        // If there's no method, then it's possible that 'm' is a getter that returns a function.
+        //
+        element = lookUpGetter(target, classType, methodName.getName());
+      }
+      return element;
+    } else if (target instanceof SimpleIdentifier) {
+      Element targetElement = ((SimpleIdentifier) target).getStaticElement();
+      if (targetElement instanceof PrefixElement) {
+        //
+        // Look to see whether the name of the method is really part of a prefixed identifier for an
+        // imported top-level function or top-level getter that returns a function.
+        //
+        final String name = ((SimpleIdentifier) target).getName() + "." + methodName;
+        Identifier functionName = new SyntheticIdentifier(name);
+        Element element = resolver.getNameScope().lookup(functionName, definingLibrary);
+        if (element != null) {
+          // TODO(brianwilkerson) This isn't a method invocation, it's a function invocation where
+          // the function name is a prefixed identifier. Consider re-writing the AST.
+          return element;
+        }
+      }
+    }
+    // TODO(brianwilkerson) Report this error.
+    return null;
   }
 
   /**
@@ -2625,7 +2628,7 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
         if (propertyName.inSetterContext()) {
           ErrorCode errorCode = shouldReportMissingMember_static
               ? StaticTypeWarningCode.UNDEFINED_SETTER : HintCode.UNDEFINED_SETTER;
-          resolver.reportError(
+          resolver.reportErrorForNode(
               errorCode,
               propertyName,
               propertyName.getName(),
@@ -2633,13 +2636,13 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
         } else if (propertyName.inGetterContext()) {
           ErrorCode errorCode = shouldReportMissingMember_static
               ? StaticTypeWarningCode.UNDEFINED_GETTER : HintCode.UNDEFINED_GETTER;
-          resolver.reportError(
+          resolver.reportErrorForNode(
               errorCode,
               propertyName,
               propertyName.getName(),
               staticType.getDisplayName());
         } else {
-          resolver.reportError(
+          resolver.reportErrorForNode(
               StaticWarningCode.UNDEFINED_IDENTIFIER,
               propertyName,
               propertyName.getName());
@@ -2805,7 +2808,7 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
    * @param element the element to which the node has been resolved
    * @param node the node that can have annotations associated with it
    */
-  private void setMetadata(Element element, NormalFormalParameter node) {
+  private void setMetadataForParameter(Element element, NormalFormalParameter node) {
     if (!(element instanceof ElementImpl)) {
       return;
     }

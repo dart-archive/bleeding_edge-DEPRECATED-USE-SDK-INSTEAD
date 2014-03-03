@@ -16,10 +16,10 @@ package com.google.dart.engine.internal.builder;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
-import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.Annotation;
 import com.google.dart.engine.ast.ArgumentList;
 import com.google.dart.engine.ast.AssignmentExpression;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.ClassMember;
 import com.google.dart.engine.ast.CompilationUnit;
@@ -256,7 +256,7 @@ public class AngularCompilationUnitBuilder {
   /**
    * Parses given {@link SimpleStringLiteral} using {@link #parseSelector(int, String)}.
    */
-  private static AngularSelectorElement parseSelector(SimpleStringLiteral literal) {
+  private static AngularSelectorElement parseSelectorFromString(SimpleStringLiteral literal) {
     int offset = literal.getValueOffset();
     String text = literal.getStringValue();
     return parseSelector(offset, text);
@@ -331,22 +331,22 @@ public class AngularCompilationUnitBuilder {
           }
           this.annotation = annotation;
           // @NgFilter
-          if (isAngularAnnotation(NG_FILTER)) {
+          if (isAngularAnnotation(annotation, NG_FILTER)) {
             parseNgFilter();
             continue;
           }
           // @NgComponent
-          if (isAngularAnnotation(NG_COMPONENT)) {
+          if (isAngularAnnotation(annotation, NG_COMPONENT)) {
             parseNgComponent();
             continue;
           }
           // @NgController
-          if (isAngularAnnotation(NG_CONTROLLER)) {
+          if (isAngularAnnotation(annotation, NG_CONTROLLER)) {
             parseNgController();
             continue;
           }
           // @NgDirective
-          if (isAngularAnnotation(NG_DIRECTIVE)) {
+          if (isAngularAnnotation(annotation, NG_DIRECTIVE)) {
             parseNgDirective();
             continue;
           }
@@ -421,13 +421,6 @@ public class AngularCompilationUnitBuilder {
     return false;
   }
 
-  /**
-   * Checks if {@link #annotation} is an annotation with required name.
-   */
-  private boolean isAngularAnnotation(String name) {
-    return isAngularAnnotation(annotation, name);
-  }
-
   private void parseNgComponent() {
     boolean isValid = true;
     // publishAs
@@ -444,7 +437,7 @@ public class AngularCompilationUnitBuilder {
       isValid = false;
     } else {
       SimpleStringLiteral selectorLiteral = getStringLiteral(SELECTOR);
-      selector = parseSelector(selectorLiteral);
+      selector = parseSelectorFromString(selectorLiteral);
       if (selector == null) {
         reportErrorForArgument(SELECTOR, AngularCode.CANNOT_PARSE_SELECTOR, selectorLiteral);
         isValid = false;
@@ -542,7 +535,7 @@ public class AngularCompilationUnitBuilder {
     }
     // prepare map literal
     if (!(mapExpression instanceof MapLiteral)) {
-      reportError(mapExpression, AngularCode.INVALID_PROPERTY_MAP);
+      reportErrorForNode(AngularCode.INVALID_PROPERTY_MAP, mapExpression);
       return;
     }
     MapLiteral mapLiteral = (MapLiteral) mapExpression;
@@ -551,7 +544,7 @@ public class AngularCompilationUnitBuilder {
       // prepare property name
       Expression nameExpression = entry.getKey();
       if (!(nameExpression instanceof SimpleStringLiteral)) {
-        reportError(nameExpression, AngularCode.INVALID_PROPERTY_NAME);
+        reportErrorForNode(AngularCode.INVALID_PROPERTY_NAME, nameExpression);
         continue;
       }
       SimpleStringLiteral nameLiteral = (SimpleStringLiteral) nameExpression;
@@ -560,7 +553,7 @@ public class AngularCompilationUnitBuilder {
       // prepare field specification
       Expression specExpression = entry.getValue();
       if (!(specExpression instanceof SimpleStringLiteral)) {
-        reportError(specExpression, AngularCode.INVALID_PROPERTY_SPEC);
+        reportErrorForNode(AngularCode.INVALID_PROPERTY_SPEC, specExpression);
         continue;
       }
       SimpleStringLiteral specLiteral = (SimpleStringLiteral) specExpression;
@@ -584,7 +577,7 @@ public class AngularCompilationUnitBuilder {
         kind = AngularPropertyKind.TWO_WAY;
         fieldNameOffset = 3;
       } else {
-        reportError(specLiteral, AngularCode.INVALID_PROPERTY_KIND, spec);
+        reportErrorForNode(AngularCode.INVALID_PROPERTY_KIND, specLiteral, spec);
         continue;
       }
       String fieldName = spec.substring(fieldNameOffset);
@@ -594,10 +587,10 @@ public class AngularCompilationUnitBuilder {
           fieldName,
           classElement.getLibrary());
       if (setter == null) {
-        reportError(
+        reportErrorForOffset(
+            AngularCode.INVALID_PROPERTY_FIELD,
             fieldNameOffset,
             fieldName.length(),
-            AngularCode.INVALID_PROPERTY_FIELD,
             fieldName);
         continue;
       }
@@ -625,7 +618,7 @@ public class AngularCompilationUnitBuilder {
       isValid = false;
     } else {
       SimpleStringLiteral selectorLiteral = getStringLiteral(SELECTOR);
-      selector = parseSelector(selectorLiteral);
+      selector = parseSelectorFromString(selectorLiteral);
       if (selector == null) {
         reportErrorForArgument(SELECTOR, AngularCode.CANNOT_PARSE_SELECTOR, selectorLiteral);
         isValid = false;
@@ -650,7 +643,7 @@ public class AngularCompilationUnitBuilder {
       isValid = false;
     } else {
       SimpleStringLiteral selectorLiteral = getStringLiteral(SELECTOR);
-      selector = parseSelector(selectorLiteral);
+      selector = parseSelectorFromString(selectorLiteral);
       if (selector == null) {
         reportErrorForArgument(SELECTOR, AngularCode.CANNOT_PARSE_SELECTOR, selectorLiteral);
         isValid = false;
@@ -817,22 +810,23 @@ public class AngularCompilationUnitBuilder {
     }
   }
 
-  private void reportError(AstNode node, ErrorCode errorCode, Object... arguments) {
-    int offset = node.getOffset();
-    int length = node.getLength();
-    reportError(offset, length, errorCode, arguments);
-  }
-
-  private void reportError(int offset, int length, ErrorCode errorCode, Object... arguments) {
-    errorListener.onError(new AnalysisError(source, offset, length, errorCode, arguments));
-  }
-
   private void reportErrorForAnnotation(ErrorCode errorCode, Object... arguments) {
-    reportError(annotation, errorCode, arguments);
+    reportErrorForNode(errorCode, annotation, arguments);
   }
 
   private void reportErrorForArgument(String argumentName, ErrorCode errorCode, Object... arguments) {
     Expression argument = getArgument(argumentName);
-    reportError(argument, errorCode, arguments);
+    reportErrorForNode(errorCode, argument, arguments);
+  }
+
+  private void reportErrorForNode(ErrorCode errorCode, AstNode node, Object... arguments) {
+    int offset = node.getOffset();
+    int length = node.getLength();
+    reportErrorForOffset(errorCode, offset, length, arguments);
+  }
+
+  private void reportErrorForOffset(ErrorCode errorCode, int offset, int length,
+      Object... arguments) {
+    errorListener.onError(new AnalysisError(source, offset, length, errorCode, arguments));
   }
 }

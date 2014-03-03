@@ -13,12 +13,12 @@
  */
 package com.google.dart.engine.internal.resolver;
 
-import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.AdjacentStrings;
 import com.google.dart.engine.ast.ArgumentDefinitionTest;
 import com.google.dart.engine.ast.ArgumentList;
 import com.google.dart.engine.ast.AsExpression;
 import com.google.dart.engine.ast.AssignmentExpression;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.BlockFunctionBody;
 import com.google.dart.engine.ast.BooleanLiteral;
@@ -473,8 +473,8 @@ public class StaticTypeAnalyzer extends SimpleAstVisitor<Void> {
   public Void visitFunctionDeclaration(FunctionDeclaration node) {
     FunctionExpression function = node.getFunctionExpression();
     ExecutableElementImpl functionElement = (ExecutableElementImpl) node.getElement();
-    functionElement.setReturnType(computeStaticReturnType(node));
-    recordPropagatedType(functionElement, function.getBody());
+    functionElement.setReturnType(computeStaticReturnTypeOfFunctionDeclaration(node));
+    recordPropagatedTypeOfFunction(functionElement, function.getBody());
     recordStaticType(function, functionElement.getType());
     return null;
   }
@@ -516,8 +516,8 @@ public class StaticTypeAnalyzer extends SimpleAstVisitor<Void> {
       return null;
     }
     ExecutableElementImpl functionElement = (ExecutableElementImpl) node.getElement();
-    functionElement.setReturnType(computeStaticReturnType(node));
-    recordPropagatedType(functionElement, node.getBody());
+    functionElement.setReturnType(computeStaticReturnTypeOfFunctionExpression(node));
+    recordPropagatedTypeOfFunction(functionElement, node.getBody());
     recordStaticType(node, node.getElement().getType());
     return null;
   }
@@ -625,7 +625,7 @@ public class StaticTypeAnalyzer extends SimpleAstVisitor<Void> {
       if (isHtmlLibrary(library)) {
         String constructorName = element.getName();
         if ("tag".equals(constructorName)) {
-          Type returnType = getFirstArgumentAsType(
+          Type returnType = getFirstArgumentAsTypeWithMap(
               library,
               node.getArgumentList(),
               HTML_ELEMENT_TO_CLASS_MAP);
@@ -1074,7 +1074,7 @@ public class StaticTypeAnalyzer extends SimpleAstVisitor<Void> {
     } else if (staticElement instanceof MethodElement) {
       staticType = ((MethodElement) staticElement).getType();
     } else if (staticElement instanceof PropertyAccessorElement) {
-      staticType = getType(
+      staticType = getTypeOfProperty(
           (PropertyAccessorElement) staticElement,
           node.getPrefix().getStaticType());
     } else if (staticElement instanceof ExecutableElement) {
@@ -1100,7 +1100,7 @@ public class StaticTypeAnalyzer extends SimpleAstVisitor<Void> {
     } else if (propagatedElement instanceof MethodElement) {
       propagatedType = ((MethodElement) propagatedElement).getType();
     } else if (propagatedElement instanceof PropertyAccessorElement) {
-      propagatedType = getType(
+      propagatedType = getTypeOfProperty(
           (PropertyAccessorElement) propagatedElement,
           node.getPrefix().getStaticType());
     } else if (propagatedElement instanceof ExecutableElement) {
@@ -1207,7 +1207,7 @@ public class StaticTypeAnalyzer extends SimpleAstVisitor<Void> {
       staticType = ((MethodElement) staticElement).getType();
     } else if (staticElement instanceof PropertyAccessorElement) {
       Expression realTarget = node.getRealTarget();
-      staticType = getType((PropertyAccessorElement) staticElement, realTarget != null
+      staticType = getTypeOfProperty((PropertyAccessorElement) staticElement, realTarget != null
           ? getStaticType(realTarget) : null);
     } else {
       // TODO(brianwilkerson) Report this internal error.
@@ -1221,8 +1221,9 @@ public class StaticTypeAnalyzer extends SimpleAstVisitor<Void> {
       propagatedType = ((MethodElement) propagatedElement).getType();
     } else if (propagatedElement instanceof PropertyAccessorElement) {
       Expression realTarget = node.getRealTarget();
-      propagatedType = getType((PropertyAccessorElement) propagatedElement, realTarget != null
-          ? realTarget.getBestType() : null);
+      propagatedType = getTypeOfProperty(
+          (PropertyAccessorElement) propagatedElement,
+          realTarget != null ? realTarget.getBestType() : null);
     } else {
       // TODO(brianwilkerson) Report this internal error.
     }
@@ -1304,7 +1305,7 @@ public class StaticTypeAnalyzer extends SimpleAstVisitor<Void> {
     } else if (element instanceof MethodElement) {
       staticType = ((MethodElement) element).getType();
     } else if (element instanceof PropertyAccessorElement) {
-      staticType = getType((PropertyAccessorElement) element, null);
+      staticType = getTypeOfProperty((PropertyAccessorElement) element, null);
     } else if (element instanceof ExecutableElement) {
       staticType = ((ExecutableElement) element).getType();
     } else if (element instanceof TypeParameterElement) {
@@ -1445,7 +1446,7 @@ public class StaticTypeAnalyzer extends SimpleAstVisitor<Void> {
    * @param body the boy of the function whose propagated return type is to be computed
    * @return the propagated return type that was computed
    */
-  private Type computePropagatedReturnType(FunctionBody body) {
+  private Type computePropagatedReturnTypeOfFunction(FunctionBody body) {
     if (body instanceof ExpressionFunctionBody) {
       ExpressionFunctionBody expressionBody = (ExpressionFunctionBody) body;
       return expressionBody.getExpression().getBestType();
@@ -1541,7 +1542,7 @@ public class StaticTypeAnalyzer extends SimpleAstVisitor<Void> {
    * @param node the function expression whose static return type is to be computed
    * @return the static return type that was computed
    */
-  private Type computeStaticReturnType(FunctionDeclaration node) {
+  private Type computeStaticReturnTypeOfFunctionDeclaration(FunctionDeclaration node) {
     TypeName returnType = node.getReturnType();
     if (returnType == null) {
       return dynamicType;
@@ -1557,7 +1558,7 @@ public class StaticTypeAnalyzer extends SimpleAstVisitor<Void> {
    * @param node the function expression whose return type is to be computed
    * @return the return type that was computed
    */
-  private Type computeStaticReturnType(FunctionExpression node) {
+  private Type computeStaticReturnTypeOfFunctionExpression(FunctionExpression node) {
     FunctionBody body = node.getBody();
     if (body instanceof ExpressionFunctionBody) {
       return getStaticType(((ExpressionFunctionBody) body).getExpression());
@@ -1653,7 +1654,7 @@ public class StaticTypeAnalyzer extends SimpleAstVisitor<Void> {
    * @return the type specified by the first argument in the argument list
    */
   private Type getFirstArgumentAsType(LibraryElement library, ArgumentList argumentList) {
-    return getFirstArgumentAsType(library, argumentList, null);
+    return getFirstArgumentAsTypeWithMap(library, argumentList, null);
   }
 
   /**
@@ -1666,7 +1667,7 @@ public class StaticTypeAnalyzer extends SimpleAstVisitor<Void> {
    * @param nameMap an optional map used to map the element name to a type name
    * @return the type specified by the first argument in the argument list
    */
-  private Type getFirstArgumentAsType(LibraryElement library, ArgumentList argumentList,
+  private Type getFirstArgumentAsTypeWithMap(LibraryElement library, ArgumentList argumentList,
       HashMap<String, String> nameMap) {
     return getElementNameAsType(library, getFirstArgumentAsString(argumentList), nameMap);
   }
@@ -1687,6 +1688,21 @@ public class StaticTypeAnalyzer extends SimpleAstVisitor<Void> {
   }
 
   /**
+   * Return the type represented by the given type name.
+   * 
+   * @param typeName the type name representing the type to be returned
+   * @return the type represented by the type name
+   */
+  private Type getType(TypeName typeName) {
+    Type type = typeName.getType();
+    if (type == null) {
+      //TODO(brianwilkerson) Determine the conditions for which the type is null.
+      return dynamicType;
+    }
+    return type;
+  }
+
+  /**
    * Return the type that should be recorded for a node that resolved to the given accessor.
    * 
    * @param accessor the accessor that the node resolved to
@@ -1696,7 +1712,7 @@ public class StaticTypeAnalyzer extends SimpleAstVisitor<Void> {
    *          specific type information
    * @return the type that should be recorded for a node that resolved to the given accessor
    */
-  private Type getType(PropertyAccessorElement accessor, Type context) {
+  private Type getTypeOfProperty(PropertyAccessorElement accessor, Type context) {
     FunctionType functionType = accessor.getType();
     if (functionType == null) {
       // TODO(brianwilkerson) Report this internal error. This happens when we are analyzing a
@@ -1739,21 +1755,6 @@ public class StaticTypeAnalyzer extends SimpleAstVisitor<Void> {
       }
     }
     return returnType;
-  }
-
-  /**
-   * Return the type represented by the given type name.
-   * 
-   * @param typeName the type name representing the type to be returned
-   * @return the type represented by the type name
-   */
-  private Type getType(TypeName typeName) {
-    Type type = typeName.getType();
-    if (type == null) {
-      //TODO(brianwilkerson) Determine the conditions for which the type is null.
-      return dynamicType;
-    }
-    return type;
   }
 
   /**
@@ -1800,6 +1801,18 @@ public class StaticTypeAnalyzer extends SimpleAstVisitor<Void> {
   }
 
   /**
+   * Record that the propagated type of the given node is the given type.
+   * 
+   * @param expression the node whose type is to be recorded
+   * @param type the propagated type of the node
+   */
+  private void recordPropagatedType(Expression expression, Type type) {
+    if (type != null && !type.isDynamic()) {
+      expression.setPropagatedType(type);
+    }
+  }
+
+  /**
    * Given a function element and its body, compute and record the propagated return type of the
    * function.
    * 
@@ -1808,8 +1821,8 @@ public class StaticTypeAnalyzer extends SimpleAstVisitor<Void> {
    * @return the propagated return type that was computed, may be {@code null} if it is not more
    *         specific than the static return type.
    */
-  private void recordPropagatedType(ExecutableElement functionElement, FunctionBody body) {
-    Type propagatedReturnType = computePropagatedReturnType(body);
+  private void recordPropagatedTypeOfFunction(ExecutableElement functionElement, FunctionBody body) {
+    Type propagatedReturnType = computePropagatedReturnTypeOfFunction(body);
     if (propagatedReturnType == null) {
       return;
     }
@@ -1824,18 +1837,6 @@ public class StaticTypeAnalyzer extends SimpleAstVisitor<Void> {
     }
     // OK, do record.
     propagatedReturnTypes.put(functionElement, propagatedReturnType);
-  }
-
-  /**
-   * Record that the propagated type of the given node is the given type.
-   * 
-   * @param expression the node whose type is to be recorded
-   * @param type the propagated type of the node
-   */
-  private void recordPropagatedType(Expression expression, Type type) {
-    if (type != null && !type.isDynamic()) {
-      expression.setPropagatedType(type);
-    }
   }
 
   /**

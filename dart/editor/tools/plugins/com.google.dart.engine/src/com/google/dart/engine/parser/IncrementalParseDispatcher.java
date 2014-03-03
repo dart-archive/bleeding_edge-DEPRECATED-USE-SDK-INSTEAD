@@ -107,7 +107,7 @@ public class IncrementalParseDispatcher implements AstVisitor<AstNode> {
       // return parser.parseConditionalExpression();
       throw new InsufficientContextException();
     } else if (oldNode == node.getRightHandSide()) {
-      if (isCascadeAllowed(node)) {
+      if (isCascadeAllowedInAssignment(node)) {
         return parser.parseExpression();
       }
       return parser.parseExpressionWithoutCascade();
@@ -959,7 +959,7 @@ public class IncrementalParseDispatcher implements AstVisitor<AstNode> {
   @Override
   public AstNode visitThrowExpression(ThrowExpression node) {
     if (oldNode == node.getExpression()) {
-      if (isCascadeAllowed(node)) {
+      if (isCascadeAllowedInThrow(node)) {
         return parser.parseExpression();
       }
       return parser.parseExpressionWithoutCascade();
@@ -1090,7 +1090,7 @@ public class IncrementalParseDispatcher implements AstVisitor<AstNode> {
    * @param node the assignment expression being tested
    * @return {@code true} if the right-hand side can be a cascade expression
    */
-  private boolean isCascadeAllowed(AssignmentExpression node) {
+  private boolean isCascadeAllowedInAssignment(AssignmentExpression node) {
     // TODO(brianwilkerson) Implement this method.
     throw new InsufficientContextException();
   }
@@ -1101,7 +1101,7 @@ public class IncrementalParseDispatcher implements AstVisitor<AstNode> {
    * @param node the throw expression being tested
    * @return {@code true} if the expression can be a cascade expression
    */
-  private boolean isCascadeAllowed(ThrowExpression node) {
+  private boolean isCascadeAllowedInThrow(ThrowExpression node) {
     // TODO(brianwilkerson) Implement this method.
     throw new InsufficientContextException();
   }

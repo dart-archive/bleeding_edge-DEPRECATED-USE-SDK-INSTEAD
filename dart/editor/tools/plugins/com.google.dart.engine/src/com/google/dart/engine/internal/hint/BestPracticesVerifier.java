@@ -13,9 +13,9 @@
  */
 package com.google.dart.engine.internal.hint;
 
-import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.AsExpression;
 import com.google.dart.engine.ast.AssignmentExpression;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.BlockFunctionBody;
 import com.google.dart.engine.ast.ClassDeclaration;
@@ -218,7 +218,7 @@ public class BestPracticesVerifier extends RecursiveAstVisitor<Void> {
 
   @Override
   public Void visitSimpleIdentifier(SimpleIdentifier node) {
-    checkForDeprecatedMemberUse(node);
+    checkForDeprecatedMemberUseAtIdentifier(node);
     return super.visitSimpleIdentifier(node);
   }
 
@@ -334,7 +334,7 @@ public class BestPracticesVerifier extends RecursiveAstVisitor<Void> {
    * @return {@code true} if and only if a hint code is generated on the passed node
    * @see HintCode#DEPRECATED_MEMBER_USE
    */
-  private boolean checkForDeprecatedMemberUse(SimpleIdentifier identifier) {
+  private boolean checkForDeprecatedMemberUseAtIdentifier(SimpleIdentifier identifier) {
     if (identifier.inDeclarationContext()) {
       return false;
     }

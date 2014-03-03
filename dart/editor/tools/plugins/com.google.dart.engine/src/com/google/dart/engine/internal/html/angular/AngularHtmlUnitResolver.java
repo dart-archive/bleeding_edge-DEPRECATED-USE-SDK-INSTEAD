@@ -165,7 +165,7 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
    * @param angularElements the list to fill with top-level {@link AngularElement}s
    * @param classElement the {@link ClassElement} to get {@link AngularElement}s from
    */
-  private static void addAngularElements(Set<AngularElement> angularElements,
+  private static void addAngularElementsFromClass(Set<AngularElement> angularElements,
       ClassElement classElement) {
     for (ToolkitObjectElement toolkitObject : classElement.getToolkitObjects()) {
       if (toolkitObject instanceof AngularElement) {
@@ -180,7 +180,7 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
    * @param libraryElement the {@link LibraryElement} to analyze
    * @return the array of all top-level Angular elements that could be used in this library
    */
-  private static void addAngularElements(Set<AngularElement> angularElements,
+  private static void addAngularElementsFromLibrary(Set<AngularElement> angularElements,
       LibraryElement library, Set<LibraryElement> visited) {
     if (library == null) {
       return;
@@ -192,13 +192,13 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
     for (CompilationUnitElement unit : library.getUnits()) {
       Collections.addAll(angularElements, unit.getAngularViews());
       for (ClassElement type : unit.getTypes()) {
-        addAngularElements(angularElements, type);
+        addAngularElementsFromClass(angularElements, type);
       }
     }
     // handle imports
     for (ImportElement importElement : library.getImports()) {
       LibraryElement importedLibrary = importElement.getImportedLibrary();
-      addAngularElements(angularElements, importedLibrary, visited);
+      addAngularElementsFromLibrary(angularElements, importedLibrary, visited);
     }
   }
 
@@ -216,7 +216,7 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
   private static AngularElement[] getAngularElements(Set<LibraryElement> libraries,
       LibraryElement libraryElement) {
     Set<AngularElement> angularElements = Sets.newHashSet();
-    addAngularElements(angularElements, libraryElement, libraries);
+    addAngularElementsFromLibrary(angularElements, libraryElement, libraries);
     return angularElements.toArray(new AngularElement[angularElements.size()]);
   }
 
@@ -376,7 +376,7 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
 
   @Override
   public Void visitXmlAttributeNode(XmlAttributeNode node) {
-    parseEmbeddedExpressions(node);
+    parseEmbeddedExpressionsInAttribute(node);
     resolveExpressions(node.getExpressions());
     return super.visitXmlAttributeNode(node);
   }
@@ -511,7 +511,7 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
         if (colonToken.getType() == TokenType.COLON) {
           filterToken = filterToken.getNext();
         } else {
-          reportError(colonToken, AngularCode.MISSING_FILTER_COLON);
+          reportErrorForToken(AngularCode.MISSING_FILTER_COLON, colonToken);
         }
         // parse argument
         Expression argument = parseDartExpression(filterToken);
@@ -553,22 +553,22 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
   /**
    * Reports given {@link ErrorCode} at the given {@link AstNode}.
    */
-  void reportError(AstNode node, ErrorCode errorCode, Object... arguments) {
-    reportError(node.getOffset(), node.getLength(), errorCode, arguments);
+  void reportErrorForNode(ErrorCode errorCode, AstNode node, Object... arguments) {
+    reportErrorForOffset(errorCode, node.getOffset(), node.getLength(), arguments);
   }
 
   /**
    * Reports given {@link ErrorCode} at the given position.
    */
-  void reportError(int offset, int length, ErrorCode errorCode, Object... arguments) {
+  void reportErrorForOffset(ErrorCode errorCode, int offset, int length, Object... arguments) {
     errorListener.onError(new AnalysisError(source, offset, length, errorCode, arguments));
   }
 
   /**
    * Reports given {@link ErrorCode} at the given {@link Token}.
    */
-  void reportError(Token token, ErrorCode errorCode, Object... arguments) {
-    reportError(token.getOffset(), token.getLength(), errorCode, arguments);
+  void reportErrorForToken(ErrorCode errorCode, Token token, Object... arguments) {
+    reportErrorForOffset(errorCode, token.getOffset(), token.getLength(), arguments);
   }
 
   void resolveExpression(AngularExpression angularExpression) {
@@ -717,14 +717,6 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
     }
   }
 
-  private void parseEmbeddedExpressions(XmlAttributeNode node) {
-    List<AngularMoustacheXmlExpression> expressions = Lists.newArrayList();
-    parseEmbeddedExpressions(expressions, node.getValueToken());
-    if (!expressions.isEmpty()) {
-      node.setExpressions(expressions.toArray(new AngularMoustacheXmlExpression[expressions.size()]));
-    }
-  }
-
   private void parseEmbeddedExpressions(XmlTagNode node) {
     List<AngularMoustacheXmlExpression> expressions = Lists.newArrayList();
     com.google.dart.engine.html.scanner.Token token = node.getAttributeEnd();
@@ -747,6 +739,14 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
       token = token.getNext();
     }
     node.setExpressions(expressions.toArray(new AngularMoustacheXmlExpression[expressions.size()]));
+  }
+
+  private void parseEmbeddedExpressionsInAttribute(XmlAttributeNode node) {
+    List<AngularMoustacheXmlExpression> expressions = Lists.newArrayList();
+    parseEmbeddedExpressions(expressions, node.getValueToken());
+    if (!expressions.isEmpty()) {
+      node.setExpressions(expressions.toArray(new AngularMoustacheXmlExpression[expressions.size()]));
+    }
   }
 
   private void recordDefinedVariable(LocalVariableElementImpl variable) {

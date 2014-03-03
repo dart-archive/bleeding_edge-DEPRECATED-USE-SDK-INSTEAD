@@ -19,8 +19,8 @@ import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.AssignmentExpression;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.ClassTypeAlias;
@@ -431,7 +431,7 @@ public class IndexContributor extends GeneralizingAstVisitor<Void> {
             recordRelationship(
                 objectElement,
                 IndexConstants.IS_EXTENDED_BY,
-                createLocation(node.getName().getOffset(), 0));
+                createLocationFromOffset(node.getName().getOffset(), 0));
           }
         }
       }
@@ -513,10 +513,10 @@ public class IndexContributor extends GeneralizingAstVisitor<Void> {
       if (node.getName() != null) {
         int start = node.getPeriod().getOffset();
         int end = node.getName().getEnd();
-        location = createLocation(start, end - start);
+        location = createLocationFromOffset(start, end - start);
       } else {
         int start = node.getReturnType().getEnd();
-        location = createLocation(start, 0);
+        location = createLocationFromOffset(start, 0);
       }
       recordRelationship(element, IndexConstants.IS_DEFINED_BY, location);
     }
@@ -541,10 +541,10 @@ public class IndexContributor extends GeneralizingAstVisitor<Void> {
     if (node.getName() != null) {
       int start = node.getPeriod().getOffset();
       int end = node.getName().getEnd();
-      location = createLocation(start, end - start);
+      location = createLocationFromOffset(start, end - start);
     } else {
       int start = node.getType().getEnd();
-      location = createLocation(start, 0);
+      location = createLocationFromOffset(start, 0);
     }
     // record relationship
     recordRelationship(element, IndexConstants.IS_REFERENCED_BY, location);
@@ -606,7 +606,7 @@ public class IndexContributor extends GeneralizingAstVisitor<Void> {
     MethodElement element = node.getBestElement();
     if (element instanceof MethodElement) {
       Token operator = node.getLeftBracket();
-      Location location = createLocation(operator);
+      Location location = createLocationFromToken(operator);
       recordRelationship(element, IndexConstants.IS_INVOKED_BY_QUALIFIED, location);
     }
     return super.visitIndexExpression(node);
@@ -628,7 +628,7 @@ public class IndexContributor extends GeneralizingAstVisitor<Void> {
     SimpleIdentifier name = node.getMethodName();
     Element element = name.getBestElement();
     if (element instanceof MethodElement) {
-      Location location = createLocation(name);
+      Location location = createLocationFromNode(name);
       Relationship relationship;
       if (node.getTarget() != null) {
         relationship = IndexConstants.IS_INVOKED_BY_QUALIFIED;
@@ -638,7 +638,7 @@ public class IndexContributor extends GeneralizingAstVisitor<Void> {
       recordRelationship(element, relationship, location);
     }
     if (element instanceof FunctionElement) {
-      Location location = createLocation(name);
+      Location location = createLocationFromNode(name);
       recordRelationship(element, IndexConstants.IS_INVOKED_BY, location);
     }
     recordImportElementReferenceWithoutPrefix(name);
@@ -648,14 +648,14 @@ public class IndexContributor extends GeneralizingAstVisitor<Void> {
   @Override
   public Void visitPartDirective(PartDirective node) {
     Element element = node.getElement();
-    Location location = createLocation(node.getUri());
+    Location location = createLocationFromNode(node.getUri());
     recordRelationship(element, IndexConstants.IS_REFERENCED_BY, location);
     return super.visitPartDirective(node);
   }
 
   @Override
   public Void visitPartOfDirective(PartOfDirective node) {
-    Location location = createLocation(node.getLibraryName());
+    Location location = createLocationFromNode(node.getLibraryName());
     recordRelationship(node.getElement(), IndexConstants.IS_REFERENCED_BY, location);
     return null;
   }
@@ -675,7 +675,7 @@ public class IndexContributor extends GeneralizingAstVisitor<Void> {
   @Override
   public Void visitSimpleIdentifier(SimpleIdentifier node) {
     Element nameElement = new NameElementImpl(node.getName());
-    Location location = createLocation(node);
+    Location location = createLocationFromNode(node);
     // name in declaration
     if (node.inDeclarationContext()) {
       recordRelationship(nameElement, IndexConstants.IS_DEFINED_BY, location);
@@ -734,10 +734,10 @@ public class IndexContributor extends GeneralizingAstVisitor<Void> {
     if (node.getConstructorName() != null) {
       int start = node.getPeriod().getOffset();
       int end = node.getConstructorName().getEnd();
-      location = createLocation(start, end - start);
+      location = createLocationFromOffset(start, end - start);
     } else {
       int start = node.getKeyword().getEnd();
-      location = createLocation(start, 0);
+      location = createLocationFromOffset(start, 0);
     }
     recordRelationship(element, IndexConstants.IS_REFERENCED_BY, location);
     return super.visitSuperConstructorInvocation(node);
@@ -770,7 +770,7 @@ public class IndexContributor extends GeneralizingAstVisitor<Void> {
     // record declaration
     {
       SimpleIdentifier name = node.getName();
-      Location location = createLocation(name);
+      Location location = createLocationFromNode(name);
       location = getLocationWithExpressionType(location, node.getInitializer());
       recordRelationship(element, IndexConstants.IS_DEFINED_BY, location);
     }
@@ -821,8 +821,8 @@ public class IndexContributor extends GeneralizingAstVisitor<Void> {
   /**
    * @return the {@link Location} representing location of the {@link AstNode}.
    */
-  private Location createLocation(AstNode node) {
-    return createLocation(node.getOffset(), node.getLength());
+  private Location createLocationFromNode(AstNode node) {
+    return createLocationFromOffset(node.getOffset(), node.getLength());
   }
 
   /**
@@ -831,7 +831,7 @@ public class IndexContributor extends GeneralizingAstVisitor<Void> {
    * @return the {@link Location} representing the given offset and length within the inner-most
    *         {@link Element}.
    */
-  private Location createLocation(int offset, int length) {
+  private Location createLocationFromOffset(int offset, int length) {
     Element element = peekElement();
     return new Location(element, offset, length);
   }
@@ -839,8 +839,8 @@ public class IndexContributor extends GeneralizingAstVisitor<Void> {
   /**
    * @return the {@link Location} representing location of the {@link Token}.
    */
-  private Location createLocation(Token token) {
-    return createLocation(token.getOffset(), token.getLength());
+  private Location createLocationFromToken(Token token) {
+    return createLocationFromOffset(token.getOffset(), token.getLength());
   }
 
   /**
@@ -888,7 +888,7 @@ public class IndexContributor extends GeneralizingAstVisitor<Void> {
     Element element = node.getStaticElement();
     ImportElement importElement = getImportElement(libraryElement, null, element, importElementsMap);
     if (importElement != null) {
-      Location location = createLocation(node.getOffset(), 0);
+      Location location = createLocationFromOffset(node.getOffset(), 0);
       recordRelationship(importElement, IndexConstants.IS_REFERENCED_BY, location);
     }
   }
@@ -902,7 +902,7 @@ public class IndexContributor extends GeneralizingAstVisitor<Void> {
     if (info != null) {
       int offset = prefixNode.getOffset();
       int length = info.periodEnd - offset;
-      Location location = createLocation(offset, length);
+      Location location = createLocationFromOffset(offset, length);
       recordRelationship(info.element, IndexConstants.IS_REFERENCED_BY, location);
     }
   }
@@ -913,7 +913,7 @@ public class IndexContributor extends GeneralizingAstVisitor<Void> {
    */
   private void recordLibraryReference(UriBasedDirective node, LibraryElement library) {
     if (library != null) {
-      Location location = createLocation(node.getUri());
+      Location location = createLocationFromNode(node.getUri());
       recordRelationship(
           library.getDefiningCompilationUnit(),
           IndexConstants.IS_REFERENCED_BY,
@@ -926,7 +926,7 @@ public class IndexContributor extends GeneralizingAstVisitor<Void> {
    */
   private void recordOperatorReference(Token operator, Element element) {
     // prepare location
-    Location location = createLocation(operator);
+    Location location = createLocationFromToken(operator);
     // record name reference
     {
       String name = operator.getLexeme();
@@ -974,7 +974,7 @@ public class IndexContributor extends GeneralizingAstVisitor<Void> {
       Identifier superName = superNode.getName();
       if (superName != null) {
         Element superElement = superName.getStaticElement();
-        recordRelationship(superElement, relationship, createLocation(superNode));
+        recordRelationship(superElement, relationship, createLocationFromNode(superNode));
       }
     }
   }

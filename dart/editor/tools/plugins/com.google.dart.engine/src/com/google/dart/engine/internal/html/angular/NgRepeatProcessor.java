@@ -63,7 +63,7 @@ class NgRepeatProcessor extends NgDirectiveProcessor {
     // check syntax
     Matcher syntaxMatcher = SYNTAX_PATTERN.matcher(spec);
     if (!syntaxMatcher.matches()) {
-      resolver.reportError(offset, spec.length() - 2, AngularCode.INVALID_REPEAT_SYNTAX);
+      resolver.reportErrorForOffset(AngularCode.INVALID_REPEAT_SYNTAX, offset, spec.length() - 2);
       return;
     }
     String lhsSpec = syntaxMatcher.group(1);
@@ -76,7 +76,10 @@ class NgRepeatProcessor extends NgDirectiveProcessor {
     // check LHS syntax
     Matcher lhsMatcher = LHS_PATTERN.matcher(lhsSpec);
     if (!lhsMatcher.matches()) {
-      resolver.reportError(lhsOffset, lhsSpec.length(), AngularCode.INVALID_REPEAT_ITEM_SYNTAX);
+      resolver.reportErrorForOffset(
+          AngularCode.INVALID_REPEAT_ITEM_SYNTAX,
+          lhsOffset,
+          lhsSpec.length());
       return;
     }
     // parse item name
@@ -209,8 +212,8 @@ class NgRepeatProcessor extends NgDirectiveProcessor {
   /**
    * Resolves an argument for "orderBy" filter.
    */
-  private void resolveFilterArgument_orderBy(AngularHtmlUnitResolver resolver, Type itemType,
-      AngularFilterArgument argument, int argIndex) {
+  private void resolveFilterArgument_orderByWithFilter(AngularHtmlUnitResolver resolver,
+      Type itemType, AngularFilterArgument argument, int argIndex) {
     Expression arg = argument.getExpression();
     // only first argument is special for "orderBy"
     if (argIndex != 0) {
@@ -232,7 +235,7 @@ class NgRepeatProcessor extends NgDirectiveProcessor {
         resolveFilterArgument_filter(resolver, itemType, argument, index);
       }
       if ("orderBy".equals(filterName)) {
-        resolveFilterArgument_orderBy(resolver, itemType, argument, index);
+        resolveFilterArgument_orderByWithFilter(resolver, itemType, argument, index);
       }
       index++;
     }

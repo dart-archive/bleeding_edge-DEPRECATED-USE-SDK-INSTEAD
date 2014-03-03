@@ -13,12 +13,12 @@
  */
 package com.google.dart.engine.internal.verifier;
 
-import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.Annotation;
 import com.google.dart.engine.ast.ArgumentDefinitionTest;
 import com.google.dart.engine.ast.ArgumentList;
 import com.google.dart.engine.ast.AssertStatement;
 import com.google.dart.engine.ast.AssignmentExpression;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.BlockFunctionBody;
 import com.google.dart.engine.ast.BreakStatement;
@@ -386,7 +386,7 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
 
   @Override
   public Void visitArgumentList(ArgumentList node) {
-    checkForArgumentTypeNotAssignable(node);
+    checkForArgumentTypesNotAssignableInList(node);
     return super.visitArgumentList(node);
   }
 
@@ -403,16 +403,16 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
     if (operatorType == TokenType.EQ) {
       checkForInvalidAssignment(node.getLeftHandSide(), node.getRightHandSide());
     } else {
-      checkForInvalidAssignment(node);
+      checkForInvalidCompoundAssignment(node);
     }
-    checkForAssignmentToFinal(node);
-    checkForArgumentTypeNotAssignable(node.getRightHandSide());
+    checkForAssignmentToFinal(node.getLeftHandSide());
+    checkForArgumentTypeNotAssignableForArgument(node.getRightHandSide());
     return super.visitAssignmentExpression(node);
   }
 
   @Override
   public Void visitBinaryExpression(BinaryExpression node) {
-    checkForArgumentTypeNotAssignable(node.getRightOperand());
+    checkForArgumentTypeNotAssignableForArgument(node.getRightOperand());
     return super.visitBinaryExpression(node);
   }
 
@@ -492,7 +492,7 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
           }
         }
       }
-      checkForFinalNotInitialized(node);
+      checkForFinalNotInitializedInClass(node);
       checkForDuplicateDefinitionInheritance();
       checkForConflictingGetterAndMethod();
       checkForConflictingInstanceGetterAndSuperclassMember();
@@ -631,7 +631,7 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
     isInStaticVariableDeclaration = node.isStatic();
     isInInstanceVariableDeclaration = !isInStaticVariableDeclaration;
     try {
-      checkForAllInvalidOverrideErrorCodes(node);
+      checkForAllInvalidOverrideErrorCodesForField(node);
       return super.visitFieldDeclaration(node);
     } finally {
       isInStaticVariableDeclaration = false;
@@ -744,7 +744,7 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
 
   @Override
   public Void visitIndexExpression(IndexExpression node) {
-    checkForArgumentTypeNotAssignable(node.getIndex());
+    checkForArgumentTypeNotAssignableForArgument(node.getIndex());
     return super.visitIndexExpression(node);
   }
 
@@ -761,7 +761,7 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
         if (isInConstInstanceCreation) {
           checkForConstWithNonConst(node);
           checkForConstWithUndefinedConstructor(node);
-          checkForConstWithTypeParameters(node);
+          checkForConstWithTypeParametersInCreation(node);
         } else {
           checkForNewWithUndefinedConstructor(node);
         }
@@ -838,7 +838,7 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
         checkForConflictingInstanceMethodSetter(node);
       }
       checkForConcreteClassWithAbstractMember(node);
-      checkForAllInvalidOverrideErrorCodes(node);
+      checkForAllInvalidOverrideErrorCodesForMethod(node);
       return super.visitMethodDeclaration(node);
     } finally {
       enclosingFunction = previousFunction;
@@ -1529,8 +1529,9 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
    * @param errorNameTarget the node to report problems on
    * @return {@code true} if and only if an error code is generated on the passed node
    */
-  private boolean checkForAllInvalidOverrideErrorCodes(ExecutableElement executableElement,
-      ParameterElement[] parameters, AstNode[] parameterLocations, SimpleIdentifier errorNameTarget) {
+  private boolean checkForAllInvalidOverrideErrorCodesForExecutable(
+      ExecutableElement executableElement, ParameterElement[] parameters,
+      AstNode[] parameterLocations, SimpleIdentifier errorNameTarget) {
     //
     // Compute the overridden executable from the InheritanceManager
     //
@@ -1575,7 +1576,7 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
    * @return {@code true} if and only if an error code is generated on the passed node
    * @see #checkForAllInvalidOverrideErrorCodes(ExecutableElement)
    */
-  private boolean checkForAllInvalidOverrideErrorCodes(FieldDeclaration node) {
+  private boolean checkForAllInvalidOverrideErrorCodesForField(FieldDeclaration node) {
     if (enclosingClass == null || node.isStatic()) {
       return false;
     }
@@ -1590,14 +1591,14 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
       PropertyAccessorElement setter = element.getSetter();
       SimpleIdentifier fieldName = field.getName();
       if (getter != null) {
-        hasProblems |= checkForAllInvalidOverrideErrorCodes(
+        hasProblems |= checkForAllInvalidOverrideErrorCodesForExecutable(
             getter,
             ParameterElementImpl.EMPTY_ARRAY,
             AstNode.EMPTY_ARRAY,
             fieldName);
       }
       if (setter != null) {
-        hasProblems |= checkForAllInvalidOverrideErrorCodes(
+        hasProblems |= checkForAllInvalidOverrideErrorCodesForExecutable(
             setter,
             setter.getParameters(),
             new AstNode[] {fieldName},
@@ -1614,7 +1615,7 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
    * @return {@code true} if and only if an error code is generated on the passed node
    * @see #checkForAllInvalidOverrideErrorCodes(ExecutableElement)
    */
-  private boolean checkForAllInvalidOverrideErrorCodes(MethodDeclaration node) {
+  private boolean checkForAllInvalidOverrideErrorCodesForMethod(MethodDeclaration node) {
     if (enclosingClass == null || node.isStatic() || node.getBody() instanceof NativeFunctionBody) {
       return false;
     }
@@ -1631,7 +1632,7 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
         ? formalParameterList.getParameters() : null;
     AstNode[] parameters = parameterList != null
         ? parameterList.toArray(new AstNode[parameterList.size()]) : null;
-    return checkForAllInvalidOverrideErrorCodes(
+    return checkForAllInvalidOverrideErrorCodesForExecutable(
         executableElement,
         executableElement.getParameters(),
         parameters,
@@ -1856,72 +1857,6 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
   }
 
   /**
-   * This verifies that the passed arguments can be assigned to their corresponding parameters.
-   * 
-   * @param node the arguments to evaluate
-   * @return {@code true} if and only if an error code is generated on the passed node
-   * @see StaticWarningCode#ARGUMENT_TYPE_NOT_ASSIGNABLE
-   */
-  private boolean checkForArgumentTypeNotAssignable(ArgumentList argumentList) {
-    if (argumentList == null) {
-      return false;
-    }
-    boolean problemReported = false;
-    for (Expression argument : argumentList.getArguments()) {
-      problemReported |= checkForArgumentTypeNotAssignable(argument);
-    }
-    // done
-    return problemReported;
-  }
-
-  /**
-   * This verifies that the passed argument can be assigned to its corresponding parameter.
-   * 
-   * @param argument the argument to evaluate
-   * @return {@code true} if and only if an error code is generated on the passed node
-   * @see StaticWarningCode#ARGUMENT_TYPE_NOT_ASSIGNABLE
-   */
-  private boolean checkForArgumentTypeNotAssignable(Expression argument) {
-    if (argument == null) {
-      return false;
-    }
-
-    ParameterElement staticParameterElement = argument.getStaticParameterElement();
-    Type staticParameterType = staticParameterElement == null ? null
-        : staticParameterElement.getType();
-
-    ParameterElement propagatedParameterElement = argument.getPropagatedParameterElement();
-    Type propagatedParameterType = propagatedParameterElement == null ? null
-        : propagatedParameterElement.getType();
-
-    return checkForArgumentTypeNotAssignable(
-        argument,
-        staticParameterType,
-        propagatedParameterType,
-        StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
-  }
-
-  /**
-   * This verifies that the passed expression can be assigned to its corresponding parameters.
-   * 
-   * @param expression the expression to evaluate
-   * @param expectedStaticType the expected static type
-   * @param expectedPropagatedType the expected propagated type, may be {@code null}
-   * @return {@code true} if and only if an error code is generated on the passed node
-   * @see StaticWarningCode#ARGUMENT_TYPE_NOT_ASSIGNABLE
-   */
-  private boolean checkForArgumentTypeNotAssignable(Expression expression, Type expectedStaticType,
-      Type expectedPropagatedType, ErrorCode errorCode) {
-    return checkForArgumentTypeNotAssignable(
-        expression,
-        expectedStaticType,
-        getStaticType(expression),
-        expectedPropagatedType,
-        expression.getPropagatedType(),
-        errorCode);
-  }
-
-  /**
    * This verifies that the passed expression can be assigned to its corresponding parameters.
    * 
    * @param expression the expression to evaluate
@@ -1982,15 +1917,69 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
   }
 
   /**
-   * This verifies that left hand side of the passed assignment expression is not final.
+   * This verifies that the passed argument can be assigned to its corresponding parameter.
    * 
-   * @param node the assignment expression to evaluate
+   * @param argument the argument to evaluate
    * @return {@code true} if and only if an error code is generated on the passed node
-   * @see StaticWarningCode#ASSIGNMENT_TO_FINAL
+   * @see StaticWarningCode#ARGUMENT_TYPE_NOT_ASSIGNABLE
    */
-  private boolean checkForAssignmentToFinal(AssignmentExpression node) {
-    Expression leftExpression = node.getLeftHandSide();
-    return checkForAssignmentToFinal(leftExpression);
+  private boolean checkForArgumentTypeNotAssignableForArgument(Expression argument) {
+    if (argument == null) {
+      return false;
+    }
+
+    ParameterElement staticParameterElement = argument.getStaticParameterElement();
+    Type staticParameterType = staticParameterElement == null ? null
+        : staticParameterElement.getType();
+
+    ParameterElement propagatedParameterElement = argument.getPropagatedParameterElement();
+    Type propagatedParameterType = propagatedParameterElement == null ? null
+        : propagatedParameterElement.getType();
+
+    return checkForArgumentTypeNotAssignableWithExpectedTypes(
+        argument,
+        staticParameterType,
+        propagatedParameterType,
+        StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
+  }
+
+  /**
+   * This verifies that the passed expression can be assigned to its corresponding parameters.
+   * 
+   * @param expression the expression to evaluate
+   * @param expectedStaticType the expected static type
+   * @param expectedPropagatedType the expected propagated type, may be {@code null}
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see StaticWarningCode#ARGUMENT_TYPE_NOT_ASSIGNABLE
+   */
+  private boolean checkForArgumentTypeNotAssignableWithExpectedTypes(Expression expression,
+      Type expectedStaticType, Type expectedPropagatedType, ErrorCode errorCode) {
+    return checkForArgumentTypeNotAssignable(
+        expression,
+        expectedStaticType,
+        getStaticType(expression),
+        expectedPropagatedType,
+        expression.getPropagatedType(),
+        errorCode);
+  }
+
+  /**
+   * This verifies that the passed arguments can be assigned to their corresponding parameters.
+   * 
+   * @param node the arguments to evaluate
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see StaticWarningCode#ARGUMENT_TYPE_NOT_ASSIGNABLE
+   */
+  private boolean checkForArgumentTypesNotAssignableInList(ArgumentList argumentList) {
+    if (argumentList == null) {
+      return false;
+    }
+    boolean problemReported = false;
+    for (Expression argument : argumentList.getArguments()) {
+      problemReported |= checkForArgumentTypeNotAssignableForArgument(argument);
+    }
+    // done
+    return problemReported;
   }
 
   /**
@@ -2614,27 +2603,6 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
   }
 
   /**
-   * This verifies that the passed expression (used as a key in constant map) has class type that
-   * does not declare operator <i>==<i>.
-   * 
-   * @param key the expression to evaluate
-   * @return {@code true} if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS
-   */
-  private boolean checkForConstMapKeyExpressionTypeImplementsEquals(Expression key) {
-    Type type = key.getStaticType();
-    if (!implementsEqualsWhenNotAllowed(type)) {
-      return false;
-    }
-    // report error
-    errorReporter.reportError(
-        CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
-        key,
-        type.getDisplayName());
-    return true;
-  }
-
-  /**
    * This verifies that the all keys of the passed map literal have class type that does not declare
    * operator <i>==<i>.
    * 
@@ -2651,7 +2619,14 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
     boolean hasProblems = false;
     for (MapLiteralEntry entry : node.getEntries()) {
       Expression key = entry.getKey();
-      hasProblems |= checkForConstMapKeyExpressionTypeImplementsEquals(key);
+      Type type = key.getStaticType();
+      if (implementsEqualsWhenNotAllowed(type)) {
+        errorReporter.reportError(
+            CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
+            key,
+            type.getDisplayName());
+        hasProblems = true;
+      }
     }
     return hasProblems;
   }
@@ -2704,25 +2679,6 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
   }
 
   /**
-   * This verifies that the passed 'const' instance creation expression does not reference any type
-   * parameters.
-   * <p>
-   * This method assumes that the instance creation was tested to be 'const' before being called.
-   * 
-   * @param node the instance creation expression to evaluate
-   * @return {@code true} if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#CONST_WITH_TYPE_PARAMETERS
-   */
-  private boolean checkForConstWithTypeParameters(InstanceCreationExpression node) {
-    ConstructorName constructorName = node.getConstructorName();
-    if (constructorName == null) {
-      return false;
-    }
-    TypeName typeName = constructorName.getType();
-    return checkForConstWithTypeParameters(typeName);
-  }
-
-  /**
    * This verifies that the passed type name does not reference any type parameters.
    * 
    * @param typeName the type name to evaluate
@@ -2753,6 +2709,25 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
     }
     // OK
     return false;
+  }
+
+  /**
+   * This verifies that the passed 'const' instance creation expression does not reference any type
+   * parameters.
+   * <p>
+   * This method assumes that the instance creation was tested to be 'const' before being called.
+   * 
+   * @param node the instance creation expression to evaluate
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#CONST_WITH_TYPE_PARAMETERS
+   */
+  private boolean checkForConstWithTypeParametersInCreation(InstanceCreationExpression node) {
+    ConstructorName constructorName = node.getConstructorName();
+    if (constructorName == null) {
+      return false;
+    }
+    TypeName typeName = constructorName.getType();
+    return checkForConstWithTypeParameters(typeName);
   }
 
   /**
@@ -2860,13 +2835,13 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
       if (!member.isStatic()) {
         continue;
       }
-      hasProblem |= checkForDuplicateDefinitionInheritance(member);
+      hasProblem |= checkForDuplicateDefinitionOfMember(member);
     }
     for (ExecutableElement member : enclosingClass.getAccessors()) {
       if (!member.isStatic()) {
         continue;
       }
-      hasProblem |= checkForDuplicateDefinitionInheritance(member);
+      hasProblem |= checkForDuplicateDefinitionOfMember(member);
     }
     return hasProblem;
   }
@@ -2879,7 +2854,7 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
    * @return {@code true} if and only if an error code is generated on the passed node
    * @see CompileTimeErrorCode#DUPLICATE_DEFINITION_INHERITANCE
    */
-  private boolean checkForDuplicateDefinitionInheritance(ExecutableElement staticMember) {
+  private boolean checkForDuplicateDefinitionOfMember(ExecutableElement staticMember) {
     // prepare name
     String name = staticMember.getName();
     if (name == null) {
@@ -3162,36 +3137,9 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
   }
 
   /**
-   * This verifies that final fields that are declared, without any constructors in the enclosing
-   * class, are initialized. Cases in which there is at least one constructor are handled at the end
-   * of {@link #checkForAllFinalInitializedErrorCodes(ConstructorDeclaration)}.
-   * 
-   * @param node the class declaration to test
-   * @return {@code true} if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#CONST_NOT_INITIALIZED
-   * @see StaticWarningCode#FINAL_NOT_INITIALIZED
-   */
-  private boolean checkForFinalNotInitialized(ClassDeclaration node) {
-    NodeList<ClassMember> classMembers = node.getMembers();
-    for (ClassMember classMember : classMembers) {
-      if (classMember instanceof ConstructorDeclaration) {
-        return false;
-      }
-    }
-    boolean foundError = false;
-    for (ClassMember classMember : classMembers) {
-      if (classMember instanceof FieldDeclaration) {
-        FieldDeclaration field = (FieldDeclaration) classMember;
-        foundError = foundError | checkForFinalNotInitialized(field.getFields());
-      }
-    }
-    return foundError;
-  }
-
-  /**
    * This verifies that the passed variable declaration list has only initialized variables if the
    * list is final or const. This method is called by
-   * {@link #checkForFinalNotInitialized(ClassDeclaration)},
+   * {@link #checkForFinalNotInitializedInClass(ClassDeclaration)},
    * {@link #visitTopLevelVariableDeclaration(TopLevelVariableDeclaration)} and
    * {@link #visitVariableDeclarationStatement(VariableDeclarationStatement)}.
    * 
@@ -3222,6 +3170,33 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
           }
           foundError = true;
         }
+      }
+    }
+    return foundError;
+  }
+
+  /**
+   * This verifies that final fields that are declared, without any constructors in the enclosing
+   * class, are initialized. Cases in which there is at least one constructor are handled at the end
+   * of {@link #checkForAllFinalInitializedErrorCodes(ConstructorDeclaration)}.
+   * 
+   * @param node the class declaration to test
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#CONST_NOT_INITIALIZED
+   * @see StaticWarningCode#FINAL_NOT_INITIALIZED
+   */
+  private boolean checkForFinalNotInitializedInClass(ClassDeclaration node) {
+    NodeList<ClassMember> classMembers = node.getMembers();
+    for (ClassMember classMember : classMembers) {
+      if (classMember instanceof ConstructorDeclaration) {
+        return false;
+      }
+    }
+    boolean foundError = false;
+    for (ClassMember classMember : classMembers) {
+      if (classMember instanceof FieldDeclaration) {
+        FieldDeclaration field = (FieldDeclaration) classMember;
+        foundError = foundError | checkForFinalNotInitialized(field.getFields());
       }
     }
     return foundError;
@@ -3518,46 +3493,6 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
   }
 
   /**
-   * Given an assignment using a compound assignment operator, this verifies that the given
-   * assignment is valid.
-   * 
-   * @param node the assignment expression being tested
-   * @return {@code true} if and only if an error code is generated on the passed node
-   * @see StaticTypeWarningCode#INVALID_ASSIGNMENT
-   */
-  private boolean checkForInvalidAssignment(AssignmentExpression node) {
-    Expression lhs = node.getLeftHandSide();
-    if (lhs == null) {
-      return false;
-    }
-    VariableElement leftElement = getVariableElement(lhs);
-    Type leftType = (leftElement == null) ? getStaticType(lhs) : leftElement.getType();
-    MethodElement invokedMethod = node.getStaticElement();
-    if (invokedMethod == null) {
-      return false;
-    }
-    Type rightType = invokedMethod.getType().getReturnType();
-    if (leftType == null || rightType == null) {
-      return false;
-    }
-    if (!rightType.isAssignableTo(leftType)) {
-      String leftName = leftType.getDisplayName();
-      String rightName = rightType.getDisplayName();
-      if (leftName.equals(rightName)) {
-        leftName = getExtendedDisplayName(leftType);
-        rightName = getExtendedDisplayName(rightType);
-      }
-      errorReporter.reportError(
-          StaticTypeWarningCode.INVALID_ASSIGNMENT,
-          node.getRightHandSide(),
-          rightName,
-          leftName);
-      return true;
-    }
-    return false;
-  }
-
-  /**
    * This verifies that the passed left hand side and right hand side represent a valid assignment.
    * 
    * @param lhs the left hand side expression
@@ -3594,6 +3529,46 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
 //          leftType.getDisplayName());
 //      return true;
 //    }
+    return false;
+  }
+
+  /**
+   * Given an assignment using a compound assignment operator, this verifies that the given
+   * assignment is valid.
+   * 
+   * @param node the assignment expression being tested
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see StaticTypeWarningCode#INVALID_ASSIGNMENT
+   */
+  private boolean checkForInvalidCompoundAssignment(AssignmentExpression node) {
+    Expression lhs = node.getLeftHandSide();
+    if (lhs == null) {
+      return false;
+    }
+    VariableElement leftElement = getVariableElement(lhs);
+    Type leftType = (leftElement == null) ? getStaticType(lhs) : leftElement.getType();
+    MethodElement invokedMethod = node.getStaticElement();
+    if (invokedMethod == null) {
+      return false;
+    }
+    Type rightType = invokedMethod.getType().getReturnType();
+    if (leftType == null || rightType == null) {
+      return false;
+    }
+    if (!rightType.isAssignableTo(leftType)) {
+      String leftName = leftType.getDisplayName();
+      String rightName = rightType.getDisplayName();
+      if (leftName.equals(rightName)) {
+        leftName = getExtendedDisplayName(leftType);
+        rightName = getExtendedDisplayName(rightType);
+      }
+      errorReporter.reportError(
+          StaticTypeWarningCode.INVALID_ASSIGNMENT,
+          node.getRightHandSide(),
+          rightName,
+          leftName);
+      return true;
+    }
     return false;
   }
 
@@ -3694,7 +3669,11 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
     // Check every list element.
     boolean hasProblems = false;
     for (Expression element : node.getElements()) {
-      hasProblems |= checkForArgumentTypeNotAssignable(element, listElementType, null, errorCode);
+      hasProblems |= checkForArgumentTypeNotAssignableWithExpectedTypes(
+          element,
+          listElementType,
+          null,
+          errorCode);
     }
     return hasProblems;
   }
@@ -3738,8 +3717,16 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
     for (MapLiteralEntry entry : entries) {
       Expression key = entry.getKey();
       Expression value = entry.getValue();
-      hasProblems |= checkForArgumentTypeNotAssignable(key, keyType, null, keyErrorCode);
-      hasProblems |= checkForArgumentTypeNotAssignable(value, valueType, null, valueErrorCode);
+      hasProblems |= checkForArgumentTypeNotAssignableWithExpectedTypes(
+          key,
+          keyType,
+          null,
+          keyErrorCode);
+      hasProblems |= checkForArgumentTypeNotAssignableWithExpectedTypes(
+          value,
+          valueType,
+          null,
+          valueErrorCode);
     }
     return hasProblems;
   }
@@ -4500,74 +4487,7 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
     if (classElt == null) {
       return false;
     }
-    return checkForRecursiveInterfaceInheritance(classElt, new ArrayList<ClassElement>());
-  }
-
-  /**
-   * This checks the class declaration is not a superinterface to itself.
-   * 
-   * @param classElt the class element to test
-   * @param path a list containing the potentially cyclic implements path
-   * @return {@code true} if and only if an error code is generated on the passed element
-   * @see CompileTimeErrorCode#RECURSIVE_INTERFACE_INHERITANCE
-   * @see CompileTimeErrorCode#RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_EXTENDS
-   * @see CompileTimeErrorCode#RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_IMPLEMENTS
-   */
-  private boolean checkForRecursiveInterfaceInheritance(ClassElement classElt,
-      ArrayList<ClassElement> path) {
-    // Detect error condition.
-    int size = path.size();
-    // If this is not the base case (size > 0), and the enclosing class is the passed class
-    // element then an error an error.
-    if (size > 0 && enclosingClass.equals(classElt)) {
-      String enclosingClassName = enclosingClass.getDisplayName();
-      if (size > 1) {
-        // Construct a string showing the cyclic implements path: "A, B, C, D, A"
-        String separator = ", ";
-        StringBuilder builder = new StringBuilder();
-        for (int i = 0; i < size; i++) {
-          builder.append(path.get(i).getDisplayName());
-          builder.append(separator);
-        }
-        builder.append(classElt.getDisplayName());
-        errorReporter.reportError(
-            CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
-            enclosingClass.getNameOffset(),
-            enclosingClassName.length(),
-            enclosingClassName,
-            builder.toString());
-        return true;
-      } else { // size == 1
-        // RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_IMPLEMENTS or RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_EXTENDS
-        InterfaceType supertype = classElt.getSupertype();
-        ErrorCode errorCode = supertype != null && enclosingClass.equals(supertype.getElement())
-            ? CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_EXTENDS
-            : CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_IMPLEMENTS;
-        errorReporter.reportError(
-            errorCode,
-            enclosingClass.getNameOffset(),
-            enclosingClassName.length(),
-            enclosingClassName);
-        return true;
-      }
-    }
-    if (path.indexOf(classElt) > 0) {
-      return false;
-    }
-    path.add(classElt);
-    // n-case
-    InterfaceType supertype = classElt.getSupertype();
-    if (supertype != null && checkForRecursiveInterfaceInheritance(supertype.getElement(), path)) {
-      return true;
-    }
-    InterfaceType[] interfaceTypes = classElt.getInterfaces();
-    for (InterfaceType interfaceType : interfaceTypes) {
-      if (checkForRecursiveInterfaceInheritance(interfaceType.getElement(), path)) {
-        return true;
-      }
-    }
-    path.remove(path.size() - 1);
-    return false;
+    return safeCheckForRecursiveInterfaceInheritance(classElt, new ArrayList<ClassElement>());
   }
 
   /**
@@ -5637,6 +5557,7 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
     return result == null
         || (result instanceof ValidResult && ((ValidResult) result).isUserDefinedObject());
   }
+
 //
 //  /**
 //   * Return {@code true} iff the passed {@link ClassElement} has a concrete implementation of the
@@ -5727,4 +5648,72 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
 //    }
 //    return false;
 //  }
+
+  /**
+   * This checks the class declaration is not a superinterface to itself.
+   * 
+   * @param classElt the class element to test
+   * @param path a list containing the potentially cyclic implements path
+   * @return {@code true} if and only if an error code is generated on the passed element
+   * @see CompileTimeErrorCode#RECURSIVE_INTERFACE_INHERITANCE
+   * @see CompileTimeErrorCode#RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_EXTENDS
+   * @see CompileTimeErrorCode#RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_IMPLEMENTS
+   */
+  private boolean safeCheckForRecursiveInterfaceInheritance(ClassElement classElt,
+      ArrayList<ClassElement> path) {
+    // Detect error condition.
+    int size = path.size();
+    // If this is not the base case (size > 0), and the enclosing class is the passed class
+    // element then an error an error.
+    if (size > 0 && enclosingClass.equals(classElt)) {
+      String enclosingClassName = enclosingClass.getDisplayName();
+      if (size > 1) {
+        // Construct a string showing the cyclic implements path: "A, B, C, D, A"
+        String separator = ", ";
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < size; i++) {
+          builder.append(path.get(i).getDisplayName());
+          builder.append(separator);
+        }
+        builder.append(classElt.getDisplayName());
+        errorReporter.reportError(
+            CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
+            enclosingClass.getNameOffset(),
+            enclosingClassName.length(),
+            enclosingClassName,
+            builder.toString());
+        return true;
+      } else { // size == 1
+        // RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_IMPLEMENTS or RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_EXTENDS
+        InterfaceType supertype = classElt.getSupertype();
+        ErrorCode errorCode = supertype != null && enclosingClass.equals(supertype.getElement())
+            ? CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_EXTENDS
+            : CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_IMPLEMENTS;
+        errorReporter.reportError(
+            errorCode,
+            enclosingClass.getNameOffset(),
+            enclosingClassName.length(),
+            enclosingClassName);
+        return true;
+      }
+    }
+    if (path.indexOf(classElt) > 0) {
+      return false;
+    }
+    path.add(classElt);
+    // n-case
+    InterfaceType supertype = classElt.getSupertype();
+    if (supertype != null
+        && safeCheckForRecursiveInterfaceInheritance(supertype.getElement(), path)) {
+      return true;
+    }
+    InterfaceType[] interfaceTypes = classElt.getInterfaces();
+    for (InterfaceType interfaceType : interfaceTypes) {
+      if (safeCheckForRecursiveInterfaceInheritance(interfaceType.getElement(), path)) {
+        return true;
+      }
+    }
+    path.remove(path.size() - 1);
+    return false;
+  }
 }

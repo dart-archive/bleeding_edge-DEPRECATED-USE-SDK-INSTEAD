@@ -527,7 +527,7 @@ public abstract class ScopedVisitor extends UnifyingAstVisitor<Void> {
    * @param node the node specifying the location of the error
    * @param arguments the arguments to the error, used to compose the error message
    */
-  protected void reportError(ErrorCode errorCode, AstNode node, Object... arguments) {
+  protected void reportErrorForNode(ErrorCode errorCode, AstNode node, Object... arguments) {
     errorListener.onError(new AnalysisError(
         source,
         node.getOffset(),
@@ -544,7 +544,8 @@ public abstract class ScopedVisitor extends UnifyingAstVisitor<Void> {
    * @param length the length of the location of the error
    * @param arguments the arguments to the error, used to compose the error message
    */
-  protected void reportError(ErrorCode errorCode, int offset, int length, Object... arguments) {
+  protected void reportErrorForOffset(ErrorCode errorCode, int offset, int length,
+      Object... arguments) {
     errorListener.onError(new AnalysisError(source, offset, length, errorCode, arguments));
   }
 
@@ -555,7 +556,7 @@ public abstract class ScopedVisitor extends UnifyingAstVisitor<Void> {
    * @param token the token specifying the location of the error
    * @param arguments the arguments to the error, used to compose the error message
    */
-  protected void reportError(ErrorCode errorCode, Token token, Object... arguments) {
+  protected void reportErrorForToken(ErrorCode errorCode, Token token, Object... arguments) {
     errorListener.onError(new AnalysisError(
         source,
         token.getOffset(),

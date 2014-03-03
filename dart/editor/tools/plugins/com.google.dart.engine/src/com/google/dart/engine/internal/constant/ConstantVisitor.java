@@ -13,8 +13,8 @@
  */
 package com.google.dart.engine.internal.constant;
 
-import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.AdjacentStrings;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.BooleanLiteral;
 import com.google.dart.engine.ast.ConditionalExpression;
@@ -247,7 +247,7 @@ public class ConstantVisitor extends UnifyingAstVisitor<EvaluationResultImpl> {
     }
     InterfaceType thenType = ((ValidResult) thenResult).getValue().getType();
     InterfaceType elseType = ((ValidResult) elseResult).getValue().getType();
-    return valid((InterfaceType) thenType.getLeastUpperBound(elseType));
+    return validWithUnknownValue((InterfaceType) thenType.getLeastUpperBound(elseType));
   }
 
   @Override
@@ -571,7 +571,11 @@ public class ConstantVisitor extends UnifyingAstVisitor<EvaluationResultImpl> {
     return leftResult;
   }
 
-  private ValidResult valid(InterfaceType type) {
+  private ValidResult valid(InterfaceType type, InstanceState state) {
+    return new ValidResult(new DartObjectImpl(type, state));
+  }
+
+  private ValidResult validWithUnknownValue(InterfaceType type) {
     if (type.getElement().getLibrary().isDartCore()) {
       String typeName = type.getName();
       if (typeName.equals("bool")) {
@@ -585,10 +589,6 @@ public class ConstantVisitor extends UnifyingAstVisitor<EvaluationResultImpl> {
       }
     }
     return valid(type, GenericState.UNKNOWN_VALUE);
-  }
-
-  private ValidResult valid(InterfaceType type, InstanceState state) {
-    return new ValidResult(new DartObjectImpl(type, state));
   }
 
   /**

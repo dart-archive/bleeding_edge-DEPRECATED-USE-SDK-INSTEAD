@@ -302,15 +302,16 @@ public class SimpleIdentifier extends Identifier {
   }
 
   /**
-   * Return the given element if it is an appropriate element based on the parent of this
-   * identifier, or {@code null} if it is not appropriate.
+   * Return the given element if it is valid, or report the problem and return {@code null} if it is
+   * not appropriate.
    * 
+   * @param parent the parent of the element, used for reporting when there is a problem
+   * @param isValid {@code true} if the element is appropriate
    * @param element the element to be associated with this identifier
    * @return the element to be associated with this identifier
    */
-  private Element validateElement(AstNode parent, Class<? extends Element> expectedClass,
-      Element element) {
-    if (!expectedClass.isInstance(element)) {
+  private Element returnOrReportElement(AstNode parent, boolean isValid, Element element) {
+    if (!isValid) {
       AnalysisEngine.getInstance().getLogger().logInformation(
           "Internal error: attempting to set the name of a " + parent.getClass().getName()
               + " to a " + element.getClass().getName(),
@@ -333,29 +334,29 @@ public class SimpleIdentifier extends Identifier {
     }
     AstNode parent = getParent();
     if (parent instanceof ClassDeclaration && ((ClassDeclaration) parent).getName() == this) {
-      return validateElement(parent, ClassElement.class, element);
+      return returnOrReportElement(parent, element instanceof ClassElement, element);
     } else if (parent instanceof ClassTypeAlias && ((ClassTypeAlias) parent).getName() == this) {
-      return validateElement(parent, ClassElement.class, element);
+      return returnOrReportElement(parent, element instanceof ClassElement, element);
     } else if (parent instanceof DeclaredIdentifier
         && ((DeclaredIdentifier) parent).getIdentifier() == this) {
-      return validateElement(parent, LocalVariableElement.class, element);
+      return returnOrReportElement(parent, element instanceof LocalVariableElement, element);
     } else if (parent instanceof FormalParameter
         && ((FormalParameter) parent).getIdentifier() == this) {
-      return validateElement(parent, ParameterElement.class, element);
+      return returnOrReportElement(parent, element instanceof ParameterElement, element);
     } else if (parent instanceof FunctionDeclaration
         && ((FunctionDeclaration) parent).getName() == this) {
-      return validateElement(parent, ExecutableElement.class, element);
+      return returnOrReportElement(parent, element instanceof ExecutableElement, element);
     } else if (parent instanceof FunctionTypeAlias
         && ((FunctionTypeAlias) parent).getName() == this) {
-      return validateElement(parent, FunctionTypeAliasElement.class, element);
+      return returnOrReportElement(parent, element instanceof FunctionTypeAliasElement, element);
     } else if (parent instanceof MethodDeclaration
         && ((MethodDeclaration) parent).getName() == this) {
-      return validateElement(parent, ExecutableElement.class, element);
+      return returnOrReportElement(parent, element instanceof ExecutableElement, element);
     } else if (parent instanceof TypeParameter && ((TypeParameter) parent).getName() == this) {
-      return validateElement(parent, TypeParameterElement.class, element);
+      return returnOrReportElement(parent, element instanceof TypeParameterElement, element);
     } else if (parent instanceof VariableDeclaration
         && ((VariableDeclaration) parent).getName() == this) {
-      return validateElement(parent, VariableElement.class, element);
+      return returnOrReportElement(parent, element instanceof VariableElement, element);
     }
     return element;
   }

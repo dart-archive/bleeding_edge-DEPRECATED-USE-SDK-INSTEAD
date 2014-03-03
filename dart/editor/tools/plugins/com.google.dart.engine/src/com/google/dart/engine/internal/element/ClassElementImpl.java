@@ -323,7 +323,7 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
 
   @Override
   public boolean isOrInheritsProxy() {
-    return isOrInheritsProxy(this, new HashSet<ClassElement>());
+    return safeIsOrInheritsProxy(this, new HashSet<ClassElement>());
   }
 
   @Override
@@ -636,7 +636,8 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
     }
   }
 
-  private boolean isOrInheritsProxy(ClassElement classElt, HashSet<ClassElement> visitedClassElts) {
+  private boolean safeIsOrInheritsProxy(ClassElement classElt,
+      HashSet<ClassElement> visitedClassElts) {
     if (visitedClassElts.contains(classElt)) {
       return false;
     }
@@ -644,18 +645,18 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
     if (classElt.isProxy()) {
       return true;
     } else if (classElt.getSupertype() != null
-        && isOrInheritsProxy(classElt.getSupertype().getElement(), visitedClassElts)) {
+        && safeIsOrInheritsProxy(classElt.getSupertype().getElement(), visitedClassElts)) {
       return true;
     }
     InterfaceType[] supertypes = classElt.getInterfaces();
     for (int i = 0; i < supertypes.length; i++) {
-      if (isOrInheritsProxy(supertypes[i].getElement(), visitedClassElts)) {
+      if (safeIsOrInheritsProxy(supertypes[i].getElement(), visitedClassElts)) {
         return true;
       }
     }
     supertypes = classElt.getMixins();
     for (int i = 0; i < supertypes.length; i++) {
-      if (isOrInheritsProxy(supertypes[i].getElement(), visitedClassElts)) {
+      if (safeIsOrInheritsProxy(supertypes[i].getElement(), visitedClassElts)) {
         return true;
       }
     }

@@ -142,13 +142,13 @@ public class PubVerifier extends RecursiveAstVisitor<Void> {
   private boolean checkForFileImportOutsideLibReferencesFileInside(StringLiteral uriLiteral,
       String path) {
     if (StringUtilities.startsWith4(path, 0, 'l', 'i', 'b', '/')) {
-      if (checkForFileImportOutsideLibReferencesFileInside(uriLiteral, path, 0)) {
+      if (checkForFileImportOutsideLibReferencesFileInsideAtIndex(uriLiteral, path, 0)) {
         return true;
       }
     }
     int pathIndex = StringUtilities.indexOf5(path, 0, '/', 'l', 'i', 'b', '/');
     while (pathIndex != -1) {
-      if (checkForFileImportOutsideLibReferencesFileInside(uriLiteral, path, pathIndex + 1)) {
+      if (checkForFileImportOutsideLibReferencesFileInsideAtIndex(uriLiteral, path, pathIndex + 1)) {
         return true;
       }
       pathIndex = StringUtilities.indexOf5(path, pathIndex + 4, '/', 'l', 'i', 'b', '/');
@@ -156,7 +156,7 @@ public class PubVerifier extends RecursiveAstVisitor<Void> {
     return false;
   }
 
-  private boolean checkForFileImportOutsideLibReferencesFileInside(StringLiteral uriLiteral,
+  private boolean checkForFileImportOutsideLibReferencesFileInsideAtIndex(StringLiteral uriLiteral,
       String path, int pathIndex) {
     Source source = getSource(uriLiteral);
     String relativePubspecPath = path.substring(0, pathIndex).concat(PUBSPEC_YAML);

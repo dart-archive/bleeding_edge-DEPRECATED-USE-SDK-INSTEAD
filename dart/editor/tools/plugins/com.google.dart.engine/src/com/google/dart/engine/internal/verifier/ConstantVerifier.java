@@ -159,7 +159,7 @@ public class ConstantVerifier extends RecursiveAstVisitor<Void> {
 
   @Override
   public Void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    validateConstantArguments(node);
+    validateInstanceCreationArguments(node);
     return super.visitInstanceCreationExpression(node);
   }
 
@@ -312,23 +312,6 @@ public class ConstantVerifier extends RecursiveAstVisitor<Void> {
   }
 
   /**
-   * Validate that if the passed instance creation is 'const' then all its arguments are constant
-   * expressions.
-   * 
-   * @param node the instance creation evaluate
-   */
-  private void validateConstantArguments(InstanceCreationExpression node) {
-    if (!node.isConst()) {
-      return;
-    }
-    ArgumentList argumentList = node.getArgumentList();
-    if (argumentList == null) {
-      return;
-    }
-    validateConstantArguments(argumentList);
-  }
-
-  /**
    * Validate that the default value associated with each of the parameters in the given list is a
    * compile time constant.
    * 
@@ -441,5 +424,22 @@ public class ConstantVerifier extends RecursiveAstVisitor<Void> {
         validateInitializerInvocationArguments(parameterElements, invocation.getArgumentList());
       }
     }
+  }
+
+  /**
+   * Validate that if the passed instance creation is 'const' then all its arguments are constant
+   * expressions.
+   * 
+   * @param node the instance creation evaluate
+   */
+  private void validateInstanceCreationArguments(InstanceCreationExpression node) {
+    if (!node.isConst()) {
+      return;
+    }
+    ArgumentList argumentList = node.getArgumentList();
+    if (argumentList == null) {
+      return;
+    }
+    validateConstantArguments(argumentList);
   }
 }

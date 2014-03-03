@@ -48,67 +48,67 @@ public class ToFormattedSourceVisitor implements AstVisitor<Void> {
 
   @Override
   public Void visitAdjacentStrings(AdjacentStrings node) {
-    visitList(node.getStrings(), " ");
+    visitNodeListWithSeparator(node.getStrings(), " ");
     return null;
   }
 
   @Override
   public Void visitAnnotation(Annotation node) {
     writer.print('@');
-    visit(node.getName());
-    visit(".", node.getConstructorName());
-    visit(node.getArguments());
+    visitNode(node.getName());
+    visitNodeWithPrefix(".", node.getConstructorName());
+    visitNode(node.getArguments());
     return null;
   }
 
   @Override
   public Void visitArgumentDefinitionTest(ArgumentDefinitionTest node) {
     writer.print('?');
-    visit(node.getIdentifier());
+    visitNode(node.getIdentifier());
     return null;
   }
 
   @Override
   public Void visitArgumentList(ArgumentList node) {
     writer.print('(');
-    visitList(node.getArguments(), ", ");
+    visitNodeListWithSeparator(node.getArguments(), ", ");
     writer.print(')');
     return null;
   }
 
   @Override
   public Void visitAsExpression(AsExpression node) {
-    visit(node.getExpression());
+    visitNode(node.getExpression());
     writer.print(" as ");
-    visit(node.getType());
+    visitNode(node.getType());
     return null;
   }
 
   @Override
   public Void visitAssertStatement(AssertStatement node) {
     writer.print("assert(");
-    visit(node.getCondition());
+    visitNode(node.getCondition());
     writer.print(");");
     return null;
   }
 
   @Override
   public Void visitAssignmentExpression(AssignmentExpression node) {
-    visit(node.getLeftHandSide());
+    visitNode(node.getLeftHandSide());
     writer.print(' ');
     writer.print(node.getOperator().getLexeme());
     writer.print(' ');
-    visit(node.getRightHandSide());
+    visitNode(node.getRightHandSide());
     return null;
   }
 
   @Override
   public Void visitBinaryExpression(BinaryExpression node) {
-    visit(node.getLeftOperand());
+    visitNode(node.getLeftOperand());
     writer.print(' ');
     writer.print(node.getOperator().getLexeme());
     writer.print(' ');
-    visit(node.getRightOperand());
+    visitNode(node.getRightOperand());
     return null;
   }
 
@@ -117,7 +117,7 @@ public class ToFormattedSourceVisitor implements AstVisitor<Void> {
     writer.print('{');
     {
       indentInc();
-      visitList("\n", node.getStatements(), "\n");
+      visitNodeListWithSeparatorAndPrefix("\n", node.getStatements(), "\n");
       indentDec();
     }
     nl2();
@@ -127,7 +127,7 @@ public class ToFormattedSourceVisitor implements AstVisitor<Void> {
 
   @Override
   public Void visitBlockFunctionBody(BlockFunctionBody node) {
-    visit(node.getBlock());
+    visitNode(node.getBlock());
     return null;
   }
 
@@ -140,50 +140,50 @@ public class ToFormattedSourceVisitor implements AstVisitor<Void> {
   @Override
   public Void visitBreakStatement(BreakStatement node) {
     writer.print("break");
-    visit(" ", node.getLabel());
+    visitNodeWithPrefix(" ", node.getLabel());
     writer.print(";");
     return null;
   }
 
   @Override
   public Void visitCascadeExpression(CascadeExpression node) {
-    visit(node.getTarget());
-    visitList(node.getCascadeSections());
+    visitNode(node.getTarget());
+    visitNodeList(node.getCascadeSections());
     return null;
   }
 
   @Override
   public Void visitCatchClause(CatchClause node) {
-    visit("on ", node.getExceptionType());
+    visitNodeWithPrefix("on ", node.getExceptionType());
     if (node.getCatchKeyword() != null) {
       if (node.getExceptionType() != null) {
         writer.print(' ');
       }
       writer.print("catch (");
-      visit(node.getExceptionParameter());
-      visit(", ", node.getStackTraceParameter());
+      visitNode(node.getExceptionParameter());
+      visitNodeWithPrefix(", ", node.getStackTraceParameter());
       writer.print(") ");
     } else {
       writer.print(" ");
     }
-    visit(node.getBody());
+    visitNode(node.getBody());
     return null;
   }
 
   @Override
   public Void visitClassDeclaration(ClassDeclaration node) {
-    visit(node.getDocumentationComment());
-    visit(node.getAbstractKeyword(), " ");
+    visitNode(node.getDocumentationComment());
+    visitTokenWithSuffix(node.getAbstractKeyword(), " ");
     writer.print("class ");
-    visit(node.getName());
-    visit(node.getTypeParameters());
-    visit(" ", node.getExtendsClause());
-    visit(" ", node.getWithClause());
-    visit(" ", node.getImplementsClause());
+    visitNode(node.getName());
+    visitNode(node.getTypeParameters());
+    visitNodeWithPrefix(" ", node.getExtendsClause());
+    visitNodeWithPrefix(" ", node.getWithClause());
+    visitNodeWithPrefix(" ", node.getImplementsClause());
     writer.print(" {");
     {
       indentInc();
-      visitList("\n", node.getMembers(), "\n\n");
+      visitNodeListWithSeparatorAndPrefix("\n", node.getMembers(), "\n\n");
       indentDec();
     }
     nl2();
@@ -194,15 +194,15 @@ public class ToFormattedSourceVisitor implements AstVisitor<Void> {
   @Override
   public Void visitClassTypeAlias(ClassTypeAlias node) {
     writer.print("typedef ");
-    visit(node.getName());
-    visit(node.getTypeParameters());
+    visitNode(node.getName());
+    visitNode(node.getTypeParameters());
     writer.print(" = ");
     if (node.getAbstractKeyword() != null) {
       writer.print("abstract ");
     }
-    visit(node.getSuperclass());
-    visit(" ", node.getWithClause());
-    visit(" ", node.getImplementsClause());
+    visitNode(node.getSuperclass());
+    visitNodeWithPrefix(" ", node.getWithClause());
+    visitNodeWithPrefix(" ", node.getImplementsClause());
     writer.print(";");
     return null;
   }
@@ -239,84 +239,84 @@ public class ToFormattedSourceVisitor implements AstVisitor<Void> {
   public Void visitCompilationUnit(CompilationUnit node) {
     ScriptTag scriptTag = node.getScriptTag();
     NodeList<Directive> directives = node.getDirectives();
-    visit(scriptTag);
+    visitNode(scriptTag);
     // directives
     String prefix = scriptTag == null ? "" : " ";
-    visitList(prefix, directives, "\n");
+    visitNodeListWithSeparatorAndPrefix(prefix, directives, "\n");
     nl();
     // declarations
     prefix = scriptTag == null && directives.isEmpty() ? "" : "\n";
-    visitList(prefix, node.getDeclarations(), "\n\n");
+    visitNodeListWithSeparatorAndPrefix(prefix, node.getDeclarations(), "\n\n");
     return null;
   }
 
   @Override
   public Void visitConditionalExpression(ConditionalExpression node) {
-    visit(node.getCondition());
+    visitNode(node.getCondition());
     writer.print(" ? ");
-    visit(node.getThenExpression());
+    visitNode(node.getThenExpression());
     writer.print(" : ");
-    visit(node.getElseExpression());
+    visitNode(node.getElseExpression());
     return null;
   }
 
   @Override
   public Void visitConstructorDeclaration(ConstructorDeclaration node) {
-    visit(node.getDocumentationComment());
-    visit(node.getExternalKeyword(), " ");
-    visit(node.getConstKeyword(), " ");
-    visit(node.getFactoryKeyword(), " ");
-    visit(node.getReturnType());
-    visit(".", node.getName());
-    visit(node.getParameters());
-    visitList(" : ", node.getInitializers(), ", ");
-    visit(" = ", node.getRedirectedConstructor());
+    visitNode(node.getDocumentationComment());
+    visitTokenWithSuffix(node.getExternalKeyword(), " ");
+    visitTokenWithSuffix(node.getConstKeyword(), " ");
+    visitTokenWithSuffix(node.getFactoryKeyword(), " ");
+    visitNode(node.getReturnType());
+    visitNodeWithPrefix(".", node.getName());
+    visitNode(node.getParameters());
+    visitNodeListWithSeparatorAndPrefix(" : ", node.getInitializers(), ", ");
+    visitNodeWithPrefix(" = ", node.getRedirectedConstructor());
     if (!(node.getBody() instanceof EmptyFunctionBody)) {
       writer.print(' ');
     }
-    visit(node.getBody());
+    visitNode(node.getBody());
     return null;
   }
 
   @Override
   public Void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
-    visit(node.getKeyword(), ".");
-    visit(node.getFieldName());
+    visitTokenWithSuffix(node.getKeyword(), ".");
+    visitNode(node.getFieldName());
     writer.print(" = ");
-    visit(node.getExpression());
+    visitNode(node.getExpression());
     return null;
   }
 
   @Override
   public Void visitConstructorName(ConstructorName node) {
-    visit(node.getType());
-    visit(".", node.getName());
+    visitNode(node.getType());
+    visitNodeWithPrefix(".", node.getName());
     return null;
   }
 
   @Override
   public Void visitContinueStatement(ContinueStatement node) {
     writer.print("continue");
-    visit(" ", node.getLabel());
+    visitNodeWithPrefix(" ", node.getLabel());
     writer.print(";");
     return null;
   }
 
   @Override
   public Void visitDeclaredIdentifier(DeclaredIdentifier node) {
-    visit(node.getKeyword(), " ");
-    visit(node.getType(), " ");
-    visit(node.getIdentifier());
+    visitTokenWithSuffix(node.getKeyword(), " ");
+    visitNodeWithSuffix(node.getType(), " ");
+    visitNode(node.getIdentifier());
     return null;
   }
 
   @Override
   public Void visitDefaultFormalParameter(DefaultFormalParameter node) {
-    visit(node.getParameter());
+    visitNode(node.getParameter());
     if (node.getSeparator() != null) {
       writer.print(" ");
       writer.print(node.getSeparator().getLexeme());
-      visit(" ", node.getDefaultValue());
+      visitNodeWithPrefix(" ", node.getDefaultValue());
     }
     return null;
   }
@@ -324,9 +324,9 @@ public class ToFormattedSourceVisitor implements AstVisitor<Void> {
   @Override
   public Void visitDoStatement(DoStatement node) {
     writer.print("do ");
-    visit(node.getBody());
+    visitNode(node.getBody());
     writer.print(" while (");
-    visit(node.getCondition());
+    visitNode(node.getCondition());
     writer.print(");");
     return null;
   }
@@ -352,8 +352,8 @@ public class ToFormattedSourceVisitor implements AstVisitor<Void> {
   @Override
   public Void visitExportDirective(ExportDirective node) {
     writer.print("export ");
-    visit(node.getUri());
-    visitList(" ", node.getCombinators(), " ");
+    visitNode(node.getUri());
+    visitNodeListWithSeparatorAndPrefix(" ", node.getCombinators(), " ");
     writer.print(';');
     return null;
   }
@@ -361,7 +361,7 @@ public class ToFormattedSourceVisitor implements AstVisitor<Void> {
   @Override
   public Void visitExpressionFunctionBody(ExpressionFunctionBody node) {
     writer.print("=> ");
-    visit(node.getExpression());
+    visitNode(node.getExpression());
     if (node.getSemicolon() != null) {
       writer.print(';');
     }
@@ -370,7 +370,7 @@ public class ToFormattedSourceVisitor implements AstVisitor<Void> {
 
   @Override
   public Void visitExpressionStatement(ExpressionStatement node) {
-    visit(node.getExpression());
+    visitNode(node.getExpression());
     writer.print(';');
     return null;
   }
@@ -378,26 +378,26 @@ public class ToFormattedSourceVisitor implements AstVisitor<Void> {
   @Override
   public Void visitExtendsClause(ExtendsClause node) {
     writer.print("extends ");
-    visit(node.getSuperclass());
+    visitNode(node.getSuperclass());
     return null;
   }
 
   @Override
   public Void visitFieldDeclaration(FieldDeclaration node) {
-    visit(node.getDocumentationComment());
-    visit(node.getStaticKeyword(), " ");
-    visit(node.getFields());
+    visitNode(node.getDocumentationComment());
+    visitTokenWithSuffix(node.getStaticKeyword(), " ");
+    visitNode(node.getFields());
     writer.print(";");
     return null;
   }
 
   @Override
   public Void visitFieldFormalParameter(FieldFormalParameter node) {
-    visit(node.getKeyword(), " ");
-    visit(node.getType(), " ");
+    visitTokenWithSuffix(node.getKeyword(), " ");
+    visitNodeWithSuffix(node.getType(), " ");
     writer.print("this.");
-    visit(node.getIdentifier());
-    visit(node.getParameters());
+    visitNode(node.getIdentifier());
+    visitNode(node.getParameters());
     return null;
   }
 
@@ -406,14 +406,14 @@ public class ToFormattedSourceVisitor implements AstVisitor<Void> {
     DeclaredIdentifier loopVariable = node.getLoopVariable();
     writer.print("for (");
     if (loopVariable == null) {
-      visit(node.getIdentifier());
+      visitNode(node.getIdentifier());
     } else {
-      visit(loopVariable);
+      visitNode(loopVariable);
     }
     writer.print(" in ");
-    visit(node.getIterator());
+    visitNode(node.getIterator());
     writer.print(") ");
-    visit(node.getBody());
+    visitNode(node.getBody());
     return null;
   }
 
@@ -451,99 +451,99 @@ public class ToFormattedSourceVisitor implements AstVisitor<Void> {
     Expression initialization = node.getInitialization();
     writer.print("for (");
     if (initialization != null) {
-      visit(initialization);
+      visitNode(initialization);
     } else {
-      visit(node.getVariables());
+      visitNode(node.getVariables());
     }
     writer.print(";");
-    visit(" ", node.getCondition());
+    visitNodeWithPrefix(" ", node.getCondition());
     writer.print(";");
-    visitList(" ", node.getUpdaters(), ", ");
+    visitNodeListWithSeparatorAndPrefix(" ", node.getUpdaters(), ", ");
     writer.print(") ");
-    visit(node.getBody());
+    visitNode(node.getBody());
     return null;
   }
 
   @Override
   public Void visitFunctionDeclaration(FunctionDeclaration node) {
-    visit(node.getReturnType(), " ");
-    visit(node.getPropertyKeyword(), " ");
-    visit(node.getName());
-    visit(node.getFunctionExpression());
+    visitNodeWithSuffix(node.getReturnType(), " ");
+    visitTokenWithSuffix(node.getPropertyKeyword(), " ");
+    visitNode(node.getName());
+    visitNode(node.getFunctionExpression());
     return null;
   }
 
   @Override
   public Void visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
-    visit(node.getFunctionDeclaration());
+    visitNode(node.getFunctionDeclaration());
     writer.print(';');
     return null;
   }
 
   @Override
   public Void visitFunctionExpression(FunctionExpression node) {
-    visit(node.getParameters());
+    visitNode(node.getParameters());
     writer.print(' ');
-    visit(node.getBody());
+    visitNode(node.getBody());
     return null;
   }
 
   @Override
   public Void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    visit(node.getFunction());
-    visit(node.getArgumentList());
+    visitNode(node.getFunction());
+    visitNode(node.getArgumentList());
     return null;
   }
 
   @Override
   public Void visitFunctionTypeAlias(FunctionTypeAlias node) {
     writer.print("typedef ");
-    visit(node.getReturnType(), " ");
-    visit(node.getName());
-    visit(node.getTypeParameters());
-    visit(node.getParameters());
+    visitNodeWithSuffix(node.getReturnType(), " ");
+    visitNode(node.getName());
+    visitNode(node.getTypeParameters());
+    visitNode(node.getParameters());
     writer.print(";");
     return null;
   }
 
   @Override
   public Void visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
-    visit(node.getReturnType(), " ");
-    visit(node.getIdentifier());
-    visit(node.getParameters());
+    visitNodeWithSuffix(node.getReturnType(), " ");
+    visitNode(node.getIdentifier());
+    visitNode(node.getParameters());
     return null;
   }
 
   @Override
   public Void visitHideCombinator(HideCombinator node) {
     writer.print("hide ");
-    visitList(node.getHiddenNames(), ", ");
+    visitNodeListWithSeparator(node.getHiddenNames(), ", ");
     return null;
   }
 
   @Override
   public Void visitIfStatement(IfStatement node) {
     writer.print("if (");
-    visit(node.getCondition());
+    visitNode(node.getCondition());
     writer.print(") ");
-    visit(node.getThenStatement());
-    visit(" else ", node.getElseStatement());
+    visitNode(node.getThenStatement());
+    visitNodeWithPrefix(" else ", node.getElseStatement());
     return null;
   }
 
   @Override
   public Void visitImplementsClause(ImplementsClause node) {
     writer.print("implements ");
-    visitList(node.getInterfaces(), ", ");
+    visitNodeListWithSeparator(node.getInterfaces(), ", ");
     return null;
   }
 
   @Override
   public Void visitImportDirective(ImportDirective node) {
     writer.print("import ");
-    visit(node.getUri());
-    visit(" as ", node.getPrefix());
-    visitList(" ", node.getCombinators(), " ");
+    visitNode(node.getUri());
+    visitNodeWithPrefix(" as ", node.getPrefix());
+    visitNodeListWithSeparatorAndPrefix(" ", node.getCombinators(), " ");
     writer.print(';');
     return null;
   }
@@ -553,19 +553,19 @@ public class ToFormattedSourceVisitor implements AstVisitor<Void> {
     if (node.isCascaded()) {
       writer.print("..");
     } else {
-      visit(node.getTarget());
+      visitNode(node.getTarget());
     }
     writer.print('[');
-    visit(node.getIndex());
+    visitNode(node.getIndex());
     writer.print(']');
     return null;
   }
 
   @Override
   public Void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    visit(node.getKeyword(), " ");
-    visit(node.getConstructorName());
-    visit(node.getArgumentList());
+    visitTokenWithSuffix(node.getKeyword(), " ");
+    visitNode(node.getConstructorName());
+    visitNode(node.getArgumentList());
     return null;
   }
 
@@ -579,11 +579,11 @@ public class ToFormattedSourceVisitor implements AstVisitor<Void> {
   public Void visitInterpolationExpression(InterpolationExpression node) {
     if (node.getRightBracket() != null) {
       writer.print("${");
-      visit(node.getExpression());
+      visitNode(node.getExpression());
       writer.print("}");
     } else {
       writer.print("$");
-      visit(node.getExpression());
+      visitNode(node.getExpression());
     }
     return null;
   }
@@ -596,34 +596,34 @@ public class ToFormattedSourceVisitor implements AstVisitor<Void> {
 
   @Override
   public Void visitIsExpression(IsExpression node) {
-    visit(node.getExpression());
+    visitNode(node.getExpression());
     if (node.getNotOperator() == null) {
       writer.print(" is ");
     } else {
       writer.print(" is! ");
     }
-    visit(node.getType());
+    visitNode(node.getType());
     return null;
   }
 
   @Override
   public Void visitLabel(Label node) {
-    visit(node.getLabel());
+    visitNode(node.getLabel());
     writer.print(":");
     return null;
   }
 
   @Override
   public Void visitLabeledStatement(LabeledStatement node) {
-    visitList(node.getLabels(), " ", " ");
-    visit(node.getStatement());
+    visitNodeListWithSeparatorAndSuffix(node.getLabels(), " ", " ");
+    visitNode(node.getStatement());
     return null;
   }
 
   @Override
   public Void visitLibraryDirective(LibraryDirective node) {
     writer.print("library ");
-    visit(node.getName());
+    visitNode(node.getName());
     writer.print(';');
     nl();
     return null;
@@ -641,17 +641,17 @@ public class ToFormattedSourceVisitor implements AstVisitor<Void> {
       writer.print(node.getConstKeyword().getLexeme());
       writer.print(' ');
     }
-    visit(node.getTypeArguments(), " ");
+    visitNodeWithSuffix(node.getTypeArguments(), " ");
     writer.print("[");
     {
       NodeList<Expression> elements = node.getElements();
       if (elements.size() < 2 || elements.toString().length() < 60) {
-        visitList(elements, ", ");
+        visitNodeListWithSeparator(elements, ", ");
       } else {
         String elementIndent = indentString + "    ";
         writer.print("\n");
         writer.print(elementIndent);
-        visitList(elements, ",\n" + elementIndent);
+        visitNodeListWithSeparator(elements, ",\n" + elementIndent);
       }
     }
     writer.print("]");
@@ -664,37 +664,37 @@ public class ToFormattedSourceVisitor implements AstVisitor<Void> {
       writer.print(node.getConstKeyword().getLexeme());
       writer.print(' ');
     }
-    visit(node.getTypeArguments(), " ");
+    visitNodeWithSuffix(node.getTypeArguments(), " ");
     writer.print("{");
-    visitList(node.getEntries(), ", ");
+    visitNodeListWithSeparator(node.getEntries(), ", ");
     writer.print("}");
     return null;
   }
 
   @Override
   public Void visitMapLiteralEntry(MapLiteralEntry node) {
-    visit(node.getKey());
+    visitNode(node.getKey());
     writer.print(" : ");
-    visit(node.getValue());
+    visitNode(node.getValue());
     return null;
   }
 
   @Override
   public Void visitMethodDeclaration(MethodDeclaration node) {
-    visit(node.getDocumentationComment());
-    visit(node.getExternalKeyword(), " ");
-    visit(node.getModifierKeyword(), " ");
-    visit(node.getReturnType(), " ");
-    visit(node.getPropertyKeyword(), " ");
-    visit(node.getOperatorKeyword(), " ");
-    visit(node.getName());
+    visitNode(node.getDocumentationComment());
+    visitTokenWithSuffix(node.getExternalKeyword(), " ");
+    visitTokenWithSuffix(node.getModifierKeyword(), " ");
+    visitNodeWithSuffix(node.getReturnType(), " ");
+    visitTokenWithSuffix(node.getPropertyKeyword(), " ");
+    visitTokenWithSuffix(node.getOperatorKeyword(), " ");
+    visitNode(node.getName());
     if (!node.isGetter()) {
-      visit(node.getParameters());
+      visitNode(node.getParameters());
     }
     if (!(node.getBody() instanceof EmptyFunctionBody)) {
       writer.print(' ');
     }
-    visit(node.getBody());
+    visitNode(node.getBody());
     return null;
   }
 
@@ -703,31 +703,31 @@ public class ToFormattedSourceVisitor implements AstVisitor<Void> {
     if (node.isCascaded()) {
       writer.print("..");
     } else {
-      visit(node.getTarget(), ".");
+      visitNodeWithSuffix(node.getTarget(), ".");
     }
-    visit(node.getMethodName());
-    visit(node.getArgumentList());
+    visitNode(node.getMethodName());
+    visitNode(node.getArgumentList());
     return null;
   }
 
   @Override
   public Void visitNamedExpression(NamedExpression node) {
-    visit(node.getName());
-    visit(" ", node.getExpression());
+    visitNode(node.getName());
+    visitNodeWithPrefix(" ", node.getExpression());
     return null;
   }
 
   @Override
   public Void visitNativeClause(NativeClause node) {
     writer.print("native ");
-    visit(node.getName());
+    visitNode(node.getName());
     return null;
   }
 
   @Override
   public Void visitNativeFunctionBody(NativeFunctionBody node) {
     writer.print("native ");
-    visit(node.getStringLiteral());
+    visitNode(node.getStringLiteral());
     writer.print(';');
     return null;
   }
@@ -741,7 +741,7 @@ public class ToFormattedSourceVisitor implements AstVisitor<Void> {
   @Override
   public Void visitParenthesizedExpression(ParenthesizedExpression node) {
     writer.print('(');
-    visit(node.getExpression());
+    visitNode(node.getExpression());
     writer.print(')');
     return null;
   }
@@ -749,7 +749,7 @@ public class ToFormattedSourceVisitor implements AstVisitor<Void> {
   @Override
   public Void visitPartDirective(PartDirective node) {
     writer.print("part ");
-    visit(node.getUri());
+    visitNode(node.getUri());
     writer.print(';');
     return null;
   }
@@ -757,30 +757,30 @@ public class ToFormattedSourceVisitor implements AstVisitor<Void> {
   @Override
   public Void visitPartOfDirective(PartOfDirective node) {
     writer.print("part of ");
-    visit(node.getLibraryName());
+    visitNode(node.getLibraryName());
     writer.print(';');
     return null;
   }
 
   @Override
   public Void visitPostfixExpression(PostfixExpression node) {
-    visit(node.getOperand());
+    visitNode(node.getOperand());
     writer.print(node.getOperator().getLexeme());
     return null;
   }
 
   @Override
   public Void visitPrefixedIdentifier(PrefixedIdentifier node) {
-    visit(node.getPrefix());
+    visitNode(node.getPrefix());
     writer.print('.');
-    visit(node.getIdentifier());
+    visitNode(node.getIdentifier());
     return null;
   }
 
   @Override
   public Void visitPrefixExpression(PrefixExpression node) {
     writer.print(node.getOperator().getLexeme());
-    visit(node.getOperand());
+    visitNode(node.getOperand());
     return null;
   }
 
@@ -789,17 +789,17 @@ public class ToFormattedSourceVisitor implements AstVisitor<Void> {
     if (node.isCascaded()) {
       writer.print("..");
     } else {
-      visit(node.getTarget(), ".");
+      visitNodeWithSuffix(node.getTarget(), ".");
     }
-    visit(node.getPropertyName());
+    visitNode(node.getPropertyName());
     return null;
   }
 
   @Override
   public Void visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) {
     writer.print("this");
-    visit(".", node.getConstructorName());
-    visit(node.getArgumentList());
+    visitNodeWithPrefix(".", node.getConstructorName());
+    visitNode(node.getArgumentList());
     return null;
   }
 
@@ -831,15 +831,15 @@ public class ToFormattedSourceVisitor implements AstVisitor<Void> {
   @Override
   public Void visitShowCombinator(ShowCombinator node) {
     writer.print("show ");
-    visitList(node.getShownNames(), ", ");
+    visitNodeListWithSeparator(node.getShownNames(), ", ");
     return null;
   }
 
   @Override
   public Void visitSimpleFormalParameter(SimpleFormalParameter node) {
-    visit(node.getKeyword(), " ");
-    visit(node.getType(), " ");
-    visit(node.getIdentifier());
+    visitTokenWithSuffix(node.getKeyword(), " ");
+    visitNodeWithSuffix(node.getType(), " ");
+    visitNode(node.getIdentifier());
     return null;
   }
 
@@ -857,15 +857,15 @@ public class ToFormattedSourceVisitor implements AstVisitor<Void> {
 
   @Override
   public Void visitStringInterpolation(StringInterpolation node) {
-    visitList(node.getElements());
+    visitNodeList(node.getElements());
     return null;
   }
 
   @Override
   public Void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     writer.print("super");
-    visit(".", node.getConstructorName());
-    visit(node.getArgumentList());
+    visitNodeWithPrefix(".", node.getConstructorName());
+    visitNode(node.getArgumentList());
     return null;
   }
 
@@ -877,13 +877,13 @@ public class ToFormattedSourceVisitor implements AstVisitor<Void> {
 
   @Override
   public Void visitSwitchCase(SwitchCase node) {
-    visitList(node.getLabels(), " ", " ");
+    visitNodeListWithSeparatorAndSuffix(node.getLabels(), " ", " ");
     writer.print("case ");
-    visit(node.getExpression());
+    visitNode(node.getExpression());
     writer.print(": ");
     {
       indentInc();
-      visitList(node.getStatements(), "\n");
+      visitNodeListWithSeparator(node.getStatements(), "\n");
       indentDec();
     }
     return null;
@@ -891,11 +891,11 @@ public class ToFormattedSourceVisitor implements AstVisitor<Void> {
 
   @Override
   public Void visitSwitchDefault(SwitchDefault node) {
-    visitList(node.getLabels(), " ", " ");
+    visitNodeListWithSeparatorAndSuffix(node.getLabels(), " ", " ");
     writer.print("default: ");
     {
       indentInc();
-      visitList(node.getStatements(), "\n");
+      visitNodeListWithSeparator(node.getStatements(), "\n");
       indentDec();
     }
     return null;
@@ -904,11 +904,11 @@ public class ToFormattedSourceVisitor implements AstVisitor<Void> {
   @Override
   public Void visitSwitchStatement(SwitchStatement node) {
     writer.print("switch (");
-    visit(node.getExpression());
+    visitNode(node.getExpression());
     writer.print(") {");
     {
       indentInc();
-      visitList(node.getMembers(), "\n");
+      visitNodeListWithSeparator(node.getMembers(), "\n");
       indentDec();
     }
     nl2();
@@ -919,7 +919,7 @@ public class ToFormattedSourceVisitor implements AstVisitor<Void> {
   @Override
   public Void visitSymbolLiteral(SymbolLiteral node) {
     writer.print("#");
-    visitList(node.getComponents(), ".");
+    visitTokenListWithSeparator(node.getComponents(), ".");
     return null;
   }
 
@@ -932,73 +932,73 @@ public class ToFormattedSourceVisitor implements AstVisitor<Void> {
   @Override
   public Void visitThrowExpression(ThrowExpression node) {
     writer.print("throw ");
-    visit(node.getExpression());
+    visitNode(node.getExpression());
     return null;
   }
 
   @Override
   public Void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
-    visit(node.getVariables(), ";");
+    visitNodeWithSuffix(node.getVariables(), ";");
     return null;
   }
 
   @Override
   public Void visitTryStatement(TryStatement node) {
     writer.print("try ");
-    visit(node.getBody());
-    visitList(" ", node.getCatchClauses(), " ");
-    visit(" finally ", node.getFinallyBlock());
+    visitNode(node.getBody());
+    visitNodeListWithSeparatorAndPrefix(" ", node.getCatchClauses(), " ");
+    visitNodeWithPrefix(" finally ", node.getFinallyBlock());
     return null;
   }
 
   @Override
   public Void visitTypeArgumentList(TypeArgumentList node) {
     writer.print('<');
-    visitList(node.getArguments(), ", ");
+    visitNodeListWithSeparator(node.getArguments(), ", ");
     writer.print('>');
     return null;
   }
 
   @Override
   public Void visitTypeName(TypeName node) {
-    visit(node.getName());
-    visit(node.getTypeArguments());
+    visitNode(node.getName());
+    visitNode(node.getTypeArguments());
     return null;
   }
 
   @Override
   public Void visitTypeParameter(TypeParameter node) {
-    visit(node.getName());
-    visit(" extends ", node.getBound());
+    visitNode(node.getName());
+    visitNodeWithPrefix(" extends ", node.getBound());
     return null;
   }
 
   @Override
   public Void visitTypeParameterList(TypeParameterList node) {
     writer.print('<');
-    visitList(node.getTypeParameters(), ", ");
+    visitNodeListWithSeparator(node.getTypeParameters(), ", ");
     writer.print('>');
     return null;
   }
 
   @Override
   public Void visitVariableDeclaration(VariableDeclaration node) {
-    visit(node.getName());
-    visit(" = ", node.getInitializer());
+    visitNode(node.getName());
+    visitNodeWithPrefix(" = ", node.getInitializer());
     return null;
   }
 
   @Override
   public Void visitVariableDeclarationList(VariableDeclarationList node) {
-    visit(node.getKeyword(), " ");
-    visit(node.getType(), " ");
-    visitList(node.getVariables(), ", ");
+    visitTokenWithSuffix(node.getKeyword(), " ");
+    visitNodeWithSuffix(node.getType(), " ");
+    visitNodeListWithSeparator(node.getVariables(), ", ");
     return null;
   }
 
   @Override
   public Void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
-    visit(node.getVariables());
+    visitNode(node.getVariables());
     writer.print(";");
     return null;
   }
@@ -1006,16 +1006,16 @@ public class ToFormattedSourceVisitor implements AstVisitor<Void> {
   @Override
   public Void visitWhileStatement(WhileStatement node) {
     writer.print("while (");
-    visit(node.getCondition());
+    visitNode(node.getCondition());
     writer.print(") ");
-    visit(node.getBody());
+    visitNode(node.getBody());
     return null;
   }
 
   @Override
   public Void visitWithClause(WithClause node) {
     writer.print("with ");
-    visitList(node.getMixinTypes(), ", ");
+    visitNodeListWithSeparator(node.getMixinTypes(), ", ");
     return null;
   }
 
@@ -1060,49 +1060,9 @@ public class ToFormattedSourceVisitor implements AstVisitor<Void> {
    * 
    * @param node the node to be visited
    */
-  private void visit(AstNode node) {
+  private void visitNode(AstNode node) {
     if (node != null) {
       node.accept(this);
-    }
-  }
-
-  /**
-   * Safely visit the given node, printing the suffix after the node if it is non-<code>null</code>.
-   * 
-   * @param suffix the suffix to be printed if there is a node to visit
-   * @param node the node to be visited
-   */
-  private void visit(AstNode node, String suffix) {
-    if (node != null) {
-      node.accept(this);
-      writer.print(suffix);
-    }
-  }
-
-  /**
-   * Safely visit the given node, printing the prefix before the node if it is non-<code>null</code>
-   * .
-   * 
-   * @param prefix the prefix to be printed if there is a node to visit
-   * @param node the node to be visited
-   */
-  private void visit(String prefix, AstNode node) {
-    if (node != null) {
-      writer.print(prefix);
-      node.accept(this);
-    }
-  }
-
-  /**
-   * Safely visit the given node, printing the suffix after the node if it is non-<code>null</code>.
-   * 
-   * @param suffix the suffix to be printed if there is a node to visit
-   * @param node the node to be visited
-   */
-  private void visit(Token token, String suffix) {
-    if (token != null) {
-      writer.print(token.getLexeme());
-      writer.print(suffix);
     }
   }
 
@@ -1112,8 +1072,8 @@ public class ToFormattedSourceVisitor implements AstVisitor<Void> {
    * @param nodes the nodes to be printed
    * @param separator the separator to be printed between adjacent nodes
    */
-  private void visitList(NodeList<? extends AstNode> nodes) {
-    visitList(nodes, "");
+  private void visitNodeList(NodeList<? extends AstNode> nodes) {
+    visitNodeListWithSeparator(nodes, "");
   }
 
   /**
@@ -1122,19 +1082,8 @@ public class ToFormattedSourceVisitor implements AstVisitor<Void> {
    * @param nodes the nodes to be printed
    * @param separator the separator to be printed between adjacent nodes
    */
-  private void visitList(NodeList<? extends AstNode> nodes, String separator) {
-    visitList("", nodes, separator, "");
-  }
-
-  /**
-   * Print a list of nodes, separated by the given separator.
-   * 
-   * @param nodes the nodes to be printed
-   * @param separator the separator to be printed between adjacent nodes
-   * @param suffix the suffix to be printed if the list is not empty
-   */
-  private void visitList(NodeList<? extends AstNode> nodes, String separator, String suffix) {
-    visitList("", nodes, separator, suffix);
+  private void visitNodeListWithSeparator(NodeList<? extends AstNode> nodes, String separator) {
+    visitNodeListWithSeparatorPrefixAndSuffix("", nodes, separator, "");
   }
 
   /**
@@ -1144,8 +1093,21 @@ public class ToFormattedSourceVisitor implements AstVisitor<Void> {
    * @param nodes the nodes to be printed
    * @param separator the separator to be printed between adjacent nodes
    */
-  private void visitList(String prefix, NodeList<? extends AstNode> nodes, String separator) {
-    visitList(prefix, nodes, separator, "");
+  private void visitNodeListWithSeparatorAndPrefix(String prefix,
+      NodeList<? extends AstNode> nodes, String separator) {
+    visitNodeListWithSeparatorPrefixAndSuffix(prefix, nodes, separator, "");
+  }
+
+  /**
+   * Print a list of nodes, separated by the given separator.
+   * 
+   * @param nodes the nodes to be printed
+   * @param separator the separator to be printed between adjacent nodes
+   * @param suffix the suffix to be printed if the list is not empty
+   */
+  private void visitNodeListWithSeparatorAndSuffix(NodeList<? extends AstNode> nodes,
+      String separator, String suffix) {
+    visitNodeListWithSeparatorPrefixAndSuffix("", nodes, separator, suffix);
   }
 
   /**
@@ -1156,8 +1118,8 @@ public class ToFormattedSourceVisitor implements AstVisitor<Void> {
    * @param separator the separator to be printed between adjacent nodes
    * @param suffix the suffix to be printed if the list is not empty
    */
-  private void visitList(String prefix, NodeList<? extends AstNode> nodes, String separator,
-      String suffix) {
+  private void visitNodeListWithSeparatorPrefixAndSuffix(String prefix,
+      NodeList<? extends AstNode> nodes, String separator, String suffix) {
     if (nodes != null) {
       int size = nodes.size();
       if (size != 0) {
@@ -1188,12 +1150,39 @@ public class ToFormattedSourceVisitor implements AstVisitor<Void> {
   }
 
   /**
+   * Safely visit the given node, printing the prefix before the node if it is non-<code>null</code>
+   * .
+   * 
+   * @param prefix the prefix to be printed if there is a node to visit
+   * @param node the node to be visited
+   */
+  private void visitNodeWithPrefix(String prefix, AstNode node) {
+    if (node != null) {
+      writer.print(prefix);
+      node.accept(this);
+    }
+  }
+
+  /**
+   * Safely visit the given node, printing the suffix after the node if it is non-<code>null</code>.
+   * 
+   * @param suffix the suffix to be printed if there is a node to visit
+   * @param node the node to be visited
+   */
+  private void visitNodeWithSuffix(AstNode node, String suffix) {
+    if (node != null) {
+      node.accept(this);
+      writer.print(suffix);
+    }
+  }
+
+  /**
    * Print a list of tokens, separated by the given separator.
    * 
    * @param tokens the tokens to be printed
    * @param separator the separator to be printed between adjacent tokens
    */
-  private void visitList(Token[] tokens, String separator) {
+  private void visitTokenListWithSeparator(Token[] tokens, String separator) {
     int size = tokens.length;
     for (int i = 0; i < size; i++) {
       if ("\n".equals(separator)) {
@@ -1203,6 +1192,19 @@ public class ToFormattedSourceVisitor implements AstVisitor<Void> {
         writer.print(separator);
       }
       writer.print(tokens[i].getLexeme());
+    }
+  }
+
+  /**
+   * Safely visit the given node, printing the suffix after the node if it is non-<code>null</code>.
+   * 
+   * @param suffix the suffix to be printed if there is a node to visit
+   * @param node the node to be visited
+   */
+  private void visitTokenWithSuffix(Token token, String suffix) {
+    if (token != null) {
+      writer.print(token.getLexeme());
+      writer.print(suffix);
     }
   }
 }

@@ -13,8 +13,8 @@
  */
 package com.google.dart.engine.internal.resolver;
 
-import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.AsExpression;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.CatchClause;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.ClassMember;
@@ -485,13 +485,13 @@ public class TypeResolverVisitor extends ScopedVisitor {
                 && ((InstanceCreationExpression) parent.getParent()).isConst()) {
               // If, if this is a const expression, then generate a
               // CompileTimeErrorCode.CONST_WITH_NON_TYPE error.
-              reportError(
+              reportErrorForNode(
                   CompileTimeErrorCode.CONST_WITH_NON_TYPE,
                   prefixedIdentifier.getIdentifier(),
                   prefixedIdentifier.getIdentifier().getName());
             } else {
               // Else, if this expression is a new expression, report a NEW_WITH_NON_TYPE warning.
-              reportError(
+              reportErrorForNode(
                   StaticWarningCode.NEW_WITH_NON_TYPE,
                   prefixedIdentifier.getIdentifier(),
                   prefixedIdentifier.getIdentifier().getName());
@@ -521,14 +521,14 @@ public class TypeResolverVisitor extends ScopedVisitor {
       InstanceCreationExpression creation = (InstanceCreationExpression) node.getParent().getParent();
       if (creation.isConst()) {
         if (element == null) {
-          reportError(CompileTimeErrorCode.UNDEFINED_CLASS, typeNameSimple, typeName);
+          reportErrorForNode(CompileTimeErrorCode.UNDEFINED_CLASS, typeNameSimple, typeName);
         } else {
-          reportError(CompileTimeErrorCode.CONST_WITH_NON_TYPE, typeNameSimple, typeName);
+          reportErrorForNode(CompileTimeErrorCode.CONST_WITH_NON_TYPE, typeNameSimple, typeName);
         }
         elementValid = false;
       } else {
         if (element != null) {
-          reportError(StaticWarningCode.NEW_WITH_NON_TYPE, typeNameSimple, typeName);
+          reportErrorForNode(StaticWarningCode.NEW_WITH_NON_TYPE, typeNameSimple, typeName);
           elementValid = false;
         }
       }
@@ -541,23 +541,29 @@ public class TypeResolverVisitor extends ScopedVisitor {
       SimpleIdentifier typeNameSimple = getTypeSimpleIdentifier(typeName);
       RedirectingConstructorKind redirectingConstructorKind;
       if (isBuiltInIdentifier(node) && isTypeAnnotation(node)) {
-        reportError(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, typeName, typeName.getName());
+        reportErrorForNode(
+            CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE,
+            typeName,
+            typeName.getName());
       } else if (typeNameSimple.getName().equals("boolean")) {
-        reportError(StaticWarningCode.UNDEFINED_CLASS_BOOLEAN, typeNameSimple);
+        reportErrorForNode(StaticWarningCode.UNDEFINED_CLASS_BOOLEAN, typeNameSimple);
       } else if (isTypeNameInCatchClause(node)) {
-        reportError(StaticWarningCode.NON_TYPE_IN_CATCH_CLAUSE, typeName, typeName.getName());
+        reportErrorForNode(StaticWarningCode.NON_TYPE_IN_CATCH_CLAUSE, typeName, typeName.getName());
       } else if (isTypeNameInAsExpression(node)) {
-        reportError(StaticWarningCode.CAST_TO_NON_TYPE, typeName, typeName.getName());
+        reportErrorForNode(StaticWarningCode.CAST_TO_NON_TYPE, typeName, typeName.getName());
       } else if (isTypeNameInIsExpression(node)) {
-        reportError(StaticWarningCode.TYPE_TEST_NON_TYPE, typeName, typeName.getName());
+        reportErrorForNode(StaticWarningCode.TYPE_TEST_NON_TYPE, typeName, typeName.getName());
       } else if ((redirectingConstructorKind = getRedirectingConstructorKind(node)) != null) {
         ErrorCode errorCode = redirectingConstructorKind == RedirectingConstructorKind.CONST
             ? CompileTimeErrorCode.REDIRECT_TO_NON_CLASS : StaticWarningCode.REDIRECT_TO_NON_CLASS;
-        reportError(errorCode, typeName, typeName.getName());
+        reportErrorForNode(errorCode, typeName, typeName.getName());
       } else if (isTypeNameInTypeArgumentList(node)) {
-        reportError(StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT, typeName, typeName.getName());
+        reportErrorForNode(
+            StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT,
+            typeName,
+            typeName.getName());
       } else {
-        reportError(StaticWarningCode.UNDEFINED_CLASS, typeName, typeName.getName());
+        reportErrorForNode(StaticWarningCode.UNDEFINED_CLASS, typeName, typeName.getName());
       }
       elementValid = false;
     }
@@ -588,7 +594,7 @@ public class TypeResolverVisitor extends ScopedVisitor {
       }
     } else if (element instanceof MultiplyDefinedElement) {
       Element[] elements = ((MultiplyDefinedElement) element).getConflictingElements();
-      type = getType(elements);
+      type = getTypeWhenMultiplyDefined(elements);
       if (type != null) {
         node.setType(type);
       }
@@ -596,17 +602,20 @@ public class TypeResolverVisitor extends ScopedVisitor {
       // The name does not represent a type.
       RedirectingConstructorKind redirectingConstructorKind;
       if (isTypeNameInCatchClause(node)) {
-        reportError(StaticWarningCode.NON_TYPE_IN_CATCH_CLAUSE, typeName, typeName.getName());
+        reportErrorForNode(StaticWarningCode.NON_TYPE_IN_CATCH_CLAUSE, typeName, typeName.getName());
       } else if (isTypeNameInAsExpression(node)) {
-        reportError(StaticWarningCode.CAST_TO_NON_TYPE, typeName, typeName.getName());
+        reportErrorForNode(StaticWarningCode.CAST_TO_NON_TYPE, typeName, typeName.getName());
       } else if (isTypeNameInIsExpression(node)) {
-        reportError(StaticWarningCode.TYPE_TEST_NON_TYPE, typeName, typeName.getName());
+        reportErrorForNode(StaticWarningCode.TYPE_TEST_NON_TYPE, typeName, typeName.getName());
       } else if ((redirectingConstructorKind = getRedirectingConstructorKind(node)) != null) {
         ErrorCode errorCode = redirectingConstructorKind == RedirectingConstructorKind.CONST
             ? CompileTimeErrorCode.REDIRECT_TO_NON_CLASS : StaticWarningCode.REDIRECT_TO_NON_CLASS;
-        reportError(errorCode, typeName, typeName.getName());
+        reportErrorForNode(errorCode, typeName, typeName.getName());
       } else if (isTypeNameInTypeArgumentList(node)) {
-        reportError(StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT, typeName, typeName.getName());
+        reportErrorForNode(
+            StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT,
+            typeName,
+            typeName.getName());
       } else {
         AstNode parent = typeName.getParent();
         while (parent instanceof TypeName) {
@@ -616,7 +625,7 @@ public class TypeResolverVisitor extends ScopedVisitor {
             || parent instanceof WithClause || parent instanceof ClassTypeAlias) {
           // Ignored. The error will be reported elsewhere.
         } else {
-          reportError(StaticWarningCode.NOT_A_TYPE, typeName, typeName.getName());
+          reportErrorForNode(StaticWarningCode.NOT_A_TYPE, typeName, typeName.getName());
         }
       }
       setElement(typeName, dynamicType.getElement());
@@ -638,7 +647,7 @@ public class TypeResolverVisitor extends ScopedVisitor {
         }
       }
       if (argumentCount != parameterCount) {
-        reportError(
+        reportErrorForNode(
             getInvalidTypeParametersErrorCode(node),
             node,
             typeName.getName(),
@@ -953,26 +962,6 @@ public class TypeResolverVisitor extends ScopedVisitor {
   }
 
   /**
-   * Given the multiple elements to which a single name could potentially be resolved, return the
-   * single interface type that should be used, or {@code null} if there is no clear choice.
-   * 
-   * @param elements the elements to which a single name could potentially be resolved
-   * @return the single interface type that should be used for the type name
-   */
-  private InterfaceType getType(Element[] elements) {
-    InterfaceType type = null;
-    for (Element element : elements) {
-      if (element instanceof ClassElement) {
-        if (type != null) {
-          return null;
-        }
-        type = ((ClassElement) element).getType();
-      }
-    }
-    return type;
-  }
-
-  /**
    * Return the type represented by the given type name.
    * 
    * @param typeName the type name representing the type to be returned
@@ -1013,6 +1002,26 @@ public class TypeResolverVisitor extends ScopedVisitor {
     } else {
       return ((PrefixedIdentifier) typeName).getIdentifier();
     }
+  }
+
+  /**
+   * Given the multiple elements to which a single name could potentially be resolved, return the
+   * single interface type that should be used, or {@code null} if there is no clear choice.
+   * 
+   * @param elements the elements to which a single name could potentially be resolved
+   * @return the single interface type that should be used for the type name
+   */
+  private InterfaceType getTypeWhenMultiplyDefined(Element[] elements) {
+    InterfaceType type = null;
+    for (Element element : elements) {
+      if (element instanceof ClassElement) {
+        if (type != null) {
+          return null;
+        }
+        type = ((ClassElement) element).getType();
+      }
+    }
+    return type;
   }
 
   /**
@@ -1148,7 +1157,7 @@ public class TypeResolverVisitor extends ScopedVisitor {
             Element element2 = identifier2.getStaticElement();
             if (element != null && element.equals(element2)) {
               detectedRepeatOnIndex[j] = true;
-              reportError(CompileTimeErrorCode.IMPLEMENTS_REPEATED, typeName2, name2);
+              reportErrorForNode(CompileTimeErrorCode.IMPLEMENTS_REPEATED, typeName2, name2);
             }
           }
         }
@@ -1174,9 +1183,9 @@ public class TypeResolverVisitor extends ScopedVisitor {
     // If the type is not an InterfaceType, then visitTypeName() sets the type to be a DynamicTypeImpl
     Identifier name = typeName.getName();
     if (name.getName().equals(Keyword.DYNAMIC.getSyntax())) {
-      reportError(dynamicTypeError, name, name.getName());
+      reportErrorForNode(dynamicTypeError, name, name.getName());
     } else {
-      reportError(nonTypeError, name, name.getName());
+      reportErrorForNode(nonTypeError, name, name.getName());
     }
     return null;
   }
