@@ -1049,6 +1049,12 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
     return CodeFormatterUtil.getTabWidth(null);
   }
 
+  private boolean isAfterClassPrologue(IDocument d, int p) {
+    DartHeuristicScanner scanner = new DartHeuristicScanner(d);
+    DartIndenter indenter = new DartIndenter(d, scanner, null);
+    return indenter.isAfterClassPrologue(p);
+  }
+
   private boolean isClosed(IDocument document, int offset, int length) {
     CompilationUnitInfo info = getCompilationUnitForMethod(document, offset);
     if (info == null) {
@@ -1215,8 +1221,7 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
         // copy old content of line behind insertion point to new line
         // unless we think we are inserting an unnamed function argument
         int anonPos = -1;
-        boolean isInBlock = getBracketCount(d, region.getOffset(), c.offset, false) > 1;
-        if (isInBlock) {
+        if (!isAfterClassPrologue(d, p)) {
           if (c.offset == 0
               || (anonPos = computeAnonymousPosition(d, c.offset - 1, fPartitioning, lineEnd)) == -1) {
             if (lineEnd - contentStart > 0) {

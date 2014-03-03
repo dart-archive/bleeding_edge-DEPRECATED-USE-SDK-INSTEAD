@@ -144,6 +144,24 @@ public class DartAutoIndentStrategyTest extends EngineTestCase {
         "}"));
   }
 
+  public void test_smartIndentAfterNewLine_afterClassPrologue() throws Exception {
+    assertSmartInsertAfterNewLine(createSource(//
+        "class A {!main() {}"),
+        createSource(//
+            "class A {",
+            "  !",
+            "}main() {}"));
+  }
+
+  public void test_smartIndentAfterNewLine_afterClassPrologue_withExtends() throws Exception {
+    assertSmartInsertAfterNewLine(createSource(//
+        "class A extends Object implements B, C, D {!main() {}"),
+        createSource(//
+            "class A extends Object implements B, C, D {",
+            "  !",
+            "}main() {}"));
+  }
+
   public void test_smartIndentAfterNewLine_afterMethod() throws Exception {
     assertSmartInsertAfterNewLine(createSource(//
         "class A {",
@@ -200,21 +218,32 @@ public class DartAutoIndentStrategyTest extends EngineTestCase {
         "}"));
   }
 
-  public void test_smartIndentAfterNewLine_classBeforeMethod() throws Exception {
-    assertSmartInsertAfterNewLine(createSource(//
-        "class A {!main() {}"),
-        createSource(//
-            "class A {",
-            "  !",
-            "}main() {}"));
-  }
-
   public void test_smartIndentAfterNewLine_function_hasClosed() throws Exception {
     assertSmartInsertAfterNewLine(createSource(//
         "main() {!}"),
         createSource(//
             "main() {",
             "  !",
+            "}"));
+  }
+
+  public void test_smartIndentAfterNewLine_function_hasClosed_hasStatement() throws Exception {
+    assertSmartInsertAfterNewLine(createSource(//
+        "main() {!",
+        "  print(0);",
+        "}"), createSource(//
+        "main() {",
+        "  !",
+        "  print(0);",
+        "}"));
+  }
+
+  public void test_smartIndentAfterNewLine_function_hasExpression_sameLine() throws Exception {
+    assertSmartInsertAfterNewLine(createSource(//
+        "main() {!42;"),
+        createSource(//
+            "main() {",
+            "  !42;",
             "}"));
   }
 
