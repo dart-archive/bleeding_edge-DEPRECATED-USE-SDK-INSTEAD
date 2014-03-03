@@ -100,6 +100,8 @@ public class DartDebugCorePlugin extends Plugin {
 
   public static final String PREFS_BREAK_ON_EXCEPTIONS = "breakOnExceptions";
 
+  public static final String PREFS_INVOKE_TOSTRING = "invokeToString";
+
   public static final String PREFS_SHOW_RUN_RESUME_DIALOG = "showRunResumeDialog";
 
   private static long loggingStart = System.currentTimeMillis();
@@ -265,6 +267,10 @@ public class DartDebugCorePlugin extends Plugin {
     return getPrefs().get(PREFS_DART_VM_PATH, "");
   }
 
+  public boolean getInvokeToString() {
+    return getPrefs().getBoolean(PREFS_INVOKE_TOSTRING, true);
+  }
+
   public boolean getIsDefaultBrowser() {
     return getPrefs().getBoolean(PREFS_DEFAULT_BROWSER, true);
   }
@@ -328,9 +334,12 @@ public class DartDebugCorePlugin extends Plugin {
     }
   }
 
+  public void setInvokeToString(boolean value) {
+    getPrefs().putBoolean(PREFS_INVOKE_TOSTRING, value);
+  }
+
   public void setShowRunResumeDialogPref(boolean value) {
     getPrefs().putBoolean(PREFS_SHOW_RUN_RESUME_DIALOG, value);
-
   }
 
   public void setUserAgentManager(IUserAgentManager userAgentManager) {

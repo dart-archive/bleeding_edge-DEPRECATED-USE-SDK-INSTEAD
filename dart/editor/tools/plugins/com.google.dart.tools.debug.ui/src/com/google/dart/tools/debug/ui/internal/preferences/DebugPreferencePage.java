@@ -43,6 +43,7 @@ public class DebugPreferencePage extends PreferencePage implements IWorkbenchPre
   public static final String PAGE_ID = "com.google.dart.tools.debug.debugPreferencePage"; //$NON-NLS-1$
 
   private Combo exceptionsCombo;
+  private Button invokeToStringButton;
 
   private Button defaultBrowserButton;
 
@@ -68,6 +69,7 @@ public class DebugPreferencePage extends PreferencePage implements IWorkbenchPre
   public boolean performOk() {
     DartDebugCorePlugin.getPlugin().setBreakOnExceptions(
         BreakOnExceptions.valueOf(exceptionsCombo.getText()));
+    DartDebugCorePlugin.getPlugin().setInvokeToString(invokeToStringButton.getSelection());
 
     DartDebugCorePlugin.getPlugin().setBrowserPreferences(
         defaultBrowserButton.getSelection(),
@@ -101,13 +103,16 @@ public class DebugPreferencePage extends PreferencePage implements IWorkbenchPre
 
     exceptionsCombo.select(exceptionsCombo.indexOf(DartDebugCorePlugin.getPlugin().getBreakOnExceptions().toString()));
 
+    invokeToStringButton = new Button(group, SWT.CHECK);
+    invokeToStringButton.setText("Invoke toString() methods when debugging");
+    GridDataFactory.swtDefaults().span(2, 1).applyTo(invokeToStringButton);
+
     createBrowserConfig(composite, labelWidth);
 
     return composite;
   }
 
   private void createBrowserConfig(Composite composite, int labelWidth) {
-
     Group browserGroup = new Group(composite, SWT.NONE);
     browserGroup.setText("Launching");
     GridDataFactory.fillDefaults().grab(true, false).applyTo(browserGroup);
@@ -157,7 +162,6 @@ public class DebugPreferencePage extends PreferencePage implements IWorkbenchPre
         browserArgumentText);
 
     initFromPrefs();
-
   }
 
   private void handleBrowserConfigBrowseButton() {
@@ -176,6 +180,7 @@ public class DebugPreferencePage extends PreferencePage implements IWorkbenchPre
     browserNameText.setText(DartDebugCorePlugin.getPlugin().getBrowserName());
     browserArgumentText.setText(DartDebugCorePlugin.getPlugin().getBrowserArgs());
     setEnablement(!useDefaultBrowser);
+    invokeToStringButton.setSelection(DartDebugCorePlugin.getPlugin().getInvokeToString());
   }
 
   private void setEnablement(boolean value) {
@@ -183,5 +188,4 @@ public class DebugPreferencePage extends PreferencePage implements IWorkbenchPre
     browserNameText.setEnabled(value);
     browserArgumentText.setEnabled(value);
   }
-
 }

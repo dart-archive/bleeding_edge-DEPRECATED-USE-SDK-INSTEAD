@@ -69,7 +69,8 @@ public class DartiumDebugValue extends DartiumDebugElement implements IValue, ID
 
   public void computeDetail(final ValueCallback callback) {
     // If the value is a primitive type, just return the display string.
-    if (value.isPrimitive() || (variable != null && variable.isLibraryObject())) {
+    if (value.isPrimitive() || (variable != null && variable.isLibraryObject())
+        || !DartDebugCorePlugin.getPlugin().getInvokeToString()) {
       callback.detailComputed(getDisplayString());
 
       return;

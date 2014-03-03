@@ -72,7 +72,8 @@ public class ServerDebugValue extends ServerDebugElement implements IValue, IDar
 
   public void computeDetail(final ValueCallback callback) {
     // If the value is a primitive type, just return the display string.
-    if (value.isPrimitive() || value.isNull()) {
+    if (value.isPrimitive() || value.isNull()
+        || !DartDebugCorePlugin.getPlugin().getInvokeToString()) {
       try {
         callback.detailComputed(getDisplayString());
       } catch (DebugException e) {
