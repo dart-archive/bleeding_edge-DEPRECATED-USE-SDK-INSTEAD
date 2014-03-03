@@ -1563,7 +1563,9 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
           correct = new StringBuffer();
           int secondIndent = firstLineIndent + computeVisualLength(current, tabLength)
               - firstLineOriginalIndent;
-          correct.append(StringUtils.repeat(' ', secondIndent));
+          if (secondIndent > 0) {
+            correct.append(StringUtils.repeat(' ', secondIndent));
+          }
         }
         if (correct == null) {
           return; // bail out

@@ -319,6 +319,18 @@ public class DartAutoIndentStrategyTest extends EngineTestCase {
         "!}"));
   }
 
+  public void test_smartPaste_preventNegativeIndent() throws Exception {
+    assertSmartPaste(createSource(//
+        "main() {",
+        "!}"), createSource(//
+        "    var a;",
+        "var b;"), createSource(//
+        "main() {",
+        "  var a;",
+        "var b;",
+        "!}"));
+  }
+
   public void test_useTabs() throws Exception {
     // We have 1000 and one listener for preferences that expect that we run them in UI.
     // Just make them happy...
