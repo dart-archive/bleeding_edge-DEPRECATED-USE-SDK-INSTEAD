@@ -743,6 +743,12 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     return true;
   }
 
+  @Override
+  public void recordContentError() {
+    super.recordContentError();
+    recordScanError();
+  }
+
   /**
    * Record that an error occurred while attempting to resolve the directives in the source
    * represented by this entry.

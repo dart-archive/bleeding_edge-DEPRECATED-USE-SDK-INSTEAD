@@ -313,6 +313,12 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
     hintsState = CacheState.INVALID;
   }
 
+  @Override
+  public void recordContentError() {
+    super.recordContentError();
+    recordParseError();
+  }
+
   /**
    * Record that an error was encountered while attempting to parse the source associated with this
    * entry.

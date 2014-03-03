@@ -29,6 +29,12 @@ import com.google.dart.engine.source.SourceKind;
  */
 public interface DartEntry extends SourceEntry {
   /**
+   * The data descriptor representing the errors reported during Angular resolution.
+   */
+  public static final DataDescriptor<AnalysisError[]> ANGULAR_ERRORS = new DataDescriptor<AnalysisError[]>(
+      "DartEntry.ANGULAR_ERRORS");
+
+  /**
    * The data descriptor representing the list of libraries that contain this compilation unit.
    */
   public static final DataDescriptor<Source[]> CONTAINING_LIBRARIES = new DataDescriptor<Source[]>(
@@ -114,16 +120,16 @@ public interface DartEntry extends SourceEntry {
       "DartEntry.RESOLVED_UNIT");
 
   /**
-   * The data descriptor representing the source kind.
-   */
-  public static final DataDescriptor<SourceKind> SOURCE_KIND = new DataDescriptor<SourceKind>(
-      "DartEntry.SOURCE_KIND");
-
-  /**
    * The data descriptor representing the token stream.
    */
   public static final DataDescriptor<AnalysisError[]> SCAN_ERRORS = new DataDescriptor<AnalysisError[]>(
       "DartEntry.SCAN_ERRORS");
+
+  /**
+   * The data descriptor representing the source kind.
+   */
+  public static final DataDescriptor<SourceKind> SOURCE_KIND = new DataDescriptor<SourceKind>(
+      "DartEntry.SOURCE_KIND");
 
   /**
    * The data descriptor representing the token stream.
@@ -136,12 +142,6 @@ public interface DartEntry extends SourceEntry {
    */
   public static final DataDescriptor<AnalysisError[]> VERIFICATION_ERRORS = new DataDescriptor<AnalysisError[]>(
       "DartEntry.VERIFICATION_ERRORS");
-
-  /**
-   * The data descriptor representing the errors reported during Angular resolution.
-   */
-  public static final DataDescriptor<AnalysisError[]> ANGULAR_ERRORS = new DataDescriptor<AnalysisError[]>(
-      "DartEntry.ANGULAR_ERRORS");
 
   /**
    * Return all of the errors associated with the compilation unit that are currently cached.

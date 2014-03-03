@@ -43,9 +43,14 @@ public class ParseHtmlTask extends AnalysisTask {
   private Source source;
 
   /**
+   * The contents of the source.
+   */
+  private CharSequence content;
+
+  /**
    * The time at which the contents of the source were last modified.
    */
-  private long modificationTime = -1L;
+  private long modificationTime;
 
   /**
    * The line information that was produced.
@@ -82,10 +87,14 @@ public class ParseHtmlTask extends AnalysisTask {
    * 
    * @param context the context in which the task is to be performed
    * @param source the source to be parsed
+   * @param contentData the time-stamped contents of the source
    */
-  public ParseHtmlTask(InternalAnalysisContext context, Source source) {
+  public ParseHtmlTask(InternalAnalysisContext context, Source source,
+      TimestampedData<CharSequence> contentData) {
     super(context);
     this.source = source;
+    content = contentData.getData();
+    modificationTime = contentData.getModificationTime();
   }
 
   @Override
@@ -161,9 +170,7 @@ public class ParseHtmlTask extends AnalysisTask {
   @Override
   protected void internalPerform() throws AnalysisException {
     try {
-      TimestampedData<CharSequence> contents = getContext().getContents(source);
-      modificationTime = contents.getModificationTime();
-      AbstractScanner scanner = new StringScanner(source, contents.getData());
+      AbstractScanner scanner = new StringScanner(source, content);
       scanner.setPassThroughElements(new String[] {TAG_SCRIPT});
       Token token = scanner.tokenize();
       lineInfo = new LineInfo(scanner.getLineStarts());

@@ -40,6 +40,15 @@ public interface AnalysisTaskVisitor<E> {
   public E visitGenerateDartHintsTask(GenerateDartHintsTask task) throws AnalysisException;
 
   /**
+   * Visit a {@link GetContentTask}.
+   * 
+   * @param task the task to be visited
+   * @return the result of visiting the task
+   * @throws AnalysisException if the visitor throws an exception for some reason
+   */
+  public E visitGetContentTask(GetContentTask task) throws AnalysisException;
+
+  /**
    * Visit an {@link IncrementalAnalysisTask}.
    * 
    * @param task the task to be visited

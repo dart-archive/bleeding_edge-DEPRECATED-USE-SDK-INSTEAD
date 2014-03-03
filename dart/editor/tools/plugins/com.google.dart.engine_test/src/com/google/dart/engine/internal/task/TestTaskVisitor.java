@@ -36,6 +36,12 @@ public class TestTaskVisitor<E> implements AnalysisTaskVisitor<E> {
   }
 
   @Override
+  public E visitGetContentTask(GetContentTask task) throws AnalysisException {
+    Assert.fail("Unexpectedly invoked visitGetContentsTask");
+    return null;
+  }
+
+  @Override
   public E visitIncrementalAnalysisTask(IncrementalAnalysisTask incrementalAnalysisTask)
       throws AnalysisException {
     Assert.fail("Unexpectedly invoked visitIncrementalAnalysisTask");

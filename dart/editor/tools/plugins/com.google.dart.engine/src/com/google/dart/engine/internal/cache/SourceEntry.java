@@ -28,6 +28,12 @@ import com.google.dart.engine.utilities.source.LineInfo;
  */
 public interface SourceEntry {
   /**
+   * The data descriptor representing the contents of the source.
+   */
+  public static final DataDescriptor<CharSequence> CONTENT = new DataDescriptor<CharSequence>(
+      "DartEntry.CONTENT");
+
+  /**
    * The data descriptor representing the line information.
    */
   public static final DataDescriptor<LineInfo> LINE_INFO = new DataDescriptor<LineInfo>(

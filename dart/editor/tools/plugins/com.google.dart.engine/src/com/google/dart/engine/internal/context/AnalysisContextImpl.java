@@ -65,6 +65,7 @@ import com.google.dart.engine.internal.task.AnalysisTask;
 import com.google.dart.engine.internal.task.AnalysisTaskVisitor;
 import com.google.dart.engine.internal.task.GenerateDartErrorsTask;
 import com.google.dart.engine.internal.task.GenerateDartHintsTask;
+import com.google.dart.engine.internal.task.GetContentTask;
 import com.google.dart.engine.internal.task.IncrementalAnalysisTask;
 import com.google.dart.engine.internal.task.ParseDartTask;
 import com.google.dart.engine.internal.task.ParseHtmlTask;
@@ -110,19 +111,24 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
    */
   private class AnalysisTaskResultRecorder implements AnalysisTaskVisitor<SourceEntry> {
     @Override
-    public SourceEntry visitGenerateDartErrorsTask(GenerateDartErrorsTask task)
+    public DartEntry visitGenerateDartErrorsTask(GenerateDartErrorsTask task)
         throws AnalysisException {
       return recordGenerateDartErrorsTask(task);
     }
 
     @Override
-    public SourceEntry visitGenerateDartHintsTask(GenerateDartHintsTask task)
+    public DartEntry visitGenerateDartHintsTask(GenerateDartHintsTask task)
         throws AnalysisException {
       return recordGenerateDartHintsTask(task);
     }
 
     @Override
-    public SourceEntry visitIncrementalAnalysisTask(IncrementalAnalysisTask task)
+    public SourceEntry visitGetContentTask(GetContentTask task) throws AnalysisException {
+      return recordGetContentsTask(task);
+    }
+
+    @Override
+    public DartEntry visitIncrementalAnalysisTask(IncrementalAnalysisTask task)
         throws AnalysisException {
       return recordIncrementalAnalysisTaskResults(task);
     }
@@ -144,7 +150,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     }
 
     @Override
-    public SourceEntry visitResolveAngularEntryHtmlTask(ResolveAngularEntryHtmlTask task)
+    public HtmlEntry visitResolveAngularEntryHtmlTask(ResolveAngularEntryHtmlTask task)
         throws AnalysisException {
       return recordResolveAngularEntryHtmlTaskResults(task);
     }
@@ -162,17 +168,17 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     }
 
     @Override
-    public SourceEntry visitResolveDartUnitTask(ResolveDartUnitTask task) throws AnalysisException {
+    public DartEntry visitResolveDartUnitTask(ResolveDartUnitTask task) throws AnalysisException {
       return recordResolveDartUnitTaskResults(task);
     }
 
     @Override
-    public SourceEntry visitResolveHtmlTask(ResolveHtmlTask task) throws AnalysisException {
+    public HtmlEntry visitResolveHtmlTask(ResolveHtmlTask task) throws AnalysisException {
       return recordResolveHtmlTaskResults(task);
     }
 
     @Override
-    public SourceEntry visitScanDartTask(ScanDartTask task) throws AnalysisException {
+    public DartEntry visitScanDartTask(ScanDartTask task) throws AnalysisException {
       return recordScanDartTaskResults(task);
     }
   }
@@ -578,8 +584,10 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     if (source == null) {
       return false;
     }
-    if (contentCache.getContents(source) != null) {
-      return true;
+    synchronized (cacheLock) {
+      if (contentCache.getContents(source) != null) {
+        return true;
+      }
     }
     return source.exists();
   }
@@ -648,9 +656,13 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
 
   @Override
   public TimestampedData<CharSequence> getContents(Source source) throws Exception {
-    String contents = contentCache.getContents(source);
-    if (contents != null) {
-      return new TimestampedData<CharSequence>(contentCache.getModificationStamp(source), contents);
+    synchronized (cacheLock) {
+      String contents = contentCache.getContents(source);
+      if (contents != null) {
+        return new TimestampedData<CharSequence>(
+            contentCache.getModificationStamp(source),
+            contents);
+      }
     }
     return source.getContents();
   }
@@ -658,10 +670,12 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   @Override
   @SuppressWarnings("deprecation")
   public void getContentsToReceiver(Source source, ContentReceiver receiver) throws Exception {
-    String contents = contentCache.getContents(source);
-    if (contents != null) {
-      receiver.accept(contents, contentCache.getModificationStamp(source));
-      return;
+    synchronized (cacheLock) {
+      String contents = contentCache.getContents(source);
+      if (contents != null) {
+        receiver.accept(contents, contentCache.getModificationStamp(source));
+        return;
+      }
     }
     source.getContentsToReceiver(receiver);
   }
@@ -866,9 +880,11 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
 
   @Override
   public long getModificationStamp(Source source) {
-    Long stamp = contentCache.getModificationStamp(source);
-    if (stamp != null) {
-      return stamp.longValue();
+    synchronized (cacheLock) {
+      Long stamp = contentCache.getModificationStamp(source);
+      if (stamp != null) {
+        return stamp.longValue();
+      }
     }
     return source.getModificationStamp();
   }
@@ -1334,6 +1350,13 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
                 getReadableSourceEntry(source));
           }
           sourceChanged(source);
+          SourceEntry sourceEntry = cache.get(source);
+          if (sourceEntry != null) {
+            SourceEntryImpl sourceCopy = sourceEntry.getWritableCopy();
+            sourceCopy.setModificationTime(contentCache.getModificationStamp(source));
+            sourceCopy.setValue(SourceEntry.CONTENT, contents);
+            cache.put(source, sourceCopy);
+          }
         }
       } else if (originalContents != null) {
         incrementalAnalysisCache = IncrementalAnalysisCache.clear(incrementalAnalysisCache, source);
@@ -1353,6 +1376,13 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
               incrementalAnalysisCache,
               source);
           sourceChanged(source);
+          SourceEntry sourceEntry = cache.get(source);
+          if (sourceEntry != null) {
+            SourceEntryImpl sourceCopy = sourceEntry.getWritableCopy();
+            sourceCopy.setModificationTime(contentCache.getModificationStamp(source));
+            sourceCopy.setValue(SourceEntry.CONTENT, contents);
+            cache.put(source, sourceCopy);
+          }
         }
       } else if (originalContents != null) {
         incrementalAnalysisCache = IncrementalAnalysisCache.clear(incrementalAnalysisCache, source);
@@ -1818,7 +1848,15 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       // If not, compute the information. Unless the modification date of the source continues to
       // change, this loop will eventually terminate.
       //
-      htmlEntry = (HtmlEntry) new ParseHtmlTask(this, source).perform(resultRecorder);
+      // TODO(brianwilkerson) Convert this to get the contents from the cache. (I'm not sure how
+      // that would work in an asynchronous environment.)
+      try {
+        htmlEntry = (HtmlEntry) new ParseHtmlTask(this, source, getContents(source)).perform(resultRecorder);
+      } catch (AnalysisException exception) {
+        throw exception;
+      } catch (Exception exception) {
+        throw new AnalysisException(exception);
+      }
       state = htmlEntry.getState(descriptor);
     }
     return htmlEntry;
@@ -2345,6 +2383,20 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
    */
   private AnalysisTask getNextAnalysisTask(Source source, SourceEntry sourceEntry,
       boolean isPriority, boolean hintsEnabled, boolean sdkErrorsEnabled) {
+    if (sourceEntry == null) {
+      return null;
+    }
+    CacheState contentState = sourceEntry.getState(SourceEntry.CONTENT);
+    if (contentState == CacheState.INVALID) {
+      SourceEntryImpl sourceCopy = sourceEntry.getWritableCopy();
+      sourceCopy.setState(SourceEntry.CONTENT, CacheState.IN_PROCESS);
+      cache.put(source, sourceCopy);
+      return new GetContentTask(this, source);
+    } else if (contentState == CacheState.IN_PROCESS) {
+      // We are in the process of getting the content. There's nothing else we can do with this
+      // source until that's complete.
+      return null;
+    }
     if (sourceEntry instanceof DartEntry) {
       DartEntry dartEntry = (DartEntry) sourceEntry;
       CacheState scanErrorsState = dartEntry.getState(DartEntry.SCAN_ERRORS);
@@ -2355,8 +2407,17 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         try {
           DartEntryImpl dartCopy = dartEntry.getWritableCopy();
           dartCopy.setState(DartEntry.SCAN_ERRORS, CacheState.IN_PROCESS);
+          TimestampedData<CharSequence> contentData;
+          if (contentState == CacheState.VALID) {
+            contentData = new TimestampedData<CharSequence>(
+                dartCopy.getModificationTime(),
+                dartCopy.getValue(SourceEntry.CONTENT));
+            dartCopy.setState(SourceEntry.CONTENT, CacheState.FLUSHED);
+          } else {
+            contentData = getContents(source);
+          }
           cache.put(source, dartCopy);
-          return new ScanDartTask(this, source, getContents(source));
+          return new ScanDartTask(this, source, contentData);
         } catch (Exception exception) {
           DartEntryImpl dartCopy = dartEntry.getWritableCopy();
           dartCopy.recordScanError();
@@ -2455,18 +2516,50 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       CacheState parseErrorsState = htmlEntry.getState(HtmlEntry.PARSE_ERRORS);
       if (parseErrorsState == CacheState.INVALID
           || (isPriority && parseErrorsState == CacheState.FLUSHED)) {
-        HtmlEntryImpl dartCopy = htmlEntry.getWritableCopy();
-        dartCopy.setState(HtmlEntry.PARSE_ERRORS, CacheState.IN_PROCESS);
-        cache.put(source, dartCopy);
-        return new ParseHtmlTask(this, source);
+        try {
+          HtmlEntryImpl htmlCopy = htmlEntry.getWritableCopy();
+          htmlCopy.setState(HtmlEntry.PARSE_ERRORS, CacheState.IN_PROCESS);
+          TimestampedData<CharSequence> contentData;
+          if (contentState == CacheState.VALID) {
+            contentData = new TimestampedData<CharSequence>(
+                htmlCopy.getModificationTime(),
+                htmlCopy.getValue(SourceEntry.CONTENT));
+            htmlCopy.setState(SourceEntry.CONTENT, CacheState.FLUSHED);
+          } else {
+            contentData = getContents(source);
+          }
+          cache.put(source, htmlCopy);
+          return new ParseHtmlTask(this, source, contentData);
+        } catch (Exception exception) {
+          HtmlEntryImpl htmlCopy = htmlEntry.getWritableCopy();
+          htmlCopy.recordParseError();
+          htmlCopy.setException(new AnalysisException(exception));
+          cache.put(source, htmlCopy);
+        }
       }
       if (isPriority && parseErrorsState != CacheState.ERROR) {
         HtmlUnit parsedUnit = htmlEntry.getAnyParsedUnit();
         if (parsedUnit == null) {
-          HtmlEntryImpl dartCopy = htmlEntry.getWritableCopy();
-          dartCopy.setState(HtmlEntry.PARSED_UNIT, CacheState.IN_PROCESS);
-          cache.put(source, dartCopy);
-          return new ParseHtmlTask(this, source);
+          try {
+            HtmlEntryImpl dartCopy = htmlEntry.getWritableCopy();
+            dartCopy.setState(HtmlEntry.PARSE_ERRORS, CacheState.IN_PROCESS);
+            TimestampedData<CharSequence> contentData;
+            if (contentState == CacheState.VALID) {
+              contentData = new TimestampedData<CharSequence>(
+                  dartCopy.getModificationTime(),
+                  dartCopy.getValue(SourceEntry.CONTENT));
+              dartCopy.setState(SourceEntry.CONTENT, CacheState.FLUSHED);
+            } else {
+              contentData = getContents(source);
+            }
+            cache.put(source, dartCopy);
+            return new ParseHtmlTask(this, source, contentData);
+          } catch (Exception exception) {
+            HtmlEntryImpl htmlCopy = htmlEntry.getWritableCopy();
+            htmlCopy.recordParseError();
+            htmlCopy.setException(new AnalysisException(exception));
+            cache.put(source, htmlCopy);
+          }
         }
       }
       CacheState resolvedUnitState = htmlEntry.getState(HtmlEntry.RESOLVED_UNIT);
@@ -3182,6 +3275,43 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
+   * Record the results produced by performing a {@link GetContentTask}.
+   * 
+   * @param task the task that was performed
+   * @return an entry containing the computed results
+   * @throws AnalysisException if the results could not be recorded
+   */
+  private SourceEntry recordGetContentsTask(GetContentTask task) throws AnalysisException {
+    if (!task.isComplete()) {
+      return null;
+    }
+    Source source = task.getSource();
+    AnalysisException thrownException = task.getException();
+    SourceEntry sourceEntry = null;
+    synchronized (cacheLock) {
+      sourceEntry = cache.get(source);
+      if (sourceEntry == null) {
+        throw new ObsoleteSourceAnalysisException(source);
+      }
+      SourceEntryImpl sourceCopy = sourceEntry.getWritableCopy();
+      if (thrownException == null) {
+        sourceCopy.setModificationTime(task.getModificationTime());
+        sourceCopy.setValue(SourceEntry.CONTENT, task.getContent());
+      } else {
+        sourceCopy.setException(thrownException);
+        sourceCopy.recordContentError();
+        workManager.remove(source);
+      }
+      cache.put(source, sourceCopy);
+      sourceEntry = sourceCopy;
+    }
+    if (thrownException != null) {
+      throw thrownException;
+    }
+    return sourceEntry;
+  }
+
+  /**
    * Record the results produced by performing a {@link IncrementalAnalysisTask}.
    * 
    * @param task the task that was performed
@@ -3687,7 +3817,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
    * @return an entry containing the computed results
    * @throws AnalysisException if the results could not be recorded
    */
-  private SourceEntry recordResolveDartUnitTaskResults(ResolveDartUnitTask task)
+  private DartEntry recordResolveDartUnitTaskResults(ResolveDartUnitTask task)
       throws AnalysisException {
     Source unitSource = task.getSource();
     Source librarySource = task.getLibrarySource();
@@ -3774,7 +3904,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
    * @return an entry containing the computed results
    * @throws AnalysisException if the results could not be recorded
    */
-  private SourceEntry recordResolveHtmlTaskResults(ResolveHtmlTask task) throws AnalysisException {
+  private HtmlEntry recordResolveHtmlTaskResults(ResolveHtmlTask task) throws AnalysisException {
     Source source = task.getSource();
     AnalysisException thrownException = task.getException();
     HtmlEntry htmlEntry = null;

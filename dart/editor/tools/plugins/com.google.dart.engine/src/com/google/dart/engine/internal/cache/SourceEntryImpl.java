@@ -35,6 +35,16 @@ public abstract class SourceEntryImpl implements SourceEntry {
   private AnalysisException exception;
 
   /**
+   * The state of the cached content.
+   */
+  private CacheState contentState = CacheState.INVALID;
+
+  /**
+   * The content of the source, or {@code null} if the content is not currently cached.
+   */
+  private CharSequence content;
+
+  /**
    * The state of the cached line information.
    */
   private CacheState lineInfoState = CacheState.INVALID;
@@ -87,7 +97,9 @@ public abstract class SourceEntryImpl implements SourceEntry {
 
   @Override
   public CacheState getState(DataDescriptor<?> descriptor) {
-    if (descriptor == LINE_INFO) {
+    if (descriptor == CONTENT) {
+      return contentState;
+    } else if (descriptor == LINE_INFO) {
       return lineInfoState;
     } else {
       throw new IllegalArgumentException("Invalid descriptor: " + descriptor);
@@ -97,7 +109,9 @@ public abstract class SourceEntryImpl implements SourceEntry {
   @Override
   @SuppressWarnings("unchecked")
   public <E> E getValue(DataDescriptor<E> descriptor) {
-    if (descriptor == LINE_INFO) {
+    if (descriptor == CONTENT) {
+      return (E) content;
+    } else if (descriptor == LINE_INFO) {
       return (E) lineInfo;
     } else {
       throw new IllegalArgumentException("Invalid descriptor: " + descriptor);
@@ -108,8 +122,20 @@ public abstract class SourceEntryImpl implements SourceEntry {
    * Invalidate all of the information associated with this source.
    */
   public void invalidateAllInformation() {
+    content = null;
+    contentState = CacheState.INVALID;
     lineInfo = null;
     lineInfoState = CacheState.INVALID;
+  }
+
+  /**
+   * Record that an error occurred while attempting to get the contents of the source represented by
+   * this entry. This will set the state of all information, including any resolution-based
+   * information, as being in error.
+   */
+  public void recordContentError() {
+    content = null;
+    contentState = CacheState.ERROR;
   }
 
   /**
@@ -139,7 +165,10 @@ public abstract class SourceEntryImpl implements SourceEntry {
    * @param the new state of the data represented by the given descriptor
    */
   public void setState(DataDescriptor<?> descriptor, CacheState state) {
-    if (descriptor == LINE_INFO) {
+    if (descriptor == CONTENT) {
+      content = updatedValue(state, content, null);
+      contentState = state;
+    } else if (descriptor == LINE_INFO) {
       lineInfo = updatedValue(state, lineInfo, null);
       lineInfoState = state;
     } else {
@@ -154,7 +183,10 @@ public abstract class SourceEntryImpl implements SourceEntry {
    * @param value the new value of the data represented by the given descriptor
    */
   public <E> void setValue(DataDescriptor<E> descriptor, E value) {
-    if (descriptor == LINE_INFO) {
+    if (descriptor == CONTENT) {
+      content = (CharSequence) value;
+      contentState = CacheState.VALID;
+    } else if (descriptor == LINE_INFO) {
       lineInfo = (LineInfo) value;
       lineInfoState = CacheState.VALID;
     } else {
@@ -177,6 +209,8 @@ public abstract class SourceEntryImpl implements SourceEntry {
   protected void copyFrom(SourceEntryImpl entry) {
     modificationTime = entry.modificationTime;
     exception = entry.exception;
+    contentState = entry.contentState;
+    content = entry.content;
     lineInfoState = entry.lineInfoState;
     lineInfo = entry.lineInfo;
   }
@@ -187,7 +221,7 @@ public abstract class SourceEntryImpl implements SourceEntry {
    * @return {@code true} if the state of any data value is {@link CacheState#ERROR}
    */
   protected boolean hasErrorState() {
-    return lineInfoState == CacheState.ERROR;
+    return contentState == CacheState.ERROR || lineInfoState == CacheState.ERROR;
   }
 
   /**
@@ -219,7 +253,9 @@ public abstract class SourceEntryImpl implements SourceEntry {
    */
   protected void writeOn(StringBuilder builder) {
     builder.append("time = ");
-    builder.append(Long.toString(modificationTime, 16));
+    builder.append(modificationTime);
+    builder.append("; content = ");
+    builder.append(contentState);
     builder.append("; lineInfo = ");
     builder.append(lineInfoState);
   }
