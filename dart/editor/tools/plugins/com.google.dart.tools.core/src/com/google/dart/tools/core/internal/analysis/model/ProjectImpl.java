@@ -646,9 +646,10 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
     } else if (sdk instanceof DirectoryBasedDartSdk) {
       // TODO(keertip): replace PackageUriResolver with explicit one at a later stage
       // for now use this only when there is no pubspec or package root
-      pkgResolver = new ExplicitPackageUriResolver(
-          (DirectoryBasedDartSdk) sdk,
-          container.getLocation().toFile());
+      IPath location = container.getLocation();
+      if (location != null) {
+        pkgResolver = new ExplicitPackageUriResolver((DirectoryBasedDartSdk) sdk, location.toFile());
+      }
     }
     return pkgResolver;
   }
