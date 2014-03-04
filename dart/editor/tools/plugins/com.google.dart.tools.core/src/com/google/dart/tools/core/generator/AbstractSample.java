@@ -17,6 +17,7 @@ package com.google.dart.tools.core.generator;
 import com.google.common.base.Charsets;
 import com.google.common.io.CharStreams;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.utilities.io.FileUtilities;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
@@ -29,10 +30,12 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -50,6 +53,7 @@ public class AbstractSample {
     return Arrays.asList(
         new ChromePackagedAppSample(),
         new CommandLineSample(),
+        new PackageSample(),
         new ProjectSample(),
         new WebAppSample(),
         new PolymerSample());
@@ -136,10 +140,22 @@ public class AbstractSample {
       createFolder((IFolder) file.getParent(), false, true, null);
     }
 
-    InputStream in;
+    InputStream in = null;
 
     if (contents.startsWith("@")) {
-      in = getClass().getResourceAsStream(contents.substring(1));
+      try {
+        File file2 = new File(getClass().getResource(contents.substring(1)).toURI());
+        if (file2 != null) {
+          in = new ByteArrayInputStream(FileUtilities.getContents(file2, "UTF-8").getBytes());
+        }
+      } catch (URISyntaxException e) {
+
+      } catch (IOException e) {
+
+      }
+
+      // s   in = getClass().getResourceAsStream(contents.substring(1));
+
     } else {
       in = new ByteArrayInputStream(contents.getBytes(Charsets.UTF_8));
     }
