@@ -1052,11 +1052,11 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
     return CodeFormatterUtil.getTabWidth(null);
   }
 
-  private boolean isAfterClassPrologue(IDocument d, int p) {
-    DartHeuristicScanner scanner = new DartHeuristicScanner(d);
-    DartIndenter indenter = new DartIndenter(d, scanner, null);
-    return indenter.isAfterClassPrologue(p);
-  }
+//  private boolean isAfterClassPrologue(IDocument d, int p) {
+//    DartHeuristicScanner scanner = new DartHeuristicScanner(d);
+//    DartIndenter indenter = new DartIndenter(d, scanner, null);
+//    return indenter.isAfterClassPrologue(p);
+//  }
 
   private boolean isClosed(IDocument document, int offset, int length) {
     CompilationUnitInfo info = getCompilationUnitForMethod(document, offset);
@@ -1145,24 +1145,28 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
     }
   }
 
-  private boolean isWrongPlaceToCloseUnbalancedBrace(IDocument d, int p, int lineEnd) {
-    DartHeuristicScanner scanner = new DartHeuristicScanner(d);
-    int token = scanner.nextToken(p, lineEnd);
-    return token == Symbols.TokenAND;
-  }
+//  /**
+//   * If "p" is right after "{" and the next token is "," or ")" - i.e. tokens that we expect to
+//   * follow a closure in an argument list.
+//   */
+//  private boolean looksLikeAfterLBraceForClosure(IDocument d, int p) {
+//    DartHeuristicScanner scanner = new DartHeuristicScanner(d);
+//    int len = d.getLength();
+//    int token = scanner.nextToken(p, len);
+//    if (token == Symbols.TokenCOMMA || token == Symbols.TokenRPAREN) {
+//      return true;
+//    }
+//    return false;
+//  }
 
-  /**
-   * If "p" is right after "{" and the next token is "," or ")" - i.e. tokens that we expect to
-   * follow a closure in an argument list.
-   */
-  private boolean looksLikeAfterLBraceForClosure(IDocument d, int p) {
+  private boolean shouldCloseUnbalancedBrace(IDocument d, int p, int lineEnd) {
     DartHeuristicScanner scanner = new DartHeuristicScanner(d);
-    int len = d.getLength();
-    int token = scanner.nextToken(p, len);
-    if (token == Symbols.TokenCOMMA || token == Symbols.TokenRPAREN) {
+    if (scanner.findNonWhitespaceForward(p, lineEnd) == -1) {
       return true;
     }
-    return false;
+    int token = scanner.nextToken(p, lineEnd);
+    return token == Symbols.TokenCOMMA || token == Symbols.TokenRPAREN
+        || token == Symbols.TokenRBRACKET;
   }
 
   private void smartIndentAfterClosingBracket(IDocument d, DocumentCommand c) {
@@ -1241,18 +1245,18 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
         c.caretOffset = c.offset + buf.length();
         c.shiftsCaret = false;
 
-        // copy old content of line behind insertion point to new line
-        // unless we think we are inserting an unnamed function argument
-        if (!isAfterClassPrologue(d, p)) {
-          if (!looksLikeAfterLBraceForClosure(d, p)) {
-            if (lineEnd - contentStart > 0) {
-              c.length = lineEnd - c.offset;
-              buf.append(d.get(contentStart, lineEnd - contentStart).toCharArray());
-            }
-          }
-        }
+//        // copy old content of line behind insertion point to new line
+//        // unless we think we are inserting an unnamed function argument
+//        if (!isAfterClassPrologue(d, p)) {
+//          if (!looksLikeAfterLBraceForClosure(d, p)) {
+//            if (lineEnd - contentStart > 0) {
+//              c.length = lineEnd - c.offset;
+//              buf.append(d.get(contentStart, lineEnd - contentStart).toCharArray());
+//            }
+//          }
+//        }
 
-        if (!isWrongPlaceToCloseUnbalancedBrace(d, p, lineEnd)) {
+        if (shouldCloseUnbalancedBrace(d, p, lineEnd)) {
           buf.append(TextUtilities.getDefaultLineDelimiter(d));
           StringBuffer reference = null;
           int nonWS = findEndOfWhiteSpace(d, start, lineEnd);

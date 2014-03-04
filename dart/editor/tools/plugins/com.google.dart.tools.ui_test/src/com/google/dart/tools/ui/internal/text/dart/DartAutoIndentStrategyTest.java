@@ -146,23 +146,25 @@ public class DartAutoIndentStrategyTest extends EngineTestCase {
 
   public void test_smartIndentAfterNewLine_afterClassPrologue() throws Exception {
     assertSmartInsertAfterNewLine(createSource(//
-        "class A {!main() {}"),
-        createSource(//
-            "class A {",
-            "  !",
-            "}main() {}"));
+        "class A {!",
+        "main() {}"), createSource(//
+        "class A {",
+        "  !",
+        "}",
+        "main() {}"));
   }
 
   public void test_smartIndentAfterNewLine_afterClassPrologue_withExtends() throws Exception {
     assertSmartInsertAfterNewLine(createSource(//
-        "class A extends Object implements B, C, D {!main() {}"),
-        createSource(//
-            "class A extends Object implements B, C, D {",
-            "  !",
-            "}main() {}"));
+        "class A extends Object implements B, C, D {!",
+        "main() {}"), createSource(//
+        "class A extends Object implements B, C, D {",
+        "  !",
+        "}",
+        "main() {}"));
   }
 
-  public void test_smartIndentAfterNewLine_afterLBrace_beforeAmpAmp() throws Exception {
+  public void test_smartIndentAfterNewLine_afterLBrace_beforeAnd() throws Exception {
     assertSmartInsertAfterNewLine(createSource(//
         "main() {",
         "  if (true) {! && false) {",
@@ -257,6 +259,18 @@ public class DartAutoIndentStrategyTest extends EngineTestCase {
         "}"));
   }
 
+  public void test_smartIndentAfterNewLine_closure_notClosed_beforeRBracket() throws Exception {
+    assertSmartInsertAfterNewLine(createSource(//
+        "main() {",
+        "  print([(_) {!]);",
+        "}"), createSource(//
+        "main() {",
+        "  print([(_) {",
+        "    !",
+        "  }]);",
+        "}"));
+  }
+
   public void test_smartIndentAfterNewLine_closure_notClosed_beforeRParen() throws Exception {
     assertSmartInsertAfterNewLine(createSource(//
         "main() {",
@@ -289,13 +303,16 @@ public class DartAutoIndentStrategyTest extends EngineTestCase {
         "}"));
   }
 
+  /**
+   * We don't wrap the expression into {} as per discussion in
+   * https://code.google.com/p/dart/issues/detail?id=17046
+   */
   public void test_smartIndentAfterNewLine_function_hasExpression_sameLine() throws Exception {
     assertSmartInsertAfterNewLine(createSource(//
         "main() {!42;"),
         createSource(//
             "main() {",
-            "  !42;",
-            "}"));
+            "  !42;"));
   }
 
   public void test_smartIndentAfterNewLine_function_noClosed() throws Exception {
@@ -319,6 +336,10 @@ public class DartAutoIndentStrategyTest extends EngineTestCase {
         "}"));
   }
 
+  /**
+   * We don't wrap the statement into {} as per discussion in
+   * https://code.google.com/p/dart/issues/detail?id=17046
+   */
   public void test_smartIndentAfterNewLine_wrapIntoBlock() throws Exception {
     assertSmartInsertAfterNewLine(createSource(//
         "main() {",
@@ -327,7 +348,6 @@ public class DartAutoIndentStrategyTest extends EngineTestCase {
         "main() {",
         "  if (true) {",
         "    !print();",
-        "  }",
         "}"));
   }
 

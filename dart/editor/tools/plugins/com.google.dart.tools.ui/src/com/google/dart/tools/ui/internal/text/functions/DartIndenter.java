@@ -858,30 +858,30 @@ public class DartIndenter {
     return getLeadingWhitespace(unit);
   }
 
-  public boolean isAfterClassPrologue(int offset) {
-    fPosition = offset;
-    nextToken();
-    if (fToken == Symbols.TokenLBRACE) {
-      while (true) {
-        nextToken();
-        if (fToken == Symbols.TokenEOF) {
-          return false;
-        }
-        if (fToken == Symbols.TokenIDENT) {
-          nextToken();
-          if (fToken == Symbols.TokenCLASS) {
-            return true;
-          }
-          if (fToken == Symbols.TokenEXTENDS || fToken == Symbols.TokenIMPLEMENTS
-              || fToken == Symbols.TokenCOMMA) {
-            continue;
-          }
-          return false;
-        }
-      }
-    }
-    return false;
-  }
+//  public boolean isAfterClassPrologue(int offset) {
+//    fPosition = offset;
+//    nextToken();
+//    if (fToken == Symbols.TokenLBRACE) {
+//      while (true) {
+//        nextToken();
+//        if (fToken == Symbols.TokenEOF) {
+//          return false;
+//        }
+//        if (fToken == Symbols.TokenIDENT) {
+//          nextToken();
+//          if (fToken == Symbols.TokenCLASS) {
+//            return true;
+//          }
+//          if (fToken == Symbols.TokenEXTENDS || fToken == Symbols.TokenIMPLEMENTS
+//              || fToken == Symbols.TokenCOMMA) {
+//            continue;
+//          }
+//          return false;
+//        }
+//      }
+//    }
+//    return false;
+//  }
 
   /**
    * Computes the length of a <code>CharacterSequence</code>, counting a tab character as the size
