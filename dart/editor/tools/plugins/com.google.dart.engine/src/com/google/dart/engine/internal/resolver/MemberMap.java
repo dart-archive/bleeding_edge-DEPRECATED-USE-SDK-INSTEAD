@@ -154,9 +154,9 @@ public class MemberMap {
   }
 
   /**
-   * Given some String key, this method replaces the associated key and value pair with {@code null}
-   * . The size is not decremented with this call, instead it is expected that the users check for
-   * {@code null}.
+   * Given some {@link String} key, this method replaces the associated key and value pair with
+   * {@code null}. The size is not decremented with this call, instead it is expected that the users
+   * check for {@code null}.
    * 
    * @param key the key of the key/value pair to remove from the map
    */

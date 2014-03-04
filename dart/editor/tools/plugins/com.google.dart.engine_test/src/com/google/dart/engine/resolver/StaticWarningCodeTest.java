@@ -1988,6 +1988,39 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_nonAbstractClassInheritsAbstractMemberOne_mixinInherits_getter()
+      throws Exception {
+    // 15001
+    Source source = addSource(createSource(//
+        "abstract class A { get g1; get g2; }",
+        "abstract class B implements A { get g1 => 1; }",
+        "class C extends Object with B {}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE);
+  }
+
+  public void test_nonAbstractClassInheritsAbstractMemberOne_mixinInherits_method()
+      throws Exception {
+    // 15001
+    Source source = addSource(createSource(//
+        "abstract class A { m1(); m2(); }",
+        "abstract class B implements A { m1() => 1; }",
+        "class C extends Object with B {}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE);
+  }
+
+  public void test_nonAbstractClassInheritsAbstractMemberOne_mixinInherits_setter()
+      throws Exception {
+    // 15001
+    Source source = addSource(createSource(//
+        "abstract class A { set s1(v); set s2(v); }",
+        "abstract class B implements A { set s1(v) {} }",
+        "class C extends Object with B {}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE);
+  }
+
   public void test_nonAbstractClassInheritsAbstractMemberOne_setter_and_implicitSetter()
       throws Exception {
     // test from language/override_inheritance_abstract_test_14.dart

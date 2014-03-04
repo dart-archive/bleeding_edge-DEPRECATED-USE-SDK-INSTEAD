@@ -470,11 +470,14 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
           CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME);
       checkForMemberWithClassName();
       checkForNoDefaultSuperConstructorImplicit(node);
-      checkForAllMixinErrorCodes(withClause);
       checkForConflictingTypeVariableErrorCodes(node);
-      if (implementsClause != null || extendsClause != null) {
+      // Only do error checks on the clause nodes if there is a non-null clause
+      if (implementsClause != null || extendsClause != null || withClause != null) {
+        // Only check for all of the inheritance logic around clauses if there isn't an error code
+        // such as "Cannot extend double" already on the class.
         if (!checkForImplementsDisallowedClass(implementsClause)
-            && !checkForExtendsDisallowedClass(extendsClause)) {
+            && !checkForExtendsDisallowedClass(extendsClause)
+            && !checkForAllMixinErrorCodes(withClause)) {
           checkForNonAbstractClassInheritsAbstractMember(node);
           checkForInconsistentMethodInheritance();
           checkForRecursiveInterfaceInheritance(enclosingClass);
@@ -2984,12 +2987,12 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
    * @return {@code true} if and only if an error code is generated on the passed node
    * @see CompileTimeErrorCode#EXTENDS_DISALLOWED_CLASS
    */
-  private boolean checkForExtendsDisallowedClass(ExtendsClause extendsClause) {
-    if (extendsClause == null) {
+  private boolean checkForExtendsDisallowedClass(ExtendsClause node) {
+    if (node == null) {
       return false;
     }
     return checkForExtendsOrImplementsDisallowedClass(
-        extendsClause.getSuperclass(),
+        node.getSuperclass(),
         CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS);
   }
 
@@ -3210,12 +3213,12 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
    * @return {@code true} if and only if an error code is generated on the passed node
    * @see CompileTimeErrorCode#IMPLEMENTS_DISALLOWED_CLASS
    */
-  private boolean checkForImplementsDisallowedClass(ImplementsClause implementsClause) {
-    if (implementsClause == null) {
+  private boolean checkForImplementsDisallowedClass(ImplementsClause node) {
+    if (node == null) {
       return false;
     }
     boolean foundError = false;
-    for (TypeName type : implementsClause.getInterfaces()) {
+    for (TypeName type : node.getInterfaces()) {
       foundError = foundError
           | checkForExtendsOrImplementsDisallowedClass(
               type,

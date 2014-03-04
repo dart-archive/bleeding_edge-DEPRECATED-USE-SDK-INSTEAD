@@ -209,6 +209,22 @@ public class InheritanceManager {
   }
 
   /**
+   * Given some {@link ExecutableElement} returns {@code true} if it is an abstract member of a
+   * class.
+   * 
+   * @param executableElement some {@link ExecutableElement} to evaluate
+   * @return {@code true} if the given element is an abstract member of a class
+   */
+  private static boolean isAbstract(ExecutableElement executableElement) {
+    if (executableElement instanceof MethodElement) {
+      return ((MethodElement) executableElement).isAbstract();
+    } else if (executableElement instanceof PropertyAccessorElement) {
+      return ((PropertyAccessorElement) executableElement).isAbstract();
+    }
+    return false;
+  }
+
+  /**
    * The {@link LibraryElement} that is managed by this manager.
    */
   private LibraryElement library;
@@ -417,24 +433,28 @@ public class InheritanceManager {
     }
     if (superclassElt != null) {
       if (!visitedClasses.contains(superclassElt)) {
-        visitedClasses.add(classElt);
-        resultMap = new MemberMap(computeClassChainLookupMap(superclassElt, visitedClasses));
+        visitedClasses.add(superclassElt);
+        try {
+          resultMap = new MemberMap(computeClassChainLookupMap(superclassElt, visitedClasses));
+
+          //
+          // Substitute the super types down the hierarchy.
+          //
+          substituteTypeParametersDownHierarchy(supertype, resultMap);
+
+          //
+          // Include the members from the superclass in the resultMap.
+          //
+          recordMapWithClassMembers(resultMap, supertype);
+        } finally {
+          visitedClasses.remove(superclassElt);
+        }
       } else {
         // This case happens only when the superclass was previously visited and not in the lookup,
         // meaning this is meant to shorten the compute for recursive cases.
         classLookup.put(superclassElt, resultMap);
         return resultMap;
       }
-
-      //
-      // Substitute the supertypes down the hierarchy
-      //
-      substituteTypeParametersDownHierarchy(supertype, resultMap);
-
-      //
-      // Include the members from the superclass in the resultMap
-      //
-      recordMapWithClassMembers(resultMap, supertype);
     }
 
     //
@@ -442,7 +462,47 @@ public class InheritanceManager {
     //
     InterfaceType[] mixins = classElt.getMixins();
     for (int i = mixins.length - 1; i >= 0; i--) {
-      recordMapWithClassMembersFromMixin(resultMap, mixins[i]);
+      ClassElement mixinElement = mixins[i].getElement();
+
+      if (mixinElement != null) {
+        if (!visitedClasses.contains(mixinElement)) {
+          visitedClasses.add(mixinElement);
+          try {
+            MemberMap map = new MemberMap(computeClassChainLookupMap(mixinElement, visitedClasses));
+
+            //
+            // Substitute the super types down the hierarchy.
+            //
+            substituteTypeParametersDownHierarchy(mixins[i], map);
+
+            //
+            // Include the members from the superclass in the resultMap.
+            //
+            recordMapWithClassMembersFromMixin(map, mixins[i]);
+
+            //
+            // Add the members from map into result map.
+            //
+            for (int j = 0; j < map.getSize(); j++) {
+              String key = map.getKey(j);
+              ExecutableElement value = map.getValue(j);
+              if (key != null) {
+                if (resultMap.get(key) == null
+                    || (resultMap.get(key) != null && !isAbstract(value))) {
+                  resultMap.put(key, value);
+                }
+              }
+            }
+          } finally {
+            visitedClasses.remove(mixinElement);
+          }
+        } else {
+          // This case happens only when the superclass was previously visited and not in the lookup,
+          // meaning this is meant to shorten the compute for recursive cases.
+          classLookup.put(mixinElement, resultMap);
+          return resultMap;
+        }
+      }
     }
 
     classLookup.put(classElt, resultMap);
@@ -545,25 +605,27 @@ public class InheritanceManager {
     ArrayList<MemberMap> lookupMaps = new ArrayList<MemberMap>(interfaces.length + mixins.length
         + 1);
 
+    //
     // Superclass element
+    //
     if (superclassElement != null) {
       if (!visitedInterfaces.contains(superclassElement)) {
         try {
           visitedInterfaces.add(superclassElement);
 
           //
-          // Recursively compute the map for the supertype.
+          // Recursively compute the map for the super type.
           //
           MemberMap map = computeInterfaceLookupMap(superclassElement, visitedInterfaces);
           map = new MemberMap(map);
 
           //
-          // Substitute the supertypes down the hierarchy
+          // Substitute the super type down the hierarchy.
           //
           substituteTypeParametersDownHierarchy(supertype, map);
 
           //
-          // Add any members from the supertype into the map as well.
+          // Add any members from the super type into the map as well.
           //
           recordMapWithClassMembers(map, supertype);
 
@@ -582,14 +644,52 @@ public class InheritanceManager {
       }
     }
 
+    //
     // Mixin elements
-    for (InterfaceType mixinType : mixins) {
-      MemberMap mapWithMixinMembers = new MemberMap();
-      recordMapWithClassMembers(mapWithMixinMembers, mixinType);
-      lookupMaps.add(mapWithMixinMembers);
+    //
+    for (int i = mixins.length - 1; i >= 0; i--) {
+      InterfaceType mixinType = mixins[i];
+      ClassElement mixinElement = mixinType.getElement();
+      if (mixinElement != null) {
+        if (!visitedInterfaces.contains(mixinElement)) {
+          try {
+            visitedInterfaces.add(mixinElement);
+
+            //
+            // Recursively compute the map for the mixin.
+            //
+            MemberMap map = computeInterfaceLookupMap(mixinElement, visitedInterfaces);
+            map = new MemberMap(map);
+
+            //
+            // Substitute the mixin type down the hierarchy.
+            //
+            substituteTypeParametersDownHierarchy(mixinType, map);
+
+            //
+            // Add any members from the mixin type into the map as well.
+            //
+            recordMapWithClassMembers(map, mixinType);
+
+            lookupMaps.add(map);
+          } finally {
+            visitedInterfaces.remove(mixinElement);
+          }
+        } else {
+          MemberMap map = interfaceLookup.get(classElt);
+          if (map != null) {
+            lookupMaps.add(map);
+          } else {
+            interfaceLookup.put(mixinElement, resultMap);
+            return resultMap;
+          }
+        }
+      }
     }
 
+    //
     // Interface elements
+    //
     for (InterfaceType interfaceType : interfaces) {
       ClassElement interfaceElement = interfaceType.getElement();
       if (interfaceElement != null) {
