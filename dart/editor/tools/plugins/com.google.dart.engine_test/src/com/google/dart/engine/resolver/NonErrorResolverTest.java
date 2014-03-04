@@ -2321,6 +2321,51 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_nonAbstractClassInheritsAbstractMemberOne_abstractsDontOverrideConcretes_getter()
+      throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  int get g => 0;",
+        "}",
+        "abstract class B extends A {",
+        "  int get g;",
+        "}",
+        "class C extends B {}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_nonAbstractClassInheritsAbstractMemberOne_abstractsDontOverrideConcretes_method()
+      throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  m(p) {}",
+        "}",
+        "abstract class B extends A {",
+        "  m(p);",
+        "}",
+        "class C extends B {}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_nonAbstractClassInheritsAbstractMemberOne_abstractsDontOverrideConcretes_setter()
+      throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  set s(v) {}",
+        "}",
+        "abstract class B extends A {",
+        "  set s(v);",
+        "}",
+        "class C extends B {}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
   public void test_nonAbstractClassInheritsAbstractMemberOne_mixin_getter() throws Exception {
     // 17034
     Source source = addSource(createSource(//
