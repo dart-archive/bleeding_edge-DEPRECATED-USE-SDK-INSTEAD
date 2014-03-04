@@ -1150,7 +1150,8 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
           statistics.putCacheItem(htmlEntry, HtmlEntry.PARSED_UNIT);
           statistics.putCacheItem(htmlEntry, HtmlEntry.RESOLUTION_ERRORS);
           statistics.putCacheItem(htmlEntry, HtmlEntry.RESOLVED_UNIT);
-          statistics.putCacheItem(htmlEntry, HtmlEntry.HINTS);
+          // We are not currently recording any hints related to HTML.
+          // statistics.putCacheItem(htmlEntry, HtmlEntry.HINTS);
         }
       }
     }
