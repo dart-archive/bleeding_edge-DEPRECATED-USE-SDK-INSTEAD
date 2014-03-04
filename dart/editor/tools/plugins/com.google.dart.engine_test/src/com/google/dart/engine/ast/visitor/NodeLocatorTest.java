@@ -32,7 +32,7 @@ public class NodeLocatorTest extends ParserTestCase {
 
   public void test_searchWithin_offset() throws Exception {
     CompilationUnit unit = parseCompilationUnit("library myLib;");
-    assertLocate(unit, 10, SimpleIdentifier.class);
+    assertLocate(unit, 10, 10, SimpleIdentifier.class);
   }
 
   public void test_searchWithin_offsetAfterNode() throws Exception {
@@ -47,11 +47,6 @@ public class NodeLocatorTest extends ParserTestCase {
     NodeLocator locator = new NodeLocator(0, 0);
     AstNode node = locator.searchWithin(unit.getDeclarations().get(1));
     assertNull(node);
-  }
-
-  private void assertLocate(CompilationUnit unit, int offset, Class<?> expectedClass)
-      throws Exception {
-    assertLocate(unit, offset, offset, expectedClass);
   }
 
   private void assertLocate(CompilationUnit unit, int start, int end, Class<?> expectedClass)

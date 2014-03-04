@@ -232,10 +232,10 @@ public class EngineSemanticProcessor extends SemanticProcessor {
    * Find code like:
    * 
    * <pre>
-   *   Field scopeField = visitor.getClass().getSuperclass().getDeclaredField("nameScope");
-   *   scopeField.setAccessible(true);
-   *   Scope outerScope = (Scope) scopeField.get(visitor);
-   * </pre>
+     *   Field scopeField = visitor.getClass().getSuperclass().getDeclaredField("nameScope");
+     *   scopeField.setAccessible(true);
+     *   Scope outerScope = (Scope) scopeField.get(visitor);
+     * </pre>
    * 
    * and replaces it with direct calling of generated public accessors.
    */

@@ -19,6 +19,7 @@ import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.Block;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.java2dart.Context;
 import com.google.dart.java2dart.SyntaxTranslator;
@@ -63,6 +64,22 @@ public abstract class SemanticProcessor {
     SyntaxTranslator.replaceNode(node.getParent(), node, replacement);
   }
 
+  /**
+   * Replaces "node" with "replacement" in parent of "node".
+   */
+  public static void replaceNode(AstNode parent, AstNode node, AstNode replacement) {
+    SyntaxTranslator.replaceNode(parent, node, replacement);
+  }
+
+  /**
+   * Checks if given {@link IMethodBinding} is method of given class with given name.
+   */
+  protected static boolean isMethodInClass(IMethodBinding binding, String reqName,
+      String reqClassName) {
+    return binding != null && Objects.equal(binding.getName(), reqName)
+        && JavaUtils.isMethodInClass(binding, reqClassName);
+  }
+
   protected final Context context;
 
   public SemanticProcessor(Context context) {
@@ -72,12 +89,17 @@ public abstract class SemanticProcessor {
   abstract public void process(CompilationUnit unit);
 
   /**
-   * Checks if given {@link IMethodBinding} is method of given class with given name.
+   * Checks if {@link IMethodBinding} of the given {@link MethodDeclaration} is method of given
+   * class with given name.
    */
-  protected final boolean isMethodInClass(IMethodBinding binding, String reqName,
+  protected final boolean isMethodInClass(MethodDeclaration node, String reqName,
       String reqClassName) {
-    return binding != null && Objects.equal(binding.getName(), reqName)
-        && JavaUtils.isMethodInClass(binding, reqClassName);
+    Object nodeBinding = context.getNodeBinding(node);
+    if (nodeBinding instanceof IMethodBinding) {
+      IMethodBinding binding = (IMethodBinding) nodeBinding;
+      return isMethodInClass(binding, reqName, reqClassName);
+    }
+    return false;
   }
 
   /**

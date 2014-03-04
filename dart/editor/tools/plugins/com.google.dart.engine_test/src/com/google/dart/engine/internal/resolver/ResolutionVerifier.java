@@ -224,7 +224,7 @@ public class ResolutionVerifier extends RecursiveAstVisitor<Void> {
     if (prefixType == null || prefixType.isDynamic()) {
       return null;
     }
-    return checkResolved(node, node.getStaticElement());
+    return checkResolved(node, node.getStaticElement(), null);
   }
 
   @Override
@@ -267,11 +267,7 @@ public class ResolutionVerifier extends RecursiveAstVisitor<Void> {
         }
       }
     }
-    return checkResolved(node, node.getStaticElement());
-  }
-
-  private Void checkResolved(AstNode node, Element element) {
-    return checkResolved(node, element, null);
+    return checkResolved(node, node.getStaticElement(), null);
   }
 
   private Void checkResolved(AstNode node, Element element, Class<? extends Element> expectedClass) {
