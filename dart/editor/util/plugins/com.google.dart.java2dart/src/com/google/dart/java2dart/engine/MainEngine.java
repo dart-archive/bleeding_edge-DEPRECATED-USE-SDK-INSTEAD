@@ -21,9 +21,9 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.io.Files;
 import com.google.dart.engine.AnalysisEngine;
-import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.AsExpression;
 import com.google.dart.engine.ast.AssignmentExpression;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.CatchClause;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.CompilationUnit;
@@ -725,7 +725,7 @@ public class MainEngine {
     unit.getDirectives().add(importDirective("package:unittest/unittest.dart", "_ut"));
     unit.getDirectives().add(importDirective("test_support.dart", null));
     unit.getDirectives().add(
-        importDirective("ast_test.dart", null, importShowCombinator("ASTFactory")));
+        importDirective("ast_test.dart", null, importShowCombinator("AstFactory")));
     unit.getDirectives().add(
         importDirective(
             "resolver_test.dart",
@@ -800,7 +800,7 @@ public class MainEngine {
     unit.getDirectives().add(importDirective("java_core.dart", null));
     unit.getDirectives().add(importDirective("source.dart", null));
     unit.getDirectives().add(importDirective("scanner.dart", null, importShowCombinator("Token")));
-    unit.getDirectives().add(importDirective("ast.dart", null, importShowCombinator("ASTNode")));
+    unit.getDirectives().add(importDirective("ast.dart", null, importShowCombinator("AstNode")));
     unit.getDirectives().add(importDirective("element.dart", null, importShowCombinator("Element")));
     for (Entry<File, List<CompilationUnitMember>> entry : context.getFileToMembers().entrySet()) {
       File file = entry.getKey();
@@ -1018,7 +1018,7 @@ public class MainEngine {
     unit.getDirectives().add(
         importDirective("scanner_test.dart", null, importShowCombinator("TokenFactory")));
     unit.getDirectives().add(
-        importDirective("ast_test.dart", null, importShowCombinator("ASTFactory")));
+        importDirective("ast_test.dart", null, importShowCombinator("AstFactory")));
     unit.getDirectives().add(
         importDirective("element_test.dart", null, importShowCombinator("ElementFactory")));
     List<Statement> mainStatements = Lists.newArrayList();
@@ -1107,7 +1107,7 @@ public class MainEngine {
     unit.getDirectives().add(importDirective("package:unittest/unittest.dart", "_ut"));
     unit.getDirectives().add(importDirective("test_support.dart", null));
     unit.getDirectives().add(
-        importDirective("ast_test.dart", null, importShowCombinator("ASTFactory")));
+        importDirective("ast_test.dart", null, importShowCombinator("AstFactory")));
     unit.getDirectives().add(
         importDirective("element_test.dart", null, importShowCombinator("ElementFactory")));
     List<Statement> mainStatements = Lists.newArrayList();
@@ -1318,7 +1318,7 @@ public class MainEngine {
         importDirective(
             src_package + "ast.dart",
             null,
-            importShowCombinator("ASTNode", "NodeLocator")));
+            importShowCombinator("AstNode", "NodeLocator")));
     unit.getDirectives().add(
         importDirective(
             src_package + "element.dart",

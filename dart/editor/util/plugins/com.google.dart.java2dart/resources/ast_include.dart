@@ -2,7 +2,7 @@
 /**
  * Instances of the class {@code NodeList} represent a list of AST nodes that have a common parent.
  */
-class NodeList<E extends ASTNode> extends Object with ListMixin<E> {
+class NodeList<E extends AstNode> extends Object with ListMixin<E> {
   /**
    * Create an empty list with the given owner. This is a convenience method that allows the
    * compiler to determine the correct value of the type argument [E] without needing to
@@ -11,12 +11,12 @@ class NodeList<E extends ASTNode> extends Object with ListMixin<E> {
    * @param owner the node that is the parent of each of the elements in the list
    * @return the list that was created
    */
-  static NodeList create(ASTNode owner) => new NodeList(owner);
+  static NodeList create(AstNode owner) => new NodeList(owner);
 
   /**
    * The node that is the parent of each of the elements in the list.
    */
-  ASTNode owner;
+  AstNode owner;
 
   /**
    * The elements contained in the list.
@@ -35,7 +35,7 @@ class NodeList<E extends ASTNode> extends Object with ListMixin<E> {
    *
    * @param visitor the visitor to be used to visit the elements of this list
    */
-  accept(ASTVisitor visitor) {
+  accept(AstVisitor visitor) {
     var length = _elements.length;
     for (var i = 0; i < length; i++) {
       _elements[i].accept(visitor);
@@ -103,7 +103,7 @@ class NodeList<E extends ASTNode> extends Object with ListMixin<E> {
     E removedNode = _elements[index] as E;
     int length = _elements.length;
     if (length == 1) {
-      _elements = ASTNode.EMPTY_ARRAY;
+      _elements = AstNode.EMPTY_ARRAY;
       return removedNode;
     }
     _elements.removeAt(index);
