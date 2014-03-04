@@ -162,6 +162,21 @@ public class DartAutoIndentStrategyTest extends EngineTestCase {
             "}main() {}"));
   }
 
+  public void test_smartIndentAfterNewLine_afterLBrace_beforeAmpAmp() throws Exception {
+    assertSmartInsertAfterNewLine(createSource(//
+        "main() {",
+        "  if (true) {! && false) {",
+        "    print(42);",
+        "  }",
+        "}"), createSource(//
+        "main() {",
+        "  if (true) {",
+        "    !&& false) {",
+        "    print(42);",
+        "  }",
+        "}"));
+  }
+
   public void test_smartIndentAfterNewLine_afterMethod() throws Exception {
     assertSmartInsertAfterNewLine(createSource(//
         "class A {",
@@ -213,6 +228,42 @@ public class DartAutoIndentStrategyTest extends EngineTestCase {
         "  f(",
         "      111,",
         "      222).then(() {",
+        "    !",
+        "  });",
+        "}"));
+  }
+
+  public void test_smartIndentAfterNewLine_closure_closed() throws Exception {
+    assertSmartInsertAfterNewLine(createSource(//
+        "main() {",
+        "  print((_) {!});",
+        "}"), createSource(//
+        "main() {",
+        "  print((_) {",
+        "    !",
+        "  });",
+        "}"));
+  }
+
+  public void test_smartIndentAfterNewLine_closure_notClosed_beforeComma() throws Exception {
+    assertSmartInsertAfterNewLine(createSource(//
+        "main() {",
+        "  print((_) {!, 42);",
+        "}"), createSource(//
+        "main() {",
+        "  print((_) {",
+        "    !",
+        "  }, 42);",
+        "}"));
+  }
+
+  public void test_smartIndentAfterNewLine_closure_notClosed_beforeRParen() throws Exception {
+    assertSmartInsertAfterNewLine(createSource(//
+        "main() {",
+        "  print((_) {!);",
+        "}"), createSource(//
+        "main() {",
+        "  print((_) {",
         "    !",
         "  });",
         "}"));

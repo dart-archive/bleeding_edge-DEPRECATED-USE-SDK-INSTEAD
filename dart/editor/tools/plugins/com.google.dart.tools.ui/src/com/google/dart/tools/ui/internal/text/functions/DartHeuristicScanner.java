@@ -222,6 +222,7 @@ public final class DartHeuristicScanner implements Symbols {
   private static final char LANGLE = '<';
   private static final char RANGLE = '>';
   private static final char AT = '@';
+  private static final char AMP = '&';
 
   /** The document being scanned. */
   private final IDocument fDocument;
@@ -656,6 +657,10 @@ public final class DartHeuristicScanner implements Symbols {
         return TokenGREATERTHAN;
       case AT:
         return TokenAT;
+    }
+
+    if (fChar == AMP && scanForward(pos + 1, pos + 2, AMP) != NOT_FOUND) {
+      return TokenAND;
     }
 
     // else
