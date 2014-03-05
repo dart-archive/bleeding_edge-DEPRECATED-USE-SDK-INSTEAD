@@ -346,7 +346,7 @@ public abstract class ElementImpl implements Element {
    * @return {@code true} if this element has the given modifier associated with it
    */
   protected boolean hasModifier(Modifier modifier) {
-    return BooleanArray.get(modifiers, modifier);
+    return BooleanArray.getEnum(modifiers, modifier);
   }
 
   /**
@@ -392,6 +392,6 @@ public abstract class ElementImpl implements Element {
    * @param value {@code true} if the modifier is to be associated with this element
    */
   protected void setModifier(Modifier modifier, boolean value) {
-    modifiers = BooleanArray.set(modifiers, modifier, value);
+    modifiers = BooleanArray.setEnum(modifiers, modifier, value);
   }
 }

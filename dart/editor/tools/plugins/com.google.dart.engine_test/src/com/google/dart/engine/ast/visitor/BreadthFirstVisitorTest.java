@@ -54,7 +54,7 @@ public class BreadthFirstVisitorTest extends ParserTestCase {
       }
     };
     visitor.visitAllNodes(unit);
-    assertSize(59, nodes);
+    assertSizeOfList(59, nodes);
     assertInstanceOf(CompilationUnit.class, nodes.get(0));
     assertInstanceOf(ClassDeclaration.class, nodes.get(2)); //class B {...}
     assertInstanceOf(FunctionDeclaration.class, nodes.get(3)); //A f(var p) {...}

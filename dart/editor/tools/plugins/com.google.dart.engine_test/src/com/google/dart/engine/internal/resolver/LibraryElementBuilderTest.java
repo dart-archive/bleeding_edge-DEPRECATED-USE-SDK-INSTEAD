@@ -231,7 +231,7 @@ public class LibraryElementBuilderTest extends EngineTestCase {
     LibraryElement element = builder.buildLibrary(library);
     GatheringErrorListener listener = new GatheringErrorListener();
     listener.addAll(resolver.getErrorListener());
-    listener.assertErrors(expectedErrorCodes);
+    listener.assertErrorsWithCodes(expectedErrorCodes);
     return element;
   }
 }

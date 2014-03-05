@@ -62,7 +62,7 @@ public class SourceFactory {
     try {
       URI uri = new URI(absoluteUri);
       if (uri.isAbsolute()) {
-        return resolveUri(null, uri);
+        return internalResolveUri(null, uri);
       }
     } catch (URISyntaxException exception) {
       // Fall through to return null
@@ -152,7 +152,7 @@ public class SourceFactory {
     }
     try {
       // Force the creation of an escaped URI to deal with spaces, etc.
-      return resolveUri(containingSource, new URI(containedUri));
+      return internalResolveUri(containingSource, new URI(containedUri));
     } catch (URISyntaxException exception) {
       return null;
     }
@@ -206,7 +206,7 @@ public class SourceFactory {
    * @param containedUri the (possibly relative) URI to be resolved against the containing source
    * @return the source representing the contained URI
    */
-  private Source resolveUri(Source containingSource, URI containedUri) {
+  private Source internalResolveUri(Source containingSource, URI containedUri) {
     if (containedUri.isAbsolute()) {
       for (UriResolver resolver : resolvers) {
         Source result = resolver.resolveAbsolute(containedUri);

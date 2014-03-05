@@ -67,7 +67,7 @@ public class BackgroundAnalyzerImpl extends AnalyzerImpl {
       throws AnalysisException {
 
     ChangeSet changeSet = new ChangeSet();
-    changeSet.added(librarySource);
+    changeSet.addedSource(librarySource);
     context.applyChanges(changeSet);
 
     client.start(context, librarySource);

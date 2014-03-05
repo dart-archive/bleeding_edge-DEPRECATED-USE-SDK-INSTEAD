@@ -209,7 +209,7 @@ public class DirectoryBasedDartSdk implements DartSdk {
     String[] uris = getUris();
     ChangeSet changeSet = new ChangeSet();
     for (String uri : uris) {
-      changeSet.added(analysisContext.getSourceFactory().forUri(uri));
+      changeSet.addedSource(analysisContext.getSourceFactory().forUri(uri));
     }
     analysisContext.applyChanges(changeSet);
   }

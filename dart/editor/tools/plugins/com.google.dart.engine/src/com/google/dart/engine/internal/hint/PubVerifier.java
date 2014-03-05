@@ -117,7 +117,7 @@ public class PubVerifier extends RecursiveAstVisitor<Void> {
           Source pubspecSource = context.getSourceFactory().resolveUri(source, relativePubspecPath);
           if (context.exists(pubspecSource)) {
             // Files inside the lib directory hierarchy should not reference files outside
-            errorReporter.reportError(
+            errorReporter.reportErrorForNode(
                 PubSuggestionCode.FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE,
                 uriLiteral);
           }
@@ -169,7 +169,7 @@ public class PubVerifier extends RecursiveAstVisitor<Void> {
       if (StringUtilities.indexOf5(fullName, 0, '/', 'l', 'i', 'b', '/') < 0) {
         // Files outside the lib directory hierarchy should not reference files inside
         // ... use package: url instead
-        errorReporter.reportError(
+        errorReporter.reportErrorForNode(
             PubSuggestionCode.FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE,
             uriLiteral);
         return true;
@@ -190,7 +190,7 @@ public class PubVerifier extends RecursiveAstVisitor<Void> {
     if (StringUtilities.startsWith3(path, 0, '.', '.', '/')
         || StringUtilities.indexOf4(path, 0, '/', '.', '.', '/') >= 0) {
       // Package import should not to contain ".."
-      errorReporter.reportError(PubSuggestionCode.PACKAGE_IMPORT_CONTAINS_DOT_DOT, uriLiteral);
+      errorReporter.reportErrorForNode(PubSuggestionCode.PACKAGE_IMPORT_CONTAINS_DOT_DOT, uriLiteral);
       return true;
     }
     return false;

@@ -56,9 +56,9 @@ public class MockContext implements AnalysisContext {
       }
       ChangeSet changes = (ChangeSet) args[0];
       ChangeSet otherChanges = (ChangeSet) otherArgs[0];
-      return equalArgument(changes.getAdded(), otherChanges.getAdded())
-          && equalArgument(changes.getChanged(), otherChanges.getChanged())
-          && equalArgument(changes.getRemoved(), otherChanges.getRemoved())
+      return equalArgument(changes.getAddedSources(), otherChanges.getAddedSources())
+          && equalArgument(changes.getChangedSources(), otherChanges.getChangedSources())
+          && equalArgument(changes.getRemovedSources(), otherChanges.getRemovedSources())
           && equalArgument(changes.getRemovedContainers(), otherChanges.getRemovedContainers());
     }
 
@@ -67,9 +67,9 @@ public class MockContext implements AnalysisContext {
       ChangeSet changes = (ChangeSet) args[0];
       writer.print(indent);
       writer.println("ChangeSet");
-      printCollection(writer, indent, "added", changes.getAdded());
-      printCollection(writer, indent, "changed", changes.getChanged());
-      printCollection(writer, indent, "removed", changes.getRemoved());
+      printCollection(writer, indent, "added", changes.getAddedSources());
+      printCollection(writer, indent, "changed", changes.getChangedSources());
+      printCollection(writer, indent, "removed", changes.getRemovedSources());
       printCollection(writer, indent, "removedContainers", changes.getRemovedContainers());
     }
 
@@ -122,17 +122,17 @@ public class MockContext implements AnalysisContext {
     final ChangeSet expected = new ChangeSet();
     if (added != null) {
       for (File file : added) {
-        expected.added(new FileBasedSource(file));
+        expected.addedSource(new FileBasedSource(file));
       }
     }
     if (changed != null) {
       for (File file : changed) {
-        expected.changed(new FileBasedSource(file));
+        expected.changedSource(new FileBasedSource(file));
       }
     }
     if (removedFiles != null) {
       for (File file : removedFiles) {
-        expected.removed(new FileBasedSource(file));
+        expected.removedSource(new FileBasedSource(file));
       }
     }
     if (removedDirs != null) {

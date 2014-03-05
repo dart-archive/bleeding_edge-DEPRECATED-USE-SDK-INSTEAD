@@ -504,7 +504,7 @@ public class LibraryResolver {
       libraryElement.setImports(imports.toArray(new ImportElement[imports.size()]));
       libraryElement.setExports(exports.toArray(new ExportElement[exports.size()]));
       if (libraryElement.getEntryPoint() == null) {
-        Namespace namespace = new NamespaceBuilder().createExportNamespace(libraryElement);
+        Namespace namespace = new NamespaceBuilder().createExportNamespaceForLibrary(libraryElement);
         Element element = namespace.get(LibraryElementBuilder.ENTRY_POINT_NAME);
         if (element instanceof FunctionElement) {
           libraryElement.setEntryPoint((FunctionElement) element);

@@ -94,8 +94,8 @@ public class ErrorReporter {
    * @param node the node specifying the location of the error
    * @param arguments the arguments to the error, used to compose the error message
    */
-  public void reportError(ErrorCode errorCode, AstNode node, Object... arguments) {
-    reportError(errorCode, node.getOffset(), node.getLength(), arguments);
+  public void reportErrorForNode(ErrorCode errorCode, AstNode node, Object... arguments) {
+    reportErrorForOffset(errorCode, node.getOffset(), node.getLength(), arguments);
   }
 
   /**
@@ -105,8 +105,8 @@ public class ErrorReporter {
    * @param element the element which name should be used as the location of the error
    * @param arguments the arguments to the error, used to compose the error message
    */
-  public void reportError(ErrorCode errorCode, Element element, Object... arguments) {
-    reportError(errorCode, element.getNameOffset(), element.getDisplayName().length(), arguments);
+  public void reportErrorForElement(ErrorCode errorCode, Element element, Object... arguments) {
+    reportErrorForOffset(errorCode, element.getNameOffset(), element.getDisplayName().length(), arguments);
   }
 
   /**
@@ -117,7 +117,7 @@ public class ErrorReporter {
    * @param length the length of the location of the error
    * @param arguments the arguments to the error, used to compose the error message
    */
-  public void reportError(ErrorCode errorCode, int offset, int length, Object... arguments) {
+  public void reportErrorForOffset(ErrorCode errorCode, int offset, int length, Object... arguments) {
     errorListener.onError(new AnalysisError(source, offset, length, errorCode, arguments));
   }
 
@@ -128,8 +128,8 @@ public class ErrorReporter {
    * @param token the token specifying the location of the error
    * @param arguments the arguments to the error, used to compose the error message
    */
-  public void reportError(ErrorCode errorCode, Token token, Object... arguments) {
-    reportError(errorCode, token.getOffset(), token.getLength(), arguments);
+  public void reportErrorForToken(ErrorCode errorCode, Token token, Object... arguments) {
+    reportErrorForOffset(errorCode, token.getOffset(), token.getLength(), arguments);
   }
 
   /**

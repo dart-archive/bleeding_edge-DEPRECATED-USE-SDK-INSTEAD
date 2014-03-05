@@ -956,7 +956,7 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
         targetTypeName = enclosingClass.getDisplayName();
         ErrorCode proxyErrorCode = generatedWithTypePropagation ? HintCode.UNDEFINED_METHOD
             : StaticTypeWarningCode.UNDEFINED_METHOD;
-        resolver.reportErrorProxyConditionalAnalysisError(
+        resolver.reportProxyConditionalErrorForNode(
             resolver.getEnclosingClass(),
             proxyErrorCode,
             methodName,
@@ -985,7 +985,7 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
         targetTypeName = targetType == null ? null : targetType.getDisplayName();
         ErrorCode proxyErrorCode = generatedWithTypePropagation ? HintCode.UNDEFINED_METHOD
             : StaticTypeWarningCode.UNDEFINED_METHOD;
-        resolver.reportErrorProxyConditionalAnalysisError(
+        resolver.reportProxyConditionalErrorForNode(
             targetType.getElement(),
             proxyErrorCode,
             methodName,
@@ -1245,7 +1245,7 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
         Annotation annotation = (Annotation) node.getParent();
         resolver.reportErrorForNode(CompileTimeErrorCode.INVALID_ANNOTATION, annotation);
       } else {
-        resolver.reportErrorProxyConditionalAnalysisError(
+        resolver.reportProxyConditionalErrorForNode(
             resolver.getEnclosingClass(),
             StaticWarningCode.UNDEFINED_IDENTIFIER,
             node,
@@ -1470,7 +1470,7 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
       ErrorCode errorCode = shouldReportMissingMember_static
           ? StaticTypeWarningCode.UNDEFINED_OPERATOR : HintCode.UNDEFINED_OPERATOR;
       if (leftBracket == null || rightBracket == null) {
-        resolver.reportErrorProxyConditionalAnalysisError(
+        resolver.reportProxyConditionalErrorForNode(
             shouldReportMissingMember_static ? staticType.getElement()
                 : propagatedType.getElement(),
             errorCode,
@@ -1481,7 +1481,7 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
       } else {
         int offset = leftBracket.getOffset();
         int length = rightBracket.getOffset() - offset + 1;
-        resolver.reportErrorProxyConditionalAnalysisError(
+        resolver.reportProxyConditionalErrorForOffset(
             shouldReportMissingMember_static ? staticType.getElement()
                 : propagatedType.getElement(),
             errorCode,
@@ -2436,7 +2436,7 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
       //
       return;
     }
-    Namespace namespace = new NamespaceBuilder().createExportNamespace(library);
+    Namespace namespace = new NamespaceBuilder().createExportNamespaceForLibrary(library);
     for (Combinator combinator : combinators) {
       NodeList<SimpleIdentifier> names;
       if (combinator instanceof HideCombinator) {
@@ -2656,7 +2656,7 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
           if (isStaticProperty) {
             ErrorCode errorCode = shouldReportMissingMember_static
                 ? StaticWarningCode.UNDEFINED_SETTER : HintCode.UNDEFINED_SETTER;
-            resolver.reportErrorProxyConditionalAnalysisError(
+            resolver.reportProxyConditionalErrorForNode(
                 staticOrPropagatedEnclosingElt,
                 errorCode,
                 propertyName,
@@ -2665,7 +2665,7 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
           } else {
             ErrorCode errorCode = shouldReportMissingMember_static
                 ? StaticTypeWarningCode.UNDEFINED_SETTER : HintCode.UNDEFINED_SETTER;
-            resolver.reportErrorProxyConditionalAnalysisError(
+            resolver.reportProxyConditionalErrorForNode(
                 staticOrPropagatedEnclosingElt,
                 errorCode,
                 propertyName,
@@ -2676,7 +2676,7 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
           if (isStaticProperty) {
             ErrorCode errorCode = shouldReportMissingMember_static
                 ? StaticWarningCode.UNDEFINED_GETTER : HintCode.UNDEFINED_GETTER;
-            resolver.reportErrorProxyConditionalAnalysisError(
+            resolver.reportProxyConditionalErrorForNode(
                 staticOrPropagatedEnclosingElt,
                 errorCode,
                 propertyName,
@@ -2685,7 +2685,7 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
           } else {
             ErrorCode errorCode = shouldReportMissingMember_static
                 ? StaticTypeWarningCode.UNDEFINED_GETTER : HintCode.UNDEFINED_GETTER;
-            resolver.reportErrorProxyConditionalAnalysisError(
+            resolver.reportProxyConditionalErrorForNode(
                 staticOrPropagatedEnclosingElt,
                 errorCode,
                 propertyName,
@@ -2693,7 +2693,7 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
                 staticOrPropagatedEnclosingElt.getDisplayName());
           }
         } else {
-          resolver.reportErrorProxyConditionalAnalysisError(
+          resolver.reportProxyConditionalErrorForNode(
               staticOrPropagatedEnclosingElt,
               StaticWarningCode.UNDEFINED_IDENTIFIER,
               propertyName,

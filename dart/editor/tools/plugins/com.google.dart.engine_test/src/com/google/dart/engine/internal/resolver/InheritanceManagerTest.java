@@ -1118,7 +1118,7 @@ public class InheritanceManagerTest extends EngineTestCase {
         errorListener.onError(error);
       }
     }
-    errorListener.assertErrors(expectedErrorCodes);
+    errorListener.assertErrorsWithCodes(expectedErrorCodes);
   }
 
   private void assertNoErrors(ClassElement classElt) {

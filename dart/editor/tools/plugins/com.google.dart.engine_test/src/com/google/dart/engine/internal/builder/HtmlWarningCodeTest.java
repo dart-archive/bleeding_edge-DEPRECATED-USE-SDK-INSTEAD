@@ -88,15 +88,18 @@ public class HtmlWarningCodeTest extends EngineTestCase {
     this.contents = contents;
     TestSource source = new TestSource(createFile("/test.html"), contents);
     ChangeSet changeSet = new ChangeSet();
-    changeSet.added(source);
+    changeSet.addedSource(source);
     context.applyChanges(changeSet);
 
     HtmlUnitBuilder builder = new HtmlUnitBuilder(context);
-    builder.buildHtmlElement(source);
+    builder.buildHtmlElement(
+        source,
+        context.getModificationStamp(source),
+        context.parseHtmlUnit(source));
 
     GatheringErrorListener errorListener = new GatheringErrorListener();
     errorListener.addAll(builder.getErrorListener());
-    errorListener.assertErrors(expectedErrorCodes);
+    errorListener.assertErrorsWithCodes(expectedErrorCodes);
     errors = errorListener.getErrors();
   }
 }

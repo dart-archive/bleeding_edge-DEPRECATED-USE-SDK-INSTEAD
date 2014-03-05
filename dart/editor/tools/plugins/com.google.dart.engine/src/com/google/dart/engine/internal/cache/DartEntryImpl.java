@@ -544,7 +544,7 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
   }
 
   @Override
-  public CacheState getState(DataDescriptor<?> descriptor, Source librarySource) {
+  public CacheState getStateInLibrary(DataDescriptor<?> descriptor, Source librarySource) {
     ResolutionState state = resolutionState;
     while (state != null) {
       if (librarySource.equals(state.librarySource)) {
@@ -608,7 +608,7 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
 
   @Override
   @SuppressWarnings("unchecked")
-  public <E> E getValue(DataDescriptor<E> descriptor, Source librarySource) {
+  public <E> E getValueInLibrary(DataDescriptor<E> descriptor, Source librarySource) {
     ResolutionState state = resolutionState;
     while (state != null) {
       if (librarySource.equals(state.librarySource)) {
@@ -1005,10 +1005,10 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
       includedParts = updatedValue(state, includedParts, Source.EMPTY_ARRAY);
       includedPartsState = state;
     } else if (descriptor == IS_CLIENT) {
-      bitmask = updatedValue(state, bitmask, CLIENT_CODE_INDEX);
+      bitmask = updatedValueOfFlag(state, bitmask, CLIENT_CODE_INDEX);
       clientServerState = state;
     } else if (descriptor == IS_LAUNCHABLE) {
-      bitmask = updatedValue(state, bitmask, LAUNCHABLE_INDEX);
+      bitmask = updatedValueOfFlag(state, bitmask, LAUNCHABLE_INDEX);
       launchableState = state;
     } else if (descriptor == PARSE_ERRORS) {
       parseErrors = updatedValue(state, parseErrors, AnalysisError.NO_ERRORS);
@@ -1046,7 +1046,8 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
    *          context for the data
    * @param cacheState the new state of the data represented by the given descriptor
    */
-  public void setState(DataDescriptor<?> descriptor, Source librarySource, CacheState cacheState) {
+  public void setStateInLibrary(DataDescriptor<?> descriptor, Source librarySource,
+      CacheState cacheState) {
     ResolutionState state = getOrCreateResolutionState(librarySource);
     if (descriptor == RESOLUTION_ERRORS) {
       state.resolutionErrors = updatedValue(
@@ -1126,7 +1127,7 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
    *          context for the data
    * @param value the new value of the data represented by the given descriptor and library
    */
-  public <E> void setValue(DataDescriptor<E> descriptor, Source librarySource, E value) {
+  public <E> void setValueInLibrary(DataDescriptor<E> descriptor, Source librarySource, E value) {
     ResolutionState state = getOrCreateResolutionState(librarySource);
     if (descriptor == RESOLUTION_ERRORS) {
       state.resolutionErrors = value == null ? AnalysisError.NO_ERRORS : (AnalysisError[]) value;
@@ -1280,7 +1281,7 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
    * @param bitMask the mask used to access the bit whose state is being set
    * @return the value of the data that should be kept in the cache
    */
-  private int updatedValue(CacheState state, int currentValue, int bitIndex) {
+  private int updatedValueOfFlag(CacheState state, int currentValue, int bitIndex) {
     if (state == CacheState.VALID) {
       throw new IllegalArgumentException("Use setValue() to set the state to VALID");
     } else if (state == CacheState.IN_PROCESS) {

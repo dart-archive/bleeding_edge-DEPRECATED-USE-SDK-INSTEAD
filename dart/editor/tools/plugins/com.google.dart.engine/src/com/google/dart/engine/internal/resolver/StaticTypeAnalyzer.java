@@ -322,7 +322,7 @@ public class StaticTypeAnalyzer extends SimpleAstVisitor<Void> {
         }
         overrideType = propagatedType;
       }
-      resolver.override(node.getLeftHandSide(), overrideType);
+      resolver.overrideExpression(node.getLeftHandSide(), overrideType);
     } else {
       ExecutableElement staticMethodElement = node.getStaticElement();
       Type staticType = computeStaticReturnType(staticMethodElement);
@@ -1403,7 +1403,7 @@ public class StaticTypeAnalyzer extends SimpleAstVisitor<Void> {
       recordPropagatedType(name, rightType);
       VariableElement element = (VariableElement) name.getStaticElement();
       if (element != null) {
-        resolver.override(element, rightType);
+        resolver.overrideVariable(element, rightType);
       }
     }
     return null;

@@ -71,11 +71,11 @@ public class DirectedGraphTest extends EngineTestCase {
     Node node2 = new Node();
     Node node3 = new Node();
     DirectedGraph<Node> graph = new DirectedGraph<Node>();
-    assertSize(0, graph.getTails(node1));
+    assertSizeOfSet(0, graph.getTails(node1));
     graph.addEdge(node1, node2);
-    assertSize(1, graph.getTails(node1));
+    assertSizeOfSet(1, graph.getTails(node1));
     graph.addEdge(node1, node3);
-    assertSize(2, graph.getTails(node1));
+    assertSizeOfSet(2, graph.getTails(node1));
   }
 
   public void test_removeAllNodes() {
@@ -99,9 +99,9 @@ public class DirectedGraphTest extends EngineTestCase {
     DirectedGraph<Node> graph = new DirectedGraph<Node>();
     graph.addEdge(node1, node2);
     graph.addEdge(node1, node3);
-    assertSize(2, graph.getTails(node1));
+    assertSizeOfSet(2, graph.getTails(node1));
     graph.removeEdge(node1, node2);
-    assertSize(1, graph.getTails(node1));
+    assertSizeOfSet(1, graph.getTails(node1));
   }
 
   public void test_removeNode() {
@@ -111,9 +111,9 @@ public class DirectedGraphTest extends EngineTestCase {
     DirectedGraph<Node> graph = new DirectedGraph<Node>();
     graph.addEdge(node1, node2);
     graph.addEdge(node1, node3);
-    assertSize(2, graph.getTails(node1));
+    assertSizeOfSet(2, graph.getTails(node1));
     graph.removeNode(node2);
-    assertSize(1, graph.getTails(node1));
+    assertSizeOfSet(1, graph.getTails(node1));
   }
 
   public void test_removeSink() {

@@ -1035,9 +1035,9 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
 
     Map<String, Type> namedTypes = functionType.getNamedParameterTypes();
     if (expectedNamedTypes == null) {
-      assertSize(0, namedTypes);
+      assertSizeOfMap(0, namedTypes);
     } else {
-      assertSize(expectedNamedTypes.size(), namedTypes);
+      assertSizeOfMap(expectedNamedTypes.size(), namedTypes);
       for (Map.Entry<String, Type> entry : expectedNamedTypes.entrySet()) {
         assertSame(entry.getValue(), namedTypes.get(entry.getKey()));
       }

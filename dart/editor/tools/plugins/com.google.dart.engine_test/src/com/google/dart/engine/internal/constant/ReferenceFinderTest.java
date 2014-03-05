@@ -34,7 +34,7 @@ public class ReferenceFinderTest extends EngineTestCase {
     identifier.setStaticElement(tail);
     identifier.accept(finder);
     Set<VariableElement> tails = referenceGraph.getTails(head);
-    assertSize(1, tails);
+    assertSizeOfSet(1, tails);
     assertSame(tail, tails.iterator().next());
   }
 
@@ -47,6 +47,6 @@ public class ReferenceFinderTest extends EngineTestCase {
     identifier.setStaticElement(tail);
     identifier.accept(finder);
     Set<VariableElement> tails = referenceGraph.getTails(head);
-    assertSize(0, tails);
+    assertSizeOfSet(0, tails);
   }
 }

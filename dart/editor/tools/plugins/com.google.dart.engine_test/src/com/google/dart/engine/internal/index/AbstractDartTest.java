@@ -110,7 +110,7 @@ public class AbstractDartTest extends TestCase {
     // configure Source
     Source source = new FileBasedSource(FileUtilities2.createFile(path));
     ChangeSet changeSet = new ChangeSet();
-    changeSet.added(source);
+    changeSet.addedSource(source);
     analysisContext.applyChanges(changeSet);
     analysisContext.setContents(source, code);
     // parse and resolve
@@ -227,7 +227,7 @@ public class AbstractDartTest extends TestCase {
     Source source = new FileBasedSource(createFile(filePath));
     // add Source to the context
     ChangeSet changeSet = new ChangeSet();
-    changeSet.added(source);
+    changeSet.addedSource(source);
     analysisContext.applyChanges(changeSet);
     analysisContext.setContents(source, contents);
     // remember Source to remove from the context later
@@ -363,7 +363,7 @@ public class AbstractDartTest extends TestCase {
     {
       ChangeSet changeSet = new ChangeSet();
       for (Source source : sources) {
-        changeSet.added(source);
+        changeSet.addedSource(source);
       }
       analysisContext.applyChanges(changeSet);
     }
@@ -400,10 +400,10 @@ public class AbstractDartTest extends TestCase {
     if (analysisContext != null) {
       ChangeSet changeSet = new ChangeSet();
       if (testSource != null) {
-        changeSet.removed(testSource);
+        changeSet.removedSource(testSource);
       }
       for (Source source : sourceWithSetContent) {
-        changeSet.removed(source);
+        changeSet.removedSource(source);
       }
       analysisContext.applyChanges(changeSet);
     }

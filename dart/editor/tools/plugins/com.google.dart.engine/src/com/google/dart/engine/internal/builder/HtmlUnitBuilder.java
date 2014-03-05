@@ -13,7 +13,6 @@
  */
 package com.google.dart.engine.internal.builder;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.HtmlScriptElement;
@@ -92,21 +91,6 @@ public class HtmlUnitBuilder implements XmlVisitor<Void> {
   public HtmlUnitBuilder(InternalAnalysisContext context) {
     this.context = context;
     this.errorListener = new RecordingErrorListener();
-  }
-
-  /**
-   * Build the HTML element for the given source.
-   * 
-   * @param source the source describing the compilation unit
-   * @return the HTML element that was built
-   * @throws AnalysisException if the analysis could not be performed
-   */
-  @VisibleForTesting
-  public HtmlElementImpl buildHtmlElement(Source source) throws AnalysisException {
-    return buildHtmlElement(
-        source,
-        context.getModificationStamp(source),
-        context.parseHtmlUnit(source));
   }
 
   /**

@@ -26,8 +26,9 @@ public final class BooleanArray {
    * @return the value of the element at the given index
    * @throws IndexOutOfBoundsException if the index is not between zero (0) and 31, inclusive
    */
-  public static boolean get(int array, Enum<?> index) {
-    return get(array, index.ordinal());
+  public static boolean get(int array, int index) {
+    checkIndex(index);
+    return (array & (1 << index)) > 0;
   }
 
   /**
@@ -38,22 +39,8 @@ public final class BooleanArray {
    * @return the value of the element at the given index
    * @throws IndexOutOfBoundsException if the index is not between zero (0) and 31, inclusive
    */
-  public static boolean get(int array, int index) {
-    checkIndex(index);
-    return (array & (1 << index)) > 0;
-  }
-
-  /**
-   * Set the value of the element at the given index to the given value.
-   * 
-   * @param array the array being modified
-   * @param index the index of the element being set
-   * @param value the value to be assigned to the element
-   * @return the updated value of the array
-   * @throws IndexOutOfBoundsException if the index is not between zero (0) and 31, inclusive
-   */
-  public static int set(int array, Enum<?> index, boolean value) {
-    return set(array, index.ordinal(), value);
+  public static boolean getEnum(int array, Enum<?> index) {
+    return get(array, index.ordinal());
   }
 
   /**
@@ -72,6 +59,19 @@ public final class BooleanArray {
     } else {
       return array & ~(1 << index);
     }
+  }
+
+  /**
+   * Set the value of the element at the given index to the given value.
+   * 
+   * @param array the array being modified
+   * @param index the index of the element being set
+   * @param value the value to be assigned to the element
+   * @return the updated value of the array
+   * @throws IndexOutOfBoundsException if the index is not between zero (0) and 31, inclusive
+   */
+  public static int setEnum(int array, Enum<?> index, boolean value) {
+    return set(array, index.ordinal(), value);
   }
 
   /**

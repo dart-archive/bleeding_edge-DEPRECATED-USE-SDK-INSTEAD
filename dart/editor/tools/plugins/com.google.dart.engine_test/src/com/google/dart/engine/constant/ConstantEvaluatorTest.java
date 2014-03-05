@@ -377,11 +377,11 @@ public class ConstantEvaluatorTest extends ResolverTestCase {
     CompilationUnit unit = getAnalysisContext().resolveCompilationUnit(source, library);
     assertNotNull(unit);
     NodeList<CompilationUnitMember> declarations = unit.getDeclarations();
-    assertSize(1, declarations);
+    assertSizeOfList(1, declarations);
     CompilationUnitMember declaration = declarations.get(0);
     assertInstanceOf(TopLevelVariableDeclaration.class, declaration);
     NodeList<VariableDeclaration> variables = ((TopLevelVariableDeclaration) declaration).getVariables().getVariables();
-    assertSize(1, variables);
+    assertSizeOfList(1, variables);
     ConstantEvaluator evaluator = new ConstantEvaluator(source, new TestTypeProvider());
     return evaluator.evaluate(variables.get(0).getInitializer());
   }

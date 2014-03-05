@@ -129,15 +129,20 @@ public class AnalysisContentStatisticsImpl implements AnalysisContentStatistics 
     return sources.toArray(new Source[sources.size()]);
   }
 
-  public void putCacheItem(DartEntry dartEntry, Source librarySource, DataDescriptor<?> descriptor) {
-    putCacheItem(dartEntry, descriptor, dartEntry.getState(descriptor, librarySource));
-  }
-
   public void putCacheItem(SourceEntry dartEntry, DataDescriptor<?> descriptor) {
-    putCacheItem(dartEntry, descriptor, dartEntry.getState(descriptor));
+    internalPutCacheItem(dartEntry, descriptor, dartEntry.getState(descriptor));
   }
 
-  private void putCacheItem(SourceEntry dartEntry, DataDescriptor<?> rowDesc, CacheState state) {
+  public void putCacheItemInLibrary(DartEntry dartEntry, Source librarySource,
+      DataDescriptor<?> descriptor) {
+    internalPutCacheItem(
+        dartEntry,
+        descriptor,
+        dartEntry.getStateInLibrary(descriptor, librarySource));
+  }
+
+  private void internalPutCacheItem(SourceEntry dartEntry, DataDescriptor<?> rowDesc,
+      CacheState state) {
     String rowName = rowDesc.toString();
     CacheRowImpl row = (CacheRowImpl) dataMap.get(rowName);
     if (row == null) {

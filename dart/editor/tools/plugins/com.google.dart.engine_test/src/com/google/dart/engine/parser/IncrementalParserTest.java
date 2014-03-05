@@ -293,7 +293,7 @@ public class IncrementalParserTest extends EngineTestCase {
     // Validate that the results of the incremental parse are the same as the full parse of the
     // modified source.
     //
-    assertTrue(AstComparator.equals(modifiedUnit, incrementalUnit));
+    assertTrue(AstComparator.equalUnits(modifiedUnit, incrementalUnit));
     // TODO(brianwilkerson) Verify that the errors are correct?
   }
 }

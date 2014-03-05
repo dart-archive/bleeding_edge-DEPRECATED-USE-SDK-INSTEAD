@@ -117,7 +117,7 @@ public class GatheringErrorListener implements AnalysisErrorListener {
    * @throws AssertionFailedError if a different number of errors have been gathered than were
    *           expected
    */
-  public void assertErrors(ErrorCode... expectedErrorCodes) {
+  public void assertErrorsWithCodes(ErrorCode... expectedErrorCodes) {
     StringBuilder builder = new StringBuilder();
     //
     // Verify that the expected error codes have a non-empty message.
@@ -217,7 +217,7 @@ public class GatheringErrorListener implements AnalysisErrorListener {
    * @throws AssertionFailedError if a different number of errors have been gathered than were
    *           expected
    */
-  public void assertErrors(ErrorSeverity... expectedSeverities) {
+  public void assertErrorsWithSeverities(ErrorSeverity... expectedSeverities) {
     int expectedErrorCount = 0;
     int expectedWarningCount = 0;
     for (ErrorSeverity severity : expectedSeverities) {
@@ -318,27 +318,17 @@ public class GatheringErrorListener implements AnalysisErrorListener {
   }
 
   /**
-   * Set the line information associated with the given source to the given information.
-   * 
-   * @param source the source with which the line information is associated
-   * @param lineInfo the line information to be associated with the source
-   */
-  public void setLineInfo(Source source, LineInfo lineInfo) {
-    lineInfoMap.put(source, lineInfo);
-  }
-
-  /**
    * Return {@code true} if the two errors are equivalent.
    * 
    * @param firstError the first error being compared
    * @param secondError the second error being compared
    * @return {@code true} if the two errors are equivalent
    */
-  private boolean equals(AnalysisError firstError, AnalysisError secondError) {
+  private boolean equalErrors(AnalysisError firstError, AnalysisError secondError) {
     return firstError.getErrorCode() == secondError.getErrorCode()
         && firstError.getOffset() == secondError.getOffset()
         && firstError.getLength() == secondError.getLength()
-        && equals(firstError.getSource(), secondError.getSource());
+        && equalSources(firstError.getSource(), secondError.getSource());
   }
 
   /**
@@ -348,7 +338,7 @@ public class GatheringErrorListener implements AnalysisErrorListener {
    * @param secondSource the second source being compared
    * @return {@code true} if the two sources are equivalent
    */
-  private boolean equals(Source firstSource, Source secondSource) {
+  private boolean equalSources(Source firstSource, Source secondSource) {
     if (firstSource == null) {
       return secondSource == null;
     } else if (secondSource == null) {
@@ -437,7 +427,7 @@ public class GatheringErrorListener implements AnalysisErrorListener {
    */
   private boolean foundAndRemoved(List<AnalysisError> errors, AnalysisError targetError) {
     for (AnalysisError error : errors) {
-      if (equals(error, targetError)) {
+      if (equalErrors(error, targetError)) {
         errors.remove(error);
         return true;
       }

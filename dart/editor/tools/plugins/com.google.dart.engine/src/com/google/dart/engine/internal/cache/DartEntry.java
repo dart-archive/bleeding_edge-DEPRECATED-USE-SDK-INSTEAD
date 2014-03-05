@@ -176,7 +176,7 @@ public interface DartEntry extends SourceEntry {
    *          context for the data
    * @return the value of the data represented by the given descriptor and library
    */
-  public CacheState getState(DataDescriptor<?> descriptor, Source librarySource);
+  public CacheState getStateInLibrary(DataDescriptor<?> descriptor, Source librarySource);
 
   /**
    * Return the value of the data represented by the given descriptor in the context of the given
@@ -187,7 +187,7 @@ public interface DartEntry extends SourceEntry {
    *          context for the data
    * @return the value of the data represented by the given descriptor and library
    */
-  public <E> E getValue(DataDescriptor<E> descriptor, Source librarySource);
+  public <E> E getValueInLibrary(DataDescriptor<E> descriptor, Source librarySource);
 
   @Override
   public DartEntryImpl getWritableCopy();

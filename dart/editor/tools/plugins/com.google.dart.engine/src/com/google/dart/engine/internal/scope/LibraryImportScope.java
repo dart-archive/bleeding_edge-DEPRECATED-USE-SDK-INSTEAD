@@ -111,7 +111,7 @@ public class LibraryImportScope extends Scope {
       return foundElement;
     }
     if (foundElement != null) {
-      defineWithoutChecking(name, foundElement);
+      defineNameWithoutChecking(name, foundElement);
     }
     return foundElement;
   }
@@ -129,7 +129,7 @@ public class LibraryImportScope extends Scope {
     int count = imports.length;
     importedNamespaces = new Namespace[count];
     for (int i = 0; i < count; i++) {
-      importedNamespaces[i] = builder.createImportNamespace(imports[i]);
+      importedNamespaces[i] = builder.createImportNamespaceForDirective(imports[i]);
     }
   }
 

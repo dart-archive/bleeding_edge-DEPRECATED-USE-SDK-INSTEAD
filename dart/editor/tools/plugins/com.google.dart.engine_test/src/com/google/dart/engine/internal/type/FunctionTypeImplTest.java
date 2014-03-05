@@ -52,7 +52,7 @@ public class FunctionTypeImplTest extends EngineTestCase {
   public void test_getNamedParameterTypes() {
     FunctionTypeImpl type = new FunctionTypeImpl(new FunctionElementImpl(identifier("f")));
     Map<String, Type> types = type.getNamedParameterTypes();
-    assertSize(0, types);
+    assertSizeOfMap(0, types);
   }
 
   public void test_getNormalParameterTypes() {
@@ -498,7 +498,7 @@ public class FunctionTypeImplTest extends EngineTestCase {
     assertLength(1, optionalParameters);
     assertEquals(argumentType, optionalParameters[0]);
     Map<String, Type> namedParameters = result.getNamedParameterTypes();
-    assertSize(1, namedParameters);
+    assertSizeOfMap(1, namedParameters);
     assertEquals(argumentType, namedParameters.get(namedParameterName));
   }
 
@@ -533,7 +533,7 @@ public class FunctionTypeImplTest extends EngineTestCase {
     assertLength(1, optionalParameters);
     assertEquals(optionalParameterType, optionalParameters[0]);
     Map<String, Type> namedParameters = result.getNamedParameterTypes();
-    assertSize(1, namedParameters);
+    assertSizeOfMap(1, namedParameters);
     assertEquals(namedParameterType, namedParameters.get(namedParameterName));
   }
 }

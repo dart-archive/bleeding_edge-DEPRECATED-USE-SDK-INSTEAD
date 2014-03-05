@@ -141,7 +141,7 @@ public class TypeResolverVisitorTest extends EngineTestCase {
     CatchClause clause = catchClause("e");
     SimpleIdentifier exceptionParameter = clause.getExceptionParameter();
     exceptionParameter.setStaticElement(new LocalVariableElementImpl(exceptionParameter));
-    resolve(clause, typeProvider.getDynamicType(), null);
+    resolveCatchClause(clause, typeProvider.getDynamicType(), null);
     listener.assertNoErrors();
   }
 
@@ -152,7 +152,7 @@ public class TypeResolverVisitorTest extends EngineTestCase {
     exceptionParameter.setStaticElement(new LocalVariableElementImpl(exceptionParameter));
     SimpleIdentifier stackTraceParameter = clause.getStackTraceParameter();
     stackTraceParameter.setStaticElement(new LocalVariableElementImpl(stackTraceParameter));
-    resolve(clause, typeProvider.getDynamicType(), typeProvider.getStackTraceType());
+    resolveCatchClause(clause, typeProvider.getDynamicType(), typeProvider.getStackTraceType());
     listener.assertNoErrors();
   }
 
@@ -163,7 +163,7 @@ public class TypeResolverVisitorTest extends EngineTestCase {
     CatchClause clause = catchClause(exceptionType, "e");
     SimpleIdentifier exceptionParameter = clause.getExceptionParameter();
     exceptionParameter.setStaticElement(new LocalVariableElementImpl(exceptionParameter));
-    resolve(clause, exceptionElement.getType(), null, exceptionElement);
+    resolveCatchClause(clause, exceptionElement.getType(), null, exceptionElement);
     listener.assertNoErrors();
   }
 
@@ -177,7 +177,7 @@ public class TypeResolverVisitorTest extends EngineTestCase {
     exceptionParameter.setStaticElement(new LocalVariableElementImpl(exceptionParameter));
     SimpleIdentifier stackTraceParameter = clause.getStackTraceParameter();
     stackTraceParameter.setStaticElement(new LocalVariableElementImpl(stackTraceParameter));
-    resolve(clause, exceptionElement.getType(), typeProvider.getStackTraceType(), exceptionElement);
+    resolveCatchClause(clause, exceptionElement.getType(), typeProvider.getStackTraceType(), exceptionElement);
     listener.assertNoErrors();
   }
 
@@ -251,7 +251,7 @@ public class TypeResolverVisitorTest extends EngineTestCase {
         outerParameterName,
         formalParameterList(parameter));
     node.getIdentifier().setStaticElement(requiredParameter(outerParameterName));
-    Type parameterType = resolve(node, intType.getElement());
+    Type parameterType = resolveFormalParameter(node, intType.getElement());
     assertInstanceOf(FunctionType.class, parameterType);
     FunctionType functionType = (FunctionType) parameterType;
     assertSame(intType, functionType.getReturnType());
@@ -263,7 +263,7 @@ public class TypeResolverVisitorTest extends EngineTestCase {
     String parameterName = "p";
     FormalParameter node = fieldFormalParameter(Keyword.VAR, null, parameterName);
     node.getIdentifier().setStaticElement(requiredParameter(parameterName));
-    assertSame(typeProvider.getDynamicType(), resolve(node));
+    assertSame(typeProvider.getDynamicType(), resolveFormalParameter(node));
     listener.assertNoErrors();
   }
 
@@ -273,7 +273,7 @@ public class TypeResolverVisitorTest extends EngineTestCase {
     String parameterName = "p";
     FormalParameter node = fieldFormalParameter(null, intTypeName, parameterName);
     node.getIdentifier().setStaticElement(requiredParameter(parameterName));
-    assertSame(intType, resolve(node, intType.getElement()));
+    assertSame(intType, resolveFormalParameter(node, intType.getElement()));
     listener.assertNoErrors();
   }
 
@@ -281,7 +281,7 @@ public class TypeResolverVisitorTest extends EngineTestCase {
     // p
     FormalParameter node = simpleFormalParameter("p");
     node.getIdentifier().setStaticElement(new ParameterElementImpl(identifier("p")));
-    assertSame(typeProvider.getDynamicType(), resolve(node));
+    assertSame(typeProvider.getDynamicType(), resolveFormalParameter(node));
     listener.assertNoErrors();
   }
 
@@ -293,7 +293,7 @@ public class TypeResolverVisitorTest extends EngineTestCase {
     SimpleIdentifier identifier = node.getIdentifier();
     ParameterElementImpl element = new ParameterElementImpl(identifier);
     identifier.setStaticElement(element);
-    assertSame(intType, resolve(node, intElement));
+    assertSame(intType, resolveFormalParameter(node, intElement));
     listener.assertNoErrors();
   }
 
@@ -352,7 +352,7 @@ public class TypeResolverVisitorTest extends EngineTestCase {
    * @param definedElements the elements that are to be defined in the scope in which the element is
    *          being resolved
    */
-  private void resolve(CatchClause node, Type exceptionType, InterfaceType stackTraceType,
+  private void resolveCatchClause(CatchClause node, Type exceptionType, InterfaceType stackTraceType,
       Element... definedElements) {
     resolveNode(node, definedElements);
     SimpleIdentifier exceptionParameter = node.getExceptionParameter();
@@ -374,7 +374,7 @@ public class TypeResolverVisitorTest extends EngineTestCase {
    *          being resolved
    * @return the type associated with the parameter
    */
-  private Type resolve(FormalParameter node, Element... definedElements) {
+  private Type resolveFormalParameter(FormalParameter node, Element... definedElements) {
     resolveNode(node, definedElements);
     return ((ParameterElement) node.getIdentifier().getStaticElement()).getType();
   }

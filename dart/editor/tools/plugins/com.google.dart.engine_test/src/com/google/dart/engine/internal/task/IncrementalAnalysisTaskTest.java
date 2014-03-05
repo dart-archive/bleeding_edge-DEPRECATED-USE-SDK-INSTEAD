@@ -84,7 +84,7 @@ public class IncrementalAnalysisTaskTest extends EngineTestCase {
     DartEntryImpl entry = new DartEntryImpl();
     CompilationUnit oldUnit = context.resolveCompilationUnit(source, source);
     assertNotNull(oldUnit);
-    entry.setValue(DartEntry.RESOLVED_UNIT, source, oldUnit);
+    entry.setValueInLibrary(DartEntry.RESOLVED_UNIT, source, oldUnit);
 
     IncrementalAnalysisCache cache = update(
         null,

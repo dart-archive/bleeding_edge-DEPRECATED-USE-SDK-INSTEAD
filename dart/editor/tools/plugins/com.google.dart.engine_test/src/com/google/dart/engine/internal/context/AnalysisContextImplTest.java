@@ -151,13 +151,13 @@ public class AnalysisContextImplTest extends EngineTestCase {
     context.computeLibraryElement(libA);
     context.computeErrors(libA);
     context.computeErrors(libB);
-    assertSize(0, context.getSourcesNeedingProcessing());
+    assertSizeOfList(0, context.getSourcesNeedingProcessing());
 
     ChangeSet changeSet = new ChangeSet();
-    changeSet.removed(libB);
+    changeSet.removedSource(libB);
     context.applyChanges(changeSet);
     List<Source> sources = context.getSourcesNeedingProcessing();
-    assertSize(1, sources);
+    assertSizeOfList(1, sources);
     assertSame(libA, sources.get(0));
   }
 
@@ -172,7 +172,7 @@ public class AnalysisContextImplTest extends EngineTestCase {
     context.computeLibraryElement(libA);
     context.computeErrors(libA);
     context.computeErrors(libB);
-    assertSize(0, context.getSourcesNeedingProcessing());
+    assertSizeOfList(0, context.getSourcesNeedingProcessing());
 
     ChangeSet changeSet = new ChangeSet();
     changeSet.removedContainer(new SourceContainer() {
@@ -183,7 +183,7 @@ public class AnalysisContextImplTest extends EngineTestCase {
     });
     context.applyChanges(changeSet);
     List<Source> sources = context.getSourcesNeedingProcessing();
-    assertSize(1, sources);
+    assertSizeOfList(1, sources);
     assertSame(libA, sources.get(0));
   }
 
@@ -871,7 +871,7 @@ public class AnalysisContextImplTest extends EngineTestCase {
       protected DartEntry recordResolveDartLibraryTaskResults(ResolveDartLibraryTask task)
           throws AnalysisException {
         ChangeSet changeSet = new ChangeSet();
-        changeSet.changed(task.getLibrarySource());
+        changeSet.changedSource(task.getLibrarySource());
         applyChanges(changeSet);
         return super.recordResolveDartLibraryTaskResults(task);
       }
@@ -1105,7 +1105,7 @@ public class AnalysisContextImplTest extends EngineTestCase {
     for (int i = 0; i < sourceCount; i++) {
       Source source = addSource("/lib" + i + ".dart", "library lib" + i + ";");
       sources.add(source);
-      changeSet.added(source);
+      changeSet.addedSource(source);
     }
     context.applyChanges(changeSet);
     context.setAnalysisPriorityOrder(sources);
@@ -1124,7 +1124,7 @@ public class AnalysisContextImplTest extends EngineTestCase {
   private Source addSource(String fileName, String contents) {
     Source source = new FileBasedSource(createFile(fileName));
     ChangeSet changeSet = new ChangeSet();
-    changeSet.added(source);
+    changeSet.addedSource(source);
     context.applyChanges(changeSet);
     context.setContents(source, contents);
     return source;
@@ -1138,7 +1138,7 @@ public class AnalysisContextImplTest extends EngineTestCase {
       }
     };
     ChangeSet changeSet = new ChangeSet();
-    changeSet.added(source);
+    changeSet.addedSource(source);
     context.applyChanges(changeSet);
     return source;
   }

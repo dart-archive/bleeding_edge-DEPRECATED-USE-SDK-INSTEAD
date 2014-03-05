@@ -53,12 +53,12 @@ public class IndexUnitOperationTest extends EngineTestCase {
 
   public void test_performOperation() throws Exception {
     operation.performOperation();
-    verify(store).aboutToIndex(context, unitElement);
+    verify(store).aboutToIndexDart(context, unitElement);
     verify(unit).accept(isA(IndexContributor.class));
   }
 
   public void test_performOperation_aboutToIndex_false() throws Exception {
-    when(store.aboutToIndex(context, unitElement)).thenReturn(false);
+    when(store.aboutToIndexDart(context, unitElement)).thenReturn(false);
     operation.performOperation();
     verify(unit, never()).accept(isA(IndexContributor.class));
   }
@@ -94,7 +94,7 @@ public class IndexUnitOperationTest extends EngineTestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    when(store.aboutToIndex(context, unitElement)).thenReturn(true);
+    when(store.aboutToIndexDart(context, unitElement)).thenReturn(true);
     when(unit.getElement()).thenReturn(unitElement);
     when(unitElement.getSource()).thenReturn(unitSource);
     operation = new IndexUnitOperation(store, context, unit);

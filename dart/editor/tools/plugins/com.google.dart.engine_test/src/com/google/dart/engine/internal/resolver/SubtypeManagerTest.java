@@ -53,7 +53,7 @@ public class SubtypeManagerTest extends EngineTestCase {
     HashSet<ClassElement> subtypesOfA = subtypeManager.computeAllSubtypes(classA);
     ClassElement[] arraySubtypesOfA = subtypesOfA.toArray(new ClassElement[subtypesOfA.size()]);
 
-    assertSize(2, subtypesOfA);
+    assertSizeOfSet(2, subtypesOfA);
     assertContains(arraySubtypesOfA, classA, classB);
   }
 
@@ -78,10 +78,10 @@ public class SubtypeManagerTest extends EngineTestCase {
     HashSet<ClassElement> subtypesOfB = subtypeManager.computeAllSubtypes(classB);
     ClassElement[] arraySubtypesOfB = subtypesOfB.toArray(new ClassElement[subtypesOfB.size()]);
 
-    assertSize(4, subtypesOfA);
+    assertSizeOfSet(4, subtypesOfA);
     assertContains(arraySubtypesOfA, classB, classC, classD, classE);
 
-    assertSize(3, subtypesOfB);
+    assertSizeOfSet(3, subtypesOfB);
     assertContains(arraySubtypesOfB, classC, classD, classE);
   }
 
@@ -94,7 +94,7 @@ public class SubtypeManagerTest extends EngineTestCase {
 
     HashSet<ClassElement> subtypesOfA = subtypeManager.computeAllSubtypes(classA);
 
-    assertSize(0, subtypesOfA);
+    assertSizeOfSet(0, subtypesOfA);
   }
 
   public void test_computeAllSubtypes_oneSubtype() throws Exception {
@@ -109,7 +109,7 @@ public class SubtypeManagerTest extends EngineTestCase {
     HashSet<ClassElement> subtypesOfA = subtypeManager.computeAllSubtypes(classA);
     ClassElement[] arraySubtypesOfA = subtypesOfA.toArray(new ClassElement[subtypesOfA.size()]);
 
-    assertSize(1, subtypesOfA);
+    assertSizeOfSet(1, subtypesOfA);
     assertContains(arraySubtypesOfA, classB);
   }
 

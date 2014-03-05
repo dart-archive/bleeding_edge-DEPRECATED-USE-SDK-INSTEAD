@@ -30,7 +30,7 @@ public class NodeListTest extends EngineTestCase {
     NodeList<AstNode> list = new NodeList<AstNode>(parent);
     list.add(0, secondNode);
     list.add(0, firstNode);
-    assertSize(2, list);
+    assertSizeOfList(2, list);
     assertSame(firstNode, list.get(0));
     assertSame(secondNode, list.get(1));
     assertSame(parent, firstNode.getParent());
@@ -38,7 +38,7 @@ public class NodeListTest extends EngineTestCase {
 
     AstNode thirdNode = booleanLiteral(false);
     list.add(1, thirdNode);
-    assertSize(3, list);
+    assertSizeOfList(3, list);
     assertSame(firstNode, list.get(0));
     assertSame(thirdNode, list.get(1));
     assertSame(secondNode, list.get(2));
@@ -76,7 +76,7 @@ public class NodeListTest extends EngineTestCase {
     firstNodes.add(secondNode);
     NodeList<AstNode> list = new NodeList<AstNode>(parent);
     list.addAll(firstNodes);
-    assertSize(2, list);
+    assertSizeOfList(2, list);
     assertSame(firstNode, list.get(0));
     assertSame(secondNode, list.get(1));
     assertSame(parent, firstNode.getParent());
@@ -88,7 +88,7 @@ public class NodeListTest extends EngineTestCase {
     secondNodes.add(thirdNode);
     secondNodes.add(fourthNode);
     list.addAll(secondNodes);
-    assertSize(4, list);
+    assertSizeOfList(4, list);
     assertSame(firstNode, list.get(0));
     assertSame(secondNode, list.get(1));
     assertSame(thirdNode, list.get(2));
@@ -103,7 +103,7 @@ public class NodeListTest extends EngineTestCase {
     AstNode owner = argumentList();
     NodeList<AstNode> list = NodeList.create(owner);
     assertNotNull(list);
-    assertSize(0, list);
+    assertSizeOfList(0, list);
     assertSame(owner, list.getOwner());
   }
 
@@ -111,7 +111,7 @@ public class NodeListTest extends EngineTestCase {
     AstNode owner = argumentList();
     NodeList<AstNode> list = new NodeList<AstNode>(owner);
     assertNotNull(list);
-    assertSize(0, list);
+    assertSizeOfList(0, list);
     assertSame(owner, list.getOwner());
   }
 
@@ -170,7 +170,7 @@ public class NodeListTest extends EngineTestCase {
     nodes.add(thirdNode);
     NodeList<AstNode> list = new NodeList<AstNode>(argumentList());
     list.addAll(nodes);
-    assertSize(3, list);
+    assertSizeOfList(3, list);
 
     assertEquals(0, list.indexOf(firstNode));
     assertEquals(1, list.indexOf(secondNode));
@@ -189,10 +189,10 @@ public class NodeListTest extends EngineTestCase {
     nodes.add(thirdNode);
     NodeList<AstNode> list = new NodeList<AstNode>(argumentList());
     list.addAll(nodes);
-    assertSize(3, list);
+    assertSizeOfList(3, list);
 
     assertSame(secondNode, list.remove(1));
-    assertSize(2, list);
+    assertSizeOfList(2, list);
     assertSame(firstNode, list.get(0));
     assertSame(thirdNode, list.get(1));
   }
@@ -227,11 +227,11 @@ public class NodeListTest extends EngineTestCase {
     nodes.add(thirdNode);
     NodeList<AstNode> list = new NodeList<AstNode>(argumentList());
     list.addAll(nodes);
-    assertSize(3, list);
+    assertSizeOfList(3, list);
 
     AstNode fourthNode = integer(0);
     assertSame(secondNode, list.set(1, fourthNode));
-    assertSize(3, list);
+    assertSizeOfList(3, list);
     assertSame(firstNode, list.get(0));
     assertSame(fourthNode, list.get(1));
     assertSame(thirdNode, list.get(2));

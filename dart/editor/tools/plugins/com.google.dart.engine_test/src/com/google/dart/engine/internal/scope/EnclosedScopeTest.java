@@ -44,7 +44,7 @@ public class EnclosedScopeTest extends ResolverTestCase {
     VariableElement element2 = localVariableElement(identifier("v1"));
     scope.define(element1);
     scope.define(element2);
-    errorListener.assertErrors(ErrorSeverity.ERROR);
+    errorListener.assertErrorsWithSeverities(ErrorSeverity.ERROR);
   }
 
   public void test_define_normal() {

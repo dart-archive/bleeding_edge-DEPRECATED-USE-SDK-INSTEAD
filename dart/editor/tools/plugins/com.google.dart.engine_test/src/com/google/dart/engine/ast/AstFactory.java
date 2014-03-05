@@ -19,7 +19,10 @@ import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.utilities.dart.ParameterKind;
 
-import static com.google.dart.engine.scanner.TokenFactory.token;
+import static com.google.dart.engine.scanner.TokenFactory.tokenFromKeyword;
+import static com.google.dart.engine.scanner.TokenFactory.tokenFromString;
+import static com.google.dart.engine.scanner.TokenFactory.tokenFromType;
+import static com.google.dart.engine.scanner.TokenFactory.tokenFromTypeAndString;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -43,58 +46,58 @@ public final class AstFactory {
   }
 
   public static Annotation annotation(Identifier name) {
-    return new Annotation(token(TokenType.AT), name, null, null, null);
+    return new Annotation(tokenFromType(TokenType.AT), name, null, null, null);
   }
 
   public static Annotation annotation(Identifier name, SimpleIdentifier constructorName,
       ArgumentList arguments) {
     return new Annotation(
-        token(TokenType.AT),
+        tokenFromType(TokenType.AT),
         name,
-        token(TokenType.PERIOD),
+        tokenFromType(TokenType.PERIOD),
         constructorName,
         arguments);
   }
 
   public static ArgumentDefinitionTest argumentDefinitionTest(String identifier) {
-    return new ArgumentDefinitionTest(token(TokenType.QUESTION), identifier(identifier));
+    return new ArgumentDefinitionTest(tokenFromType(TokenType.QUESTION), identifier(identifier));
   }
 
   public static ArgumentList argumentList(Expression... arguments) {
     return new ArgumentList(
-        token(TokenType.OPEN_PAREN),
+        tokenFromType(TokenType.OPEN_PAREN),
         list(arguments),
-        token(TokenType.CLOSE_PAREN));
+        tokenFromType(TokenType.CLOSE_PAREN));
   }
 
   public static AsExpression asExpression(Expression expression, TypeName type) {
-    return new AsExpression(expression, token(Keyword.AS), type);
+    return new AsExpression(expression, tokenFromKeyword(Keyword.AS), type);
   }
 
   public static AssertStatement assertStatement(Expression condition) {
     return new AssertStatement(
-        token(Keyword.ASSERT),
-        token(TokenType.OPEN_PAREN),
+        tokenFromKeyword(Keyword.ASSERT),
+        tokenFromType(TokenType.OPEN_PAREN),
         condition,
-        token(TokenType.CLOSE_PAREN),
-        token(TokenType.SEMICOLON));
+        tokenFromType(TokenType.CLOSE_PAREN),
+        tokenFromType(TokenType.SEMICOLON));
   }
 
   public static AssignmentExpression assignmentExpression(Expression leftHandSide,
       TokenType operator, Expression rightHandSide) {
-    return new AssignmentExpression(leftHandSide, token(operator), rightHandSide);
+    return new AssignmentExpression(leftHandSide, tokenFromType(operator), rightHandSide);
   }
 
   public static BinaryExpression binaryExpression(Expression leftOperand, TokenType operator,
       Expression rightOperand) {
-    return new BinaryExpression(leftOperand, token(operator), rightOperand);
+    return new BinaryExpression(leftOperand, tokenFromType(operator), rightOperand);
   }
 
   public static Block block(Statement... statements) {
     return new Block(
-        token(TokenType.OPEN_CURLY_BRACKET),
+        tokenFromType(TokenType.OPEN_CURLY_BRACKET),
         list(statements),
-        token(TokenType.CLOSE_CURLY_BRACKET));
+        tokenFromType(TokenType.CLOSE_CURLY_BRACKET));
   }
 
   public static BlockFunctionBody blockFunctionBody(Block block) {
@@ -106,36 +109,46 @@ public final class AstFactory {
   }
 
   public static BooleanLiteral booleanLiteral(boolean value) {
-    return new BooleanLiteral(value ? token(Keyword.TRUE) : token(Keyword.FALSE), value);
+    return new BooleanLiteral(value ? tokenFromKeyword(Keyword.TRUE)
+        : tokenFromKeyword(Keyword.FALSE), value);
   }
 
   public static BreakStatement breakStatement() {
-    return new BreakStatement(token(Keyword.BREAK), null, token(TokenType.SEMICOLON));
+    return new BreakStatement(
+        tokenFromKeyword(Keyword.BREAK),
+        null,
+        tokenFromType(TokenType.SEMICOLON));
   }
 
   public static BreakStatement breakStatement(String label) {
-    return new BreakStatement(token(Keyword.BREAK), identifier(label), token(TokenType.SEMICOLON));
+    return new BreakStatement(
+        tokenFromKeyword(Keyword.BREAK),
+        identifier(label),
+        tokenFromType(TokenType.SEMICOLON));
   }
 
   public static IndexExpression cascadedIndexExpression(Expression index) {
     return new IndexExpression(
-        token(TokenType.PERIOD_PERIOD),
-        token(TokenType.OPEN_SQUARE_BRACKET),
+        tokenFromType(TokenType.PERIOD_PERIOD),
+        tokenFromType(TokenType.OPEN_SQUARE_BRACKET),
         index,
-        token(TokenType.CLOSE_SQUARE_BRACKET));
+        tokenFromType(TokenType.CLOSE_SQUARE_BRACKET));
   }
 
   public static MethodInvocation cascadedMethodInvocation(String methodName,
       Expression... arguments) {
     return new MethodInvocation(
         null,
-        token(TokenType.PERIOD_PERIOD),
+        tokenFromType(TokenType.PERIOD_PERIOD),
         identifier(methodName),
         argumentList(arguments));
   }
 
   public static PropertyAccess cascadedPropertyAccess(String propertyName) {
-    return new PropertyAccess(null, token(TokenType.PERIOD_PERIOD), identifier(propertyName));
+    return new PropertyAccess(
+        null,
+        tokenFromType(TokenType.PERIOD_PERIOD),
+        identifier(propertyName));
   }
 
   public static CascadeExpression cascadeExpression(Expression target,
@@ -164,14 +177,14 @@ public final class AstFactory {
   public static CatchClause catchClause(TypeName exceptionType, String exceptionParameter,
       String stackTraceParameter, Statement... statements) {
     return new CatchClause(
-        exceptionType == null ? null : token(TokenType.IDENTIFIER, "on"),
+        exceptionType == null ? null : tokenFromTypeAndString(TokenType.IDENTIFIER, "on"),
         exceptionType,
-        exceptionParameter == null ? null : token(Keyword.CATCH),
-        exceptionParameter == null ? null : token(TokenType.OPEN_PAREN),
+        exceptionParameter == null ? null : tokenFromKeyword(Keyword.CATCH),
+        exceptionParameter == null ? null : tokenFromType(TokenType.OPEN_PAREN),
         identifier(exceptionParameter),
-        stackTraceParameter == null ? null : token(TokenType.COMMA),
+        stackTraceParameter == null ? null : tokenFromType(TokenType.COMMA),
         stackTraceParameter == null ? null : identifier(stackTraceParameter),
-        exceptionParameter == null ? null : token(TokenType.CLOSE_PAREN),
+        exceptionParameter == null ? null : tokenFromType(TokenType.CLOSE_PAREN),
         block(statements));
   }
 
@@ -181,16 +194,16 @@ public final class AstFactory {
     return new ClassDeclaration(
         null,
         null,
-        abstractKeyword == null ? null : token(abstractKeyword),
-        token(Keyword.CLASS),
+        abstractKeyword == null ? null : tokenFromKeyword(abstractKeyword),
+        tokenFromKeyword(Keyword.CLASS),
         identifier(name),
         typeParameters,
         extendsClause,
         withClause,
         implementsClause,
-        token(TokenType.OPEN_CURLY_BRACKET),
+        tokenFromType(TokenType.OPEN_CURLY_BRACKET),
         list(members),
-        token(TokenType.CLOSE_CURLY_BRACKET));
+        tokenFromType(TokenType.CLOSE_CURLY_BRACKET));
   }
 
   public static ClassTypeAlias classTypeAlias(String name, TypeParameterList typeParameters,
@@ -199,15 +212,15 @@ public final class AstFactory {
     return new ClassTypeAlias(
         null,
         null,
-        token(Keyword.CLASS),
+        tokenFromKeyword(Keyword.CLASS),
         identifier(name),
         typeParameters,
-        token(TokenType.EQ),
-        abstractKeyword == null ? null : token(abstractKeyword),
+        tokenFromType(TokenType.EQ),
+        abstractKeyword == null ? null : tokenFromKeyword(abstractKeyword),
         superclass,
         withClause,
         implementsClause,
-        token(TokenType.SEMICOLON));
+        tokenFromType(TokenType.SEMICOLON));
   }
 
   public static CompilationUnit compilationUnit() {
@@ -243,20 +256,20 @@ public final class AstFactory {
   public static CompilationUnit compilationUnit(String scriptTag, List<Directive> directives,
       List<CompilationUnitMember> declarations) {
     return new CompilationUnit(
-        token(TokenType.EOF),
+        tokenFromType(TokenType.EOF),
         scriptTag == null ? null : scriptTag(scriptTag),
         directives == null ? new ArrayList<Directive>() : directives,
         declarations == null ? new ArrayList<CompilationUnitMember>() : declarations,
-        token(TokenType.EOF));
+        tokenFromType(TokenType.EOF));
   }
 
   public static ConditionalExpression conditionalExpression(Expression condition,
       Expression thenExpression, Expression elseExpression) {
     return new ConditionalExpression(
         condition,
-        token(TokenType.QUESTION),
+        tokenFromType(TokenType.QUESTION),
         thenExpression,
-        token(TokenType.COLON),
+        tokenFromType(TokenType.COLON),
         elseExpression);
   }
 
@@ -265,14 +278,14 @@ public final class AstFactory {
     return new ConstructorDeclaration(
         null,
         null,
-        token(Keyword.EXTERNAL),
+        tokenFromKeyword(Keyword.EXTERNAL),
         null,
         null,
         returnType,
-        name == null ? null : token(TokenType.PERIOD),
+        name == null ? null : tokenFromType(TokenType.PERIOD),
         name == null ? null : identifier(name),
         parameters,
-        initializers == null || initializers.isEmpty() ? null : token(TokenType.PERIOD),
+        initializers == null || initializers.isEmpty() ? null : tokenFromType(TokenType.PERIOD),
         initializers == null ? new ArrayList<ConstructorInitializer>() : initializers,
         null,
         emptyFunctionBody());
@@ -285,13 +298,13 @@ public final class AstFactory {
         null,
         null,
         null,
-        constKeyword == null ? null : token(constKeyword),
-        factoryKeyword == null ? null : token(factoryKeyword),
+        constKeyword == null ? null : tokenFromKeyword(constKeyword),
+        factoryKeyword == null ? null : tokenFromKeyword(factoryKeyword),
         returnType,
-        name == null ? null : token(TokenType.PERIOD),
+        name == null ? null : tokenFromType(TokenType.PERIOD),
         name == null ? null : identifier(name),
         parameters,
-        initializers == null || initializers.isEmpty() ? null : token(TokenType.PERIOD),
+        initializers == null || initializers.isEmpty() ? null : tokenFromType(TokenType.PERIOD),
         initializers == null ? new ArrayList<ConstructorInitializer>() : initializers,
         null,
         body);
@@ -300,27 +313,32 @@ public final class AstFactory {
   public static ConstructorFieldInitializer constructorFieldInitializer(boolean prefixedWithThis,
       String fieldName, Expression expression) {
     return new ConstructorFieldInitializer(
-        prefixedWithThis ? token(Keyword.THIS) : null,
-        prefixedWithThis ? token(TokenType.PERIOD) : null,
+        prefixedWithThis ? tokenFromKeyword(Keyword.THIS) : null,
+        prefixedWithThis ? tokenFromType(TokenType.PERIOD) : null,
         identifier(fieldName),
-        token(TokenType.EQ),
+        tokenFromType(TokenType.EQ),
         expression);
   }
 
   public static ConstructorName constructorName(TypeName type, String name) {
-    return new ConstructorName(type, name == null ? null : token(TokenType.PERIOD), name == null
-        ? null : identifier(name));
+    return new ConstructorName(
+        type,
+        name == null ? null : tokenFromType(TokenType.PERIOD),
+        name == null ? null : identifier(name));
   }
 
   public static ContinueStatement continueStatement() {
-    return new ContinueStatement(token(Keyword.CONTINUE), null, token(TokenType.SEMICOLON));
+    return new ContinueStatement(
+        tokenFromKeyword(Keyword.CONTINUE),
+        null,
+        tokenFromType(TokenType.SEMICOLON));
   }
 
   public static ContinueStatement continueStatement(String label) {
     return new ContinueStatement(
-        token(Keyword.CONTINUE),
+        tokenFromKeyword(Keyword.CONTINUE),
         identifier(label),
-        token(TokenType.SEMICOLON));
+        tokenFromType(TokenType.SEMICOLON));
   }
 
   public static DeclaredIdentifier declaredIdentifier(Keyword keyword, String identifier) {
@@ -332,7 +350,7 @@ public final class AstFactory {
     return new DeclaredIdentifier(
         null,
         null,
-        keyword == null ? null : token(keyword),
+        keyword == null ? null : tokenFromKeyword(keyword),
         type,
         identifier(identifier));
   }
@@ -347,25 +365,25 @@ public final class AstFactory {
 
   public static DoStatement doStatement(Statement body, Expression condition) {
     return new DoStatement(
-        token(Keyword.DO),
+        tokenFromKeyword(Keyword.DO),
         body,
-        token(Keyword.WHILE),
-        token(TokenType.OPEN_PAREN),
+        tokenFromKeyword(Keyword.WHILE),
+        tokenFromType(TokenType.OPEN_PAREN),
         condition,
-        token(TokenType.CLOSE_PAREN),
-        token(TokenType.SEMICOLON));
+        tokenFromType(TokenType.CLOSE_PAREN),
+        tokenFromType(TokenType.SEMICOLON));
   }
 
   public static DoubleLiteral doubleLiteral(double value) {
-    return new DoubleLiteral(token(Double.toString(value)), value);
+    return new DoubleLiteral(tokenFromString(Double.toString(value)), value);
   }
 
   public static EmptyFunctionBody emptyFunctionBody() {
-    return new EmptyFunctionBody(token(TokenType.SEMICOLON));
+    return new EmptyFunctionBody(tokenFromType(TokenType.SEMICOLON));
   }
 
   public static EmptyStatement emptyStatement() {
-    return new EmptyStatement(token(TokenType.SEMICOLON));
+    return new EmptyStatement(tokenFromType(TokenType.SEMICOLON));
   }
 
   public static ExportDirective exportDirective(List<Annotation> metadata, String uri,
@@ -373,10 +391,10 @@ public final class AstFactory {
     return new ExportDirective(
         null,
         metadata,
-        token(Keyword.EXPORT),
+        tokenFromKeyword(Keyword.EXPORT),
         string(uri),
         list(combinators),
-        token(TokenType.SEMICOLON));
+        tokenFromType(TokenType.SEMICOLON));
   }
 
   public static ExportDirective exportDirective(String uri, Combinator... combinators) {
@@ -385,17 +403,17 @@ public final class AstFactory {
 
   public static ExpressionFunctionBody expressionFunctionBody(Expression expression) {
     return new ExpressionFunctionBody(
-        token(TokenType.FUNCTION),
+        tokenFromType(TokenType.FUNCTION),
         expression,
-        token(TokenType.SEMICOLON));
+        tokenFromType(TokenType.SEMICOLON));
   }
 
   public static ExpressionStatement expressionStatement(Expression expression) {
-    return new ExpressionStatement(expression, token(TokenType.SEMICOLON));
+    return new ExpressionStatement(expression, tokenFromType(TokenType.SEMICOLON));
   }
 
   public static ExtendsClause extendsClause(TypeName type) {
-    return new ExtendsClause(token(Keyword.EXTENDS), type);
+    return new ExtendsClause(tokenFromKeyword(Keyword.EXTENDS), type);
   }
 
   public static FieldDeclaration fieldDeclaration(boolean isStatic, Keyword keyword, TypeName type,
@@ -403,9 +421,9 @@ public final class AstFactory {
     return new FieldDeclaration(
         null,
         null,
-        isStatic ? token(Keyword.STATIC) : null,
+        isStatic ? tokenFromKeyword(Keyword.STATIC) : null,
         variableDeclarationList(keyword, type, variables),
-        token(TokenType.SEMICOLON));
+        tokenFromType(TokenType.SEMICOLON));
   }
 
   public static FieldDeclaration fieldDeclaration(boolean isStatic, Keyword keyword,
@@ -418,10 +436,10 @@ public final class AstFactory {
     return new FieldFormalParameter(
         null,
         null,
-        keyword == null ? null : token(keyword),
+        keyword == null ? null : tokenFromKeyword(keyword),
         type,
-        token(Keyword.THIS),
-        token(TokenType.PERIOD),
+        tokenFromKeyword(Keyword.THIS),
+        tokenFromType(TokenType.PERIOD),
         identifier(identifier),
         null);
   }
@@ -431,10 +449,10 @@ public final class AstFactory {
     return new FieldFormalParameter(
         null,
         null,
-        keyword == null ? null : token(keyword),
+        keyword == null ? null : tokenFromKeyword(keyword),
         type,
-        token(Keyword.THIS),
-        token(TokenType.PERIOD),
+        tokenFromKeyword(Keyword.THIS),
+        tokenFromType(TokenType.PERIOD),
         identifier(identifier),
         parameterList);
   }
@@ -446,64 +464,58 @@ public final class AstFactory {
   public static ForEachStatement forEachStatement(DeclaredIdentifier loopVariable,
       Expression iterator, Statement body) {
     return new ForEachStatement(
-        token(Keyword.FOR),
-        token(TokenType.OPEN_PAREN),
+        tokenFromKeyword(Keyword.FOR),
+        tokenFromType(TokenType.OPEN_PAREN),
         loopVariable,
-        token(Keyword.IN),
+        tokenFromKeyword(Keyword.IN),
         iterator,
-        token(TokenType.CLOSE_PAREN),
+        tokenFromType(TokenType.CLOSE_PAREN),
         body);
   }
 
   public static FormalParameterList formalParameterList(FormalParameter... parameters) {
     return new FormalParameterList(
-        token(TokenType.OPEN_PAREN),
+        tokenFromType(TokenType.OPEN_PAREN),
         list(parameters),
         null,
         null,
-        token(TokenType.CLOSE_PAREN));
+        tokenFromType(TokenType.CLOSE_PAREN));
   }
 
   public static ForStatement forStatement(Expression initialization, Expression condition,
       List<Expression> updaters, Statement body) {
     return new ForStatement(
-        token(Keyword.FOR),
-        token(TokenType.OPEN_PAREN),
+        tokenFromKeyword(Keyword.FOR),
+        tokenFromType(TokenType.OPEN_PAREN),
         null,
         initialization,
-        token(TokenType.SEMICOLON),
+        tokenFromType(TokenType.SEMICOLON),
         condition,
-        token(TokenType.SEMICOLON),
+        tokenFromType(TokenType.SEMICOLON),
         updaters,
-        token(TokenType.CLOSE_PAREN),
+        tokenFromType(TokenType.CLOSE_PAREN),
         body);
   }
 
   public static ForStatement forStatement(VariableDeclarationList variableList,
       Expression condition, List<Expression> updaters, Statement body) {
     return new ForStatement(
-        token(Keyword.FOR),
-        token(TokenType.OPEN_PAREN),
+        tokenFromKeyword(Keyword.FOR),
+        tokenFromType(TokenType.OPEN_PAREN),
         variableList,
         null,
-        token(TokenType.SEMICOLON),
+        tokenFromType(TokenType.SEMICOLON),
         condition,
-        token(TokenType.SEMICOLON),
+        tokenFromType(TokenType.SEMICOLON),
         updaters,
-        token(TokenType.CLOSE_PAREN),
+        tokenFromType(TokenType.CLOSE_PAREN),
         body);
   }
 
   public static FunctionDeclaration functionDeclaration(TypeName type, Keyword keyword,
       String name, FunctionExpression functionExpression) {
-    return new FunctionDeclaration(
-        null,
-        null,
-        null,
-        type,
-        keyword == null ? null : token(keyword),
-        identifier(name),
-        functionExpression);
+    return new FunctionDeclaration(null, null, null, type, keyword == null ? null
+        : tokenFromKeyword(keyword), identifier(name), functionExpression);
   }
 
   public static FunctionDeclarationStatement functionDeclarationStatement(TypeName type,
@@ -540,7 +552,7 @@ public final class AstFactory {
   }
 
   public static HideCombinator hideCombinator(SimpleIdentifier... identifiers) {
-    return new HideCombinator(token("hide"), list(identifiers));
+    return new HideCombinator(tokenFromString("hide"), list(identifiers));
   }
 
   public static HideCombinator hideCombinator(String... identifiers) {
@@ -548,25 +560,25 @@ public final class AstFactory {
     for (String identifier : identifiers) {
       identifierList.add(identifier(identifier));
     }
-    return new HideCombinator(token("hide"), identifierList);
+    return new HideCombinator(tokenFromString("hide"), identifierList);
   }
 
   public static PrefixedIdentifier identifier(SimpleIdentifier prefix, SimpleIdentifier identifier) {
-    return new PrefixedIdentifier(prefix, token(TokenType.PERIOD), identifier);
+    return new PrefixedIdentifier(prefix, tokenFromType(TokenType.PERIOD), identifier);
   }
 
   public static SimpleIdentifier identifier(String lexeme) {
-    return new SimpleIdentifier(token(TokenType.IDENTIFIER, lexeme));
+    return new SimpleIdentifier(tokenFromTypeAndString(TokenType.IDENTIFIER, lexeme));
   }
 
   public static PrefixedIdentifier identifier(String prefix, SimpleIdentifier identifier) {
-    return new PrefixedIdentifier(identifier(prefix), token(TokenType.PERIOD), identifier);
+    return new PrefixedIdentifier(identifier(prefix), tokenFromType(TokenType.PERIOD), identifier);
   }
 
   public static PrefixedIdentifier identifier(String prefix, String identifier) {
     return new PrefixedIdentifier(
         identifier(prefix),
-        token(TokenType.PERIOD),
+        tokenFromType(TokenType.PERIOD),
         identifier(identifier));
   }
 
@@ -577,17 +589,17 @@ public final class AstFactory {
   public static IfStatement ifStatement(Expression condition, Statement thenStatement,
       Statement elseStatement) {
     return new IfStatement(
-        token(Keyword.IF),
-        token(TokenType.OPEN_PAREN),
+        tokenFromKeyword(Keyword.IF),
+        tokenFromType(TokenType.OPEN_PAREN),
         condition,
-        token(TokenType.CLOSE_PAREN),
+        tokenFromType(TokenType.CLOSE_PAREN),
         thenStatement,
-        elseStatement == null ? null : token(Keyword.ELSE),
+        elseStatement == null ? null : tokenFromKeyword(Keyword.ELSE),
         elseStatement);
   }
 
   public static ImplementsClause implementsClause(TypeName... types) {
-    return new ImplementsClause(token(Keyword.IMPLEMENTS), list(types));
+    return new ImplementsClause(tokenFromKeyword(Keyword.IMPLEMENTS), list(types));
   }
 
   public static ImportDirective importDirective(List<Annotation> metadata, String uri,
@@ -595,12 +607,12 @@ public final class AstFactory {
     return new ImportDirective(
         null,
         metadata,
-        token(Keyword.IMPORT),
+        tokenFromKeyword(Keyword.IMPORT),
         string(uri),
-        prefix == null ? null : token(Keyword.AS),
+        prefix == null ? null : tokenFromKeyword(Keyword.AS),
         prefix == null ? null : identifier(prefix),
         list(combinators),
-        token(TokenType.SEMICOLON));
+        tokenFromType(TokenType.SEMICOLON));
   }
 
   public static ImportDirective importDirective(String uri, String prefix,
@@ -611,15 +623,15 @@ public final class AstFactory {
   public static IndexExpression indexExpression(Expression array, Expression index) {
     return new IndexExpression(
         array,
-        token(TokenType.OPEN_SQUARE_BRACKET),
+        tokenFromType(TokenType.OPEN_SQUARE_BRACKET),
         index,
-        token(TokenType.CLOSE_SQUARE_BRACKET));
+        tokenFromType(TokenType.CLOSE_SQUARE_BRACKET));
   }
 
   public static InstanceCreationExpression instanceCreationExpression(Keyword keyword,
       ConstructorName name, Expression... arguments) {
     return new InstanceCreationExpression(
-        keyword == null ? null : token(keyword),
+        keyword == null ? null : tokenFromKeyword(keyword),
         name,
         argumentList(arguments));
   }
@@ -631,42 +643,46 @@ public final class AstFactory {
 
   public static InstanceCreationExpression instanceCreationExpression(Keyword keyword,
       TypeName type, String identifier, Expression... arguments) {
-    return instanceCreationExpression(keyword, new ConstructorName(type, identifier == null ? null
-        : token(TokenType.PERIOD), identifier == null ? null : identifier(identifier)), arguments);
+    return instanceCreationExpression(
+        keyword,
+        new ConstructorName(
+            type,
+            identifier == null ? null : tokenFromType(TokenType.PERIOD),
+            identifier == null ? null : identifier(identifier)),
+        arguments);
   }
 
   public static IntegerLiteral integer(long value) {
-    return new IntegerLiteral(token(TokenType.INT, Long.toString(value)), BigInteger.valueOf(value));
+    return new IntegerLiteral(
+        tokenFromTypeAndString(TokenType.INT, Long.toString(value)),
+        BigInteger.valueOf(value));
   }
 
   public static InterpolationExpression interpolationExpression(Expression expression) {
     return new InterpolationExpression(
-        token(TokenType.STRING_INTERPOLATION_EXPRESSION),
+        tokenFromType(TokenType.STRING_INTERPOLATION_EXPRESSION),
         expression,
-        token(TokenType.CLOSE_CURLY_BRACKET));
+        tokenFromType(TokenType.CLOSE_CURLY_BRACKET));
   }
 
   public static InterpolationExpression interpolationExpression(String identifier) {
     return new InterpolationExpression(
-        token(TokenType.STRING_INTERPOLATION_IDENTIFIER),
+        tokenFromType(TokenType.STRING_INTERPOLATION_IDENTIFIER),
         identifier(identifier),
         null);
   }
 
   public static InterpolationString interpolationString(String contents, String value) {
-    return new InterpolationString(token(contents), value);
+    return new InterpolationString(tokenFromString(contents), value);
   }
 
   public static IsExpression isExpression(Expression expression, boolean negated, TypeName type) {
-    return new IsExpression(
-        expression,
-        token(Keyword.IS),
-        negated ? token(TokenType.BANG) : null,
-        type);
+    return new IsExpression(expression, tokenFromKeyword(Keyword.IS), negated
+        ? tokenFromType(TokenType.BANG) : null, type);
   }
 
   public static Label label(SimpleIdentifier label) {
-    return new Label(label, token(TokenType.COLON));
+    return new Label(label, tokenFromType(TokenType.COLON));
   }
 
   public static Label label(String label) {
@@ -682,9 +698,9 @@ public final class AstFactory {
     return new LibraryDirective(
         null,
         metadata,
-        token(Keyword.LIBRARY),
+        tokenFromKeyword(Keyword.LIBRARY),
         libraryName,
-        token(TokenType.SEMICOLON));
+        tokenFromType(TokenType.SEMICOLON));
   }
 
   public static LibraryDirective libraryDirective(String libraryName) {
@@ -719,21 +735,21 @@ public final class AstFactory {
   public static ListLiteral listLiteral(Keyword keyword, TypeArgumentList typeArguments,
       Expression... elements) {
     return new ListLiteral(
-        keyword == null ? null : token(keyword),
+        keyword == null ? null : tokenFromKeyword(keyword),
         null,
-        token(TokenType.OPEN_SQUARE_BRACKET),
+        tokenFromType(TokenType.OPEN_SQUARE_BRACKET),
         list(elements),
-        token(TokenType.CLOSE_SQUARE_BRACKET));
+        tokenFromType(TokenType.CLOSE_SQUARE_BRACKET));
   }
 
   public static MapLiteral mapLiteral(Keyword keyword, TypeArgumentList typeArguments,
       MapLiteralEntry... entries) {
     return new MapLiteral(
-        keyword == null ? null : token(keyword),
+        keyword == null ? null : tokenFromKeyword(keyword),
         typeArguments,
-        token(TokenType.OPEN_CURLY_BRACKET),
+        tokenFromType(TokenType.OPEN_CURLY_BRACKET),
         list(entries),
-        token(TokenType.CLOSE_CURLY_BRACKET));
+        tokenFromType(TokenType.CLOSE_CURLY_BRACKET));
   }
 
   public static MapLiteral mapLiteral(MapLiteralEntry... entries) {
@@ -741,14 +757,22 @@ public final class AstFactory {
   }
 
   public static MapLiteralEntry mapLiteralEntry(String key, Expression value) {
-    return new MapLiteralEntry(string(key), token(TokenType.COLON), value);
+    return new MapLiteralEntry(string(key), tokenFromType(TokenType.COLON), value);
   }
 
   public static MethodDeclaration methodDeclaration(Keyword modifier, TypeName returnType,
       Keyword property, Keyword operator, SimpleIdentifier name, FormalParameterList parameters) {
-    return new MethodDeclaration(null, null, token(Keyword.EXTERNAL), modifier == null ? null
-        : token(modifier), returnType, property == null ? null : token(property), operator == null
-        ? null : token(operator), name, parameters, emptyFunctionBody());
+    return new MethodDeclaration(
+        null,
+        null,
+        tokenFromKeyword(Keyword.EXTERNAL),
+        modifier == null ? null : tokenFromKeyword(modifier),
+        returnType,
+        property == null ? null : tokenFromKeyword(property),
+        operator == null ? null : tokenFromKeyword(operator),
+        name,
+        parameters,
+        emptyFunctionBody());
   }
 
   public static MethodDeclaration methodDeclaration(Keyword modifier, TypeName returnType,
@@ -758,10 +782,10 @@ public final class AstFactory {
         null,
         null,
         null,
-        modifier == null ? null : token(modifier),
+        modifier == null ? null : tokenFromKeyword(modifier),
         returnType,
-        property == null ? null : token(property),
-        operator == null ? null : token(operator),
+        property == null ? null : tokenFromKeyword(property),
+        operator == null ? null : tokenFromKeyword(operator),
         name,
         parameters,
         body);
@@ -771,7 +795,7 @@ public final class AstFactory {
       Expression... arguments) {
     return new MethodInvocation(
         target,
-        target == null ? null : token(TokenType.PERIOD),
+        target == null ? null : tokenFromType(TokenType.PERIOD),
         identifier(methodName),
         argumentList(arguments));
   }
@@ -791,38 +815,38 @@ public final class AstFactory {
   public static DefaultFormalParameter namedFormalParameter(NormalFormalParameter parameter,
       Expression expression) {
     return new DefaultFormalParameter(parameter, ParameterKind.NAMED, expression == null ? null
-        : token(TokenType.COLON), expression);
+        : tokenFromType(TokenType.COLON), expression);
   }
 
   public static NativeClause nativeClause(String nativeCode) {
-    return new NativeClause(token("native"), string(nativeCode));
+    return new NativeClause(tokenFromString("native"), string(nativeCode));
   }
 
   public static NativeFunctionBody nativeFunctionBody(String nativeMethodName) {
     return new NativeFunctionBody(
-        token("native"),
+        tokenFromString("native"),
         string(nativeMethodName),
-        token(TokenType.SEMICOLON));
+        tokenFromType(TokenType.SEMICOLON));
   }
 
   public static NullLiteral nullLiteral() {
-    return new NullLiteral(token(Keyword.NULL));
+    return new NullLiteral(tokenFromKeyword(Keyword.NULL));
   }
 
   public static ParenthesizedExpression parenthesizedExpression(Expression expression) {
     return new ParenthesizedExpression(
-        token(TokenType.OPEN_PAREN),
+        tokenFromType(TokenType.OPEN_PAREN),
         expression,
-        token(TokenType.CLOSE_PAREN));
+        tokenFromType(TokenType.CLOSE_PAREN));
   }
 
   public static PartDirective partDirective(List<Annotation> metadata, String url) {
     return new PartDirective(
         null,
         metadata,
-        token(Keyword.PART),
+        tokenFromKeyword(Keyword.PART),
         string(url),
-        token(TokenType.SEMICOLON));
+        tokenFromType(TokenType.SEMICOLON));
   }
 
   public static PartDirective partDirective(String url) {
@@ -838,32 +862,32 @@ public final class AstFactory {
     return new PartOfDirective(
         null,
         metadata,
-        token(Keyword.PART),
-        token("of"),
+        tokenFromKeyword(Keyword.PART),
+        tokenFromString("of"),
         libraryName,
-        token(TokenType.SEMICOLON));
+        tokenFromType(TokenType.SEMICOLON));
   }
 
   public static DefaultFormalParameter positionalFormalParameter(NormalFormalParameter parameter,
       Expression expression) {
     return new DefaultFormalParameter(parameter, ParameterKind.POSITIONAL, expression == null
-        ? null : token(TokenType.EQ), expression);
+        ? null : tokenFromType(TokenType.EQ), expression);
   }
 
   public static PostfixExpression postfixExpression(Expression expression, TokenType operator) {
-    return new PostfixExpression(expression, token(operator));
+    return new PostfixExpression(expression, tokenFromType(operator));
   }
 
   public static PrefixExpression prefixExpression(TokenType operator, Expression expression) {
-    return new PrefixExpression(token(operator), expression);
+    return new PrefixExpression(tokenFromType(operator), expression);
   }
 
   public static PropertyAccess propertyAccess(Expression target, SimpleIdentifier propertyName) {
-    return new PropertyAccess(target, token(TokenType.PERIOD), propertyName);
+    return new PropertyAccess(target, tokenFromType(TokenType.PERIOD), propertyName);
   }
 
   public static PropertyAccess propertyAccess(Expression target, String propertyName) {
-    return new PropertyAccess(target, token(TokenType.PERIOD), identifier(propertyName));
+    return new PropertyAccess(target, tokenFromType(TokenType.PERIOD), identifier(propertyName));
   }
 
   public static RedirectingConstructorInvocation redirectingConstructorInvocation(
@@ -874,14 +898,14 @@ public final class AstFactory {
   public static RedirectingConstructorInvocation redirectingConstructorInvocation(
       String constructorName, Expression... arguments) {
     return new RedirectingConstructorInvocation(
-        token(Keyword.THIS),
-        constructorName == null ? null : token(TokenType.PERIOD),
+        tokenFromKeyword(Keyword.THIS),
+        constructorName == null ? null : tokenFromType(TokenType.PERIOD),
         constructorName == null ? null : identifier(constructorName),
         argumentList(arguments));
   }
 
   public static RethrowExpression rethrowExpression() {
-    return new RethrowExpression(token(Keyword.RETHROW));
+    return new RethrowExpression(tokenFromKeyword(Keyword.RETHROW));
   }
 
   public static ReturnStatement returnStatement() {
@@ -889,15 +913,18 @@ public final class AstFactory {
   }
 
   public static ReturnStatement returnStatement(Expression expression) {
-    return new ReturnStatement(token(Keyword.RETURN), expression, token(TokenType.SEMICOLON));
+    return new ReturnStatement(
+        tokenFromKeyword(Keyword.RETURN),
+        expression,
+        tokenFromType(TokenType.SEMICOLON));
   }
 
   public static ScriptTag scriptTag(String scriptTag) {
-    return new ScriptTag(token(scriptTag));
+    return new ScriptTag(tokenFromString(scriptTag));
   }
 
   public static ShowCombinator showCombinator(SimpleIdentifier... identifiers) {
-    return new ShowCombinator(token("show"), list(identifiers));
+    return new ShowCombinator(tokenFromString("show"), list(identifiers));
   }
 
   public static ShowCombinator showCombinator(String... identifiers) {
@@ -905,7 +932,7 @@ public final class AstFactory {
     for (String identifier : identifiers) {
       identifierList.add(identifier(identifier));
     }
-    return new ShowCombinator(token("show"), identifierList);
+    return new ShowCombinator(tokenFromString("show"), identifierList);
   }
 
   public static SimpleFormalParameter simpleFormalParameter(Keyword keyword, String parameterName) {
@@ -917,7 +944,7 @@ public final class AstFactory {
     return new SimpleFormalParameter(
         null,
         null,
-        keyword == null ? null : token(keyword),
+        keyword == null ? null : tokenFromKeyword(keyword),
         type,
         identifier(parameterName));
   }
@@ -935,7 +962,7 @@ public final class AstFactory {
   }
 
   public static SimpleStringLiteral string(String content) {
-    return new SimpleStringLiteral(token("'" + content + "'"), content);
+    return new SimpleStringLiteral(tokenFromString("'" + content + "'"), content);
   }
 
   public static SuperConstructorInvocation superConstructorInvocation(Expression... arguments) {
@@ -944,12 +971,15 @@ public final class AstFactory {
 
   public static SuperConstructorInvocation superConstructorInvocation(String name,
       Expression... arguments) {
-    return new SuperConstructorInvocation(token(Keyword.SUPER), name == null ? null
-        : token(TokenType.PERIOD), name == null ? null : identifier(name), argumentList(arguments));
+    return new SuperConstructorInvocation(
+        tokenFromKeyword(Keyword.SUPER),
+        name == null ? null : tokenFromType(TokenType.PERIOD),
+        name == null ? null : identifier(name),
+        argumentList(arguments));
   }
 
   public static SuperExpression superExpression() {
-    return new SuperExpression(token(Keyword.SUPER));
+    return new SuperExpression(tokenFromKeyword(Keyword.SUPER));
   }
 
   public static SwitchCase switchCase(Expression expression, Statement... statements) {
@@ -960,17 +990,17 @@ public final class AstFactory {
       Statement... statements) {
     return new SwitchCase(
         labels,
-        token(Keyword.CASE),
+        tokenFromKeyword(Keyword.CASE),
         expression,
-        token(TokenType.COLON),
+        tokenFromType(TokenType.COLON),
         list(statements));
   }
 
   public static SwitchDefault switchDefault(List<Label> labels, Statement... statements) {
     return new SwitchDefault(
         labels,
-        token(Keyword.DEFAULT),
-        token(TokenType.COLON),
+        tokenFromKeyword(Keyword.DEFAULT),
+        tokenFromType(TokenType.COLON),
         list(statements));
   }
 
@@ -980,27 +1010,27 @@ public final class AstFactory {
 
   public static SwitchStatement switchStatement(Expression expression, SwitchMember... members) {
     return new SwitchStatement(
-        token(Keyword.SWITCH),
-        token(TokenType.OPEN_PAREN),
+        tokenFromKeyword(Keyword.SWITCH),
+        tokenFromType(TokenType.OPEN_PAREN),
         expression,
-        token(TokenType.CLOSE_PAREN),
-        token(TokenType.OPEN_CURLY_BRACKET),
+        tokenFromType(TokenType.CLOSE_PAREN),
+        tokenFromType(TokenType.OPEN_CURLY_BRACKET),
         list(members),
-        token(TokenType.CLOSE_CURLY_BRACKET));
+        tokenFromType(TokenType.CLOSE_CURLY_BRACKET));
   }
 
   public static SymbolLiteral symbolLiteral(String... components) {
     ArrayList<Token> identifierList = new ArrayList<Token>();
     for (String component : components) {
-      identifierList.add(token(TokenType.IDENTIFIER, component));
+      identifierList.add(tokenFromTypeAndString(TokenType.IDENTIFIER, component));
     }
     return new SymbolLiteral(
-        token(TokenType.HASH),
+        tokenFromType(TokenType.HASH),
         identifierList.toArray(new Token[identifierList.size()]));
   }
 
   public static ThisExpression thisExpression() {
-    return new ThisExpression(token(Keyword.THIS));
+    return new ThisExpression(tokenFromKeyword(Keyword.THIS));
   }
 
   public static ThrowExpression throwExpression() {
@@ -1008,7 +1038,7 @@ public final class AstFactory {
   }
 
   public static ThrowExpression throwExpression(Expression expression) {
-    return new ThrowExpression(token(Keyword.THROW), expression);
+    return new ThrowExpression(tokenFromKeyword(Keyword.THROW), expression);
   }
 
   public static TopLevelVariableDeclaration topLevelVariableDeclaration(Keyword keyword,
@@ -1016,7 +1046,7 @@ public final class AstFactory {
     return new TopLevelVariableDeclaration(null, null, variableDeclarationList(
         keyword,
         type,
-        variables), token(TokenType.SEMICOLON));
+        variables), tokenFromType(TokenType.SEMICOLON));
   }
 
   public static TopLevelVariableDeclaration topLevelVariableDeclaration(Keyword keyword,
@@ -1024,7 +1054,7 @@ public final class AstFactory {
     return new TopLevelVariableDeclaration(null, null, variableDeclarationList(
         keyword,
         null,
-        variables), token(TokenType.SEMICOLON));
+        variables), tokenFromType(TokenType.SEMICOLON));
   }
 
   public static TryStatement tryStatement(Block body, Block finallyClause) {
@@ -1037,8 +1067,12 @@ public final class AstFactory {
 
   public static TryStatement tryStatement(Block body, List<CatchClause> catchClauses,
       Block finallyClause) {
-    return new TryStatement(token(Keyword.TRY), body, catchClauses, finallyClause == null ? null
-        : token(Keyword.FINALLY), finallyClause);
+    return new TryStatement(
+        tokenFromKeyword(Keyword.TRY),
+        body,
+        catchClauses,
+        finallyClause == null ? null : tokenFromKeyword(Keyword.FINALLY),
+        finallyClause);
   }
 
   public static FunctionTypeAlias typeAlias(TypeName returnType, String name,
@@ -1046,16 +1080,19 @@ public final class AstFactory {
     return new FunctionTypeAlias(
         null,
         null,
-        token(Keyword.TYPEDEF),
+        tokenFromKeyword(Keyword.TYPEDEF),
         returnType,
         identifier(name),
         typeParameters,
         parameters,
-        token(TokenType.SEMICOLON));
+        tokenFromType(TokenType.SEMICOLON));
   }
 
   public static TypeArgumentList typeArgumentList(TypeName... typeNames) {
-    return new TypeArgumentList(token(TokenType.LT), list(typeNames), token(TokenType.GT));
+    return new TypeArgumentList(
+        tokenFromType(TokenType.LT),
+        list(typeNames),
+        tokenFromType(TokenType.GT));
   }
 
   /**
@@ -1094,7 +1131,7 @@ public final class AstFactory {
   }
 
   public static TypeParameter typeParameter(String name, TypeName bound) {
-    return new TypeParameter(null, null, identifier(name), token(Keyword.EXTENDS), bound);
+    return new TypeParameter(null, null, identifier(name), tokenFromKeyword(Keyword.EXTENDS), bound);
   }
 
   public static TypeParameterList typeParameterList(String... typeNames) {
@@ -1102,7 +1139,10 @@ public final class AstFactory {
     for (String typeName : typeNames) {
       typeParameters.add(typeParameter(typeName));
     }
-    return new TypeParameterList(token(TokenType.LT), typeParameters, token(TokenType.GT));
+    return new TypeParameterList(
+        tokenFromType(TokenType.LT),
+        typeParameters,
+        tokenFromType(TokenType.GT));
   }
 
   public static VariableDeclaration variableDeclaration(String name) {
@@ -1110,17 +1150,18 @@ public final class AstFactory {
   }
 
   public static VariableDeclaration variableDeclaration(String name, Expression initializer) {
-    return new VariableDeclaration(null, null, identifier(name), token(TokenType.EQ), initializer);
+    return new VariableDeclaration(
+        null,
+        null,
+        identifier(name),
+        tokenFromType(TokenType.EQ),
+        initializer);
   }
 
   public static VariableDeclarationList variableDeclarationList(Keyword keyword, TypeName type,
       VariableDeclaration... variables) {
-    return new VariableDeclarationList(
-        null,
-        null,
-        keyword == null ? null : token(keyword),
-        type,
-        list(variables));
+    return new VariableDeclarationList(null, null, keyword == null ? null
+        : tokenFromKeyword(keyword), type, list(variables));
   }
 
   public static VariableDeclarationList variableDeclarationList(Keyword keyword,
@@ -1132,7 +1173,7 @@ public final class AstFactory {
       TypeName type, VariableDeclaration... variables) {
     return new VariableDeclarationStatement(
         variableDeclarationList(keyword, type, variables),
-        token(TokenType.SEMICOLON));
+        tokenFromType(TokenType.SEMICOLON));
   }
 
   public static VariableDeclarationStatement variableDeclarationStatement(Keyword keyword,
@@ -1142,15 +1183,15 @@ public final class AstFactory {
 
   public static WhileStatement whileStatement(Expression condition, Statement body) {
     return new WhileStatement(
-        token(Keyword.WHILE),
-        token(TokenType.OPEN_PAREN),
+        tokenFromKeyword(Keyword.WHILE),
+        tokenFromType(TokenType.OPEN_PAREN),
         condition,
-        token(TokenType.CLOSE_PAREN),
+        tokenFromType(TokenType.CLOSE_PAREN),
         body);
   }
 
   public static WithClause withClause(TypeName... types) {
-    return new WithClause(token(Keyword.WITH), list(types));
+    return new WithClause(tokenFromKeyword(Keyword.WITH), list(types));
   }
 
   /**

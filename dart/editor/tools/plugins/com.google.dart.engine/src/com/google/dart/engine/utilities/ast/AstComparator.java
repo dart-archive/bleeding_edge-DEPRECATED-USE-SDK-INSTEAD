@@ -29,7 +29,7 @@ public class AstComparator implements AstVisitor<Boolean> {
    * @param second the second node being compared
    * @return {@code true} if the two AST nodes are equal
    */
-  public static boolean equals(CompilationUnit first, CompilationUnit second) {
+  public static boolean equalUnits(CompilationUnit first, CompilationUnit second) {
     AstComparator comparator = new AstComparator();
     return comparator.isEqualNodes(first, second);
   }

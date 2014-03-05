@@ -199,7 +199,7 @@ public class IncrementalScanner extends Scanner {
     //
     Token newFirst = leftToken.getNext();
     while (newFirst != rightToken && oldFirst != oldRightToken
-        && newFirst.getType() != TokenType.EOF && equals(oldFirst, newFirst)) {
+        && newFirst.getType() != TokenType.EOF && equalTokens(oldFirst, newFirst)) {
       tokenMap.put(oldFirst, newFirst);
       oldLeftToken = oldFirst;
       oldFirst = oldFirst.getNext();
@@ -208,7 +208,7 @@ public class IncrementalScanner extends Scanner {
     }
     Token newLast = rightToken.getPrevious();
     while (newLast != leftToken && oldLast != oldLeftToken && newLast.getType() != TokenType.EOF
-        && equals(oldLast, newLast)) {
+        && equalTokens(oldLast, newLast)) {
       tokenMap.put(oldLast, newLast);
       oldRightToken = oldLast;
       oldLast = oldLast.getPrevious();
@@ -250,7 +250,7 @@ public class IncrementalScanner extends Scanner {
    * @param newToken the token from the new stream that is being compared
    * @return {@code true} if the two tokens are equal to each other
    */
-  private boolean equals(Token oldToken, Token newToken) {
+  private boolean equalTokens(Token oldToken, Token newToken) {
     return oldToken.getType() == newToken.getType() && oldToken.getLength() == newToken.getLength()
         && oldToken.getLexeme().equals(newToken.getLexeme());
   }

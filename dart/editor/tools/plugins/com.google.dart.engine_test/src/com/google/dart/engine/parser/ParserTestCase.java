@@ -108,7 +108,7 @@ public class ParserTestCase extends EngineTestCase {
       ErrorCode... errorCodes) throws Exception {
     GatheringErrorListener listener = new GatheringErrorListener();
     E result = invokeParserMethod(methodName, objects, source, listener);
-    listener.assertErrors(errorCodes);
+    listener.assertErrorsWithCodes(errorCodes);
     return result;
   }
 
@@ -149,7 +149,7 @@ public class ParserTestCase extends EngineTestCase {
     Parser parser = new Parser(null, listener);
     CompilationUnit unit = parser.parseCompilationUnit(token);
     assertNotNull(unit);
-    listener.assertErrors(errorCodes);
+    listener.assertErrorsWithCodes(errorCodes);
     return unit;
   }
 
@@ -172,7 +172,7 @@ public class ParserTestCase extends EngineTestCase {
     Parser parser = new Parser(null, listener);
     Expression expression = parser.parseExpression(token);
     assertNotNull(expression);
-    listener.assertErrors(errorCodes);
+    listener.assertErrorsWithCodes(errorCodes);
     return (E) expression;
   }
 
@@ -195,7 +195,7 @@ public class ParserTestCase extends EngineTestCase {
     Parser parser = new Parser(null, listener);
     Statement statement = parser.parseStatement(token);
     assertNotNull(statement);
-    listener.assertErrors(errorCodes);
+    listener.assertErrorsWithCodes(errorCodes);
     return (E) statement;
   }
 
@@ -218,8 +218,8 @@ public class ParserTestCase extends EngineTestCase {
     Token token = scanner.tokenize();
     Parser parser = new Parser(null, listener);
     List<Statement> statements = parser.parseStatements(token);
-    assertSize(expectedCount, statements);
-    listener.assertErrors(errorCodes);
+    assertSizeOfList(expectedCount, statements);
+    listener.assertErrorsWithCodes(errorCodes);
     return statements;
   }
 

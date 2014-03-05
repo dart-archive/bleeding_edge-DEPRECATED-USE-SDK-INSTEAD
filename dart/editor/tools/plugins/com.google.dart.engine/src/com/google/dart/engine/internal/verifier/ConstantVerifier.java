@@ -126,13 +126,13 @@ public class ConstantVerifier extends RecursiveAstVisitor<Void> {
       ConstructorElement constructorElement = (ConstructorElement) element;
       // should 'const' constructor
       if (!constructorElement.isConst()) {
-        errorReporter.reportError(CompileTimeErrorCode.NON_CONSTANT_ANNOTATION_CONSTRUCTOR, node);
+        errorReporter.reportErrorForNode(CompileTimeErrorCode.NON_CONSTANT_ANNOTATION_CONSTRUCTOR, node);
         return null;
       }
       // should have arguments
       ArgumentList argumentList = node.getArguments();
       if (argumentList == null) {
-        errorReporter.reportError(CompileTimeErrorCode.NO_ANNOTATION_CONSTRUCTOR_ARGUMENTS, node);
+        errorReporter.reportErrorForNode(CompileTimeErrorCode.NO_ANNOTATION_CONSTRUCTOR_ARGUMENTS, node);
         return null;
       }
       // arguments should be constants
@@ -210,7 +210,7 @@ public class ConstantVerifier extends RecursiveAstVisitor<Void> {
     }
     if (reportEqualKeys) {
       for (Expression key : invalidKeys) {
-        errorReporter.reportError(StaticWarningCode.EQUAL_KEYS_IN_MAP, key);
+        errorReporter.reportErrorForNode(StaticWarningCode.EQUAL_KEYS_IN_MAP, key);
       }
     }
     return null;
@@ -271,9 +271,9 @@ public class ConstantVerifier extends RecursiveAstVisitor<Void> {
             || dataErrorCode == CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL
             || dataErrorCode == CompileTimeErrorCode.CONST_EVAL_TYPE_INT
             || dataErrorCode == CompileTimeErrorCode.CONST_EVAL_TYPE_NUM) {
-          errorReporter.reportError(dataErrorCode, data.getNode());
+          errorReporter.reportErrorForNode(dataErrorCode, data.getNode());
         } else {
-          errorReporter.reportError(errorCode, data.getNode());
+          errorReporter.reportErrorForNode(errorCode, data.getNode());
         }
       }
     }

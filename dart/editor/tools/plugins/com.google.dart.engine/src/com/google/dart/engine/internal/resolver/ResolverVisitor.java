@@ -225,7 +225,7 @@ public class ResolverVisitor extends ScopedVisitor {
   @Override
   public Void visitAsExpression(AsExpression node) {
     super.visitAsExpression(node);
-    override(node.getExpression(), node.getType().getType());
+    overrideExpression(node.getExpression(), node.getType().getType());
     return null;
   }
 
@@ -414,8 +414,8 @@ public class ResolverVisitor extends ScopedVisitor {
     node.accept(elementResolver);
     node.accept(typeAnalyzer);
 
-    boolean thenIsAbrupt = isAbruptTermination(thenExpression);
-    boolean elseIsAbrupt = isAbruptTermination(elseExpression);
+    boolean thenIsAbrupt = isAbruptTerminationExpression(thenExpression);
+    boolean elseIsAbrupt = isAbruptTerminationExpression(elseExpression);
     if (elseIsAbrupt && !thenIsAbrupt) {
       propagateTrueState(condition);
       propagateState(thenExpression);
@@ -632,8 +632,8 @@ public class ResolverVisitor extends ScopedVisitor {
     node.accept(elementResolver);
     node.accept(typeAnalyzer);
 
-    boolean thenIsAbrupt = isAbruptTermination(thenStatement);
-    boolean elseIsAbrupt = isAbruptTermination(elseStatement);
+    boolean thenIsAbrupt = isAbruptTerminationStatement(thenStatement);
+    boolean elseIsAbrupt = isAbruptTerminationStatement(elseStatement);
     if (elseIsAbrupt && !thenIsAbrupt) {
       propagateTrueState(condition);
       if (thenOverrides != null) {
@@ -923,14 +923,14 @@ public class ResolverVisitor extends ScopedVisitor {
    *          might be overridden
    * @param potentialType the potential type of the elements
    */
-  protected void override(Expression expression, Type potentialType) {
+  protected void overrideExpression(Expression expression, Type potentialType) {
     VariableElement element = getOverridableStaticElement(expression);
     if (element != null) {
-      override(element, potentialType);
+      overrideVariable(element, potentialType);
     }
     element = getOverridablePropagatedElement(expression);
     if (element != null) {
-      override(element, potentialType);
+      overrideVariable(element, potentialType);
     }
   }
 
@@ -942,7 +942,7 @@ public class ResolverVisitor extends ScopedVisitor {
    * @param element the element whose type might be overridden
    * @param potentialType the potential type of the element
    */
-  protected void override(VariableElement element, Type potentialType) {
+  protected void overrideVariable(VariableElement element, Type potentialType) {
     if (potentialType == null || potentialType.isBottom()) {
       return;
     }
@@ -966,7 +966,7 @@ public class ResolverVisitor extends ScopedVisitor {
    * @param node the node specifying the location of the error
    * @param arguments the arguments to the error, used to compose the error message
    */
-  protected void reportErrorProxyConditionalAnalysisError(Element enclosingElement,
+  protected void reportProxyConditionalErrorForNode(Element enclosingElement,
       ErrorCode errorCode, AstNode node, Object... arguments) {
     proxyConditionalAnalysisErrors.add(new ProxyConditionalAnalysisError(
         enclosingElement,
@@ -982,7 +982,7 @@ public class ResolverVisitor extends ScopedVisitor {
    * @param length the length of the location of the error
    * @param arguments the arguments to the error, used to compose the error message
    */
-  protected void reportErrorProxyConditionalAnalysisError(Element enclosingElement,
+  protected void reportProxyConditionalErrorForOffset(Element enclosingElement,
       ErrorCode errorCode, int offset, int length, Object... arguments) {
     proxyConditionalAnalysisErrors.add(new ProxyConditionalAnalysisError(
         enclosingElement,
@@ -1024,14 +1024,14 @@ public class ResolverVisitor extends ScopedVisitor {
           LocalVariableElement loopElement = loopVariable.getElement();
           if (loopElement != null) {
             Type iteratorElementType = getIteratorElementType(iterator);
-            override(loopElement, iteratorElementType);
+            overrideVariable(loopElement, iteratorElementType);
             recordPropagatedType(loopVariable.getIdentifier(), iteratorElementType);
           }
         } else if (identifier != null && iterator != null) {
           Element identifierElement = identifier.getStaticElement();
           if (identifierElement instanceof VariableElement) {
             Type iteratorElementType = getIteratorElementType(iterator);
-            override((VariableElement) identifierElement, iteratorElementType);
+            overrideVariable((VariableElement) identifierElement, iteratorElementType);
             recordPropagatedType(identifier, iteratorElementType);
           }
         }
@@ -1199,7 +1199,7 @@ public class ResolverVisitor extends ScopedVisitor {
    * @param expression the expression being tested
    * @return {@code true} if the given expression terminates abruptly
    */
-  private boolean isAbruptTermination(Expression expression) {
+  private boolean isAbruptTerminationExpression(Expression expression) {
     // TODO(brianwilkerson) This needs to be significantly improved. Ideally we would eventually
     // turn this into a method on Expression that returns a termination indication (normal, abrupt
     // with no exception, abrupt with an exception).
@@ -1216,7 +1216,7 @@ public class ResolverVisitor extends ScopedVisitor {
    * @param statement the statement being tested
    * @return {@code true} if the given statement terminates abruptly
    */
-  private boolean isAbruptTermination(Statement statement) {
+  private boolean isAbruptTerminationStatement(Statement statement) {
     // TODO(brianwilkerson) This needs to be significantly improved. Ideally we would eventually
     // turn this into a method on Statement that returns a termination indication (normal, abrupt
     // with no exception, abrupt with an exception).
@@ -1224,14 +1224,14 @@ public class ResolverVisitor extends ScopedVisitor {
         || statement instanceof ContinueStatement) {
       return true;
     } else if (statement instanceof ExpressionStatement) {
-      return isAbruptTermination(((ExpressionStatement) statement).getExpression());
+      return isAbruptTerminationExpression(((ExpressionStatement) statement).getExpression());
     } else if (statement instanceof Block) {
       NodeList<Statement> statements = ((Block) statement).getStatements();
       int size = statements.size();
       if (size == 0) {
         return false;
       }
-      return isAbruptTermination(statements.get(size - 1));
+      return isAbruptTerminationStatement(statements.get(size - 1));
     }
     return false;
   }
@@ -1379,7 +1379,7 @@ public class ResolverVisitor extends ScopedVisitor {
     } else if (condition instanceof IsExpression) {
       IsExpression is = (IsExpression) condition;
       if (is.getNotOperator() != null) {
-        override(is.getExpression(), is.getType().getType());
+        overrideExpression(is.getExpression(), is.getType().getType());
       }
     } else if (condition instanceof PrefixExpression) {
       PrefixExpression prefix = (PrefixExpression) condition;
@@ -1417,7 +1417,7 @@ public class ResolverVisitor extends ScopedVisitor {
     } else if (condition instanceof IsExpression) {
       IsExpression is = (IsExpression) condition;
       if (is.getNotOperator() == null) {
-        override(is.getExpression(), is.getType().getType());
+        overrideExpression(is.getExpression(), is.getType().getType());
       }
     } else if (condition instanceof PrefixExpression) {
       PrefixExpression prefix = (PrefixExpression) condition;

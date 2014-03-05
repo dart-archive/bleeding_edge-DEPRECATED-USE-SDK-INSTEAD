@@ -17,19 +17,19 @@ package com.google.dart.engine.scanner;
  * The class {@code TokenFactory} defines utility methods that can be used to create tokens.
  */
 public final class TokenFactory {
-  public static Token token(Keyword keyword) {
+  public static Token tokenFromKeyword(Keyword keyword) {
     return new KeywordToken(keyword, 0);
   }
 
-  public static Token token(String lexeme) {
+  public static Token tokenFromString(String lexeme) {
     return new StringToken(TokenType.STRING, lexeme, 0);
   }
 
-  public static Token token(TokenType type) {
+  public static Token tokenFromType(TokenType type) {
     return new Token(type, 0);
   }
 
-  public static Token token(TokenType type, String lexeme) {
+  public static Token tokenFromTypeAndString(TokenType type, String lexeme) {
     return new StringToken(type, lexeme, 0);
   }
 

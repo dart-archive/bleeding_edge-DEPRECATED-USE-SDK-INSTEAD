@@ -82,7 +82,7 @@ public class AssistContext {
       if (coveredNode == null) {
         return null;
       }
-      coveredElement = ElementLocator.locate(coveredNode, selectionOffset);
+      coveredElement = ElementLocator.locateWithOffset(coveredNode, selectionOffset);
     }
     return coveredElement;
   }

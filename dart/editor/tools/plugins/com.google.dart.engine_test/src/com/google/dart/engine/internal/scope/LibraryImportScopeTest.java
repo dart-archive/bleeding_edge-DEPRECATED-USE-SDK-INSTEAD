@@ -73,7 +73,7 @@ public class LibraryImportScopeTest extends ResolverTestCase {
       errorListener.assertNoErrors();
 
       Element element = scope.lookup(identifier(typeNameB), importingLibrary);
-      errorListener.assertErrors(StaticWarningCode.AMBIGUOUS_IMPORT);
+      errorListener.assertErrorsWithCodes(StaticWarningCode.AMBIGUOUS_IMPORT);
       assertInstanceOf(MultiplyDefinedElement.class, element);
 
       Element[] conflictingElements = ((MultiplyDefinedElement) element).getConflictingElements();
@@ -94,7 +94,7 @@ public class LibraryImportScopeTest extends ResolverTestCase {
       Identifier identifier = identifier(typeNameB);
       methodDeclaration(null, typeName(identifier), null, null, identifier("foo"), null);
       Element element = scope.lookup(identifier, importingLibrary);
-      errorListener.assertErrors(StaticWarningCode.AMBIGUOUS_IMPORT);
+      errorListener.assertErrorsWithCodes(StaticWarningCode.AMBIGUOUS_IMPORT);
       assertInstanceOf(MultiplyDefinedElement.class, element);
     }
   }
@@ -147,7 +147,7 @@ public class LibraryImportScopeTest extends ResolverTestCase {
     Scope scope = new LibraryImportScope(importingLibrary, errorListener);
 
     assertEquals(type, scope.lookup(identifier(typeName), importingLibrary));
-    errorListener.assertErrors(StaticWarningCode.CONFLICTING_DART_IMPORT);
+    errorListener.assertErrorsWithCodes(StaticWarningCode.CONFLICTING_DART_IMPORT);
   }
 
   public void test_nonConflictingImports_sameElement() {

@@ -1420,7 +1420,7 @@ public class MainEngine {
     {
       ChangeSet changeSet = new ChangeSet();
       for (Source source : sources) {
-        changeSet.added(source);
+        changeSet.addedSource(source);
       }
       context.applyChanges(changeSet);
     }

@@ -27,7 +27,7 @@ import com.google.dart.engine.ast.TypedLiteral;
 import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.Token;
 
-import static com.google.dart.engine.scanner.TokenFactory.token;
+import static com.google.dart.engine.scanner.TokenFactory.tokenFromKeyword;
 
 /**
  * The class {@code ErrorParserTest} defines parser tests that test the parsing of code to ensure
@@ -500,7 +500,7 @@ public class ErrorParserTest extends ParserTestCase {
   }
 
   public void test_expectedToken_semicolonAfterClass() throws Exception {
-    Token token = token(Keyword.CLASS);
+    Token token = tokenFromKeyword(Keyword.CLASS);
     parse(
         "parseClassTypeAlias",
         new Object[] {emptyCommentAndMetadata(), null, token},
@@ -1206,7 +1206,7 @@ public class ErrorParserTest extends ParserTestCase {
         ParserErrorCode.MISSING_IDENTIFIER);
     assertNull(methodInvocation.getTarget());
     assertEquals("", methodInvocation.getMethodName().getName());
-    assertSize(0, methodInvocation.getArgumentList().getArguments());
+    assertSizeOfList(0, methodInvocation.getArgumentList().getArguments());
   }
 
   public void test_positionalAfterNamedArgument() throws Exception {

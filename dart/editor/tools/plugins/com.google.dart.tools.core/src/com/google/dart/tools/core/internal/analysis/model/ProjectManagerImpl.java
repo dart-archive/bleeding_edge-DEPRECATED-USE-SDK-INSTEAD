@@ -502,7 +502,7 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
       if (resource != null) {
         AnalysisContext context = getContext(resource);
         if (resource instanceof IFile) {
-          changeSet.removed(getSource((IFile) resource));
+          changeSet.removedSource(getSource((IFile) resource));
         } else {
           changeSet.removedContainer(new DirectoryBasedSourceContainer(new File(path)));
         }
@@ -523,11 +523,11 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
         if (resource instanceof IFile) {
           Source source = getSource((IFile) resource);
           sources.add(source);
-          changeSet.added(source);
+          changeSet.addedSource(source);
         } else {
           sources = getSourcesIn(resource);
           for (Source source : sources) {
-            changeSet.added(source);
+            changeSet.addedSource(source);
           }
         }
 

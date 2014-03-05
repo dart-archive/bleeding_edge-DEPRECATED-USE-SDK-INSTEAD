@@ -499,7 +499,7 @@ public class DartHover implements ITextHover, ITextHoverExtension, ITextHoverExt
       }
       // show Expression
       if (node instanceof Expression) {
-        Element element = ElementLocator.locate(node, offset);
+        Element element = ElementLocator.locateWithOffset(node, offset);
         return new HoverInfo(node, element, annotations);
       }
       // always show annotations, enen if no node

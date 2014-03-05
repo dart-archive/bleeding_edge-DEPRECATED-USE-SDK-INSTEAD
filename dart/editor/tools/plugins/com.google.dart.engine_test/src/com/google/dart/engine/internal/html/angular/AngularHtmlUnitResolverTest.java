@@ -156,7 +156,7 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
     // remove entry-point.html
     {
       ChangeSet changeSet = new ChangeSet();
-      changeSet.removed(entrySource);
+      changeSet.removedSource(entrySource);
       context.applyChanges(changeSet);
     }
     // ...errors in MyComponent should be removed

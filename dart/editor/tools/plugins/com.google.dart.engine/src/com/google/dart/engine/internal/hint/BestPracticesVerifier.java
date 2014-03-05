@@ -258,10 +258,10 @@ public class BestPracticesVerifier extends RecursiveAstVisitor<Void> {
     if ((rhsType.isDynamic() && rhsNameStr.equals(Keyword.DYNAMIC.getSyntax()))) {
       if (node.getNotOperator() == null) {
         // the is case
-        errorReporter.reportError(HintCode.UNNECESSARY_TYPE_CHECK_TRUE, node);
+        errorReporter.reportErrorForNode(HintCode.UNNECESSARY_TYPE_CHECK_TRUE, node);
       } else {
         // the is not case
-        errorReporter.reportError(HintCode.UNNECESSARY_TYPE_CHECK_FALSE, node);
+        errorReporter.reportErrorForNode(HintCode.UNNECESSARY_TYPE_CHECK_FALSE, node);
       }
       return true;
     }
@@ -273,19 +273,19 @@ public class BestPracticesVerifier extends RecursiveAstVisitor<Void> {
           || (expression instanceof NullLiteral && rhsNameStr.equals(NULL_TYPE_NAME))) {
         if (node.getNotOperator() == null) {
           // the is case
-          errorReporter.reportError(HintCode.UNNECESSARY_TYPE_CHECK_TRUE, node);
+          errorReporter.reportErrorForNode(HintCode.UNNECESSARY_TYPE_CHECK_TRUE, node);
         } else {
           // the is not case
-          errorReporter.reportError(HintCode.UNNECESSARY_TYPE_CHECK_FALSE, node);
+          errorReporter.reportErrorForNode(HintCode.UNNECESSARY_TYPE_CHECK_FALSE, node);
         }
         return true;
       } else if (rhsNameStr.equals(NULL_TYPE_NAME)) {
         if (node.getNotOperator() == null) {
           // the is case
-          errorReporter.reportError(HintCode.TYPE_CHECK_IS_NULL, node);
+          errorReporter.reportErrorForNode(HintCode.TYPE_CHECK_IS_NULL, node);
         } else {
           // the is not case
-          errorReporter.reportError(HintCode.TYPE_CHECK_IS_NOT_NULL, node);
+          errorReporter.reportErrorForNode(HintCode.TYPE_CHECK_IS_NOT_NULL, node);
         }
         return true;
       }
@@ -314,7 +314,7 @@ public class BestPracticesVerifier extends RecursiveAstVisitor<Void> {
           displayName = displayName + '.' + constructorElement.getDisplayName();
         }
       }
-      errorReporter.reportError(HintCode.DEPRECATED_MEMBER_USE, node, displayName);
+      errorReporter.reportErrorForNode(HintCode.DEPRECATED_MEMBER_USE, node, displayName);
       return true;
     }
     return false;
@@ -375,7 +375,7 @@ public class BestPracticesVerifier extends RecursiveAstVisitor<Void> {
         MethodInvocation methodInvocation = (MethodInvocation) parenthesizedExpression.getParent();
         if (TO_INT_METHOD_NAME.equals(methodInvocation.getMethodName().getName())
             && methodInvocation.getArgumentList().getArguments().isEmpty()) {
-          errorReporter.reportError(HintCode.DIVISION_OPTIMIZATION, methodInvocation);
+          errorReporter.reportErrorForNode(HintCode.DIVISION_OPTIMIZATION, methodInvocation);
           return true;
         }
       }
@@ -413,7 +413,7 @@ public class BestPracticesVerifier extends RecursiveAstVisitor<Void> {
     // Check the block for a return statement, if not, create the hint
     BlockFunctionBody blockFunctionBody = (BlockFunctionBody) body;
     if (!blockFunctionBody.accept(new ExitDetector())) {
-      errorReporter.reportError(
+      errorReporter.reportErrorForNode(
           HintCode.MISSING_RETURN,
           returnType,
           returnTypeType.getDisplayName());
@@ -440,7 +440,7 @@ public class BestPracticesVerifier extends RecursiveAstVisitor<Void> {
     if (equalsOperatorMethodElement != null) {
       PropertyAccessorElement hashCodeElement = classElement.getGetter(HASHCODE_GETTER_NAME);
       if (hashCodeElement == null) {
-        errorReporter.reportError(
+        errorReporter.reportErrorForNode(
             HintCode.OVERRIDE_EQUALS_BUT_NOT_HASH_CODE,
             node.getName(),
             classElement.getDisplayName());
@@ -498,7 +498,7 @@ public class BestPracticesVerifier extends RecursiveAstVisitor<Void> {
           if (overriddenAccessor != null) {
             String memberType = ((PropertyAccessorElement) executableElement).isGetter() ? GETTER
                 : SETTER;
-            errorReporter.reportError(
+            errorReporter.reportErrorForNode(
                 HintCode.OVERRIDDING_PRIVATE_MEMBER,
                 node.getName(),
                 memberType,
@@ -509,7 +509,7 @@ public class BestPracticesVerifier extends RecursiveAstVisitor<Void> {
         } else {
           MethodElement overriddenMethod = classElement.getMethod(elementName);
           if (overriddenMethod != null) {
-            errorReporter.reportError(
+            errorReporter.reportErrorForNode(
                 HintCode.OVERRIDDING_PRIVATE_MEMBER,
                 node.getName(),
                 METHOD,
@@ -542,7 +542,7 @@ public class BestPracticesVerifier extends RecursiveAstVisitor<Void> {
     if (lhsType != null && rhsType != null && !lhsType.isDynamic() && !rhsType.isDynamic()
         && !(lhsType instanceof TypeParameterType) && !(rhsType instanceof TypeParameterType)
         && lhsType.isSubtypeOf(rhsType)) {
-      errorReporter.reportError(HintCode.UNNECESSARY_CAST, node);
+      errorReporter.reportErrorForNode(HintCode.UNNECESSARY_CAST, node);
       return true;
     }
     return false;
@@ -566,7 +566,7 @@ public class BestPracticesVerifier extends RecursiveAstVisitor<Void> {
     MethodInvocation methodInvocation = (MethodInvocation) expression;
     if (methodInvocation.getStaticType() == VoidTypeImpl.getInstance()) {
       SimpleIdentifier methodName = methodInvocation.getMethodName();
-      errorReporter.reportError(HintCode.USE_OF_VOID_RESULT, methodName, methodName.getName());
+      errorReporter.reportErrorForNode(HintCode.USE_OF_VOID_RESULT, methodName, methodName.getName());
       return true;
     }
     return false;

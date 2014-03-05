@@ -79,7 +79,7 @@ public class ToDoFinder {
     if (matcher.find()) {
       int offset = commentToken.getOffset() + matcher.start() + matcher.group(1).length();
       int length = matcher.group(2).length();
-      errorReporter.reportError(TodoCode.TODO, offset, length, matcher.group(2));
+      errorReporter.reportErrorForOffset(TodoCode.TODO, offset, length, matcher.group(2));
     }
   }
 }

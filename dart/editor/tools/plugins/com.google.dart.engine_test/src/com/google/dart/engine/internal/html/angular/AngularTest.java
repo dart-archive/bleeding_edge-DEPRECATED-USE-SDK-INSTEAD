@@ -198,7 +198,7 @@ abstract public class AngularTest extends EngineTestCase {
     for (AnalysisError error : errorsInfo.getErrors()) {
       errorListener.onError(error);
     }
-    errorListener.assertErrors(expectedErrorCodes);
+    errorListener.assertErrorsWithCodes(expectedErrorCodes);
   }
 
   protected final void assertMainErrors(ErrorCode... expectedErrorCodes) throws AnalysisException {

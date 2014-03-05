@@ -166,83 +166,11 @@ public class IndexContributor extends GeneralizingAstVisitor<Void> {
     // find ImportElement
     String prefix = prefixNode.getName();
     Map<ImportElement, Set<Element>> importElementsMap = Maps.newHashMap();
-    info.element = getImportElement(libraryElement, prefix, usedElement, importElementsMap);
+    info.element = internalGetImportElement(libraryElement, prefix, usedElement, importElementsMap);
     if (info.element == null) {
       return null;
     }
     return info;
-  }
-
-  /**
-   * @return the {@link ImportElement} that declares given {@link PrefixElement} and imports library
-   *         with given "usedElement".
-   */
-  private static ImportElement getImportElement(LibraryElement libraryElement, String prefix,
-      Element usedElement, Map<ImportElement, Set<Element>> importElementsMap) {
-    // validate Element
-    if (usedElement == null) {
-      return null;
-    }
-    if (!(usedElement.getEnclosingElement() instanceof CompilationUnitElement)) {
-      return null;
-    }
-    LibraryElement usedLibrary = usedElement.getLibrary();
-    // find ImportElement that imports used library with used prefix
-    List<ImportElement> candidates = null;
-    for (ImportElement importElement : libraryElement.getImports()) {
-      // required library
-      if (!Objects.equal(importElement.getImportedLibrary(), usedLibrary)) {
-        continue;
-      }
-      // required prefix
-      PrefixElement prefixElement = importElement.getPrefix();
-      if (prefix == null) {
-        if (prefixElement != null) {
-          continue;
-        }
-      } else {
-        if (prefixElement == null) {
-          continue;
-        }
-        if (!prefix.equals(prefixElement.getName())) {
-          continue;
-        }
-      }
-      // no combinators => only possible candidate
-      if (importElement.getCombinators().length == 0) {
-        return importElement;
-      }
-      // OK, we have candidate
-      if (candidates == null) {
-        candidates = Lists.newArrayList();
-      }
-      candidates.add(importElement);
-    }
-    // no candidates, probably element is defined in this library
-    if (candidates == null) {
-      return null;
-    }
-    // one candidate
-    if (candidates.size() == 1) {
-      return candidates.get(0);
-    }
-    // ensure that each ImportElement has set of elements
-    for (ImportElement importElement : candidates) {
-      if (importElementsMap.containsKey(importElement)) {
-        continue;
-      }
-      Namespace namespace = new NamespaceBuilder().createImportNamespace(importElement);
-      Set<Element> elements = Sets.newHashSet(namespace.getDefinedNames().values());
-      importElementsMap.put(importElement, elements);
-    }
-    // use import namespace to choose correct one
-    for (Entry<ImportElement, Set<Element>> entry : importElementsMap.entrySet()) {
-      if (entry.getValue().contains(usedElement)) {
-        return entry.getKey();
-      }
-    }
-    // not found
-    return null;
   }
 
   /**
@@ -327,6 +255,78 @@ public class IndexContributor extends GeneralizingAstVisitor<Void> {
     }
     // done
     return location;
+  }
+
+  /**
+   * @return the {@link ImportElement} that declares given {@link PrefixElement} and imports library
+   *         with given "usedElement".
+   */
+  private static ImportElement internalGetImportElement(LibraryElement libraryElement,
+      String prefix, Element usedElement, Map<ImportElement, Set<Element>> importElementsMap) {
+    // validate Element
+    if (usedElement == null) {
+      return null;
+    }
+    if (!(usedElement.getEnclosingElement() instanceof CompilationUnitElement)) {
+      return null;
+    }
+    LibraryElement usedLibrary = usedElement.getLibrary();
+    // find ImportElement that imports used library with used prefix
+    List<ImportElement> candidates = null;
+    for (ImportElement importElement : libraryElement.getImports()) {
+      // required library
+      if (!Objects.equal(importElement.getImportedLibrary(), usedLibrary)) {
+        continue;
+      }
+      // required prefix
+      PrefixElement prefixElement = importElement.getPrefix();
+      if (prefix == null) {
+        if (prefixElement != null) {
+          continue;
+        }
+      } else {
+        if (prefixElement == null) {
+          continue;
+        }
+        if (!prefix.equals(prefixElement.getName())) {
+          continue;
+        }
+      }
+      // no combinators => only possible candidate
+      if (importElement.getCombinators().length == 0) {
+        return importElement;
+      }
+      // OK, we have candidate
+      if (candidates == null) {
+        candidates = Lists.newArrayList();
+      }
+      candidates.add(importElement);
+    }
+    // no candidates, probably element is defined in this library
+    if (candidates == null) {
+      return null;
+    }
+    // one candidate
+    if (candidates.size() == 1) {
+      return candidates.get(0);
+    }
+    // ensure that each ImportElement has set of elements
+    for (ImportElement importElement : candidates) {
+      if (importElementsMap.containsKey(importElement)) {
+        continue;
+      }
+      Namespace namespace = new NamespaceBuilder().createImportNamespaceForDirective(importElement);
+      Set<Element> elements = Sets.newHashSet(namespace.getDefinedNames().values());
+      importElementsMap.put(importElement, elements);
+    }
+    // use import namespace to choose correct one
+    for (Entry<ImportElement, Set<Element>> entry : importElementsMap.entrySet()) {
+      if (entry.getValue().contains(usedElement)) {
+        return entry.getKey();
+      }
+    }
+    // not found
+    return null;
   }
 
   /**
@@ -886,7 +886,11 @@ public class IndexContributor extends GeneralizingAstVisitor<Void> {
       return;
     }
     Element element = node.getStaticElement();
-    ImportElement importElement = getImportElement(libraryElement, null, element, importElementsMap);
+    ImportElement importElement = internalGetImportElement(
+        libraryElement,
+        null,
+        element,
+        importElementsMap);
     if (importElement != null) {
       Location location = createLocationFromOffset(node.getOffset(), 0);
       recordRelationship(importElement, IndexConstants.IS_REFERENCED_BY, location);

@@ -192,7 +192,7 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
   private int locationCount;
 
   @Override
-  public boolean aboutToIndex(AnalysisContext context, CompilationUnitElement unitElement) {
+  public boolean aboutToIndexDart(AnalysisContext context, CompilationUnitElement unitElement) {
     context = unwrapContext(context);
     // may be already removed in other thread
     if (isRemovedContext(context)) {
@@ -257,7 +257,7 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
   }
 
   @Override
-  public boolean aboutToIndex(AnalysisContext context, HtmlElement htmlElement) {
+  public boolean aboutToIndexHtml(AnalysisContext context, HtmlElement htmlElement) {
     context = unwrapContext(context);
     // may be already removed in other thread
     if (isRemovedContext(context)) {
@@ -313,7 +313,7 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
   }
 
   @VisibleForTesting
-  public int internalGetLocationCount(AnalysisContext context) {
+  public int internalGetLocationCountForContext(AnalysisContext context) {
     context = unwrapContext(context);
     int count = 0;
     for (Set<Location> locations : keyToLocations.values()) {

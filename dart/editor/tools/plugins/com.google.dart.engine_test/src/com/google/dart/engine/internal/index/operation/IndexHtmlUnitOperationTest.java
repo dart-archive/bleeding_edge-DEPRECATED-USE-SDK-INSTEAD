@@ -55,12 +55,12 @@ public class IndexHtmlUnitOperationTest extends EngineTestCase {
 
   public void test_performOperation() throws Exception {
     operation.performOperation();
-    verify(store).aboutToIndex(context, htmlElement);
+    verify(store).aboutToIndexHtml(context, htmlElement);
     verify(unit).accept(isA(AngularHtmlIndexContributor.class));
   }
 
   public void test_performOperation_aboutToIndex_false() throws Exception {
-    when(store.aboutToIndex(context, htmlElement)).thenReturn(false);
+    when(store.aboutToIndexHtml(context, htmlElement)).thenReturn(false);
     operation.performOperation();
     verify(unit, never()).accept(isA(AngularHtmlIndexContributor.class));
   }
@@ -96,7 +96,7 @@ public class IndexHtmlUnitOperationTest extends EngineTestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    when(store.aboutToIndex(context, htmlElement)).thenReturn(true);
+    when(store.aboutToIndexHtml(context, htmlElement)).thenReturn(true);
     when(unit.getElement()).thenReturn(htmlElement);
     when(htmlElement.getSource()).thenReturn(unitSource);
     when(htmlElement.getAngularCompilationUnit()).thenReturn(unitElement);

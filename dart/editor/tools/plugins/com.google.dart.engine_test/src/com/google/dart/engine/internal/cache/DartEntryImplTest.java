@@ -64,13 +64,13 @@ public class DartEntryImplTest extends EngineTestCase {
     entry.setValue(DartEntry.PARSE_ERRORS, new AnalysisError[] {new AnalysisError(
         source,
         ParserErrorCode.ABSTRACT_CLASS_MEMBER)});
-    entry.setValue(DartEntry.RESOLUTION_ERRORS, source, new AnalysisError[] {new AnalysisError(
+    entry.setValueInLibrary(DartEntry.RESOLUTION_ERRORS, source, new AnalysisError[] {new AnalysisError(
         source,
         CompileTimeErrorCode.CONST_CONSTRUCTOR_THROWS_EXCEPTION)});
-    entry.setValue(DartEntry.VERIFICATION_ERRORS, source, new AnalysisError[] {new AnalysisError(
+    entry.setValueInLibrary(DartEntry.VERIFICATION_ERRORS, source, new AnalysisError[] {new AnalysisError(
         source,
         StaticWarningCode.CASE_BLOCK_NOT_TERMINATED)});
-    entry.setValue(DartEntry.HINTS, source, new AnalysisError[] {new AnalysisError(
+    entry.setValueInLibrary(DartEntry.HINTS, source, new AnalysisError[] {new AnalysisError(
         source,
         HintCode.DEAD_CODE)});
     assertLength(5, entry.getAllErrors());
@@ -79,7 +79,7 @@ public class DartEntryImplTest extends EngineTestCase {
   public void test_getState_invalid_element() {
     DartEntryImpl entry = new DartEntryImpl();
     try {
-      entry.getState(DartEntry.ELEMENT, new TestSource());
+      entry.getStateInLibrary(DartEntry.ELEMENT, new TestSource());
       fail("Expected IllegalArgumentException for ELEMENT");
     } catch (IllegalArgumentException exception) {
       // Expected
@@ -123,7 +123,7 @@ public class DartEntryImplTest extends EngineTestCase {
   public void test_getValue_invalid_element() {
     DartEntryImpl entry = new DartEntryImpl();
     try {
-      entry.getValue(DartEntry.ELEMENT, new TestSource());
+      entry.getValueInLibrary(DartEntry.ELEMENT, new TestSource());
       fail("Expected IllegalArgumentException for ELEMENT");
     } catch (IllegalArgumentException exception) {
       // Expected
@@ -145,11 +145,11 @@ public class DartEntryImplTest extends EngineTestCase {
     Source source2 = new TestSource();
     Source source3 = new TestSource();
     DartEntryImpl entry = new DartEntryImpl();
-    entry.setValue(DartEntry.RESOLVED_UNIT, source1, compilationUnit());
-    entry.setValue(DartEntry.RESOLVED_UNIT, source2, compilationUnit());
-    entry.setValue(DartEntry.RESOLVED_UNIT, source3, compilationUnit());
+    entry.setValueInLibrary(DartEntry.RESOLVED_UNIT, source1, compilationUnit());
+    entry.setValueInLibrary(DartEntry.RESOLVED_UNIT, source2, compilationUnit());
+    entry.setValueInLibrary(DartEntry.RESOLVED_UNIT, source3, compilationUnit());
     try {
-      entry.getValue(DartEntry.ELEMENT, source3);
+      entry.getValueInLibrary(DartEntry.ELEMENT, source3);
       fail("Expected IllegalArgumentException for ELEMENT");
     } catch (IllegalArgumentException exception) {
       // Expected
@@ -346,9 +346,9 @@ public class DartEntryImplTest extends EngineTestCase {
     Source source2 = new TestSource();
     Source source3 = new TestSource();
     DartEntryImpl entry = new DartEntryImpl();
-    entry.setValue(DartEntry.RESOLVED_UNIT, source1, compilationUnit());
-    entry.setValue(DartEntry.RESOLVED_UNIT, source2, compilationUnit());
-    entry.setValue(DartEntry.RESOLVED_UNIT, source3, compilationUnit());
+    entry.setValueInLibrary(DartEntry.RESOLVED_UNIT, source1, compilationUnit());
+    entry.setValueInLibrary(DartEntry.RESOLVED_UNIT, source2, compilationUnit());
+    entry.setValueInLibrary(DartEntry.RESOLVED_UNIT, source3, compilationUnit());
     entry.removeResolution(source1);
   }
 
@@ -357,9 +357,9 @@ public class DartEntryImplTest extends EngineTestCase {
     Source source2 = new TestSource();
     Source source3 = new TestSource();
     DartEntryImpl entry = new DartEntryImpl();
-    entry.setValue(DartEntry.RESOLVED_UNIT, source1, compilationUnit());
-    entry.setValue(DartEntry.RESOLVED_UNIT, source2, compilationUnit());
-    entry.setValue(DartEntry.RESOLVED_UNIT, source3, compilationUnit());
+    entry.setValueInLibrary(DartEntry.RESOLVED_UNIT, source1, compilationUnit());
+    entry.setValueInLibrary(DartEntry.RESOLVED_UNIT, source2, compilationUnit());
+    entry.setValueInLibrary(DartEntry.RESOLVED_UNIT, source3, compilationUnit());
     entry.removeResolution(source3);
   }
 
@@ -368,16 +368,16 @@ public class DartEntryImplTest extends EngineTestCase {
     Source source2 = new TestSource();
     Source source3 = new TestSource();
     DartEntryImpl entry = new DartEntryImpl();
-    entry.setValue(DartEntry.RESOLVED_UNIT, source1, compilationUnit());
-    entry.setValue(DartEntry.RESOLVED_UNIT, source2, compilationUnit());
-    entry.setValue(DartEntry.RESOLVED_UNIT, source3, compilationUnit());
+    entry.setValueInLibrary(DartEntry.RESOLVED_UNIT, source1, compilationUnit());
+    entry.setValueInLibrary(DartEntry.RESOLVED_UNIT, source2, compilationUnit());
+    entry.setValueInLibrary(DartEntry.RESOLVED_UNIT, source3, compilationUnit());
     entry.removeResolution(source2);
   }
 
   public void test_removeResolution_single() {
     Source source1 = new TestSource();
     DartEntryImpl entry = new DartEntryImpl();
-    entry.setValue(DartEntry.RESOLVED_UNIT, source1, compilationUnit());
+    entry.setValueInLibrary(DartEntry.RESOLVED_UNIT, source1, compilationUnit());
     entry.removeResolution(source1);
   }
 
@@ -391,21 +391,21 @@ public class DartEntryImplTest extends EngineTestCase {
     AnalysisError[] errors1 = new AnalysisError[] {new AnalysisError(libSrc1, 0, 10, errCode)};
     AnalysisError[] errors2 = new AnalysisError[] {new AnalysisError(libSrc2, 0, 20, errCode)};
 
-    entry1.setValue(DartEntry.RESOLUTION_ERRORS, libSrc1, errors1);
-    entry1.setValue(DartEntry.RESOLUTION_ERRORS, libSrc2, errors2);
+    entry1.setValueInLibrary(DartEntry.RESOLUTION_ERRORS, libSrc1, errors1);
+    entry1.setValueInLibrary(DartEntry.RESOLUTION_ERRORS, libSrc2, errors2);
 
     TestDartEntryImpl entry2 = new TestDartEntryImpl();
     entry2.copyFrom(entry1);
-    assertExactElements(entry2.getAllErrors(), errors1[0], errors2[0]);
+    assertExactElementsInArray(entry2.getAllErrors(), errors1[0], errors2[0]);
 
     entry1.removeResolution(libSrc2);
-    assertExactElements(entry1.getAllErrors(), errors1[0]);
+    assertExactElementsInArray(entry1.getAllErrors(), errors1[0]);
 
     entry2.removeResolution(libSrc1);
-    assertExactElements(entry2.getAllErrors(), errors2[0]);
+    assertExactElementsInArray(entry2.getAllErrors(), errors2[0]);
 
     entry2.removeResolution(libSrc2);
-    assertExactElements(entry2.getAllErrors());
+    assertExactElementsInArray(entry2.getAllErrors());
   }
 
   public void test_setState_element() {
@@ -431,7 +431,7 @@ public class DartEntryImplTest extends EngineTestCase {
   public void test_setState_invalid_element() {
     DartEntryImpl entry = new DartEntryImpl();
     try {
-      entry.setState(DartEntry.ELEMENT, null, CacheState.FLUSHED);
+      entry.setStateInLibrary(DartEntry.ELEMENT, null, CacheState.FLUSHED);
       fail("Expected IllegalArgumentException for ELEMENT");
     } catch (IllegalArgumentException exception) {
       // Expected
@@ -628,9 +628,9 @@ public class DartEntryImplTest extends EngineTestCase {
   private void setState3(DataDescriptor<?> descriptor) {
     Source source = new TestSource();
     DartEntryImpl entry = new DartEntryImpl();
-    assertNotSame(CacheState.FLUSHED, entry.getState(descriptor, source));
-    entry.setState(descriptor, source, CacheState.FLUSHED);
-    assertSame(CacheState.FLUSHED, entry.getState(descriptor, source));
+    assertNotSame(CacheState.FLUSHED, entry.getStateInLibrary(descriptor, source));
+    entry.setStateInLibrary(descriptor, source, CacheState.FLUSHED);
+    assertSame(CacheState.FLUSHED, entry.getStateInLibrary(descriptor, source));
   }
 
   private <E> void setValue2(DataDescriptor<E> descriptor, E newValue) {
@@ -645,10 +645,10 @@ public class DartEntryImplTest extends EngineTestCase {
   private <E> void setValue3(DataDescriptor<E> descriptor, E newValue) {
     Source source = new TestSource();
     DartEntryImpl entry = new DartEntryImpl();
-    E value = entry.getValue(descriptor, source);
+    E value = entry.getValueInLibrary(descriptor, source);
     assertNotSame(value, newValue);
-    entry.setValue(descriptor, source, newValue);
-    assertSame(CacheState.VALID, entry.getState(descriptor, source));
-    assertSame(newValue, entry.getValue(descriptor, source));
+    entry.setValueInLibrary(descriptor, source, newValue);
+    assertSame(CacheState.VALID, entry.getStateInLibrary(descriptor, source));
+    assertSame(newValue, entry.getValueInLibrary(descriptor, source));
   }
 }

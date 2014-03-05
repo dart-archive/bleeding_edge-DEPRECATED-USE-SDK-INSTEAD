@@ -70,7 +70,7 @@ public class ResolverTestCase extends EngineTestCase {
   protected Source addSource(String filePath, String contents) {
     Source source = cacheSource(filePath, contents);
     ChangeSet changeSet = new ChangeSet();
-    changeSet.added(source);
+    changeSet.addedSource(source);
     analysisContext.applyChanges(changeSet);
     return source;
   }
@@ -92,7 +92,7 @@ public class ResolverTestCase extends EngineTestCase {
     for (AnalysisError error : analysisContext.computeErrors(source)) {
       errorListener.onError(error);
     }
-    errorListener.assertErrors(expectedErrorCodes);
+    errorListener.assertErrorsWithCodes(expectedErrorCodes);
   }
 
   /**

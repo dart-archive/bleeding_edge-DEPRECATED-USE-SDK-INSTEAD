@@ -94,7 +94,7 @@ public class IncrementalAnalysisCache {
       if (librarySources.length == 1) {
         librarySource = librarySources[0];
         if (librarySource != null) {
-          unit = dartEntry.getValue(DartEntry.RESOLVED_UNIT, librarySource);
+          unit = dartEntry.getValueInLibrary(DartEntry.RESOLVED_UNIT, librarySource);
         }
       }
     }
@@ -150,7 +150,7 @@ public class IncrementalAnalysisCache {
   public static IncrementalAnalysisCache verifyStructure(IncrementalAnalysisCache cache,
       Source source, CompilationUnit unit) {
     if (cache != null && unit != null && cache.source.equals(source)) {
-      if (!AstComparator.equals(cache.resolvedUnit, unit)) {
+      if (!AstComparator.equalUnits(cache.resolvedUnit, unit)) {
         return null;
       }
     }

@@ -57,7 +57,7 @@ public class LibraryTest extends EngineTestCase {
     analysisContext = new AnalysisContextImpl();
     analysisContext.setSourceFactory(sourceFactory);
     errorListener = new GatheringErrorListener();
-    library = library("/lib.dart");
+    library = createLibrary("/lib.dart");
   }
 
   public void test_getExplicitlyImportsCore() {
@@ -76,8 +76,8 @@ public class LibraryTest extends EngineTestCase {
   }
 
   public void test_getImportsAndExports() {
-    library.setImportedLibraries(new Library[] {library("/imported.dart")});
-    library.setExportedLibraries(new Library[] {library("/exported.dart")});
+    library.setImportedLibraries(new Library[] {createLibrary("/imported.dart")});
+    library.setExportedLibraries(new Library[] {createLibrary("/exported.dart")});
     assertLength(2, library.getImportsAndExports());
     errorListener.assertNoErrors();
   }
@@ -101,7 +101,7 @@ public class LibraryTest extends EngineTestCase {
   }
 
   public void test_setExportedLibraries() {
-    Library exportLibrary = library("/exported.dart");
+    Library exportLibrary = createLibrary("/exported.dart");
     library.setExportedLibraries(new Library[] {exportLibrary});
     Library[] exports = library.getExports();
     assertLength(1, exports);
@@ -110,7 +110,7 @@ public class LibraryTest extends EngineTestCase {
   }
 
   public void test_setImportedLibraries() {
-    Library importLibrary = library("/imported.dart");
+    Library importLibrary = createLibrary("/imported.dart");
     library.setImportedLibraries(new Library[] {importLibrary});
     Library[] imports = library.getImports();
     assertLength(1, imports);
@@ -124,7 +124,7 @@ public class LibraryTest extends EngineTestCase {
     assertSame(element, library.getLibraryElement());
   }
 
-  private Library library(String definingCompilationUnitPath) {
+  private Library createLibrary(String definingCompilationUnitPath) {
     return new Library(analysisContext, errorListener, new FileBasedSource(
         createFile(definingCompilationUnitPath)));
   }

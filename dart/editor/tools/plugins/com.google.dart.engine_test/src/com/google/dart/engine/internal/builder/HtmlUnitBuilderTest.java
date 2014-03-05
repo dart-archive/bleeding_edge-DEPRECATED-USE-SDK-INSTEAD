@@ -186,11 +186,14 @@ public class HtmlUnitBuilderTest extends EngineTestCase {
   private HtmlElementImpl build(String contents) throws Exception {
     TestSource source = new TestSource(createFile("/test.html"), contents);
     ChangeSet changeSet = new ChangeSet();
-    changeSet.added(source);
+    changeSet.addedSource(source);
     context.applyChanges(changeSet);
 
     HtmlUnitBuilder builder = new HtmlUnitBuilder(context);
-    return builder.buildHtmlElement(source);
+    return builder.buildHtmlElement(
+        source,
+        context.getModificationStamp(source),
+        context.parseHtmlUnit(source));
   }
 
   private ExpectedScript s(ExpectedLibrary expectedLibrary) {

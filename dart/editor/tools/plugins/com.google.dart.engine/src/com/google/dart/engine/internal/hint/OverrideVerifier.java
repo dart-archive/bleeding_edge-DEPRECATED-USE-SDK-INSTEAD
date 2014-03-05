@@ -71,12 +71,12 @@ public class OverrideVerifier extends RecursiveAstVisitor<Void> {
     if (isOverride(element)) {
       if (getOverriddenMember(element) == null) {
         if (element instanceof MethodElement) {
-          errorReporter.reportError(HintCode.OVERRIDE_ON_NON_OVERRIDING_METHOD, node.getName());
+          errorReporter.reportErrorForNode(HintCode.OVERRIDE_ON_NON_OVERRIDING_METHOD, node.getName());
         } else if (element instanceof PropertyAccessorElement) {
           if (((PropertyAccessorElement) element).isGetter()) {
-            errorReporter.reportError(HintCode.OVERRIDE_ON_NON_OVERRIDING_GETTER, node.getName());
+            errorReporter.reportErrorForNode(HintCode.OVERRIDE_ON_NON_OVERRIDING_GETTER, node.getName());
           } else {
-            errorReporter.reportError(HintCode.OVERRIDE_ON_NON_OVERRIDING_SETTER, node.getName());
+            errorReporter.reportErrorForNode(HintCode.OVERRIDE_ON_NON_OVERRIDING_SETTER, node.getName());
           }
         }
       }

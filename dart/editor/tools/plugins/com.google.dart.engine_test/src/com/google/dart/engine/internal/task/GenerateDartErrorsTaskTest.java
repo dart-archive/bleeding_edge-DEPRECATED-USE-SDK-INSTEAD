@@ -60,7 +60,7 @@ public class GenerateDartErrorsTaskTest extends EngineTestCase {
     InternalAnalysisContext context = AnalysisContextFactory.contextWithCore();
     final Source librarySource = new FileBasedSource(createFile("/test.dart"));
     ChangeSet changeSet = new ChangeSet();
-    changeSet.added(librarySource);
+    changeSet.addedSource(librarySource);
     context.applyChanges(changeSet);
     context.setContents(librarySource, createSource(//
         "library lib;",

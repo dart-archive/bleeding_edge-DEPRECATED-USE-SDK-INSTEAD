@@ -13,8 +13,8 @@
  */
 package com.google.dart.engine.ast.visitor;
 
-import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.AssignmentExpression;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.CompilationUnit;
@@ -217,7 +217,7 @@ public class ElementLocator {
    * @param offset the offset relative to source
    * @return the associated element, or {@code null} if none is found
    */
-  public static Element locate(AstNode node, int offset) {
+  public static Element locateWithOffset(AstNode node, int offset) {
     // try to get Element from node
     {
       Element nodeElement = locate(node);
@@ -237,7 +237,7 @@ public class ElementLocator {
   }
 
   /**
-   * Clients should use {@link #locate(AstNode)} or {@link #locate(AstNode, int)}.
+   * Clients should use {@link #locate(AstNode)} or {@link #locateWithOffset(AstNode, int)}.
    */
   private ElementLocator() {
   }

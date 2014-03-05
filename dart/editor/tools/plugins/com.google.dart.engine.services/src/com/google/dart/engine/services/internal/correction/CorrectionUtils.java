@@ -363,7 +363,7 @@ public class CorrectionUtils {
    * @return the namespace of the given {@link ExportElement}.
    */
   public static Map<String, Element> getExportNamespace(ExportElement exp) {
-    Namespace namespace = new NamespaceBuilder().createExportNamespace(exp);
+    Namespace namespace = new NamespaceBuilder().createExportNamespaceForDirective(exp);
     return namespace.getDefinedNames();
   }
 
@@ -373,7 +373,7 @@ public class CorrectionUtils {
    * @return the export namespace of the given {@link LibraryElement}.
    */
   public static Map<String, Element> getExportNamespace(LibraryElement library) {
-    Namespace namespace = new NamespaceBuilder().createExportNamespace(library);
+    Namespace namespace = new NamespaceBuilder().createExportNamespaceForLibrary(library);
     return namespace.getDefinedNames();
   }
 
@@ -407,7 +407,7 @@ public class CorrectionUtils {
    * @return the namespace of the given {@link ImportElement}.
    */
   public static Map<String, Element> getImportNamespace(ImportElement imp) {
-    Namespace namespace = new NamespaceBuilder().createImportNamespace(imp);
+    Namespace namespace = new NamespaceBuilder().createImportNamespaceForDirective(imp);
     return namespace.getDefinedNames();
   }
 

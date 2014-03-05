@@ -3404,7 +3404,7 @@ public class Parser {
     }
     Token[] tokens = commentTokens.toArray(new Token[commentTokens.size()]);
     List<CommentReference> references = parseCommentReferences(tokens);
-    return Comment.createDocumentationComment(tokens, references);
+    return Comment.createDocumentationCommentWithReferences(tokens, references);
   }
 
   /**

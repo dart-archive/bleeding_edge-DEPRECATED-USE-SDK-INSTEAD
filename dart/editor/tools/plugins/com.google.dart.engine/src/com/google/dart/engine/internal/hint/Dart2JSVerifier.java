@@ -85,9 +85,9 @@ public class Dart2JSVerifier extends RecursiveAstVisitor<Void> {
       if (typeNameStr.equals(DOUBLE_TYPE_NAME) && libraryElement != null
           && libraryElement.isDartCore()) {
         if (node.getNotOperator() == null) {
-          errorReporter.reportError(HintCode.IS_DOUBLE, node);
+          errorReporter.reportErrorForNode(HintCode.IS_DOUBLE, node);
         } else {
-          errorReporter.reportError(HintCode.IS_NOT_DOUBLE, node);
+          errorReporter.reportErrorForNode(HintCode.IS_NOT_DOUBLE, node);
         }
         return true;
       }

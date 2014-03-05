@@ -71,7 +71,7 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
     // process "libSource"
     {
       ChangeSet changeSet = new ChangeSet();
-      changeSet.added(libSource);
+      changeSet.addedSource(libSource);
       analysisContext.applyChanges(changeSet);
     }
     // process unit
@@ -1104,7 +1104,7 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
     // process "libSource"
     {
       ChangeSet changeSet = new ChangeSet();
-      changeSet.added(libSource);
+      changeSet.addedSource(libSource);
       analysisContext.applyChanges(changeSet);
     }
     // process unit
@@ -1146,8 +1146,8 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
     ensureAnalysisContext();
     {
       ChangeSet changeSet = new ChangeSet();
-      changeSet.added(libSource);
-      changeSet.added(testSource);
+      changeSet.addedSource(libSource);
+      changeSet.addedSource(testSource);
       analysisContext.applyChanges(changeSet);
     }
     // fill "test*" fields
@@ -1207,9 +1207,9 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
     ensureAnalysisContext();
     {
       ChangeSet changeSet = new ChangeSet();
-      changeSet.added(libSource);
-      changeSet.added(appSource);
-      changeSet.added(partSource);
+      changeSet.addedSource(libSource);
+      changeSet.addedSource(appSource);
+      changeSet.addedSource(partSource);
       analysisContext.applyChanges(changeSet);
     }
     // fill "test*" fields

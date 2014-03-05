@@ -209,7 +209,7 @@ public class DartTextHover extends DefaultTextHover implements ITextHoverExtensi
         return null;
       }
       Type type = node instanceof Expression ? ((Expression) node).getBestType() : null;
-      Element element = ElementLocator.locate(node, offset);
+      Element element = ElementLocator.locateWithOffset(node, offset);
       return getElementDocumentationHtml(type, element);
     }
 

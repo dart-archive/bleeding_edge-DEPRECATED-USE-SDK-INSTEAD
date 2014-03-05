@@ -50,7 +50,7 @@ public class ConstantValueComputerTest extends ResolverTestCase {
       computer.add(unit);
       computer.computeValues();
       NodeList<CompilationUnitMember> members = unit.getDeclarations();
-      assertSize(3, members);
+      assertSizeOfList(3, members);
       validate(false, ((TopLevelVariableDeclaration) members.get(0)).getVariables());
       validate(false, ((TopLevelVariableDeclaration) members.get(1)).getVariables());
       validate(false, ((TopLevelVariableDeclaration) members.get(2)).getVariables());
@@ -74,7 +74,7 @@ public class ConstantValueComputerTest extends ResolverTestCase {
     computer.add(unit);
     computer.computeValues();
     NodeList<CompilationUnitMember> members = unit.getDeclarations();
-    assertSize(2, members);
+    assertSizeOfList(2, members);
     validate(true, ((TopLevelVariableDeclaration) members.get(0)).getVariables());
     validate(true, ((TopLevelVariableDeclaration) members.get(1)).getVariables());
   }
@@ -110,12 +110,12 @@ public class ConstantValueComputerTest extends ResolverTestCase {
     computer.computeValues();
 
     NodeList<CompilationUnitMember> libraryMembers = libraryUnit.getDeclarations();
-    assertSize(2, libraryMembers);
+    assertSizeOfList(2, libraryMembers);
     validate(true, ((TopLevelVariableDeclaration) libraryMembers.get(0)).getVariables());
     validate(true, ((TopLevelVariableDeclaration) libraryMembers.get(1)).getVariables());
 
     NodeList<CompilationUnitMember> partMembers = libraryUnit.getDeclarations();
-    assertSize(2, partMembers);
+    assertSizeOfList(2, partMembers);
     validate(true, ((TopLevelVariableDeclaration) partMembers.get(0)).getVariables());
     validate(true, ((TopLevelVariableDeclaration) partMembers.get(1)).getVariables());
   }
@@ -132,7 +132,7 @@ public class ConstantValueComputerTest extends ResolverTestCase {
     computer.add(unit);
     computer.computeValues();
     NodeList<CompilationUnitMember> members = unit.getDeclarations();
-    assertSize(1, members);
+    assertSizeOfList(1, members);
     validate(true, ((TopLevelVariableDeclaration) members.get(0)).getVariables());
   }
 

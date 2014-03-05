@@ -28,7 +28,7 @@ import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.utilities.io.PrintStringWriter;
 
 import static com.google.dart.engine.ast.AstFactory.*;
-import static com.google.dart.engine.scanner.TokenFactory.token;
+import static com.google.dart.engine.scanner.TokenFactory.tokenFromString;
 
 public class ToSourceVisitorTest extends EngineTestCase {
   public void test_visitAdjacentStrings() {
@@ -371,7 +371,7 @@ public class ToSourceVisitorTest extends EngineTestCase {
   }
 
   public void test_visitComment() {
-    assertSource("", Comment.createBlockComment(new Token[] {token("/* comment */")}));
+    assertSource("", Comment.createBlockComment(new Token[] {tokenFromString("/* comment */")}));
   }
 
   public void test_visitCommentReference() {

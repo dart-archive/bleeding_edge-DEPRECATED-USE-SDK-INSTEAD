@@ -55,8 +55,8 @@ public class AnalysisEngineParticipantTest extends AbstractDartCoreTest {
 
     @Override
     public void applyChanges(ChangeSet changeSet) {
-      added.addAll(changeSet.getAdded());
-      changed.addAll(changeSet.getChanged());
+      added.addAll(changeSet.getAddedSources());
+      changed.addAll(changeSet.getChangedSources());
       super.applyChanges(changeSet);
     }
 
@@ -208,7 +208,7 @@ public class AnalysisEngineParticipantTest extends AbstractDartCoreTest {
     File file = fileRes.getLocation().toFile();
     fileSource = new FileBasedSource(file);
     ChangeSet changeSet = new ChangeSet();
-    changeSet.added(fileSource);
+    changeSet.addedSource(fileSource);
     context.applyChanges(changeSet);
     context.setContents(fileSource, fileContents);
 

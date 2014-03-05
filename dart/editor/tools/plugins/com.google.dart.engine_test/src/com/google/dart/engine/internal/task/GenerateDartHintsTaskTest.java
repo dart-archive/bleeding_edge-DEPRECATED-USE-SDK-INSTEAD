@@ -62,11 +62,11 @@ public class GenerateDartHintsTaskTest extends EngineTestCase {
     InternalAnalysisContext context = AnalysisContextFactory.contextWithCore();
     ChangeSet changeSet = new ChangeSet();
     final Source librarySource = new FileBasedSource(createFile("/test.dart"));
-    changeSet.added(librarySource);
+    changeSet.addedSource(librarySource);
     Source unusedSource = new FileBasedSource(createFile("/unused.dart"));
-    changeSet.added(unusedSource);
+    changeSet.addedSource(unusedSource);
     final Source partSource = new FileBasedSource(createFile("/part.dart"));
-    changeSet.added(partSource);
+    changeSet.addedSource(partSource);
     context.applyChanges(changeSet);
 
     context.setContents(librarySource, createSource(//
@@ -91,7 +91,7 @@ public class GenerateDartHintsTaskTest extends EngineTestCase {
         }
         assertNotNull(task.getLibraryElement());
         HashMap<Source, TimestampedData<AnalysisError[]>> hintMap = task.getHintMap();
-        assertSize(2, hintMap);
+        assertSizeOfMap(2, hintMap);
         assertLength(1, hintMap.get(librarySource).getData());
         assertLength(0, hintMap.get(partSource).getData());
         return true;

@@ -97,7 +97,7 @@ public class EngineTestCase extends TestCase {
     }
     boolean[] found = new boolean[expectedSize];
     for (int i = 0; i < expectedSize; i++) {
-      assertContains(array, found, expectedElements[i]);
+      privateAssertContains(array, found, expectedElements[i]);
     }
   }
 
@@ -170,30 +170,6 @@ public class EngineTestCase extends TestCase {
   }
 
   /**
-   * Assert that the given list is non-{@code null} and has exactly expected elements.
-   * 
-   * @param list the list being tested
-   * @param expectedElements the expected elements
-   * @throws AssertionFailedError if the list is {@code null} or does not have the expected elements
-   */
-  public static void assertExactElements(List<?> list, Object... expectedElements) {
-    int expectedSize = expectedElements.length;
-    if (list == null) {
-      fail("Expected list of size " + expectedSize + "; found null");
-    }
-    if (list.size() != expectedSize) {
-      fail("Expected list of size " + expectedSize + "; contained " + list.size() + " elements");
-    }
-    for (int i = 0; i < expectedSize; i++) {
-      Object element = list.get(i);
-      Object expectedElement = expectedElements[i];
-      if (!Objects.equal(element, expectedElement)) {
-        fail("Expected " + expectedElement + " at [" + i + "]; found " + element);
-      }
-    }
-  }
-
-  /**
    * Assert that the given array is non-{@code null} and has exactly expected elements.
    * 
    * @param array the array being tested
@@ -201,7 +177,7 @@ public class EngineTestCase extends TestCase {
    * @throws AssertionFailedError if the array is {@code null} or does not have the expected
    *           elements
    */
-  public static void assertExactElements(Object array[], Object... expectedElements) {
+  public static void assertExactElementsInArray(Object array[], Object... expectedElements) {
     int expectedSize = expectedElements.length;
     if (array == null) {
       fail("Expected array of size " + expectedSize + "; found null");
@@ -221,11 +197,35 @@ public class EngineTestCase extends TestCase {
   /**
    * Assert that the given list is non-{@code null} and has exactly expected elements.
    * 
+   * @param list the list being tested
+   * @param expectedElements the expected elements
+   * @throws AssertionFailedError if the list is {@code null} or does not have the expected elements
+   */
+  public static void assertExactElementsInList(List<?> list, Object... expectedElements) {
+    int expectedSize = expectedElements.length;
+    if (list == null) {
+      fail("Expected list of size " + expectedSize + "; found null");
+    }
+    if (list.size() != expectedSize) {
+      fail("Expected list of size " + expectedSize + "; contained " + list.size() + " elements");
+    }
+    for (int i = 0; i < expectedSize; i++) {
+      Object element = list.get(i);
+      Object expectedElement = expectedElements[i];
+      if (!Objects.equal(element, expectedElement)) {
+        fail("Expected " + expectedElement + " at [" + i + "]; found " + element);
+      }
+    }
+  }
+
+  /**
+   * Assert that the given list is non-{@code null} and has exactly expected elements.
+   * 
    * @param set the list being tested
    * @param expectedElements the expected elements
    * @throws AssertionFailedError if the list is {@code null} or does not have the expected elements
    */
-  public static void assertExactElements(Set<?> set, Object... expectedElements) {
+  public static void assertExactElementsInSet(Set<?> set, Object... expectedElements) {
     int expectedSize = expectedElements.length;
     if (set == null) {
       fail("Expected list of size " + expectedSize + "; found null");
@@ -306,7 +306,7 @@ public class EngineTestCase extends TestCase {
    * @throws AssertionFailedError if the list is {@code null} or does not have the expected number
    *           of elements
    */
-  public static void assertSize(int expectedSize, List<?> list) {
+  public static void assertSizeOfList(int expectedSize, List<?> list) {
     if (list == null) {
       fail("Expected list of size " + expectedSize + "; found null");
     } else if (list.size() != expectedSize) {
@@ -322,7 +322,7 @@ public class EngineTestCase extends TestCase {
    * @throws AssertionFailedError if the map is {@code null} or does not have the expected number of
    *           elements
    */
-  public static void assertSize(int expectedSize, Map<?, ?> map) {
+  public static void assertSizeOfMap(int expectedSize, Map<?, ?> map) {
     if (map == null) {
       fail("Expected map of size " + expectedSize + "; found null");
     } else if (map.size() != expectedSize) {
@@ -338,7 +338,7 @@ public class EngineTestCase extends TestCase {
    * @throws AssertionFailedError if the set is {@code null} or does not have the expected number of
    *           elements
    */
-  public static void assertSize(int expectedSize, Set<?> set) {
+  public static void assertSizeOfSet(int expectedSize, Set<?> set) {
     if (set == null) {
       fail("Expected set of size " + expectedSize + "; found null");
     } else if (set.size() != expectedSize) {
@@ -374,30 +374,6 @@ public class EngineTestCase extends TestCase {
     return node.getAncestor(clazz);
   }
 
-  private static void assertContains(Object[] array, boolean[] found, Object element) {
-    if (element == null) {
-      for (int i = 0; i < array.length; i++) {
-        if (!found[i]) {
-          if (array[i] == null) {
-            found[i] = true;
-            return;
-          }
-        }
-      }
-      fail("Does not contain null");
-    } else {
-      for (int i = 0; i < array.length; i++) {
-        if (!found[i]) {
-          if (element.equals(array[i])) {
-            found[i] = true;
-            return;
-          }
-        }
-      }
-      fail("Does not contain " + element);
-    }
-  }
-
   /**
    * Calculate the offset where the given strings differ.
    * 
@@ -422,6 +398,30 @@ public class EngineTestCase extends TestCase {
     }
 
     return diffPos;
+  }
+
+  private static void privateAssertContains(Object[] array, boolean[] found, Object element) {
+    if (element == null) {
+      for (int i = 0; i < array.length; i++) {
+        if (!found[i]) {
+          if (array[i] == null) {
+            found[i] = true;
+            return;
+          }
+        }
+      }
+      fail("Does not contain null");
+    } else {
+      for (int i = 0; i < array.length; i++) {
+        if (!found[i]) {
+          if (element.equals(array[i])) {
+            found[i] = true;
+            return;
+          }
+        }
+      }
+      fail("Does not contain " + element);
+    }
   }
 
   protected AnalysisContextImpl createAnalysisContext() {

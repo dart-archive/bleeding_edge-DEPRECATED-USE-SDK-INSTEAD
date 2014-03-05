@@ -103,7 +103,7 @@ public class AnalysisWorkerTest extends AbstractDartCoreTest {
     MockFile libFile = project.addFile("test.dart");
     Source libSource = addSource(libFile, "library a;\nmain() {}");
     ChangeSet changeSet = new ChangeSet();
-    changeSet.added(libSource);
+    changeSet.addedSource(libSource);
     analysisContext.applyChanges(changeSet);
     when(contextManager.getResource(libSource)).thenReturn(libFile);
 
@@ -146,7 +146,7 @@ public class AnalysisWorkerTest extends AbstractDartCoreTest {
     MockFile libFile = project.addFile("test.dart");
     Source libSource = addSource(libFile, "library a;\nmain() {}");
     ChangeSet changeSet = new ChangeSet();
-    changeSet.added(libSource);
+    changeSet.addedSource(libSource);
     analysisContext.applyChanges(changeSet);
     when(contextManager.getResource(libSource)).thenReturn(libFile);
 
@@ -180,7 +180,7 @@ public class AnalysisWorkerTest extends AbstractDartCoreTest {
   private Source addSource(MockFile file, String contents) {
     Source source = new FileBasedSource(file.toFile());
     ChangeSet changeSet = new ChangeSet();
-    changeSet.added(source);
+    changeSet.addedSource(source);
     analysisContext.applyChanges(changeSet);
     analysisContext.setContents(source, contents);
     return source;

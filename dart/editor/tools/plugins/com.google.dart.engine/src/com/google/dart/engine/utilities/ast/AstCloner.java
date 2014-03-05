@@ -169,7 +169,7 @@ public class AstCloner implements AstVisitor<AstNode> {
   @Override
   public Comment visitComment(Comment node) {
     if (node.isDocumentation()) {
-      return Comment.createDocumentationComment(
+      return Comment.createDocumentationCommentWithReferences(
           node.getTokens(),
           cloneNodeList(node.getReferences()));
     } else if (node.isBlock()) {

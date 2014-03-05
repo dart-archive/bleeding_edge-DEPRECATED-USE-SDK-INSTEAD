@@ -141,7 +141,7 @@ public class IncrementalAnalysisCacheTest extends TestCase {
 
     DartEntryImpl newEntry = new DartEntryImpl();
     CompilationUnit newUnit = mock(CompilationUnit.class);
-    newEntry.setValue(DartEntry.RESOLVED_UNIT, source, newUnit);
+    newEntry.setValueInLibrary(DartEntry.RESOLVED_UNIT, source, newUnit);
 
     result = update(cache, source, "hbazlo", "hbazxlo", 4, 0, 1, newEntry);
     assertNotNull(result);
@@ -208,7 +208,7 @@ public class IncrementalAnalysisCacheTest extends TestCase {
     Source oldSource = new TestSource(new File("blat.dart"), "blat");
     DartEntryImpl oldEntry = new DartEntryImpl();
     CompilationUnit oldUnit = mock(CompilationUnit.class);
-    oldEntry.setValue(DartEntry.RESOLVED_UNIT, source, oldUnit);
+    oldEntry.setValueInLibrary(DartEntry.RESOLVED_UNIT, source, oldUnit);
     IncrementalAnalysisCache cache = update(null, oldSource, "hello", "hbazlo", 1, 2, 3, oldEntry);
     assertSame(oldSource, cache.getSource());
     assertSame(oldUnit, cache.getResolvedUnit());
@@ -228,7 +228,7 @@ public class IncrementalAnalysisCacheTest extends TestCase {
     Source oldSource = new TestSource(new File("blat.dart"), "blat");
     DartEntryImpl oldEntry = new DartEntryImpl();
     CompilationUnit oldUnit = mock(CompilationUnit.class);
-    oldEntry.setValue(DartEntry.RESOLVED_UNIT, source, oldUnit);
+    oldEntry.setValueInLibrary(DartEntry.RESOLVED_UNIT, source, oldUnit);
     IncrementalAnalysisCache cache = update(null, oldSource, "hello", "hbazlo", 1, 2, 3, oldEntry);
     assertSame(oldSource, cache.getSource());
     assertSame(oldUnit, cache.getResolvedUnit());
@@ -296,7 +296,7 @@ public class IncrementalAnalysisCacheTest extends TestCase {
     String oldCode = "main() {foo;}";
     String newCode = "main() {boo;}";
     CompilationUnit badUnit = parse("main() {bad;}");
-    entry.setValue(DartEntry.RESOLVED_UNIT, source, badUnit);
+    entry.setValueInLibrary(DartEntry.RESOLVED_UNIT, source, badUnit);
     IncrementalAnalysisCache cache = update(null, source, oldCode, newCode, 8, 1, 1, entry);
     CompilationUnit newUnit = parse(newCode);
 
@@ -344,7 +344,7 @@ public class IncrementalAnalysisCacheTest extends TestCase {
     String oldCode = "main() {foo;}";
     String newCode = "main() {boo;}";
     CompilationUnit goodUnit = parse(newCode);
-    entry.setValue(DartEntry.RESOLVED_UNIT, source, goodUnit);
+    entry.setValueInLibrary(DartEntry.RESOLVED_UNIT, source, goodUnit);
     IncrementalAnalysisCache cache = update(null, source, oldCode, newCode, 1, 2, 3, entry);
     CompilationUnit newUnit = parse(newCode);
 
@@ -355,7 +355,7 @@ public class IncrementalAnalysisCacheTest extends TestCase {
 
   @Override
   protected void setUp() throws Exception {
-    entry.setValue(DartEntry.RESOLVED_UNIT, source, unit);
+    entry.setValueInLibrary(DartEntry.RESOLVED_UNIT, source, unit);
   }
 
   private CompilationUnit parse(String code) {

@@ -23,7 +23,7 @@ public class AnalysisContextHelper {
   public Source addSource(String path, String code) {
     Source source = new FileBasedSource(createFile(path));
     ChangeSet changeSet = new ChangeSet();
-    changeSet.added(source);
+    changeSet.addedSource(source);
     context.applyChanges(changeSet);
     context.setContents(source, code);
     return source;

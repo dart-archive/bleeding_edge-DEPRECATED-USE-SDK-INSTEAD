@@ -230,7 +230,7 @@ public class IncrementalAstCloner implements AstVisitor<AstNode> {
   @Override
   public Comment visitComment(Comment node) {
     if (node.isDocumentation()) {
-      return Comment.createDocumentationComment(
+      return Comment.createDocumentationCommentWithReferences(
           mapTokens(node.getTokens()),
           cloneNodeList(node.getReferences()));
     } else if (node.isBlock()) {

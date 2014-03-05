@@ -134,7 +134,7 @@ public class ImportsVerifier extends RecursiveAstVisitor<Void> {
    */
   public void generateDuplicateImportHints(ErrorReporter errorReporter) {
     for (ImportDirective duplicateImport : duplicateImports) {
-      errorReporter.reportError(HintCode.DUPLICATE_IMPORT, duplicateImport.getUri());
+      errorReporter.reportErrorForNode(HintCode.DUPLICATE_IMPORT, duplicateImport.getUri());
     }
   }
 
@@ -156,7 +156,7 @@ public class ImportsVerifier extends RecursiveAstVisitor<Void> {
           continue;
         }
       }
-      errorReporter.reportError(HintCode.UNUSED_IMPORT, unusedImport.getUri());
+      errorReporter.reportErrorForNode(HintCode.UNUSED_IMPORT, unusedImport.getUri());
     }
   }
 
@@ -316,7 +316,7 @@ public class ImportsVerifier extends RecursiveAstVisitor<Void> {
       ImportElement importElement = importDirective.getElement();
       if (importElement != null) {
         NamespaceBuilder builder = new NamespaceBuilder();
-        namespace = builder.createImportNamespace(importElement);
+        namespace = builder.createImportNamespaceForDirective(importElement);
         namespaceMap.put(importDirective, namespace);
       }
     }

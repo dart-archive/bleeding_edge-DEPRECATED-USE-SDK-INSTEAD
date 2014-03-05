@@ -89,7 +89,8 @@ public class Comment extends AstNode {
    * @param references the references embedded within the documentation comment
    * @return the documentation comment that was created
    */
-  public static Comment createDocumentationComment(Token[] tokens, List<CommentReference> references) {
+  public static Comment createDocumentationCommentWithReferences(Token[] tokens,
+      List<CommentReference> references) {
     return new Comment(tokens, CommentType.DOCUMENTATION, references);
   }
 
