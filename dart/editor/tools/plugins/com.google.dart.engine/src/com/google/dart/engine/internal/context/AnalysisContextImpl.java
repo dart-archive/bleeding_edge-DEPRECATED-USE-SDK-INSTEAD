@@ -2404,7 +2404,11 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       // Look for a priority source that needs to be analyzed.
       //
       for (Source source : priorityOrder) {
-        TaskData taskData = getNextNondependentAnalysisTask(source, hintsEnabled, sdkErrorsEnabled);
+        TaskData taskData = getNextNondependentAnalysisTask(
+            source,
+            true,
+            hintsEnabled,
+            sdkErrorsEnabled);
         AnalysisTask task = taskData.getTask();
         if (task != null) {
           return task;
@@ -2417,7 +2421,11 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       //
       Source source = workManager.getNextSource();
       while (source != null) {
-        TaskData taskData = getNextNondependentAnalysisTask(source, hintsEnabled, sdkErrorsEnabled);
+        TaskData taskData = getNextNondependentAnalysisTask(
+            source,
+            false,
+            hintsEnabled,
+            sdkErrorsEnabled);
         AnalysisTask task = taskData.getTask();
         if (task != null) {
           return task;
@@ -2690,12 +2698,12 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     return new TaskData(null, false, null);
   }
 
-  private TaskData getNextNondependentAnalysisTask(Source source, boolean hintsEnabled,
-      boolean sdkErrorsEnabled) {
+  private TaskData getNextNondependentAnalysisTask(Source source, boolean isPriority,
+      boolean hintsEnabled, boolean sdkErrorsEnabled) {
     TaskData taskData = getNextAnalysisTaskForSource(
         source,
         cache.get(source),
-        true,
+        isPriority,
         hintsEnabled,
         sdkErrorsEnabled);
     if (taskData.getTask() != null || taskData.isBlocked()) {
@@ -2705,7 +2713,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       taskData = getNextAnalysisTaskForSource(
           source,
           cache.get(source),
-          true,
+          isPriority,
           hintsEnabled,
           sdkErrorsEnabled);
       if (taskData.getTask() != null || taskData.isBlocked()) {
