@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, the Dart project authors.
+ * Copyright (c) 2014, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -14,34 +14,33 @@
 package com.google.dart.tools.ui.internal.text.correction.proposals;
 
 import com.google.dart.tools.ui.DartPluginImages;
-import com.google.dart.tools.ui.internal.refactoring.actions.RenameDartElementAction;
 import com.google.dart.tools.ui.internal.text.correction.CorrectionMessages;
-import com.google.dart.tools.ui.internal.text.editor.DartSelection;
 
+import org.eclipse.jface.action.IAction;
 import org.eclipse.swt.graphics.Image;
 
 /**
- * A quick assist proposal that starts the Rename refactoring.
+ * A quick assist proposal that starts the Format action.
  * 
  * @coverage dart.editor.ui.correction
  */
-public class RenameRefactoringProposal extends AbstractSelectionActionProposal {
-  public RenameRefactoringProposal(RenameDartElementAction action, DartSelection selection) {
-    super(action, CorrectionMessages.RenameRefactoringProposal_name, selection);
+public class FormatProposal extends AbstractActionProposal {
+  public FormatProposal(IAction action) {
+    super(action, CorrectionMessages.FormatProposal_name);
   }
 
   @Override
   public String getAdditionalProposalInfo() {
-    return CorrectionMessages.RenameRefactoringProposal_additionalInfo;
+    return CorrectionMessages.FormatProposal_additionalInfo;
   }
 
   @Override
   public Image getImage() {
-    return DartPluginImages.get(DartPluginImages.IMG_CORRECTION_LINKED_RENAME);
+    return DartPluginImages.get(DartPluginImages.IMG_CORRECTION_CHANGE);
   }
 
   @Override
   public int getRelevance() {
-    return 8;
+    return 5;
   }
 }
