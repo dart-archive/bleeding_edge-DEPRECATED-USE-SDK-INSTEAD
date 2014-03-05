@@ -830,8 +830,8 @@ public class StaticWarningCodeTest extends ResolverTestCase {
   public void test_conflictingInstanceMethodSetter_sameClass() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
-        "  foo() {}",
         "  set foo(a) {}",
+        "  foo() {}",
         "}"));
     resolve(source);
     assertErrors(source, StaticWarningCode.CONFLICTING_INSTANCE_METHOD_SETTER);
@@ -861,6 +861,17 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(source, StaticWarningCode.CONFLICTING_INSTANCE_METHOD_SETTER);
+    verify(source);
+  }
+
+  public void test_conflictingInstanceMethodSetter2() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  foo() {}",
+        "  set foo(a) {}",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.CONFLICTING_INSTANCE_METHOD_SETTER2);
     verify(source);
   }
 

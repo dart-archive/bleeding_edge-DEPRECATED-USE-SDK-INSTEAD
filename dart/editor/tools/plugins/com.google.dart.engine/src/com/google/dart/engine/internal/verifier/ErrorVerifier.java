@@ -501,6 +501,7 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
       checkForConflictingInstanceGetterAndSuperclassMember();
       checkImplementsSuperClass(node);
       checkImplementsFunctionWithoutCall(node);
+      checkForConflictingInstanceMethodSetter(node);
       return super.visitClassDeclaration(node);
     } finally {
       isInNativeClass = false;
@@ -628,7 +629,9 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
     if (!node.isStatic()) {
       VariableDeclarationList variables = node.getFields();
       if (variables.isConst()) {
-        errorReporter.reportErrorForToken(CompileTimeErrorCode.CONST_INSTANCE_FIELD, variables.getKeyword());
+        errorReporter.reportErrorForToken(
+            CompileTimeErrorCode.CONST_INSTANCE_FIELD,
+            variables.getKeyword());
       }
     }
     isInStaticVariableDeclaration = node.isStatic();
@@ -837,8 +840,6 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
         checkForOptionalParameterInOperator(node);
         checkForWrongNumberOfParametersForOperator(node);
         checkForNonVoidReturnTypeForOperator(node);
-      } else {
-        checkForConflictingInstanceMethodSetter(node);
       }
       checkForConcreteClassWithAbstractMember(node);
       checkForAllInvalidOverrideErrorCodesForMethod(node);
@@ -2092,7 +2093,9 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
       }
     }
     // report error
-    errorReporter.reportErrorForToken(StaticWarningCode.CASE_BLOCK_NOT_TERMINATED, node.getKeyword());
+    errorReporter.reportErrorForToken(
+        StaticWarningCode.CASE_BLOCK_NOT_TERMINATED,
+        node.getKeyword());
     return true;
   }
 
@@ -2185,7 +2188,10 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
         if (name == null || name.length() == 0) {
           errorReporter.reportErrorForNode(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, node);
         } else {
-          errorReporter.reportErrorForNode(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME, node, name);
+          errorReporter.reportErrorForNode(
+              CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME,
+              node,
+              name);
         }
         return true;
       }
@@ -2339,38 +2345,99 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
   /**
    * This verifies that the enclosing class does not have a setter with the same name as the passed
    * instance method declaration.
+   * <p>
+   * TODO(jwren) add other "conflicting" error codes into algorithm/ data structure
    * 
    * @param node the method declaration to evaluate
    * @return {@code true} if and only if an error code is generated on the passed node
    * @see StaticWarningCode#CONFLICTING_INSTANCE_METHOD_SETTER
    */
-  private boolean checkForConflictingInstanceMethodSetter(MethodDeclaration node) {
-    if (node.isStatic()) {
+  private boolean checkForConflictingInstanceMethodSetter(ClassDeclaration node) {
+    // Reference all of the class members in this class.
+    NodeList<ClassMember> classMembers = node.getMembers();
+    if (classMembers.isEmpty()) {
       return false;
     }
-    // prepare name
-    SimpleIdentifier nameNode = node.getName();
-    if (nameNode == null) {
-      return false;
+
+    // Create a HashMap to track conflicting members, and then loop through members in the class to
+    // construct the HashMap, at the same time, look for violations.  Don't add members if they are
+    // part of a conflict, this prevents multiple warnings for one issue.
+    boolean foundError = false;
+    HashMap<String, ClassMember> memberHashMap = new HashMap<String, ClassMember>(
+        classMembers.size());
+    for (ClassMember classMember : classMembers) {
+      if (classMember instanceof MethodDeclaration) {
+        MethodDeclaration method = (MethodDeclaration) classMember;
+        if (method.isStatic()) {
+          continue;
+        }
+        // prepare name
+        SimpleIdentifier name = method.getName();
+        if (name == null) {
+          continue;
+        }
+
+        boolean addThisMemberToTheMap = true;
+
+        boolean isGetter = method.isGetter();
+        boolean isSetter = method.isSetter();
+        boolean isOperator = method.isOperator();
+        boolean isMethod = !isGetter && !isSetter && !isOperator;
+
+        // Do lookups in the enclosing class (and the inherited member) if the member is a method or
+        // a setter for StaticWarningCode.CONFLICTING_INSTANCE_METHOD_SETTER warning.
+        if (isMethod) {
+          String setterName = name.getName() + "=";
+          Element enclosingElementOfSetter = null;
+          ClassMember conflictingSetter = memberHashMap.get(setterName);
+          if (conflictingSetter != null) {
+            enclosingElementOfSetter = conflictingSetter.getElement().getEnclosingElement();
+          } else {
+            ExecutableElement elementFromInheritance = inheritanceManager.lookupInheritance(
+                enclosingClass,
+                setterName);
+            if (elementFromInheritance != null) {
+              enclosingElementOfSetter = elementFromInheritance.getEnclosingElement();
+            }
+          }
+          if (enclosingElementOfSetter != null) {
+            // report problem
+            errorReporter.reportErrorForNode(
+                StaticWarningCode.CONFLICTING_INSTANCE_METHOD_SETTER,
+                name,
+                enclosingClass.getDisplayName(),
+                name.getName(),
+                enclosingElementOfSetter.getDisplayName());
+            foundError |= true;
+            addThisMemberToTheMap = false;
+          }
+        } else if (isSetter) {
+          String methodName = name.getName();
+          ClassMember conflictingMethod = memberHashMap.get(methodName);
+          if (conflictingMethod != null && conflictingMethod instanceof MethodDeclaration
+              && !((MethodDeclaration) conflictingMethod).isGetter()) {
+            // report problem
+            errorReporter.reportErrorForNode(
+                StaticWarningCode.CONFLICTING_INSTANCE_METHOD_SETTER2,
+                name,
+                enclosingClass.getDisplayName(),
+                name.getName());
+            foundError |= true;
+            addThisMemberToTheMap = false;
+          }
+        }
+
+        // Finally, add this member into the HashMap.
+        if (addThisMemberToTheMap) {
+          if (method.isSetter()) {
+            memberHashMap.put(name.getName() + "=", method);
+          } else {
+            memberHashMap.put(name.getName(), method);
+          }
+        }
+      }
     }
-    String name = nameNode.getName();
-    // ensure that we have enclosing class
-    if (enclosingClass == null) {
-      return false;
-    }
-    // try to find setter
-    ExecutableElement setter = inheritanceManager.lookupMember(enclosingClass, name + "=");
-    if (setter == null) {
-      return false;
-    }
-    // report problem
-    errorReporter.reportErrorForNode(
-        StaticWarningCode.CONFLICTING_INSTANCE_METHOD_SETTER,
-        nameNode,
-        enclosingClass.getDisplayName(),
-        name,
-        setter.getEnclosingElement().getDisplayName());
-    return true;
+    return foundError;
   }
 
   /**
@@ -2547,7 +2614,9 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
       return false;
     }
     // default constructor is not 'const', report problem
-    errorReporter.reportErrorForNode(CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER, node);
+    errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER,
+        node);
     return true;
   }
 
@@ -2570,7 +2639,9 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
       return false;
     }
     // report problem
-    errorReporter.reportErrorForNode(CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD, node);
+    errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD,
+        node);
     return true;
   }
 
@@ -2584,7 +2655,9 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
    */
   private boolean checkForConstEvalThrowsException(ThrowExpression node) {
     if (isEnclosingConstructorConst) {
-      errorReporter.reportErrorForNode(CompileTimeErrorCode.CONST_CONSTRUCTOR_THROWS_EXCEPTION, node);
+      errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.CONST_CONSTRUCTOR_THROWS_EXCEPTION,
+          node);
       return true;
     }
     return false;
@@ -2792,7 +2865,9 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
       if (formalParameter instanceof DefaultFormalParameter) {
         DefaultFormalParameter defaultFormalParameter = (DefaultFormalParameter) formalParameter;
         if (defaultFormalParameter.getDefaultValue() != null) {
-          errorReporter.reportErrorForNode(CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE_ALIAS, node);
+          errorReporter.reportErrorForNode(
+              CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE_ALIAS,
+              node);
           result = true;
         }
       }
@@ -2818,7 +2893,9 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
       return false;
     }
     // Report problem.
-    errorReporter.reportErrorForNode(CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPED_PARAMETER, node);
+    errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPED_PARAMETER,
+        node);
     return true;
   }
 
@@ -2976,7 +3053,10 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
       return false;
     }
     // report problem
-    errorReporter.reportErrorForNode(CompileTimeErrorCode.EXPORT_INTERNAL_LIBRARY, node, node.getUri());
+    errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.EXPORT_INTERNAL_LIBRARY,
+        node,
+        node.getUri());
     return true;
   }
 
@@ -3118,12 +3198,16 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
   private boolean checkForFieldInitializingFormalRedirectingConstructor(FieldFormalParameter node) {
     ConstructorDeclaration constructor = node.getAncestor(ConstructorDeclaration.class);
     if (constructor == null) {
-      errorReporter.reportErrorForNode(CompileTimeErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR, node);
+      errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR,
+          node);
       return true;
     }
     // constructor cannot be a factory
     if (constructor.getFactoryKeyword() != null) {
-      errorReporter.reportErrorForNode(CompileTimeErrorCode.FIELD_INITIALIZER_FACTORY_CONSTRUCTOR, node);
+      errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.FIELD_INITIALIZER_FACTORY_CONSTRUCTOR,
+          node);
       return true;
     }
     // constructor cannot have a redirection
@@ -3283,9 +3367,13 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
     }
     // report problem
     if (isInStaticMethod) {
-      errorReporter.reportErrorForNode(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC, node);
+      errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC,
+          node);
     } else {
-      errorReporter.reportErrorForNode(CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER, node);
+      errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER,
+          node);
     }
     return true;
   }
@@ -3356,7 +3444,10 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
       return false;
     }
     // report problem
-    errorReporter.reportErrorForNode(CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY, node, node.getUri());
+    errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY,
+        node,
+        node.getUri());
     return true;
   }
 
@@ -3518,7 +3609,11 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
         leftName = getExtendedDisplayName(leftType);
         rightName = getExtendedDisplayName(staticRightType);
       }
-      errorReporter.reportErrorForNode(StaticTypeWarningCode.INVALID_ASSIGNMENT, rhs, rightName, leftName);
+      errorReporter.reportErrorForNode(
+          StaticTypeWarningCode.INVALID_ASSIGNMENT,
+          rhs,
+          rightName,
+          leftName);
       return true;
     }
     // TODO(brianwilkerson) Define a hint corresponding to the warning and report it if appropriate.
@@ -3962,7 +4057,9 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
       if (initializer instanceof SuperConstructorInvocation) {
         numSuperInitializers++;
         if (numSuperInitializers > 1) {
-          errorReporter.reportErrorForNode(CompileTimeErrorCode.MULTIPLE_SUPER_INITIALIZERS, initializer);
+          errorReporter.reportErrorForNode(
+              CompileTimeErrorCode.MULTIPLE_SUPER_INITIALIZERS,
+              initializer);
         }
       }
     }
@@ -4287,7 +4384,9 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
   private boolean checkForNonBoolNegationExpression(Expression expression) {
     Type conditionType = getStaticType(expression);
     if (conditionType != null && !conditionType.isAssignableTo(boolType)) {
-      errorReporter.reportErrorForNode(StaticTypeWarningCode.NON_BOOL_NEGATION_EXPRESSION, expression);
+      errorReporter.reportErrorForNode(
+          StaticTypeWarningCode.NON_BOOL_NEGATION_EXPRESSION,
+          expression);
       return true;
     }
     return false;
@@ -4324,7 +4423,9 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
       return false;
     }
     // report problem
-    errorReporter.reportErrorForNode(CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT, node);
+    errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT,
+        node);
     return true;
   }
 
@@ -4443,7 +4544,9 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
           return false;
         }
         // report error
-        errorReporter.reportErrorForNode(CompileTimeErrorCode.RECURSIVE_CONSTRUCTOR_REDIRECT, initializer);
+        errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.RECURSIVE_CONSTRUCTOR_REDIRECT,
+            initializer);
         return true;
       }
     }
@@ -4857,7 +4960,9 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
     if (isInStaticMethod || isInStaticVariableDeclaration) {
       Type type = node.getType();
       if (type instanceof TypeParameterType) {
-        errorReporter.reportErrorForNode(StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, node);
+        errorReporter.reportErrorForNode(
+            StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC,
+            node);
         return true;
       }
     }

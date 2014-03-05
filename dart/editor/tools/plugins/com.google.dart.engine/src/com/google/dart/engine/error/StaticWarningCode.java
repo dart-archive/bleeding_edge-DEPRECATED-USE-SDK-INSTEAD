@@ -133,7 +133,14 @@ public enum StaticWarningCode implements ErrorCode {
    * named <i>n</i> and has a setter named <i>n=</i>.
    */
   CONFLICTING_INSTANCE_METHOD_SETTER(
-      "Class '%s' declares instance method %s and has a setter with the same name from '%s'"),
+      "Class '%s' declares instance method '%s', but also has a setter with the same name from '%s'"),
+
+  /**
+   * 7.1 Instance Methods: It is a static warning if a class <i>C</i> declares an instance method
+   * named <i>n</i> and has a setter named <i>n=</i>.
+   */
+  CONFLICTING_INSTANCE_METHOD_SETTER2(
+      "Class '%s' declares the setter '%s', but also has an instance method in the same class"),
 
   /**
    * 7.3 Setters: It is a static warning if a class <i>C</i> declares an instance setter named
