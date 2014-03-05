@@ -565,11 +565,35 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_assignmentToConst_instanceVariable_plusEq() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  static const v = 0;",
+        "}",
+        "f() {",
+        "  A.v += 1;",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.ASSIGNMENT_TO_CONST);
+    verify(source);
+  }
+
   public void test_assignmentToConst_localVariable() throws Exception {
     Source source = addSource(createSource(//
         "f() {",
         "  const x = 0;",
         "  x = 1;",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.ASSIGNMENT_TO_CONST);
+    verify(source);
+  }
+
+  public void test_assignmentToConst_localVariable_plusEq() throws Exception {
+    Source source = addSource(createSource(//
+        "f() {",
+        "  const x = 0;",
+        "  x += 1;",
         "}"));
     resolve(source);
     assertErrors(source, StaticWarningCode.ASSIGNMENT_TO_CONST);
@@ -590,11 +614,36 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_assignmentToFinal_instanceVariable_plusEq() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  final v = 0;",
+        "}",
+        "f() {",
+        "  A a = new A();",
+        "  a.v += 1;",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.ASSIGNMENT_TO_FINAL);
+    verify(source);
+  }
+
   public void test_assignmentToFinal_localVariable() throws Exception {
     Source source = addSource(createSource(//
         "f() {",
         "  final x = 0;",
         "  x = 1;",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.ASSIGNMENT_TO_FINAL);
+    verify(source);
+  }
+
+  public void test_assignmentToFinal_localVariable_plusEq() throws Exception {
+    Source source = addSource(createSource(//
+        "f() {",
+        "  final x = 0;",
+        "  x += 1;",
         "}"));
     resolve(source);
     assertErrors(source, StaticWarningCode.ASSIGNMENT_TO_FINAL);

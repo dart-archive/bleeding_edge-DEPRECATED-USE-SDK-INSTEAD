@@ -13,7 +13,6 @@
  */
 package com.google.dart.engine.ast;
 
-import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExportElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.scanner.Token;
@@ -52,10 +51,15 @@ public class ExportDirective extends NamespaceDirective {
   }
 
   @Override
+  public ExportElement getElement() {
+    return (ExportElement) super.getElement();
+  }
+
+  @Override
   public LibraryElement getUriElement() {
-    Element element = getElement();
-    if (element instanceof ExportElement) {
-      return ((ExportElement) element).getExportedLibrary();
+    ExportElement exportElement = getElement();
+    if (exportElement != null) {
+      return exportElement.getExportedLibrary();
     }
     return null;
   }

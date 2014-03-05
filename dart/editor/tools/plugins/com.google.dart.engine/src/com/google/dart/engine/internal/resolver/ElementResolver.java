@@ -656,13 +656,13 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
 
   @Override
   public Void visitExportDirective(ExportDirective node) {
-    Element element = node.getElement();
-    if (element instanceof ExportElement) {
+    ExportElement exportElement = node.getElement();
+    if (exportElement != null) {
       // The element is null when the URI is invalid
       // TODO(brianwilkerson) Figure out whether the element can ever be something other than an
       // ExportElement
-      resolveCombinators(((ExportElement) element).getExportedLibrary(), node.getCombinators());
-      setMetadata(element, node);
+      resolveCombinators(exportElement.getExportedLibrary(), node.getCombinators());
+      setMetadata(exportElement, node);
     }
     return null;
   }
@@ -1936,11 +1936,17 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
       }
     } else {
       if (labelScope == null) {
-        resolver.reportErrorForNode(CompileTimeErrorCode.LABEL_UNDEFINED, labelNode, labelNode.getName());
+        resolver.reportErrorForNode(
+            CompileTimeErrorCode.LABEL_UNDEFINED,
+            labelNode,
+            labelNode.getName());
       } else {
         labelElement = (LabelElementImpl) labelScope.lookup(labelNode);
         if (labelElement == null) {
-          resolver.reportErrorForNode(CompileTimeErrorCode.LABEL_UNDEFINED, labelNode, labelNode.getName());
+          resolver.reportErrorForNode(
+              CompileTimeErrorCode.LABEL_UNDEFINED,
+              labelNode,
+              labelNode.getName());
         } else {
           labelNode.setStaticElement(labelElement);
         }
@@ -2417,7 +2423,11 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
     } else if (positionalArgumentCount > unnamedParameterCount) {
       ErrorCode errorCode = reportError ? CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS
           : StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS;
-      resolver.reportErrorForNode(errorCode, argumentList, unnamedParameterCount, positionalArgumentCount);
+      resolver.reportErrorForNode(
+          errorCode,
+          argumentList,
+          unnamedParameterCount,
+          positionalArgumentCount);
     }
     return resolvedParameters;
   }

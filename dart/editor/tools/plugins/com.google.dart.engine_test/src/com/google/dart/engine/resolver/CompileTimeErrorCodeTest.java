@@ -134,20 +134,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         CompileTimeErrorCode.UNDEFINED_FUNCTION);
   }
 
-  public void test_argumentDefinitionTestNonParameter() throws Exception {
-    Source source = addSource(createSource(//
-        "f() {",
-        " var v = 0;",
-        " return ?v;",
-        "}"));
-    resolve(source);
-    assertErrors(
-        source,
-        ParserErrorCode.DEPRECATED_ARGUMENT_DEFINITION_TEST,
-        CompileTimeErrorCode.ARGUMENT_DEFINITION_TEST_NON_PARAMETER);
-    verify(source);
-  }
-
   public void test_builtInIdentifierAsMixinName_classTypeAlias() throws Exception {
     Source source = addSource(createSource(//
         "class A {}",

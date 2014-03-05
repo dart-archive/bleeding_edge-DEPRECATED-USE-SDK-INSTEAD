@@ -14,7 +14,6 @@
 package com.google.dart.engine.internal.verifier;
 
 import com.google.dart.engine.ast.Annotation;
-import com.google.dart.engine.ast.ArgumentDefinitionTest;
 import com.google.dart.engine.ast.ArgumentList;
 import com.google.dart.engine.ast.AssertStatement;
 import com.google.dart.engine.ast.AssignmentExpression;
@@ -199,6 +198,11 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
   private InterfaceType boolType;
 
   /**
+   * The type representing the type 'int'.
+   */
+  private InterfaceType intType;
+
+  /**
    * The object providing access to the types defined by the language.
    */
   private TypeProvider typeProvider;
@@ -372,16 +376,11 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
     isInConstructorInitializer = false;
     isInStaticMethod = false;
     boolType = typeProvider.getBoolType();
+    intType = typeProvider.getIntType();
     dynamicType = typeProvider.getDynamicType();
     DISALLOWED_TYPES_TO_EXTEND_OR_IMPLEMENT = new InterfaceType[] {
-        typeProvider.getNullType(), typeProvider.getNumType(), typeProvider.getIntType(),
+        typeProvider.getNullType(), typeProvider.getNumType(), intType,
         typeProvider.getDoubleType(), boolType, typeProvider.getStringType()};
-  }
-
-  @Override
-  public Void visitArgumentDefinitionTest(ArgumentDefinitionTest node) {
-    checkForArgumentDefinitionTestNonParameter(node);
-    return super.visitArgumentDefinitionTest(node);
   }
 
   @Override
@@ -481,6 +480,10 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
           checkForNonAbstractClassInheritsAbstractMember(node);
           checkForInconsistentMethodInheritance();
           checkForRecursiveInterfaceInheritance(enclosingClass);
+          checkForConflictingGetterAndMethod();
+          checkForConflictingInstanceGetterAndSuperclassMember();
+          checkImplementsSuperClass(node);
+          checkImplementsFunctionWithoutCall(node);
         }
       }
       // initialize initialFieldElementsMap
@@ -497,10 +500,6 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
       }
       checkForFinalNotInitializedInClass(node);
       checkForDuplicateDefinitionInheritance();
-      checkForConflictingGetterAndMethod();
-      checkForConflictingInstanceGetterAndSuperclassMember();
-      checkImplementsSuperClass(node);
-      checkImplementsFunctionWithoutCall(node);
       checkForConflictingInstanceMethodSetter(node);
       return super.visitClassDeclaration(node);
     } finally {
@@ -609,9 +608,12 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
 
   @Override
   public Void visitExportDirective(ExportDirective node) {
-    checkForAmbiguousExport(node);
-    checkForExportDuplicateLibraryName(node);
-    checkForExportInternalLibrary(node);
+    ExportElement exportElement = node.getElement();
+    if (exportElement != null) {
+      checkForAmbiguousExport(node, exportElement);
+      checkForExportDuplicateLibraryName(node, exportElement);
+      checkForExportInternalLibrary(node, exportElement);
+    }
     return super.visitExportDirective(node);
   }
 
@@ -626,7 +628,9 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
 
   @Override
   public Void visitFieldDeclaration(FieldDeclaration node) {
-    if (!node.isStatic()) {
+    isInStaticVariableDeclaration = node.isStatic();
+    isInInstanceVariableDeclaration = !isInStaticVariableDeclaration;
+    if (isInInstanceVariableDeclaration) {
       VariableDeclarationList variables = node.getFields();
       if (variables.isConst()) {
         errorReporter.reportErrorForToken(
@@ -634,8 +638,6 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
             variables.getKeyword());
       }
     }
-    isInStaticVariableDeclaration = node.isStatic();
-    isInInstanceVariableDeclaration = !isInStaticVariableDeclaration;
     try {
       checkForAllInvalidOverrideErrorCodesForField(node);
       return super.visitFieldDeclaration(node);
@@ -743,8 +745,11 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
 
   @Override
   public Void visitImportDirective(ImportDirective node) {
-    checkForImportDuplicateLibraryName(node);
-    checkForImportInternalLibrary(node);
+    ImportElement importElement = node.getElement();
+    if (importElement != null) {
+      checkForImportDuplicateLibraryName(node, importElement);
+      checkForImportInternalLibrary(node, importElement);
+    }
     return super.visitImportDirective(node);
   }
 
@@ -1804,15 +1809,12 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
    * already exported by other export directive.
    * 
    * @param node the export directive node to report problem on
+   * @param exportElement the {@link ExportElement} retrieved from the node, if the element in the
+   *          node was {@code null}, then this method is not called
    * @return {@code true} if and only if an error code is generated on the passed node
    * @see CompileTimeErrorCode#AMBIGUOUS_EXPORT
    */
-  private boolean checkForAmbiguousExport(ExportDirective node) {
-    // prepare ExportElement
-    if (!(node.getElement() instanceof ExportElement)) {
-      return false;
-    }
-    ExportElement exportElement = (ExportElement) node.getElement();
+  private boolean checkForAmbiguousExport(ExportDirective node, ExportElement exportElement) {
     // prepare exported library
     LibraryElement exportedLibrary = exportElement.getExportedLibrary();
     if (exportedLibrary == null) {
@@ -1836,26 +1838,6 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
       } else {
         exportedElements.put(name, element);
       }
-    }
-    return false;
-  }
-
-  /**
-   * This verifies that the passed argument definition test identifier is a parameter.
-   * 
-   * @param node the {@link ArgumentDefinitionTest} to evaluate
-   * @return {@code true} if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#ARGUMENT_DEFINITION_TEST_NON_PARAMETER
-   */
-  private boolean checkForArgumentDefinitionTestNonParameter(ArgumentDefinitionTest node) {
-    SimpleIdentifier identifier = node.getIdentifier();
-    Element element = identifier.getStaticElement();
-    if (element != null && !(element instanceof ParameterElement)) {
-      errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.ARGUMENT_DEFINITION_TEST_NON_PARAMETER,
-          identifier,
-          identifier.getName());
-      return true;
     }
     return false;
   }
@@ -2221,8 +2203,8 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
   }
 
   /**
-   * This verifies that the {@link #enclosingClass} does not have method and getter with the same
-   * names.
+   * This verifies that the {@link #enclosingClass} does not have a method and getter pair with the
+   * same name on, via inheritance.
    * 
    * @return {@code true} if and only if an error code is generated on the passed node
    * @see CompileTimeErrorCode#CONFLICTING_GETTER_AND_METHOD
@@ -2989,18 +2971,15 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
    * This verifies the passed import has unique name among other exported libraries.
    * 
    * @param node the export directive to evaluate
+   * @param exportElement the {@link ExportElement} retrieved from the node, if the element in the
+   *          node was {@code null}, then this method is not called
    * @return {@code true} if and only if an error code is generated on the passed node
    * @see CompileTimeErrorCode#EXPORT_DUPLICATED_LIBRARY_NAME
    */
-  private boolean checkForExportDuplicateLibraryName(ExportDirective node) {
-    // prepare import element
-    Element nodeElement = node.getElement();
-    if (!(nodeElement instanceof ExportElement)) {
-      return false;
-    }
-    ExportElement nodeExportElement = (ExportElement) nodeElement;
+  private boolean checkForExportDuplicateLibraryName(ExportDirective node,
+      ExportElement exportElement) {
     // prepare exported library
-    LibraryElement nodeLibrary = nodeExportElement.getExportedLibrary();
+    LibraryElement nodeLibrary = exportElement.getExportedLibrary();
     if (nodeLibrary == null) {
       return false;
     }
@@ -3029,19 +3008,15 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
    * internal library.
    * 
    * @param node the export directive to evaluate
+   * @param exportElement the {@link ExportElement} retrieved from the node, if the element in the
+   *          node was {@code null}, then this method is not called
    * @return {@code true} if and only if an error code is generated on the passed node
    * @see CompileTimeErrorCode#EXPORT_INTERNAL_LIBRARY
    */
-  private boolean checkForExportInternalLibrary(ExportDirective node) {
+  private boolean checkForExportInternalLibrary(ExportDirective node, ExportElement exportElement) {
     if (isInSystemLibrary) {
       return false;
     }
-    // prepare export element
-    Element element = node.getElement();
-    if (!(element instanceof ExportElement)) {
-      return false;
-    }
-    ExportElement exportElement = (ExportElement) element;
     // should be private
     DartSdk sdk = currentLibrary.getContext().getSourceFactory().getDartSdk();
     String uri = exportElement.getUri();
@@ -3106,7 +3081,7 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
             ClassElement classElement = ((ClassDeclaration) grandParent).getElement();
             Type classType = classElement.getType();
             if (classType != null
-                && (classType.equals(typeProvider.getIntType()) || classType.equals(typeProvider.getDoubleType()))) {
+                && (classType.equals(intType) || classType.equals(typeProvider.getDoubleType()))) {
               return false;
             }
           }
@@ -3382,17 +3357,15 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
    * This verifies the passed import has unique name among other imported libraries.
    * 
    * @param node the import directive to evaluate
+   * @param importElement the {@link ImportElement} retrieved from the node, if the element in the
+   *          node was {@code null}, then this method is not called
    * @return {@code true} if and only if an error code is generated on the passed node
    * @see CompileTimeErrorCode#IMPORT_DUPLICATED_LIBRARY_NAME
    */
-  private boolean checkForImportDuplicateLibraryName(ImportDirective node) {
-    // prepare import element
-    ImportElement nodeImportElement = node.getElement();
-    if (nodeImportElement == null) {
-      return false;
-    }
+  private boolean checkForImportDuplicateLibraryName(ImportDirective node,
+      ImportElement importElement) {
     // prepare imported library
-    LibraryElement nodeLibrary = nodeImportElement.getImportedLibrary();
+    LibraryElement nodeLibrary = importElement.getImportedLibrary();
     if (nodeLibrary == null) {
       return false;
     }
@@ -3421,16 +3394,13 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
    * internal library.
    * 
    * @param node the import directive to evaluate
+   * @param importElement the {@link ImportElement} retrieved from the node, if the element in the
+   *          node was {@code null}, then this method is not called
    * @return {@code true} if and only if an error code is generated on the passed node
    * @see CompileTimeErrorCode#IMPORT_INTERNAL_LIBRARY
    */
-  private boolean checkForImportInternalLibrary(ImportDirective node) {
+  private boolean checkForImportInternalLibrary(ImportDirective node, ImportElement importElement) {
     if (isInSystemLibrary) {
-      return false;
-    }
-    // prepare import element
-    ImportElement importElement = node.getElement();
-    if (importElement == null) {
       return false;
     }
     // should be private
@@ -3580,9 +3550,9 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
     return checkForArgumentTypeNotAssignable(
         argument,
         staticParameterType,
-        typeProvider.getIntType(),
+        intType,
         propagatedParameterType,
-        typeProvider.getIntType(),
+        intType,
         StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
   }
 
@@ -4931,7 +4901,7 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
         boundType = boundType.substitute(typeArguments, typeParameters);
         if (!argType.isSubtypeOf(boundType)) {
           ErrorCode errorCode;
-          if (isInConstConstructorInvocation(node)) {
+          if (isInConstInstanceCreation) {
             errorCode = CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS;
           } else {
             errorCode = StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS;
@@ -5509,8 +5479,7 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
    */
   private boolean implementsEqualsWhenNotAllowed(Type type) {
     // ignore int or String
-    if (type == null || type.equals(typeProvider.getIntType())
-        || type.equals(typeProvider.getStringType())) {
+    if (type == null || type.equals(intType) || type.equals(typeProvider.getStringType())) {
       return false;
     }
     // prepare ClassElement
@@ -5540,18 +5509,6 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
       return callMethod != null;
     }
     return false;
-  }
-
-  /**
-   * @return {@code true} if the given {@link AstNode} is the part of constant constructor
-   *         invocation.
-   */
-  private boolean isInConstConstructorInvocation(AstNode node) {
-    InstanceCreationExpression creation = node.getAncestor(InstanceCreationExpression.class);
-    if (creation == null) {
-      return false;
-    }
-    return creation.isConst();
   }
 
   /**

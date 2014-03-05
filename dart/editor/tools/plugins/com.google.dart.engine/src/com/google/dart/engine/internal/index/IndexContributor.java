@@ -553,7 +553,7 @@ public class IndexContributor extends GeneralizingAstVisitor<Void> {
 
   @Override
   public Void visitExportDirective(ExportDirective node) {
-    ExportElement element = (ExportElement) node.getElement();
+    ExportElement element = node.getElement();
     if (element != null) {
       LibraryElement expLibrary = element.getExportedLibrary();
       recordLibraryReference(node, expLibrary);
