@@ -23,12 +23,12 @@ vars = {
   "libcxxabi_revision": "753a30dd68ae008948d48f16bc942d5963fe65a1",
   "webkit_trunk": "http://src.chromium.org/blink/trunk",
   "nacl_trunk": "http://src.chromium.org/native_client/trunk",
-  "webkit_revision": "167901",
+  "webkit_revision": "168327",
   "chromium_git": "https://chromium.googlesource.com",
   "chromiumos_git": "https://chromium.googlesource.com/chromiumos",
   "skia_git": "https://skia.googlesource.com",
   "swig_revision": "230490",
-  "nacl_revision": "12794",
+  "nacl_revision": "12810",
   # After changing nacl_revision, run 'glient sync' and check native_client/DEPS
   # to update other nacl_*_revision's.
   "nacl_tools_revision": "12760",  # native_client/DEPS: tools_rev
@@ -45,18 +45,18 @@ vars = {
 
   "sfntly_revision": "228",
   "lighttpd_revision": "33737",
-  "skia_revision": "13588",
-  "skia_hash": "7f428a941b47c88d84da7adb656924245a55f050",
+  "skia_revision": "13635",
+  "skia_hash": "0bc406df48ac6f358ab8dcff08f71fe9c32b79de",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and V8 without interference from each other.
-  "v8_revision": "19563",
+  "v8_revision": "19623",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling WebRTC
   # and V8 without interference from each other.
-  "webrtc_revision": "5562",
+  "webrtc_revision": "5619",
   "jsoncpp_revision": "248",
-  "nss_revision": "252643",
+  "nss_revision": "253292",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling swarming_client
   # and whatever else without interference from each other.
@@ -64,7 +64,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling openssl
   # and whatever else without interference from each other.
-  "openssl_revision": "250522",
+  "openssl_revision": "253925",
 }
 
 deps = {
@@ -82,10 +82,10 @@ deps = {
 
   "src/third_party/angle":
     Var("chromium_git") +
-    "/angle/angle.git@4df02c1ed5e97dd54576b06964b1da67ea30238e",
+    "/angle/angle.git@fa63e947cb3eccf463648d21a05d5002c9b8adfa",
 
   "src/third_party/trace-viewer":
-    (Var("googlecode_url") % "trace-viewer") + "/trunk@1179",
+    (Var("googlecode_url") % "trace-viewer") + "/trunk@1187",
 
   "src/third_party/WebKit":
     Var("webkit_trunk") + "@" + Var("webkit_revision"),
@@ -276,7 +276,7 @@ deps = {
     "/trunk/tools/deps2git@248305",
 
   "src/third_party/clang_format/script":
-    Var("llvm_url") + "/cfe/trunk/tools/clang-format@198831",
+    Var("llvm_url") + "/cfe/trunk/tools/clang-format@202065",
 
   "src/third_party/webpagereplay":
     (Var("googlecode_url") % "web-page-replay") + "/trunk@544",
@@ -291,7 +291,7 @@ deps = {
     "/trunk/deps/cdm@249141",
 
   "src/third_party/mesa/src":
-    "/trunk/deps/third_party/mesa@252594",
+    "/trunk/deps/third_party/mesa@254411",
 
   "src/third_party/cld_2/src":
     (Var("googlecode_url") % "cld2") + "/trunk@84",
@@ -356,7 +356,7 @@ deps_os = {
     # Binary level profile guided optimizations. This points to the
     # latest release binaries for the toolchain.
     "src/third_party/syzygy/binaries":
-      (Var("googlecode_url") % "sawbuck") + "/trunk/syzygy/binaries@2021",
+      (Var("googlecode_url") % "sawbuck") + "/trunk/syzygy/binaries@2051",
 
     # Binaries for nacl sdk.
     "src/third_party/nacl_sdk_binaries":
