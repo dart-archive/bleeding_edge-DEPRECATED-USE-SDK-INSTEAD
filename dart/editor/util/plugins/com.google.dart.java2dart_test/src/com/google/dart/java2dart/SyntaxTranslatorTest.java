@@ -1546,9 +1546,7 @@ public class SyntaxTranslatorTest extends AbstractSemanticTest {
     assertDartSource(//
         "class A {",
         "  void test() {",
-        "    {",
-        "      print(0);",
-        "    }",
+        "    print(0);",
         "  }",
         "}");
   }

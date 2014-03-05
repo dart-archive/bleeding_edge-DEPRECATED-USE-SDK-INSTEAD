@@ -17,10 +17,10 @@ package com.google.dart.java2dart;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.ArgumentList;
 import com.google.dart.engine.ast.AsExpression;
 import com.google.dart.engine.ast.AssignmentExpression;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.Block;
 import com.google.dart.engine.ast.BlockFunctionBody;
@@ -148,6 +148,7 @@ import org.eclipse.jdt.core.dom.IMethodBinding;
 import org.eclipse.jdt.core.dom.ITypeBinding;
 import org.eclipse.jdt.core.dom.IVariableBinding;
 import org.eclipse.jdt.core.dom.SimpleName;
+import org.eclipse.jdt.core.dom.SynchronizedStatement;
 import org.eclipse.jdt.core.dom.Type;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
 
@@ -435,11 +436,9 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
   @Override
   public boolean visit(org.eclipse.jdt.core.dom.Block node) {
     List<Statement> statements = Lists.newArrayList();
-    for (Iterator<?> I = node.statements().iterator(); I.hasNext();) {
-      org.eclipse.jdt.core.dom.Statement javaStatement = (org.eclipse.jdt.core.dom.Statement) I.next();
-      if (javaStatement instanceof org.eclipse.jdt.core.dom.SuperConstructorInvocation) {
-        continue;
-      }
+    List<org.eclipse.jdt.core.dom.Statement> javaStatements = Lists.newArrayList();
+    addJavaStatements(javaStatements, node);
+    for (org.eclipse.jdt.core.dom.Statement javaStatement : javaStatements) {
       statements.add((Statement) translate(javaStatement));
     }
     return done(block(statements));
@@ -1372,11 +1371,6 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
   }
 
   @Override
-  public boolean visit(org.eclipse.jdt.core.dom.SynchronizedStatement node) {
-    return visit(node.getBody());
-  }
-
-  @Override
   public boolean visit(org.eclipse.jdt.core.dom.ThisExpression node) {
     ITypeBinding binding = node.resolveTypeBinding();
     ThisExpression thisExpression = thisExpression();
@@ -1633,6 +1627,26 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
     str = deleteLinesContaining(str, "@coverage", true);
 
     return str;
+  }
+
+  /**
+   * Adds Java statements of the given Java block. Unrolls {@link SynchronizedStatement}s.
+   */
+  private void addJavaStatements(List<org.eclipse.jdt.core.dom.Statement> statements,
+      org.eclipse.jdt.core.dom.Block block) {
+    for (Iterator<?> I = block.statements().iterator(); I.hasNext();) {
+      org.eclipse.jdt.core.dom.Statement javaStatement = (org.eclipse.jdt.core.dom.Statement) I.next();
+      if (javaStatement instanceof org.eclipse.jdt.core.dom.SuperConstructorInvocation) {
+        continue;
+      }
+      if (javaStatement instanceof org.eclipse.jdt.core.dom.SynchronizedStatement) {
+        addJavaStatements(
+            statements,
+            ((org.eclipse.jdt.core.dom.SynchronizedStatement) javaStatement).getBody());
+        continue;
+      }
+      statements.add(javaStatement);
+    }
   }
 
   private int backupOverBlankLine(String string, int first) {
