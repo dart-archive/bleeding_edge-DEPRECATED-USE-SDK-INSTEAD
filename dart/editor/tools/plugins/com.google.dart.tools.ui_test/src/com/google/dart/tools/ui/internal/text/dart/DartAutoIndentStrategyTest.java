@@ -235,6 +235,13 @@ public class DartAutoIndentStrategyTest extends EngineTestCase {
         "}"));
   }
 
+  public void test_smartIndentAfterNewLine_class_noClosed() throws Exception {
+    assertSmartInsertAfterNewLine("class A {!", createSource(//
+        "class A {",
+        "  !",
+        "}").trim());
+  }
+
   public void test_smartIndentAfterNewLine_closure_closed() throws Exception {
     assertSmartInsertAfterNewLine(createSource(//
         "main() {",
@@ -316,12 +323,10 @@ public class DartAutoIndentStrategyTest extends EngineTestCase {
   }
 
   public void test_smartIndentAfterNewLine_function_noClosed() throws Exception {
-    assertSmartInsertAfterNewLine(createSource(//
-        "main() {!"),
-        createSource(//
-            "main() {",
-            "  !",
-            "}"));
+    assertSmartInsertAfterNewLine("main() {!", createSource(//
+        "main() {",
+        "  !",
+        "}").trim());
   }
 
   public void test_smartIndentAfterNewLine_method_hasClosed() throws Exception {

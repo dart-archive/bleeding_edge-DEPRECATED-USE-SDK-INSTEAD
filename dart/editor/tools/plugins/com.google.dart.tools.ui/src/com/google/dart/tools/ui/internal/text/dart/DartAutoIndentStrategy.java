@@ -1222,7 +1222,7 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
     }
 
     try {
-      int p = c.offset == docLength ? c.offset - 1 : c.offset;
+      int p = c.offset;
       int line = d.getLineOfOffset(p);
 
       StringBuffer buf = new StringBuffer(c.text + indent);
