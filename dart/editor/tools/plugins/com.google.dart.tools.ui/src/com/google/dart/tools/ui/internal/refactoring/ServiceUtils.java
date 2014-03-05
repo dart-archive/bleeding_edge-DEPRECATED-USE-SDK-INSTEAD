@@ -261,6 +261,9 @@ public class ServiceUtils {
     if (serviceProposal instanceof ChangeCorrectionProposal) {
       ChangeCorrectionProposal changeProposal = (ChangeCorrectionProposal) serviceProposal;
       org.eclipse.ltk.core.refactoring.Change ltkChange = toLTK(changeProposal.getChange());
+      if (ltkChange == null) {
+        return null;
+      }
       return new com.google.dart.tools.ui.internal.text.correction.proposals.ChangeCorrectionProposal(
           changeProposal.getName(),
           ltkChange,
@@ -297,10 +300,15 @@ public class ServiceUtils {
    * @return the {@link LinkedCorrectionProposal} for the given {@link SourceCorrectionProposal}.
    */
   public static LinkedCorrectionProposal toUI(SourceCorrectionProposal sourceProposal) {
-    CorrectionKind kind = sourceProposal.getKind();
-    Image image = ServiceUtils.toLTK(kind.getImage());
+    // prepare TextChange
     SourceChange sourceChange = sourceProposal.getChange();
     TextChange textChange = ServiceUtils.toLTK(sourceChange);
+    if (textChange == null) {
+      return null;
+    }
+    // prepare UI proposal
+    CorrectionKind kind = sourceProposal.getKind();
+    Image image = ServiceUtils.toLTK(kind.getImage());
     LinkedCorrectionProposal uiProposal = new LinkedCorrectionProposal(
         sourceProposal.getName(),
         sourceChange.getSource(),
