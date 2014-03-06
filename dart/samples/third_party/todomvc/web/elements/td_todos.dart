@@ -56,5 +56,6 @@ class TodoList extends PolymerElement {
   }
 
   // TODO(jmesserly): workaround for HTML Imports not setting correct baseURI
-  String get baseUri => declaration.ownerDocument == document ? '../' : '';
+  String get baseUri =>
+      declaration.element.ownerDocument == document ? '../' : '';
 }

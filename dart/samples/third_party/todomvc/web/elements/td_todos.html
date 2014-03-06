@@ -1,4 +1,4 @@
-<link rel="import" href="../lib-elements/polymer_selector.html">
+<link rel="import" href="../lib-elements/polymer-selector.html">
 <link rel="import" href="../lib-elements/simple_router.html">
 <link rel="import" href="td_input.html">
 <link rel="import" href="td_item.html">
@@ -29,13 +29,13 @@
         <span id="todo-count"><strong>{{model.activeCount}}</strong>
             {{model.activeItemWord}} left</span>
         <polymer-selector id="filters" selected="{{activeRoute}}">
-          <li name="all">
+          <li label="all">
             <a href="{{baseUri}}#/">All</a>
           </li>
-          <li name="active">
+          <li label="active">
             <a href="{{baseUri}}#/active">Active</a>
           </li>
-          <li name="completed">
+          <li label="completed">
             <a href="{{baseUri}}#/completed">Completed</a>
           </li>
         </polymer-selector>

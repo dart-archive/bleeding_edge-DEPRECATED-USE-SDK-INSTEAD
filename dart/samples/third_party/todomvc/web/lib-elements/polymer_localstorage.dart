@@ -7,6 +7,7 @@ import 'dart:convert' show JSON;
 import 'dart:html';
 import 'package:polymer/polymer.dart';
 
+// TODO(jmesserly): replace with interop to <polymer-localstorage>.
 @CustomTag('polymer-localstorage')
 class PolymerLocalStorage extends PolymerElement {
   @published String name;
