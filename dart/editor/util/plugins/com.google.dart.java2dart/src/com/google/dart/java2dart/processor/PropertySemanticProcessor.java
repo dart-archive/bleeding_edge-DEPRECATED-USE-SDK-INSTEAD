@@ -275,11 +275,18 @@ public class PropertySemanticProcessor extends SemanticProcessor {
           String name = context.getIdentifierOriginalName(nameNode);
           List<FormalParameter> parameters = node.getParameters().getParameters();
           // getter
-          if (parameters.isEmpty() && (hasPrefix(name, "get") || hasPrefix(name, "is"))) {
+          if (parameters.isEmpty()
+              && (hasPrefix(name, "get") || hasPrefix(name, "is") || hasPrefix(name, "has"))) {
             if (!context.canMakeProperty(nameNode)) {
               return null;
             }
-            String propertyName = StringUtils.uncapitalize(StringUtils.removeStart(name, "get"));
+            String propertyName = name;
+            if (hasPrefix(name, "get")) {
+              propertyName = StringUtils.removeStart(name, "get");
+            } else if (hasPrefix(name, "is")) {
+              // don't remove "is" prefix, for example because we want to keep "isSynthetic" name
+            }
+            propertyName = StringUtils.uncapitalize(propertyName);
             // rename references
             context.renameIdentifier(nameNode, propertyName);
             // replace MethodInvocation with PropertyAccess

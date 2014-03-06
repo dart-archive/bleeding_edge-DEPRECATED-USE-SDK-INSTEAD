@@ -55,6 +55,30 @@ public class PropertySemanticProcessorTest extends SemanticProcessorTest {
         "}");
   }
 
+  public void test_field_BAD_has_set() throws Exception {
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "public class Test {",
+        "  private boolean foo;",
+        "  public boolean hasFoo() {",
+        "    return foo;",
+        "  }",
+        "  public void setHasFoo(boolean foo) {",
+        "    this.foo = foo;",
+        "  }",
+        "}");
+    runProcessor();
+    assertFormattedSource(//
+        "class Test {",
+        "  bool _foo = false;",
+        "  bool get hasFoo => _foo;",
+        "  void set hasFoo(bool foo) {",
+        "    this._foo = foo;",
+        "  }",
+        "}");
+  }
+
   public void test_field_BAD_noSetter_butCannotBeFinal() throws Exception {
     translateSingleFile(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -305,6 +329,46 @@ public class PropertySemanticProcessorTest extends SemanticProcessorTest {
         "class Test {",
         "  int foo = 0;",
         "  Test(this.foo);",
+        "}");
+  }
+
+  public void test_field_OK_has_set() throws Exception {
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "public class Test {",
+        "  private boolean hasFoo;",
+        "  public boolean hasFoo() {",
+        "    return hasFoo;",
+        "  }",
+        "  public void setHasFoo(boolean hasFoo) {",
+        "    this.hasFoo = hasFoo;",
+        "  }",
+        "}");
+    runProcessor();
+    assertFormattedSource(//
+        "class Test {",
+        "  bool hasFoo = false;",
+        "}");
+  }
+
+  public void test_field_OK_is_setIs() throws Exception {
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "public class Test {",
+        "  private boolean isFoo;",
+        "  public boolean isFoo() {",
+        "    return isFoo;",
+        "  }",
+        "  public void setIsFoo(boolean isFoo) {",
+        "    this.isFoo = isFoo;",
+        "  }",
+        "}");
+    runProcessor();
+    assertFormattedSource(//
+        "class Test {",
+        "  bool isFoo = false;",
         "}");
   }
 

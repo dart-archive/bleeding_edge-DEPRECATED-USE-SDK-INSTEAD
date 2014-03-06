@@ -68,7 +68,7 @@ public class EngineInstanceOfProcessor extends SemanticProcessor {
           if (isMethodInClass(node, "getAncestor", "com.google.dart.engine.ast.AstNode")
               || isMethodInClass(
                   node,
-                  "getNode",
+                  "getNodeMatching",
                   "com.google.dart.engine.internal.element.ElementImpl")
               && parameters.size() == 1
               || isMethodInClass(
@@ -148,7 +148,7 @@ public class EngineInstanceOfProcessor extends SemanticProcessor {
         if (isMethodInClass(node, "getAncestor", "com.google.dart.engine.ast.AstNode")
             || isMethodInClass(
                 node,
-                "getNode",
+                "getNodeMatching",
                 "com.google.dart.engine.internal.element.ElementImpl") && arguments.size() == 1) {
           typeLiteralIndex = 0;
           predicateArgumentName = "node";
