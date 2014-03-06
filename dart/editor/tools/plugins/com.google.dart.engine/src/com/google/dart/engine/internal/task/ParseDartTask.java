@@ -22,7 +22,6 @@ import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
 import com.google.dart.engine.internal.context.PerformanceStatistics;
 import com.google.dart.engine.internal.context.RecordingErrorListener;
-import com.google.dart.engine.internal.context.TimestampedData;
 import com.google.dart.engine.parser.Parser;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.source.Source;
@@ -40,7 +39,12 @@ public class ParseDartTask extends AnalysisTask {
   /**
    * The time at which the contents of the source were last modified.
    */
-  private long modificationTime = -1L;
+  private long modificationTime;
+
+  /**
+   * The head of the token stream used for parsing.
+   */
+  private Token tokenStream;
 
   /**
    * The compilation unit that was produced by parsing the source.
@@ -67,10 +71,15 @@ public class ParseDartTask extends AnalysisTask {
    * 
    * @param context the context in which the task is to be performed
    * @param source the source to be parsed
+   * @param modificationTime the time at which the contents of the source were last modified
+   * @param tokenStream the head of the token stream used for parsing
    */
-  public ParseDartTask(InternalAnalysisContext context, Source source) {
+  public ParseDartTask(InternalAnalysisContext context, Source source, long modificationTime,
+      Token tokenStream) {
     super(context);
     this.source = source;
+    this.modificationTime = modificationTime;
+    this.tokenStream = tokenStream;
   }
 
   @Override
@@ -149,12 +158,6 @@ public class ParseDartTask extends AnalysisTask {
   protected void internalPerform() throws AnalysisException {
     final RecordingErrorListener errorListener = new RecordingErrorListener();
     InternalAnalysisContext context = getContext();
-    TimestampedData<Token> data = context.internalScanTokenStream(source);
-    modificationTime = data.getModificationTime();
-    Token token = data.getData();
-    if (token == null) {
-      throw new AnalysisException("Could not get token stream for " + source.getFullName());
-    }
     //
     // Then parse the token stream.
     //
@@ -162,7 +165,7 @@ public class ParseDartTask extends AnalysisTask {
     try {
       Parser parser = new Parser(source, errorListener);
       parser.setParseFunctionBodies(context.getAnalysisOptions().getAnalyzeFunctionBodies());
-      unit = parser.parseCompilationUnit(token);
+      unit = parser.parseCompilationUnit(tokenStream);
       errors = errorListener.getErrors(source);
       for (Directive directive : unit.getDirectives()) {
         if (directive instanceof LibraryDirective) {

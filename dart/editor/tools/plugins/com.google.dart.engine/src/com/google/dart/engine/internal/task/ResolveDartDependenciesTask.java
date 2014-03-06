@@ -24,7 +24,6 @@ import com.google.dart.engine.ast.UriBasedDirective;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
 import com.google.dart.engine.internal.context.PerformanceStatistics;
-import com.google.dart.engine.internal.context.TimestampedData;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.general.TimeCounter.TimeCounterHandle;
 import com.google.dart.engine.utilities.io.UriUtilities;
@@ -46,7 +45,12 @@ public class ResolveDartDependenciesTask extends AnalysisTask {
   /**
    * The time at which the contents of the source were last modified.
    */
-  private long modificationTime = -1L;
+  private long modificationTime;
+
+  /**
+   * The compilation unit used to resolve the dependencies.
+   */
+  private CompilationUnit unit;
 
   /**
    * A set containing the sources referenced by 'export' directives.
@@ -68,10 +72,15 @@ public class ResolveDartDependenciesTask extends AnalysisTask {
    * 
    * @param context the context in which the task is to be performed
    * @param source the source to be parsed
+   * @param modificationTime the time at which the contents of the source were last modified
+   * @param unit the compilation unit used to resolve the dependencies
    */
-  public ResolveDartDependenciesTask(InternalAnalysisContext context, Source source) {
+  public ResolveDartDependenciesTask(InternalAnalysisContext context, Source source,
+      long modificationTime, CompilationUnit unit) {
     super(context);
     this.source = source;
+    this.modificationTime = modificationTime;
+    this.unit = unit;
   }
 
   @Override
@@ -138,11 +147,9 @@ public class ResolveDartDependenciesTask extends AnalysisTask {
 
   @Override
   protected void internalPerform() throws AnalysisException {
-    TimestampedData<CompilationUnit> unit = getContext().internalParseCompilationUnit(source);
-    modificationTime = unit.getModificationTime();
     TimeCounterHandle timeCounterParse = PerformanceStatistics.parse.start();
     try {
-      for (Directive directive : unit.getData().getDirectives()) {
+      for (Directive directive : unit.getDirectives()) {
         if (directive instanceof ExportDirective) {
           Source exportSource = resolveSource(source, (ExportDirective) directive);
           if (exportSource != null) {

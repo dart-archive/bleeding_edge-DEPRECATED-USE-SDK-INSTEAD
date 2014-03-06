@@ -19,7 +19,6 @@ import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.internal.cache.SourceEntry;
 import com.google.dart.engine.internal.resolver.TypeProvider;
 import com.google.dart.engine.internal.scope.Namespace;
-import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.Source.ContentReceiver;
 import com.google.dart.engine.source.SourceContainer;
@@ -595,20 +594,9 @@ public class InstrumentedAnalysisContextImpl implements InternalAnalysisContext 
   }
 
   @Override
-  public TimestampedData<CompilationUnit> internalParseCompilationUnit(Source source)
-      throws AnalysisException {
-    return basis.internalParseCompilationUnit(source);
-  }
-
-  @Override
   public TimestampedData<CompilationUnit> internalResolveCompilationUnit(Source unitSource,
       LibraryElement libraryElement) throws AnalysisException {
     return basis.internalResolveCompilationUnit(unitSource, libraryElement);
-  }
-
-  @Override
-  public TimestampedData<Token> internalScanTokenStream(Source source) throws AnalysisException {
-    return basis.internalScanTokenStream(source);
   }
 
   @Override

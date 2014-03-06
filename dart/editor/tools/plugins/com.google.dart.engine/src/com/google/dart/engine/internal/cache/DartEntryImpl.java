@@ -487,7 +487,7 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
 
   /**
    * Return a compilation unit that has not been accessed by any other client and can therefore
-   * safely be modified by the reconciler.
+   * safely be modified by the reconciler, or {@code null} if the source has not been parsed.
    * 
    * @return a compilation unit that can be modified by the reconciler
    */
@@ -1218,7 +1218,7 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     builder.append(clientServerState);
     builder.append("; launchable = ");
     builder.append(launchableState);
-    builder.append("; angularElements = ");
+//    builder.append("; angularElements = ");
     resolutionState.writeOn(builder);
   }
 

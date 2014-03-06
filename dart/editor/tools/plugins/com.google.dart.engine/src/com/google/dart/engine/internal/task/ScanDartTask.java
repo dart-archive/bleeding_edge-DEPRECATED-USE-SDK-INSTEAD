@@ -18,7 +18,6 @@ import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
 import com.google.dart.engine.internal.context.PerformanceStatistics;
 import com.google.dart.engine.internal.context.RecordingErrorListener;
-import com.google.dart.engine.internal.context.TimestampedData;
 import com.google.dart.engine.scanner.CharSequenceReader;
 import com.google.dart.engine.scanner.Scanner;
 import com.google.dart.engine.scanner.Token;
@@ -36,14 +35,14 @@ public class ScanDartTask extends AnalysisTask {
   private Source source;
 
   /**
-   * The contents of the source.
-   */
-  private CharSequence content;
-
-  /**
    * The time at which the contents of the source were last modified.
    */
   private long modificationTime;
+
+  /**
+   * The contents of the source.
+   */
+  private CharSequence content;
 
   /**
    * The token stream that was produced by scanning the source.
@@ -65,14 +64,15 @@ public class ScanDartTask extends AnalysisTask {
    * 
    * @param context the context in which the task is to be performed
    * @param source the source to be parsed
-   * @param contentData the time-stamped contents of the source
+   * @param modificationTime the time at which the contents of the source were last modified
+   * @param content the contents of the source
    */
-  public ScanDartTask(InternalAnalysisContext context, Source source,
-      TimestampedData<CharSequence> contentData) {
+  public ScanDartTask(InternalAnalysisContext context, Source source, long modificationTime,
+      CharSequence content) {
     super(context);
     this.source = source;
-    this.content = contentData.getData();
-    this.modificationTime = contentData.getModificationTime();
+    this.modificationTime = modificationTime;
+    this.content = content;
   }
 
   @Override

@@ -91,6 +91,8 @@ public interface AnalysisContext {
    * Return an array containing all of the errors associated with the given source. If the errors
    * are not already known then the source will be analyzed in order to determine the errors
    * associated with it.
+   * <p>
+   * <b>Note:</b> This method cannot be used in an async environment
    * 
    * @param source the source whose errors are to be returned
    * @return all of the errors associated with the given source
@@ -118,6 +120,8 @@ public interface AnalysisContext {
   /**
    * Return the kind of the given source, computing it's kind if it is not already known. Return
    * {@link SourceKind#UNKNOWN} if the source is not contained in this context.
+   * <p>
+   * <b>Note:</b> This method cannot be used in an async environment
    * 
    * @param source the source whose kind is to be returned
    * @return the kind of the given source
@@ -144,6 +148,8 @@ public interface AnalysisContext {
    * recognized kind (neither a Dart nor HTML file). If the line information was not previously
    * known it will be created. The line information is used to map offsets from the beginning of the
    * source to line and column pairs.
+   * <p>
+   * <b>Note:</b> This method cannot be used in an async environment
    * 
    * @param source the source whose line information is to be returned
    * @return the line information for the given source
@@ -211,9 +217,9 @@ public interface AnalysisContext {
   /**
    * Get the contents of the given source and pass it to the given content receiver.
    * <p>
-   * This method should be used rather than the method {@link Source#getContentsToReceiver(ContentReceiver)}
-   * because contexts can have local overrides of the content of a source that the source is not
-   * aware of.
+   * This method should be used rather than the method
+   * {@link Source#getContentsToReceiver(ContentReceiver)} because contexts can have local overrides
+   * of the content of a source that the source is not aware of.
    * 
    * @param source the source whose content is to be returned
    * @param receiver the content receiver to which the content of the source will be passed
@@ -464,6 +470,8 @@ public interface AnalysisContext {
   /**
    * Parse a single source to produce an AST structure. The resulting AST structure may or may not
    * be resolved, and may have a slightly different structure depending upon whether it is resolved.
+   * <p>
+   * <b>Note:</b> This method cannot be used in an async environment
    * 
    * @param source the source to be parsed
    * @return the AST structure representing the content of the source
