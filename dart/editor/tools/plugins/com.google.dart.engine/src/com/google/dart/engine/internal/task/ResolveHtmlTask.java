@@ -20,7 +20,6 @@ import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.internal.builder.HtmlUnitBuilder;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
 import com.google.dart.engine.internal.context.RecordingErrorListener;
-import com.google.dart.engine.internal.context.ResolvableHtmlUnit;
 import com.google.dart.engine.source.Source;
 
 /**
@@ -35,7 +34,12 @@ public class ResolveHtmlTask extends AnalysisTask {
   /**
    * The time at which the contents of the source were last modified.
    */
-  private long modificationTime = -1L;
+  private long modificationTime;
+
+  /**
+   * The HTML unit to be resolved.
+   */
+  private HtmlUnit unit;
 
   /**
    * The {@link HtmlUnit} that was resolved by this task.
@@ -57,10 +61,15 @@ public class ResolveHtmlTask extends AnalysisTask {
    * 
    * @param context the context in which the task is to be performed
    * @param source the source to be resolved
+   * @param modificationTime the time at which the contents of the source were last modified
+   * @param unit the HTML unit to be resolved
    */
-  public ResolveHtmlTask(InternalAnalysisContext context, Source source) {
+  public ResolveHtmlTask(InternalAnalysisContext context, Source source, long modificationTime,
+      HtmlUnit unit) {
     super(context);
     this.source = source;
+    this.modificationTime = modificationTime;
+    this.unit = unit;
   }
 
   @Override
@@ -114,20 +123,19 @@ public class ResolveHtmlTask extends AnalysisTask {
 
   @Override
   protected void internalPerform() throws AnalysisException {
-    ResolvableHtmlUnit resolvableHtmlUnit = getContext().computeResolvableHtmlUnit(source);
-    HtmlUnit unit = resolvableHtmlUnit.getCompilationUnit();
-    if (unit == null) {
-      throw new AnalysisException(
-          "Internal error: computeResolvableHtmlUnit returned a value without a parsed HTML unit");
-    }
-    modificationTime = resolvableHtmlUnit.getModificationTime();
-    // build standard HTML element
+    //
+    // Build the standard HTML element.
+    //
     HtmlUnitBuilder builder = new HtmlUnitBuilder(getContext());
     element = builder.buildHtmlElement(source, modificationTime, unit);
     RecordingErrorListener errorListener = builder.getErrorListener();
-    // record all resolution errors
+    //
+    // Record all resolution errors.
+    //
     resolutionErrors = errorListener.getErrorsForSource(source);
-    // remember resolved unit
+    //
+    // Remember the resolved unit.
+    //
     resolvedUnit = unit;
   }
 }

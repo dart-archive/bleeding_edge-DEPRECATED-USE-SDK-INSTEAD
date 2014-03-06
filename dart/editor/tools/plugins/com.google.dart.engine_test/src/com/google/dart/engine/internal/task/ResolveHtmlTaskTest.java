@@ -18,7 +18,6 @@ import com.google.dart.engine.context.AnalysisContextFactory;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
-import com.google.dart.engine.internal.context.TimestampedData;
 import com.google.dart.engine.source.FileUriResolver;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceFactory;
@@ -26,11 +25,9 @@ import com.google.dart.engine.source.TestSource;
 
 import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
 
-import java.io.IOException;
-
 public class ResolveHtmlTaskTest extends EngineTestCase {
   public void test_accept() throws AnalysisException {
-    ResolveHtmlTask task = new ResolveHtmlTask(null, null);
+    ResolveHtmlTask task = new ResolveHtmlTask(null, null, 0L, null);
     assertTrue(task.accept(new TestTaskVisitor<Boolean>() {
       @Override
       public Boolean visitResolveHtmlTask(ResolveHtmlTask task) throws AnalysisException {
@@ -40,41 +37,37 @@ public class ResolveHtmlTaskTest extends EngineTestCase {
   }
 
   public void test_getElement() {
-    ResolveHtmlTask task = new ResolveHtmlTask(null, null);
+    ResolveHtmlTask task = new ResolveHtmlTask(null, null, 0L, null);
     assertNull(task.getElement());
   }
 
   public void test_getException() {
-    ResolveHtmlTask task = new ResolveHtmlTask(null, null);
+    ResolveHtmlTask task = new ResolveHtmlTask(null, null, 0L, null);
     assertNull(task.getException());
   }
 
   public void test_getModificationTime() {
-    ResolveHtmlTask task = new ResolveHtmlTask(null, null);
-    assertEquals(-1L, task.getModificationTime());
+    long modificationTime = 28L;
+    ResolveHtmlTask task = new ResolveHtmlTask(null, null, modificationTime, null);
+    assertEquals(modificationTime, task.getModificationTime());
   }
 
   public void test_getResolutionErrors() {
-    ResolveHtmlTask task = new ResolveHtmlTask(null, null);
+    ResolveHtmlTask task = new ResolveHtmlTask(null, null, 0L, null);
     assertLength(0, task.getResolutionErrors());
   }
 
   public void test_getSource() {
     Source source = new TestSource("");
-    ResolveHtmlTask task = new ResolveHtmlTask(null, source);
+    ResolveHtmlTask task = new ResolveHtmlTask(null, source, 0L, null);
     assertSame(source, task.getSource());
   }
 
   public void test_perform_exception() throws AnalysisException {
-    final Source source = new TestSource() {
-      @Override
-      public TimestampedData<CharSequence> getContents() throws Exception {
-        throw new IOException();
-      }
-    };
+    final Source source = new TestSource();
     InternalAnalysisContext context = new AnalysisContextImpl();
     context.setSourceFactory(new SourceFactory(new FileUriResolver()));
-    ResolveHtmlTask task = new ResolveHtmlTask(context, source);
+    ResolveHtmlTask task = new ResolveHtmlTask(context, source, 0L, null);
     task.perform(new TestTaskVisitor<Boolean>() {
       @Override
       public Boolean visitResolveHtmlTask(ResolveHtmlTask task) throws AnalysisException {
@@ -85,7 +78,8 @@ public class ResolveHtmlTaskTest extends EngineTestCase {
   }
 
   public void test_perform_valid() throws AnalysisException {
-    final Source source = new TestSource(createFile("/test.html"), createSource(//
+    final long modificationStamp = 73L;
+    String content = createSource(//
         "<html>",
         "<head>",
         "  <script type='application/dart'>",
@@ -94,21 +88,33 @@ public class ResolveHtmlTaskTest extends EngineTestCase {
         "</head>",
         "<body>",
         "</body>",
-        "</html>"));
+        "</html>");
+    final Source source = new TestSource(createFile("/test.html"), content);
     final InternalAnalysisContext context = AnalysisContextFactory.contextWithCore();
-    ResolveHtmlTask task = new ResolveHtmlTask(context, source);
-    task.perform(new TestTaskVisitor<Boolean>() {
+    ParseHtmlTask parseTask = new ParseHtmlTask(context, source, modificationStamp, content);
+    parseTask.perform(new TestTaskVisitor<Void>() {
       @Override
-      public Boolean visitResolveHtmlTask(ResolveHtmlTask task) throws AnalysisException {
+      public Void visitParseHtmlTask(ParseHtmlTask task) throws AnalysisException {
+        return null;
+      }
+    });
+    ResolveHtmlTask task = new ResolveHtmlTask(
+        context,
+        source,
+        parseTask.getModificationTime(),
+        parseTask.getHtmlUnit());
+    task.perform(new TestTaskVisitor<Void>() {
+      @Override
+      public Void visitResolveHtmlTask(ResolveHtmlTask task) throws AnalysisException {
         AnalysisException exception = task.getException();
         if (exception != null) {
           throw exception;
         }
         assertNotNull(task.getElement());
-        assertEquals(context.getModificationStamp(source), task.getModificationTime());
+        assertEquals(modificationStamp, task.getModificationTime());
         assertLength(1, task.getResolutionErrors());
         assertSame(source, task.getSource());
-        return true;
+        return null;
       }
     });
   }

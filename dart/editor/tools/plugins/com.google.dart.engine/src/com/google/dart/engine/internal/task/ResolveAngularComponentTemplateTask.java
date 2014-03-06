@@ -19,7 +19,6 @@ import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
 import com.google.dart.engine.internal.context.RecordingErrorListener;
-import com.google.dart.engine.internal.context.ResolvableHtmlUnit;
 import com.google.dart.engine.internal.element.angular.AngularApplication;
 import com.google.dart.engine.internal.html.angular.AngularHtmlUnitResolver;
 import com.google.dart.engine.source.Source;
@@ -31,6 +30,21 @@ import com.google.dart.engine.utilities.source.LineInfo;
  */
 public class ResolveAngularComponentTemplateTask extends AnalysisTask {
   /**
+   * The source to be resolved.
+   */
+  private final Source source;
+
+  /**
+   * The time at which the contents of the source were last modified.
+   */
+  private long modificationTime;
+
+  /**
+   * The HTML unit to be resolved.
+   */
+  private HtmlUnit unit;
+
+  /**
    * The {@link AngularComponentElement} to resolve template for.
    */
   private final AngularComponentElement component;
@@ -39,16 +53,6 @@ public class ResolveAngularComponentTemplateTask extends AnalysisTask {
    * The Angular application to resolve in context of.
    */
   private final AngularApplication application;
-
-  /**
-   * The source to be resolved.
-   */
-  private final Source source;
-
-  /**
-   * The time at which the contents of the source were last modified.
-   */
-  private long modificationTime = -1L;
 
   /**
    * The {@link HtmlUnit} that was resolved by this task.
@@ -65,13 +69,18 @@ public class ResolveAngularComponentTemplateTask extends AnalysisTask {
    * 
    * @param context the context in which the task is to be performed
    * @param source the source to be resolved
+   * @param modificationTime the time at which the contents of the source were last modified
+   * @param unit the HTML unit to be resolved
    * @param component the component that uses this HTML template, not {@code null}
    * @param application the Angular application to resolve in context of
    */
   public ResolveAngularComponentTemplateTask(InternalAnalysisContext context, Source source,
-      AngularComponentElement component, AngularApplication application) {
+      long modificationTime, HtmlUnit unit, AngularComponentElement component,
+      AngularApplication application) {
     super(context);
     this.source = source;
+    this.modificationTime = modificationTime;
+    this.unit = unit;
     this.component = component;
     this.application = application;
   }
@@ -120,18 +129,14 @@ public class ResolveAngularComponentTemplateTask extends AnalysisTask {
 
   @Override
   protected void internalPerform() throws AnalysisException {
-    ResolvableHtmlUnit resolvableHtmlUnit = getContext().computeResolvableAngularComponentHtmlUnit(
-        source);
-    HtmlUnit unit = resolvableHtmlUnit.getCompilationUnit();
-    if (unit == null) {
-      throw new AnalysisException(
-          "Internal error: computeResolvableHtmlUnit returned a value without a parsed HTML unit");
-    }
-    modificationTime = resolvableHtmlUnit.getModificationTime();
-    // prepare for resolution
+    //
+    // Prepare for resolution.
+    //
     RecordingErrorListener errorListener = new RecordingErrorListener();
     LineInfo lineInfo = getContext().getLineInfo(source);
-    // do resolve
+    //
+    // Perform resolution.
+    //
     if (application != null) {
       AngularHtmlUnitResolver resolver = new AngularHtmlUnitResolver(
           getContext(),
@@ -142,7 +147,9 @@ public class ResolveAngularComponentTemplateTask extends AnalysisTask {
       resolver.resolveComponentTemplate(application, component);
       resolvedUnit = unit;
     }
-    // remember errors
+    //
+    // Remember the errors.
+    //
     resolutionErrors = errorListener.getErrorsForSource(source);
   }
 }

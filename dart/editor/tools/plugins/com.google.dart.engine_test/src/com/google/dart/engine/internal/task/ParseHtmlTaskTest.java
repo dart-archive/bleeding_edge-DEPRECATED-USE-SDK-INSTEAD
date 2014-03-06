@@ -18,7 +18,6 @@ import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
-import com.google.dart.engine.internal.context.TimestampedData;
 import com.google.dart.engine.source.FileUriResolver;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceFactory;
@@ -30,7 +29,7 @@ import java.net.URI;
 
 public class ParseHtmlTaskTest extends EngineTestCase {
   public void test_accept() throws Exception {
-    ParseHtmlTask task = new ParseHtmlTask(null, null, new TimestampedData<CharSequence>(0L, ""));
+    ParseHtmlTask task = new ParseHtmlTask(null, null, 0L, "");
     assertTrue(task.accept(new TestTaskVisitor<Boolean>() {
       @Override
       public Boolean visitParseHtmlTask(ParseHtmlTask task) throws AnalysisException {
@@ -40,28 +39,28 @@ public class ParseHtmlTaskTest extends EngineTestCase {
   }
 
   public void test_getException() throws Exception {
-    ParseHtmlTask task = new ParseHtmlTask(null, null, new TimestampedData<CharSequence>(0L, ""));
+    ParseHtmlTask task = new ParseHtmlTask(null, null, 0L, "");
     assertNull(task.getException());
   }
 
   public void test_getHtmlUnit() throws Exception {
-    ParseHtmlTask task = new ParseHtmlTask(null, null, new TimestampedData<CharSequence>(0L, ""));
+    ParseHtmlTask task = new ParseHtmlTask(null, null, 0L, "");
     assertNull(task.getHtmlUnit());
   }
 
   public void test_getLineInfo() throws Exception {
-    ParseHtmlTask task = new ParseHtmlTask(null, null, new TimestampedData<CharSequence>(0L, ""));
+    ParseHtmlTask task = new ParseHtmlTask(null, null, 0L, "");
     assertNull(task.getLineInfo());
   }
 
   public void test_getReferencedLibraries() throws Exception {
-    ParseHtmlTask task = new ParseHtmlTask(null, null, new TimestampedData<CharSequence>(0L, ""));
+    ParseHtmlTask task = new ParseHtmlTask(null, null, 0L, "");
     assertLength(0, task.getReferencedLibraries());
   }
 
   public void test_getSource() throws Exception {
     Source source = new TestSource("");
-    ParseHtmlTask task = new ParseHtmlTask(null, source, new TimestampedData<CharSequence>(0L, ""));
+    ParseHtmlTask task = new ParseHtmlTask(null, source, 0L, "");
     assertSame(source, task.getSource());
   }
 
@@ -175,9 +174,7 @@ public class ParseHtmlTaskTest extends EngineTestCase {
       throws Exception {
     final InternalAnalysisContext context = new AnalysisContextImpl();
     context.setSourceFactory(new SourceFactory(new FileUriResolver()));
-    ParseHtmlTask task = new ParseHtmlTask(context, source, new TimestampedData<CharSequence>(
-        0L,
-        contents));
+    ParseHtmlTask task = new ParseHtmlTask(context, source, 0L, contents);
     Logger oldLogger = AnalysisEngine.getInstance().getLogger();
     try {
       AnalysisEngine.getInstance().setLogger(testLogger);

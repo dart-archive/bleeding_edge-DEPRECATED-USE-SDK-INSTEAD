@@ -25,7 +25,6 @@ import com.google.dart.engine.html.scanner.StringScanner;
 import com.google.dart.engine.html.scanner.Token;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
 import com.google.dart.engine.internal.context.RecordingErrorListener;
-import com.google.dart.engine.internal.context.TimestampedData;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.source.LineInfo;
 
@@ -43,14 +42,14 @@ public class ParseHtmlTask extends AnalysisTask {
   private Source source;
 
   /**
-   * The contents of the source.
-   */
-  private CharSequence content;
-
-  /**
    * The time at which the contents of the source were last modified.
    */
   private long modificationTime;
+
+  /**
+   * The contents of the source.
+   */
+  private CharSequence content;
 
   /**
    * The line information that was produced.
@@ -87,14 +86,15 @@ public class ParseHtmlTask extends AnalysisTask {
    * 
    * @param context the context in which the task is to be performed
    * @param source the source to be parsed
-   * @param contentData the time-stamped contents of the source
+   * @param modificationTime the time at which the contents of the source were last modified
+   * @param content the contents of the source
    */
-  public ParseHtmlTask(InternalAnalysisContext context, Source source,
-      TimestampedData<CharSequence> contentData) {
+  public ParseHtmlTask(InternalAnalysisContext context, Source source, long modificationTime,
+      CharSequence content) {
     super(context);
     this.source = source;
-    content = contentData.getData();
-    modificationTime = contentData.getModificationTime();
+    this.modificationTime = modificationTime;
+    this.content = content;
   }
 
   @Override

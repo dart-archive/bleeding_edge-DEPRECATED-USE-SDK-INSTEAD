@@ -596,28 +596,6 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @Override
-  public ResolvableHtmlUnit computeResolvableAngularComponentHtmlUnit(Source source)
-      throws AnalysisException {
-    HtmlEntry htmlEntry = getReadableHtmlEntry(source);
-    if (htmlEntry == null) {
-      throw new AnalysisException(
-          "computeResolvableAngularComponentHtmlUnit invoked for non-HTML file: "
-              + source.getFullName());
-    }
-    htmlEntry = cacheHtmlResolutionData(source, htmlEntry, HtmlEntry.RESOLVED_UNIT);
-    HtmlUnit unit = htmlEntry.getValue(HtmlEntry.RESOLVED_UNIT);
-    if (unit == null) {
-      AnalysisException cause = htmlEntry.getException();
-      throw new AnalysisException(
-          "Internal error: computeResolvableAngularComponentHtmlUnit could not resolve "
-              + source.getFullName(),
-          cause);
-    }
-    // If the unit is ever modified by resolution then we will need to create a copy of it.
-    return new ResolvableHtmlUnit(htmlEntry.getModificationTime(), unit);
-  }
-
-  @Override
   public ResolvableCompilationUnit computeResolvableCompilationUnit(Source source)
       throws AnalysisException {
     synchronized (cacheLock) {
@@ -638,23 +616,6 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       cache.put(source, dartCopy);
       return new ResolvableCompilationUnit(dartCopy.getModificationTime(), unit);
     }
-  }
-
-  @Override
-  public ResolvableHtmlUnit computeResolvableHtmlUnit(Source source) throws AnalysisException {
-    HtmlEntry htmlEntry = getReadableHtmlEntry(source);
-    if (htmlEntry == null) {
-      throw new AnalysisException("computeResolvableHtmlUnit invoked for non-HTML file: "
-          + source.getFullName());
-    }
-    htmlEntry = cacheHtmlParseData(source, htmlEntry, HtmlEntry.PARSED_UNIT);
-    HtmlUnit unit = htmlEntry.getValue(HtmlEntry.PARSED_UNIT);
-    if (unit == null) {
-      throw new AnalysisException("Internal error: computeResolvableHtmlUnit could not parse "
-          + source.getFullName());
-    }
-    // If the unit is ever modified by resolution then we will need to create a copy of it.
-    return new ResolvableHtmlUnit(htmlEntry.getModificationTime(), unit);
   }
 
   @Override
@@ -1924,7 +1885,14 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       // change, this loop will eventually terminate.
       //
       try {
-        htmlEntry = (HtmlEntry) new ParseHtmlTask(this, source, getContents(source)).perform(resultRecorder);
+        if (htmlEntry.getState(SourceEntry.CONTENT) != CacheState.VALID) {
+          htmlEntry = (HtmlEntry) new GetContentTask(this, source).perform(resultRecorder);
+        }
+        htmlEntry = (HtmlEntry) new ParseHtmlTask(
+            this,
+            source,
+            htmlEntry.getModificationTime(),
+            htmlEntry.getValue(SourceEntry.CONTENT)).perform(resultRecorder);
       } catch (AnalysisException exception) {
         throw exception;
       } catch (Exception exception) {
@@ -1940,6 +1908,8 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
    * represented by the given descriptor is either {@link CacheState#VALID} or
    * {@link CacheState#ERROR}. This method assumes that the data can be produced by resolving the
    * source if it is not already cached.
+   * <p>
+   * <b>Note:</b> This method cannot be used in an async environment
    * 
    * @param source the source representing the HTML file
    * @param dartEntry the cache entry associated with the HTML file
@@ -1959,7 +1929,12 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       // If not, compute the information. Unless the modification date of the source continues to
       // change, this loop will eventually terminate.
       //
-      htmlEntry = (HtmlEntry) new ResolveHtmlTask(this, source).perform(resultRecorder);
+      htmlEntry = cacheHtmlParseData(source, htmlEntry, HtmlEntry.PARSED_UNIT);
+      htmlEntry = (HtmlEntry) new ResolveHtmlTask(
+          this,
+          source,
+          htmlEntry.getModificationTime(),
+          htmlEntry.getValue(HtmlEntry.PARSED_UNIT)).perform(resultRecorder);
       state = htmlEntry.getState(descriptor);
     }
     return htmlEntry;
@@ -2047,6 +2022,29 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
+   * Create a {@link ParseHtmlTask} for the given source, marking the parse errors as being
+   * in-process.
+   * 
+   * @param source the source whose content is to be parsed
+   * @param htmlEntry the entry for the source
+   * @return task data representing the created task
+   */
+  private TaskData createParseHtmlTask(Source source, HtmlEntry htmlEntry) {
+    if (htmlEntry.getState(SourceEntry.CONTENT) != CacheState.VALID) {
+      return createGetContentTask(source, htmlEntry);
+    }
+    CharSequence content = htmlEntry.getValue(SourceEntry.CONTENT);
+    HtmlEntryImpl htmlCopy = htmlEntry.getWritableCopy();
+    htmlCopy.setState(SourceEntry.CONTENT, CacheState.FLUSHED);
+    htmlCopy.setState(HtmlEntry.PARSE_ERRORS, CacheState.IN_PROCESS);
+    cache.put(source, htmlCopy);
+    return new TaskData(
+        new ParseHtmlTask(this, source, htmlCopy.getModificationTime(), content),
+        false,
+        null);
+  }
+
+  /**
    * Create a {@link ResolveDartDependenciesTask} for the given source, marking the exported
    * libraries as being in-process.
    * 
@@ -2067,6 +2065,28 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         source,
         dartCopy.getModificationTime(),
         unit), false, null);
+  }
+
+  /**
+   * Create a {@link ResolveHtmlTask} for the given source, marking the resolved unit as being
+   * in-process.
+   * 
+   * @param source the source whose content is to be resolved
+   * @param htmlEntry the entry for the source
+   * @return task data representing the created task
+   */
+  private TaskData createResolveHtmlTask(Source source, HtmlEntry htmlEntry) {
+    if (htmlEntry.getState(HtmlEntry.PARSED_UNIT) != CacheState.VALID) {
+      return createParseHtmlTask(source, htmlEntry);
+    }
+    HtmlEntryImpl htmlCopy = htmlEntry.getWritableCopy();
+    htmlCopy.setState(HtmlEntry.RESOLVED_UNIT, CacheState.IN_PROCESS);
+    cache.put(source, htmlCopy);
+    return new TaskData(new ResolveHtmlTask(
+        this,
+        source,
+        htmlCopy.getModificationTime(),
+        htmlCopy.getValue(HtmlEntry.PARSED_UNIT)), false, null);
   }
 
   /**
@@ -2394,6 +2414,8 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
    * Given a source for an HTML file, return the data represented by the given descriptor that is
    * associated with that source, or the given default value if the source is not an HTML file. This
    * method assumes that the data can be produced by parsing the source if it is not already cached.
+   * <p>
+   * <b>Note:</b> This method cannot be used in an async environment
    * 
    * @param source the source representing the Dart file
    * @param descriptor the descriptor representing the data to be returned
@@ -2421,6 +2443,8 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
    * associated with that source, or the given default value if the source is not an HTML file. This
    * method assumes that the data can be produced by resolving the source if it is not already
    * cached.
+   * <p>
+   * <b>Note:</b> This method cannot be used in an async environment
    * 
    * @param source the source representing the HTML file
    * @param descriptor the descriptor representing the data to be returned
@@ -2449,6 +2473,8 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
    * Given a source for an HTML file, return the data represented by the given descriptor that is
    * associated with that source. This method assumes that the data can be produced by resolving the
    * source if it is not already cached.
+   * <p>
+   * <b>Note:</b> This method cannot be used in an async environment
    * 
    * @param source the source representing the HTML file
    * @param htmlEntry the entry representing the HTML file
@@ -2674,76 +2700,48 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       }
     } else if (sourceEntry instanceof HtmlEntry) {
       HtmlEntry htmlEntry = (HtmlEntry) sourceEntry;
+
       CacheState parseErrorsState = htmlEntry.getState(HtmlEntry.PARSE_ERRORS);
       if (parseErrorsState == CacheState.INVALID
           || (isPriority && parseErrorsState == CacheState.FLUSHED)) {
-        try {
-          HtmlEntryImpl htmlCopy = htmlEntry.getWritableCopy();
-          htmlCopy.setState(HtmlEntry.PARSE_ERRORS, CacheState.IN_PROCESS);
-          TimestampedData<CharSequence> contentData;
-          if (contentState == CacheState.VALID) {
-            contentData = new TimestampedData<CharSequence>(
-                htmlCopy.getModificationTime(),
-                htmlCopy.getValue(SourceEntry.CONTENT));
-            htmlCopy.setState(SourceEntry.CONTENT, CacheState.FLUSHED);
-          } else {
-            contentData = getContents(source);
-          }
-          cache.put(source, htmlCopy);
-          return new TaskData(new ParseHtmlTask(this, source, contentData), false, null);
-        } catch (Exception exception) {
-          HtmlEntryImpl htmlCopy = htmlEntry.getWritableCopy();
-          htmlCopy.recordParseError();
-          htmlCopy.setException(new AnalysisException(exception));
-          cache.put(source, htmlCopy);
-        }
+        return createParseHtmlTask(source, htmlEntry);
       }
       if (isPriority && parseErrorsState != CacheState.ERROR) {
         HtmlUnit parsedUnit = htmlEntry.getAnyParsedUnit();
         if (parsedUnit == null) {
-          try {
-            HtmlEntryImpl dartCopy = htmlEntry.getWritableCopy();
-            dartCopy.setState(HtmlEntry.PARSE_ERRORS, CacheState.IN_PROCESS);
-            TimestampedData<CharSequence> contentData;
-            if (contentState == CacheState.VALID) {
-              contentData = new TimestampedData<CharSequence>(
-                  dartCopy.getModificationTime(),
-                  dartCopy.getValue(SourceEntry.CONTENT));
-              dartCopy.setState(SourceEntry.CONTENT, CacheState.FLUSHED);
-            } else {
-              contentData = getContents(source);
-            }
-            cache.put(source, dartCopy);
-            return new TaskData(new ParseHtmlTask(this, source, contentData), false, null);
-          } catch (Exception exception) {
-            HtmlEntryImpl htmlCopy = htmlEntry.getWritableCopy();
-            htmlCopy.recordParseError();
-            htmlCopy.setException(new AnalysisException(exception));
-            cache.put(source, htmlCopy);
-          }
+          return createParseHtmlTask(source, htmlEntry);
         }
       }
+
       CacheState resolvedUnitState = htmlEntry.getState(HtmlEntry.RESOLVED_UNIT);
       if (resolvedUnitState == CacheState.INVALID
           || (isPriority && resolvedUnitState == CacheState.FLUSHED)) {
-        HtmlEntryImpl htmlCopy = htmlEntry.getWritableCopy();
-        htmlCopy.setState(HtmlEntry.RESOLVED_UNIT, CacheState.IN_PROCESS);
-        cache.put(source, htmlCopy);
-        return new TaskData(new ResolveHtmlTask(this, source), false, null);
+        return createResolveHtmlTask(source, htmlEntry);
       }
+
       // Angular support
       if (options.getAnalyzeAngular()) {
         // try to resolve as an Angular entry point
         CacheState angularEntryState = htmlEntry.getState(HtmlEntry.ANGULAR_ENTRY);
         if (angularEntryState == CacheState.INVALID) {
+          if (htmlEntry.getState(HtmlEntry.RESOLVED_UNIT) != CacheState.VALID) {
+            return createResolveHtmlTask(source, htmlEntry);
+          }
           HtmlEntryImpl htmlCopy = htmlEntry.getWritableCopy();
           htmlCopy.setState(HtmlEntry.ANGULAR_ENTRY, CacheState.IN_PROCESS);
           cache.put(source, htmlCopy);
-          return new TaskData(new ResolveAngularEntryHtmlTask(this, source), false, null);
+          return new TaskData(new ResolveAngularEntryHtmlTask(
+              this,
+              source,
+              htmlCopy.getModificationTime(),
+              htmlCopy.getValue(HtmlEntry.RESOLVED_UNIT)), false, null);
         }
         // try to resolve as an Angular application part
         CacheState angularErrorsState = htmlEntry.getState(HtmlEntry.ANGULAR_ERRORS);
         if (angularErrorsState == CacheState.INVALID) {
+          if (htmlEntry.getState(HtmlEntry.RESOLVED_UNIT) != CacheState.VALID) {
+            return createResolveHtmlTask(source, htmlEntry);
+          }
           AngularApplication application = htmlEntry.getValue(HtmlEntry.ANGULAR_APPLICATION);
           // try to resolve as an Angular template
           AngularComponentElement component = htmlEntry.getValue(HtmlEntry.ANGULAR_COMPONENT);
@@ -2753,6 +2751,8 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
           return new TaskData(new ResolveAngularComponentTemplateTask(
               this,
               source,
+              htmlCopy.getModificationTime(),
+              htmlCopy.getValue(HtmlEntry.RESOLVED_UNIT),
               component,
               application), false, null);
         }

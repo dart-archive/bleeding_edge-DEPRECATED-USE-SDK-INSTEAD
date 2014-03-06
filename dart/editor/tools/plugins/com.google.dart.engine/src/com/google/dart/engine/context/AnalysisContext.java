@@ -108,6 +108,8 @@ public interface AnalysisContext {
    * for an HTML file can long-running, depending on the size of the file and the number of
    * libraries that are defined in it (via script tags) that also need to have a model built for
    * them.
+   * <p>
+   * <b>Note:</b> This method cannot be used in an async environment
    * 
    * @param source the source defining the HTML file whose element model is to be returned
    * @return the element model corresponding to the HTML file defined by the given source
@@ -483,6 +485,8 @@ public interface AnalysisContext {
    * Parse a single HTML source to produce an AST structure. The resulting HTML AST structure may or
    * may not be resolved, and may have a slightly different structure depending upon whether it is
    * resolved.
+   * <p>
+   * <b>Note:</b> This method cannot be used in an async environment
    * 
    * @param source the HTML source to be parsed
    * @return the parse result (not {@code null})

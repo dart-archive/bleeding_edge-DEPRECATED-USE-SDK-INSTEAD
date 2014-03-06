@@ -19,7 +19,6 @@ import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
 import com.google.dart.engine.internal.context.RecordingErrorListener;
-import com.google.dart.engine.internal.context.ResolvableHtmlUnit;
 import com.google.dart.engine.internal.element.angular.AngularApplication;
 import com.google.dart.engine.internal.html.angular.AngularHtmlUnitResolver;
 import com.google.dart.engine.source.Source;
@@ -36,14 +35,19 @@ public class ResolveAngularEntryHtmlTask extends AnalysisTask {
   private final Source source;
 
   /**
+   * The time at which the contents of the source were last modified.
+   */
+  private long modificationTime;
+
+  /**
+   * The HTML unit to be resolved.
+   */
+  private HtmlUnit unit;
+
+  /**
    * The listener to record errors.
    */
   private final RecordingErrorListener errorListener = new RecordingErrorListener();
-
-  /**
-   * The time at which the contents of the source were last modified.
-   */
-  private long modificationTime = -1L;
 
   /**
    * The {@link HtmlUnit} that was resolved by this task.
@@ -65,10 +69,15 @@ public class ResolveAngularEntryHtmlTask extends AnalysisTask {
    * 
    * @param context the context in which the task is to be performed
    * @param source the source to be resolved
+   * @param modificationTime the time at which the contents of the source were last modified
+   * @param unit the HTML unit to be resolved
    */
-  public ResolveAngularEntryHtmlTask(InternalAnalysisContext context, Source source) {
+  public ResolveAngularEntryHtmlTask(InternalAnalysisContext context, Source source,
+      long modificationTime, HtmlUnit unit) {
     super(context);
     this.source = source;
+    this.modificationTime = modificationTime;
+    this.unit = unit;
   }
 
   @Override
@@ -140,23 +149,23 @@ public class ResolveAngularEntryHtmlTask extends AnalysisTask {
 
   @Override
   protected void internalPerform() throws AnalysisException {
-    ResolvableHtmlUnit resolvableHtmlUnit = getContext().computeResolvableAngularComponentHtmlUnit(
-        source);
-    HtmlUnit unit = resolvableHtmlUnit.getCompilationUnit();
-    if (unit == null) {
-      throw new AnalysisException(
-          "Internal error: computeResolvableHtmlUnit returned a value without a parsed HTML unit");
-    }
-    modificationTime = resolvableHtmlUnit.getModificationTime();
-    // prepare for resolution
+    //
+    // Prepare for resolution.
+    //
     LineInfo lineInfo = getContext().getLineInfo(source);
-    // try to resolve as an Angular entry point
+    //
+    // Try to resolve as an Angular entry point.
+    //
     application = new AngularHtmlUnitResolver(getContext(), errorListener, source, lineInfo, unit).calculateAngularApplication();
-    // do resolve
+    //
+    // Perform resolution.
+    //
     if (application != null) {
       new AngularHtmlUnitResolver(getContext(), errorListener, source, lineInfo, unit).resolveEntryPoint(application);
     }
-    // remember resolved unit
+    //
+    // Remember the resolved unit.
+    //
     resolvedUnit = unit;
   }
 }

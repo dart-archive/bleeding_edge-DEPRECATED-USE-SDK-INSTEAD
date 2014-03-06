@@ -222,20 +222,9 @@ public class InstrumentedAnalysisContextImpl implements InternalAnalysisContext 
   }
 
   @Override
-  public ResolvableHtmlUnit computeResolvableAngularComponentHtmlUnit(Source source)
-      throws AnalysisException {
-    return basis.computeResolvableAngularComponentHtmlUnit(source);
-  }
-
-  @Override
   public ResolvableCompilationUnit computeResolvableCompilationUnit(Source source)
       throws AnalysisException {
     return basis.computeResolvableCompilationUnit(source);
-  }
-
-  @Override
-  public ResolvableHtmlUnit computeResolvableHtmlUnit(Source source) throws AnalysisException {
-    return basis.computeResolvableHtmlUnit(source);
   }
 
   @Override
