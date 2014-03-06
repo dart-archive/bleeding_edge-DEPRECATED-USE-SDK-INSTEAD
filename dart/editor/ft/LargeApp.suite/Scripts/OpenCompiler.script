@@ -1,24 +1,24 @@
 (* Open dart2js and make sure it is analyzed correctly *)
 util.init
 util.openFileDialog
-WaitFor 2, "file search icon"
+util.xWaitFor 2, "file search icon"
 if (util.isMacOSX) then
 	Click "dart folder icon"
-	Wait 0.5
+	util.xWait 0.5
 	set the SearchRectangle to ((500,0),(1000,300))
 	DoubleClick (Text: "internal",CaseSensitive:"yes",ValidCharacters:"*")
 	set the SearchRectangle to ()
 	Click mouseLocation()
 	TypeText enter
-else if (util.isLinux) then
+	else if (util.isLinux) then
 	Click "file search icon"
-	Wait 0.5
+	util.xWait 0.5
 	TypeText "_internal"
 	TypeText return
-	Wait 1
+	util.xWait 1
 	TypeText downArrow
 	TypeText return
-	Wait 0.5
+	util.xWait 0.5
 	TypeText downArrow
 	TypeText return
 	TypeText return
@@ -29,4 +29,4 @@ util.checkProblems
 Click "compiler project"
 TypeText downArrow
 util.expandTreeNode
-Wait 1
+util.xWait 1

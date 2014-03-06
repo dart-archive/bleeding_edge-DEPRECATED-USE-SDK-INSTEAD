@@ -7,10 +7,10 @@ set the SearchRectangle to ((500,400),(1400,700))
 Click (Text:"mmand-line application",CaseSensitive:"yes",ValidCharacters:"*",dpi:94)
 set the SearchRectangle to ()
 util.newline
-WaitFor 10.0, "pubspec lock" (* confirm file creation *)
+util.xWaitFor 10.0, "pubspec lock" (* confirm file creation *)
 Click "run button"
 set the SearchRectangle to ((200,900),(500,1100))
-WaitFor 10, (Text:"Hello, World!",CaseSensitive:"yes",IgnoreSpaces:"yes",ValidCharacters:"*",dpi:94)
+util.xWaitFor 10, (Text:"Hello, World!",CaseSensitive:"yes",IgnoreSpaces:"yes",ValidCharacters:"*",dpi:94)
 set the SearchRectangle to ()
 util.deleteProject "sample project"
 util.deleteOutput
@@ -26,11 +26,11 @@ if util.isLinux()
 end if
 TypeText downArrow
 util.newline
-Wait 30
-WaitFor 10.0, "pubspec lock" (* confirm file creation *)
+util.xWait 30
+util.xWaitFor 10.0, "pubspec lock" (* confirm file creation *)
 Click "run button"
 set the SearchRectangle to ((200,200),(700,700))
-WaitFor 10,(Text:"click count",CaseSensitive:"yes",IgnoreSpaces:"yes",ValidCharacters:"*",dpi:94)
+util.xWaitFor 10,(Text:"click count",CaseSensitive:"yes",IgnoreSpaces:"yes",ValidCharacters:"*",dpi:94)
 set the SearchRectangle to ()
 util.exitChromium
 util.deleteProject "sample project"
@@ -47,15 +47,15 @@ if util.isLinux()
 end if
 TypeText upArrow,upArrow,upArrow
 util.newline
-Wait 5
-WaitFor 10.0, "pubspec lock" (* confirm file creation *)
+util.xWait 5
+util.xWaitFor 10.0, "pubspec lock" (* confirm file creation *)
 util.selectContextImageMenuItem "manifest", "Run as Chrome App"
 if util.isMacOSX() then
 	set the SearchRectangle to ((700,350),(1300,850))
 else
 	set the SearchRectangle to ((200,200),(700,700))
 end if
-WaitFor 10,(Text:"Click me!",CaseSensitive:"yes",IgnoreSpaces:"yes",ValidCharacters:"*",dpi:94)
+util.xWaitFor 10,(Text:"Click me!",CaseSensitive:"yes",IgnoreSpaces:"yes",ValidCharacters:"*",dpi:94)
 set the SearchRectangle to ()
 if (util.isLinux()) then
 	Click "close window X"

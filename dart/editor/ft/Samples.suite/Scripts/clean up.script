@@ -5,11 +5,11 @@ put ImageFound("project icon") into proj
 if proj then
 	put ImageLocation("project icon") into loc
 	Click loc
-	Wait 0.2
+	util.xWait 0.2
 	RightClick loc (* select project and show context menu *)
-	Wait 0.2
+	util.xWait 0.2
 	Click(Text:"Delete",CaseSensitive:"Yes",ValidCharacters:"*") (* delete it *)
-	Wait 0.5
+	util.xWait 0.5
 	put ImageFound("info icon") into res
 	if res then
 		util.newline

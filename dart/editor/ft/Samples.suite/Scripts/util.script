@@ -1,5 +1,6 @@
 universal platform
 universal initialized
+universal waitFactor
 
 to init
 	put (@universal initialized is "initialized") into wasInitialized
@@ -20,6 +21,11 @@ to init
 		throw "Screen size must be 1920x1200"
 	end if
 	Set the ImageDoctor to Auto
+	if  connectioninfo().name is empty then
+		put 5 into universal waitFactor
+	else
+		put 1 into universal waitFactor
+	end if
 	put "initialized" into universal initialized
 end init
 
@@ -37,6 +43,14 @@ to isWindows
 	put (@universal platform is "windows") into result
 	return @result
 end isWindows
+
+to xWait n
+	Wait (n * @universal waitFactor)
+end xWait
+
+to xWaitFor n, img
+	WaitFor (n * @universal waitFactor), img
+end xWaitFor
 
 to activateEditor
 	(*selectMenuItem "Navigate", "Activate Editor"*)
@@ -62,26 +76,26 @@ to nextEditor count
 			keyup controlKey,F6
 		end if
 		(*doKeyCmd F6*)
-		Wait 2
+		xWait 2
 	end repeat
 end NextEditor
 
 to checkProblems
 	put the SearchRectangle into origRect
 	set the SearchRectangle to ((0,800),(1920,1200))
-	Wait 2
+	xWait 2
 	ClIck (600,500)
-	Wait 2
+	xWait 2
 	Click "problems tab"
-	WaitFor 1,"empty problems"
+	xWaitFor 1,"empty problems"
 	set the SearchRectangle to origRect
 end checkProblems
 
 (* Assumes Chromium is the active proecss. *)
 to exitChromium
 	if isMacOSX()
-		(* Can fail if Chromium window is under Chromium menu causing window edge *)
-		(* to bleed thru menu due to alpha channel.  Re-position Chromium! *)
+	(* Can fail if Chromium window is under Chromium menu causing window edge *)
+	(* to bleed thru menu due to alpha channel.  Re-position Chromium! *)
 		selectMenuItem "Chromium", "Quit Chromium"
 	else
 		TypeText altKey,F4
@@ -98,16 +112,16 @@ to deleteOutput
 	end if
 	put ImageLocation("problems tab") + (deltaX,0) into outLoc
 	Click outLoc
-	Wait 0.2
+	xWait 0.2
 	RightClick outLoc
-	Wait 0.2
+	xWait 0.2
 	repeat while ImageFound("problems unselected")
 		put ImageFound(Text:"Close",CaseSensitive:"yes",ValidCharacters:"*") into out
 		if out
 			Click (Text:"Close",CaseSensitive:"yes",ValidCharacters:"*")
 		end if
 		Click outLoc
-		Wait 0.2
+		xWait 0.2
 		RightClick outLoc
 	end repeat
 	Click outLoc - (10,10)
@@ -118,25 +132,25 @@ end deleteOutput
 to deleteProject project
 	set the SearchRectangle to ((0,75),(300,1200))
 	Click "dart sdk"
-	Wait 0.2
+	xWait 0.2
 	put ImageLocation(project) into loc
 	Click loc
-	Wait 0.2
+	xWait 0.2
 	RightClick loc (* select project and show context menu *)
 	put mouselocation() - (15,0) into UL
 	put UL + (500,500) into BR
 	set the SearchRectangle to (UL,BR)
-	Wait 0.2
+	xWait 0.2
 	Click(Text:"Delete",CaseSensitive:"Yes",ValidCharacters:"*") (* delete it *)
 	set the SearchRectangle to ()
-	WaitFor 1, "info icon" (* wait for the Delete Resources confirmation *)
+	xWaitFor 1, "info icon" (* wait for the Delete Resources confirmation *)
 	put ImageRectangle("info icon") into loc
 	put the bottomLeft of loc into TL
 	put TL + (250,75) into BR
 	set the SearchRectangle to (TL,BR)
 	Click(Text:"Delete project contents",ValidCharacters:"*",dpi:94) (* select the option to clear disk *)
 	set the SearchRectangle to ()
-	Wait 0.2
+	xWait 0.2
 	newline
 end deleteProject
 
@@ -149,11 +163,11 @@ to selectMenuItem with menuName, menuItem
 	put topLeft(labelRect)-(10,0) into UL
 	put UL + (500,500) into BR
 	set the SearchRectangle to (UL,BR)
-	Wait 0.1
+	xWait 0.1
 	moveTo topLeft(labelRect) (* encourage mac vnc to update *)
-	Wait 0.1
+	xWait 0.1
 	moveTo bottomRight(labelRect)
-	Wait 0.1
+	xWait 0.1
 	Click(Text:menuItem,CaseSensitive:"yes",ValidCharacters:"*",IgnoreSpaces:"yes",dpi:94)
 	set the SearchRectangle to origRect
 end selectMenuItem
@@ -172,7 +186,7 @@ to selectContextImageMenuItem with contextLocator, menuItem
 	put mouselocation() - (15,0) into UL
 	put UL + (500,500) into BR
 	set the SearchRectangle to (UL,BR)
-	Wait 0.1
+	xWait 0.1
 	Click(Text:menuItem,CaseSensitive:"yes",ValidCharacters:"*",IgnoreSpaces:"yes",dpi:94)
 	set the SearchRectangle to origRect
 end selectContextImageMenuItem
@@ -182,7 +196,7 @@ to typeSlowly with term
 	SetOption KeyDownDelay, 0.002
 	TypeText term
 	SetOption KeyDownDelay, 0.001
-	Wait 0.5
+	xWait 0.5
 end typeSlowly
 
 (* Stop debugging and close the debugger, if it is open *)
@@ -202,7 +216,7 @@ to startDartEditor
 	init()
 	set the SearchRectangle to ((0,0),(200,200))
 	DoubleClick "StartDartEditor"
-	WaitFor 40,"MaximizeWindowIcon"
+	xWaitFor 40,"MaximizeWindowIcon"
 	Click "MaximizeWindowIcon"
 	set the SearchRectangle to ()
 	if isMacOSX()
@@ -249,7 +263,7 @@ end saveFile
 
 to openFileDialog
 	SelectMenuItem "File", "Existing Folder"
-	Wait 0.5
+	xWait 0.5
 end openFileDialog
 
 to openFind

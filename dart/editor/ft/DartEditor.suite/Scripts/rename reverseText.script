@@ -1,18 +1,18 @@
 TypeText downArrow,downArrow,rightArrow,rightArrow
 DoubleClick(Text:"rseT",CaseSensitive:"yes")
-Wait 2
+util.xWait 2
 TypeText rightArrow
 RightClick(Text:"rseT",CaseSensitive:"yes")
 Click(Text:"Rename")
-Wait 1
+util.xWait 1
 TypeText rightArrow
 TypeText backspace, backspace
 TypeText backspace, backspace
-Wait 1
+util.xWait 1
 TypeText "String"
-Wait 1
+util.xWait 1
 util.newline
-Wait 3
+util.xWait 3
 util.nextEditor 1 (* assume only two editors open *)
 Put EveryImageLocation((Text:"seStr", CaseSensitive:"Yes"))
 if the number of items in the result is not 2

@@ -1,15 +1,17 @@
 (* Check basic completion and type-specific completion *)
-Click (Text:").text;", CaseSensitive:"Yes") (* select middle of unique text region *)
-Click (Text:").text;", CaseSensitive:"Yes") (* select middle of unique text region *)
-Wait 1
+put ImageRectangle((Text:").text;", CaseSensitive:"Yes")) into textRect
+click center(textRect)
+util.xWait 0.2
+click center(textRect)
+util.xWait 1
 TypeText rightArrow
 TypeText rightArrow
 TypeText rightArrow (* moved to completion point *)
 TypeText "." (* auto-activate completion *)
-WaitFor 0.5, (Text:"hashCode") (* check for accessor inherited from Object *)(* Mac has return type *)
+util.xWaitFor 0.5, (Text:"hashCode") (* check for accessor inherited from Object *)(* Mac has return type *)
 TypeText escape (* dismiss proposal list *)
 TypeText ControlKey,space (* manually request completion *)
-WaitFor 0.5, (Text:"isEmpty",CaseSensitive:"yes",ValidCharacters:"*") (* check for type-specific member *)(* Mac has return type *)
+util.xWaitFor 0.5, (Text:"isEmpty",CaseSensitive:"yes",ValidCharacters:"*") (* check for type-specific member *)(* Mac has return type *)
 TypeText escape (* dismiss proposal list *)
 util.selectMenuItem "File", "Revert" (* revert to saved *)
-Wait 4
+util.xWait 4

@@ -1,15 +1,15 @@
 Click "search icon"
 util.typeSlowly "sunflower"
-Wait 0.5
+util.xWait 0.5
 TypeText downArrow
 util.newline
-WaitFor 5, (Text:"(4 matches)",CaseSensitive:"yes",ValidCharacters:"(4matches)",dpi:94)
+util.xWaitFor 5, (Text:"(4 matches)",CaseSensitive:"yes",ValidCharacters:"(4matches)",dpi:94)
 util.searchBox
-Wait 0.4
+util.xWait 0.4
 util.typeSlowly "str"
 Click "Stream async"
-Wait 1
-WaitFor 3, "stream tab"
+util.xWait 1
+util.xWaitFor 3, "stream tab"
 util.closeAllTabs
 util.openWelcomePage
 DoubleClick "dart sdk"

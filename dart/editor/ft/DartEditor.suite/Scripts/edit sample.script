@@ -1,9 +1,9 @@
 DoubleClick(Text:"sample.dart") (* activate editor *)
-Wait 2
+util.xWait 2
 DoubleClick(Text:"import")
 util.selectAll
 RightClick (500,500)
-WaitFor 10, (Text:"Quick Fix",CaseSensitive:"yes",ValidCharacters:"*",IgnoreSpaces:"no",dpi:94)
+util.xWaitFor 10, (Text:"Quick Fix",CaseSensitive:"yes",ValidCharacters:"*",IgnoreSpaces:"no",dpi:94)
 Click (450,450)
 DoubleClick(Text:"import")
 TypeText leftArrow (* now at top of file *)

@@ -28,6 +28,8 @@
 	<integer>0</integer>
 	<key>LastKnownLocationY</key>
 	<integer>0</integer>
+	<key>MaxIgnoredPixels</key>
+	<real>0.039999999105930328</real>
 	<key>OriginalLocationX</key>
 	<integer>14</integer>
 	<key>OriginalLocationY</key>

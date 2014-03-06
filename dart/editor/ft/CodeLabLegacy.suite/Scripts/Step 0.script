@@ -5,7 +5,7 @@ TypeText downArrow,downArrow,downArrow,downArrow,downArrow
 (*Run "check problems"*)
 
 Click "run button"
-WaitFor 10,"browser right arrow button"
+util.xWaitFor 10,"browser right arrow button"
 Click (Text:"Untitled",CaseSensitive:"yes")
 Click "plus file"
 Click "red stripe"
@@ -24,15 +24,15 @@ end if
 DoubleClick (ImageLocation(Text:"void createDocument",CaseSensitive:"yes",ValidCharacters:"*",dpi:94)) + (offset,0)
 Click "run button"
 set the SearchRectangle to ((100,400),(500,800))
-WaitFor 10,"debug line indicator"
+util.xWaitFor 10,"debug line indicator"
 set the SearchRectangle to ()
 
 Click "step into icon"
-Wait 2
+util.xWait 2
 Click "step out icon"
-Wait 2
+util.xWait 2
 Click "step over icon"
-Wait 2
+util.xWait 2
 Click "stop debug button"
 
 DoubleClick (ImageLocation(Text:"void createDocument",CaseSensitive:"yes",ValidCharacters:"*",dpi:94)) + (offset,0)

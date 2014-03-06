@@ -1,30 +1,32 @@
 util.init
 util.openWelcomePage
 Click "todoMVC icon"
-WaitFor 60, "pubspec lock"
-Wait 5 (* let analysis finish *)
+util.xWaitFor 60, "pubspec lock"
+util.xWait 5 (* let analysis finish *)
 Click "run button"
-WaitFor 20, "browser right arrow button"
+util.xWaitFor 20, "browser right arrow button"
 Click "browser right arrow button"
-WaitFor 20,"todo title"
+util.xWaitFor 20,"todo title"
 put ImageRectangle("todo title") into todoRect
 Click center(todoRect)
 (*Click "todo title"*)
 put bottomLeft(todoRect) - (200,0) into UL
-put UL + (500,400) into BR
+put UL + (500,200) into BR
 set the searchRectangle to (UL,BR)
 Click (Text:"needs to",CaseSensitive:"yes",ValidCharacters:"*")
-Wait 0.5
+util.xWait 0.5
 TypeText "something"
-Wait 0.5
+util.xWait 0.5
 util.newline
-Wait 0.5
+util.xWait 0.5
+put UL + (100,200) into BR
+set the searchRectangle to (UL,BR)
 put ImageRectangle("check mark") into checkRect
 Click center(checkRect)
 put bottomRight(checkRect) into UL
 put UL + (500,75) into BR
 set the searchRectangle to (UL,BR)
-WaitFor 5, (Text:"Clear",CaseSensitive:"yes",ValidCharacters:"*",dpi:94)
+util.xWaitFor 5, (Text:"Clear",CaseSensitive:"yes",ValidCharacters:"*",dpi:94)
 Click (Text:"Clear",CaseSensitive:"yes",ValidCharacters:"*",dpi:94)
 set the searchRectangle to ()
 util.exitChromium

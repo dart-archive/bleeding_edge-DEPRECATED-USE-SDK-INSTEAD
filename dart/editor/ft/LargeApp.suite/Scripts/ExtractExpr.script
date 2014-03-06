@@ -7,7 +7,7 @@ util.activateEditor
 util.openFind
 TypeText "non-nullness"
 TypeText escape
-Wait 5
+util.xWait 5
 TypeText downArrow,downArrow,downArrow
 TypeText rightArrow
 TypeText shiftKey,downArrow
@@ -17,6 +17,6 @@ TypeText shiftKey,downArrow
 util.selectMenuItem "Refactor", "Extract Method"
 TypeText "makeString"
 TypeText enter
-Wait 5
+util.xWait 5
 Click "makeString item"
-WaitFor 2, "makeString selection"
+util.xWaitFor 2, "makeString selection"

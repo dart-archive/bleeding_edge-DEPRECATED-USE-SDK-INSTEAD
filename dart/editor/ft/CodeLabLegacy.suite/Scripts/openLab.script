@@ -2,24 +2,24 @@ util.init
 Run "open codelab file search"
 put param(1) into n
 repeat n
-	Wait 0.1
+	util.xWait 0.1
 	TypeText downArrow
 end repeat
-Wait 0.5
+util.xWait 0.5
 util.newline
 if (util's isLinux) then
-	Wait 0.5
+	util.xWait 0.5
 	TypeText return
 end if
-Wait 30
+util.xWait 30
 (* Sometimes the Output view gets focus; select the new project *)
 Click (200,200)
 put (0,0) into UL
 put UL + (200,200) into BR
 set the SearchRectangle to (UL,BR)
-Wait 2
+util.xWait 2
 Click (Text:"io-2013-codelab",CaseSensitive:"yes",ValidCharacters:"*")
 set the SearchRectangle to ()
 util.expandTreeNode
-WaitFor 30, "pubspec lock"
+util.xWaitFor 30, "pubspec lock"
 (* Do not run "check problems" here because analysis may not have finished *)
