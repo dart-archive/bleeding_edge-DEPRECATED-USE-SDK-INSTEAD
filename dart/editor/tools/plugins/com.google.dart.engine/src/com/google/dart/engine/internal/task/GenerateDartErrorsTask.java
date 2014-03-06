@@ -144,7 +144,7 @@ public class GenerateDartErrorsTask extends AnalysisTask {
           typeProvider,
           new InheritanceManager(libraryElement));
       unit.accept(errorVerifier);
-      errors = errorListener.getErrors(source);
+      errors = errorListener.getErrorsForSource(source);
     } finally {
       timeCounter.stop();
     }

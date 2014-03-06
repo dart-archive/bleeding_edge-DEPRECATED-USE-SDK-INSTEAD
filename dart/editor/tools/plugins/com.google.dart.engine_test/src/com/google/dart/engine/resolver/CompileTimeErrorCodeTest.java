@@ -105,10 +105,10 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "library L;",
         "export 'lib1.dart';",
         "export 'lib2.dart';"));
-    addSource("/lib1.dart", createSource(//
+    addNamedSource("/lib1.dart", createSource(//
         "library lib1;",
         "class N {}"));
-    addSource("/lib2.dart", createSource(//
+    addNamedSource("/lib2.dart", createSource(//
         "library lib2;",
         "class N {}"));
     resolve(source);
@@ -121,10 +121,10 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "import 'lib1.dart';",
         "import 'lib2.dart';",
         "g() { return f(); }"));
-    addSource("/lib1.dart", createSource(//
+    addNamedSource("/lib1.dart", createSource(//
         "library lib1;",
         "f() {}"));
-    addSource("/lib2.dart", createSource(//
+    addNamedSource("/lib2.dart", createSource(//
         "library lib2;",
         "f() {}"));
     resolve(source);
@@ -713,8 +713,8 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_constWithNonType_fromLibrary() throws Exception {
-    Source source1 = addSource("lib.dart", "");
-    Source source2 = addSource("lib2.dart", createSource(//
+    Source source1 = addNamedSource("lib.dart", "");
+    Source source2 = addNamedSource("lib2.dart", createSource(//
         "import 'lib.dart' as lib;",
         "void f() {",
         "  const lib.A();",
@@ -857,16 +857,16 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_duplicateDefinition_acrossLibraries() throws Exception {
-    Source librarySource = addSource("/lib.dart", createSource(//
+    Source librarySource = addNamedSource("/lib.dart", createSource(//
         "library lib;",
         "",
         "part 'a.dart';",
         "part 'b.dart';"));
-    Source sourceA = addSource("/a.dart", createSource(//
+    Source sourceA = addNamedSource("/a.dart", createSource(//
         "part of lib;",
         "",
         "class A {}"));
-    Source sourceB = addSource("/b.dart", createSource(//
+    Source sourceB = addNamedSource("/b.dart", createSource(//
         "part of lib;",
         "",
         "class A {}"));
@@ -1045,7 +1045,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
         "library L;",
         "export 'lib1.dart';"));
-    addSource("/lib1.dart", createSource(//
+    addNamedSource("/lib1.dart", createSource(//
         "part of lib;"));
     resolve(source);
     assertErrors(source, CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY);
@@ -1592,7 +1592,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "library lib;",
         "import 'part.dart';",
         "A a;"));
-    addSource("/part.dart", createSource(//
+    addNamedSource("/part.dart", createSource(//
         "part of lib;",
         "class A{}"));
     resolve(source);
@@ -1761,7 +1761,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_invalidAnnotation_importWithPrefix_getter() throws Exception {
-    addSource("/lib.dart", createSource(//
+    addNamedSource("/lib.dart", createSource(//
         "library lib;",
         "get V => 0;"));
     Source source = addSource(createSource(//
@@ -1775,7 +1775,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_invalidAnnotation_importWithPrefix_notConstantVariable() throws Exception {
-    addSource("/lib.dart", createSource(//
+    addNamedSource("/lib.dart", createSource(//
         "library lib;",
         "final V = 0;"));
     Source source = addSource(createSource(//
@@ -1790,7 +1790,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
 
   public void test_invalidAnnotation_importWithPrefix_notVariableOrConstructorInvocation()
       throws Exception {
-    addSource("/lib.dart", createSource(//
+    addNamedSource("/lib.dart", createSource(//
         "library lib;",
         "typedef V();"));
     Source source = addSource(createSource(//
@@ -2731,7 +2731,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
         "library l1;",
         "part 'l2.dart';"));
-    addSource("/l2.dart", createSource(//
+    addNamedSource("/l2.dart", createSource(//
         "library l2;"));
     resolve(source);
     assertErrors(source, CompileTimeErrorCode.PART_OF_NON_PART);
@@ -2739,7 +2739,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_prefixCollidesWithTopLevelMembers_functionTypeAlias() throws Exception {
-    addSource("/lib.dart", createSource(//
+    addNamedSource("/lib.dart", createSource(//
         "library lib;",
         "class A{}"));
     Source source = addSource(createSource(//
@@ -2752,7 +2752,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_prefixCollidesWithTopLevelMembers_topLevelFunction() throws Exception {
-    addSource("/lib.dart", createSource(//
+    addNamedSource("/lib.dart", createSource(//
         "library lib;",
         "class A{}"));
     Source source = addSource(createSource(//
@@ -2765,7 +2765,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_prefixCollidesWithTopLevelMembers_topLevelVariable() throws Exception {
-    addSource("/lib.dart", createSource(//
+    addNamedSource("/lib.dart", createSource(//
         "library lib;",
         "class A{}"));
     Source source = addSource(createSource(//
@@ -2778,7 +2778,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_prefixCollidesWithTopLevelMembers_type() throws Exception {
-    addSource("/lib.dart", createSource(//
+    addNamedSource("/lib.dart", createSource(//
         "library lib;",
         "class A{}"));
     Source source = addSource(createSource(//
@@ -3485,7 +3485,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
         "import 'lib.dart' as f;",
         "main() { return f(); }"));
-    addSource("/lib.dart", "library lib;");
+    addNamedSource("/lib.dart", "library lib;");
     resolve(source);
     assertErrors(source, CompileTimeErrorCode.UNDEFINED_FUNCTION);
   }

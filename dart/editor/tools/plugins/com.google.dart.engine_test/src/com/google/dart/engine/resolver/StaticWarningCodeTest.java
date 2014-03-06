@@ -57,10 +57,10 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "import 'lib1.dart';",
         "import 'lib2.dart';",
         "f(p) {p as N;}"));
-    addSource("/lib1.dart", createSource(//
+    addNamedSource("/lib1.dart", createSource(//
         "library lib1;",
         "class N {}"));
-    addSource("/lib2.dart", createSource(//
+    addNamedSource("/lib2.dart", createSource(//
         "library lib2;",
         "class N {}"));
     resolve(source);
@@ -72,10 +72,10 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "import 'lib1.dart';",
         "import 'lib2.dart';",
         "class A extends N {}"));
-    addSource("/lib1.dart", createSource(//
+    addNamedSource("/lib1.dart", createSource(//
         "library lib1;",
         "class N {}"));
-    addSource("/lib2.dart", createSource(//
+    addNamedSource("/lib2.dart", createSource(//
         "library lib2;",
         "class N {}"));
     resolve(source);
@@ -87,10 +87,10 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "import 'lib1.dart';",
         "import 'lib2.dart';",
         "class A implements N {}"));
-    addSource("/lib1.dart", createSource(//
+    addNamedSource("/lib1.dart", createSource(//
         "library lib1;",
         "class N {}"));
-    addSource("/lib2.dart", createSource(//
+    addNamedSource("/lib2.dart", createSource(//
         "library lib2;",
         "class N {}"));
     resolve(source);
@@ -106,13 +106,13 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "import 'lib1.dart';",
         "import 'lib2.dart';",
         "part 'part.dart';"));
-    addSource("/lib1.dart", createSource(//
+    addNamedSource("/lib1.dart", createSource(//
         "library lib1;",
         "class N {}"));
-    addSource("/lib2.dart", createSource(//
+    addNamedSource("/lib2.dart", createSource(//
         "library lib2;",
         "class N {}"));
-    Source partSource = addSource("/part.dart", createSource(//
+    Source partSource = addNamedSource("/part.dart", createSource(//
         "part of lib;",
         "class A extends N {}"));
     resolve(source);
@@ -128,10 +128,10 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "import 'lib1.dart';",
         "import 'lib2.dart';",
         "f() {new N();}"));
-    addSource("/lib1.dart", createSource(//
+    addNamedSource("/lib1.dart", createSource(//
         "library lib1;",
         "class N {}"));
-    addSource("/lib2.dart", createSource(//
+    addNamedSource("/lib2.dart", createSource(//
         "library lib2;",
         "class N {}"));
     resolve(source);
@@ -143,10 +143,10 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "import 'lib1.dart';",
         "import 'lib2.dart';",
         "f(p) {p is N;}"));
-    addSource("/lib1.dart", createSource(//
+    addNamedSource("/lib1.dart", createSource(//
         "library lib1;",
         "class N {}"));
-    addSource("/lib2.dart", createSource(//
+    addNamedSource("/lib2.dart", createSource(//
         "library lib2;",
         "class N {}"));
     resolve(source);
@@ -158,10 +158,10 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "import 'lib1.dart';",
         "import 'lib2.dart';",
         "g() { N.FOO; }"));
-    addSource("/lib1.dart", createSource(//
+    addNamedSource("/lib1.dart", createSource(//
         "library lib1;",
         "class N {}"));
-    addSource("/lib2.dart", createSource(//
+    addNamedSource("/lib2.dart", createSource(//
         "library lib2;",
         "class N {}"));
     resolve(source);
@@ -181,10 +181,10 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "  N m() { return null; }",
         "}",
         "class B<T extends N> {}"));
-    addSource("/lib1.dart", createSource(//
+    addNamedSource("/lib1.dart", createSource(//
         "library lib1;",
         "class N {}"));
-    addSource("/lib2.dart", createSource(//
+    addNamedSource("/lib2.dart", createSource(//
         "library lib2;",
         "class N {}"));
     resolve(source);
@@ -205,10 +205,10 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "import 'lib2.dart';",
         "class A<T> {}",
         "A<N> f() { return null; }"));
-    addSource("/lib1.dart", createSource(//
+    addNamedSource("/lib1.dart", createSource(//
         "library lib1;",
         "class N {}"));
-    addSource("/lib2.dart", createSource(//
+    addNamedSource("/lib2.dart", createSource(//
         "library lib2;",
         "class N {}"));
     resolve(source);
@@ -221,10 +221,10 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "import 'lib2.dart';",
         "class A<T> {}",
         "f() {new A<N>();}"));
-    addSource("/lib1.dart", createSource(//
+    addNamedSource("/lib1.dart", createSource(//
         "library lib1;",
         "class N {}"));
-    addSource("/lib2.dart", createSource(//
+    addNamedSource("/lib2.dart", createSource(//
         "library lib2;",
         "class N {}"));
     resolve(source);
@@ -237,10 +237,10 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "import 'lib2.dart';",
         "f() { g(v); }",
         "g(p) {}"));
-    addSource("/lib1.dart", createSource(//
+    addNamedSource("/lib1.dart", createSource(//
         "library lib1;",
         "var v;"));
-    addSource("/lib2.dart", createSource(//
+    addNamedSource("/lib2.dart", createSource(//
         "library lib2;",
         "var v;"));
     resolve(source);
@@ -252,10 +252,10 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "import 'lib1.dart';",
         "import 'lib2.dart';",
         "f() { v = 0; }"));
-    addSource("/lib1.dart", createSource(//
+    addNamedSource("/lib1.dart", createSource(//
         "library lib1;",
         "var v;"));
-    addSource("/lib2.dart", createSource(//
+    addNamedSource("/lib2.dart", createSource(//
         "library lib2;",
         "var v;"));
     resolve(source);
@@ -772,7 +772,7 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "import 'dart:async';",
         "Future f = null;",
         "Stream s;"));
-    addSource("/lib.dart", createSource(//
+    addNamedSource("/lib.dart", createSource(//
         "library lib;",
         "class Future {}"));
     resolve(source);
@@ -1022,8 +1022,8 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "library test;",
         "export 'lib1.dart';",
         "export 'lib2.dart';"));
-    addSource("/lib1.dart", "library lib;");
-    addSource("/lib2.dart", "library lib;");
+    addNamedSource("/lib1.dart", "library lib;");
+    addNamedSource("/lib2.dart", "library lib;");
     resolve(source);
     assertErrors(source, StaticWarningCode.EXPORT_DUPLICATED_LIBRARY_NAME);
     verify(source);
@@ -1200,8 +1200,8 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "library test;",
         "import 'lib1.dart';",
         "import 'lib2.dart';"));
-    addSource("/lib1.dart", "library lib;");
-    addSource("/lib2.dart", "library lib;");
+    addNamedSource("/lib1.dart", "library lib;");
+    addNamedSource("/lib2.dart", "library lib;");
     resolve(source);
     assertErrors(
         source,
@@ -1863,8 +1863,8 @@ public class StaticWarningCodeTest extends ResolverTestCase {
   }
 
   public void test_newWithNonType_fromLibrary() throws Exception {
-    Source source1 = addSource("lib.dart", "class B {}");
-    Source source2 = addSource("lib2.dart", createSource(//
+    Source source1 = addNamedSource("lib.dart", "class B {}");
+    Source source2 = addNamedSource("lib2.dart", createSource(//
         "import 'lib.dart' as lib;",
         "void f() {",
         "  var a = new lib.A();",
@@ -2232,7 +2232,7 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
         "library lib;",
         "part 'part.dart';"));
-    addSource("/part.dart", createSource(//
+    addNamedSource("/part.dart", createSource(//
         "part of lub;"));
     resolve(source);
     assertErrors(source, StaticWarningCode.PART_OF_DIFFERENT_LIBRARY);
@@ -2506,8 +2506,8 @@ public class StaticWarningCodeTest extends ResolverTestCase {
   }
 
   public void test_undefinedGetter_fromLibrary() throws Exception {
-    Source source1 = addSource("lib.dart", "");
-    Source source2 = addSource("lib2.dart", createSource(//
+    Source source1 = addNamedSource("lib.dart", "");
+    Source source2 = addNamedSource("lib2.dart", createSource(//
         "import 'lib.dart' as lib;",
         "void f() {",
         "  var g = lib.gg;",
@@ -2536,7 +2536,7 @@ public class StaticWarningCodeTest extends ResolverTestCase {
   }
 
   public void test_undefinedIdentifier_function_prefix() throws Exception {
-    addSource("/lib.dart", createSource(//
+    addNamedSource("/lib.dart", createSource(//
         "library lib;",
         "class C {}"));
     Source source = addSource(createSource(//
@@ -2557,7 +2557,7 @@ public class StaticWarningCodeTest extends ResolverTestCase {
   }
 
   public void test_undefinedIdentifier_initializer_prefix() throws Exception {
-    addSource("/lib.dart", createSource(//
+    addNamedSource("/lib.dart", createSource(//
         "library lib;",
         "class C {}"));
     Source source = addSource(createSource(//
@@ -2577,7 +2577,7 @@ public class StaticWarningCodeTest extends ResolverTestCase {
   }
 
   public void test_undefinedIdentifier_private_getter() throws Exception {
-    addSource("/lib.dart", createSource(//
+    addNamedSource("/lib.dart", createSource(//
         "library lib;",
         "class A {",
         "  var _foo;",
@@ -2594,7 +2594,7 @@ public class StaticWarningCodeTest extends ResolverTestCase {
   }
 
   public void test_undefinedIdentifier_private_setter() throws Exception {
-    addSource("/lib.dart", createSource(//
+    addNamedSource("/lib.dart", createSource(//
         "library lib;",
         "class A {",
         "  var _foo;",
@@ -2622,8 +2622,8 @@ public class StaticWarningCodeTest extends ResolverTestCase {
   }
 
   public void test_undefinedSetter() throws Exception {
-    Source source1 = addSource("lib.dart", "");
-    Source source2 = addSource("lib2.dart", createSource(//
+    Source source1 = addNamedSource("lib.dart", "");
+    Source source2 = addNamedSource("lib2.dart", createSource(//
         "import 'lib.dart' as lib;",
         "void f() {",
         "  lib.gg = null;",

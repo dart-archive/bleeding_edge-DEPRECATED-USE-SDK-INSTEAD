@@ -126,7 +126,7 @@ public class ResolveHtmlTask extends AnalysisTask {
     element = builder.buildHtmlElement(source, modificationTime, unit);
     RecordingErrorListener errorListener = builder.getErrorListener();
     // record all resolution errors
-    resolutionErrors = errorListener.getErrors(source);
+    resolutionErrors = errorListener.getErrorsForSource(source);
     // remember resolved unit
     resolvedUnit = unit;
   }

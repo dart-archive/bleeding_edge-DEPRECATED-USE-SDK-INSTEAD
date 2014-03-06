@@ -69,7 +69,7 @@ public class NonHintCodeTest extends ResolverTestCase {
         "f() {",
         "  if(A.DEBUG) {}",
         "}"));
-    addSource("/lib2.dart", createSource(//
+    addNamedSource("/lib2.dart", createSource(//
         "library lib2;",
         "class A {",
         "  static const bool DEBUG = false;",
@@ -86,7 +86,7 @@ public class NonHintCodeTest extends ResolverTestCase {
         "f() {",
         "  if(LIB.A.DEBUG) {}",
         "}"));
-    addSource("/lib2.dart", createSource(//
+    addNamedSource("/lib2.dart", createSource(//
         "library lib2;",
         "class A {",
         "  static const bool DEBUG = false;",
@@ -192,7 +192,7 @@ public class NonHintCodeTest extends ResolverTestCase {
         "import 'lib1.dart' as one;",
         "A a;",
         "one.A a2;"));
-    addSource("/lib1.dart", createSource(//
+    addNamedSource("/lib1.dart", createSource(//
         "library lib1;",
         "class A {}"));
     resolve(source);
@@ -207,7 +207,7 @@ public class NonHintCodeTest extends ResolverTestCase {
         "import 'lib1.dart' hide A;",
         "A a;",
         "B b;"));
-    addSource("/lib1.dart", createSource(//
+    addNamedSource("/lib1.dart", createSource(//
         "library lib1;",
         "class A {}",
         "class B {}"));
@@ -223,7 +223,7 @@ public class NonHintCodeTest extends ResolverTestCase {
         "import 'lib1.dart' show A;",
         "A a;",
         "B b;"));
-    addSource("/lib1.dart", createSource(//
+    addNamedSource("/lib1.dart", createSource(//
         "library lib1;",
         "class A {}",
         "class B {}"));
@@ -635,7 +635,7 @@ public class NonHintCodeTest extends ResolverTestCase {
         "library L;",
         "@A()",
         "import 'lib1.dart';"));
-    Source source2 = addSource("/lib1.dart", createSource(//
+    Source source2 = addNamedSource("/lib1.dart", createSource(//
         "library lib1;",
         "class A {",
         "  const A() {}",
@@ -659,11 +659,11 @@ public class NonHintCodeTest extends ResolverTestCase {
         "library L;",
         "import 'lib1.dart';",
         "Two two;"));
-    addSource("/lib1.dart", createSource(//
+    addNamedSource("/lib1.dart", createSource(//
         "library lib1;",
         "export 'lib2.dart';",
         "class One {}"));
-    addSource("/lib2.dart", createSource(//
+    addNamedSource("/lib2.dart", createSource(//
         "library lib2;",
         "class Two {}"));
     resolve(source);
@@ -676,15 +676,15 @@ public class NonHintCodeTest extends ResolverTestCase {
         "library L;",
         "import 'lib1.dart';",
         "Two two;"));
-    addSource("/lib1.dart", createSource(//
+    addNamedSource("/lib1.dart", createSource(//
         "library lib1;",
         "export 'lib2.dart';",
         "class One {}"));
-    addSource("/lib2.dart", createSource(//
+    addNamedSource("/lib2.dart", createSource(//
         "library lib2;",
         "export 'lib3.dart';",
         "class Two {}"));
-    addSource("/lib3.dart", createSource(//
+    addNamedSource("/lib3.dart", createSource(//
         "library lib3;",
         "export 'lib2.dart';",
         "class Three {}"));
@@ -698,15 +698,15 @@ public class NonHintCodeTest extends ResolverTestCase {
         "library L;",
         "import 'lib1.dart';",
         "Three three;"));
-    addSource("/lib1.dart", createSource(//
+    addNamedSource("/lib1.dart", createSource(//
         "library lib1;",
         "export 'lib2.dart';",
         "class One {}"));
-    addSource("/lib2.dart", createSource(//
+    addNamedSource("/lib2.dart", createSource(//
         "library lib2;",
         "export 'lib3.dart';",
         "class Two {}"));
-    addSource("/lib3.dart", createSource(//
+    addNamedSource("/lib3.dart", createSource(//
         "library lib3;",
         "class Three {}"));
     resolve(source);
@@ -725,7 +725,7 @@ public class NonHintCodeTest extends ResolverTestCase {
         "    one.topLevelFunction();",
         "  }",
         "}"));
-    addSource("/lib1.dart", createSource(//
+    addNamedSource("/lib1.dart", createSource(//
         "library lib1;",
         "class One {}",
         "topLevelFunction() {}"));

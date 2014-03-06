@@ -46,13 +46,13 @@ public class AngularHtmlUnitUtilsTest extends AngularTest {
     resolveSimpleCtrlFieldHtml();
     // no expression
     {
-      Element element = HtmlUnitUtils.getElement(indexUnit, 0);
+      Element element = HtmlUnitUtils.getElementAtOffset(indexUnit, 0);
       assertNull(element);
     }
     // has expression at offset
     {
       int offset = indexContent.indexOf("field");
-      Element element = HtmlUnitUtils.getElement(indexUnit, offset);
+      Element element = HtmlUnitUtils.getElementAtOffset(indexUnit, offset);
       assertInstanceOf(PropertyAccessorElement.class, element);
       assertEquals("field", element.getName());
     }

@@ -101,7 +101,7 @@ public class FunctionTypeAliasElementImpl extends ElementImpl implements Functio
 
   @Override
   public FunctionTypeAlias getNode() throws AnalysisException {
-    return getNode(FunctionTypeAlias.class);
+    return getNodeMatching(FunctionTypeAlias.class);
   }
 
   @Override

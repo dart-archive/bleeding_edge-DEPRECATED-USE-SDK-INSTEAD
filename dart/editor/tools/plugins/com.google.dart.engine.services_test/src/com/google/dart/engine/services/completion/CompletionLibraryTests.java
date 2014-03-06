@@ -35,7 +35,7 @@ public class CompletionLibraryTests extends CompletionTestCase {
 
   public void test_export_showIfImportLibraryWithExport() throws Exception {
     ArrayList<Source> sources = new ArrayList<Source>();
-    sources.add(addSource(//
+    sources.add(addNamedSource(//
         "/lib.dart",
         src(//
             "library lib;",
@@ -82,7 +82,7 @@ public class CompletionLibraryTests extends CompletionTestCase {
 
   public void test_noPrivateElement_otherLibrary_constructor() throws Exception {
     ArrayList<Source> sources = new ArrayList<Source>();
-    sources.add(addSource(//
+    sources.add(addNamedSource(//
         "/lib.dart",
         src(//
             "library lib;",
@@ -104,7 +104,7 @@ public class CompletionLibraryTests extends CompletionTestCase {
 
   public void test_noPrivateElement_otherLibrary_member() throws Exception {
     ArrayList<Source> sources = new ArrayList<Source>();
-    sources.add(addSource(//
+    sources.add(addNamedSource(//
         "/lib.dart",
         src(//
             "library lib;",
@@ -126,7 +126,7 @@ public class CompletionLibraryTests extends CompletionTestCase {
 
   public void test001() throws Exception {
     ArrayList<Source> sources = new ArrayList<Source>();
-    sources.add(addSource(//
+    sources.add(addNamedSource(//
         "/firth.dart",
         src(//
             "library firth;",
@@ -183,33 +183,33 @@ public class CompletionLibraryTests extends CompletionTestCase {
     ArrayList<Source> sources = new ArrayList<Source>();
     // Exercise import and export handling.
     // Libraries are defined in partial order of increasing dependency.
-    sources.add(addSource(//
+    sources.add(addNamedSource(//
         "/exp2a.dart",
         src(//
             "library exp2a;",
             "e2a() {}",
             "")));
-    sources.add(addSource(//
+    sources.add(addNamedSource(//
         "/exp1b.dart",
         src(//
             "library exp1b;",
             "e1b() {}",
             "")));
-    sources.add(addSource(//
+    sources.add(addNamedSource(//
         "/exp1a.dart",
         src(//
             "library exp1a;",
             "export 'exp1b.dart';",
             "e1a() {}",
             "")));
-    sources.add(addSource(//
+    sources.add(addNamedSource(//
         "/imp1.dart",
         src(//
             "library imp1;",
             "export 'exp1a.dart';",
             "i1() {}",
             "")));
-    sources.add(addSource(//
+    sources.add(addNamedSource(//
         "/imp2.dart",
         src(//
             "library imp2;",
@@ -239,7 +239,7 @@ public class CompletionLibraryTests extends CompletionTestCase {
     ArrayList<Source> sources = new ArrayList<Source>();
     // Exercise import and export handling.
     // Libraries are defined in partial order of increasing dependency.
-    sources.add(addSource(//
+    sources.add(addNamedSource(//
         "/l1.dart",
         src(//
             "library l1;",
@@ -261,7 +261,7 @@ public class CompletionLibraryTests extends CompletionTestCase {
   public void test008() throws Exception {
     ArrayList<Source> sources = new ArrayList<Source>();
     // Check private library exclusion
-    sources.add(addSource(//
+    sources.add(addNamedSource(//
         "/public.dart",
         src(//
             "library public;",
@@ -269,7 +269,7 @@ public class CompletionLibraryTests extends CompletionTestCase {
             "  void publicMethod() {",
             "  }",
             "}")));
-    sources.add(addSource(//
+    sources.add(addNamedSource(//
         "/private.dart",
         src(//
             "library _private;",
@@ -296,7 +296,7 @@ public class CompletionLibraryTests extends CompletionTestCase {
   public void test009() throws Exception {
     ArrayList<Source> sources = new ArrayList<Source>();
     // Exercise library prefixes.
-    sources.add(addSource(//
+    sources.add(addNamedSource(//
         "/lib.dart",
         src(//
             "library lib;",

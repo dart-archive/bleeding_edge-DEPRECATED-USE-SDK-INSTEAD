@@ -169,11 +169,11 @@ public abstract class AbstractScanner {
     return token;
   }
 
-  private Token emit(TokenType type, int start) {
+  private Token emitWithOffset(TokenType type, int start) {
     return emit(new Token(type, start));
   }
 
-  private Token emit(TokenType type, int start, int count) {
+  private Token emitWithOffsetAndLength(TokenType type, int start, int count) {
     return emit(new Token(type, start, getString(start, count)));
   }
 
@@ -228,7 +228,7 @@ public abstract class AbstractScanner {
               }
               c = recordStartOfLineAndAdvance(c);
             }
-            emit(COMMENT, start, -1);
+            emitWithOffsetAndLength(COMMENT, start, -1);
             // Capture <!--> and <!---> as tokens but report an error
             if (tail.getLength() < 7) {
               // TODO (danrubel): Report invalid HTML comment
@@ -243,7 +243,7 @@ public abstract class AbstractScanner {
               }
               c = recordStartOfLineAndAdvance(c);
             }
-            emit(DECLARATION, start, -1);
+            emitWithOffsetAndLength(DECLARATION, start, -1);
             if (!StringUtilities.endsWithChar(tail.getLexeme(), '>')) {
               // TODO (danrubel): Report missing '>' in directive
             }
@@ -262,19 +262,19 @@ public abstract class AbstractScanner {
               c = recordStartOfLineAndAdvance(c);
             }
           }
-          emit(DIRECTIVE, start, -1);
+          emitWithOffsetAndLength(DIRECTIVE, start, -1);
           if (tail.getLength() < 4) {
             // TODO (danrubel): Report invalid directive
           }
 
         } else if (c == '/') {
-          emit(LT_SLASH, start);
+          emitWithOffset(LT_SLASH, start);
           inBrackets = true;
           c = advance();
 
         } else {
           inBrackets = true;
-          emit(LT, start);
+          emitWithOffset(LT, start);
           // ignore whitespace in braces
           while (Character.isWhitespace(c)) {
             c = recordStartOfLineAndAdvance(c);
@@ -286,7 +286,7 @@ public abstract class AbstractScanner {
             while (Character.isLetterOrDigit(c) || c == '-' || c == '_') {
               c = advance();
             }
-            emit(TAG, tagStart, -1);
+            emitWithOffsetAndLength(TAG, tagStart, -1);
             // check tag against passThrough elements
             String tag = tail.getLexeme();
             for (String str : passThroughElements) {
@@ -300,7 +300,7 @@ public abstract class AbstractScanner {
         }
 
       } else if (c == '>') {
-        emit(GT, start);
+        emitWithOffset(GT, start);
         inBrackets = false;
         c = advance();
 
@@ -330,11 +330,11 @@ public abstract class AbstractScanner {
           }
           if (start + 1 < getOffset()) {
             if (endFound) {
-              emit(TEXT, start + 1, -len);
-              emit(LT_SLASH, getOffset() - len + 1);
-              emit(TAG, getOffset() - len + 3, -1);
+              emitWithOffsetAndLength(TEXT, start + 1, -len);
+              emitWithOffset(LT_SLASH, getOffset() - len + 1);
+              emitWithOffsetAndLength(TAG, getOffset() - len + 3, -1);
             } else {
-              emit(TEXT, start + 1, -1);
+              emitWithOffsetAndLength(TEXT, start + 1, -1);
             }
           }
           endPassThrough = null;
@@ -342,7 +342,7 @@ public abstract class AbstractScanner {
 
       } else if (c == '/' && peek() == '>') {
         advance();
-        emit(SLASH_GT, start);
+        emitWithOffset(SLASH_GT, start);
         inBrackets = false;
         c = advance();
 
@@ -351,7 +351,7 @@ public abstract class AbstractScanner {
         while (c != '<' && c >= 0) {
           c = recordStartOfLineAndAdvance(c);
         }
-        emit(TEXT, start, -1);
+        emitWithOffsetAndLength(TEXT, start, -1);
 
       } else if (c == '"' || c == '\'') {
         // read a string
@@ -364,11 +364,11 @@ public abstract class AbstractScanner {
           }
           c = recordStartOfLineAndAdvance(c);
         }
-        emit(STRING, start, -1);
+        emitWithOffsetAndLength(STRING, start, -1);
 
       } else if (c == '=') {
         // a non-char token
-        emit(EQ, start);
+        emitWithOffset(EQ, start);
         c = advance();
 
       } else if (Character.isWhitespace(c)) {
@@ -382,11 +382,11 @@ public abstract class AbstractScanner {
         while (Character.isLetterOrDigit(c) || c == '-' || c == '_') {
           c = advance();
         }
-        emit(TAG, start, -1);
+        emitWithOffsetAndLength(TAG, start, -1);
 
       } else {
         // a non-char token
-        emit(TEXT, start, 0);
+        emitWithOffsetAndLength(TEXT, start, 0);
         c = advance();
 
       }

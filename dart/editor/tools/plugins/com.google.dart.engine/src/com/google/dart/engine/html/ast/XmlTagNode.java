@@ -343,12 +343,12 @@ public class XmlTagNode extends XmlNode {
   }
 
   /**
-   * Same as {@link #becomeParentOf(List)}, but returns given "ifEmpty" if "children" is empty
+   * Same as {@link #becomeParentOfAll(List)}, but returns given "ifEmpty" if "children" is empty
    */
   protected <T extends XmlNode> List<T> becomeParentOf(List<T> children, List<T> ifEmpty) {
     if (children != null && children.isEmpty()) {
       return ifEmpty;
     }
-    return becomeParentOf(children);
+    return becomeParentOfAll(children);
   }
 }

@@ -85,12 +85,12 @@ public class ConstantValueComputerTest extends ResolverTestCase {
   }
 
   public void test_computeValues_multipleSources() throws Exception {
-    Source librarySource = addSource("/lib.dart", createSource(//
+    Source librarySource = addNamedSource("/lib.dart", createSource(//
         "library lib;",
         "part 'part.dart';",
         "const int c = b;",
         "const int a = 0;"));
-    Source partSource = addSource("/part.dart", createSource(//
+    Source partSource = addNamedSource("/part.dart", createSource(//
         "part of lib;",
         "const int b = a;",
         "const int d = c;"));

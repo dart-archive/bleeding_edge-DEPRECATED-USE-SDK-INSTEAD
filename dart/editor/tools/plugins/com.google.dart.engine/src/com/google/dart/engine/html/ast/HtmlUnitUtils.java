@@ -79,7 +79,7 @@ public class HtmlUnitUtils {
    * Returns the {@link Element} of the {@link Expression} in the given {@link HtmlUnit}, enclosing
    * the given offset.
    */
-  public static Element getElement(HtmlUnit htmlUnit, int offset) {
+  public static Element getElementAtOffset(HtmlUnit htmlUnit, int offset) {
     Expression expression = getExpression(htmlUnit, offset);
     return getElement(expression);
   }

@@ -121,7 +121,7 @@ public class NamespaceBuilder {
    * @param definedNames the mapping table to which the names in the given namespace are to be added
    * @param namespace the namespace containing the names to be added to this namespace
    */
-  private void addAll(Map<String, Element> definedNames, Map<String, Element> newNames) {
+  private void addAllFromMap(Map<String, Element> definedNames, Map<String, Element> newNames) {
     for (Map.Entry<String, Element> entry : newNames.entrySet()) {
       definedNames.put(entry.getKey(), entry.getValue());
     }
@@ -133,9 +133,9 @@ public class NamespaceBuilder {
    * @param definedNames the mapping table to which the names in the given namespace are to be added
    * @param namespace the namespace containing the names to be added to this namespace
    */
-  private void addAll(Map<String, Element> definedNames, Namespace namespace) {
+  private void addAllFromNamespace(Map<String, Element> definedNames, Namespace namespace) {
     if (namespace != null) {
-      addAll(definedNames, namespace.getDefinedNames());
+      addAllFromMap(definedNames, namespace.getDefinedNames());
     }
   }
 
@@ -242,10 +242,10 @@ public class NamespaceBuilder {
               exportedLibrary,
               visitedElements);
           exportedNames = applyCombinators(exportedNames, element.getCombinators());
-          addAll(definedNames, exportedNames);
+          addAllFromMap(definedNames, exportedNames);
         }
       }
-      addAll(
+      addAllFromNamespace(
           definedNames,
           ((InternalAnalysisContext) library.getContext()).getPublicNamespace(library));
       return definedNames;

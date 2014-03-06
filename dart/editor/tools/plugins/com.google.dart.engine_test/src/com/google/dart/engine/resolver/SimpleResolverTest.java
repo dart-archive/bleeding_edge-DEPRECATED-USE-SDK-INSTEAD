@@ -222,10 +222,10 @@ public class SimpleResolverTest extends ResolverTestCase {
   }
 
   public void test_entryPoint_exported() throws Exception {
-    addSource("/two.dart", createSource(//
+    addNamedSource("/two.dart", createSource(//
         "library two;",
         "main() {}"));
-    Source source = addSource("/one.dart", createSource(//
+    Source source = addNamedSource("/one.dart", createSource(//
         "library one;",
         "export 'two.dart';"));
     LibraryElement library = resolve(source);
@@ -238,7 +238,7 @@ public class SimpleResolverTest extends ResolverTestCase {
   }
 
   public void test_entryPoint_local() throws Exception {
-    Source source = addSource("/one.dart", createSource(//
+    Source source = addNamedSource("/one.dart", createSource(//
         "library one;",
         "main() {}"));
     LibraryElement library = resolve(source);
@@ -251,7 +251,7 @@ public class SimpleResolverTest extends ResolverTestCase {
   }
 
   public void test_entryPoint_none() throws Exception {
-    Source source = addSource("/one.dart", createSource(//
+    Source source = addNamedSource("/one.dart", createSource(//
         "library one;"));
     LibraryElement library = resolve(source);
     assertNotNull(library);
@@ -355,14 +355,14 @@ public class SimpleResolverTest extends ResolverTestCase {
   }
 
   public void test_import_hide() throws Exception {
-    addSource("lib1.dart", createSource(//
+    addNamedSource("lib1.dart", createSource(//
         "library lib1;",
         "set foo(value) {}",
         "class A {}"));
-    addSource("lib2.dart", createSource(//
+    addNamedSource("lib2.dart", createSource(//
         "library lib2;",
         "set foo(value) {}"));
-    Source source = addSource("lib3.dart", createSource(//
+    Source source = addNamedSource("lib3.dart", createSource(//
         "import 'lib1.dart' hide foo;",
         "import 'lib2.dart';",
         "",
@@ -376,12 +376,12 @@ public class SimpleResolverTest extends ResolverTestCase {
   }
 
   public void test_import_prefix() throws Exception {
-    addSource("/two.dart", createSource(//
+    addNamedSource("/two.dart", createSource(//
         "library two;",
         "f(int x) {",
         "  return x * x;",
         "}"));
-    Source source = addSource("/one.dart", createSource(//
+    Source source = addNamedSource("/one.dart", createSource(//
         "library one;",
         "import 'two.dart' as _two;",
         "main() {",
@@ -393,10 +393,10 @@ public class SimpleResolverTest extends ResolverTestCase {
   }
 
   public void test_import_spaceInUri() throws Exception {
-    addSource("sub folder/lib.dart", createSource(//
+    addNamedSource("sub folder/lib.dart", createSource(//
         "library lib;",
         "foo() {}"));
-    Source source = addSource("app.dart", createSource(//
+    Source source = addNamedSource("app.dart", createSource(//
         "import 'sub folder/lib.dart';",
         "",
         "main() {",

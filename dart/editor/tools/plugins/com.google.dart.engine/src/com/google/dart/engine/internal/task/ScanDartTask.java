@@ -146,7 +146,7 @@ public class ScanDartTask extends AnalysisTask {
       scanner.setPreserveComments(getContext().getAnalysisOptions().getPreserveComments());
       tokenStream = scanner.tokenize();
       lineInfo = new LineInfo(scanner.getLineStarts());
-      errors = errorListener.getErrors(source);
+      errors = errorListener.getErrorsForSource(source);
     } catch (Exception exception) {
       throw new AnalysisException(exception);
     } finally {

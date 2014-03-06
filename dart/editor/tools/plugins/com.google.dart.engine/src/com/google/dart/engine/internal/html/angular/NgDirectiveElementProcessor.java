@@ -69,7 +69,7 @@ class NgDirectiveElementProcessor extends NgDirectiveProcessor {
             onNgEventDirective(resolver);
             AngularExpression expression = parseAngularExpression(resolver, attribute);
             resolver.resolveExpression(expression);
-            setExpression(attribute, expression);
+            setAngularExpression(attribute, expression);
           } finally {
             resolver.popNameScope();
           }
@@ -89,7 +89,7 @@ class NgDirectiveElementProcessor extends NgDirectiveProcessor {
   private void onNgEventDirective(AngularHtmlUnitResolver resolver) {
     if (element.isClass("NgEventDirective")) {
       Type dynamicType = resolver.getTypeProvider().getDynamicType();
-      resolver.defineVariable(resolver.createLocalVariable(dynamicType, "$event"));
+      resolver.defineVariable(resolver.createLocalVariableWithName(dynamicType, "$event"));
     }
   }
 }

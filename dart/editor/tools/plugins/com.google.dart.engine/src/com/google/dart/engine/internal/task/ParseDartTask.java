@@ -166,7 +166,7 @@ public class ParseDartTask extends AnalysisTask {
       Parser parser = new Parser(source, errorListener);
       parser.setParseFunctionBodies(context.getAnalysisOptions().getAnalyzeFunctionBodies());
       unit = parser.parseCompilationUnit(tokenStream);
-      errors = errorListener.getErrors(source);
+      errors = errorListener.getErrorsForSource(source);
       for (Directive directive : unit.getDirectives()) {
         if (directive instanceof LibraryDirective) {
           containsLibraryDirective = true;

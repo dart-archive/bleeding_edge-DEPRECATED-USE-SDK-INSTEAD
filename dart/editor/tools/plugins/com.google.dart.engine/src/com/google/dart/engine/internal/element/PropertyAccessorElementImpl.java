@@ -113,10 +113,10 @@ public class PropertyAccessorElementImpl extends ExecutableElementImpl implement
       return null;
     }
     if (getEnclosingElement() instanceof ClassElement) {
-      return getNode(MethodDeclaration.class);
+      return getNodeMatching(MethodDeclaration.class);
     }
     if (getEnclosingElement() instanceof CompilationUnitElement) {
-      return getNode(FunctionDeclaration.class);
+      return getNodeMatching(FunctionDeclaration.class);
     }
     return null;
   }

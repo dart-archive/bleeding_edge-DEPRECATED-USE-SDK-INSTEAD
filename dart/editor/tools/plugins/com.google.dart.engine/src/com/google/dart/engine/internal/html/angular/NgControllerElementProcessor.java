@@ -35,7 +35,7 @@ class NgControllerElementProcessor extends NgProcessor {
   public void apply(AngularHtmlUnitResolver resolver, XmlTagNode node) {
     InterfaceType type = ((ClassElement) element.getEnclosingElement()).getType();
     String name = element.getName();
-    LocalVariableElementImpl variable = resolver.createLocalVariable(type, name);
+    LocalVariableElementImpl variable = resolver.createLocalVariableWithName(type, name);
     resolver.defineVariable(variable);
     variable.setToolkitObjects(new AngularElement[] {element});
   }

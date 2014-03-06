@@ -14,8 +14,8 @@
 package com.google.dart.engine.internal.resolver;
 
 import com.google.dart.engine.EngineTestCase;
-import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.AssignmentExpression;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.BreakStatement;
 import com.google.dart.engine.ast.ConstructorName;
@@ -215,7 +215,7 @@ public class ElementResolverTest extends EngineTestCase {
     SimpleIdentifier array = identifier("a");
     array.setStaticType(classD.getType());
     IndexExpression expression = indexExpression(array, identifier("i"));
-    assertSame(operator, resolve(expression));
+    assertSame(operator, resolveIndexExpression(expression));
     listener.assertNoErrors();
   }
 
@@ -256,7 +256,7 @@ public class ElementResolverTest extends EngineTestCase {
     String label = "loop";
     LabelElementImpl labelElement = new LabelElementImpl(identifier(label), false, false);
     BreakStatement statement = breakStatement(label);
-    assertSame(labelElement, resolve(statement, labelElement));
+    assertSame(labelElement, resolveBreak(statement, labelElement));
     listener.assertNoErrors();
   }
 
@@ -292,7 +292,7 @@ public class ElementResolverTest extends EngineTestCase {
     String label = "loop";
     LabelElementImpl labelElement = new LabelElementImpl(identifier(label), false, false);
     ContinueStatement statement = continueStatement(label);
-    assertSame(labelElement, resolve(statement, labelElement));
+    assertSame(labelElement, resolveContinue(statement, labelElement));
     listener.assertNoErrors();
   }
 
@@ -353,7 +353,7 @@ public class ElementResolverTest extends EngineTestCase {
     SimpleIdentifier array = identifier("a");
     array.setStaticType(classA.getType());
     IndexExpression expression = indexExpression(array, identifier("i"));
-    assertSame(getter, resolve(expression));
+    assertSame(getter, resolveIndexExpression(expression));
     listener.assertNoErrors();
   }
 
@@ -366,7 +366,7 @@ public class ElementResolverTest extends EngineTestCase {
     array.setStaticType(classA.getType());
     IndexExpression expression = indexExpression(array, identifier("i"));
     assignmentExpression(expression, TokenType.EQ, integer(0L));
-    assertSame(setter, resolve(expression));
+    assertSame(setter, resolveIndexExpression(expression));
     listener.assertNoErrors();
   }
 
@@ -633,7 +633,7 @@ public class ElementResolverTest extends EngineTestCase {
 
   public void test_visitSimpleIdentifier_dynamic() throws Exception {
     SimpleIdentifier node = identifier("dynamic");
-    resolve(node);
+    resolveIdentifier(node);
     assertSame(typeProvider.getDynamicType().getElement(), node.getStaticElement());
     assertSame(typeProvider.getTypeType(), node.getStaticType());
     listener.assertNoErrors();
@@ -642,7 +642,7 @@ public class ElementResolverTest extends EngineTestCase {
   public void test_visitSimpleIdentifier_lexicalScope() throws Exception {
     SimpleIdentifier node = identifier("i");
     VariableElementImpl element = localVariableElement(node);
-    assertSame(element, resolve(node, element));
+    assertSame(element, resolveIdentifier(node, element));
     listener.assertNoErrors();
   }
 
@@ -735,7 +735,7 @@ public class ElementResolverTest extends EngineTestCase {
    * @param labelElement the label element to be defined in the statement's label scope
    * @return the element to which the statement's label was resolved
    */
-  private Element resolve(BreakStatement statement, LabelElementImpl labelElement) {
+  private Element resolveBreak(BreakStatement statement, LabelElementImpl labelElement) {
     resolveStatement(statement, labelElement);
     return statement.getLabel().getStaticElement();
   }
@@ -748,7 +748,7 @@ public class ElementResolverTest extends EngineTestCase {
    * @param labelElement the label element to be defined in the statement's label scope
    * @return the element to which the statement's label was resolved
    */
-  private Element resolve(ContinueStatement statement, LabelElementImpl labelElement) {
+  private Element resolveContinue(ContinueStatement statement, LabelElementImpl labelElement) {
     resolveStatement(statement, labelElement);
     return statement.getLabel().getStaticElement();
   }
@@ -762,21 +762,7 @@ public class ElementResolverTest extends EngineTestCase {
    *          being resolved
    * @return the element to which the expression was resolved
    */
-  private Element resolve(Identifier node, Element... definedElements) {
-    resolveNode(node, definedElements);
-    return node.getStaticElement();
-  }
-
-  /**
-   * Return the element associated with the given expression after the resolver has resolved the
-   * expression.
-   * 
-   * @param node the expression to be resolved
-   * @param definedElements the elements that are to be defined in the scope in which the element is
-   *          being resolved
-   * @return the element to which the expression was resolved
-   */
-  private Element resolve(IndexExpression node, Element... definedElements) {
+  private Element resolveIdentifier(Identifier node, Element... definedElements) {
     resolveNode(node, definedElements);
     return node.getStaticElement();
   }
@@ -813,6 +799,20 @@ public class ElementResolverTest extends EngineTestCase {
     } catch (Exception exception) {
       throw new IllegalArgumentException("Could not resolve node", exception);
     }
+  }
+
+  /**
+   * Return the element associated with the given expression after the resolver has resolved the
+   * expression.
+   * 
+   * @param node the expression to be resolved
+   * @param definedElements the elements that are to be defined in the scope in which the element is
+   *          being resolved
+   * @return the element to which the expression was resolved
+   */
+  private Element resolveIndexExpression(IndexExpression node, Element... definedElements) {
+    resolveNode(node, definedElements);
+    return node.getStaticElement();
   }
 
   /**

@@ -30,7 +30,7 @@ import static com.google.dart.engine.ast.AstFactory.identifier;
 
 public class LibraryScopeTest extends ResolverTestCase {
   public void test_creation_empty() {
-    LibraryElement definingLibrary = createTestLibrary();
+    LibraryElement definingLibrary = createDefaultTestLibrary();
     GatheringErrorListener errorListener = new GatheringErrorListener();
     new LibraryScope(definingLibrary, errorListener);
   }
@@ -52,7 +52,7 @@ public class LibraryScopeTest extends ResolverTestCase {
   }
 
   public void test_getErrorListener() throws Exception {
-    LibraryElement definingLibrary = createTestLibrary();
+    LibraryElement definingLibrary = createDefaultTestLibrary();
     GatheringErrorListener errorListener = new GatheringErrorListener();
     LibraryScope scope = new LibraryScope(definingLibrary, errorListener);
     assertEquals(errorListener, scope.getErrorListener());

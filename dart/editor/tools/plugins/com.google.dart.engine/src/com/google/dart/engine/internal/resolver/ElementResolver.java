@@ -1941,7 +1941,7 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
             labelNode,
             labelNode.getName());
       } else {
-        labelElement = (LabelElementImpl) labelScope.lookup(labelNode);
+        labelElement = (LabelElementImpl) labelScope.lookup(labelNode.getName());
         if (labelElement == null) {
           resolver.reportErrorForNode(
               CompileTimeErrorCode.LABEL_UNDEFINED,

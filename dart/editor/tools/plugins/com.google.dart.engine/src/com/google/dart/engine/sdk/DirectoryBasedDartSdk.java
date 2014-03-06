@@ -452,7 +452,7 @@ public class DirectoryBasedDartSdk implements DartSdk {
     File librariesFile = new File(new File(getLibraryDirectory(), INTERNAL_DIR), LIBRARIES_FILE);
     try {
       String contents = FileUtilities.getContents(librariesFile);
-      libraryMap = new SdkLibrariesReader(useDart2jsPaths).readFrom(librariesFile, contents);
+      libraryMap = new SdkLibrariesReader(useDart2jsPaths).readFromFile(librariesFile, contents);
     } catch (Exception exception) {
       AnalysisEngine.getInstance().getLogger().logError(
           "Could not initialize the library map from " + librariesFile.getAbsolutePath(),

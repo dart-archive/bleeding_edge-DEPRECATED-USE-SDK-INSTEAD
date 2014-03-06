@@ -20,7 +20,7 @@ import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
 
 public class SDKLibrariesReaderTest extends EngineTestCase {
   public void test_readFrom_dart2js() {
-    LibraryMap libraryMap = new SdkLibrariesReader(true).readFrom(
+    LibraryMap libraryMap = new SdkLibrariesReader(true).readFromFile(
         createFile("/libs.dart"),
         createSource(//
             "final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {",
@@ -46,13 +46,13 @@ public class SDKLibrariesReaderTest extends EngineTestCase {
   }
 
   public void test_readFrom_empty() {
-    LibraryMap libraryMap = new SdkLibrariesReader(false).readFrom(createFile("/libs.dart"), "");
+    LibraryMap libraryMap = new SdkLibrariesReader(false).readFromFile(createFile("/libs.dart"), "");
     assertNotNull(libraryMap);
     assertEquals(0, libraryMap.size());
   }
 
   public void test_readFrom_normal() {
-    LibraryMap libraryMap = new SdkLibrariesReader(false).readFrom(
+    LibraryMap libraryMap = new SdkLibrariesReader(false).readFromFile(
         createFile("/libs.dart"),
         createSource(//
             "final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {",

@@ -52,7 +52,7 @@ public class LibraryElementImpl extends ElementImpl implements LibraryElement {
    * @param timeStamp the time stamp to check against
    * @param visitedLibraries the set of visited libraries
    */
-  private static boolean isUpToDate(LibraryElement library, long timeStamp,
+  private static boolean safeIsUpToDate(LibraryElement library, long timeStamp,
       Set<LibraryElement> visitedLibraries) {
     if (!visitedLibraries.contains(library)) {
       visitedLibraries.add(library);
@@ -72,14 +72,14 @@ public class LibraryElementImpl extends ElementImpl implements LibraryElement {
 
       // Check the imported libraries.
       for (LibraryElement importedLibrary : library.getImportedLibraries()) {
-        if (!isUpToDate(importedLibrary, timeStamp, visitedLibraries)) {
+        if (!safeIsUpToDate(importedLibrary, timeStamp, visitedLibraries)) {
           return false;
         }
       }
 
       // Check the exported libraries.
       for (LibraryElement exportedLibrary : library.getExportedLibraries()) {
-        if (!isUpToDate(exportedLibrary, timeStamp, visitedLibraries)) {
+        if (!safeIsUpToDate(exportedLibrary, timeStamp, visitedLibraries)) {
           return false;
         }
       }
@@ -318,7 +318,7 @@ public class LibraryElementImpl extends ElementImpl implements LibraryElement {
   public boolean isUpToDate(long timeStamp) {
     Set<LibraryElement> visitedLibraries = Sets.newHashSet();
 
-    return isUpToDate(this, timeStamp, visitedLibraries);
+    return safeIsUpToDate(this, timeStamp, visitedLibraries);
   }
 
   /**

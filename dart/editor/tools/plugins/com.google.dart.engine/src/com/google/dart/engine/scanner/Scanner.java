@@ -288,7 +288,7 @@ public class Scanner {
     }
 
     if (next == '\\') {
-      appendToken(TokenType.BACKSLASH);
+      appendTokenOfType(TokenType.BACKSLASH);
       return reader.advance();
     }
 
@@ -307,22 +307,22 @@ public class Scanner {
     }
 
     if (next == ',') {
-      appendToken(TokenType.COMMA);
+      appendTokenOfType(TokenType.COMMA);
       return reader.advance();
     }
 
     if (next == ':') {
-      appendToken(TokenType.COLON);
+      appendTokenOfType(TokenType.COLON);
       return reader.advance();
     }
 
     if (next == ';') {
-      appendToken(TokenType.SEMICOLON);
+      appendTokenOfType(TokenType.SEMICOLON);
       return reader.advance();
     }
 
     if (next == '?') {
-      appendToken(TokenType.QUESTION);
+      appendTokenOfType(TokenType.QUESTION);
       return reader.advance();
     }
 
@@ -332,7 +332,7 @@ public class Scanner {
     }
 
     if (next == '`') {
-      appendToken(TokenType.BACKPING);
+      appendTokenOfType(TokenType.BACKPING);
       return reader.advance();
     }
 
@@ -351,7 +351,7 @@ public class Scanner {
     }
 
     if (next == '@') {
-      appendToken(TokenType.AT);
+      appendTokenOfType(TokenType.AT);
       return reader.advance();
     }
 
@@ -489,7 +489,7 @@ public class Scanner {
     }
   }
 
-  private void appendStringToken(TokenType type, String value, int offset) {
+  private void appendStringTokenWithOffset(TokenType type, String value, int offset) {
     if (firstComment == null) {
       tail = tail.setNext(new StringToken(type, value, tokenStart + offset));
     } else {
@@ -499,7 +499,7 @@ public class Scanner {
     }
   }
 
-  private void appendToken(TokenType type) {
+  private void appendTokenOfType(TokenType type) {
     if (firstComment == null) {
       tail = tail.setNext(new Token(type, tokenStart));
     } else {
@@ -509,7 +509,7 @@ public class Scanner {
     }
   }
 
-  private void appendToken(TokenType type, int offset) {
+  private void appendTokenOfTypeWithOffset(TokenType type, int offset) {
     if (firstComment == null) {
       tail = tail.setNext(new Token(type, offset));
     } else {
@@ -574,21 +574,21 @@ public class Scanner {
   private int select(char choice, TokenType yesType, TokenType noType) {
     int next = reader.advance();
     if (next == choice) {
-      appendToken(yesType);
+      appendTokenOfType(yesType);
       return reader.advance();
     } else {
-      appendToken(noType);
+      appendTokenOfType(noType);
       return next;
     }
   }
 
-  private int select(char choice, TokenType yesType, TokenType noType, int offset) {
+  private int selectWithOffset(char choice, TokenType yesType, TokenType noType, int offset) {
     int next = reader.advance();
     if (next == choice) {
-      appendToken(yesType, offset);
+      appendTokenOfTypeWithOffset(yesType, offset);
       return reader.advance();
     } else {
-      appendToken(noType, offset);
+      appendTokenOfTypeWithOffset(noType, offset);
       return next;
     }
   }
@@ -597,13 +597,13 @@ public class Scanner {
     // && &= &
     next = reader.advance();
     if (next == '&') {
-      appendToken(TokenType.AMPERSAND_AMPERSAND);
+      appendTokenOfType(TokenType.AMPERSAND_AMPERSAND);
       return reader.advance();
     } else if (next == '=') {
-      appendToken(TokenType.AMPERSAND_EQ);
+      appendTokenOfType(TokenType.AMPERSAND_EQ);
       return reader.advance();
     } else {
-      appendToken(TokenType.AMPERSAND);
+      appendTokenOfType(TokenType.AMPERSAND);
       return next;
     }
   }
@@ -612,13 +612,13 @@ public class Scanner {
     // | || |=
     next = reader.advance();
     if (next == '|') {
-      appendToken(TokenType.BAR_BAR);
+      appendTokenOfType(TokenType.BAR_BAR);
       return reader.advance();
     } else if (next == '=') {
-      appendToken(TokenType.BAR_EQ);
+      appendTokenOfType(TokenType.BAR_EQ);
       return reader.advance();
     } else {
-      appendToken(TokenType.BAR);
+      appendTokenOfType(TokenType.BAR);
       return next;
     }
   }
@@ -636,7 +636,7 @@ public class Scanner {
     } else if ('.' == next) {
       return select('.', TokenType.PERIOD_PERIOD_PERIOD, TokenType.PERIOD_PERIOD);
     } else {
-      appendToken(TokenType.PERIOD);
+      appendTokenOfType(TokenType.PERIOD);
       return next;
     }
   }
@@ -645,13 +645,13 @@ public class Scanner {
     // = == =>
     next = reader.advance();
     if (next == '=') {
-      appendToken(TokenType.EQ_EQ);
+      appendTokenOfType(TokenType.EQ_EQ);
       return reader.advance();
     } else if (next == '>') {
-      appendToken(TokenType.FUNCTION);
+      appendTokenOfType(TokenType.FUNCTION);
       return reader.advance();
     }
-    appendToken(TokenType.EQ);
+    appendTokenOfType(TokenType.EQ);
     return next;
   }
 
@@ -659,10 +659,10 @@ public class Scanner {
     // ! !=
     next = reader.advance();
     if (next == '=') {
-      appendToken(TokenType.BANG_EQ);
+      appendTokenOfType(TokenType.BANG_EQ);
       return reader.advance();
     }
-    appendToken(TokenType.BANG);
+    appendTokenOfType(TokenType.BANG);
     return next;
   }
 
@@ -704,13 +704,13 @@ public class Scanner {
     if (!hasDigit) {
       appendStringToken(TokenType.INT, reader.getString(start, -2));
       if ('.' == next) {
-        return select(
+        return selectWithOffset(
             '.',
             TokenType.PERIOD_PERIOD_PERIOD,
             TokenType.PERIOD_PERIOD,
             reader.getOffset() - 1);
       }
-      appendToken(TokenType.PERIOD, reader.getOffset() - 1);
+      appendTokenOfTypeWithOffset(TokenType.PERIOD, reader.getOffset() - 1);
       return bigSwitch(next);
     }
     appendStringToken(TokenType.DOUBLE, reader.getString(start, next < 0 ? 0 : -1));
@@ -721,19 +721,19 @@ public class Scanner {
     // > >= >> >>=
     next = reader.advance();
     if ('=' == next) {
-      appendToken(TokenType.GT_EQ);
+      appendTokenOfType(TokenType.GT_EQ);
       return reader.advance();
     } else if ('>' == next) {
       next = reader.advance();
       if ('=' == next) {
-        appendToken(TokenType.GT_GT_EQ);
+        appendTokenOfType(TokenType.GT_GT_EQ);
         return reader.advance();
       } else {
-        appendToken(TokenType.GT_GT);
+        appendTokenOfType(TokenType.GT_GT);
         return next;
       }
     } else {
-      appendToken(TokenType.GT);
+      appendTokenOfType(TokenType.GT);
       return next;
     }
   }
@@ -782,7 +782,7 @@ public class Scanner {
         BeginToken begin = findTokenMatchingClosingBraceInInterpolationExpression();
         if (begin == null) {
           beginToken();
-          appendToken(TokenType.CLOSE_CURLY_BRACKET);
+          appendTokenOfType(TokenType.CLOSE_CURLY_BRACKET);
           next = reader.advance();
           beginToken();
           return next;
@@ -811,7 +811,7 @@ public class Scanner {
   }
 
   private int tokenizeInterpolatedIdentifier(int next, int start) {
-    appendStringToken(TokenType.STRING_INTERPOLATION_IDENTIFIER, "$", 0);
+    appendStringTokenWithOffset(TokenType.STRING_INTERPOLATION_IDENTIFIER, "$", 0);
     if ((('A' <= next && next <= 'Z') || ('a' <= next && next <= 'z') || next == '_')) {
       beginToken();
       next = tokenizeKeywordOrIdentifier(next, false);
@@ -844,12 +844,12 @@ public class Scanner {
     // < <= << <<=
     next = reader.advance();
     if ('=' == next) {
-      appendToken(TokenType.LT_EQ);
+      appendTokenOfType(TokenType.LT_EQ);
       return reader.advance();
     } else if ('<' == next) {
       return select('=', TokenType.LT_LT_EQ, TokenType.LT_LT);
     } else {
-      appendToken(TokenType.LT);
+      appendTokenOfType(TokenType.LT);
       return next;
     }
   }
@@ -858,13 +858,13 @@ public class Scanner {
     // - -- -=
     next = reader.advance();
     if (next == '-') {
-      appendToken(TokenType.MINUS_MINUS);
+      appendTokenOfType(TokenType.MINUS_MINUS);
       return reader.advance();
     } else if (next == '=') {
-      appendToken(TokenType.MINUS_EQ);
+      appendTokenOfType(TokenType.MINUS_EQ);
       return reader.advance();
     } else {
-      appendToken(TokenType.MINUS);
+      appendTokenOfType(TokenType.MINUS);
       return next;
     }
   }
@@ -1042,13 +1042,13 @@ public class Scanner {
     // + ++ +=
     next = reader.advance();
     if ('+' == next) {
-      appendToken(TokenType.PLUS_PLUS);
+      appendTokenOfType(TokenType.PLUS_PLUS);
       return reader.advance();
     } else if ('=' == next) {
-      appendToken(TokenType.PLUS_EQ);
+      appendTokenOfType(TokenType.PLUS_EQ);
       return reader.advance();
     } else {
-      appendToken(TokenType.PLUS);
+      appendTokenOfType(TokenType.PLUS);
       return next;
     }
   }
@@ -1113,10 +1113,10 @@ public class Scanner {
     } else if ('/' == next) {
       return tokenizeSingleLineComment(next);
     } else if ('=' == next) {
-      appendToken(TokenType.SLASH_EQ);
+      appendTokenOfType(TokenType.SLASH_EQ);
       return reader.advance();
     } else {
-      appendToken(TokenType.SLASH);
+      appendTokenOfType(TokenType.SLASH);
       return next;
     }
   }
@@ -1163,7 +1163,7 @@ public class Scanner {
         return next;
       }
     }
-    appendToken(TokenType.HASH);
+    appendTokenOfType(TokenType.HASH);
     return reader.advance();
   }
 
@@ -1173,7 +1173,7 @@ public class Scanner {
     if (next == '/') {
       return select('=', TokenType.TILDE_SLASH_EQ, TokenType.TILDE_SLASH);
     } else {
-      appendToken(TokenType.TILDE);
+      appendTokenOfType(TokenType.TILDE);
       return next;
     }
   }

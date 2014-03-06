@@ -42,7 +42,7 @@ public class HintCodeTest extends ResolverTestCase {
         "class B extends A {",
         "  get _g => 0;",
         "}"));
-    Source source2 = addSource("/lib1.dart", createSource(//
+    Source source2 = addNamedSource("/lib1.dart", createSource(//
         "library lib1;",
         "class A {",
         "  get _g => 0;",
@@ -58,7 +58,7 @@ public class HintCodeTest extends ResolverTestCase {
         "class B extends A {",
         "  _m(int x) => 0;",
         "}"));
-    Source source2 = addSource("/lib1.dart", createSource(//
+    Source source2 = addNamedSource("/lib1.dart", createSource(//
         "library lib1;",
         "class A {",
         "  _m(int x) => 0;",
@@ -75,7 +75,7 @@ public class HintCodeTest extends ResolverTestCase {
         "class C extends B {",
         "  _m(int x) => 0;",
         "}"));
-    Source source2 = addSource("/lib1.dart", createSource(//
+    Source source2 = addNamedSource("/lib1.dart", createSource(//
         "library lib1;",
         "class A {",
         "  _m(int x) => 0;",
@@ -91,7 +91,7 @@ public class HintCodeTest extends ResolverTestCase {
         "class B extends A {",
         "  set _s(int x) {}",
         "}"));
-    Source source2 = addSource("/lib1.dart", createSource(//
+    Source source2 = addNamedSource("/lib1.dart", createSource(//
         "library lib1;",
         "class A {",
         "  set _s(int x) {}",
@@ -433,7 +433,7 @@ public class HintCodeTest extends ResolverTestCase {
   public void test_deprecatedAnnotationUse_export() throws Exception {
     Source source = addSource(createSource(//
     "export 'deprecated_library.dart';"));
-    addSource("/deprecated_library.dart", createSource(//
+    addNamedSource("/deprecated_library.dart", createSource(//
         "@deprecated",
         "library deprecated_library;",
         "class A {}"));
@@ -460,7 +460,7 @@ public class HintCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
         "import 'deprecated_library.dart';",
         "f(A a) {}"));
-    addSource("/deprecated_library.dart", createSource(//
+    addNamedSource("/deprecated_library.dart", createSource(//
         "@deprecated",
         "library deprecated_library;",
         "class A {}"));
@@ -617,7 +617,7 @@ public class HintCodeTest extends ResolverTestCase {
         "import 'lib1.dart';",
         "import 'lib1.dart';", // duplicate
         "A a;"));
-    addSource("/lib1.dart", createSource(//
+    addNamedSource("/lib1.dart", createSource(//
         "library lib1;",
         "class A {}"));
     resolve(source);
@@ -632,7 +632,7 @@ public class HintCodeTest extends ResolverTestCase {
         "import 'lib1.dart';", // duplicate
         "import 'lib1.dart';", // duplicate
         "A a;"));
-    addSource("/lib1.dart", createSource(//
+    addNamedSource("/lib1.dart", createSource(//
         "library lib1;",
         "class A {}"));
     resolve(source);
@@ -646,7 +646,7 @@ public class HintCodeTest extends ResolverTestCase {
         "import 'lib1.dart' as M show A hide B;",
         "import 'lib1.dart' as M show A hide B;", // duplicate
         "M.A a;"));
-    addSource("/lib1.dart", createSource(//
+    addNamedSource("/lib1.dart", createSource(//
         "library lib1;",
         "class A {}",
         "class B {}"));
@@ -970,7 +970,7 @@ public class HintCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
         "library L;",
         "import 'lib1.dart';"));
-    Source source2 = addSource("/lib1.dart", createSource(//
+    Source source2 = addNamedSource("/lib1.dart", createSource(//
         "library lib1;"));
     resolve(source);
     assertErrors(source, HintCode.UNUSED_IMPORT);
@@ -984,7 +984,7 @@ public class HintCodeTest extends ResolverTestCase {
         "import 'lib1.dart';", // unused
         "import 'lib1.dart' as one;",
         "one.A a;"));
-    Source source2 = addSource("/lib1.dart", createSource(//
+    Source source2 = addNamedSource("/lib1.dart", createSource(//
         "library lib1;",
         "class A {}"));
     resolve(source);
@@ -999,7 +999,7 @@ public class HintCodeTest extends ResolverTestCase {
         "import 'lib1.dart';",
         "import 'lib1.dart' hide A;", // unused
         "A a;"));
-    Source source2 = addSource("/lib1.dart", createSource(//
+    Source source2 = addNamedSource("/lib1.dart", createSource(//
         "library lib1;",
         "class A {}"));
     resolve(source);
@@ -1014,7 +1014,7 @@ public class HintCodeTest extends ResolverTestCase {
         "import 'lib1.dart' show A;",
         "import 'lib1.dart' show B;", // unused
         "A a;"));
-    Source source2 = addSource("/lib1.dart", createSource(//
+    Source source2 = addNamedSource("/lib1.dart", createSource(//
         "library lib1;",
         "class A {}",
         "class B {}"));

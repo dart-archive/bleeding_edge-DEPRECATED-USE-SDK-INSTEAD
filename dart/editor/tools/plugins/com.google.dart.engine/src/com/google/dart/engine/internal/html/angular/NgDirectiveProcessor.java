@@ -37,19 +37,19 @@ abstract class NgDirectiveProcessor extends NgProcessor {
   protected AngularExpression parseAngularExpression(AngularHtmlUnitResolver resolver,
       XmlAttributeNode attribute) {
     Token token = scanAttribute(resolver, attribute);
-    return resolver.parseAngularExpression(token);
+    return resolver.parseAngularExpressionInToken(token);
   }
 
   protected Expression parseDartExpression(AngularHtmlUnitResolver resolver,
       XmlAttributeNode attribute) {
     Token token = scanAttribute(resolver, attribute);
-    return resolver.parseDartExpression(token);
+    return resolver.parseDartExpressionInToken(token);
   }
 
   /**
    * Sets single {@link AngularExpression} for {@link XmlAttributeNode}.
    */
-  protected final void setExpression(XmlAttributeNode attribute, AngularExpression expression) {
+  protected final void setAngularExpression(XmlAttributeNode attribute, AngularExpression expression) {
     setExpression(attribute, newAngularRawXmlExpression(expression));
   }
 

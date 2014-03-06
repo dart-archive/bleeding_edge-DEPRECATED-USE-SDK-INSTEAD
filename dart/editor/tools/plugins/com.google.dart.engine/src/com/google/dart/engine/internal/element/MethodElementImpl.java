@@ -80,7 +80,7 @@ public class MethodElementImpl extends ExecutableElementImpl implements MethodEl
 
   @Override
   public MethodDeclaration getNode() throws AnalysisException {
-    return getNode(MethodDeclaration.class);
+    return getNodeMatching(MethodDeclaration.class);
   }
 
   @Override

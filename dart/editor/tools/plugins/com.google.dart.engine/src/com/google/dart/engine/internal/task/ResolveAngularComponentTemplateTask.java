@@ -143,6 +143,6 @@ public class ResolveAngularComponentTemplateTask extends AnalysisTask {
       resolvedUnit = unit;
     }
     // remember errors
-    resolutionErrors = errorListener.getErrors(source);
+    resolutionErrors = errorListener.getErrorsForSource(source);
   }
 }

@@ -92,14 +92,14 @@ public class ResolveAngularEntryHtmlTask extends AnalysisTask {
    * The resolution errors that were discovered while resolving the source.
    */
   public AnalysisError[] getEntryErrors() {
-    return errorListener.getErrors(source);
+    return errorListener.getErrorsForSource(source);
   }
 
   /**
    * Returns {@link AnalysisError}s recorded for the given {@link Source}.
    */
   public AnalysisError[] getErrors(Source source) {
-    return errorListener.getErrors(source);
+    return errorListener.getErrorsForSource(source);
   }
 
   /**

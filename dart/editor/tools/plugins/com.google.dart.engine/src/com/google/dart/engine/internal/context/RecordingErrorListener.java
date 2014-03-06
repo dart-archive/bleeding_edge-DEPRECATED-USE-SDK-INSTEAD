@@ -76,7 +76,7 @@ public class RecordingErrorListener implements AnalysisErrorListener {
    *          collected by this listener
    * @return the errors collected by the listener for the passed {@link Source}
    */
-  public AnalysisError[] getErrors(Source source) {
+  public AnalysisError[] getErrorsForSource(Source source) {
     HashSet<AnalysisError> errorsForSource = errors.get(source);
     if (errorsForSource == null) {
       return NO_ERRORS;

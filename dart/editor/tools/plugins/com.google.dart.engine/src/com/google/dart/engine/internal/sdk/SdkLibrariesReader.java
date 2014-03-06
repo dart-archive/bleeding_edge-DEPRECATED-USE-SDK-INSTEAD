@@ -197,8 +197,8 @@ public class SdkLibrariesReader {
    * @param libraryFileContents the contents from the library file
    * @return the library map read from the given source
    */
-  public LibraryMap readFrom(File file, String libraryFileContents) {
-    return readFrom(new FileBasedSource(file, UriKind.FILE_URI), libraryFileContents);
+  public LibraryMap readFromFile(File file, String libraryFileContents) {
+    return readFromSource(new FileBasedSource(file, UriKind.FILE_URI), libraryFileContents);
   }
 
   /**
@@ -208,7 +208,7 @@ public class SdkLibrariesReader {
    * @param libraryFileContents the contents from the library file
    * @return the library map read from the given source
    */
-  public LibraryMap readFrom(Source source, String libraryFileContents) {
+  public LibraryMap readFromSource(Source source, String libraryFileContents) {
     BooleanErrorListener errorListener = new BooleanErrorListener();
     Scanner scanner = new Scanner(
         source,

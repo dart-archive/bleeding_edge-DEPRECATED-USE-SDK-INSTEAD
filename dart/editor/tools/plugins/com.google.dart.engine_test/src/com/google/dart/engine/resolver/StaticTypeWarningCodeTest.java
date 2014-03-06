@@ -1016,7 +1016,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
   }
 
   public void test_undefinedMethod_private() throws Exception {
-    addSource("/lib.dart", createSource(//
+    addNamedSource("/lib.dart", createSource(//
         "library lib;",
         "class A {",
         "  _foo() {}",

@@ -48,7 +48,7 @@ public class PubSuggestionCodeTest extends ResolverTestCase {
   public void test_import_referenceIntoLibDirectory() throws Exception {
     cacheSource("/myproj/pubspec.yaml", "");
     cacheSource("/myproj/lib/other.dart", "");
-    Source source = addSource("/myproj/web/test.dart", createSource(//
+    Source source = addNamedSource("/myproj/web/test.dart", createSource(//
         "import '../lib/other.dart';"));
     resolve(source);
     assertErrors(source, PubSuggestionCode.FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE);
@@ -56,7 +56,7 @@ public class PubSuggestionCodeTest extends ResolverTestCase {
 
   public void test_import_referenceIntoLibDirectory_no_pubspec() throws Exception {
     cacheSource("/myproj/lib/other.dart", "");
-    Source source = addSource("/myproj/web/test.dart", createSource(//
+    Source source = addNamedSource("/myproj/web/test.dart", createSource(//
         "import '../lib/other.dart';"));
     resolve(source);
     assertNoErrors(source);
@@ -65,7 +65,7 @@ public class PubSuggestionCodeTest extends ResolverTestCase {
   public void test_import_referenceOutOfLibDirectory() throws Exception {
     cacheSource("/myproj/pubspec.yaml", "");
     cacheSource("/myproj/web/other.dart", "");
-    Source source = addSource("/myproj/lib/test.dart", createSource(//
+    Source source = addNamedSource("/myproj/lib/test.dart", createSource(//
         "import '../web/other.dart';"));
     resolve(source);
     assertErrors(source, PubSuggestionCode.FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE);
@@ -73,7 +73,7 @@ public class PubSuggestionCodeTest extends ResolverTestCase {
 
   public void test_import_referenceOutOfLibDirectory_no_pubspec() throws Exception {
     cacheSource("/myproj/web/other.dart", "");
-    Source source = addSource("/myproj/lib/test.dart", createSource(//
+    Source source = addNamedSource("/myproj/lib/test.dart", createSource(//
         "import '../web/other.dart';"));
     resolve(source);
     assertNoErrors(source);
@@ -82,7 +82,7 @@ public class PubSuggestionCodeTest extends ResolverTestCase {
   public void test_import_valid_inside_lib1() throws Exception {
     cacheSource("/myproj/pubspec.yaml", "");
     cacheSource("/myproj/lib/other.dart", "");
-    Source source = addSource("/myproj/lib/test.dart", createSource(//
+    Source source = addNamedSource("/myproj/lib/test.dart", createSource(//
         "import 'other.dart';"));
     resolve(source);
     assertNoErrors(source);
@@ -91,7 +91,7 @@ public class PubSuggestionCodeTest extends ResolverTestCase {
   public void test_import_valid_inside_lib2() throws Exception {
     cacheSource("/myproj/pubspec.yaml", "");
     cacheSource("/myproj/lib/bar/other.dart", "");
-    Source source = addSource("/myproj/lib/foo/test.dart", createSource(//
+    Source source = addNamedSource("/myproj/lib/foo/test.dart", createSource(//
         "import '../bar/other.dart';"));
     resolve(source);
     assertNoErrors(source);
@@ -100,7 +100,7 @@ public class PubSuggestionCodeTest extends ResolverTestCase {
   public void test_import_valid_outside_lib() throws Exception {
     cacheSource("/myproj/pubspec.yaml", "");
     cacheSource("/myproj/web/other.dart", "");
-    Source source = addSource("/myproj/lib2/test.dart", createSource(//
+    Source source = addNamedSource("/myproj/lib2/test.dart", createSource(//
         "import '../web/other.dart';"));
     resolve(source);
     assertNoErrors(source);

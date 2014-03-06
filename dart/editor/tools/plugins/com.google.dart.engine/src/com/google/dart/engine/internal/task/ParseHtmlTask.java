@@ -176,7 +176,7 @@ public class ParseHtmlTask extends AnalysisTask {
       lineInfo = new LineInfo(scanner.getLineStarts());
       RecordingErrorListener errorListener = new RecordingErrorListener();
       unit = new HtmlParser(source, errorListener).parse(token, lineInfo);
-      errors = errorListener.getErrors(source);
+      errors = errorListener.getErrorsForSource(source);
       referencedLibraries = getLibrarySources();
     } catch (Exception exception) {
       throw new AnalysisException(exception);

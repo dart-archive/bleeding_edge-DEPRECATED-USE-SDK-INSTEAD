@@ -175,7 +175,7 @@ public abstract class ElementImpl implements Element {
 
   @Override
   public AstNode getNode() throws AnalysisException {
-    return getNode(AstNode.class);
+    return getNodeMatching(AstNode.class);
   }
 
   @Override
@@ -326,7 +326,7 @@ public abstract class ElementImpl implements Element {
   /**
    * Return the resolved {@link AstNode} of the given type enclosing {@link #getNameOffset()}.
    */
-  protected <T extends AstNode> T getNode(Class<T> clazz) throws AnalysisException {
+  protected <T extends AstNode> T getNodeMatching(Class<T> clazz) throws AnalysisException {
     CompilationUnit unit = getUnit();
     if (unit == null) {
       return null;

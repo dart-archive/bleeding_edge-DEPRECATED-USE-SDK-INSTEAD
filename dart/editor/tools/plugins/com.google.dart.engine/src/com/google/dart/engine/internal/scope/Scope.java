@@ -119,7 +119,7 @@ public abstract class Scope {
    * @return the element with which the given identifier is associated
    */
   public Element lookup(Identifier identifier, LibraryElement referencingLibrary) {
-    return lookup(identifier, identifier.getName(), referencingLibrary);
+    return internalLookup(identifier, identifier.getName(), referencingLibrary);
   }
 
   /**
@@ -191,6 +191,20 @@ public abstract class Scope {
 
   /**
    * Return the element with which the given name is associated, or {@code null} if the name is not
+   * defined within this scope.
+   * 
+   * @param identifier the identifier node to lookup element for, used to report correct kind of a
+   *          problem and associate problem with
+   * @param name the name associated with the element to be returned
+   * @param referencingLibrary the library that contains the reference to the name, used to
+   *          implement library-level privacy
+   * @return the element with which the given name is associated
+   */
+  protected abstract Element internalLookup(Identifier identifier, String name,
+      LibraryElement referencingLibrary);
+
+  /**
+   * Return the element with which the given name is associated, or {@code null} if the name is not
    * defined within this scope. This method only returns elements that are directly defined within
    * this scope, not elements that are defined in an enclosing scope.
    * 
@@ -205,20 +219,6 @@ public abstract class Scope {
     }
     return null;
   }
-
-  /**
-   * Return the element with which the given name is associated, or {@code null} if the name is not
-   * defined within this scope.
-   * 
-   * @param identifier the identifier node to lookup element for, used to report correct kind of a
-   *          problem and associate problem with
-   * @param name the name associated with the element to be returned
-   * @param referencingLibrary the library that contains the reference to the name, used to
-   *          implement library-level privacy
-   * @return the element with which the given name is associated
-   */
-  protected abstract Element lookup(Identifier identifier, String name,
-      LibraryElement referencingLibrary);
 
   /**
    * Return the name that will be used to look up the given element.

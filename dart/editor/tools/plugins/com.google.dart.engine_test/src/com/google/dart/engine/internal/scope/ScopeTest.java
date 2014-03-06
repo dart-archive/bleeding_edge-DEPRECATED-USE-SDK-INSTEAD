@@ -45,7 +45,7 @@ public class ScopeTest extends ResolverTestCase {
     }
 
     @Override
-    protected Element lookup(Identifier identifier, String name, LibraryElement referencingLibrary) {
+    protected Element internalLookup(Identifier identifier, String name, LibraryElement referencingLibrary) {
       return localLookup(name, referencingLibrary);
     }
   }

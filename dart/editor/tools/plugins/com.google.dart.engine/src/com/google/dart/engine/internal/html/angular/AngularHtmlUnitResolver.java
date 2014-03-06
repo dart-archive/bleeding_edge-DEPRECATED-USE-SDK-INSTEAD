@@ -397,7 +397,7 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
       // process node in separate name scope
       pushNameScope();
       try {
-        parseEmbeddedExpressions(node);
+        parseEmbeddedExpressionsInTag(node);
         // apply processors
         for (NgProcessor processor : processors) {
           if (processor.canApply(node)) {
@@ -423,7 +423,7 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
    * @param identifier the identifier to create variable for
    * @return the new {@link LocalVariableElementImpl}
    */
-  LocalVariableElementImpl createLocalVariable(Type type, SimpleIdentifier identifier) {
+  LocalVariableElementImpl createLocalVariableFromIdentifier(Type type, SimpleIdentifier identifier) {
     LocalVariableElementImpl variable = new LocalVariableElementImpl(identifier);
     definedVariables.add(variable);
     variable.setType(type);
@@ -437,9 +437,9 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
    * @param name the name of the variable
    * @return the new {@link LocalVariableElementImpl}
    */
-  LocalVariableElementImpl createLocalVariable(Type type, String name) {
+  LocalVariableElementImpl createLocalVariableWithName(Type type, String name) {
     SimpleIdentifier identifier = createIdentifier(name, 0);
-    return createLocalVariable(type, identifier);
+    return createLocalVariableFromIdentifier(type, identifier);
   }
 
   /**
@@ -482,18 +482,14 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
   /**
    * Parses given {@link String} as an {@link AngularExpression} at the given offset.
    */
-  AngularExpression parseAngularExpression(String contents, int offset) {
-    return parseAngularExpression(contents, 0, contents.length(), offset);
-  }
-
   AngularExpression parseAngularExpression(String contents, int startIndex, int endIndex, int offset) {
     Token token = scanDart(contents, startIndex, endIndex, offset);
-    return parseAngularExpression(token);
+    return parseAngularExpressionInToken(token);
   }
 
-  AngularExpression parseAngularExpression(Token token) {
+  AngularExpression parseAngularExpressionInToken(Token token) {
     List<Token> tokens = splitAtBar(token);
-    Expression mainExpression = parseDartExpression(tokens.get(0));
+    Expression mainExpression = parseDartExpressionInToken(tokens.get(0));
     // parse filters
     List<AngularFilterNode> filters = Lists.newArrayList();
     for (int i = 1; i < tokens.size(); i++) {
@@ -501,7 +497,7 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
       Token barToken = filterToken;
       filterToken = filterToken.getNext();
       // TODO(scheglov) report missing identifier
-      SimpleIdentifier name = (SimpleIdentifier) parseDartExpression(filterToken);
+      SimpleIdentifier name = (SimpleIdentifier) parseDartExpressionInToken(filterToken);
       filterToken = name.getEndToken().getNext();
       // parse arguments
       List<AngularFilterArgument> arguments = Lists.newArrayList();
@@ -514,7 +510,7 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
           reportErrorForToken(AngularCode.MISSING_FILTER_COLON, colonToken);
         }
         // parse argument
-        Expression argument = parseDartExpression(filterToken);
+        Expression argument = parseDartExpressionInToken(filterToken);
         arguments.add(new AngularFilterArgument(colonToken, argument));
         // next token
         filterToken = argument.getEndToken().getNext();
@@ -528,16 +524,12 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
   /**
    * Parses given {@link String} as an {@link Expression} at the given offset.
    */
-  Expression parseDartExpression(String contents, int offset) {
-    return parseDartExpression(contents, 0, contents.length(), offset);
-  }
-
   Expression parseDartExpression(String contents, int startIndex, int endIndex, int offset) {
     Token token = scanDart(contents, startIndex, endIndex, offset);
-    return parseDartExpression(token);
+    return parseDartExpressionInToken(token);
   }
 
-  Expression parseDartExpression(Token token) {
+  Expression parseDartExpressionInToken(Token token) {
     Parser parser = new Parser(source, errorListener);
     return parser.parseExpression(token);
   }
@@ -649,9 +641,9 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
     // add Scope variables - no type, no location, just to avoid warnings
     {
       Type type = typeProvider.getDynamicType();
-      topNameScope.define(createLocalVariable(type, "$id"));
-      topNameScope.define(createLocalVariable(type, "$parent"));
-      topNameScope.define(createLocalVariable(type, "$root"));
+      topNameScope.define(createLocalVariableWithName(type, "$id"));
+      topNameScope.define(createLocalVariableWithName(type, "$parent"));
+      topNameScope.define(createLocalVariableWithName(type, "$root"));
     }
   }
 
@@ -662,7 +654,7 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
   private void defineTopVariable_forClassElement(AngularElement element) {
     ClassElement classElement = (ClassElement) element.getEnclosingElement();
     InterfaceType type = classElement.getType();
-    LocalVariableElementImpl variable = createLocalVariable(type, element.getName());
+    LocalVariableElementImpl variable = createLocalVariableWithName(type, element.getName());
     defineTopVariable(variable);
     variable.setToolkitObjects(new AngularElement[] {element});
   }
@@ -672,7 +664,7 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
    */
   private void defineTopVariable_forScopeProperty(AngularScopePropertyElement element) {
     Type type = element.getType();
-    LocalVariableElementImpl variable = createLocalVariable(type, element.getName());
+    LocalVariableElementImpl variable = createLocalVariableWithName(type, element.getName());
     defineTopVariable(variable);
     variable.setToolkitObjects(new AngularElement[] {element});
   }
@@ -717,7 +709,15 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
     }
   }
 
-  private void parseEmbeddedExpressions(XmlTagNode node) {
+  private void parseEmbeddedExpressionsInAttribute(XmlAttributeNode node) {
+    List<AngularMoustacheXmlExpression> expressions = Lists.newArrayList();
+    parseEmbeddedExpressions(expressions, node.getValueToken());
+    if (!expressions.isEmpty()) {
+      node.setExpressions(expressions.toArray(new AngularMoustacheXmlExpression[expressions.size()]));
+    }
+  }
+
+  private void parseEmbeddedExpressionsInTag(XmlTagNode node) {
     List<AngularMoustacheXmlExpression> expressions = Lists.newArrayList();
     com.google.dart.engine.html.scanner.Token token = node.getAttributeEnd();
     com.google.dart.engine.html.scanner.Token endToken = node.getEndToken();
@@ -741,14 +741,6 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
     node.setExpressions(expressions.toArray(new AngularMoustacheXmlExpression[expressions.size()]));
   }
 
-  private void parseEmbeddedExpressionsInAttribute(XmlAttributeNode node) {
-    List<AngularMoustacheXmlExpression> expressions = Lists.newArrayList();
-    parseEmbeddedExpressions(expressions, node.getValueToken());
-    if (!expressions.isEmpty()) {
-      node.setExpressions(expressions.toArray(new AngularMoustacheXmlExpression[expressions.size()]));
-    }
-  }
-
   private void recordDefinedVariable(LocalVariableElementImpl variable) {
     definedVariables.add(variable);
     functionElement.setLocalVariables(definedVariables.toArray(new LocalVariableElementImpl[definedVariables.size()]));
@@ -762,16 +754,11 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
     injectedLibraries.add(typeLibrary);
   }
 
-  private void resolveExpression(AngularXmlExpression angularXmlExpression) {
-    AngularExpression angularExpression = angularXmlExpression.getExpression();
-    resolveExpression(angularExpression);
-  }
-
   private void resolveExpressions(XmlExpression[] expressions) {
     for (XmlExpression xmlExpression : expressions) {
       if (xmlExpression instanceof AngularXmlExpression) {
         AngularXmlExpression angularXmlExpression = (AngularXmlExpression) xmlExpression;
-        resolveExpression(angularXmlExpression);
+        resolveXmlExpression(angularXmlExpression);
       }
     }
   }
@@ -835,6 +822,11 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
     for (ProxyConditionalAnalysisError conditionalCode : resolver.getProxyConditionalAnalysisErrors()) {
       resolver.reportError(conditionalCode.getAnalysisError());
     }
+  }
+
+  private void resolveXmlExpression(AngularXmlExpression angularXmlExpression) {
+    AngularExpression angularExpression = angularXmlExpression.getExpression();
+    resolveExpression(angularExpression);
   }
 
   // XXX

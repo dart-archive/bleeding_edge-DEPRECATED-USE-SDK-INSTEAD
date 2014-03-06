@@ -229,7 +229,7 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
 
   @Override
   public ClassDeclaration getNode() throws AnalysisException {
-    return getNode(ClassDeclaration.class);
+    return getNodeMatching(ClassDeclaration.class);
   }
 
   @Override

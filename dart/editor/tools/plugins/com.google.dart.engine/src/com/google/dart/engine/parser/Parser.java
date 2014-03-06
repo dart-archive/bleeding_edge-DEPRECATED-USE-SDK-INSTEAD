@@ -479,8 +479,8 @@ public class Parser {
             new EmptyFunctionBody(createSyntheticToken(TokenType.SEMICOLON)));
       }
       return null;
-    } else if (tokenMatches(peek(), TokenType.PERIOD) && tokenMatchesIdentifier(peek(2))
-        && tokenMatches(peek(3), TokenType.OPEN_PAREN)) {
+    } else if (tokenMatches(peek(), TokenType.PERIOD) && tokenMatchesIdentifier(peekAt(2))
+        && tokenMatches(peekAt(3), TokenType.OPEN_PAREN)) {
       return parseConstructor(
           commentAndMetadata,
           modifiers.getExternalKeyword(),
@@ -3220,7 +3220,7 @@ public class Parser {
             bodyAllowed = false;
             initializers.add(parseRedirectingConstructorInvocation());
           } else if (tokenMatches(peek(), TokenType.PERIOD)
-              && tokenMatches(peek(3), TokenType.OPEN_PAREN)) {
+              && tokenMatches(peekAt(3), TokenType.OPEN_PAREN)) {
             bodyAllowed = false;
             initializers.add(parseRedirectingConstructorInvocation());
           } else {
@@ -4779,8 +4779,8 @@ public class Parser {
         && (tokenMatchesIdentifier(peek()) || tokenMatches(peek(), TokenType.LT))) {
       return parseReturnType();
     } else if (matchesIdentifier() && tokenMatches(peek(), TokenType.PERIOD)
-        && tokenMatchesIdentifier(peek(2))
-        && (tokenMatchesIdentifier(peek(3)) || tokenMatches(peek(3), TokenType.LT))) {
+        && tokenMatchesIdentifier(peekAt(2))
+        && (tokenMatchesIdentifier(peekAt(3)) || tokenMatches(peekAt(3), TokenType.LT))) {
       return parseReturnType();
     }
     return null;
@@ -5773,7 +5773,7 @@ public class Parser {
 
   /**
    * Return the token that is immediately after the current token. This is equivalent to
-   * {@link #peek(int) peek(1)}.
+   * {@link #peekAt(int) peek(1)}.
    * 
    * @return the token that is immediately after the current token
    */
@@ -5788,7 +5788,7 @@ public class Parser {
    *          {@code 1} is the next token, etc.
    * @return the token that is the given distance after the current token
    */
-  private Token peek(int distance) {
+  private Token peekAt(int distance) {
     Token token = currentToken;
     for (int i = 0; i < distance; i++) {
       token = token.getNext();

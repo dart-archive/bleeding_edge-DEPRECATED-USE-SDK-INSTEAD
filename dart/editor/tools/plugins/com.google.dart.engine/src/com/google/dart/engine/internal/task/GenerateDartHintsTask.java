@@ -133,7 +133,7 @@ public class GenerateDartHintsTask extends AnalysisTask {
     for (Map.Entry<Source, TimestampedData<CompilationUnit>> entry : timestampMap.entrySet()) {
       Source source = entry.getKey();
       TimestampedData<CompilationUnit> unitData = entry.getValue();
-      AnalysisError[] errors = errorListener.getErrors(source);
+      AnalysisError[] errors = errorListener.getErrorsForSource(source);
       hintMap.put(source, new TimestampedData<AnalysisError[]>(
           unitData.getModificationTime(),
           errors));

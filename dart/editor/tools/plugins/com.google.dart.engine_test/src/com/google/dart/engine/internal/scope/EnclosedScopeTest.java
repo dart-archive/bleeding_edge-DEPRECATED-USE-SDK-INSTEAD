@@ -35,7 +35,7 @@ public class EnclosedScopeTest extends ResolverTestCase {
       }
 
       @Override
-      protected Element lookup(Identifier identifier, String name, LibraryElement referencingLibrary) {
+      protected Element internalLookup(Identifier identifier, String name, LibraryElement referencingLibrary) {
         return null;
       }
     };
@@ -56,7 +56,7 @@ public class EnclosedScopeTest extends ResolverTestCase {
       }
 
       @Override
-      protected Element lookup(Identifier identifier, String name, LibraryElement referencingLibrary) {
+      protected Element internalLookup(Identifier identifier, String name, LibraryElement referencingLibrary) {
         return null;
       }
     };

@@ -88,17 +88,6 @@ public class LabelScope {
    * @param targetLabel the label being looked up
    * @return the label element corresponding to the given label
    */
-  public LabelElement lookup(SimpleIdentifier targetLabel) {
-    return lookup(targetLabel.getName());
-  }
-
-  /**
-   * Return the label element corresponding to the given label, or {@code null} if the given label
-   * is not defined in this scope.
-   * 
-   * @param targetLabel the label being looked up
-   * @return the label element corresponding to the given label
-   */
   public LabelElement lookup(String targetLabel) {
     if (label.equals(targetLabel)) {
       return element;

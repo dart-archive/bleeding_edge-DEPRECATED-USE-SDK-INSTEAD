@@ -100,7 +100,7 @@ public class LibraryImportScopeTest extends ResolverTestCase {
   }
 
   public void test_creation_empty() {
-    LibraryElement definingLibrary = createTestLibrary();
+    LibraryElement definingLibrary = createDefaultTestLibrary();
     GatheringErrorListener errorListener = new GatheringErrorListener();
     new LibraryImportScope(definingLibrary, errorListener);
   }
@@ -122,7 +122,7 @@ public class LibraryImportScopeTest extends ResolverTestCase {
   }
 
   public void test_getErrorListener() throws Exception {
-    LibraryElement definingLibrary = createTestLibrary();
+    LibraryElement definingLibrary = createDefaultTestLibrary();
     GatheringErrorListener errorListener = new GatheringErrorListener();
     LibraryImportScope scope = new LibraryImportScope(definingLibrary, errorListener);
     assertEquals(errorListener, scope.getErrorListener());

@@ -82,7 +82,7 @@ public abstract class VariableElementImpl extends ElementImpl implements Variabl
 
   @Override
   public VariableDeclaration getNode() throws AnalysisException {
-    return getNode(VariableDeclaration.class);
+    return getNodeMatching(VariableDeclaration.class);
   }
 
   @Override

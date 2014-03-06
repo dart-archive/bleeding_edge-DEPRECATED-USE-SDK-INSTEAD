@@ -76,7 +76,7 @@ public class ConstructorElementImpl extends ExecutableElementImpl implements Con
 
   @Override
   public ConstructorDeclaration getNode() throws AnalysisException {
-    return getNode(ConstructorDeclaration.class);
+    return getNodeMatching(ConstructorDeclaration.class);
   }
 
   @Override

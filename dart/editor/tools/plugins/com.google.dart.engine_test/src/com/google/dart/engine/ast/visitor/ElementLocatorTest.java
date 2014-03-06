@@ -86,14 +86,14 @@ public class ElementLocatorTest extends ResolverTestCase {
   }
 
   public void test_compilationUnit() throws Exception {
-    CompilationUnit cu = resolve("// only comment");
+    CompilationUnit cu = resolveContents("// only comment");
     assertNotNull(cu.getElement());
     Element element = ElementLocator.locate(cu);
     assertSame(cu.getElement(), element);
   }
 
   public void test_compilationUnitElement_part() throws Exception {
-    addSource("/foo.dart", "part of app;");
+    addNamedSource("/foo.dart", "part of app;");
     AstNode id = findNodeIn("'foo.dart'", "library app; part 'foo.dart';");
     Element element = ElementLocator.locate(id);
     assertInstanceOf(CompilationUnitElement.class, element);
@@ -167,14 +167,14 @@ public class ElementLocatorTest extends ResolverTestCase {
   }
 
   public void test_libraryElement_export() throws Exception {
-    addSource("/foo.dart", "library foo;");
+    addNamedSource("/foo.dart", "library foo;");
     AstNode id = findNodeIn("'foo.dart'", "export 'foo.dart';");
     Element element = ElementLocator.locate(id);
     assertInstanceOf(LibraryElement.class, element);
   }
 
   public void test_libraryElement_import() throws Exception {
-    addSource("/foo.dart", "library foo; class A {}");
+    addNamedSource("/foo.dart", "library foo; class A {}");
     AstNode id = findNodeIn("'foo.dart'", "import 'foo.dart'; class B extends A {}");
     Element element = ElementLocator.locate(id);
     assertInstanceOf(LibraryElement.class, element);
@@ -197,7 +197,7 @@ public class ElementLocatorTest extends ResolverTestCase {
         "void main() {",
         " foo(0);",
         "}");
-    CompilationUnit cu = resolve(contents);
+    CompilationUnit cu = resolveContents(contents);
     MethodInvocation node = AbstractDartTest.findNode(
         cu,
         contents.indexOf("foo(0)"),
@@ -260,7 +260,7 @@ public class ElementLocatorTest extends ResolverTestCase {
   private AstNode findNodeIndexedIn(String nodePattern, int index, String... lines)
       throws Exception {
     String contents = createSource(lines);
-    CompilationUnit cu = resolve(contents);
+    CompilationUnit cu = resolveContents(contents);
     int start = getOffsetOfMatch(contents, nodePattern, index);
     int end = start + nodePattern.length();
     return new NodeLocator(start, end).searchWithin(cu);
@@ -273,7 +273,7 @@ public class ElementLocatorTest extends ResolverTestCase {
    * @return the result of resolving the AST structure representing the content of the source
    * @throws Exception if source cannot be verified
    */
-  private CompilationUnit resolve(String... lines) throws Exception {
+  private CompilationUnit resolveContents(String... lines) throws Exception {
     Source source = addSource(createSource(lines));
     LibraryElement library = resolve(source);
     assertNoErrors(source);

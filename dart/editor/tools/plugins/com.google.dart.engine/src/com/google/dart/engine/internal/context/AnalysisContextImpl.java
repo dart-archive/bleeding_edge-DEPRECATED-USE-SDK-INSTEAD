@@ -1507,7 +1507,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
             Source librarySource = library.getLibrarySource();
             for (Source source : library.getCompilationUnitSources()) {
               CompilationUnit unit = library.getAST(source);
-              AnalysisError[] errors = errorListener.getErrors(source);
+              AnalysisError[] errors = errorListener.getErrorsForSource(source);
               LineInfo lineInfo = getLineInfo(source);
               DartEntry dartEntry = (DartEntry) cache.get(source);
               long sourceTime = getModificationStamp(source);
