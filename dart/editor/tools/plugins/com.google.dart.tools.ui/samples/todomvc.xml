@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <sample name="TodoMVC" file="web/index.html" order="4">
-    <description>A simple note taking app, built with pre-alpha Polymer technology.</description>
+    <description>A simple note taking app, built with alpha Polymer technology.</description>
 </sample>
