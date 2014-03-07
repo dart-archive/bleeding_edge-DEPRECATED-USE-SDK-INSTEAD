@@ -5,9 +5,9 @@ homepage: https://code.google.com/p/dart/source/browse/branches/bleeding_edge/da
 environment:
   sdk: '>=1.0.0 <2.0.0'
 dependencies:
-  bot: '>=0.25.3'
-  bot_web: '>=0.21.0'
-  browser: '>=0.9.0 <0.10.0'
-  chrome_gen: '>=0.3.0'
+  bot: '>=0.26.0 <0.27.0'
+  bot_web: '>=0.21.0 <0.22.0'
+  browser: '>=0.10.0 <0.11.0'
+  chrome_gen: '>=0.3.0 <0.4.0'
 dev_dependencies:
-  hop: '>=0.28.1+2'
+  hop: '>=0.30.2 <0.31.0'

@@ -6,18 +6,12 @@ import '../test/console_test_harness.dart' as test_console;
 
 void main(List<String> args) {
 
-  addTask('test', createUnitTestTask(test_console.testCore));
+  addTask('test', createUnitTestTask(test_console.main));
 
   //
   // Analyzer
   //
   addTask('analyze_libs', createAnalyzerTask(_getLibs));
-
-  //
-  // Dart2js
-  //
-  addTask('dart2js', createDartCompilerTask(['web/game_web.dart'],
-      minify: true, liveTypeAnalysis: true));
 
   //
   // Dart2js - App
@@ -26,10 +20,6 @@ void main(List<String> args) {
       minify: true,
       liveTypeAnalysis: true
   ));
-
-  addTask('app_update_js', createCopyJSTask('app_package',
-      browserDart: true,
-      browserInterop: true));
 
   //
   // gh_pages
