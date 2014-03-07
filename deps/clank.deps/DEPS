@@ -24,8 +24,8 @@ vars.update({
   "dartium_webkit_branch": "/blink/branches/dart/1750",
   "dartium_webkit_revision": "168518",
   "bootstrap_css_rev" : "@28387",
-
   "co19_rev": "@672",
+  "gsutil_rev" : "@33376",
 })
 
 def massage_deps(deps):
@@ -67,6 +67,9 @@ deps.update({
 
   "src/dart/runtime/bin/vmservice/client/deployed/web/bootstrap_css":
     "/third_party/bootstrap_css" + Var("bootstrap_css_rev"),
+
+  "src/dart/third_party/gsutil": 
+    "/third_party/gsutil" + Var("gsutil_rev"),
 })
 
 hooks[0:0] = [{
