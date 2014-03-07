@@ -50,7 +50,6 @@ import java.util.concurrent.TimeUnit;
  * Semantic highlighting reconciler - Background thread implementation.
  */
 public class SemanticHighlightingReconciler implements IDartReconcilingListener, ITextInputListener {
-
   /**
    * Collects positions from the AST.
    */
@@ -154,6 +153,8 @@ public class SemanticHighlightingReconciler implements IDartReconcilingListener,
       }
     }
   }
+
+  private static final int MAX_DOCUMENT_LENGTH = 1024 * 1024;
 
   /** Position collector */
   private final PositionCollector fCollector = new PositionCollector();
@@ -394,7 +395,9 @@ public class SemanticHighlightingReconciler implements IDartReconcilingListener,
     Arrays.sort(removedPositions, positionsComparator);
     removedPositionsDeleted = new boolean[removedPositions.length];
 
-    unit.accept(fCollector);
+    if (fSourceViewer.getDocument().getLength() < MAX_DOCUMENT_LENGTH) {
+      unit.accept(fCollector);
+    }
 
     // copy removedPositions and removedPositionsDeleted into fRemovedPositions
     fRemovedPositions = new ArrayList<Position>(removedPositions.length);

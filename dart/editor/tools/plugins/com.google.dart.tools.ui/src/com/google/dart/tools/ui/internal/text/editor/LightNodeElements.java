@@ -15,8 +15,8 @@
 package com.google.dart.tools.ui.internal.text.editor;
 
 import com.google.common.collect.Lists;
-import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.AssignmentExpression;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.ClassMember;
@@ -126,6 +126,7 @@ public class LightNodeElements {
       return offset1 - offset2;
     }
   }
+
   /**
    * {@link ITreeContentProvider} for {@link LightNodeElement}s in {@link CompilationUnit}.
    */
@@ -187,10 +188,13 @@ public class LightNodeElements {
             elements.add(element);
           }
         }
+        if (elements.size() > MAX_CHILDREN_COUNT) {
+          elements.add(new LightNodeElement(contextFile, null, unit, unit, MAX_CHILDREN_TEXT));
+          break;
+        }
       }
     }
   }
-
   /**
    * {@link LabelProvider} for {@link LightNodeElement}.
    */
@@ -317,6 +321,16 @@ public class LightNodeElements {
       return ((LightNodeElement) element).getName();
     }
   }
+
+  /**
+   * The maximum number of children we want to show in any parent.
+   */
+  private static final int MAX_CHILDREN_COUNT = 250;
+
+  /**
+   * The text to show if there are too many children.
+   */
+  private static final String MAX_CHILDREN_TEXT = "<First 250 children are displayed>";
 
   public static final ViewerComparator NAME_COMPARATOR = new NameComparator();
   public static final ViewerComparator POSITION_COMPARATOR = new PositionComparator();
@@ -546,6 +560,15 @@ public class LightNodeElements {
             }
           } else {
             createLightNodeElement(contextFile, classElement, classMember, true);
+          }
+          if (classElement.children.size() > MAX_CHILDREN_COUNT) {
+            new LightNodeElement(
+                contextFile,
+                classElement,
+                classDeclaration,
+                classDeclaration.getName(),
+                MAX_CHILDREN_TEXT);
+            break;
           }
         }
       }
