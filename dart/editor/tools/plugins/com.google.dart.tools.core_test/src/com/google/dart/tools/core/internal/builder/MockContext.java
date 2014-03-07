@@ -233,6 +233,10 @@ public class MockContext implements AnalysisContext {
   }
 
   @Override
+  public void dispose() {
+  }
+
+  @Override
   public boolean exists(Source source) {
     if (source == null) {
       return false;
@@ -381,6 +385,11 @@ public class MockContext implements AnalysisContext {
   @Override
   public boolean isClientLibrary(Source librarySource) {
     return false;
+  }
+
+  @Override
+  public boolean isDisposed() {
+    throw new UnsupportedOperationException();
   }
 
   @Override

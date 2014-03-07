@@ -203,7 +203,6 @@ public class InstrumentedAnalysisContextImpl implements InternalAnalysisContext 
     } finally {
       instrumentation.log();
     }
-
   }
 
   @Override
@@ -225,6 +224,18 @@ public class InstrumentedAnalysisContextImpl implements InternalAnalysisContext 
   public ResolvableCompilationUnit computeResolvableCompilationUnit(Source source)
       throws AnalysisException {
     return basis.computeResolvableCompilationUnit(source);
+  }
+
+  @Override
+  public void dispose() {
+    InstrumentationBuilder instrumentation = Instrumentation.builder("Analysis-dispose");
+    checkThread(instrumentation);
+    try {
+      instrumentation.metric("contextId", contextId);
+      basis.dispose();
+    } finally {
+      instrumentation.log();
+    }
   }
 
   @Override
@@ -595,6 +606,18 @@ public class InstrumentedAnalysisContextImpl implements InternalAnalysisContext 
     try {
       instrumentation.metric("contextId", contextId);
       return basis.isClientLibrary(librarySource);
+    } finally {
+      instrumentation.log();
+    }
+  }
+
+  @Override
+  public boolean isDisposed() {
+    InstrumentationBuilder instrumentation = Instrumentation.builder("Analysis-isDisposed");
+    checkThread(instrumentation);
+    try {
+      instrumentation.metric("contextId", contextId);
+      return basis.isDisposed();
     } finally {
       instrumentation.log();
     }

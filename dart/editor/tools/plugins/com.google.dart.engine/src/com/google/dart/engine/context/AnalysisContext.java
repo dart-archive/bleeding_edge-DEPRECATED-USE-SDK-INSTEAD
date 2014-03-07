@@ -162,6 +162,11 @@ public interface AnalysisContext {
   public LineInfo computeLineInfo(Source source) throws AnalysisException;
 
   /**
+   * Notifies the context that the client is going to stop using this context.
+   */
+  public void dispose();
+
+  /**
    * Return {@code true} if the given source exists.
    * <p>
    * This method should be used rather than the method {@link Source#exists()} because contexts can
@@ -444,6 +449,13 @@ public interface AnalysisContext {
    * @return {@code true} if the given source is known to be a library that can be run on a client
    */
   public boolean isClientLibrary(Source librarySource);
+
+  /**
+   * Returns {@code true} if this context was disposed using {@link #dispose()}.
+   * 
+   * @return {@code true} if this context was disposed
+   */
+  public boolean isDisposed();
 
   /**
    * Return {@code true} if the given source is known to be the defining compilation unit of a

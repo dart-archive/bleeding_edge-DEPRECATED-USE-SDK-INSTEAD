@@ -299,6 +299,11 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   private AnalysisOptionsImpl options = new AnalysisOptionsImpl();
 
   /**
+   * A flag indicating whether this context is disposed.
+   */
+  private boolean disposed;
+
+  /**
    * A cache of content used to override the default content of a source.
    */
   private ContentCache contentCache = new ContentCache();
@@ -616,6 +621,11 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       cache.put(source, dartCopy);
       return new ResolvableCompilationUnit(dartCopy.getModificationTime(), unit);
     }
+  }
+
+  @Override
+  public void dispose() {
+    disposed = true;
   }
 
   @Override
@@ -1155,6 +1165,11 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       return dartEntry.getValue(DartEntry.IS_CLIENT) && dartEntry.getValue(DartEntry.IS_LAUNCHABLE);
     }
     return false;
+  }
+
+  @Override
+  public boolean isDisposed() {
+    return disposed;
   }
 
   @Override

@@ -367,6 +367,12 @@ public class AnalysisContextImplTest extends EngineTestCase {
     assertNotSame(compilationUnit, context.computeResolvableCompilationUnit(source));
   }
 
+  public void test_dispose() throws Exception {
+    assertFalse(context.isDisposed());
+    context.dispose();
+    assertTrue(context.isDisposed());
+  }
+
   public void test_exists_false() throws Exception {
     assertFalse(context.exists(new TestSource()));
   }
