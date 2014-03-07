@@ -740,7 +740,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
 
   @Override
   public AnalysisErrorInfo getErrors(Source source) {
-    SourceEntry sourceEntry = getReadableSourceEntry(source);
+    SourceEntry sourceEntry = getReadableSourceEntryOrNull(source);
     if (sourceEntry instanceof DartEntry) {
       DartEntry dartEntry = (DartEntry) sourceEntry;
       return new AnalysisErrorInfoImpl(
@@ -757,7 +757,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
 
   @Override
   public HtmlElement getHtmlElement(Source source) {
-    SourceEntry sourceEntry = getReadableSourceEntry(source);
+    SourceEntry sourceEntry = getReadableSourceEntryOrNull(source);
     if (sourceEntry instanceof HtmlEntry) {
       return ((HtmlEntry) sourceEntry).getValue(HtmlEntry.ELEMENT);
     }
@@ -812,7 +812,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
 
   @Override
   public SourceKind getKindOf(Source source) {
-    SourceEntry sourceEntry = getReadableSourceEntry(source);
+    SourceEntry sourceEntry = getReadableSourceEntryOrNull(source);
     if (sourceEntry == null) {
       return SourceKind.UNKNOWN;
     }
@@ -861,11 +861,11 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
 
   @Override
   public Source[] getLibrariesContaining(Source source) {
-    DartEntry dartEntry = getReadableDartEntry(source);
-    if (dartEntry == null) {
-      return Source.EMPTY_ARRAY;
+    SourceEntry sourceEntry = getReadableSourceEntryOrNull(source);
+    if (sourceEntry instanceof DartEntry) {
+      return ((DartEntry) sourceEntry).getValue(DartEntry.CONTAINING_LIBRARIES);
     }
-    return dartEntry.getValue(DartEntry.CONTAINING_LIBRARIES);
+    return Source.EMPTY_ARRAY;
   }
 
   @Override
@@ -896,7 +896,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
 
   @Override
   public LibraryElement getLibraryElement(Source source) {
-    SourceEntry sourceEntry = getReadableSourceEntry(source);
+    SourceEntry sourceEntry = getReadableSourceEntryOrNull(source);
     if (sourceEntry instanceof DartEntry) {
       return ((DartEntry) sourceEntry).getValue(DartEntry.ELEMENT);
     }
@@ -910,7 +910,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
 
   @Override
   public LineInfo getLineInfo(Source source) {
-    SourceEntry sourceEntry = getReadableSourceEntry(source);
+    SourceEntry sourceEntry = getReadableSourceEntryOrNull(source);
     if (sourceEntry != null) {
       return sourceEntry.getValue(SourceEntry.LINE_INFO);
     }
@@ -1019,7 +1019,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
 
   @Override
   public CompilationUnit getResolvedCompilationUnit(Source unitSource, Source librarySource) {
-    SourceEntry sourceEntry = getReadableSourceEntry(unitSource);
+    SourceEntry sourceEntry = getReadableSourceEntryOrNull(unitSource);
     if (sourceEntry instanceof DartEntry) {
       return ((DartEntry) sourceEntry).getValueInLibrary(DartEntry.RESOLVED_UNIT, librarySource);
     }
@@ -1028,7 +1028,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
 
   @Override
   public HtmlUnit getResolvedHtmlUnit(Source htmlSource) {
-    SourceEntry sourceEntry = getReadableSourceEntry(htmlSource);
+    SourceEntry sourceEntry = getReadableSourceEntryOrNull(htmlSource);
     if (sourceEntry instanceof HtmlEntry) {
       HtmlEntry htmlEntry = (HtmlEntry) sourceEntry;
       return htmlEntry.getValue(HtmlEntry.RESOLVED_UNIT);
@@ -2842,8 +2842,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
-   * Return the cache entry associated with the given source, or {@code null} if there is no entry
-   * associated with the source.
+   * Return the cache entry associated with the given source, creating it if necessary.
    * 
    * @param source the source for which a cache entry is being sought
    * @return the source cache entry associated with the given source
@@ -2855,6 +2854,19 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         sourceEntry = createSourceEntry(source);
       }
       return sourceEntry;
+    }
+  }
+
+  /**
+   * Return the cache entry associated with the given source, or {@code null} if there is no entry
+   * associated with the source.
+   * 
+   * @param source the source for which a cache entry is being sought
+   * @return the source cache entry associated with the given source
+   */
+  private SourceEntry getReadableSourceEntryOrNull(Source source) {
+    synchronized (cacheLock) {
+      return cache.get(source);
     }
   }
 
