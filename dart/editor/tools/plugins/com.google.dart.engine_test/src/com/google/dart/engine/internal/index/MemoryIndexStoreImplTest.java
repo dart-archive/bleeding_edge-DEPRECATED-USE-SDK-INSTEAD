@@ -166,6 +166,7 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
   }
 
   public void test_aboutToIndex_removedContext() throws Exception {
+    when(contextA.isDisposed()).thenReturn(true);
     store.removeContext(contextA);
     boolean mayIndex = store.aboutToIndexDart(contextA, unitElementA);
     assertFalse(mayIndex);
@@ -277,6 +278,7 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
     when(htmlElement.getContext()).thenReturn(contextA);
     when(htmlElement.getSource()).thenReturn(sourceA);
     // mark context as removed
+    when(contextA.isDisposed()).thenReturn(true);
     store.removeContext(contextA);
     // cannot index
     boolean mayIndex = store.aboutToIndexHtml(contextA, htmlElement);
@@ -703,6 +705,7 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
   public void test_tryToRecord_afterContextRemove_element() throws Exception {
     Location locationB = mockLocation(elementB);
     // remove "A" - context of "elementA"
+    when(contextA.isDisposed()).thenReturn(true);
     store.removeContext(contextA);
     // so, this record request is ignored
     store.recordRelationship(elementA, relationship, locationB);
@@ -713,6 +716,7 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
     Location locationB = mockLocation(elementB);
     when(elementB.getContext()).thenReturn(contextB);
     // remove "B" - context of location
+    when(contextB.isDisposed()).thenReturn(true);
     store.removeContext(contextB);
     // so, this record request is ignored
     store.recordRelationship(elementA, relationship, locationB);

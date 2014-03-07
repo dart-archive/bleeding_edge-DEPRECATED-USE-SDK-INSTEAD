@@ -212,6 +212,7 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
         if (path.equals(key) || path.isPrefixOf(key)) {
           AnalysisContext context = entry.getValue().getContext();
           stopWorkers(context);
+          context.dispose();
           index.removeContext(context);
           iter.remove();
         }
@@ -220,6 +221,7 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
       // Reset the state if discarding the entire project
       if (projectResource.equals(container)) {
         stopWorkers(defaultContext);
+        defaultContext.dispose();
         index.removeContext(defaultContext);
         defaultContext = null;
         defaultResourceMap = null;
