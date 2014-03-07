@@ -132,7 +132,13 @@ public class AnalysisWorker {
    * The {@link AnalysisContext} cache size for a context when background analysis is being
    * performed on that context.
    */
-  private static final int WORKING_CACHE_SIZE = IDLE_CACHE_SIZE * 2;
+  private static int WORKING_CACHE_SIZE = computeWorkingCacheSize();
+
+  private static final int WORKING_CACHE_SIZE_DEFAULT = IDLE_CACHE_SIZE * 2;
+  private static final int WORKING_CACHE_256_MEMORY = 450 * 1024 * 1024;
+  private static final int WORKING_CACHE_256_SIZE = 256;
+  private static final int WORKING_CACHE_512_MEMORY = 900 * 1024 * 1024;
+  private static final int WORKING_CACHE_512_SIZE = 512;
 
   /**
    * Objects to be notified when each compilation unit has been resolved. Contents of this array
@@ -208,6 +214,20 @@ public class AnalysisWorker {
    */
   public static boolean waitForBackgroundAnalysis(long milliseconds) {
     return AnalysisManager.getInstance().waitForBackgroundAnalysis(milliseconds);
+  }
+
+  /**
+   * Returns what cache size to use for working {@link AnalysisContext}, currently depending on
+   * maximum heap size.
+   */
+  private static int computeWorkingCacheSize() {
+    long maxMemory = Runtime.getRuntime().maxMemory();
+    if (maxMemory > WORKING_CACHE_512_MEMORY) {
+      return WORKING_CACHE_512_SIZE;
+    } else if (maxMemory > WORKING_CACHE_256_MEMORY) {
+      return WORKING_CACHE_256_SIZE;
+    }
+    return WORKING_CACHE_SIZE_DEFAULT;
   }
 
   /**
