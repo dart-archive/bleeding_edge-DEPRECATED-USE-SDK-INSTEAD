@@ -14,10 +14,14 @@
 
 package com.google.dart.eclipse.core;
 
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Plugin;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.preferences.IEclipsePreferences;
+import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.osgi.framework.BundleContext;
+import org.osgi.service.prefs.BackingStoreException;
 
 /**
  * The activator for the com.google.dart.eclipse.core plugin.
@@ -27,6 +31,10 @@ public class DartCorePlugin extends Plugin {
    * The Dart Core plug-in ID.
    */
   public static final String PLUGIN_ID = "com.google.dart.eclipse.core";
+
+  public static final String PREFS_IS_DEFAULT_UPDATE_URL = "isDefaultUpdateUrl";
+
+  public static final String PREFS_UPDATE_URL = "updateChannelUrl";
 
   private static DartCorePlugin plugin;
 
@@ -72,6 +80,40 @@ public class DartCorePlugin extends Plugin {
     }
   }
 
+  private IEclipsePreferences prefs;
+
+  /**
+   * Get the plugin preferences. Use savePrefs() to save the preferences.
+   */
+  public IEclipsePreferences getPrefs() {
+    if (prefs == null) {
+      prefs = InstanceScope.INSTANCE.getNode(PLUGIN_ID);
+    }
+
+    return prefs;
+  }
+
+  public String getUpdateChannelLocation() {
+    return getPrefs().get(PREFS_UPDATE_URL, "");
+  }
+
+  public boolean isDefaultUpdateChannel() {
+    return getPrefs().getBoolean(PREFS_IS_DEFAULT_UPDATE_URL, true);
+  }
+
+  /**
+   * Save the plugin preferences
+   * 
+   * @throws CoreException
+   */
+  public void savePrefs() throws CoreException {
+    try {
+      getPrefs().flush();
+    } catch (BackingStoreException e) {
+      throw new CoreException(new Status(IStatus.ERROR, PLUGIN_ID, e.toString(), e));
+    }
+  }
+
   @Override
   public void start(BundleContext context) throws Exception {
     plugin = this;
@@ -85,5 +127,4 @@ public class DartCorePlugin extends Plugin {
 
     plugin = null;
   }
-
 }
