@@ -48,6 +48,54 @@ public class SyntaxTranslatorTest extends AbstractSemanticTest {
   private org.eclipse.jdt.core.dom.CompilationUnit javaUnit;
   private com.google.dart.engine.ast.CompilationUnit dartUnit;
 
+  public void test_annotation_marker() throws Exception {
+    parseJava(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "public @interface DartOmit {",
+        "}",
+        "public class A {",
+        "  @DartOmit",
+        "  public void foo() {}",
+        "  public void var() {}",
+        "}");
+    translate();
+    String actual = context.getNodeAnnotations().toString();
+    assertEquals("{void foo() {}=[DartOmit{}]}", actual);
+  }
+
+  public void test_annotation_normal() throws Exception {
+    parseJava(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "public @interface DartLibrary {",
+        "  String name();",
+        "  String path();",
+        "}",
+        "public class A {",
+        "  @DartLibrary(name = \"my.name\", path = \"my/path\")",
+        "  public void foo() {}",
+        "  public void var() {}",
+        "}");
+    translate();
+    String actual = context.getNodeAnnotations().toString();
+    assertEquals("{void foo() {}=[DartLibrary{name=my.name, path=my/path}]}", actual);
+  }
+
+  public void test_annotation_single() throws Exception {
+    parseJava(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "public @interface DartBlockBody {",
+        "  String[] value();",
+        "}",
+        "public class A {",
+        "  @DartBlockBody({\"aaa\", \"bbb\", \"ccc\"})",
+        "  public void foo() {}",
+        "  public void var() {}",
+        "}");
+    translate();
+    String actual = context.getNodeAnnotations().toString();
+    assertEquals("{void foo() {}=[DartBlockBody{value=[aaa, bbb, ccc]}]}", actual);
+  }
+
   public void test_classAbstract() throws Exception {
     parseJava(
         "// filler filler filler filler filler filler filler filler filler filler",

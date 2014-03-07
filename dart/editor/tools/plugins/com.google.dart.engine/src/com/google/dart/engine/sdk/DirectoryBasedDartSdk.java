@@ -27,6 +27,7 @@ import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.engine.source.UriKind;
 import com.google.dart.engine.utilities.io.FileUtilities;
 import com.google.dart.engine.utilities.os.OSUtilities;
+import com.google.dart.engine.utilities.translation.DartBlockBody;
 
 import java.io.File;
 import java.io.IOException;
@@ -405,6 +406,7 @@ public class DirectoryBasedDartSdk implements DartSdk {
    * Ensure that the dart VM is executable. If it is not, make it executable and log that it was
    * necessary for us to do so.
    */
+  @DartBlockBody({})
   private void ensureVmIsExecutable() {
     File dartVm = getVmExecutable();
     if (dartVm != null) {

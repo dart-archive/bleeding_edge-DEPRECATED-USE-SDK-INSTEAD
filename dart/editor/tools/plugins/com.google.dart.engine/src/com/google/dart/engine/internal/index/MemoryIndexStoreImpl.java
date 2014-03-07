@@ -33,6 +33,8 @@ import com.google.dart.engine.internal.context.InstrumentedAnalysisContextImpl;
 import com.google.dart.engine.internal.element.member.Member;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceContainer;
+import com.google.dart.engine.utilities.translation.DartExpressionBody;
+import com.google.dart.engine.utilities.translation.DartOmit;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -330,6 +332,7 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
   }
 
   @Override
+  @DartOmit
   public void readIndex(AnalysisContext context, InputStream input) throws IOException {
     context = unwrapContext(context);
     new MemoryIndexReader(this, context, input).read();
@@ -508,6 +511,7 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
   }
 
   @Override
+  @DartOmit
   public void writeIndex(AnalysisContext context, OutputStream output) throws IOException {
     context = unwrapContext(context);
     new MemoryIndexWriter(this, context, output).write();
@@ -516,6 +520,7 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
   /**
    * Creates new {@link Set} that uses object identity instead of equals.
    */
+  @DartExpressionBody("new Set<Location>.identity()")
   private Set<Location> createLocationIdentitySet() {
     return Sets.newSetFromMap(new IdentityHashMap<Location, Boolean>(4));
   }

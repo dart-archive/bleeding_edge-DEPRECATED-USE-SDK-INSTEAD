@@ -15,6 +15,7 @@ package com.google.dart.engine.source;
 
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.internal.context.TimestampedData;
+import com.google.dart.engine.utilities.translation.DartOmit;
 
 import java.net.URI;
 
@@ -83,13 +84,14 @@ public interface Source {
    * Get the contents of this source and pass it to the given content receiver.
    * <p>
    * Clients should consider using the the method
-   * {@link AnalysisContext#getContentsToReceiver(Source, ContentReceiver)} because contexts can have local
-   * overrides of the content of a source that the source is not aware of.
+   * {@link AnalysisContext#getContentsToReceiver(Source, ContentReceiver)} because contexts can
+   * have local overrides of the content of a source that the source is not aware of.
    * 
    * @param receiver the content receiver to which the content of this source will be passed
    * @throws Exception if the contents of this source could not be accessed
    */
   @Deprecated
+  @DartOmit
   public void getContentsToReceiver(ContentReceiver receiver) throws Exception;
 
   /**

@@ -89,6 +89,7 @@ import com.google.dart.engine.utilities.collection.ListUtilities;
 import com.google.dart.engine.utilities.io.PrintStringWriter;
 import com.google.dart.engine.utilities.os.OSUtilities;
 import com.google.dart.engine.utilities.source.LineInfo;
+import com.google.dart.engine.utilities.translation.DartOmit;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -718,6 +719,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
 
   @Override
   @SuppressWarnings("deprecation")
+  @DartOmit
   public void getContentsToReceiver(Source source, ContentReceiver receiver) throws Exception {
     synchronized (cacheLock) {
       String contents = contentCache.getContents(source);

@@ -15,6 +15,7 @@ package com.google.dart.engine.internal.index.operation;
 
 import com.google.common.collect.Lists;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.utilities.translation.DartOmit;
 
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -26,6 +27,7 @@ import java.util.List;
  * 
  * @coverage dart.engine.index
  */
+@DartOmit
 public class OperationQueue {
   /**
    * The non-query operations that are waiting to be performed.

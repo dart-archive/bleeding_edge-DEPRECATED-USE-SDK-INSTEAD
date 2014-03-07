@@ -30,6 +30,6 @@ import java.lang.annotation.Target;
  * }
  * </pre>
  */
-@Target(ElementType.METHOD)
+@Target({ElementType.TYPE, ElementType.FIELD, ElementType.METHOD})
 public @interface DartOmit {
 }

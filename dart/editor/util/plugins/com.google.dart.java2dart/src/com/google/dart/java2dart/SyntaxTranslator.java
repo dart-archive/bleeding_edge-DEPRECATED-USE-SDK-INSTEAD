@@ -70,6 +70,7 @@ import com.google.dart.engine.ast.TypeParameterList;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationList;
 import com.google.dart.engine.ast.WhileStatement;
+import com.google.dart.engine.ast.visitor.ConstantEvaluator;
 import com.google.dart.engine.ast.visitor.RecursiveAstVisitor;
 import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.StringToken;
@@ -147,7 +148,11 @@ import org.eclipse.jdt.core.dom.IBinding;
 import org.eclipse.jdt.core.dom.IMethodBinding;
 import org.eclipse.jdt.core.dom.ITypeBinding;
 import org.eclipse.jdt.core.dom.IVariableBinding;
+import org.eclipse.jdt.core.dom.MarkerAnnotation;
+import org.eclipse.jdt.core.dom.MemberValuePair;
+import org.eclipse.jdt.core.dom.NormalAnnotation;
 import org.eclipse.jdt.core.dom.SimpleName;
+import org.eclipse.jdt.core.dom.SingleMemberAnnotation;
 import org.eclipse.jdt.core.dom.SynchronizedStatement;
 import org.eclipse.jdt.core.dom.Type;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
@@ -603,6 +608,11 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
     List<CompilationUnitMember> declarations = Lists.newArrayList();
     for (Iterator<?> I = node.types().iterator(); I.hasNext();) {
       Object javaType = I.next();
+      // skip annotation declarations
+      if (javaType instanceof org.eclipse.jdt.core.dom.AnnotationTypeDeclaration) {
+        continue;
+      }
+      // translate classes and interfaces
       ClassDeclaration dartClass = translate((org.eclipse.jdt.core.dom.ASTNode) javaType);
       declarations.add(dartClass);
       declarations.addAll(artificialUnitDeclarations);
@@ -814,6 +824,7 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
     if (isPrivate) {
       context.putPrivateClassMember(fieldDeclaration);
     }
+    translateAnnotations(fieldDeclaration, node.modifiers());
     return done(fieldDeclaration);
   }
 
@@ -1019,6 +1030,7 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
       if (isPrivate) {
         context.putPrivateClassMember(methodDeclaration);
       }
+      translateAnnotations(methodDeclaration, node.modifiers());
       return done(methodDeclaration);
     }
   }
@@ -1530,6 +1542,7 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
       }
     }
     // done
+    translateAnnotations(classDeclaration, node.modifiers());
     return done(classDeclaration);
   }
 
@@ -1974,6 +1987,36 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
     // done
     result = null;
     return castedResult;
+  }
+
+  private void translateAnnotations(AstNode dartNode, List<?> modifiers) {
+    for (Object modifier : modifiers) {
+      if (modifier instanceof org.eclipse.jdt.core.dom.Annotation) {
+        org.eclipse.jdt.core.dom.Annotation annotation = (org.eclipse.jdt.core.dom.Annotation) modifier;
+        String name = ((org.eclipse.jdt.core.dom.SimpleName) annotation.getTypeName()).getIdentifier();
+        ParsedAnnotation parsedAnnotation = new ParsedAnnotation(name);
+        if (modifier instanceof MarkerAnnotation) {
+          // no values
+        } else if (modifier instanceof SingleMemberAnnotation) {
+          SingleMemberAnnotation singleMemberAnnotation = (SingleMemberAnnotation) modifier;
+          org.eclipse.jdt.core.dom.Expression javaExpression = singleMemberAnnotation.getValue();
+          Expression dartExpression = translate(javaExpression);
+          Object value = dartExpression.accept(new ConstantEvaluator());
+          parsedAnnotation.put("value", value);
+        } else if (modifier instanceof NormalAnnotation) {
+          NormalAnnotation normalAnnotation = (NormalAnnotation) modifier;
+          for (Object javaPairObject : normalAnnotation.values()) {
+            MemberValuePair javaPair = (MemberValuePair) javaPairObject;
+            String pairName = javaPair.getName().getIdentifier();
+            org.eclipse.jdt.core.dom.Expression javaPairExpr = javaPair.getValue();
+            Expression dartExpression = translate(javaPairExpr);
+            Object value = dartExpression.accept(new ConstantEvaluator());
+            parsedAnnotation.put(pairName, value);
+          }
+        }
+        context.putNodeAnnotation(dartNode, parsedAnnotation);
+      }
+    }
   }
 
   /**

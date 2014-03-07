@@ -32,6 +32,8 @@ import java.io.File;
  * Test for general Java semantics to Dart translation.
  */
 public class AbstractSemanticTest extends TestCase {
+  protected static boolean replaceSingleQuotes = false;
+
   /**
    * @return the formatted Dart source dump of the given {@link AstNode}.
    */
@@ -62,7 +64,11 @@ public class AbstractSemanticTest extends TestCase {
    * @return the single {@link String} with "\n" separated lines.
    */
   protected static String toString(String... lines) {
-    return Joiner.on("\n").join(lines);
+    String result = Joiner.on("\n").join(lines);
+    if (replaceSingleQuotes) {
+      result = result.replace('\'', '"');
+    }
+    return result;
   }
 
   protected File tmpFolder;

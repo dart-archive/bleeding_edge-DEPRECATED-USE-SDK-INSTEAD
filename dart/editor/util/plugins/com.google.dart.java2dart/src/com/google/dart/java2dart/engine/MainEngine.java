@@ -22,17 +22,13 @@ import com.google.common.collect.Maps;
 import com.google.common.io.Files;
 import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.ast.AsExpression;
-import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.CatchClause;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.CompilationUnitMember;
 import com.google.dart.engine.ast.Expression;
-import com.google.dart.engine.ast.ExpressionFunctionBody;
 import com.google.dart.engine.ast.FieldDeclaration;
-import com.google.dart.engine.ast.MethodDeclaration;
-import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.ParenthesizedExpression;
 import com.google.dart.engine.ast.Statement;
@@ -49,7 +45,6 @@ import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.HintCode;
 import com.google.dart.engine.scanner.Keyword;
-import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
 import com.google.dart.engine.source.DartUriResolver;
 import com.google.dart.engine.source.FileBasedSource;
@@ -70,24 +65,11 @@ import com.google.dart.java2dart.processor.SemanticProcessor;
 import com.google.dart.java2dart.processor.TypeSemanticProcessor;
 import com.google.dart.java2dart.util.ToFormattedSourceVisitor;
 
-import static com.google.dart.java2dart.util.AstFactory.assignmentExpression;
-import static com.google.dart.java2dart.util.AstFactory.binaryExpression;
-import static com.google.dart.java2dart.util.AstFactory.blockFunctionBody;
-import static com.google.dart.java2dart.util.AstFactory.booleanLiteral;
 import static com.google.dart.java2dart.util.AstFactory.exportDirective;
-import static com.google.dart.java2dart.util.AstFactory.expressionFunctionBody;
-import static com.google.dart.java2dart.util.AstFactory.expressionStatement;
-import static com.google.dart.java2dart.util.AstFactory.formalParameterList;
-import static com.google.dart.java2dart.util.AstFactory.functionExpression;
-import static com.google.dart.java2dart.util.AstFactory.identifier;
 import static com.google.dart.java2dart.util.AstFactory.importDirective;
 import static com.google.dart.java2dart.util.AstFactory.importShowCombinator;
-import static com.google.dart.java2dart.util.AstFactory.indexExpression;
 import static com.google.dart.java2dart.util.AstFactory.instanceCreationExpression;
 import static com.google.dart.java2dart.util.AstFactory.libraryDirective;
-import static com.google.dart.java2dart.util.AstFactory.methodInvocation;
-import static com.google.dart.java2dart.util.AstFactory.nullLiteral;
-import static com.google.dart.java2dart.util.AstFactory.simpleFormalParameter;
 import static com.google.dart.java2dart.util.AstFactory.typeName;
 
 import org.apache.commons.io.FileUtils;
@@ -225,9 +207,6 @@ public class MainEngine {
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/internal/task"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/internal/type"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/internal/verifier"));
-    context.addSourceFile(new File(
-        engineFolder2,
-        "com/google/dart/java2dart/util/ToFormattedSourceVisitor.java"));
     context.addSourceFile(new File(engineFolder, "com/google/dart/engine/AnalysisEngine.java"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/utilities/logging"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/context"));
@@ -300,6 +279,7 @@ public class MainEngine {
           new GuavaSemanticProcessor(context),
           new JUnitSemanticProcessor(context),
           new EngineSemanticProcessor(context),
+          new EngineAnnotationProcessor(context),
           new EngineInstanceOfProcessor(context),
           new BeautifySemanticProcessor(context));
       for (SemanticProcessor processor : PROCESSORS) {
@@ -913,56 +893,6 @@ public class MainEngine {
           }
         }
         return null;
-      }
-
-      @Override
-      public Void visitMethodDeclaration(MethodDeclaration node) {
-        String name = node.getName().getName();
-        if (name.equals("_createLocationIdentitySet")) {
-          node.setBody(expressionFunctionBody(instanceCreationExpression(
-              Keyword.NEW,
-              typeName("Set", typeName("Location")),
-              "identity")));
-          return null;
-        }
-        if (name.equals("_isRemovedContext")) {
-          node.setBody(expressionFunctionBody(binaryExpression(
-              indexExpression(identifier("_removedContexts"), identifier("context")),
-              TokenType.BANG_EQ,
-              nullLiteral())));
-          return null;
-        }
-        if (name.equals("_markRemovedContext")) {
-          AssignmentExpression expr = assignmentExpression(
-              indexExpression(identifier("_removedContexts"), identifier("context")),
-              TokenType.EQ,
-              booleanLiteral(true));
-          node.setBody(blockFunctionBody(expressionStatement(expr)));
-          return null;
-        }
-        if (name.equals("_notifyOperationAvailable") || name.equals("_waitForOperationAvailable")
-            || name.equals("_threadYield") || name.equals("_waitOneMs")) {
-          node.setBody(blockFunctionBody());
-          return null;
-        }
-        if (name.equals("_removeForSource")) {
-          ExpressionFunctionBody closureBody = expressionFunctionBody(methodInvocation(
-              identifier("_"),
-              "removeWhenSourceRemoved",
-              identifier("source")));
-          closureBody.setSemicolon(null);
-          MethodInvocation expr = methodInvocation(
-              identifier("operations"),
-              "removeWhere",
-              functionExpression(formalParameterList(simpleFormalParameter("_")), closureBody));
-          node.setBody(blockFunctionBody(expressionStatement(expr)));
-          return null;
-        }
-        if (name.equals("readIndex") || name.equals("writeIndex")) {
-          ((ClassDeclaration) node.getParent()).getMembers().remove(node);
-          return null;
-        }
-        return super.visitMethodDeclaration(node);
       }
     });
     return unit;

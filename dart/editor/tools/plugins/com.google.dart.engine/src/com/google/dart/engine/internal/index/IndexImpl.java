@@ -31,12 +31,14 @@ import com.google.dart.engine.internal.index.operation.RemoveSourceOperation;
 import com.google.dart.engine.internal.index.operation.RemoveSourcesOperation;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceContainer;
+import com.google.dart.engine.utilities.translation.DartOmit;
 
 /**
  * Implementation of {@link Index}.
  * 
  * @coverage dart.engine.index
  */
+@DartOmit
 public class IndexImpl implements Index {
   private final IndexStore store;
   private final OperationQueue queue;

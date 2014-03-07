@@ -28,6 +28,8 @@ import java.util.List;
  */
 public class ToFormattedSourceVisitor implements AstVisitor<Void> {
   public static final String COMMENTS_KEY = "List of comments before statement";
+  public static final String BLOCK_BODY_KEY = "Block body source";
+  public static final String EXPRESSION_BODY_KEY = "Expression body source";
 
   /**
    * The writer to which the source is to be written.
@@ -691,10 +693,25 @@ public class ToFormattedSourceVisitor implements AstVisitor<Void> {
     if (!node.isGetter()) {
       visitNode(node.getParameters());
     }
-    if (!(node.getBody() instanceof EmptyFunctionBody)) {
-      writer.print(' ');
+    String bodySource;
+    if ((bodySource = (String) node.getProperty(BLOCK_BODY_KEY)) != null) {
+      writer.print(" {");
+      if (!bodySource.isEmpty()) {
+        nl();
+        writer.print(bodySource);
+      }
+      nl2();
+      writer.print('}');
+    } else if ((bodySource = (String) node.getProperty(EXPRESSION_BODY_KEY)) != null) {
+      writer.print(" => ");
+      writer.print(bodySource);
+      writer.print(';');
+    } else {
+      if (!(node.getBody() instanceof EmptyFunctionBody)) {
+        writer.print(' ');
+      }
+      visitNode(node.getBody());
     }
-    visitNode(node.getBody());
     return null;
   }
 

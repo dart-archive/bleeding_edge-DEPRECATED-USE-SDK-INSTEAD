@@ -18,6 +18,8 @@ import com.google.dart.engine.internal.context.PerformanceStatistics;
 import com.google.dart.engine.internal.context.TimestampedData;
 import com.google.dart.engine.utilities.general.TimeCounter.TimeCounterHandle;
 import com.google.dart.engine.utilities.io.FileUtilities;
+import com.google.dart.engine.utilities.translation.DartBlockBody;
+import com.google.dart.engine.utilities.translation.DartOmit;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -54,6 +56,7 @@ public class FileBasedSource implements Source {
   /**
    * The character set used to decode bytes into characters.
    */
+  @DartOmit
   private static final Charset UTF_8_CHARSET = Charset.forName("UTF-8");
 
   /**
@@ -99,6 +102,7 @@ public class FileBasedSource implements Source {
   }
 
   @Override
+  @DartOmit
   public void getContentsToReceiver(ContentReceiver receiver) throws Exception {
     TimeCounterHandle handle = PerformanceStatistics.io.start();
     try {
@@ -176,6 +180,7 @@ public class FileBasedSource implements Source {
    * @throws Exception if the contents of this source could not be accessed
    * @see #getContents()
    */
+  @DartBlockBody({"return new TimestampedData<String>(_file.lastModified(), _file.readAsStringSync());"})
   protected TimestampedData<CharSequence> getContentsFromFile() throws Exception {
     String contents;
     long modificationTime = file.lastModified();
@@ -234,6 +239,7 @@ public class FileBasedSource implements Source {
    * @throws Exception if the contents of this source could not be accessed
    * @see #getContentsToReceiver(ContentReceiver)
    */
+  @DartOmit
   protected void getContentsFromFileToReceiver(ContentReceiver receiver) throws Exception {
     String contents;
     long modificationTime = file.lastModified();

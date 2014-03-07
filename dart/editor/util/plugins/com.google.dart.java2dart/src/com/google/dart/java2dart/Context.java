@@ -131,6 +131,7 @@ public class Context {
   private final Map<AstNode, ITypeBinding> nodeToTypeBinding = Maps.newHashMap();
   private final Map<InstanceCreationExpression, ClassDeclaration> anonymousDeclarations = Maps.newHashMap();
   private final Set<SimpleIdentifier> innerClassNames = Sets.newHashSet();
+  private final Map<AstNode, List<ParsedAnnotation>> nodeAnnotations = Maps.newHashMap();
   // information about constructors
   private int technicalConstructorIndex;
   private final Map<IMethodBinding, ConstructorDescription> bindingToConstructor = Maps.newHashMap();
@@ -424,6 +425,21 @@ public class Context {
   }
 
   /**
+   * Returns all node annotations. Used for testing.
+   */
+  public Map<AstNode, List<ParsedAnnotation>> getNodeAnnotations() {
+    return nodeAnnotations;
+  }
+
+  /**
+   * Returns {@link ParsedAnnotation}s object for the Java annotation specified on the Java node of
+   * the given {@link AstNode}, maybe {@code null}.
+   */
+  public List<ParsedAnnotation> getNodeAnnotations(AstNode node) {
+    return nodeAnnotations.get(node);
+  }
+
+  /**
    * @return some Java binding for the given Dart {@link AstNode}.
    */
   public IBinding getNodeBinding(AstNode node) {
@@ -653,6 +669,18 @@ public class Context {
    */
   void putInnerClassName(SimpleIdentifier identifier) {
     innerClassNames.add(identifier);
+  }
+
+  /**
+   * Remembers the parsed annotation for the given node.
+   */
+  void putNodeAnnotation(AstNode node, ParsedAnnotation parsedAnnotation) {
+    List<ParsedAnnotation> annotations = nodeAnnotations.get(node);
+    if (annotations == null) {
+      annotations = Lists.newArrayList();
+      nodeAnnotations.put(node, annotations);
+    }
+    annotations.add(parsedAnnotation);
   }
 
   /**

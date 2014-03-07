@@ -17,12 +17,14 @@ import com.google.dart.engine.internal.index.IndexImpl;
 import com.google.dart.engine.internal.index.MemoryIndexStoreImpl;
 import com.google.dart.engine.internal.index.operation.OperationProcessor;
 import com.google.dart.engine.internal.index.operation.OperationQueue;
+import com.google.dart.engine.utilities.translation.DartOmit;
 
 /**
  * Factory for {@link Index} and {@link IndexStore}.
  * 
  * @coverage dart.engine.index
  */
+@DartOmit
 public class IndexFactory {
   /**
    * @return the new instance of {@link Index} which uses given {@link IndexStore}.

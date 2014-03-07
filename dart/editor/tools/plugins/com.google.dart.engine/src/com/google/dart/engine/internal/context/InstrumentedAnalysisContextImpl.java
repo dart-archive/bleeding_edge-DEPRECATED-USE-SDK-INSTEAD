@@ -27,6 +27,8 @@ import com.google.dart.engine.source.SourceKind;
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.engine.utilities.source.LineInfo;
+import com.google.dart.engine.utilities.translation.DartBlockBody;
+import com.google.dart.engine.utilities.translation.DartOmit;
 
 import java.util.List;
 import java.util.Map;
@@ -44,6 +46,7 @@ public class InstrumentedAnalysisContextImpl implements InternalAnalysisContext 
    * The UI thread or {@code null} if not set. Any calls made for analysis information on this
    * thread are tracked in an effort to keep the UI performant.
    */
+  @DartOmit
   private static Thread uiThread;
 
   /**
@@ -52,6 +55,7 @@ public class InstrumentedAnalysisContextImpl implements InternalAnalysisContext 
    * 
    * @param thread the thread to be monitored or {@code null} if no monitoring.
    */
+  @DartOmit
   public static void setUIThread(Thread thread) {
     uiThread = thread;
   }
@@ -62,6 +66,7 @@ public class InstrumentedAnalysisContextImpl implements InternalAnalysisContext 
    * 
    * @param instrumentation the instrumentation, not {@code null}
    */
+  @DartBlockBody({})
   private static void checkThread(InstrumentationBuilder instrumentation) {
     if (Thread.currentThread() == uiThread) {
       instrumentation.metric("isUIThread", true);
@@ -309,6 +314,7 @@ public class InstrumentedAnalysisContextImpl implements InternalAnalysisContext 
 
   @Override
   @SuppressWarnings("deprecation")
+  @DartOmit
   public void getContentsToReceiver(Source source, ContentReceiver receiver) throws Exception {
     basis.getContentsToReceiver(source, receiver);
   }

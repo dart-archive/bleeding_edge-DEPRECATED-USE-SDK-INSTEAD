@@ -28,6 +28,7 @@ import com.google.dart.engine.source.SourceContainer;
 import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.engine.source.SourceKind;
 import com.google.dart.engine.utilities.source.LineInfo;
+import com.google.dart.engine.utilities.translation.DartOmit;
 
 import java.util.List;
 
@@ -233,6 +234,7 @@ public interface AnalysisContext {
    * @throws Exception if the contents of the source could not be accessed
    */
   @Deprecated
+  @DartOmit
   public void getContentsToReceiver(Source source, ContentReceiver receiver) throws Exception;
 
   /**
