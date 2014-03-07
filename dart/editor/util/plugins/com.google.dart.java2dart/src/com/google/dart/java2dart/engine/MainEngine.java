@@ -415,8 +415,18 @@ public class MainEngine {
     }
     {
       CompilationUnit library = buildParserLibrary();
-      String source = getFormattedSource(library);
-      Files.write(source, new File(targetFolder + "/parser.dart"), Charsets.UTF_8);
+      // generate "methodTable_Parser"
+      StringWriter methodWriter = new StringWriter();
+      EngineSemanticProcessor.replaceReflection_generateParserTable(context, new PrintWriter(
+          methodWriter), dartUnit);
+      // write
+      File libraryFile = new File(targetFolder + "/parser.dart");
+      Files.write(getFormattedSource(library), libraryFile, Charsets.UTF_8);
+      Files.append(methodWriter.toString(), libraryFile, Charsets.UTF_8);
+      Files.append(
+          Files.toString(new File("resources/parser_include.dart"), Charsets.UTF_8),
+          libraryFile,
+          Charsets.UTF_8);
     }
     {
       CompilationUnit library = buildSdkLibrary();
@@ -435,7 +445,7 @@ public class MainEngine {
       source = replaceSourceFragment(
           source,
           makeSource(
-              "  N findSink() {",
+              "  N _findSink() {",
               "    for (MapEntry<N, Set<N>> entry in getMapEntrySet(_edges)) {",
               "      if (entry.getValue().isEmpty) {",
               "        return entry.getKey();",
@@ -444,7 +454,7 @@ public class MainEngine {
               "    return null;",
               "  }"),
           makeSource(
-              "  N findSink() {",
+              "  N _findSink() {",
               "    for (N key in _edges.keys) {",
               "      if (_edges[key].isEmpty) return key;",
               "    }",
@@ -508,16 +518,9 @@ public class MainEngine {
     }
     {
       CompilationUnit library = buildParserTestLibrary();
-      // replace reflection methods
-      StringWriter methodWriter = new StringWriter();
-      EngineSemanticProcessor.replaceReflectionMethods(
-          context,
-          new PrintWriter(methodWriter),
-          dartUnit);
-      // write to file
+      EngineSemanticProcessor.replaceReflection_invokeParserMethodImpl(library);
       File libraryFile = new File(targetTestFolder + "/parser_test.dart");
       Files.write(getFormattedSource(library), libraryFile, Charsets.UTF_8);
-      Files.append(methodWriter.toString(), libraryFile, Charsets.UTF_8);
     }
     {
       CompilationUnit library = buildAstTestLibrary();
@@ -915,21 +918,21 @@ public class MainEngine {
       @Override
       public Void visitMethodDeclaration(MethodDeclaration node) {
         String name = node.getName().getName();
-        if (name.equals("createLocationIdentitySet")) {
+        if (name.equals("_createLocationIdentitySet")) {
           node.setBody(expressionFunctionBody(instanceCreationExpression(
               Keyword.NEW,
               typeName("Set", typeName("Location")),
               "identity")));
           return null;
         }
-        if (name.equals("isRemovedContext")) {
+        if (name.equals("_isRemovedContext")) {
           node.setBody(expressionFunctionBody(binaryExpression(
               indexExpression(identifier("_removedContexts"), identifier("context")),
               TokenType.BANG_EQ,
               nullLiteral())));
           return null;
         }
-        if (name.equals("markRemovedContext")) {
+        if (name.equals("_markRemovedContext")) {
           AssignmentExpression expr = assignmentExpression(
               indexExpression(identifier("_removedContexts"), identifier("context")),
               TokenType.EQ,
@@ -937,12 +940,12 @@ public class MainEngine {
           node.setBody(blockFunctionBody(expressionStatement(expr)));
           return null;
         }
-        if (name.equals("notifyOperationAvailable") || name.equals("waitForOperationAvailable")
-            || name.equals("threadYield") || name.equals("waitOneMs")) {
+        if (name.equals("_notifyOperationAvailable") || name.equals("_waitForOperationAvailable")
+            || name.equals("_threadYield") || name.equals("_waitOneMs")) {
           node.setBody(blockFunctionBody());
           return null;
         }
-        if (name.equals("removeForSource")) {
+        if (name.equals("_removeForSource")) {
           ExpressionFunctionBody closureBody = expressionFunctionBody(methodInvocation(
               identifier("_"),
               "removeWhenSourceRemoved",

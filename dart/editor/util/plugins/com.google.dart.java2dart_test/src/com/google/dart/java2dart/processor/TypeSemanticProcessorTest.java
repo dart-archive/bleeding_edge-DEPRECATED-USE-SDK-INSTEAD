@@ -25,7 +25,7 @@ public class TypeSemanticProcessorTest extends SemanticProcessorTest {
         "// filler filler filler filler filler filler filler filler filler filler",
         "package test;",
         "public class Test {",
-        "  void main(boolean z, A a, B b) {",
+        "  public void main(boolean z, A a, B b) {",
         "    MyIntf res = z ? a : b;",
         "  }",
         "}");

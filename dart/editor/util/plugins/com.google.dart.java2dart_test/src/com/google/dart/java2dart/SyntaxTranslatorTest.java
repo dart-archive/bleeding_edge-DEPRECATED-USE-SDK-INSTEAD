@@ -531,7 +531,7 @@ public class SyntaxTranslatorTest extends AbstractSemanticTest {
         toString(
             "// filler filler filler filler filler filler filler filler filler filler",
             "public class A {",
-            "  void test() {",
+            "  public void test() {",
             "    int m1 = 0 + 1;",
             "    int m2 = 0 - 1;",
             "    int m3 = 0 * 1;",

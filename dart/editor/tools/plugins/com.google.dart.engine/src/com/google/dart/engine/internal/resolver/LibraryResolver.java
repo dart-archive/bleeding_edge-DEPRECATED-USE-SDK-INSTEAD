@@ -321,6 +321,20 @@ public class LibraryResolver {
   }
 
   /**
+   * Create an object to represent the information about the library defined by the compilation unit
+   * with the given source.
+   * 
+   * @param librarySource the source of the library's defining compilation unit
+   * @return the library object that was created
+   * @throws AnalysisException if the library source is not valid
+   */
+  protected Library createLibrary(Source librarySource) throws AnalysisException {
+    Library library = new Library(analysisContext, errorListener, librarySource);
+    libraryMap.put(librarySource, library);
+    return library;
+  }
+
+  /**
    * Add a dependency to the given map from the referencing library to the referenced library.
    * 
    * @param dependencyMap the map to which the dependency is to be added
@@ -679,20 +693,6 @@ public class LibraryResolver {
         }
       }
     }
-  }
-
-  /**
-   * Create an object to represent the information about the library defined by the compilation unit
-   * with the given source.
-   * 
-   * @param librarySource the source of the library's defining compilation unit
-   * @return the library object that was created
-   * @throws AnalysisException if the library source is not valid
-   */
-  private Library createLibrary(Source librarySource) throws AnalysisException {
-    Library library = new Library(analysisContext, errorListener, librarySource);
-    libraryMap.put(librarySource, library);
-    return library;
   }
 
   /**

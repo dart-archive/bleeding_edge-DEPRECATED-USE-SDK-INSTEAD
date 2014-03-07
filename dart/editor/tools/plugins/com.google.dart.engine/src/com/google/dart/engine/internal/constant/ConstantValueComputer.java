@@ -56,7 +56,7 @@ public class ConstantValueComputer {
   /**
    * A table mapping constant variables to the declarations of those variables.
    */
-  HashMap<VariableElement, VariableDeclaration> declarationMap;
+  private HashMap<VariableElement, VariableDeclaration> declarationMap;
 
   /**
    * Initialize a newly created constant value computer.

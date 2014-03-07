@@ -16,12 +16,14 @@ package com.google.dart.java2dart.util;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.runtime.Assert;
+import org.eclipse.jdt.core.dom.BodyDeclaration;
 import org.eclipse.jdt.core.dom.IBinding;
 import org.eclipse.jdt.core.dom.IMethodBinding;
 import org.eclipse.jdt.core.dom.IPackageBinding;
 import org.eclipse.jdt.core.dom.ITypeBinding;
 import org.eclipse.jdt.core.dom.IVariableBinding;
 import org.eclipse.jdt.core.dom.Modifier;
+import org.eclipse.jdt.core.dom.TypeDeclaration;
 
 /**
  * Helper for JDT integration.
@@ -309,6 +311,42 @@ public class JavaUtils {
     if (bindingObject instanceof IMethodBinding) {
       IMethodBinding binding = (IMethodBinding) bindingObject;
       return isSubtype(binding.getDeclaringClass(), reqClassName);
+    }
+    return false;
+  }
+
+  /**
+   * Checks if the given {@link BodyDeclaration} is declared as "package private".
+   */
+  public static boolean isPackagePrivate(BodyDeclaration node) {
+    return !isPublic(node) && !isProtected(node) && !isPrivate(node);
+  }
+
+  /**
+   * Checks if the given {@link BodyDeclaration} is declared as "private".
+   */
+  public static boolean isPrivate(BodyDeclaration node) {
+    return Modifier.isPrivate(node.getModifiers());
+  }
+
+  /**
+   * Checks if the given {@link BodyDeclaration} is declared as "protected".
+   */
+  public static boolean isProtected(BodyDeclaration node) {
+    return Modifier.isProtected(node.getModifiers());
+  }
+
+  /**
+   * Checks if the given {@link BodyDeclaration} is declared as "public" or is implicitly public
+   * because if declared in an interface.
+   */
+  public static boolean isPublic(BodyDeclaration node) {
+    if (Modifier.isPublic(node.getModifiers())) {
+      return true;
+    }
+    if (node.getParent() instanceof TypeDeclaration) {
+      TypeDeclaration typeDeclaration = (TypeDeclaration) node.getParent();
+      return typeDeclaration.isInterface();
     }
     return false;
   }

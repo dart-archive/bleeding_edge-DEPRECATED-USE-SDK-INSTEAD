@@ -595,8 +595,9 @@ public class Context {
       unwrapVarArgIfAlreadyArray(dartUniverse);
       ensureFieldInitializers(dartUniverse);
       dontUseThisInFieldInitializers(dartUniverse);
-      ensureUniqueClassMemberNames(dartUniverse);
       renameAnonymousClassDeclarations();
+      renamePrivateClassMembers();
+      ensureUniqueClassMemberNames(dartUniverse);
       applyLocalVariableSemanticChanges(dartUniverse);
       new ConstructorSemanticProcessor(this).process(dartUniverse);
       renameConstructors(dartUniverse);
@@ -977,6 +978,26 @@ public class Context {
         return super.visitConstructorDeclaration(node);
       }
     });
+  }
+
+  private void renamePrivateClassMembers() {
+    for (ClassMember member : privateClassMembers) {
+      if (member instanceof FieldDeclaration) {
+        FieldDeclaration fieldDeclaration = (FieldDeclaration) member;
+        NodeList<VariableDeclaration> variables = fieldDeclaration.getFields().getVariables();
+        for (VariableDeclaration field : variables) {
+          SimpleIdentifier nameNode = field.getName();
+          String name = nameNode.getName();
+          renameIdentifier(nameNode, "_" + name);
+        }
+      }
+      if (member instanceof MethodDeclaration) {
+        MethodDeclaration methodDeclaration = (MethodDeclaration) member;
+        SimpleIdentifier nameNode = methodDeclaration.getName();
+        String name = nameNode.getName();
+        renameIdentifier(nameNode, "_" + name);
+      }
+    }
   }
 
   private void replaceInnerClassReferences(CompilationUnit unit) {

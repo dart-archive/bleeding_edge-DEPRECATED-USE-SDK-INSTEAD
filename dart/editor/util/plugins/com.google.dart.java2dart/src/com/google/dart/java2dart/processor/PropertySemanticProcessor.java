@@ -257,16 +257,6 @@ public class PropertySemanticProcessor extends SemanticProcessor {
    */
   private void convertGettersSetters(CompilationUnit unit) {
     unit.accept(new RecursiveAstVisitor<Void>() {
-      @Override
-      public Void visitFieldDeclaration(FieldDeclaration node) {
-        if (context.getPrivateClassMembers().contains(node)) {
-          for (VariableDeclaration field : node.getFields().getVariables()) {
-            SimpleIdentifier name = field.getName();
-            context.renameIdentifier(name, "_" + name.getName());
-          }
-        }
-        return super.visitFieldDeclaration(node);
-      }
 
       @Override
       public Void visitMethodDeclaration(MethodDeclaration node) {
@@ -431,7 +421,7 @@ public class PropertySemanticProcessor extends SemanticProcessor {
         }
         String rightName = right.getName();
         String leftName = reference.getName();
-        if (!leftName.equals("_" + rightName)) {
+        if (!isFieldWithPropertyName(leftName, rightName)) {
           return;
         }
       } else {
@@ -483,18 +473,6 @@ public class PropertySemanticProcessor extends SemanticProcessor {
           properties.put(name, property);
         }
         return property;
-      }
-
-      private boolean isFieldWithPropertyName(String fieldName, String propertyName) {
-        String prefix = "_" + propertyName;
-        if (!fieldName.startsWith(prefix)) {
-          return false;
-        }
-        String rest = fieldName.substring(prefix.length());
-        if (!StringUtils.isNumericSpace(rest)) {
-          return false;
-        }
-        return true;
       }
 
       private void processGetter(FieldPropertyInfo property, MethodDeclaration node) {
@@ -598,6 +576,24 @@ public class PropertySemanticProcessor extends SemanticProcessor {
       }
     });
     return overriddenMethods;
+  }
+
+  private boolean isFieldWithPropertyName(String fieldName, String propertyName) {
+    String prefix;
+    if (fieldName.startsWith("_" + propertyName)) {
+      // field was private
+      prefix = "_" + propertyName;
+    } else if (fieldName.startsWith(propertyName)) {
+      // field was protected
+      prefix = propertyName;
+    } else {
+      return false;
+    }
+    String rest = fieldName.substring(prefix.length());
+    if (!StringUtils.isNumericSpace(rest)) {
+      return false;
+    }
+    return true;
   }
 
   private boolean isOverridden(Set<IBinding> overriddenMethods, MethodDeclaration method) {

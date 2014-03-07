@@ -267,6 +267,28 @@ public class PropertySemanticProcessorTest extends SemanticProcessorTest {
         "}");
   }
 
+  public void test_field_OK_getter_protected() throws Exception {
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "public class Test {",
+        "  protected final int foo = 42;",
+        "  public Test(int foo) {",
+        "    this.foo = foo;",
+        "  }",
+        "  public int getFoo() {",
+        "    return foo;",
+        "  }",
+        "}");
+    runProcessor();
+    context.ensureUniqueClassMemberNames(unit);
+    assertFormattedSource(//
+        "class Test {",
+        "  final int foo;",
+        "  Test(this.foo);",
+        "}");
+  }
+
   public void test_field_OK_getter_withConstructor() throws Exception {
     translateSingleFile(
         "// filler filler filler filler filler filler filler filler filler filler",

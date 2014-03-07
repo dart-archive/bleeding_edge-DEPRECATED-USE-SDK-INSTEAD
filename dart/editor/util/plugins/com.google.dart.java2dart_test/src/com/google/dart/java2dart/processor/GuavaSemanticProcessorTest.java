@@ -34,7 +34,7 @@ public class GuavaSemanticProcessorTest extends SemanticProcessorTest {
         "import java.util.Map;",
         "import com.google.common.collect.ImmutableMap;",
         "public class Test {",
-        "  Map<String, String> m = ImmutableMap.of();",
+        "  public Map<String, String> m = ImmutableMap.of();",
         "}");
     runProcessor();
     assertFormattedSource(//
@@ -61,8 +61,8 @@ public class GuavaSemanticProcessorTest extends SemanticProcessorTest {
         "import java.util.List;",
         "import com.google.common.collect.Lists;",
         "public class Test {",
-        "  Object test_newArrayList() { return Lists.newArrayList(); }",
-        "  Object test_newLinkedList() { return Lists.newLinkedList(); }",
+        "  public Object test_newArrayList() { return Lists.newArrayList(); }",
+        "  public Object test_newLinkedList() { return Lists.newLinkedList(); }",
         "}");
     runProcessor();
     assertFormattedSource(
@@ -89,7 +89,7 @@ public class GuavaSemanticProcessorTest extends SemanticProcessorTest {
         "import java.util.Map;",
         "import com.google.common.collect.Maps;",
         "public class Test {",
-        "  Map<String, List<String>> m = Maps.newHashMap();",
+        "  public Map<String, List<String>> m = Maps.newHashMap();",
         "}");
     runProcessor();
     assertFormattedSource(//
@@ -149,8 +149,8 @@ public class GuavaSemanticProcessorTest extends SemanticProcessorTest {
         "import java.util.Set;",
         "import com.google.common.collect.Sets;",
         "public class Test {",
-        "  Object test_newHashSet() { return Sets.newHashSet(); }",
-        "  Object test_difference(Set<String> s, Set<String> t) { return Sets.difference(s, t); }",
+        "  public Object test_newHashSet() { return Sets.newHashSet(); }",
+        "  public Object test_difference(Set<String> s, Set<String> t) { return Sets.difference(s, t); }",
         "}");
     runProcessor();
     assertFormattedSource(

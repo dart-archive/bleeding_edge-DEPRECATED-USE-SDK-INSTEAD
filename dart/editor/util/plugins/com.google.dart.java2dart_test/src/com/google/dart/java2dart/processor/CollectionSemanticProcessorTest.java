@@ -54,7 +54,7 @@ public class CollectionSemanticProcessorTest extends SemanticProcessorTest {
         "import java.util.List;",
         "import java.util.Arrays;",
         "public class Test {",
-        "  boolean main(List<String> a, List<String> b) {",
+        "  public boolean main(List<String> a, List<String> b) {",
         "    return Arrays.equals(a, b);",
         "  }",
         "}");
@@ -72,7 +72,7 @@ public class CollectionSemanticProcessorTest extends SemanticProcessorTest {
         "import java.util.List;",
         "import java.util.Arrays;",
         "public class Test {",
-        "  boolean main(List<String> a) {",
+        "  public boolean main(List<String> a) {",
         "    return Arrays.hashCode(a);",
         "  }",
         "}");
@@ -167,7 +167,7 @@ public class CollectionSemanticProcessorTest extends SemanticProcessorTest {
         "import java.util.Collections;",
         "import java.util.List;",
         "public class Test {",
-        "  void main(List<String> target, String [] source) {",
+        "  public void main(List<String> target, String [] source) {",
         "    Collections.addAll(target, source);",
         "  }",
         "}");
@@ -187,7 +187,7 @@ public class CollectionSemanticProcessorTest extends SemanticProcessorTest {
         "import java.util.Collections;",
         "import java.util.List;",
         "public class Test {",
-        "  void main(List<String> source) {",
+        "  public void main(List<String> source) {",
         "    Collections.unmodifiableList(source);",
         "  }",
         "}");
@@ -211,15 +211,15 @@ public class CollectionSemanticProcessorTest extends SemanticProcessorTest {
         "      return a.length() - b.length();",
         "    }",
         "  };",
-        "  int main(String a, String b) {",
+        "  public int main(String a, String b) {",
         "    return MY.compare(a, b);",
         "  }",
         "}");
     runProcessor();
     assertFormattedSource(
         "class Test {",
-        "  Comparator<String> MY = (String a, String b) => a.length() - b.length();",
-        "  int main(String a, String b) => MY(a, b);",
+        "  Comparator<String> _MY = (String a, String b) => a.length() - b.length();",
+        "  int main(String a, String b) => _MY(a, b);",
         "}");
   }
 
@@ -237,7 +237,7 @@ public class CollectionSemanticProcessorTest extends SemanticProcessorTest {
         "package test;",
         "import java.util.EnumSet;",
         "public class Test {",
-        "  void main() {",
+        "  public void main() {",
         "    EnumSet<MyEnum> set = EnumSet.noneOf(MyEnum.class);",
         "  }",
         "}");
@@ -257,10 +257,10 @@ public class CollectionSemanticProcessorTest extends SemanticProcessorTest {
         "import java.util.Map;",
         "import java.util.HashMap;",
         "public class Test {",
-        "  void mainA() {",
+        "  public void mainA() {",
         "    HashMap<String, Integer> map = new HashMap<String, Integer>(5);",
         "  }",
-        "  Object mainB(Map<String, Integer> p) {",
+        "  public Object mainB(Map<String, Integer> p) {",
         "    return new HashMap<String, Integer>(p);",
         "  }",
         "}");
@@ -299,7 +299,7 @@ public class CollectionSemanticProcessorTest extends SemanticProcessorTest {
         "package test;",
         "import java.util.HashSet;",
         "public class Test {",
-        "  String[] main(HashSet<String> items) {",
+        "  public String[] main(HashSet<String> items) {",
         "    return items.toArray(new String[items.length]);",
         "  }",
         "}");
@@ -316,7 +316,7 @@ public class CollectionSemanticProcessorTest extends SemanticProcessorTest {
         "package test;",
         "import java.util.*;",
         "public class Test {",
-        "  void main(List<String> items) {",
+        "  public void main(List<String> items) {",
         "    Iterator<String> iter = items.iterator();",
         "    if (iter.hasNext()) {",
         "      iter.next();",
@@ -480,7 +480,7 @@ public class CollectionSemanticProcessorTest extends SemanticProcessorTest {
         "package test;",
         "import java.util.List;",
         "public class Test {",
-        "  String[] foo(List<String> items) {",
+        "  public String[] foo(List<String> items) {",
         "    return items.toArray(new String[items.length]);",
         "  }",
         "}");
@@ -497,7 +497,7 @@ public class CollectionSemanticProcessorTest extends SemanticProcessorTest {
         "package test;",
         "import java.util.Map;",
         "public class Test {",
-        "  void main(Map<String, Integer> items) {",
+        "  public void main(Map<String, Integer> items) {",
         "    Set<Map.Entry<String, Integer>> entries = items.entrySet();",
         "  }",
         "}");
@@ -577,7 +577,7 @@ public class CollectionSemanticProcessorTest extends SemanticProcessorTest {
         "package test;",
         "import java.util.Map;",
         "public class Test {",
-        "  void main(Map<String, Integer> target, Map<String, Integer> source) {",
+        "  public void main(Map<String, Integer> target, Map<String, Integer> source) {",
         "    target.putAll(source);",
         "  }",
         "}");
@@ -596,7 +596,7 @@ public class CollectionSemanticProcessorTest extends SemanticProcessorTest {
         "package test;",
         "import java.util.Map;",
         "public class Test {",
-        "  int main(Map<String, String> items) {",
+        "  public int main(Map<String, String> items) {",
         "    return items.size();",
         "  }",
         "}");
@@ -613,7 +613,7 @@ public class CollectionSemanticProcessorTest extends SemanticProcessorTest {
         "package test;",
         "import java.util.Map;",
         "public class Test {",
-        "  void main(Map<String, Integer> items) {",
+        "  public void main(Map<String, Integer> items) {",
         "    items.values();",
         "    items.keySet();",
         "  }",

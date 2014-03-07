@@ -775,6 +775,23 @@ public class Parser {
     return new ConstructorName(type, period, name);
   }
 
+//  /**
+//   * If the current token is an identifier matching the given identifier, return it after advancing
+//   * to the next token. Otherwise report an error and return the current token without advancing.
+//   * 
+//   * @param identifier the identifier that is expected
+//   * @return the token that matched the given type
+//   */
+//  private Token expect(String identifier) {
+//    if (matches(identifier)) {
+//      return getAndAdvance();
+//    }
+//    // Remove uses of this method in favor of matches?
+//    // Pass in the error code to use to report the error?
+//    reportError(ParserErrorCode.EXPECTED_TOKEN, identifier);
+//    return currentToken;
+//  }
+
   /**
    * Parse an expression that does not contain any cascades.
    * 
@@ -818,23 +835,6 @@ public class Parser {
     return expression;
   }
 
-//  /**
-//   * If the current token is an identifier matching the given identifier, return it after advancing
-//   * to the next token. Otherwise report an error and return the current token without advancing.
-//   * 
-//   * @param identifier the identifier that is expected
-//   * @return the token that matched the given type
-//   */
-//  private Token expect(String identifier) {
-//    if (matches(identifier)) {
-//      return getAndAdvance();
-//    }
-//    // Remove uses of this method in favor of matches?
-//    // Pass in the error code to use to report the error?
-//    reportError(ParserErrorCode.EXPECTED_TOKEN, identifier);
-//    return currentToken;
-//  }
-
   /**
    * Parse an expression that does not contain any cascades.
    * 
@@ -867,22 +867,6 @@ public class Parser {
     return expression;
   }
 
-  /**
-   * Parse a class extends clause.
-   * 
-   * <pre>
-   * classExtendsClause ::=
-   *     'extends' type
-   * </pre>
-   * 
-   * @return the class extends clause that was parsed
-   */
-  protected ExtendsClause parseExtendsClause() {
-    Token keyword = expectKeyword(Keyword.EXTENDS);
-    TypeName superclass = parseTypeName();
-    return new ExtendsClause(keyword, superclass);
-  }
-
 //  /**
 //   * If the current token is an identifier matching the given identifier, return it after advancing
 //   * to the next token. Otherwise report an error and return the current token without advancing.
@@ -899,6 +883,22 @@ public class Parser {
 //    reportError(ParserErrorCode.EXPECTED_TOKEN, identifier);
 //    return currentToken;
 //  }
+
+  /**
+   * Parse a class extends clause.
+   * 
+   * <pre>
+   * classExtendsClause ::=
+   *     'extends' type
+   * </pre>
+   * 
+   * @return the class extends clause that was parsed
+   */
+  protected ExtendsClause parseExtendsClause() {
+    Token keyword = expectKeyword(Keyword.EXTENDS);
+    TypeName superclass = parseTypeName();
+    return new ExtendsClause(keyword, superclass);
+  }
 
   /**
    * Parse a list of formal parameters.
@@ -1378,18 +1378,18 @@ public class Parser {
   }
 
 /**
-     * Parse a list of type arguments.
-     * 
-     * <pre>
-     * typeArguments ::=
-     *     '<' typeList '>'
-     * 
-     * typeList ::=
-     *     type (',' type)*
-     * </pre>
-     * 
-     * @return the type argument list that was parsed
-     */
+       * Parse a list of type arguments.
+       * 
+       * <pre>
+       * typeArguments ::=
+       *     '<' typeList '>'
+       * 
+       * typeList ::=
+       *     type (',' type)*
+       * </pre>
+       * 
+       * @return the type argument list that was parsed
+       */
   protected TypeArgumentList parseTypeArgumentList() {
     Token leftBracket = expect(TokenType.LT);
     List<TypeName> arguments = new ArrayList<TypeName>();
@@ -1461,15 +1461,15 @@ public class Parser {
   }
 
 /**
-     * Parse a list of type parameters.
-     * 
-     * <pre>
-     * typeParameterList ::=
-     *     '<' typeParameter (',' typeParameter)* '>'
-     * </pre>
-     * 
-     * @return the list of type parameters that were parsed
-     */
+       * Parse a list of type parameters.
+       * 
+       * <pre>
+       * typeParameterList ::=
+       *     '<' typeParameter (',' typeParameter)* '>'
+       * </pre>
+       * 
+       * @return the list of type parameters that were parsed
+       */
   protected TypeParameterList parseTypeParameterList() {
     Token leftBracket = expect(TokenType.LT);
     List<TypeParameter> typeParameters = new ArrayList<TypeParameter>();

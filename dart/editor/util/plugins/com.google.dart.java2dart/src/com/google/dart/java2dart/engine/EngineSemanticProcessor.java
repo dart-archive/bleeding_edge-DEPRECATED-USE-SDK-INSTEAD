@@ -130,8 +130,8 @@ public class EngineSemanticProcessor extends SemanticProcessor {
   /**
    * Generates "invokeParserMethodImpl" and supporting Dart code.
    */
-  public static void replaceReflectionMethods(final Context context, final PrintWriter pw,
-      AstNode node) {
+  public static void replaceReflection_generateParserTable(final Context context,
+      final PrintWriter pw, AstNode node) {
     node.accept(new RecursiveAstVisitor<Void>() {
       @Override
       public Void visitClassDeclaration(ClassDeclaration node) {
@@ -144,7 +144,7 @@ public class EngineSemanticProcessor extends SemanticProcessor {
         if (node.getName().getName().equals("Parser")) {
           Set<String> usedMethodSignatures = Sets.newHashSet();
           pw.println();
-          pw.print("Map<String, MethodTrampoline> _methodTable_Parser = <String, MethodTrampoline> {");
+          pw.print("Map<String, MethodTrampoline> methodTable_Parser = <String, MethodTrampoline> {");
           for (ClassMember classMember : members) {
             Object binding = context.getNodeBinding(classMember);
             if (classMember instanceof MethodDeclaration && binding instanceof IMethodBinding) {
@@ -194,7 +194,7 @@ public class EngineSemanticProcessor extends SemanticProcessor {
       @Override
       public Void visitMethodDeclaration(MethodDeclaration node) {
         String name = node.getName().getName();
-        if (name.equals("findParserMethod")) {
+        if (name.equals("_findParserMethod")) {
           removeMethod(node);
         }
         if (name.equals("invokeParserMethodImpl")) {
@@ -202,7 +202,7 @@ public class EngineSemanticProcessor extends SemanticProcessor {
           String source = toSource(
               "Object invokeParserMethodImpl(Parser parser, String methodName, List<Object> objects, Token tokenStream) {",
               "  parser.currentToken = tokenStream;",
-              "  MethodTrampoline method = _methodTable_Parser['${methodName}_${objects.length}'];",
+              "  MethodTrampoline method = methodTable_Parser['${methodName}_${objects.length}'];",
               "  return method.invoke(parser, objects);",
               "}");
           pw.print("\n");
@@ -212,6 +212,18 @@ public class EngineSemanticProcessor extends SemanticProcessor {
         return super.visitMethodDeclaration(node);
       }
 
+      private void removeMethod(MethodDeclaration node) {
+        ((ClassDeclaration) node.getParent()).getMembers().remove(node);
+      }
+    });
+  }
+
+  /**
+   * Rewrites "invokeParserMethodImpl" invocation.
+   */
+  public static void replaceReflection_invokeParserMethodImpl(AstNode node) {
+    node.accept(new RecursiveAstVisitor<Void>() {
+
       @Override
       public Void visitMethodInvocation(MethodInvocation node) {
         String name = node.getMethodName().getName();
@@ -220,10 +232,6 @@ public class EngineSemanticProcessor extends SemanticProcessor {
           return null;
         }
         return super.visitMethodInvocation(node);
-      }
-
-      private void removeMethod(MethodDeclaration node) {
-        ((ClassDeclaration) node.getParent()).getMembers().remove(node);
       }
     });
   }
