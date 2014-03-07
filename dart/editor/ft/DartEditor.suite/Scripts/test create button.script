@@ -45,7 +45,7 @@ TypeText tab,tab
 if util.isLinux()
 	TypeText tab,tab
 end if
-TypeText upArrow,upArrow,upArrow,upArrow
+TypeText upArrow,upArrow,upArrow,upArrow 
 util.newline
 util.xWait 5
 util.xWaitFor 10.0, "pubspec lock" (* confirm file creation *)
