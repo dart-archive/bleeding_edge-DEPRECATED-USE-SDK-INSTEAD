@@ -33,6 +33,7 @@ import com.google.dart.tools.core.mock.MockWorkspaceRoot;
 
 import org.eclipse.core.resources.IResource;
 
+import static org.fest.assertions.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
@@ -58,13 +59,15 @@ public class AnalysisWorkerTest extends AbstractDartCoreTest {
     @Override
     public void resolved(ResolvedEvent event) {
       resolved.add(event.getResource());
-      assertEquals(originalCacheSize * 2, event.getContext().getAnalysisOptions().getCacheSize());
+      assertThat(event.getContext().getAnalysisOptions().getCacheSize()).isGreaterThan(
+          originalCacheSize);
     }
 
     @Override
     public void resolvedHtml(ResolvedHtmlEvent event) {
       resolved.add(event.getResource());
-      assertEquals(originalCacheSize * 2, event.getContext().getAnalysisOptions().getCacheSize());
+      assertThat(event.getContext().getAnalysisOptions().getCacheSize()).isGreaterThan(
+          originalCacheSize);
     }
 
     void assertCompleted(AnalysisContext expected) {
