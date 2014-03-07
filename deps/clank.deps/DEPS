@@ -22,7 +22,7 @@ vars.update({
   # updated to "https" for committers.
   "dart_branch": "/branches/bleeding_edge",
   "dartium_webkit_branch": "/blink/branches/dart/1750",
-  "dartium_webkit_revision": "168518",
+  "dartium_webkit_revision": "168550",
   "bootstrap_css_rev" : "@28387",
   "co19_rev": "@672",
   "gsutil_rev" : "@33376",
