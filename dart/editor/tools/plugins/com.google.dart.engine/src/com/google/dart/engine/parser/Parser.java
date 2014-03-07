@@ -396,8 +396,7 @@ public class Parser {
         validateModifiersForOperator(modifiers);
         return parseOperator(commentAndMetadata, modifiers.getExternalKeyword(), returnType);
       } else if (matchesIdentifier()
-          && matchesAny(
-              peek(),
+          && peek().matchesAny(
               TokenType.OPEN_PAREN,
               TokenType.OPEN_CURLY_BRACKET,
               TokenType.FUNCTION)) {
@@ -412,7 +411,7 @@ public class Parser {
         // We have found an error of some kind. Try to recover.
         //
         if (matchesIdentifier()) {
-          if (matchesAny(peek(), TokenType.EQ, TokenType.COMMA, TokenType.SEMICOLON)) {
+          if (peek().matchesAny(TokenType.EQ, TokenType.COMMA, TokenType.SEMICOLON)) {
             //
             // We appear to have a variable declaration with a type of "void".
             //
@@ -514,7 +513,7 @@ public class Parser {
           null,
           methodName,
           parameters);
-    } else if (matchesAny(peek(), TokenType.EQ, TokenType.COMMA, TokenType.SEMICOLON)) {
+    } else if (peek().matchesAny(TokenType.EQ, TokenType.COMMA, TokenType.SEMICOLON)) {
       if (modifiers.getConstKeyword() == null && modifiers.getFinalKeyword() == null
           && modifiers.getVarKeyword() == null) {
         reportErrorForCurrentToken(ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE);
@@ -1957,7 +1956,7 @@ public class Parser {
     if (afterParameters == null) {
       return false;
     }
-    return matchesAny(afterParameters, TokenType.OPEN_CURLY_BRACKET, TokenType.FUNCTION);
+    return afterParameters.matchesAny(TokenType.OPEN_CURLY_BRACKET, TokenType.FUNCTION);
   }
 
   /**
@@ -2007,8 +2006,7 @@ public class Parser {
     if (matchesKeyword(Keyword.CONST)) {
       // Look to see whether we might be at the start of a list or map literal, otherwise this
       // should be the start of a variable declaration.
-      return !matchesAny(
-          peek(),
+      return !peek().matchesAny(
           TokenType.LT,
           TokenType.OPEN_CURLY_BRACKET,
           TokenType.OPEN_SQUARE_BRACKET,
@@ -2203,23 +2201,6 @@ public class Parser {
       return false;
     }
     return true;
-  }
-
-  /**
-   * Return {@code true} if the given token has any one of the given types.
-   * 
-   * @param token the token being tested
-   * @param types the types of token that are being tested for
-   * @return {@code true} if the given token has any of the given types
-   */
-  private boolean matchesAny(Token token, TokenType... types) {
-    TokenType actualType = token.getType();
-    for (TokenType type : types) {
-      if (actualType == type) {
-        return true;
-      }
-    }
-    return false;
   }
 
   /**
@@ -3065,8 +3046,7 @@ public class Parser {
             modifiers.getExternalKeyword(),
             returnType));
       } else if (matchesIdentifier()
-          && matchesAny(
-              peek(),
+          && peek().matchesAny(
               TokenType.OPEN_PAREN,
               TokenType.OPEN_CURLY_BRACKET,
               TokenType.FUNCTION)) {
@@ -3080,7 +3060,7 @@ public class Parser {
         // We have found an error of some kind. Try to recover.
         //
         if (matchesIdentifier()) {
-          if (matchesAny(peek(), TokenType.EQ, TokenType.COMMA, TokenType.SEMICOLON)) {
+          if (peek().matchesAny(TokenType.EQ, TokenType.COMMA, TokenType.SEMICOLON)) {
             //
             // We appear to have a variable declaration with a type of "void".
             //
@@ -3113,7 +3093,7 @@ public class Parser {
     } else if (tokenMatches(peek(), TokenType.OPEN_PAREN)) {
       validateModifiersForTopLevelFunction(modifiers);
       return parseFunctionDeclaration(commentAndMetadata, modifiers.getExternalKeyword(), null);
-    } else if (matchesAny(peek(), TokenType.EQ, TokenType.COMMA, TokenType.SEMICOLON)) {
+    } else if (peek().matchesAny(TokenType.EQ, TokenType.COMMA, TokenType.SEMICOLON)) {
       if (modifiers.getConstKeyword() == null && modifiers.getFinalKeyword() == null
           && modifiers.getVarKeyword() == null) {
         reportErrorForCurrentToken(ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE);
@@ -3165,7 +3145,7 @@ public class Parser {
           new VariableDeclarationList(null, null, null, returnType, variables),
           semicolon);
     }
-    if (matchesAny(peek(), TokenType.OPEN_PAREN, TokenType.FUNCTION, TokenType.OPEN_CURLY_BRACKET)) {
+    if (peek().matchesAny(TokenType.OPEN_PAREN, TokenType.FUNCTION, TokenType.OPEN_CURLY_BRACKET)) {
       validateModifiersForTopLevelFunction(modifiers);
       return parseFunctionDeclaration(
           commentAndMetadata,
@@ -4631,8 +4611,7 @@ public class Parser {
       } else if (keyword == Keyword.VOID) {
         TypeName returnType = parseReturnType();
         if (matchesIdentifier()
-            && matchesAny(
-                peek(),
+            && peek().matchesAny(
                 TokenType.OPEN_PAREN,
                 TokenType.OPEN_CURLY_BRACKET,
                 TokenType.FUNCTION)) {
@@ -4642,7 +4621,7 @@ public class Parser {
           // We have found an error of some kind. Try to recover.
           //
           if (matchesIdentifier()) {
-            if (matchesAny(peek(), TokenType.EQ, TokenType.COMMA, TokenType.SEMICOLON)) {
+            if (peek().matchesAny(TokenType.EQ, TokenType.COMMA, TokenType.SEMICOLON)) {
               //
               // We appear to have a variable declaration with a type of "void".
               //
@@ -4661,8 +4640,7 @@ public class Parser {
           return new EmptyStatement(createSyntheticToken(TokenType.SEMICOLON));
         }
       } else if (keyword == Keyword.CONST) {
-        if (matchesAny(
-            peek(),
+        if (peek().matchesAny(
             TokenType.LT,
             TokenType.OPEN_CURLY_BRACKET,
             TokenType.OPEN_SQUARE_BRACKET,
@@ -5949,10 +5927,9 @@ public class Parser {
     // Look to see whether the token after the open parenthesis is something that should only occur
     // at the beginning of a parameter list.
     //
-    if (matchesAny(next, TokenType.AT, TokenType.OPEN_SQUARE_BRACKET, TokenType.OPEN_CURLY_BRACKET)
+    if (next.matchesAny(TokenType.AT, TokenType.OPEN_SQUARE_BRACKET, TokenType.OPEN_CURLY_BRACKET)
         || tokenMatchesKeyword(next, Keyword.VOID)
-        || (tokenMatchesIdentifier(next) && (matchesAny(
-            next.getNext(),
+        || (tokenMatchesIdentifier(next) && (next.getNext().matchesAny(
             TokenType.COMMA,
             TokenType.CLOSE_PAREN)))) {
       return skipPastMatchingToken(startToken);
@@ -5963,7 +5940,7 @@ public class Parser {
     if (tokenMatchesIdentifier(next) && tokenMatches(next.getNext(), TokenType.OPEN_PAREN)) {
       Token afterParameters = skipFormalParameterList(next.getNext());
       if (afterParameters != null
-          && (matchesAny(afterParameters, TokenType.COMMA, TokenType.CLOSE_PAREN))) {
+          && (afterParameters.matchesAny(TokenType.COMMA, TokenType.CLOSE_PAREN))) {
         return skipPastMatchingToken(startToken);
       }
     }
