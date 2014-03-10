@@ -317,6 +317,21 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
   }
 
   @Override
+  public boolean hasStaticMember() {
+    for (MethodElement method : methods) {
+      if (method.isStatic()) {
+        return true;
+      }
+    }
+    for (PropertyAccessorElement accessor : accessors) {
+      if (accessor.isStatic()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @Override
   public boolean isAbstract() {
     return hasModifier(Modifier.ABSTRACT);
   }

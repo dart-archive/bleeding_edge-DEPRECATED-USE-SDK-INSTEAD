@@ -203,6 +203,13 @@ public interface ClassElement extends Element {
   public boolean hasReferenceToSuper();
 
   /**
+   * Return {@code true} if this class declares a static member.
+   * 
+   * @return {@code true} if this class declares a static member
+   */
+  public boolean hasStaticMember();
+
+  /**
    * Return {@code true} if this class is abstract. A class is abstract if it has an explicit
    * {@code abstract} modifier. Note, that this definition of <i>abstract</i> is different from
    * <i>has unimplemented members</i>.
