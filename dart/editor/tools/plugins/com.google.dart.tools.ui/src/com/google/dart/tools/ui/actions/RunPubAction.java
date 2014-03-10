@@ -48,7 +48,7 @@ public class RunPubAction extends InstrumentedSelectionDispatchAction {
 
   public static RunPubAction createPubDeployAction(IWorkbenchWindow window) {
     RunPubAction action = new RunPubAction(window, RunPubJob.BUILD_COMMAND);
-    action.setText(NLS.bind(ActionMessages.RunPubAction_commandText, "Build"));
+    action.setText(NLS.bind(ActionMessages.RunPubAction_commandText, "Build (generates JS)"));
     action.setDescription(NLS.bind(ActionMessages.RunPubAction_commandDesc, RunPubJob.BUILD_COMMAND));
     return action;
   }
