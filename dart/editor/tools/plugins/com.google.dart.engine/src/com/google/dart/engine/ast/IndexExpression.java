@@ -18,6 +18,7 @@ import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.internal.element.AuxiliaryElements;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
+import com.google.dart.engine.utilities.translation.DartName;
 
 /**
  * Instances of the class {@code IndexExpression} represent an index expression.
@@ -86,6 +87,7 @@ public class IndexExpression extends Expression {
    * @param index the expression used to compute the index
    * @param rightBracket the right square bracket
    */
+  @DartName("forTarget")
   public IndexExpression(Expression target, Token leftBracket, Expression index, Token rightBracket) {
     this.target = becomeParentOf(target);
     this.leftBracket = leftBracket;
@@ -101,6 +103,7 @@ public class IndexExpression extends Expression {
    * @param index the expression used to compute the index
    * @param rightBracket the right square bracket
    */
+  @DartName("forCascade")
   public IndexExpression(Token period, Token leftBracket, Expression index, Token rightBracket) {
     this.period = period;
     this.leftBracket = leftBracket;

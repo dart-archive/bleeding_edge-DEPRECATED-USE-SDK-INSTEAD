@@ -61,8 +61,10 @@ import com.google.dart.java2dart.processor.IOSemanticProcessor;
 import com.google.dart.java2dart.processor.JUnitSemanticProcessor;
 import com.google.dart.java2dart.processor.ObjectSemanticProcessor;
 import com.google.dart.java2dart.processor.PropertySemanticProcessor;
+import com.google.dart.java2dart.processor.RenameConstructorsSemanticProcessor;
 import com.google.dart.java2dart.processor.SemanticProcessor;
 import com.google.dart.java2dart.processor.TypeSemanticProcessor;
+import com.google.dart.java2dart.processor.UniqueMemberNamesSemanticProcessor;
 import com.google.dart.java2dart.util.ToFormattedSourceVisitor;
 
 import static com.google.dart.java2dart.util.AstFactory.exportDirective;
@@ -118,7 +120,6 @@ public class MainEngine {
   private static final Context context = new Context();
   private static File engineFolder;
   private static File engineTestFolder;
-  private static File engineFolder2;
 
   private static CompilationUnit dartUnit;
 
@@ -145,7 +146,6 @@ public class MainEngine {
     //
     engineFolder = new File("../../../tools/plugins/com.google.dart.engine/src");
     engineTestFolder = new File("../../../tools/plugins/com.google.dart.engine_test/src");
-    engineFolder2 = new File("src");
     engineFolder = engineFolder.getCanonicalFile();
     // configure Context
     context.addClasspathFile(new File("../../../../third_party/guava/r13/guava-13.0.1.jar"));
@@ -245,23 +245,6 @@ public class MainEngine {
     context.addSourceFiles(new File(engineTestFolder, "com/google/dart/engine/context"));
     context.addSourceFiles(new File(engineTestFolder, "com/google/dart/engine/source"));
     context.addSourceFiles(new File(engineTestFolder, "com/google/dart/engine/internal/context"));
-    // configure renames
-    context.addRename(
-        "Lcom/google/dart/engine/ast/IndexExpression;.(Lcom/google/dart/engine/ast/Expression;"
-            + "Lcom/google/dart/engine/scanner/Token;Lcom/google/dart/engine/ast/Expression;"
-            + "Lcom/google/dart/engine/scanner/Token;)",
-        "forTarget");
-    context.addRename(
-        "Lcom/google/dart/engine/ast/IndexExpression;.(Lcom/google/dart/engine/scanner/Token;"
-            + "Lcom/google/dart/engine/scanner/Token;Lcom/google/dart/engine/ast/Expression;"
-            + "Lcom/google/dart/engine/scanner/Token;)",
-        "forCascade");
-    context.addRename(
-        "Lcom/google/dart/engine/sdk/DirectoryBasedDartSdk;.(Ljava/io/File;)",
-        "<empty>");
-    context.addRename(
-        "Lcom/google/dart/engine/html/ast/XmlTagNode;.becomeParentOf<T:Lcom/google/dart/engine/html/ast/XmlNode;>(Ljava/util/List<TT;>;Ljava/util/List<TT;>;)",
-        "becomeParentOfEmpty");
     // configure properties
     context.addNotProperty("Lcom/google/dart/engine/parser/Parser;.isFunctionDeclaration()");
     context.addNotProperty("Lcom/google/dart/engine/parser/Parser;.isInitializedVariableDeclaration()");
@@ -278,8 +261,10 @@ public class MainEngine {
           new PropertySemanticProcessor(context),
           new GuavaSemanticProcessor(context),
           new JUnitSemanticProcessor(context),
-          new EngineSemanticProcessor(context),
           new EngineAnnotationProcessor(context),
+          new UniqueMemberNamesSemanticProcessor(context),
+          new RenameConstructorsSemanticProcessor(context),
+          new EngineSemanticProcessor(context),
           new EngineInstanceOfProcessor(context),
           new BeautifySemanticProcessor(context));
       for (SemanticProcessor processor : PROCESSORS) {
@@ -287,7 +272,7 @@ public class MainEngine {
       }
     }
     // run this again, because we may introduce conflicts when convert methods to getters/setters
-    context.ensureUniqueClassMemberNames(dartUnit);
+    context.ensureUniqueClassMemberNames();
     context.applyLocalVariableSemanticChanges(dartUnit);
     EngineSemanticProcessor.rewriteReflectionFieldsWithDirect(context, dartUnit);
     // dump as several libraries

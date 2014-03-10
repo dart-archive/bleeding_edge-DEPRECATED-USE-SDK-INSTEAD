@@ -281,7 +281,7 @@ public class PropertySemanticProcessorTest extends SemanticProcessorTest {
         "  }",
         "}");
     runProcessor();
-    context.ensureUniqueClassMemberNames(unit);
+    context.ensureUniqueClassMemberNames();
     assertFormattedSource(//
         "class Test {",
         "  final int foo;",
@@ -511,7 +511,7 @@ public class PropertySemanticProcessorTest extends SemanticProcessorTest {
         "  }",
         "}");
     runProcessor();
-    context.ensureUniqueClassMemberNames(unit);
+    context.ensureUniqueClassMemberNames();
     assertFormattedSource(
         "class Test {",
         "  int _foo = 0;",

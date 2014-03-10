@@ -28,6 +28,8 @@ import com.google.dart.engine.source.UriKind;
 import com.google.dart.engine.utilities.io.FileUtilities;
 import com.google.dart.engine.utilities.os.OSUtilities;
 import com.google.dart.engine.utilities.translation.DartBlockBody;
+import com.google.dart.engine.utilities.translation.DartOmit;
+import com.google.dart.engine.utilities.translation.DartOptional;
 
 import java.io.File;
 import java.io.IOException;
@@ -191,6 +193,7 @@ public class DirectoryBasedDartSdk implements DartSdk {
    * 
    * @param sdkDirectory the directory containing the SDK
    */
+  @DartOmit
   public DirectoryBasedDartSdk(File sdkDirectory) {
     this(sdkDirectory, false);
   }
@@ -201,7 +204,8 @@ public class DirectoryBasedDartSdk implements DartSdk {
    * @param sdkDirectory the directory containing the SDK
    * @param useDart2jsPaths {@code true} if the dart2js path should be used when it is available
    */
-  public DirectoryBasedDartSdk(File sdkDirectory, boolean useDart2jsPaths) {
+  public DirectoryBasedDartSdk(File sdkDirectory,
+      @DartOptional(defaultValue = "false") boolean useDart2jsPaths) {
     this.sdkDirectory = sdkDirectory.getAbsoluteFile();
     initializeSdk();
     initializeLibraryMap(useDart2jsPaths);

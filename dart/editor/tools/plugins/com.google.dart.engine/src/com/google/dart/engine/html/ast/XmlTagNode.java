@@ -125,9 +125,9 @@ public class XmlTagNode extends XmlNode {
       Token nodeEnd) {
     this.nodeStart = nodeStart;
     this.tag = tag;
-    this.attributes = becomeParentOf(attributes, NO_ATTRIBUTES);
+    this.attributes = becomeParentOfAll(attributes, NO_ATTRIBUTES);
     this.attributeEnd = attributeEnd;
-    this.tagNodes = becomeParentOf(tagNodes, NO_TAG_NODES);
+    this.tagNodes = becomeParentOfAll(tagNodes, NO_TAG_NODES);
     this.contentEnd = contentEnd;
     this.closingTag = closingTag;
     this.nodeEnd = nodeEnd;
@@ -340,15 +340,5 @@ public class XmlTagNode extends XmlNode {
     for (XmlTagNode node : tagNodes) {
       node.accept(visitor);
     }
-  }
-
-  /**
-   * Same as {@link #becomeParentOfAll(List)}, but returns given "ifEmpty" if "children" is empty
-   */
-  protected <T extends XmlNode> List<T> becomeParentOf(List<T> children, List<T> ifEmpty) {
-    if (children != null && children.isEmpty()) {
-      return ifEmpty;
-    }
-    return becomeParentOfAll(children);
   }
 }

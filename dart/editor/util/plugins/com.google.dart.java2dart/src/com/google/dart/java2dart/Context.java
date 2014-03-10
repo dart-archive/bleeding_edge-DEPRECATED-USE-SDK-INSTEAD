@@ -232,8 +232,8 @@ public class Context {
     }
   }
 
-  public void ensureUniqueClassMemberNames(CompilationUnit unit) {
-    unit.accept(new RecursiveAstVisitor<Void>() {
+  public void ensureUniqueClassMemberNames() {
+    dartUniverse.accept(new RecursiveAstVisitor<Void>() {
       private final Set<ClassMember> untouchableMethods = Sets.newHashSet();
       private final Map<String, ClassMember> usedClassMembers = Maps.newHashMap();
       private final Set<String> superNames = Sets.newHashSet();
@@ -385,10 +385,17 @@ public class Context {
   }
 
   /**
+   * @return some Java binding for the given Dart {@link ConstructorDeclaration}.
+   */
+  public IMethodBinding getConstructorBinding(ConstructorDeclaration node) {
+    return constructorToBinding.get(node);
+  }
+
+  /**
    * @return the not <code>null</code> {@link ConstructorDescription}, may be just added.
    */
   public ConstructorDescription getConstructorDescription(ConstructorDeclaration node) {
-    IMethodBinding binding = constructorToBinding.get(node);
+    IMethodBinding binding = getConstructorBinding(node);
     return getConstructorDescription(binding);
   }
 
@@ -418,6 +425,21 @@ public class Context {
       name = identifier.getName();
     }
     return name;
+  }
+
+  public List<MethodInvocation> getInvocations(MethodDeclaration method) {
+    List<MethodInvocation> invocations = Lists.newArrayList();
+    SimpleIdentifier methodName = method.getName();
+    List<SimpleIdentifier> references = getReferences(methodName);
+    for (SimpleIdentifier reference : references) {
+      if (reference.getParent() instanceof MethodInvocation) {
+        MethodInvocation invocation = (MethodInvocation) reference.getParent();
+        if (invocation.getMethodName() == reference) {
+          invocations.add(invocation);
+        }
+      }
+    }
+    return invocations;
   }
 
   public Map<CompilationUnitMember, File> getMemberToFile() {
@@ -538,7 +560,7 @@ public class Context {
   }
 
   public void renameConstructor(ConstructorDeclaration node, String name) {
-    IMethodBinding binding = constructorToBinding.get(node);
+    IMethodBinding binding = getConstructorBinding(node);
     //
     SimpleIdentifier newIdentifier;
     if (name == null) {
@@ -613,10 +635,7 @@ public class Context {
       dontUseThisInFieldInitializers(dartUniverse);
       renameAnonymousClassDeclarations();
       renamePrivateClassMembers();
-      ensureUniqueClassMemberNames(dartUniverse);
-      applyLocalVariableSemanticChanges(dartUniverse);
       new ConstructorSemanticProcessor(this).process(dartUniverse);
-      renameConstructors(dartUniverse);
       insertEnclosingTypeForInstanceCreationArguments(dartUniverse);
     }
     // done
@@ -945,67 +964,6 @@ public class Context {
       // rename
       renameIdentifier(nameNode, name);
     }
-  }
-
-  private void renameConstructors(CompilationUnit unit) {
-    unit.accept(new RecursiveAstVisitor<Void>() {
-      private final Set<String> memberNamesInClass = Sets.newHashSet();
-      private int numConstructors;
-
-      @Override
-      public Void visitClassDeclaration(ClassDeclaration node) {
-        memberNamesInClass.clear();
-        numConstructors = 0;
-        NodeList<ClassMember> members = node.getMembers();
-        for (ClassMember member : members) {
-          if (member instanceof ConstructorDeclaration) {
-            numConstructors++;
-          }
-          if (member instanceof MethodDeclaration) {
-            String name = ((MethodDeclaration) member).getName().getName();
-            memberNamesInClass.add(name);
-          }
-          if (member instanceof FieldDeclaration) {
-            FieldDeclaration fieldDeclaration = (FieldDeclaration) member;
-            NodeList<VariableDeclaration> variables = fieldDeclaration.getFields().getVariables();
-            for (VariableDeclaration variable : variables) {
-              String name = variable.getName().getName();
-              memberNamesInClass.add(name);
-            }
-          }
-        }
-        return super.visitClassDeclaration(node);
-      }
-
-      @Override
-      public Void visitConstructorDeclaration(ConstructorDeclaration node) {
-        IMethodBinding binding = constructorToBinding.get(node);
-        String bindingSignature = JavaUtils.getJdtSignature(binding);
-        // prepare name
-        String name = renameMap.get(bindingSignature);
-        if (name == null) {
-          if (numConstructors == 1 || node.getParameters().getParameters().isEmpty()) {
-            // don't set name, use unnamed constructor
-          } else {
-            int index = 1;
-            while (true) {
-              name = "con" + index++;
-              if (!memberNamesInClass.contains(name)) {
-                break;
-              }
-            }
-          }
-        }
-        memberNamesInClass.add(name);
-        // apply name
-        if ("<empty>".equals(name)) {
-          name = null;
-        }
-        renameConstructor(node, name);
-        // continue
-        return super.visitConstructorDeclaration(node);
-      }
-    });
   }
 
   private void renamePrivateClassMembers() {

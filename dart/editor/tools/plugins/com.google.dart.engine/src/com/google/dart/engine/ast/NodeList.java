@@ -14,6 +14,7 @@
 package com.google.dart.engine.ast;
 
 import com.google.dart.engine.scanner.Token;
+import com.google.dart.engine.utilities.translation.DartOmit;
 
 import java.util.AbstractList;
 import java.util.Collection;
@@ -23,6 +24,7 @@ import java.util.Collection;
  * 
  * @coverage dart.engine.ast
  */
+@DartOmit
 public class NodeList<E extends AstNode> extends AbstractList<E> {
   /**
    * Create an empty list with the given owner. This is a convenience method that allows the

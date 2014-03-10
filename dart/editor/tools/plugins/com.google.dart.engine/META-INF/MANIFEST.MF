@@ -59,6 +59,7 @@ Export-Package: com.google.dart.engine,
  com.google.dart.engine.utilities.io,
  com.google.dart.engine.utilities.logging,
  com.google.dart.engine.utilities.os,
- com.google.dart.engine.utilities.source
+ com.google.dart.engine.utilities.source,
+ com.google.dart.engine.utilities.translation
 Bundle-ClassPath: .
 Require-Bundle: com.google.dart.thirdparty

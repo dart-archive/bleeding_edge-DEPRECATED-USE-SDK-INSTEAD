@@ -18,6 +18,8 @@ import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.utilities.dart.ParameterKind;
+import com.google.dart.engine.utilities.translation.DartOmit;
+import com.google.dart.engine.utilities.translation.DartOptional;
 
 import static com.google.dart.engine.scanner.TokenFactory.tokenFromKeyword;
 import static com.google.dart.engine.scanner.TokenFactory.tokenFromString;
@@ -327,17 +329,16 @@ public final class AstFactory {
         name == null ? null : identifier(name));
   }
 
+  @DartOmit
   public static ContinueStatement continueStatement() {
-    return new ContinueStatement(
-        tokenFromKeyword(Keyword.CONTINUE),
-        null,
-        tokenFromType(TokenType.SEMICOLON));
+    return continueStatement(null);
   }
 
-  public static ContinueStatement continueStatement(String label) {
+  public static ContinueStatement continueStatement(@DartOptional String label) {
+    SimpleIdentifier labelNode = label == null ? null : identifier(label);
     return new ContinueStatement(
         tokenFromKeyword(Keyword.CONTINUE),
-        identifier(label),
+        labelNode,
         tokenFromType(TokenType.SEMICOLON));
   }
 
@@ -431,21 +432,14 @@ public final class AstFactory {
     return fieldDeclaration(isStatic, keyword, null, variables);
   }
 
+  @DartOmit
   public static FieldFormalParameter fieldFormalParameter(Keyword keyword, TypeName type,
       String identifier) {
-    return new FieldFormalParameter(
-        null,
-        null,
-        keyword == null ? null : tokenFromKeyword(keyword),
-        type,
-        tokenFromKeyword(Keyword.THIS),
-        tokenFromType(TokenType.PERIOD),
-        identifier(identifier),
-        null);
+    return fieldFormalParameter(keyword, type, identifier, null);
   }
 
   public static FieldFormalParameter fieldFormalParameter(Keyword keyword, TypeName type,
-      String identifier, FormalParameterList parameterList) {
+      String identifier, @DartOptional FormalParameterList parameterList) {
     return new FieldFormalParameter(
         null,
         null,

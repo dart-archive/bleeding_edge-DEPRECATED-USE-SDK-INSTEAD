@@ -77,7 +77,6 @@ import org.eclipse.jdt.core.dom.IMethodBinding;
 import org.eclipse.jdt.core.dom.ITypeBinding;
 
 import java.io.PrintWriter;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -496,19 +495,6 @@ public class EngineSemanticProcessor extends SemanticProcessor {
 
   @Override
   public void process(final CompilationUnit unit) {
-    List<CompilationUnitMember> declarations = unit.getDeclarations();
-    // remove NodeList, it is declared in enginelib.dart
-    for (Iterator<CompilationUnitMember> iter = declarations.iterator(); iter.hasNext();) {
-      CompilationUnitMember member = iter.next();
-      if (member instanceof ClassDeclaration) {
-        ClassDeclaration classDeclaration = (ClassDeclaration) member;
-        String name = classDeclaration.getName().getName();
-        if (name.equals("NodeList")) {
-          iter.remove();
-        }
-      }
-    }
-    // process nodes
     unit.accept(new GeneralizingAstVisitor<Void>() {
       @Override
       public Void visitClassDeclaration(ClassDeclaration node) {
@@ -533,11 +519,6 @@ public class EngineSemanticProcessor extends SemanticProcessor {
                   variableDeclaration(
                       "hashCode",
                       prefixExpression(TokenType.PLUS_PLUS, identifier("_hashCodeGenerator")))));
-        }
-        // "Type" is declared in dart:core, so replace it
-        if (JavaUtils.isTypeNamed(typeBinding, "com.google.dart.engine.type.Type")) {
-          SimpleIdentifier nameNode = node.getName();
-          context.renameIdentifier(nameNode, "Type2");
         }
         // done
         return null;

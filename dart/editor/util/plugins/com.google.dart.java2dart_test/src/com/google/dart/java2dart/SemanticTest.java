@@ -16,6 +16,7 @@ package com.google.dart.java2dart;
 
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.java2dart.processor.PropertySemanticProcessor;
+import com.google.dart.java2dart.processor.RenameConstructorsSemanticProcessor;
 
 import java.io.File;
 
@@ -23,6 +24,8 @@ import java.io.File;
  * Test for general Java semantics to Dart translation.
  */
 public class SemanticTest extends AbstractSemanticTest {
+  private final Context context = new Context();
+  private CompilationUnit unit;
 
   public void test_anonymousClass_extendsClass() throws Exception {
     setFileLines(
@@ -44,10 +47,9 @@ public class SemanticTest extends AbstractSemanticTest {
             "    };",
             "  }",
             "}"));
-    Context context = new Context();
     context.addSourceFolder(tmpFolder);
     context.addSourceFiles(tmpFolder);
-    CompilationUnit unit = context.translate();
+    translate();
     assertEquals(
         toString(
             "class Test {",
@@ -82,10 +84,9 @@ public class SemanticTest extends AbstractSemanticTest {
             "    };",
             "  }",
             "}"));
-    Context context = new Context();
     context.addSourceFolder(tmpFolder);
     context.addSourceFiles(tmpFolder);
-    CompilationUnit unit = context.translate();
+    translate();
     assertEquals(
         toString(
             "class Test {",
@@ -122,10 +123,9 @@ public class SemanticTest extends AbstractSemanticTest {
             "    };",
             "  }",
             "}"));
-    Context context = new Context();
     context.addSourceFolder(tmpFolder);
     context.addSourceFiles(tmpFolder);
-    CompilationUnit unit = context.translate();
+    translate();
     assertEquals(
         toString(
             "abstract class MyInterface {",
@@ -165,10 +165,9 @@ public class SemanticTest extends AbstractSemanticTest {
             "    };",
             "  }",
             "}"));
-    Context context = new Context();
     context.addSourceFolder(tmpFolder);
     context.addSourceFiles(tmpFolder);
-    CompilationUnit unit = context.translate();
+    translate();
     assertEquals(
         toString(
             "abstract class ErrorListener {",
@@ -217,10 +216,9 @@ public class SemanticTest extends AbstractSemanticTest {
             "    };",
             "  }",
             "}"));
-    Context context = new Context();
     context.addSourceFolder(tmpFolder);
     context.addSourceFiles(tmpFolder);
-    CompilationUnit unit = context.translate();
+    translate();
     assertEquals(
         toString(
             "abstract class ErrorListener {",
@@ -266,10 +264,9 @@ public class SemanticTest extends AbstractSemanticTest {
             "  }",
             "}",
             ""));
-    Context context = new Context();
     context.addSourceFolder(tmpFolder);
     context.addSourceFiles(tmpFolder);
-    CompilationUnit unit = context.translate();
+    translate();
     assertEquals(
         toString(
             "class Main {",
@@ -300,11 +297,10 @@ public class SemanticTest extends AbstractSemanticTest {
             "    new A.B();",
             "  }",
             "}"));
-    Context context = new Context();
     context.addSourceFolder(tmpFolder);
     context.addSourceFiles(tmpFolder);
     // do translate
-    CompilationUnit unit = context.translate();
+    translate();
     assertEquals(
         toString(
             "class A {",
@@ -345,11 +341,10 @@ public class SemanticTest extends AbstractSemanticTest {
             "    return new B();",
             "  }",
             "}"));
-    Context context = new Context();
     context.addSourceFolder(tmpFolder);
     context.addSourceFiles(tmpFolder);
     // do translate
-    CompilationUnit unit = context.translate();
+    translate();
     assertEquals(
         toString(
             "class A extends S {",
@@ -390,11 +385,10 @@ public class SemanticTest extends AbstractSemanticTest {
             "  public void test3(A) {",
             "  }",
             "}"));
-    Context context = new Context();
     context.addSourceFolder(tmpFolder);
     context.addSourceFiles(tmpFolder);
     // do translate
-    CompilationUnit unit = context.translate();
+    translate();
     assertEquals(
         toString(
             "class A {",
@@ -434,11 +428,10 @@ public class SemanticTest extends AbstractSemanticTest {
             "    };",
             "  }",
             "}"));
-    Context context = new Context();
     context.addSourceFolder(tmpFolder);
     context.addSourceFiles(tmpFolder);
     // do translate
-    CompilationUnit unit = context.translate();
+    translate();
     assertEquals(
         toString(
             "class A {",
@@ -468,11 +461,10 @@ public class SemanticTest extends AbstractSemanticTest {
             "  }",
             "  void test(B p) {}",
             "}"));
-    Context context = new Context();
     context.addSourceFolder(tmpFolder);
     context.addSourceFiles(tmpFolder);
     // do translate
-    CompilationUnit unit = context.translate();
+    translate();
     assertEquals(
         toString(
             "abstract class A {",
@@ -497,11 +489,10 @@ public class SemanticTest extends AbstractSemanticTest {
             "    }",
             "  }",
             "}"));
-    Context context = new Context();
     context.addSourceFolder(tmpFolder);
     context.addSourceFiles(tmpFolder);
     // do translate
-    CompilationUnit unit = context.translate();
+    translate();
     assertEquals(
         toString(
             "class A {",
@@ -526,11 +517,10 @@ public class SemanticTest extends AbstractSemanticTest {
             "    return new A.B() {};",
             "  }",
             "}"));
-    Context context = new Context();
     context.addSourceFolder(tmpFolder);
     context.addSourceFiles(tmpFolder);
     // do translate
-    CompilationUnit unit = context.translate();
+    translate();
     assertEquals(
         toString(
             "class A {",
@@ -558,11 +548,10 @@ public class SemanticTest extends AbstractSemanticTest {
             "    return new A.B() {};",
             "  }",
             "}"));
-    Context context = new Context();
     context.addSourceFolder(tmpFolder);
     context.addSourceFiles(tmpFolder);
     // do translate
-    CompilationUnit unit = context.translate();
+    translate();
     assertEquals(
         toString(
             "class A {",
@@ -594,11 +583,10 @@ public class SemanticTest extends AbstractSemanticTest {
             "    return new B(42);",
             "  }",
             "}"));
-    Context context = new Context();
     context.addSourceFolder(tmpFolder);
     context.addSourceFiles(tmpFolder);
     // do translate
-    CompilationUnit unit = context.translate();
+    translate();
     assertEquals(
         toString(
             "class A {",
@@ -638,11 +626,10 @@ public class SemanticTest extends AbstractSemanticTest {
             "  }",
             "}",
             ""));
-    Context context = new Context();
     context.addSourceFolder(tmpFolder);
     context.addSourceFiles(tmpFolder);
     context.addRename("Ltest/A;.foo", "myField");
-    CompilationUnit unit = context.translate();
+    translate();
     assertEquals(
         toString(
             "class A {",
@@ -680,11 +667,10 @@ public class SemanticTest extends AbstractSemanticTest {
             "  }",
             "}",
             ""));
-    Context context = new Context();
     context.addSourceFolder(tmpFolder);
     context.addSourceFiles(tmpFolder);
     context.addRename("Ltest/A;.foo(I)", "fooWithInt");
-    CompilationUnit unit = context.translate();
+    translate();
     assertEquals(
         toString(
             "class A {",
@@ -696,58 +682,6 @@ public class SemanticTest extends AbstractSemanticTest {
             "class B {",
             "  static void bar() {",
             "    A.fooWithInt(42);",
-            "  }",
-            "}"),
-        getFormattedSource(unit));
-  }
-
-  public void test_constructor_configureNames() throws Exception {
-    setFileLines(
-        "test/Test.java",
-        toString(
-            "// filler filler filler filler filler filler filler filler filler filler",
-            "package test;",
-            "public class Test {",
-            "  public Test() {",
-            "    print(0);",
-            "  }",
-            "  public Test(int p) {",
-            "    print(1);",
-            "  }",
-            "  public Test(double p) {",
-            "    print(2);",
-            "  }",
-            "  public static void main() {",
-            "    new Test();",
-            "    new Test(2);",
-            "    new Test(3.0);",
-            "  }",
-            "}",
-            ""));
-    Context context = new Context();
-    context.addSourceFolder(tmpFolder);
-    context.addSourceFiles(tmpFolder);
-    // configure names for constructors
-    context.addRename("Ltest/Test;.(I)", "forInt");
-    context.addRename("Ltest/Test;.(D)", "forDouble");
-    // do translate
-    CompilationUnit unit = context.translate();
-    assertEquals(
-        toString(
-            "class Test {",
-            "  Test() {",
-            "    print(0);",
-            "  }",
-            "  Test.forInt(int p) {",
-            "    print(1);",
-            "  }",
-            "  Test.forDouble(double p) {",
-            "    print(2);",
-            "  }",
-            "  static void main() {",
-            "    new Test();",
-            "    new Test.forInt(2);",
-            "    new Test.forDouble(3.0);",
             "  }",
             "}"),
         getFormattedSource(unit));
@@ -776,10 +710,9 @@ public class SemanticTest extends AbstractSemanticTest {
             "  }",
             "}",
             ""));
-    Context context = new Context();
     context.addSourceFolder(tmpFolder);
     context.addSourceFiles(tmpFolder);
-    CompilationUnit unit = context.translate();
+    translate();
     assertEquals(
         toString(
             "class Test {",
@@ -820,10 +753,9 @@ public class SemanticTest extends AbstractSemanticTest {
             "  }",
             "}",
             ""));
-    Context context = new Context();
     context.addSourceFolder(tmpFolder);
     context.addSourceFiles(tmpFolder);
-    CompilationUnit unit = context.translate();
+    translate();
     assertEquals(
         toString(
             "class Test<T> {",
@@ -858,10 +790,9 @@ public class SemanticTest extends AbstractSemanticTest {
             "  public double doubleF;",
             "}",
             ""));
-    Context context = new Context();
     context.addSourceFolder(tmpFolder);
     context.addSourceFiles(tmpFolder);
-    CompilationUnit unit = context.translate();
+    translate();
     assertEquals(
         toString(
             "class Test {",
@@ -897,10 +828,9 @@ public class SemanticTest extends AbstractSemanticTest {
             "    print(1);",
             "  }",
             "}"));
-    Context context = new Context();
     context.addSourceFolder(tmpFolder);
     context.addSourceFiles(tmpFolder);
-    CompilationUnit unit = context.translate();
+    translate();
     assertEquals(
         toString(
             "class Test extends Enum<Test> {",
@@ -933,10 +863,9 @@ public class SemanticTest extends AbstractSemanticTest {
             "    ONE, TWO;",
             "  }",
             "}"));
-    Context context = new Context();
     context.addSourceFolder(tmpFolder);
     context.addSourceFiles(tmpFolder);
-    CompilationUnit unit = context.translate();
+    translate();
     assertEquals(
         toString(
             "class Test {",
@@ -959,10 +888,9 @@ public class SemanticTest extends AbstractSemanticTest {
             "public enum Test {",
             "  ONE(), TWO;",
             "}"));
-    Context context = new Context();
     context.addSourceFolder(tmpFolder);
     context.addSourceFiles(tmpFolder);
-    CompilationUnit unit = context.translate();
+    translate();
     assertEquals(
         toString(
             "class Test extends Enum<Test> {",
@@ -989,19 +917,17 @@ public class SemanticTest extends AbstractSemanticTest {
             "    print(p);",
             "  }",
             "}"));
-    Context context = new Context();
     context.addSourceFolder(tmpFolder);
     context.addSourceFiles(tmpFolder);
-    context.addRename("Ltest/Test;.(Ljava/lang/String;II)", "withPriority");
-    CompilationUnit unit = context.translate();
+    translate();
     assertEquals(
         toString(
             "class Test extends Enum<Test> {",
             "  static final Test ONE = new Test.con1('ONE', 0);",
-            "  static final Test TWO = new Test.withPriority('TWO', 1, 2);",
+            "  static final Test TWO = new Test.con2('TWO', 1, 2);",
             "  static final List<Test> values = [ONE, TWO];",
-            "  Test.con1(String name, int ordinal) : this.withPriority(name, ordinal, 0);",
-            "  Test.withPriority(String name, int ordinal, int p) : super(name, ordinal) {",
+            "  Test.con1(String name, int ordinal) : this.con2(name, ordinal, 0);",
+            "  Test.con2(String name, int ordinal, int p) : super(name, ordinal) {",
             "    print(p);",
             "  }",
             "}"),
@@ -1022,10 +948,9 @@ public class SemanticTest extends AbstractSemanticTest {
             "    return a == b;",
             "  }",
             "}"));
-    Context context = new Context();
     context.addSourceFolder(tmpFolder);
     context.addSourceFiles(tmpFolder);
-    CompilationUnit unit = context.translate();
+    translate();
     assertEquals(toString(//
         "class A {",
         "  bool testA(Class a, Class b) => a == b;",
@@ -1047,10 +972,9 @@ public class SemanticTest extends AbstractSemanticTest {
             "  public static void print(String p) {}",
             "}",
             ""));
-    Context context = new Context();
     context.addSourceFolder(tmpFolder);
     context.addSourceFile(file);
-    CompilationUnit unit = context.translate();
+    translate();
     assertEquals(
         toString(
             "class Test {",
@@ -1077,10 +1001,9 @@ public class SemanticTest extends AbstractSemanticTest {
             "  public void with(int p) {}",
             "}",
             ""));
-    Context context = new Context();
     context.addSourceFolder(tmpFolder);
     context.addSourceFiles(tmpFolder);
-    CompilationUnit unit = context.translate();
+    translate();
     assertEquals(
         toString(
             "class Test {",
@@ -1110,10 +1033,9 @@ public class SemanticTest extends AbstractSemanticTest {
             "  public static void print(int p) {}",
             "}",
             ""));
-    Context context = new Context();
     context.addSourceFolder(tmpFolder);
     context.addSourceFile(file);
-    CompilationUnit unit = context.translate();
+    translate();
     assertEquals(
         toString(
             "class Test {",
@@ -1143,10 +1065,9 @@ public class SemanticTest extends AbstractSemanticTest {
             "  }",
             "}",
             ""));
-    Context context = new Context();
     context.addSourceFolder(tmpFolder);
     context.addSourceFiles(tmpFolder);
-    CompilationUnit unit = context.translate();
+    translate();
     // This will rename "elements" to "_elements".
     // We need to make sure that all references are renamed.
     new PropertySemanticProcessor(context).process(unit);
@@ -1177,10 +1098,9 @@ public class SemanticTest extends AbstractSemanticTest {
             "  }",
             "}",
             ""));
-    Context context = new Context();
     context.addSourceFolder(tmpFolder);
     context.addSourceFiles(tmpFolder);
-    CompilationUnit unit = context.translate();
+    translate();
     assertEquals(
         toString(
             "class Test {",
@@ -1215,10 +1135,9 @@ public class SemanticTest extends AbstractSemanticTest {
             "  }",
             "}",
             ""));
-    Context context = new Context();
     context.addSourceFolder(tmpFolder);
     context.addSourceFiles(tmpFolder);
-    CompilationUnit unit = context.translate();
+    translate();
     assertEquals(
         toString(
             "class Test {",
@@ -1244,10 +1163,9 @@ public class SemanticTest extends AbstractSemanticTest {
             "  }",
             "}",
             ""));
-    Context context = new Context();
     context.addSourceFolder(tmpFolder);
     context.addSourceFiles(tmpFolder);
-    CompilationUnit unit = context.translate();
+    translate();
     assertEquals(
         toString(
             "class Test {",
@@ -1282,10 +1200,9 @@ public class SemanticTest extends AbstractSemanticTest {
             "  }",
             "}",
             ""));
-    Context context = new Context();
     context.addSourceFolder(tmpFolder);
     context.addSourceFiles(tmpFolder);
-    CompilationUnit unit = context.translate();
+    translate();
     assertEquals(
         toString(
             "class Test {",
@@ -1329,10 +1246,9 @@ public class SemanticTest extends AbstractSemanticTest {
             "  public void foo(double p) {}",
             "}",
             ""));
-    Context context = new Context();
     context.addSourceFolder(tmpFolder);
     context.addSourceFiles(tmpFolder);
-    CompilationUnit unit = context.translate();
+    translate();
     assertEquals(
         toString(
             "class Test {",
@@ -1389,10 +1305,9 @@ public class SemanticTest extends AbstractSemanticTest {
             "  }",
             "}",
             ""));
-    Context context = new Context();
     context.addSourceFolder(tmpFolder);
     context.addSourceFiles(tmpFolder);
-    CompilationUnit unit = context.translate();
+    translate();
     assertEquals(
         toString(
             "class Test {",
@@ -1431,10 +1346,9 @@ public class SemanticTest extends AbstractSemanticTest {
             "  }",
             "}",
             ""));
-    Context context = new Context();
     context.addSourceFolder(tmpFolder);
     context.addSourceFiles(tmpFolder);
-    CompilationUnit unit = context.translate();
+    translate();
     assertEquals(
         toString(
             "class Super {",
@@ -1485,10 +1399,9 @@ public class SemanticTest extends AbstractSemanticTest {
             "  }",
             "}",
             ""));
-    Context context = new Context();
     context.addSourceFolder(tmpFolder);
     context.addSourceFiles(tmpFolder);
-    CompilationUnit unit = context.translate();
+    translate();
     assertEquals(
         toString(
             "class A {",
@@ -1538,10 +1451,9 @@ public class SemanticTest extends AbstractSemanticTest {
             "  }",
             "}",
             ""));
-    Context context = new Context();
     context.addSourceFolder(tmpFolder);
     context.addSourceFiles(tmpFolder);
-    CompilationUnit unit = context.translate();
+    translate();
     assertEquals(
         toString(
             "class A {",
@@ -1582,10 +1494,9 @@ public class SemanticTest extends AbstractSemanticTest {
             "  }",
             "}",
             ""));
-    Context context = new Context();
     context.addSourceFolder(tmpFolder);
     context.addSourceFiles(tmpFolder);
-    CompilationUnit unit = context.translate();
+    translate();
     assertEquals(
         toString(
             "class Test {",
@@ -1619,10 +1530,9 @@ public class SemanticTest extends AbstractSemanticTest {
             "  }",
             "}",
             ""));
-    Context context = new Context();
     context.addSourceFolder(tmpFolder);
     context.addSourceFiles(tmpFolder);
-    CompilationUnit unit = context.translate();
+    translate();
     assertEquals(
         toString(
             "class Test {",
@@ -1652,10 +1562,9 @@ public class SemanticTest extends AbstractSemanticTest {
             "  }",
             "}",
             ""));
-    Context context = new Context();
     context.addSourceFolder(tmpFolder);
     context.addSourceFiles(tmpFolder);
-    CompilationUnit unit = context.translate();
+    translate();
     new PropertySemanticProcessor(context).process(unit);
     context.applyLocalVariableSemanticChanges(unit);
     assertEquals(
@@ -1687,10 +1596,9 @@ public class SemanticTest extends AbstractSemanticTest {
             "  }",
             "}",
             ""));
-    Context context = new Context();
     context.addSourceFolder(tmpFolder);
     context.addSourceFiles(tmpFolder);
-    CompilationUnit unit = context.translate();
+    translate();
     new PropertySemanticProcessor(context).process(unit);
     context.applyLocalVariableSemanticChanges(unit);
     assertEquals(
@@ -1719,10 +1627,9 @@ public class SemanticTest extends AbstractSemanticTest {
             "  }",
             "}",
             ""));
-    Context context = new Context();
     context.addSourceFolder(tmpFolder);
     context.addSourceFiles(tmpFolder);
-    CompilationUnit unit = context.translate();
+    translate();
     assertEquals(
         toString(
             "class Test {",
@@ -1749,10 +1656,9 @@ public class SemanticTest extends AbstractSemanticTest {
             "  }",
             "}",
             ""));
-    Context context = new Context();
     context.addSourceFolder(tmpFolder);
     context.addSourceFiles(tmpFolder);
-    CompilationUnit unit = context.translate();
+    translate();
     assertEquals(
         toString(
             "class Test {",
@@ -1780,10 +1686,9 @@ public class SemanticTest extends AbstractSemanticTest {
             "  }",
             "}",
             ""));
-    Context context = new Context();
     context.addSourceFolder(tmpFolder);
     context.addSourceFiles(tmpFolder);
-    CompilationUnit unit = context.translate();
+    translate();
     assertEquals(
         toString(
             "class Test {",
@@ -1808,11 +1713,10 @@ public class SemanticTest extends AbstractSemanticTest {
             "    return field;",
             "  }",
             "}"));
-    Context context = new Context();
     context.addSourceFolder(tmpFolder);
     context.addSourceFiles(tmpFolder);
     // do translate
-    CompilationUnit unit = context.translate();
+    translate();
     assertEquals(toString(//
         "class A {",
         "  int _field = 42;",
@@ -1831,11 +1735,10 @@ public class SemanticTest extends AbstractSemanticTest {
             "    test();",
             "  }",
             "}"));
-    Context context = new Context();
     context.addSourceFolder(tmpFolder);
     context.addSourceFiles(tmpFolder);
     // do translate
-    CompilationUnit unit = context.translate();
+    translate();
     assertEquals(toString(//
         "class A {",
         "  void _test() {",
@@ -1860,10 +1763,9 @@ public class SemanticTest extends AbstractSemanticTest {
             "  }",
             "}",
             ""));
-    Context context = new Context();
     context.addSourceFolder(tmpFolder);
     context.addSourceFiles(tmpFolder);
-    CompilationUnit unit = context.translate();
+    translate();
     assertEquals(toString(//
         "class Test {",
         "  Test() : this.con1(42);",
@@ -1899,10 +1801,9 @@ public class SemanticTest extends AbstractSemanticTest {
             "  }",
             "}",
             ""));
-    Context context = new Context();
     context.addSourceFolder(tmpFolder);
     context.addSourceFiles(tmpFolder);
-    CompilationUnit unit = context.translate();
+    translate();
     assertEquals(
         toString(
             "class A extends Enum<A> {",
@@ -1949,10 +1850,9 @@ public class SemanticTest extends AbstractSemanticTest {
             "  }",
             "}",
             ""));
-    Context context = new Context();
     context.addSourceFolder(tmpFolder);
     context.addSourceFiles(tmpFolder);
-    CompilationUnit unit = context.translate();
+    translate();
     assertEquals(
         toString(
             "class A {",
@@ -1990,10 +1890,9 @@ public class SemanticTest extends AbstractSemanticTest {
             "  }",
             "}",
             ""));
-    Context context = new Context();
     context.addSourceFolder(tmpFolder);
     context.addSourceFiles(tmpFolder);
-    CompilationUnit unit = context.translate();
+    translate();
     assertEquals(
         toString(
             "class A {",
@@ -2020,10 +1919,9 @@ public class SemanticTest extends AbstractSemanticTest {
             "  public Object foo = this;",
             "}",
             ""));
-    Context context = new Context();
     context.addSourceFolder(tmpFolder);
     context.addSourceFiles(tmpFolder);
-    CompilationUnit unit = context.translate();
+    translate();
     assertEquals(toString(//
         "class Test {",
         "  Object foo;",
@@ -2056,10 +1954,9 @@ public class SemanticTest extends AbstractSemanticTest {
             "  }",
             "}",
             ""));
-    Context context = new Context();
     context.addSourceFolder(tmpFolder);
     context.addSourceFiles(tmpFolder);
-    CompilationUnit unit = context.translate();
+    translate();
     assertEquals(
         toString(
             "class Super {",
@@ -2091,10 +1988,9 @@ public class SemanticTest extends AbstractSemanticTest {
             "  }",
             "}",
             ""));
-    Context context = new Context();
     context.addSourceFolder(tmpFolder);
     context.addSourceFiles(tmpFolder);
-    CompilationUnit unit = context.translate();
+    translate();
     assertEquals(
         toString(
             "class Test {",
@@ -2125,11 +2021,10 @@ public class SemanticTest extends AbstractSemanticTest {
             "    } catch (Throwable e) {",
             "    }",
             "}"));
-    Context context = new Context();
     context.addSourceFolder(tmpFolder);
     context.addSourceFiles(tmpFolder);
     // do translate
-    CompilationUnit unit = context.translate();
+    translate();
     assertEquals(
         toString(
             "class Test {",
@@ -2161,10 +2056,9 @@ public class SemanticTest extends AbstractSemanticTest {
             "    return new ArrayList<T>();",
             "  }",
             "}"));
-    Context context = new Context();
     context.addSourceFolder(tmpFolder);
     context.addSourceFiles(tmpFolder);
-    CompilationUnit unit = context.translate();
+    translate();
     assertEquals(
         toString(
             "class A {",
@@ -2189,10 +2083,9 @@ public class SemanticTest extends AbstractSemanticTest {
             "    test(-1, 2, 3.0);",
             "  }",
             "}"));
-    Context context = new Context();
     context.addSourceFolder(tmpFolder);
     context.addSourceFiles(tmpFolder);
-    CompilationUnit unit = context.translate();
+    translate();
     assertEquals(
         toString(
             "class A {",
@@ -2220,10 +2113,9 @@ public class SemanticTest extends AbstractSemanticTest {
             "    test(EMPTY);",
             "  }",
             "}"));
-    Context context = new Context();
     context.addSourceFolder(tmpFolder);
     context.addSourceFiles(tmpFolder);
-    CompilationUnit unit = context.translate();
+    translate();
     assertEquals(
         toString(
             "class A {",
@@ -2256,10 +2148,9 @@ public class SemanticTest extends AbstractSemanticTest {
             "    new Test(args);",
             "  }",
             "}"));
-    Context context = new Context();
     context.addSourceFolder(tmpFolder);
     context.addSourceFiles(tmpFolder);
-    CompilationUnit unit = context.translate();
+    translate();
     assertEquals(
         toString(
             "class Test {",
@@ -2292,10 +2183,9 @@ public class SemanticTest extends AbstractSemanticTest {
             "    }",
             "  }",
             "}"));
-    Context context = new Context();
     context.addSourceFolder(tmpFolder);
     context.addSourceFiles(tmpFolder);
-    CompilationUnit unit = context.translate();
+    translate();
     assertEquals(
         toString(
             "class Test {",
@@ -2329,10 +2219,9 @@ public class SemanticTest extends AbstractSemanticTest {
             "  public void process(int x) {}",
             "}",
             ""));
-    Context context = new Context();
     context.addSourceFolder(tmpFolder);
     context.addSourceFile(file);
-    CompilationUnit unit = context.translate();
+    translate();
     assertEquals(
         toString(
             "class Test {",
@@ -2371,10 +2260,9 @@ public class SemanticTest extends AbstractSemanticTest {
             "  public static void baz(int p) {}",
             "}",
             ""));
-    Context context = new Context();
     context.addSourceFolder(tmpFolder);
     context.addSourceFile(file);
-    CompilationUnit unit = context.translate();
+    translate();
     assertEquals(
         toString(
             "class Test {",
@@ -2408,10 +2296,9 @@ public class SemanticTest extends AbstractSemanticTest {
             "  public void process(int x) {}",
             "}",
             ""));
-    Context context = new Context();
     context.addSourceFolder(tmpFolder);
     context.addSourceFile(file);
-    CompilationUnit unit = context.translate();
+    translate();
     // convert to properties and run variable checks again
     new PropertySemanticProcessor(context).process(unit);
     context.applyLocalVariableSemanticChanges(unit);
@@ -2428,5 +2315,12 @@ public class SemanticTest extends AbstractSemanticTest {
             "  }",
             "}"),
         getFormattedSource(unit));
+  }
+
+  private void translate() throws Exception {
+    unit = context.translate();
+    context.ensureUniqueClassMemberNames();
+    context.applyLocalVariableSemanticChanges(unit);
+    new RenameConstructorsSemanticProcessor(context).process(unit);
   }
 }

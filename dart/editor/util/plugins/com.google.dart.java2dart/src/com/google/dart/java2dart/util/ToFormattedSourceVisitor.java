@@ -30,6 +30,7 @@ public class ToFormattedSourceVisitor implements AstVisitor<Void> {
   public static final String COMMENTS_KEY = "List of comments before statement";
   public static final String BLOCK_BODY_KEY = "Block body source";
   public static final String EXPRESSION_BODY_KEY = "Expression body source";
+  public static final String DEFAULT_VALUE_KEY = "Default parameter value";
 
   /**
    * The writer to which the source is to be written.
@@ -315,7 +316,15 @@ public class ToFormattedSourceVisitor implements AstVisitor<Void> {
   @Override
   public Void visitDefaultFormalParameter(DefaultFormalParameter node) {
     visitNode(node.getParameter());
-    if (node.getSeparator() != null) {
+    String defaultValueSource = (String) node.getProperty(DEFAULT_VALUE_KEY);
+    if (defaultValueSource != null) {
+      if (node.getKind() == ParameterKind.POSITIONAL) {
+        writer.print(" = ");
+      } else {
+        writer.print(": ");
+      }
+      writer.print(defaultValueSource);
+    } else if (node.getSeparator() != null) {
       writer.print(" ");
       writer.print(node.getSeparator().getLexeme());
       visitNodeWithPrefix(" ", node.getDefaultValue());

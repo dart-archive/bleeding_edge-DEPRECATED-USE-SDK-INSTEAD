@@ -27,6 +27,7 @@ import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.collection.BooleanArray;
 import com.google.dart.engine.utilities.general.StringUtilities;
+import com.google.dart.engine.utilities.translation.DartName;
 
 /**
  * The abstract class {@code ElementImpl} implements the behavior common to objects that implement
@@ -72,6 +73,7 @@ public abstract class ElementImpl implements Element {
    * 
    * @param name the name of this element
    */
+  @DartName("forNode")
   public ElementImpl(Identifier name) {
     this(name == null ? "" : name.getName(), name == null ? -1 : name.getOffset());
   }

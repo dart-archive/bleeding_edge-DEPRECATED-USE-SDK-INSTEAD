@@ -14,6 +14,7 @@
 package com.google.dart.engine.type;
 
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.utilities.translation.DartName;
 
 /**
  * The interface {@code Type} defines the behavior of objects representing the declared type of
@@ -21,6 +22,7 @@ import com.google.dart.engine.element.Element;
  * 
  * @coverage dart.engine.type
  */
+@DartName("DartType")
 public interface Type {
   /**
    * Return the name of this type as it should appear when presented to users in contexts such as

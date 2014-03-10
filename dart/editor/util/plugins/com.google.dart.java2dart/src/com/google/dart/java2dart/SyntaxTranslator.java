@@ -2011,6 +2011,9 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
             org.eclipse.jdt.core.dom.Expression javaPairExpr = javaPair.getValue();
             Expression dartExpression = translate(javaPairExpr);
             Object value = dartExpression.accept(new ConstantEvaluator());
+            if (value == ConstantEvaluator.NOT_A_CONSTANT) {
+              value = dartExpression.toSource();
+            }
             parsedAnnotation.put(pairName, value);
           }
         }
@@ -2122,6 +2125,7 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
         initializers,
         body);
     context.putConstructorBinding(constructor, binding);
+    translateAnnotations(constructor, node.modifiers());
     return done(constructor);
   }
 
@@ -2136,6 +2140,7 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
     for (Iterator<?> I = node.parameters().iterator(); I.hasNext();) {
       org.eclipse.jdt.core.dom.SingleVariableDeclaration javaParameter = (org.eclipse.jdt.core.dom.SingleVariableDeclaration) I.next();
       SimpleFormalParameter parameter = translate(javaParameter);
+      translateAnnotations(parameter, javaParameter.modifiers());
       parameters.add(parameter);
     }
     parameterList = formalParameterList(parameters);

@@ -130,21 +130,6 @@ public class LocalVariablesSemanticProcessor extends SemanticProcessor {
     }
   }
 
-  private static AstNode getExecutableNode(AstNode node) {
-    // method
-    MethodDeclaration method = node.getAncestor(MethodDeclaration.class);
-    if (method != null) {
-      return method;
-    }
-    // constructor
-    ConstructorDeclaration constructor = node.getAncestor(ConstructorDeclaration.class);
-    if (constructor != null) {
-      return constructor;
-    }
-    // no
-    return null;
-  }
-
   private static boolean isMethodInvocationName(AstNode node) {
     AstNode parent = node.getParent();
     return parent instanceof MethodInvocation
