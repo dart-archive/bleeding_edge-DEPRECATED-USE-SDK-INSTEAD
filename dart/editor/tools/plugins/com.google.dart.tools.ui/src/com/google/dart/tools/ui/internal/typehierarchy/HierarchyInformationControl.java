@@ -49,6 +49,12 @@ public class HierarchyInformationControl extends AbstractInformationControl {
   }
 
   @Override
+  protected void configureShell(Shell shell) {
+    super.configureShell(shell);
+    shell.setText("Type Hierarchy");
+  }
+
+  @Override
   protected TreeViewer createTreeViewer(Composite parent, int style) {
     Tree tree = new Tree(parent, SWT.SINGLE | (style & ~SWT.MULTI));
     GridData gd = new GridData(GridData.FILL_BOTH);
