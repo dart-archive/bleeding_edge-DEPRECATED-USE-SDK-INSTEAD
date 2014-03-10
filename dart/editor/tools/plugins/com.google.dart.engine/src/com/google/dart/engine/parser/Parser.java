@@ -1397,7 +1397,7 @@ public class Parser {
     while (optional(TokenType.COMMA)) {
       arguments.add(parseTypeName());
     }
-    Token rightBracket = expect(TokenType.GT);
+    Token rightBracket = expectGt();
     return new TypeArgumentList(leftBracket, arguments, rightBracket);
   }
 
@@ -1477,7 +1477,7 @@ public class Parser {
     while (optional(TokenType.COMMA)) {
       typeParameters.add(parseTypeParameter());
     }
-    Token rightBracket = expect(TokenType.GT);
+    Token rightBracket = expectGt();
     return new TypeParameterList(leftBracket, typeParameters, rightBracket);
   }
 
@@ -1725,7 +1725,9 @@ public class Parser {
 
   /**
    * If the current token has the expected type, return it after advancing to the next token.
-   * Otherwise report an error and return the current token without advancing.
+   * Otherwise report an error and return the current token without advancing. Note that the method
+   * {@link #expectGt()} should be used if the argument to this method would be {@link TokenType#GT}
+   * .
    * 
    * @param type the type of token that is expected
    * @return the token that matched the given type
@@ -1744,6 +1746,20 @@ public class Parser {
     } else {
       reportErrorForCurrentToken(ParserErrorCode.EXPECTED_TOKEN, type.getLexeme());
     }
+    return currentToken;
+  }
+
+  /**
+   * If the current token has the type {@link TokenType#GT}, return it after advancing to the next
+   * token. Otherwise report an error and return the current token without advancing.
+   * 
+   * @return the token that matched the given type
+   */
+  private Token expectGt() {
+    if (matchesGt()) {
+      return getAndAdvance();
+    }
+    reportErrorForCurrentToken(ParserErrorCode.EXPECTED_TOKEN, TokenType.GT.getLexeme());
     return currentToken;
   }
 
@@ -2155,52 +2171,60 @@ public class Parser {
   }
 
   /**
-   * Return {@code true} if the current token has the given type. Note that this method, unlike
-   * other variants, will modify the token stream if possible to match a wider range of tokens. In
-   * particular, if we are attempting to match a '>' and the next token is either a '>>' or '>>>',
-   * the token stream will be re-written and {@code true} will be returned.
+   * Return {@code true} if the current token has the given type. Note that the method
+   * {@link #matchesGt()} should be used if the argument to this method would be
+   * {@link TokenType#GT}.
    * 
    * @param type the type of token that can optionally appear in the current location
    * @return {@code true} if the current token has the given type
    */
   private boolean matches(TokenType type) {
+    return currentToken.getType() == type;
+  }
+
+  /**
+   * Return {@code true} if the current token has a type of {@link TokenType#GT}. Note that this
+   * method, unlike other variants, will modify the token stream if possible to match desired type.
+   * In particular, if the next token is either a '>>' or '>>>', the token stream will be re-written
+   * and {@code true} will be returned.
+   * 
+   * @return {@code true} if the current token has a type of {@link TokenType#GT}
+   */
+  private boolean matchesGt() {
     TokenType currentType = currentToken.getType();
-    if (currentType != type) {
-      if (type == TokenType.GT) {
-        if (currentType == TokenType.GT_GT) {
-          int offset = currentToken.getOffset();
-          Token first = new Token(TokenType.GT, offset);
-          Token second = new Token(TokenType.GT, offset + 1);
-          second.setNext(currentToken.getNext());
-          first.setNext(second);
-          currentToken.getPrevious().setNext(first);
-          currentToken = first;
-          return true;
-        } else if (currentType == TokenType.GT_EQ) {
-          int offset = currentToken.getOffset();
-          Token first = new Token(TokenType.GT, offset);
-          Token second = new Token(TokenType.EQ, offset + 1);
-          second.setNext(currentToken.getNext());
-          first.setNext(second);
-          currentToken.getPrevious().setNext(first);
-          currentToken = first;
-          return true;
-        } else if (currentType == TokenType.GT_GT_EQ) {
-          int offset = currentToken.getOffset();
-          Token first = new Token(TokenType.GT, offset);
-          Token second = new Token(TokenType.GT, offset + 1);
-          Token third = new Token(TokenType.EQ, offset + 2);
-          third.setNext(currentToken.getNext());
-          second.setNext(third);
-          first.setNext(second);
-          currentToken.getPrevious().setNext(first);
-          currentToken = first;
-          return true;
-        }
-      }
-      return false;
+    if (currentType == TokenType.GT) {
+      return true;
+    } else if (currentType == TokenType.GT_GT) {
+      int offset = currentToken.getOffset();
+      Token first = new Token(TokenType.GT, offset);
+      Token second = new Token(TokenType.GT, offset + 1);
+      second.setNext(currentToken.getNext());
+      first.setNext(second);
+      currentToken.getPrevious().setNext(first);
+      currentToken = first;
+      return true;
+    } else if (currentType == TokenType.GT_EQ) {
+      int offset = currentToken.getOffset();
+      Token first = new Token(TokenType.GT, offset);
+      Token second = new Token(TokenType.EQ, offset + 1);
+      second.setNext(currentToken.getNext());
+      first.setNext(second);
+      currentToken.getPrevious().setNext(first);
+      currentToken = first;
+      return true;
+    } else if (currentType == TokenType.GT_GT_EQ) {
+      int offset = currentToken.getOffset();
+      Token first = new Token(TokenType.GT, offset);
+      Token second = new Token(TokenType.GT, offset + 1);
+      Token third = new Token(TokenType.EQ, offset + 2);
+      third.setNext(currentToken.getNext());
+      second.setNext(third);
+      first.setNext(second);
+      currentToken.getPrevious().setNext(first);
+      currentToken = first;
+      return true;
     }
-    return true;
+    return false;
   }
 
   /**
@@ -2236,7 +2260,8 @@ public class Parser {
 
   /**
    * If the current token has the given type, then advance to the next token and return {@code true}
-   * . Otherwise, return {@code false} without advancing.
+   * . Otherwise, return {@code false} without advancing. This method should not be invoked with an
+   * argument value of {@link TokenType#GT}.
    * 
    * @param type the type of token that can optionally appear in the current location
    * @return {@code true} if the current token has the given type
