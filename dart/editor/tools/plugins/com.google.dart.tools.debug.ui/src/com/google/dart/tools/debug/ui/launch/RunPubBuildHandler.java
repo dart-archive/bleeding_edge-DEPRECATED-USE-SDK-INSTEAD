@@ -132,7 +132,7 @@ public class RunPubBuildHandler extends AbstractHandler {
         Object selectedObject = ((IStructuredSelection) selection).getFirstElement();
         if (selectedObject instanceof IResource) {
           resource = (IResource) selectedObject;
-          PubFolder folder = LightweightModel.getModel().getPubFolder((IResource) selectedObject);
+          PubFolder folder = DartCore.getProjectManager().getPubFolder(resource);
           if (folder != null) {
             workingDir = folder.getResource();
             new PubBuildAndLaunchJob().schedule();

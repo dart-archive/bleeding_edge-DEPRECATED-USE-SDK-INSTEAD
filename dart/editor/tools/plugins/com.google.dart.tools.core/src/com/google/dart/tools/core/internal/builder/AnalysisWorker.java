@@ -33,6 +33,7 @@ import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
 import com.google.dart.tools.core.analysis.model.ResolvedEvent;
 import com.google.dart.tools.core.analysis.model.ResolvedHtmlEvent;
+import com.google.dart.tools.core.analysis.model.ResourceMap;
 import com.google.dart.tools.core.model.DartSdkManager;
 
 import org.eclipse.core.resources.IResource;
@@ -52,11 +53,13 @@ public class AnalysisWorker {
    */
   private abstract class AbstractEvent implements AnalysisEvent {
     private final AnalysisContext context;
+    private final ResourceMap resourceMap;
     Source source;
     IResource resource;
 
-    public AbstractEvent(AnalysisContext context) {
+    public AbstractEvent(AnalysisContext context, ResourceMap resourceMap) {
       this.context = context;
+      this.resourceMap = resourceMap;
     }
 
     @Override
@@ -68,6 +71,11 @@ public class AnalysisWorker {
     public ContextManager getContextManager() {
       return contextManager;
     }
+
+    @Override
+    public ResourceMap getResourceMap() {
+      return resourceMap;
+    }
   }
 
   /**
@@ -76,8 +84,8 @@ public class AnalysisWorker {
   private class Event extends AbstractEvent implements ResolvedEvent {
     CompilationUnit unit;
 
-    public Event(AnalysisContext context) {
-      super(context);
+    public Event(AnalysisContext context, ResourceMap resourceMap) {
+      super(context, resourceMap);
     }
 
     @Override
@@ -102,8 +110,8 @@ public class AnalysisWorker {
   private class HtmlEvent extends AbstractEvent implements ResolvedHtmlEvent {
     HtmlUnit unit;
 
-    public HtmlEvent(AnalysisContext context) {
-      super(context);
+    public HtmlEvent(AnalysisContext context, ResourceMap resourceMap) {
+      super(context, resourceMap);
     }
 
     @Override
@@ -282,7 +290,12 @@ public class AnalysisWorker {
    * @param context the context used to perform the analysis (not {@code null})
    */
   public AnalysisWorker(ContextManager manager, AnalysisContext context) {
-    this(manager, context, DartCore.getProjectManager(), AnalysisMarkerManager.getInstance());
+    this(
+        manager,
+        context,
+        DartCore.getProjectManager(),
+        DartCore.getProjectManager().getResourceMap(context),
+        AnalysisMarkerManager.getInstance());
   }
 
   /**
@@ -292,17 +305,18 @@ public class AnalysisWorker {
    * @param context the context used to perform the analysis (not {@code null})
    * @param projectManager used to obtain the index to be updated and notified others when analysis
    *          is complete (not {@code null})
+   * @param resourceMap the resource map for the given context
    * @param markerManager used to translate errors into Eclipse markers (not {@code null})
    */
   public AnalysisWorker(ContextManager contextManager, AnalysisContext context,
-      ProjectManager projectManager, AnalysisMarkerManager markerManager) {
+      ProjectManager projectManager, ResourceMap resourceMap, AnalysisMarkerManager markerManager) {
     this.contextManager = contextManager;
     this.context = context;
     this.projectManager = projectManager;
     this.markerManager = markerManager;
     this.contextManager.addWorker(this);
-    this.event = new Event(context);
-    this.htmlEvent = new HtmlEvent(context);
+    this.event = new Event(context, resourceMap);
+    this.htmlEvent = new HtmlEvent(context, resourceMap);
   }
 
   /**

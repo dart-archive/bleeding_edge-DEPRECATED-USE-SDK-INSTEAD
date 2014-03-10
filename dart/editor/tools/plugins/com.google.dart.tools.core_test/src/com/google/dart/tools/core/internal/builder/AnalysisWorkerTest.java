@@ -93,12 +93,12 @@ public class AnalysisWorkerTest extends AbstractDartCoreTest {
   private final Listener listener = new Listener();
 
   public void test_getContext() throws Exception {
-    AnalysisWorker worker = new AnalysisWorker(contextManager, analysisContext, null, null);
+    AnalysisWorker worker = new AnalysisWorker(contextManager, analysisContext, null, null, null);
     assertSame(analysisContext, worker.getContext());
   }
 
   public void test_new() throws Exception {
-    AnalysisWorker worker = new AnalysisWorker(contextManager, analysisContext, null, null);
+    AnalysisWorker worker = new AnalysisWorker(contextManager, analysisContext, null, null, null);
     verify(contextManager).addWorker(worker);
   }
 
@@ -112,7 +112,12 @@ public class AnalysisWorkerTest extends AbstractDartCoreTest {
 
     AnalysisManager analysisManager = new AnalysisManager();
     when(contextManager.getResource()).thenReturn(project);
-    AnalysisWorker worker = new AnalysisWorker(contextManager, analysisContext, null, markerManager);
+    AnalysisWorker worker = new AnalysisWorker(
+        contextManager,
+        analysisContext,
+        null,
+        null,
+        markerManager);
     worker.performAnalysis(analysisManager);
     verify(markerManager).queueHasDartSdk(project, true);
     verify(markerManager, atLeastOnce()).queueErrors(
@@ -128,7 +133,12 @@ public class AnalysisWorkerTest extends AbstractDartCoreTest {
   public void test_performAnalysis_nothingToDo() throws Exception {
     AnalysisManager analysisManager = new AnalysisManager();
     when(contextManager.getResource()).thenReturn(project);
-    AnalysisWorker worker = new AnalysisWorker(contextManager, analysisContext, null, markerManager);
+    AnalysisWorker worker = new AnalysisWorker(
+        contextManager,
+        analysisContext,
+        null,
+        null,
+        markerManager);
     worker.performAnalysis(analysisManager);
     verify(markerManager).queueHasDartSdk(project, true);
     verify(markerManager).done();
@@ -138,7 +148,7 @@ public class AnalysisWorkerTest extends AbstractDartCoreTest {
   }
 
   public void test_performAnalysis_nullContext() throws Exception {
-    AnalysisWorker worker = new AnalysisWorker(contextManager, null, null, null);
+    AnalysisWorker worker = new AnalysisWorker(contextManager, null, null, null, null);
     worker.performAnalysis(null);
     verifyNoMoreInteractions(markerManager);
     listener.assertNotCompleted(analysisContext);
@@ -155,7 +165,12 @@ public class AnalysisWorkerTest extends AbstractDartCoreTest {
 
     AnalysisManager analysisManager = new AnalysisManager();
     when(contextManager.getResource()).thenReturn(project);
-    AnalysisWorker worker = new AnalysisWorker(contextManager, analysisContext, null, markerManager);
+    AnalysisWorker worker = new AnalysisWorker(
+        contextManager,
+        analysisContext,
+        null,
+        null,
+        markerManager);
     worker.stop();
     worker.performAnalysis(analysisManager);
     verifyNoMoreInteractions(markerManager);
@@ -164,7 +179,7 @@ public class AnalysisWorkerTest extends AbstractDartCoreTest {
   }
 
   public void test_stop() throws Exception {
-    AnalysisWorker worker = new AnalysisWorker(contextManager, analysisContext, null, null);
+    AnalysisWorker worker = new AnalysisWorker(contextManager, analysisContext, null, null, null);
     worker.stop();
     assertNull(worker.getContext());
     verify(contextManager).removeWorker(worker);

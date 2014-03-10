@@ -179,6 +179,11 @@ public class AnalysisEngineParticipant implements BuildParticipant {
    * @param monitor the progress monitor (not {@code null})
    */
   private void analyzeContext(AnalysisContext context, IProgressMonitor monitor) {
-    performAnalysis(new AnalysisWorker(project, context, projectManager, markerManager));
+    performAnalysis(new AnalysisWorker(
+        project,
+        context,
+        projectManager,
+        projectManager.getResourceMap(context),
+        markerManager));
   }
 }

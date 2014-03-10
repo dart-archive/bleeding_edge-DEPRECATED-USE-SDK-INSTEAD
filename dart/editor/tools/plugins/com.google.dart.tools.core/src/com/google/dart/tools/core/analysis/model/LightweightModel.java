@@ -77,11 +77,7 @@ public class LightweightModel {
     getModel();
   }
 
-  protected ProjectManager projectManager;
-
   protected LightweightModel() {
-    projectManager = DartCore.getProjectManager();
-
     AnalysisWorker.addListener(new AnalysisListener() {
       @Override
       public void complete(AnalysisEvent event) {
@@ -92,8 +88,13 @@ public class LightweightModel {
         IResource resource = event.getResource();
         if (resource != null) {
           AnalysisContext context = event.getContext();
-          ResourceMap resourceMap = DartCore.getProjectManager().getResourceMap(context);
+          ResourceMap resourceMap = event.getResourceMap();
           Source source = event.getSource();
+          // in tests some information may be missing
+          if (context == null || resourceMap == null || source == null) {
+            return;
+          }
+          // OK, update the Source
           try {
             recalculateForResource(context, resourceMap, source, resource);
           } catch (CoreException e) {
@@ -104,7 +105,6 @@ public class LightweightModel {
 
       @Override
       public void resolvedHtml(ResolvedHtmlEvent event) {
-
       }
     });
   }
@@ -157,15 +157,6 @@ public class LightweightModel {
     }
 
     return files;
-  }
-
-  /**
-   * Return the {@link PubFolder} containing the specified resource.
-   * <p>
-   * This is a pass-through call to the ProjectManager implementation.
-   */
-  public PubFolder getPubFolder(IResource resource) {
-    return projectManager.getPubFolder(resource);
   }
 
   /**
