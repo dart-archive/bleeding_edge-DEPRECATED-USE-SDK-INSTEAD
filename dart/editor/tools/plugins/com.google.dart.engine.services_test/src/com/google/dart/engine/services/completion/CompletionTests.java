@@ -215,38 +215,22 @@ public class CompletionTests extends CompletionTestCase {
 
   public void test013() throws Exception {
     // conditions & operators
-    test(
-        src(//
-            "class Q {",
-            "  bool x;",
-            "  List zs;",
-            "  int k;",
-            "  var a;",
-            "  mth() {",
-            "    while (!1x !9); ",
-            "    do{} while(!2x !8);",
-            "    for(z in !3zs) {}",
-            "    switch(!4k) {case 1:{!0}}",
-            "    try {",
-            "    } on !5Object catch(a){}",
-            "    if (!7x !6) {} else {};",
-            "  }",
-            "}"),
-        "1+x",
-        "1-Q",
-        "2+x",
-        "2-Q",
-        "3+zs",
-        "3-Q",
-        "4+k",
-        "4-Q",
-        "5+Q",
-        "5-a",
-        "6+==",
-        "7+x",
-        "8+==",
-        "9+==",
-        "0+k");
+    test(src(//
+        "class Q {",
+        "  bool x;",
+        "  List zs;",
+        "  int k;",
+        "  var a;",
+        "  mth() {",
+        "    while (!1x !9); ",
+        "    do{} while(!2x !8);",
+        "    for(z in !3zs) {}",
+        "    switch(!4k) {case 1:{!0}}",
+        "    try {",
+        "    } on !5Object catch(a){}",
+        "    if (!7x !6) {} else {};",
+        "  }",
+        "}"), "1+x", "2+x", "3+zs", "4+k", "5+Q", "5-a", "6+==", "7+x", "8+==", "9+==", "0+k");
   }
 
   public void test014() throws Exception {
@@ -1542,6 +1526,17 @@ public class CompletionTests extends CompletionTestCase {
         "}"), "1+AAA:" + ProposalKind.CONSTRUCTOR);
   }
 
+  public void testCompletion_argument_typeName() throws Exception {
+    test(src(//
+        "class Enum {",
+        "  static Enum FOO = new Enum();",
+        "}",
+        "f(Enum e) {}",
+        "main() {",
+        "  f(En!1);",
+        "}"), "1+Enum");
+  }
+
   public void testCompletion_arguments_ignoreEmpty() throws Exception {
     test(src(//
         "class A {",
@@ -1758,9 +1753,7 @@ public class CompletionTests extends CompletionTestCase {
         "class int{}class Foo { mth() { for (in!1t i = 0; i!2 < 5; i!3++); }}",
         "1+int",
         "2+i",
-        "3+i",
-        "2-int",
-        "3-int");
+        "3+i");
   }
 
   public void testCompletion_function() throws Exception {
@@ -1874,7 +1867,7 @@ public class CompletionTests extends CompletionTestCase {
         "main() {",
         "  f1((Str!1));",
         "  f2((Str!2));",
-        "}"), "1+String", "1-bool", "2-String");
+        "}"), "1+String", "1-bool", "2+String", "2-bool");
   }
 
   public void testCompletion_instanceCreation_unresolved() throws Exception {
@@ -1884,7 +1877,7 @@ public class CompletionTests extends CompletionTestCase {
         "main() {",
         "  new NoSuchClass(!1);",
         "  new A.noSuchConstructor(!2);",
-        "}"), "1-int", "2-int");
+        "}"), "1+int", "2+int");
     // no checks, but no exceptions
   }
 

@@ -16,12 +16,12 @@ package com.google.dart.engine.services.completion;
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.Annotation;
 import com.google.dart.engine.ast.ArgumentList;
 import com.google.dart.engine.ast.AsExpression;
 import com.google.dart.engine.ast.AssertStatement;
 import com.google.dart.engine.ast.AssignmentExpression;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.Block;
 import com.google.dart.engine.ast.BooleanLiteral;
@@ -356,16 +356,6 @@ public class CompletionEngine {
       }
     }
 
-    void addTopLevelNames(List<Element> elements, TopLevelNamesKind topKind) {
-      if (!state.areLiteralsAllowed) {
-        mergeNames(findAllTypes(elements));
-      }
-      if (!state.areClassesRequired) {
-        mergeNames(findAllNotTypes(elements));
-        mergeNames(findAllPrefixes());
-      }
-    }
-
     Collection<List<Element>> getNames() {
       return uniqueNames.values();
     }
@@ -396,9 +386,7 @@ public class CompletionEngine {
     }
 
     private void addTopLevelNames(List<Element> elements) {
-      if (!state.areLiteralsAllowed) {
-        mergeNames(findAllTypes(elements));
-      }
+      mergeNames(findAllTypes(elements));
       if (!state.areClassesRequired) {
         mergeNames(findAllNotTypes(elements));
         mergeNames(findAllPrefixes());
@@ -1735,6 +1723,7 @@ public class CompletionEngine {
   private CompletionRequestor requestor;
   private CompletionFactory factory;
   private AssistContext context;
+
   private Filter filter;
 
   private CompletionState state;
