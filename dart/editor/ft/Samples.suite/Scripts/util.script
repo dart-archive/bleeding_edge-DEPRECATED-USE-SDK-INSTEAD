@@ -21,6 +21,7 @@ to init
 		throw "Screen size must be 1920x1200"
 	end if
 	Set the ImageDoctor to Auto
+	put connectioninfo().name
 	if  connectioninfo().name is empty then
 		put 5 into universal waitFactor
 	else
@@ -94,8 +95,8 @@ end checkProblems
 (* Assumes Chromium is the active proecss. *)
 to exitChromium
 	if isMacOSX()
-	(* Can fail if Chromium window is under Chromium menu causing window edge *)
-	(* to bleed thru menu due to alpha channel.  Re-position Chromium! *)
+		(* Can fail if Chromium window is under Chromium menu causing window edge *)
+		(* to bleed thru menu due to alpha channel.  Re-position Chromium! *)
 		selectMenuItem "Chromium", "Quit Chromium"
 	else
 		TypeText altKey,F4
