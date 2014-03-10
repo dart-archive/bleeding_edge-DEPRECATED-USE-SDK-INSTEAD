@@ -1600,8 +1600,8 @@ public class DartCore extends Plugin implements DartSdkListener {
     Job job = new Job("Initialize ProjectManager") {
       @Override
       protected IStatus run(IProgressMonitor monitor) {
-        getProjectManager().start();
         LightweightModel.init();
+        getProjectManager().start();
         return Status.OK_STATUS;
       }
     };
