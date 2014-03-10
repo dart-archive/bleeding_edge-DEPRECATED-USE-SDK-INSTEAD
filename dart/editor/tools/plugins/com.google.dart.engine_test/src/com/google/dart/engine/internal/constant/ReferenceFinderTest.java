@@ -17,6 +17,7 @@ import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.internal.element.VariableElementImpl;
+import com.google.dart.engine.utilities.collection.DirectedGraph;
 
 import static com.google.dart.engine.ast.AstFactory.identifier;
 import static com.google.dart.engine.element.ElementFactory.localVariableElement;

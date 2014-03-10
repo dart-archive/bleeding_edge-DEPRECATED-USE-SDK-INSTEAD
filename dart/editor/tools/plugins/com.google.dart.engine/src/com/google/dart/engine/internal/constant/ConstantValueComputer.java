@@ -23,6 +23,7 @@ import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.internal.element.VariableElementImpl;
 import com.google.dart.engine.internal.resolver.TypeProvider;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.utilities.collection.DirectedGraph;
 
 import java.util.ArrayList;
 import java.util.HashMap;

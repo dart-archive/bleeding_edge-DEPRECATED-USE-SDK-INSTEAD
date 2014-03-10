@@ -18,6 +18,7 @@ import com.google.dart.engine.ast.visitor.RecursiveAstVisitor;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.VariableElement;
+import com.google.dart.engine.utilities.collection.DirectedGraph;
 
 /**
  * Instances of the class {@code ReferenceFinder} add reference information for a given variable to

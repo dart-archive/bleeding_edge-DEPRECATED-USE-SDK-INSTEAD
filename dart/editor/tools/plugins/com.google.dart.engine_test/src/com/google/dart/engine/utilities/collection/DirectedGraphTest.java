@@ -11,11 +11,12 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.engine.internal.constant;
+package com.google.dart.engine.utilities.collection;
 
 import com.google.dart.engine.EngineTestCase;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class DirectedGraphTest extends EngineTestCase {
   /**
@@ -51,6 +52,76 @@ public class DirectedGraphTest extends EngineTestCase {
 
   public void test_creation() {
     assertNotNull(new DirectedGraph<Node>());
+  }
+
+  public void test_findCycleContaining_complexCycle() {
+    // Two overlapping loops: (1, 2, 3) and (3, 4, 5)
+    Node node1 = new Node();
+    Node node2 = new Node();
+    Node node3 = new Node();
+    Node node4 = new Node();
+    Node node5 = new Node();
+    DirectedGraph<Node> graph = new DirectedGraph<Node>();
+    graph.addEdge(node1, node2);
+    graph.addEdge(node2, node3);
+    graph.addEdge(node3, node1);
+    graph.addEdge(node3, node4);
+    graph.addEdge(node4, node5);
+    graph.addEdge(node5, node3);
+    List<Node> cycle = graph.findCycleContaining(node1);
+    assertSizeOfList(5, cycle);
+    assertTrue(cycle.contains(node1));
+    assertTrue(cycle.contains(node2));
+    assertTrue(cycle.contains(node3));
+    assertTrue(cycle.contains(node4));
+    assertTrue(cycle.contains(node5));
+  }
+
+  public void test_findCycleContaining_cycle() {
+    Node node1 = new Node();
+    Node node2 = new Node();
+    Node node3 = new Node();
+    DirectedGraph<Node> graph = new DirectedGraph<Node>();
+    graph.addEdge(node1, node2);
+    graph.addEdge(node2, node3);
+    graph.addEdge(node2, new Node());
+    graph.addEdge(node3, node1);
+    graph.addEdge(node3, new Node());
+    List<Node> cycle = graph.findCycleContaining(node1);
+    assertSizeOfList(3, cycle);
+    assertTrue(cycle.contains(node1));
+    assertTrue(cycle.contains(node2));
+    assertTrue(cycle.contains(node3));
+  }
+
+  public void test_findCycleContaining_notInGraph() {
+    Node node = new Node();
+    DirectedGraph<Node> graph = new DirectedGraph<Node>();
+    List<Node> cycle = graph.findCycleContaining(node);
+    assertSizeOfList(1, cycle);
+    assertEquals(node, cycle.get(0));
+  }
+
+  public void test_findCycleContaining_null() {
+    DirectedGraph<Node> graph = new DirectedGraph<Node>();
+    try {
+      graph.findCycleContaining(null);
+      fail("Expected IllegalArgumentException");
+    } catch (IllegalArgumentException exception) {
+      // Expected
+    }
+  }
+
+  public void test_findCycleContaining_singleton() {
+    Node node1 = new Node();
+    Node node2 = new Node();
+    Node node3 = new Node();
+    DirectedGraph<Node> graph = new DirectedGraph<Node>();
+    graph.addEdge(node1, node2);
+    graph.addEdge(node2, node3);
+    List<Node> cycle = graph.findCycleContaining(node1);
+    assertSizeOfList(1, cycle);
+    assertEquals(node1, cycle.get(0));
   }
 
   public void test_getNodeCount() {
