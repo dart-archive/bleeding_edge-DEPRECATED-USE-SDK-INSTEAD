@@ -14,6 +14,7 @@
 
 package com.google.dart.java2dart.engine;
 
+import com.google.common.collect.Lists;
 import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.CompilationUnit;
@@ -33,6 +34,8 @@ import com.google.dart.java2dart.ParsedAnnotation;
 import com.google.dart.java2dart.processor.SemanticProcessor;
 import com.google.dart.java2dart.util.ToFormattedSourceVisitor;
 
+import static com.google.dart.java2dart.util.AstFactory.annotation;
+import static com.google.dart.java2dart.util.AstFactory.identifier;
 import static com.google.dart.java2dart.util.AstFactory.namedExpression;
 import static com.google.dart.java2dart.util.AstFactory.namedFormalParameter;
 import static com.google.dart.java2dart.util.AstFactory.positionalFormalParameter;
@@ -121,6 +124,11 @@ public class EngineAnnotationProcessor extends SemanticProcessor {
           defaultParameter.setProperty(
               ToFormattedSourceVisitor.DEFAULT_VALUE_KEY,
               defaultValueSource);
+        } else if (annotationName.equals("Override")) {
+          if (node instanceof MethodDeclaration) {
+            MethodDeclaration method = (MethodDeclaration) node;
+            method.setMetadata(Lists.newArrayList(annotation(identifier("override"))));
+          }
         } else {
 //          throw new IllegalArgumentException("Unknown annotation: " + annotationName);
         }

@@ -693,6 +693,13 @@ public class ToFormattedSourceVisitor implements AstVisitor<Void> {
   @Override
   public Void visitMethodDeclaration(MethodDeclaration node) {
     visitNode(node.getDocumentationComment());
+    {
+      NodeList<Annotation> annotations = node.getMetadata();
+      if (!annotations.isEmpty()) {
+        visitNodeListWithSeparator(annotations, "\n");
+        nl2();
+      }
+    }
     visitTokenWithSuffix(node.getExternalKeyword(), " ");
     visitTokenWithSuffix(node.getModifierKeyword(), " ");
     visitNodeWithSuffix(node.getReturnType(), " ");

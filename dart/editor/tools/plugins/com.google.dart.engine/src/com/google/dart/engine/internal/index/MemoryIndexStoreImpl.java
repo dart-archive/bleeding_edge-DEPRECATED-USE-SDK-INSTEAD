@@ -343,7 +343,7 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
     if (element == null || location == null) {
       return;
     }
-    location = location.clone();
+    location = location.newClone();
     // at the index level we don't care about Member(s)
     if (element instanceof Member) {
       element = ((Member) element).getBaseElement();

@@ -336,6 +336,37 @@ public class EngineAnnotationProcessorTest extends SemanticProcessorTest {
         "}");
   }
 
+  public void test_override() throws Exception {
+    declareDartName();
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "public class Test {",
+        "  public static class A {",
+        "    public void foo() {}",
+        "  }",
+        "  public static class B extends A {",
+        "    @Override",
+        "    public void foo() {}",
+        "    public void bar() {}",
+        "  }",
+        "}");
+    assertFormattedSource(//
+        "class Test {",
+        "}",
+        "class Test_A {",
+        "  void foo() {",
+        "  }",
+        "}",
+        "class Test_B extends Test_A {",
+        "  @override",
+        "  void foo() {",
+        "  }",
+        "  void bar() {",
+        "  }",
+        "}");
+  }
+
   @Override
   protected void applyPostTranslateProcessors() {
     new EngineAnnotationProcessor(context).process(unit);

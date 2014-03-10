@@ -66,11 +66,6 @@ public class Location {
     this.length = length;
   }
 
-  @Override
-  public Location clone() {
-    return new Location(element, offset, length);
-  }
-
   /**
    * @return the {@link Element} containing this location.
    */
@@ -94,6 +89,13 @@ public class Location {
    */
   public int getOffset() {
     return offset;
+  }
+
+  /**
+   * Returns a clone of this {@link Location}.
+   */
+  public Location newClone() {
+    return new Location(element, offset, length);
   }
 
   @Override

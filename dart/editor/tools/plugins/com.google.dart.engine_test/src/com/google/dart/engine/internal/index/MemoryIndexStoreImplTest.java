@@ -91,7 +91,7 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
    */
   private static Location mockLocation(Element element) {
     Location location = mock(Location.class);
-    when(location.clone()).thenReturn(location);
+    when(location.newClone()).thenReturn(location);
     when(location.getElement()).thenReturn(element);
     return location;
   }
