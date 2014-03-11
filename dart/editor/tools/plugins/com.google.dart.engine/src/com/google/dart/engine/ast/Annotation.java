@@ -14,6 +14,7 @@
 package com.google.dart.engine.ast;
 
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.ElementAnnotation;
 import com.google.dart.engine.scanner.Token;
 
 /**
@@ -65,6 +66,11 @@ public class Annotation extends AstNode {
    * resolved or if this annotation could not be resolved.
    */
   private Element element;
+
+  /**
+   * The element annotation representing this annotation in the element model.
+   */
+  private ElementAnnotation elementAnnotation;
 
   /**
    * Initialize a newly created annotation.
@@ -143,6 +149,15 @@ public class Annotation extends AstNode {
     return null;
   }
 
+  /**
+   * Return the element annotation representing this annotation in the element model.
+   * 
+   * @return the element annotation representing this annotation in the element model
+   */
+  public ElementAnnotation getElementAnnotation() {
+    return elementAnnotation;
+  }
+
   @Override
   public Token getEndToken() {
     if (arguments != null) {
@@ -207,6 +222,17 @@ public class Annotation extends AstNode {
    */
   public void setElement(Element element) {
     this.element = element;
+  }
+
+  /**
+   * Set the element annotation representing this annotation in the element model to the given
+   * element annotation.
+   * 
+   * @param elementAnnotation the element annotation representing this annotation in the element
+   *          model
+   */
+  public void setElementAnnotation(ElementAnnotation elementAnnotation) {
+    this.elementAnnotation = elementAnnotation;
   }
 
   /**

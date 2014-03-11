@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.internal.resolver;
 
+import com.google.dart.engine.ast.Annotation;
 import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.CommentReference;
@@ -36,6 +37,7 @@ import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.visitor.RecursiveAstVisitor;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.ElementAnnotation;
 import com.google.dart.engine.element.ExportElement;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
@@ -111,6 +113,20 @@ public class ResolutionVerifier extends RecursiveAstVisitor<Void> {
       }
       Assert.fail(writer.toString());
     }
+  }
+
+  @Override
+  public Void visitAnnotation(Annotation node) {
+    node.visitChildren(this);
+    ElementAnnotation elementAnnotation = node.getElementAnnotation();
+    if (elementAnnotation == null) {
+      if (knownExceptions == null || !knownExceptions.contains(node)) {
+        unresolvedNodes.add(node);
+      }
+    } else if (!(elementAnnotation instanceof ElementAnnotation)) {
+      wrongTypedNodes.add(node);
+    }
+    return null;
   }
 
   @Override

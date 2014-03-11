@@ -1353,9 +1353,12 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
       NodeList<Annotation> annotations) {
     int annotationCount = annotations.size();
     for (int i = 0; i < annotationCount; i++) {
-      Element resolvedElement = annotations.get(i).getElement();
+      Annotation annotation = annotations.get(i);
+      Element resolvedElement = annotation.getElement();
       if (resolvedElement != null) {
-        annotationList.add(new ElementAnnotationImpl(resolvedElement));
+        ElementAnnotationImpl elementAnnotation = new ElementAnnotationImpl(resolvedElement);
+        annotation.setElementAnnotation(elementAnnotation);
+        annotationList.add(elementAnnotation);
       }
     }
   }
