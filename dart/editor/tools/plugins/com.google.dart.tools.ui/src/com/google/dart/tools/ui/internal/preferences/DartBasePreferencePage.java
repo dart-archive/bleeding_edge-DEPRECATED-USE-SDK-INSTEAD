@@ -126,24 +126,13 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
     toolsPreferenceStore.setValue(
         PreferenceConstants.EDITOR_REMOVE_TRAILING_WS,
         removeTrailingWhitespaceCheck.getSelection());
-    toolsPreferenceStore.setValue(
-        AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SPACES_FOR_TABS,
-        insertSpacesForTabs.getSelection());
+    DartFormatter.setInsertSpacesForTabs(insertSpacesForTabs.getSelection());
 
     String tabWidth = tabDisplaySize.getText();
     if (tabWidth == null || tabWidth.isEmpty()) {
       tabWidth = Integer.toString(PreferenceConstants.EDITOR_DEFAULT_TAB_WIDTH);
     }
-    toolsPreferenceStore.setValue(
-        AbstractDecoratedTextEditorPreferenceConstants.EDITOR_TAB_WIDTH,
-        tabWidth);
-
-    editorPreferences.setValue(
-        AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SPACES_FOR_TABS,
-        insertSpacesForTabs.getSelection());
-    editorPreferences.setValue(
-        AbstractDecoratedTextEditorPreferenceConstants.EDITOR_TAB_WIDTH,
-        tabWidth);
+    DartFormatter.setSpacesPerIndent(tabWidth);
 
     handleSave(editorPreferences);
     handleSave(toolsPreferenceStore);
@@ -298,8 +287,8 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
     removeTrailingWhitespaceCheck.setSelection(toolsPreferences.getBoolean(PreferenceConstants.EDITOR_REMOVE_TRAILING_WS));
     enableAutoCompletion.setSelection(toolsPreferences.getBoolean(PreferenceConstants.CODEASSIST_AUTOACTIVATION));
     enableFolding.setSelection(toolsPreferences.getBoolean(PreferenceConstants.EDITOR_FOLDING_ENABLED));
-    insertSpacesForTabs.setSelection(toolsPreferences.getBoolean(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SPACES_FOR_TABS));
-    tabDisplaySize.setText(toolsPreferences.getString(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_TAB_WIDTH));
+    insertSpacesForTabs.setSelection(DartFormatter.getInsertSpacesForTabs());
+    tabDisplaySize.setText(DartFormatter.getSpacesPerIndent());
 
     IEclipsePreferences prefs = DartCore.getPlugin().getPrefs();
     if (prefs != null) {

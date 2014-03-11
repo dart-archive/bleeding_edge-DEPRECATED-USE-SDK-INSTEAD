@@ -18,6 +18,7 @@ import com.google.dart.tools.core.dart2js.ProcessRunner;
 import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.core.utilities.io.FileUtilities;
 import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.PreferenceConstants;
 import com.google.dart.tools.ui.actions.DartEditorActionDefinitionIds;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 
@@ -26,7 +27,6 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
-import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.window.IShellProvider;
 import org.eclipse.swt.graphics.Point;
@@ -58,6 +58,7 @@ import java.util.List;
 /**
  * Launches the <code>dartfmt</code> process collecting stdout, stderr, and exit code information.
  */
+@SuppressWarnings("restriction")
 public class DartFormatter {
 
 //  /**
@@ -166,6 +167,7 @@ public class DartFormatter {
     public String source;
   }
 
+  private static final String ARGS_INDENT_FLAG = "-i";
   private static final String ARGS_MACHINE_FORMAT_FLAG = "-m";
   private static final String ARGS_MAX_LINE_LEN_FLAG = "-l";
   private static final String ARGS_SOURCE_FLAG = "-s";
@@ -237,6 +239,8 @@ public class DartFormatter {
     } else {
       args.add("Infinity");
     }
+    args.add(ARGS_INDENT_FLAG);
+    args.add(getInsertSpacesForTabs() ? getSpacesPerIndent() : "tab");
     args.add(ARGS_TRANSFORMS_FLAG);
     args.add(ARGS_MACHINE_FORMAT_FLAG);
 
@@ -289,30 +293,58 @@ public class DartFormatter {
 
   }
 
-  public static boolean getMaxLineLengthEnabled() {
-    return getEditorPrefStore().getBoolean(
-        AbstractDecoratedTextEditorPreferenceConstants.EDITOR_PRINT_MARGIN);
+  public static boolean getInsertSpacesForTabs() {
+    return PreferenceConstants.getPreferenceStore().getBoolean(
+        AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SPACES_FOR_TABS);
   }
 
   public static String getMaxLineLength() {
-    return getEditorPrefStore().getString(
+    return EditorsPlugin.getDefault().getPreferenceStore().getString(
         AbstractDecoratedTextEditorPreferenceConstants.EDITOR_PRINT_MARGIN_COLUMN);
+  }
+
+  public static boolean getMaxLineLengthEnabled() {
+    return EditorsPlugin.getDefault().getPreferenceStore().getBoolean(
+        AbstractDecoratedTextEditorPreferenceConstants.EDITOR_PRINT_MARGIN);
+  }
+
+  public static String getSpacesPerIndent() {
+    return PreferenceConstants.getPreferenceStore().getString(
+        AbstractDecoratedTextEditorPreferenceConstants.EDITOR_TAB_WIDTH);
   }
 
   public static boolean isAvailable() {
     return DartSdkManager.getManager().getSdk().getDartFmtExecutable().canExecute();
   }
 
+  public static void setInsertSpacesForTabs(boolean useSpaces) {
+    PreferenceConstants.getPreferenceStore().setValue(
+        AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SPACES_FOR_TABS,
+        useSpaces);
+    EditorsPlugin.getDefault().getPreferenceStore().setValue(
+        AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SPACES_FOR_TABS,
+        useSpaces);
+  }
+
   public static void setMaxLineLength(String maxLineLength) {
-    getEditorPrefStore().setValue(
+    EditorsPlugin.getDefault().getPreferenceStore().setValue(
         AbstractDecoratedTextEditorPreferenceConstants.EDITOR_PRINT_MARGIN_COLUMN,
         maxLineLength);
   }
 
   public static void setMaxLineLengthEnabled(boolean enabled) {
-    getEditorPrefStore().setValue(
+    EditorsPlugin.getDefault().getPreferenceStore().setValue(
         AbstractDecoratedTextEditorPreferenceConstants.EDITOR_PRINT_MARGIN,
         enabled);
+  }
+
+  public static void setSpacesPerIndent(String tabWidth) {
+    PreferenceConstants.getPreferenceStore().setValue(
+        AbstractDecoratedTextEditorPreferenceConstants.EDITOR_TAB_WIDTH,
+        tabWidth);
+    EditorsPlugin.getDefault().getPreferenceStore().setValue(
+        AbstractDecoratedTextEditorPreferenceConstants.EDITOR_TAB_WIDTH,
+        tabWidth);
   }
 
   private static void formatFile(IFile file, IProgressMonitor monitor)
@@ -360,11 +392,6 @@ public class DartFormatter {
       }
     }
     return null;
-  }
-
-  @SuppressWarnings("restriction")
-  private static IPreferenceStore getEditorPrefStore() {
-    return EditorsPlugin.getDefault().getPreferenceStore();
   }
 
 //  private static List<String> buildArguments(IPath path) {
