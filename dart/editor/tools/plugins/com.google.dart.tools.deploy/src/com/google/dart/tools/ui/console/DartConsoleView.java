@@ -300,6 +300,18 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
 
     terminateAction.update();
     propertiesAction.setEnabled(getProcess() != null);
+
+    // Show cmdline used to launch process
+    if (console instanceof ProcessConsole) {
+      IProcess process = ((ProcessConsole) console).getProcess();
+      String cmdline = process.getAttribute(IProcess.ATTR_CMDLINE);
+      if (cmdline != null) {
+        StyledText control = (StyledText) page.getControl();
+        if (control != null && !control.isDisposed()) {
+          control.append(cmdline);
+        }
+      }
+    }
   }
 
   @Override

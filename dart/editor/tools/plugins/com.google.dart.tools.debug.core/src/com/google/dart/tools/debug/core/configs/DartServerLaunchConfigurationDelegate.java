@@ -202,6 +202,7 @@ public class DartServerLaunchConfigurationDelegate extends DartLaunchConfigurati
 
     String programName = "dart";
     processAttributes.put(IProcess.ATTR_PROCESS_TYPE, programName);
+    processAttributes.put(IProcess.ATTR_CMDLINE, describe(processBuilder));
 
     if (runtimeProcess != null) {
       monitor.beginTask("Dart", IProgressMonitor.UNKNOWN);
