@@ -26,6 +26,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.window.IShellProvider;
 import org.eclipse.swt.graphics.Point;
@@ -36,6 +37,8 @@ import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.actions.WorkspaceAction;
 import org.eclipse.ui.ide.ResourceUtil;
+import org.eclipse.ui.internal.editors.text.EditorsPlugin;
+import org.eclipse.ui.texteditor.AbstractDecoratedTextEditorPreferenceConstants;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -164,6 +167,7 @@ public class DartFormatter {
   }
 
   private static final String ARGS_MACHINE_FORMAT_FLAG = "-m";
+  private static final String ARGS_MAX_LINE_LEN_FLAG = "-l";
   private static final String ARGS_SOURCE_FLAG = "-s";
   private static final String ARGS_TRANSFORMS_FLAG = "-t";
 
@@ -227,6 +231,12 @@ public class DartFormatter {
     if (selection != null) {
       args.add(ARGS_SOURCE_FLAG + " " + selection.x + "," + selection.y);
     }
+    args.add(ARGS_MAX_LINE_LEN_FLAG);
+    if (getMaxLineLengthEnabled() && getMaxLineLength().length() > 0) {
+      args.add(getMaxLineLength());
+    } else {
+      args.add("Infinity");
+    }
     args.add(ARGS_TRANSFORMS_FLAG);
     args.add(ARGS_MACHINE_FORMAT_FLAG);
 
@@ -279,8 +289,30 @@ public class DartFormatter {
 
   }
 
+  public static boolean getMaxLineLengthEnabled() {
+    return getEditorPrefStore().getBoolean(
+        AbstractDecoratedTextEditorPreferenceConstants.EDITOR_PRINT_MARGIN);
+  }
+
+  public static String getMaxLineLength() {
+    return getEditorPrefStore().getString(
+        AbstractDecoratedTextEditorPreferenceConstants.EDITOR_PRINT_MARGIN_COLUMN);
+  }
+
   public static boolean isAvailable() {
     return DartSdkManager.getManager().getSdk().getDartFmtExecutable().canExecute();
+  }
+
+  public static void setMaxLineLength(String maxLineLength) {
+    getEditorPrefStore().setValue(
+        AbstractDecoratedTextEditorPreferenceConstants.EDITOR_PRINT_MARGIN_COLUMN,
+        maxLineLength);
+  }
+
+  public static void setMaxLineLengthEnabled(boolean enabled) {
+    getEditorPrefStore().setValue(
+        AbstractDecoratedTextEditorPreferenceConstants.EDITOR_PRINT_MARGIN,
+        enabled);
   }
 
   private static void formatFile(IFile file, IProgressMonitor monitor)
@@ -328,6 +360,11 @@ public class DartFormatter {
       }
     }
     return null;
+  }
+
+  @SuppressWarnings("restriction")
+  private static IPreferenceStore getEditorPrefStore() {
+    return EditorsPlugin.getDefault().getPreferenceStore();
   }
 
 //  private static List<String> buildArguments(IPath path) {

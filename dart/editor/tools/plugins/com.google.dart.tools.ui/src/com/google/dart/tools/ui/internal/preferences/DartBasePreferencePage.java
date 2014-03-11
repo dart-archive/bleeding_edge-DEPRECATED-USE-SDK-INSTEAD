@@ -16,6 +16,7 @@ package com.google.dart.tools.ui.internal.preferences;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.PreferenceConstants;
+import com.google.dart.tools.ui.internal.formatter.DartFormatter;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
@@ -109,14 +110,9 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
         AbstractDecoratedTextEditorPreferenceConstants.EDITOR_LINE_NUMBER_RULER,
         lineNumbersCheck.getSelection());
 
-    editorPreferences.setValue(
-        AbstractDecoratedTextEditorPreferenceConstants.EDITOR_PRINT_MARGIN,
-        printMarginCheck.getSelection());
-
+    DartFormatter.setMaxLineLengthEnabled(printMarginCheck.getSelection());
     if (printMarginCheck.getSelection()) {
-      editorPreferences.setValue(
-          AbstractDecoratedTextEditorPreferenceConstants.EDITOR_PRINT_MARGIN_COLUMN,
-          printMarginText.getText());
+      DartFormatter.setMaxLineLength(printMarginText.getText());
     }
 
     IPreferenceStore toolsPreferenceStore = PreferenceConstants.getPreferenceStore();
@@ -295,8 +291,8 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
     IPreferenceStore toolsPreferences = PreferenceConstants.getPreferenceStore();
 
     lineNumbersCheck.setSelection(editorPreferences.getBoolean(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_LINE_NUMBER_RULER));
-    printMarginCheck.setSelection(editorPreferences.getBoolean(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_PRINT_MARGIN));
-    printMarginText.setText(editorPreferences.getString(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_PRINT_MARGIN_COLUMN));
+    printMarginCheck.setSelection(DartFormatter.getMaxLineLengthEnabled());
+    printMarginText.setText(DartFormatter.getMaxLineLength());
     printMarginText.setEnabled(printMarginCheck.getSelection());
 
     removeTrailingWhitespaceCheck.setSelection(toolsPreferences.getBoolean(PreferenceConstants.EDITOR_REMOVE_TRAILING_WS));
