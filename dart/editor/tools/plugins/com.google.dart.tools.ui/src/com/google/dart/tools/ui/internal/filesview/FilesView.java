@@ -408,7 +408,9 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
         Display.getDefault().asyncExec(new Runnable() {
           @Override
           public void run() {
-            treeViewer.refresh();
+            if (!treeViewer.getControl().isDisposed()) {
+              treeViewer.refresh();
+            }
           }
         });
       }
