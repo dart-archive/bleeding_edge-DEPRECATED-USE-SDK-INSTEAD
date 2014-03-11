@@ -834,4 +834,22 @@
      </factory>
   </extension>
 
+  <extension point="org.eclipse.wst.sse.ui.completionProposal">
+     <proposalCategory
+           icon="icons/full/dart16/angular_16_blue.png"
+           id="com.google.dart.tools.wst.ui.proposalCategory.angular"
+           name="Angular">
+     </proposalCategory>
+     <proposalComputer
+           activate="false"
+           categoryId="com.google.dart.tools.wst.ui.proposalCategory.angular"
+           class="com.google.dart.tools.wst.ui.contentassist.AngularCompletionProposalComputer"
+           id="com.google.dart.tools.wst.ui.proposalComputer.angular">
+        <contentType id="org.eclipse.wst.html.core.htmlsource">
+           <partitionType id="org.eclipse.wst.html.HTML_DEFAULT"/>
+        </contentType>
+     </proposalComputer>
+  </extension>
+
+
 </plugin>

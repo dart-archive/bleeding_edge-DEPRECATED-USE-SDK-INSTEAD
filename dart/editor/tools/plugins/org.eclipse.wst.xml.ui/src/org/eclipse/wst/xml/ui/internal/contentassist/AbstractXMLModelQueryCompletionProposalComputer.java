@@ -426,17 +426,18 @@ public abstract class AbstractXMLModelQueryCompletionProposalComputer extends
           }
         }
       } else {
-        // unknown attribute, so supply nice empty values
-        proposedInfo = getAdditionalInfo(null, elementDecl);
-        CustomCompletionProposal proposal = null;
-        if ((currentValue != null) && (currentValue.length() > 0)) {
-          String rValue = "\"" + currentValue + "\""; //$NON-NLS-2$//$NON-NLS-1$
-          proposal = new MarkupCompletionProposal(rValue,
-              contentAssistRequest.getReplacementBeginPosition(),
-              contentAssistRequest.getReplacementLength(), 1, image, rValue, null, proposedInfo,
-              XMLRelevanceConstants.R_XML_ATTRIBUTE_VALUE);
-          contentAssistRequest.addProposal(proposal);
-        }
+        // FIXME(scheglov) unknown attribute, so... just don't do anything please!
+//        // unknown attribute, so supply nice empty values
+//        proposedInfo = getAdditionalInfo(null, elementDecl);
+//        CustomCompletionProposal proposal = null;
+//        if ((currentValue != null) && (currentValue.length() > 0)) {
+//          String rValue = "\"" + currentValue + "\""; //$NON-NLS-2$//$NON-NLS-1$
+//          proposal = new MarkupCompletionProposal(rValue,
+//              contentAssistRequest.getReplacementBeginPosition(),
+//              contentAssistRequest.getReplacementLength(), 1, image, rValue, null, proposedInfo,
+//              XMLRelevanceConstants.R_XML_ATTRIBUTE_VALUE);
+//          contentAssistRequest.addProposal(proposal);
+//        }
       }
     } else {
       setErrorMessage(XMLUIMessages.Content_Assist_not_availab_UI_);

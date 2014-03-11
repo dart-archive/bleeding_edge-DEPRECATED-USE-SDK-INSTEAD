@@ -2519,7 +2519,7 @@ public class CompletionEngine {
   }
 
   private Element[] findAllPrefixes() {
-    LibraryElement lib = context.getCompilationUnit().getElement().getEnclosingElement();
+    LibraryElement lib = context.getCompilationUnitElement().getEnclosingElement();
     return lib.getPrefixes();
   }
 
@@ -2558,11 +2558,11 @@ public class CompletionEngine {
   }
 
   private AnalysisContext getAnalysisContext() {
-    return context.getCompilationUnit().getElement().getContext();
+    return context.getCompilationUnitElement().getContext();
   }
 
   private LibraryElement getCurrentLibrary() {
-    return context.getCompilationUnit().getElement().getEnclosingElement();
+    return context.getCompilationUnitElement().getEnclosingElement();
   }
 
   private FunctionType getFunctionType(Element element) {
@@ -2585,7 +2585,7 @@ public class CompletionEngine {
   }
 
   private TypeProvider getTypeProvider() {
-    AnalysisContext analysisContext = context.getCompilationUnit().getElement().getContext();
+    AnalysisContext analysisContext = context.getCompilationUnitElement().getContext();
     try {
       return ((InternalAnalysisContext) analysisContext).getTypeProvider();
     } catch (AnalysisException exception) {

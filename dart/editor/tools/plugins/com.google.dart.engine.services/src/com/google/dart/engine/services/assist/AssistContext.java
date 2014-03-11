@@ -73,6 +73,13 @@ public class AssistContext {
   }
 
   /**
+   * @return the resolved {@link CompilationUnitElement} of the {@link Source}.
+   */
+  public CompilationUnitElement getCompilationUnitElement() {
+    return compilationUnit.getElement();
+  }
+
+  /**
    * @return the {@link Element} of the {@link #coveredNode}, may be <code>null</code>.
    */
   public Element getCoveredElement() {
