@@ -98,8 +98,8 @@ public class ParseDartTask extends AnalysisTask {
   }
 
   /**
-   * Return the errors that were produced by scanning and parsing the source, or {@code null} if the
-   * task has not yet been performed or if an exception occurred.
+   * Return the errors that were produced by scanning and parsing the source, or an empty array if
+   * the task has not yet been performed or if an exception occurred.
    * 
    * @return the errors that were produced by scanning and parsing the source
    */

@@ -250,8 +250,8 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
   private CacheState scanErrorsState = CacheState.INVALID;
 
   /**
-   * The errors produced while scanning the compilation unit, or {@code null} if the errors are not
-   * currently cached.
+   * The errors produced while scanning the compilation unit, or an empty array if the errors are
+   * not currently cached.
    */
   private AnalysisError[] scanErrors = AnalysisError.NO_ERRORS;
 
@@ -288,7 +288,7 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
   private CacheState parseErrorsState = CacheState.INVALID;
 
   /**
-   * The errors produced while parsing the compilation unit, or {@code null} if the errors are not
+   * The errors produced while parsing the compilation unit, or an empty array if the errors are not
    * currently cached.
    */
   private AnalysisError[] parseErrors = AnalysisError.NO_ERRORS;
@@ -325,6 +325,17 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
    * cached. The list will be empty if the Dart file is a part rather than a library.
    */
   private Source[] includedParts = Source.EMPTY_ARRAY;
+
+  /**
+   * The state of the cached directive errors.
+   */
+  private CacheState directiveErrorsState = CacheState.INVALID;
+
+  /**
+   * The errors produced while resolving the directives, or an empty array if the errors are not
+   * currently cached.
+   */
+  private AnalysisError[] directiveErrors = AnalysisError.NO_ERRORS;
 
   /**
    * The list of libraries that contain this compilation unit. The list will be empty if there are
@@ -430,6 +441,7 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     ArrayList<AnalysisError> errors = new ArrayList<AnalysisError>();
     ListUtilities.addAll(errors, scanErrors);
     ListUtilities.addAll(errors, parseErrors);
+    ListUtilities.addAll(errors, directiveErrors);
     ResolutionState state = resolutionState;
     while (state != null) {
       ListUtilities.addAll(errors, state.resolutionErrors);
@@ -514,7 +526,9 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
 
   @Override
   public CacheState getState(DataDescriptor<?> descriptor) {
-    if (descriptor == ELEMENT) {
+    if (descriptor == DIRECTIVE_ERRORS) {
+      return directiveErrorsState;
+    } else if (descriptor == ELEMENT) {
       return elementState;
     } else if (descriptor == EXPORTED_LIBRARIES) {
       return exportedLibrariesState;
@@ -577,6 +591,8 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
       return (E) angularErrors;
     } else if (descriptor == CONTAINING_LIBRARIES) {
       return (E) containingLibraries.toArray(new Source[containingLibraries.size()]);
+    } else if (descriptor == DIRECTIVE_ERRORS) {
+      return (E) directiveErrors;
     } else if (descriptor == ELEMENT) {
       return (E) element;
     } else if (descriptor == EXPORTED_LIBRARIES) {
@@ -644,7 +660,9 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
 
   @Override
   public boolean hasInvalidData(DataDescriptor<?> descriptor) {
-    if (descriptor == ELEMENT) {
+    if (descriptor == DIRECTIVE_ERRORS) {
+      return directiveErrorsState == CacheState.INVALID;
+    } else if (descriptor == ELEMENT) {
       return elementState == CacheState.INVALID;
     } else if (descriptor == EXPORTED_LIBRARIES) {
       return exportedLibrariesState == CacheState.INVALID;
@@ -762,6 +780,9 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
 
     includedParts = Source.EMPTY_ARRAY;
     includedPartsState = CacheState.ERROR;
+
+    directiveErrors = AnalysisError.NO_ERRORS;
+    directiveErrorsState = CacheState.ERROR;
   }
 
   /**
@@ -778,6 +799,9 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     if (includedPartsState != CacheState.VALID) {
       includedPartsState = CacheState.IN_PROCESS;
     }
+    if (directiveErrorsState != CacheState.VALID) {
+      directiveErrorsState = CacheState.IN_PROCESS;
+    }
   }
 
   /**
@@ -793,6 +817,9 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     }
     if (includedPartsState == CacheState.IN_PROCESS) {
       includedPartsState = CacheState.INVALID;
+    }
+    if (directiveErrorsState == CacheState.IN_PROCESS) {
+      directiveErrorsState = CacheState.INVALID;
     }
   }
 
@@ -992,7 +1019,10 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
 
   @Override
   public void setState(DataDescriptor<?> descriptor, CacheState state) {
-    if (descriptor == ELEMENT) {
+    if (descriptor == DIRECTIVE_ERRORS) {
+      directiveErrors = updatedValue(state, directiveErrors, null);
+      directiveErrorsState = state;
+    } else if (descriptor == ELEMENT) {
       element = updatedValue(state, element, null);
       elementState = state;
     } else if (descriptor == EXPORTED_LIBRARIES) {
@@ -1076,6 +1106,9 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
   public <E> void setValue(DataDescriptor<E> descriptor, E value) {
     if (descriptor == ANGULAR_ERRORS) {
       angularErrors = value == null ? AnalysisError.NO_ERRORS : (AnalysisError[]) value;
+    } else if (descriptor == DIRECTIVE_ERRORS) {
+      directiveErrors = (AnalysisError[]) value;
+      directiveErrorsState = CacheState.VALID;
     } else if (descriptor == ELEMENT) {
       element = (LibraryElement) value;
       elementState = CacheState.VALID;
@@ -1165,6 +1198,8 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     exportedLibraries = other.exportedLibraries;
     importedLibrariesState = other.importedLibrariesState;
     importedLibraries = other.importedLibraries;
+    directiveErrorsState = other.directiveErrorsState;
+    directiveErrors = other.directiveErrors;
     containingLibraries = new ArrayList<Source>(other.containingLibraries);
     resolutionState.copyFrom(other.resolutionState);
     elementState = other.elementState;
@@ -1183,9 +1218,10 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
         || tokenStreamState == CacheState.ERROR || sourceKindState == CacheState.ERROR
         || parsedUnitState == CacheState.ERROR || parseErrorsState == CacheState.ERROR
         || importedLibrariesState == CacheState.ERROR || exportedLibrariesState == CacheState.ERROR
-        || includedPartsState == CacheState.ERROR || elementState == CacheState.ERROR
-        || publicNamespaceState == CacheState.ERROR || clientServerState == CacheState.ERROR
-        || launchableState == CacheState.ERROR || resolutionState.hasErrorState();
+        || includedPartsState == CacheState.ERROR || directiveErrorsState == CacheState.ERROR
+        || elementState == CacheState.ERROR || publicNamespaceState == CacheState.ERROR
+        || clientServerState == CacheState.ERROR || launchableState == CacheState.ERROR
+        || resolutionState.hasErrorState();
   }
 
   @Override
@@ -1210,6 +1246,8 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     builder.append(importedLibrariesState);
     builder.append("; includedParts = ");
     builder.append(includedPartsState);
+    builder.append("; directiveErrors = ");
+    builder.append(directiveErrorsState);
     builder.append("; element = ");
     builder.append(elementState);
     builder.append("; publicNamespace = ");
@@ -1237,6 +1275,9 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
 
     importedLibraries = Source.EMPTY_ARRAY;
     importedLibrariesState = CacheState.INVALID;
+
+    directiveErrors = AnalysisError.NO_ERRORS;
+    directiveErrorsState = CacheState.INVALID;
 
     bitmask = 0;
     clientServerState = CacheState.INVALID;

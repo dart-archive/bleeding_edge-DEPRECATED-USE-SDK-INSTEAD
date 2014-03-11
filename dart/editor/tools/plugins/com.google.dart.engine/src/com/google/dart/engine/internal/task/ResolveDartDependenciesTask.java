@@ -21,9 +21,14 @@ import com.google.dart.engine.ast.PartDirective;
 import com.google.dart.engine.ast.StringInterpolation;
 import com.google.dart.engine.ast.StringLiteral;
 import com.google.dart.engine.ast.UriBasedDirective;
+import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisException;
+import com.google.dart.engine.error.AnalysisError;
+import com.google.dart.engine.error.AnalysisErrorListener;
+import com.google.dart.engine.error.CompileTimeErrorCode;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
 import com.google.dart.engine.internal.context.PerformanceStatistics;
+import com.google.dart.engine.internal.context.RecordingErrorListener;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.general.TimeCounter.TimeCounterHandle;
 import com.google.dart.engine.utilities.io.UriUtilities;
@@ -68,6 +73,16 @@ public class ResolveDartDependenciesTask extends AnalysisTask {
   private HashSet<Source> includedSources = new HashSet<Source>();
 
   /**
+   * The errors that were produced by resolving the directives.
+   */
+  private AnalysisError[] errors = AnalysisError.NO_ERRORS;
+
+  /**
+   * The prefix of a URI using the {@code dart-ext} scheme to reference a native code library.
+   */
+  private static final String DART_EXT_SCHEME = "dart-ext:";
+
+  /**
    * Initialize a newly created task to perform analysis within the given context.
    * 
    * @param context the context in which the task is to be performed
@@ -86,6 +101,16 @@ public class ResolveDartDependenciesTask extends AnalysisTask {
   @Override
   public <E> E accept(AnalysisTaskVisitor<E> visitor) throws AnalysisException {
     return visitor.visitResolveDartDependenciesTask(this);
+  }
+
+  /**
+   * Return the errors that were produced by resolving the directives, or an empty array if the task
+   * has not yet been performed or if an exception occurred.
+   * 
+   * @return the errors that were produced by resolving the directives.
+   */
+  public AnalysisError[] getErrors() {
+    return errors;
   }
 
   /**
@@ -149,24 +174,26 @@ public class ResolveDartDependenciesTask extends AnalysisTask {
   protected void internalPerform() throws AnalysisException {
     TimeCounterHandle timeCounterParse = PerformanceStatistics.parse.start();
     try {
+      RecordingErrorListener errorListener = new RecordingErrorListener();
       for (Directive directive : unit.getDirectives()) {
         if (directive instanceof ExportDirective) {
-          Source exportSource = resolveSource(source, (ExportDirective) directive);
+          Source exportSource = resolveSource(source, (ExportDirective) directive, errorListener);
           if (exportSource != null) {
             exportedSources.add(exportSource);
           }
         } else if (directive instanceof ImportDirective) {
-          Source importSource = resolveSource(source, (ImportDirective) directive);
+          Source importSource = resolveSource(source, (ImportDirective) directive, errorListener);
           if (importSource != null) {
             importedSources.add(importSource);
           }
         } else if (directive instanceof PartDirective) {
-          Source partSource = resolveSource(source, (PartDirective) directive);
+          Source partSource = resolveSource(source, (PartDirective) directive, errorListener);
           if (partSource != null) {
             includedSources.add(partSource);
           }
         }
       }
+      errors = errorListener.getErrors();
     } finally {
       timeCounterParse.stop();
     }
@@ -178,24 +205,51 @@ public class ResolveDartDependenciesTask extends AnalysisTask {
    * 
    * @param librarySource the source representing the library containing the directive
    * @param directive the directive which URI should be resolved
+   * @param errorListener the error listener to which errors should be reported
    * @return the result of resolving the URI against the URI of the library
    */
-  private Source resolveSource(Source librarySource, UriBasedDirective directive) {
+  private Source resolveSource(Source librarySource, UriBasedDirective directive,
+      AnalysisErrorListener errorListener) {
     StringLiteral uriLiteral = directive.getUri();
     if (uriLiteral instanceof StringInterpolation) {
+      errorListener.onError(new AnalysisError(
+          librarySource,
+          uriLiteral.getOffset(),
+          uriLiteral.getLength(),
+          CompileTimeErrorCode.URI_WITH_INTERPOLATION));
       return null;
     }
     String uriContent = uriLiteral.getStringValue().trim();
-    if (uriContent == null) {
+    directive.setUriContent(uriContent);
+    if (directive instanceof ImportDirective && uriContent.startsWith(DART_EXT_SCHEME)) {
       return null;
     }
-    uriContent = UriUtilities.encode(uriContent);
     try {
-      new URI(uriContent);
-      return getContext().getSourceFactory().resolveUri(librarySource, uriContent);
+      String encodedUriContent = UriUtilities.encode(uriContent);
+      new URI(encodedUriContent);
+      AnalysisContext analysisContext = getContext();
+      Source source = analysisContext.getSourceFactory().resolveUri(
+          librarySource,
+          encodedUriContent);
+      if (!analysisContext.exists(source)) {
+        errorListener.onError(new AnalysisError(
+            librarySource,
+            uriLiteral.getOffset(),
+            uriLiteral.getLength(),
+            CompileTimeErrorCode.URI_DOES_NOT_EXIST,
+            uriContent));
+      }
+      directive.setSource(source);
+      return source;
     } catch (URISyntaxException exception) {
-      return null;
+      errorListener.onError(new AnalysisError(
+          librarySource,
+          uriLiteral.getOffset(),
+          uriLiteral.getLength(),
+          CompileTimeErrorCode.INVALID_URI,
+          uriContent));
     }
+    return null;
   }
 
   /**

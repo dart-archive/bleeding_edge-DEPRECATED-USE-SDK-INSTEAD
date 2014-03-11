@@ -3987,6 +3987,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
           dartCopy.setValue(DartEntry.EXPORTED_LIBRARIES, task.getExportedSources());
           dartCopy.setValue(DartEntry.IMPORTED_LIBRARIES, task.getImportedSources());
           dartCopy.setValue(DartEntry.INCLUDED_PARTS, newParts);
+          dartCopy.setValue(DartEntry.DIRECTIVE_ERRORS, task.getErrors());
         } else {
           dartCopy.recordDependencyError();
         }

@@ -43,6 +43,7 @@ public class DartEntryImplTest extends EngineTestCase {
     assertSame(CacheState.INVALID, entry.getState(DartEntry.EXPORTED_LIBRARIES));
     assertSame(CacheState.INVALID, entry.getState(DartEntry.IMPORTED_LIBRARIES));
     assertSame(CacheState.INVALID, entry.getState(DartEntry.INCLUDED_PARTS));
+    assertSame(CacheState.INVALID, entry.getState(DartEntry.DIRECTIVE_ERRORS));
     assertSame(CacheState.INVALID, entry.getState(DartEntry.IS_CLIENT));
     assertSame(CacheState.INVALID, entry.getState(DartEntry.IS_LAUNCHABLE));
     assertSame(CacheState.INVALID, entry.getState(SourceEntry.LINE_INFO));
@@ -64,26 +65,24 @@ public class DartEntryImplTest extends EngineTestCase {
     entry.setValue(DartEntry.PARSE_ERRORS, new AnalysisError[] {new AnalysisError(
         source,
         ParserErrorCode.ABSTRACT_CLASS_MEMBER)});
-    entry.setValueInLibrary(DartEntry.RESOLUTION_ERRORS, source, new AnalysisError[] {new AnalysisError(
+    entry.setValue(DartEntry.DIRECTIVE_ERRORS, new AnalysisError[] {new AnalysisError(
         source,
-        CompileTimeErrorCode.CONST_CONSTRUCTOR_THROWS_EXCEPTION)});
-    entry.setValueInLibrary(DartEntry.VERIFICATION_ERRORS, source, new AnalysisError[] {new AnalysisError(
+        CompileTimeErrorCode.INVALID_URI,
+        "")});
+    entry.setValueInLibrary(
+        DartEntry.RESOLUTION_ERRORS,
         source,
-        StaticWarningCode.CASE_BLOCK_NOT_TERMINATED)});
+        new AnalysisError[] {new AnalysisError(
+            source,
+            CompileTimeErrorCode.CONST_CONSTRUCTOR_THROWS_EXCEPTION)});
+    entry.setValueInLibrary(
+        DartEntry.VERIFICATION_ERRORS,
+        source,
+        new AnalysisError[] {new AnalysisError(source, StaticWarningCode.CASE_BLOCK_NOT_TERMINATED)});
     entry.setValueInLibrary(DartEntry.HINTS, source, new AnalysisError[] {new AnalysisError(
         source,
         HintCode.DEAD_CODE)});
-    assertLength(5, entry.getAllErrors());
-  }
-
-  public void test_getState_invalid_element() {
-    DartEntryImpl entry = new DartEntryImpl();
-    try {
-      entry.getStateInLibrary(DartEntry.ELEMENT, new TestSource());
-      fail("Expected IllegalArgumentException for ELEMENT");
-    } catch (IllegalArgumentException exception) {
-      // Expected
-    }
+    assertLength(6, entry.getAllErrors());
   }
 
   public void test_getState_invalid_resolutionErrors() {
@@ -106,6 +105,16 @@ public class DartEntryImplTest extends EngineTestCase {
     }
   }
 
+  public void test_getStateInLibrary_invalid_element() {
+    DartEntryImpl entry = new DartEntryImpl();
+    try {
+      entry.getStateInLibrary(DartEntry.ELEMENT, new TestSource());
+      fail("Expected IllegalArgumentException for ELEMENT");
+    } catch (IllegalArgumentException exception) {
+      // Expected
+    }
+  }
+
   public void test_getValue_containingLibraries() {
     Source testSource = new TestSource();
     DartEntryImpl entry = new DartEntryImpl();
@@ -120,37 +129,11 @@ public class DartEntryImplTest extends EngineTestCase {
     assertLength(0, value);
   }
 
-  public void test_getValue_invalid_element() {
-    DartEntryImpl entry = new DartEntryImpl();
-    try {
-      entry.getValueInLibrary(DartEntry.ELEMENT, new TestSource());
-      fail("Expected IllegalArgumentException for ELEMENT");
-    } catch (IllegalArgumentException exception) {
-      // Expected
-    }
-  }
-
   public void test_getValue_invalid_resolutionErrors() {
     DartEntryImpl entry = new DartEntryImpl();
     try {
       entry.getValue(DartEntry.RESOLUTION_ERRORS);
       fail("Expected IllegalArgumentException for RESOLUTION_ERRORS");
-    } catch (IllegalArgumentException exception) {
-      // Expected
-    }
-  }
-
-  public void test_getValue_invalid_resolutionErrors_multiple() {
-    Source source1 = new TestSource();
-    Source source2 = new TestSource();
-    Source source3 = new TestSource();
-    DartEntryImpl entry = new DartEntryImpl();
-    entry.setValueInLibrary(DartEntry.RESOLVED_UNIT, source1, compilationUnit());
-    entry.setValueInLibrary(DartEntry.RESOLVED_UNIT, source2, compilationUnit());
-    entry.setValueInLibrary(DartEntry.RESOLVED_UNIT, source3, compilationUnit());
-    try {
-      entry.getValueInLibrary(DartEntry.ELEMENT, source3);
-      fail("Expected IllegalArgumentException for ELEMENT");
     } catch (IllegalArgumentException exception) {
       // Expected
     }
@@ -166,6 +149,32 @@ public class DartEntryImplTest extends EngineTestCase {
     }
   }
 
+  public void test_getValueInLibrary_invalid_element() {
+    DartEntryImpl entry = new DartEntryImpl();
+    try {
+      entry.getValueInLibrary(DartEntry.ELEMENT, new TestSource());
+      fail("Expected IllegalArgumentException for ELEMENT");
+    } catch (IllegalArgumentException exception) {
+      // Expected
+    }
+  }
+
+  public void test_getValueInLibrary_invalid_resolutionErrors_multiple() {
+    Source source1 = new TestSource();
+    Source source2 = new TestSource();
+    Source source3 = new TestSource();
+    DartEntryImpl entry = new DartEntryImpl();
+    entry.setValueInLibrary(DartEntry.RESOLVED_UNIT, source1, compilationUnit());
+    entry.setValueInLibrary(DartEntry.RESOLVED_UNIT, source2, compilationUnit());
+    entry.setValueInLibrary(DartEntry.RESOLVED_UNIT, source3, compilationUnit());
+    try {
+      entry.getValueInLibrary(DartEntry.ELEMENT, source3);
+      fail("Expected IllegalArgumentException for ELEMENT");
+    } catch (IllegalArgumentException exception) {
+      // Expected
+    }
+  }
+
   public void test_getWritableCopy() {
     DartEntryImpl entry = new DartEntryImpl();
     DartEntryImpl copy = entry.getWritableCopy();
@@ -176,8 +185,10 @@ public class DartEntryImplTest extends EngineTestCase {
   public void test_hasInvalidData_false() throws Exception {
     DartEntryImpl entry = new DartEntryImpl();
     entry.recordScanError();
+    assertFalse(entry.hasInvalidData(DartEntry.DIRECTIVE_ERRORS));
     assertFalse(entry.hasInvalidData(DartEntry.ELEMENT));
     assertFalse(entry.hasInvalidData(DartEntry.EXPORTED_LIBRARIES));
+    assertFalse(entry.hasInvalidData(DartEntry.HINTS));
     assertFalse(entry.hasInvalidData(DartEntry.IMPORTED_LIBRARIES));
     assertFalse(entry.hasInvalidData(DartEntry.INCLUDED_PARTS));
     assertFalse(entry.hasInvalidData(DartEntry.IS_CLIENT));
@@ -190,13 +201,14 @@ public class DartEntryImplTest extends EngineTestCase {
     assertFalse(entry.hasInvalidData(DartEntry.RESOLUTION_ERRORS));
     assertFalse(entry.hasInvalidData(DartEntry.RESOLVED_UNIT));
     assertFalse(entry.hasInvalidData(DartEntry.VERIFICATION_ERRORS));
-    assertFalse(entry.hasInvalidData(DartEntry.HINTS));
   }
 
   public void test_hasInvalidData_true() throws Exception {
     DartEntryImpl entry = new DartEntryImpl();
+    assertTrue(entry.hasInvalidData(DartEntry.DIRECTIVE_ERRORS));
     assertTrue(entry.hasInvalidData(DartEntry.ELEMENT));
     assertTrue(entry.hasInvalidData(DartEntry.EXPORTED_LIBRARIES));
+    assertTrue(entry.hasInvalidData(DartEntry.HINTS));
     assertTrue(entry.hasInvalidData(DartEntry.IMPORTED_LIBRARIES));
     assertTrue(entry.hasInvalidData(DartEntry.INCLUDED_PARTS));
     assertTrue(entry.hasInvalidData(DartEntry.IS_CLIENT));
@@ -209,12 +221,12 @@ public class DartEntryImplTest extends EngineTestCase {
     assertTrue(entry.hasInvalidData(DartEntry.RESOLUTION_ERRORS));
     assertTrue(entry.hasInvalidData(DartEntry.RESOLVED_UNIT));
     assertTrue(entry.hasInvalidData(DartEntry.VERIFICATION_ERRORS));
-    assertTrue(entry.hasInvalidData(DartEntry.HINTS));
   }
 
   public void test_invalidateAllInformation() throws Exception {
     DartEntryImpl entry = entryWithValidState();
     entry.invalidateAllInformation();
+    assertSame(CacheState.INVALID, entry.getState(DartEntry.DIRECTIVE_ERRORS));
     assertSame(CacheState.INVALID, entry.getState(DartEntry.ELEMENT));
     assertSame(CacheState.INVALID, entry.getState(DartEntry.EXPORTED_LIBRARIES));
     assertSame(CacheState.INVALID, entry.getState(DartEntry.IMPORTED_LIBRARIES));
@@ -274,6 +286,7 @@ public class DartEntryImplTest extends EngineTestCase {
   public void test_recordDependenciesInProcess() throws Exception {
     DartEntryImpl entry = new DartEntryImpl();
     entry.recordDependencyInProcess();
+    assertSame(CacheState.IN_PROCESS, entry.getState(DartEntry.DIRECTIVE_ERRORS));
     assertSame(CacheState.IN_PROCESS, entry.getState(DartEntry.EXPORTED_LIBRARIES));
     assertSame(CacheState.IN_PROCESS, entry.getState(DartEntry.IMPORTED_LIBRARIES));
     assertSame(CacheState.IN_PROCESS, entry.getState(DartEntry.INCLUDED_PARTS));
@@ -282,6 +295,7 @@ public class DartEntryImplTest extends EngineTestCase {
   public void test_recordParseError() throws Exception {
     DartEntryImpl entry = new DartEntryImpl();
     entry.recordParseError();
+    assertSame(CacheState.ERROR, entry.getState(DartEntry.DIRECTIVE_ERRORS));
     assertSame(CacheState.ERROR, entry.getState(DartEntry.ELEMENT));
     assertSame(CacheState.ERROR, entry.getState(DartEntry.EXPORTED_LIBRARIES));
     assertSame(CacheState.ERROR, entry.getState(DartEntry.IMPORTED_LIBRARIES));
@@ -304,6 +318,7 @@ public class DartEntryImplTest extends EngineTestCase {
   public void test_recordResolutionError() throws Exception {
     DartEntryImpl entry = new DartEntryImpl();
     entry.recordResolutionError();
+    assertSame(CacheState.INVALID, entry.getState(DartEntry.DIRECTIVE_ERRORS));
     assertSame(CacheState.ERROR, entry.getState(DartEntry.ELEMENT));
     assertSame(CacheState.INVALID, entry.getState(DartEntry.EXPORTED_LIBRARIES));
     assertSame(CacheState.INVALID, entry.getState(DartEntry.IMPORTED_LIBRARIES));
@@ -319,6 +334,7 @@ public class DartEntryImplTest extends EngineTestCase {
   public void test_recordScanError() throws Exception {
     DartEntryImpl entry = new DartEntryImpl();
     entry.recordScanError();
+    assertSame(CacheState.ERROR, entry.getState(DartEntry.DIRECTIVE_ERRORS));
     assertSame(CacheState.ERROR, entry.getState(DartEntry.ELEMENT));
     assertSame(CacheState.ERROR, entry.getState(DartEntry.EXPORTED_LIBRARIES));
     assertSame(CacheState.ERROR, entry.getState(DartEntry.IMPORTED_LIBRARIES));
@@ -406,6 +422,10 @@ public class DartEntryImplTest extends EngineTestCase {
 
     entry2.removeResolution(libSrc2);
     assertExactElementsInArray(entry2.getAllErrors());
+  }
+
+  public void test_setState_directiveErrors() {
+    setState2(DartEntry.DIRECTIVE_ERRORS);
   }
 
   public void test_setState_element() {
@@ -516,6 +536,13 @@ public class DartEntryImplTest extends EngineTestCase {
     setState3(DartEntry.VERIFICATION_ERRORS);
   }
 
+  public void test_setValue_directiveErrors() {
+    setValue2(DartEntry.DIRECTIVE_ERRORS, new AnalysisError[] {new AnalysisError(
+        null,
+        CompileTimeErrorCode.INVALID_URI,
+        "")});
+  }
+
   public void test_setValue_element() {
     setValue2(DartEntry.ELEMENT, new LibraryElementImpl(null, libraryIdentifier("lib")));
   }
@@ -594,6 +621,7 @@ public class DartEntryImplTest extends EngineTestCase {
 
   private DartEntryImpl entryWithValidState() {
     DartEntryImpl entry = new DartEntryImpl();
+    entry.setValue(DartEntry.DIRECTIVE_ERRORS, null);
     entry.setValue(DartEntry.ELEMENT, null);
     entry.setValue(DartEntry.EXPORTED_LIBRARIES, null);
     entry.setValue(DartEntry.IMPORTED_LIBRARIES, null);
@@ -605,6 +633,7 @@ public class DartEntryImplTest extends EngineTestCase {
     entry.setValue(DartEntry.PARSED_UNIT, null);
     entry.setValue(DartEntry.PUBLIC_NAMESPACE, null);
 
+    assertSame(CacheState.VALID, entry.getState(DartEntry.DIRECTIVE_ERRORS));
     assertSame(CacheState.VALID, entry.getState(DartEntry.ELEMENT));
     assertSame(CacheState.VALID, entry.getState(DartEntry.EXPORTED_LIBRARIES));
     assertSame(CacheState.VALID, entry.getState(DartEntry.IMPORTED_LIBRARIES));

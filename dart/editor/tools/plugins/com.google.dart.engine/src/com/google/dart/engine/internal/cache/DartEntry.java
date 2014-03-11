@@ -41,6 +41,12 @@ public interface DartEntry extends SourceEntry {
       "DartEntry.CONTAINING_LIBRARIES");
 
   /**
+   * The data descriptor representing the errors reported during the resolution of directives.
+   */
+  public static final DataDescriptor<AnalysisError[]> DIRECTIVE_ERRORS = new DataDescriptor<AnalysisError[]>(
+      "DartEntry.DIRECTIVE_ERRORS");
+
+  /**
    * The data descriptor representing the library element for the library. This data is only
    * available for Dart files that are the defining compilation unit of a library.
    */

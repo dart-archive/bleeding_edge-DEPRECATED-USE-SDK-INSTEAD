@@ -14,6 +14,7 @@
 package com.google.dart.engine.ast;
 
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.source.Source;
 
 import java.util.List;
 
@@ -37,6 +38,16 @@ public abstract class UriBasedDirective extends Directive {
   private StringLiteral uri;
 
   /**
+   * The content of the URI.
+   */
+  private String uriContent;
+
+  /**
+   * The source to which the URI was resolved.
+   */
+  private Source source;
+
+  /**
    * Initialize a newly create URI-based directive.
    * 
    * @param comment the documentation comment associated with this directive
@@ -49,6 +60,16 @@ public abstract class UriBasedDirective extends Directive {
   }
 
   /**
+   * Return the source to which the URI was resolved, or {@code null} if the AST structure has not
+   * been resolved or if this URI could not be resolved.
+   * 
+   * @return the source to which the URI was resolved
+   */
+  public Source getSource() {
+    return source;
+  }
+
+  /**
    * Return the URI referenced by this directive.
    * 
    * @return the URI referenced by this directive
@@ -58,13 +79,32 @@ public abstract class UriBasedDirective extends Directive {
   }
 
   /**
+   * Return the content of the URI, or {@code null} if the AST structure has not been resolved or if
+   * the URI was not a simple string literal (such as a URI that uses string interpolation).
+   * 
+   * @return the content of the URI
+   */
+  public String getUriContent() {
+    return uriContent;
+  }
+
+  /**
    * Return the element associated with the URI of this directive, or {@code null} if the AST
-   * structure has not been resolved or if this URI could not be resolved. Examples of the latter
+   * structure has not been resolved or if the URI could not be resolved. Examples of the latter
    * case include a directive that contains an invalid URL or a URL that does not exist.
    * 
    * @return the element associated with this directive
    */
   public abstract Element getUriElement();
+
+  /**
+   * Set the source to which the URI was resolved to the given source.
+   * 
+   * @param source the source to which the URI was resolved
+   */
+  public void setSource(Source source) {
+    this.source = source;
+  }
 
   /**
    * Set the URI referenced by this directive to the given URI.
@@ -73,6 +113,15 @@ public abstract class UriBasedDirective extends Directive {
    */
   public void setUri(StringLiteral uri) {
     this.uri = becomeParentOf(uri);
+  }
+
+  /**
+   * Set the content of the URI to the given value.
+   * 
+   * @param uriContent the content of the URI
+   */
+  public void setUriContent(String uriContent) {
+    this.uriContent = uriContent;
   }
 
   @Override
