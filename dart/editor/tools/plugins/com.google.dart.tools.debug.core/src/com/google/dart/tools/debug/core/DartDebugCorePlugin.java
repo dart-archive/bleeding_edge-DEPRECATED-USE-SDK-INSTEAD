@@ -100,6 +100,8 @@ public class DartDebugCorePlugin extends Plugin {
 
   public static final String PREFS_BREAK_ON_EXCEPTIONS = "breakOnExceptions";
 
+  public static final String PREFS_BREAK_ON_JS_EXCEPTIONS = "breakOnJSExceptions";
+
   public static final String PREFS_INVOKE_TOSTRING = "invokeToString";
 
   public static final String PREFS_SHOW_RUN_RESUME_DIALOG = "showRunResumeDialog";
@@ -245,6 +247,10 @@ public class DartDebugCorePlugin extends Plugin {
     }
   }
 
+  public boolean getBreakOnJSException() {
+    return getPrefs().getBoolean(PREFS_BREAK_ON_JS_EXCEPTIONS, true);
+  }
+
   public String getBrowserArgs() {
     return getPrefs().get(PREFS_BROWSER_ARGS, "");
   }
@@ -302,6 +308,10 @@ public class DartDebugCorePlugin extends Plugin {
     } catch (BackingStoreException exception) {
       logError(exception);
     }
+  }
+
+  public void setBreakOnJSException(boolean value) {
+    getPrefs().putBoolean(PREFS_BREAK_ON_JS_EXCEPTIONS, value);
   }
 
   public void setBrowserPreferences(boolean useDefault, String name, String args) {

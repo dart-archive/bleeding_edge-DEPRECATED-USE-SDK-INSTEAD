@@ -30,6 +30,7 @@ import com.google.dart.tools.debug.core.webkit.WebkitDebugger.PauseOnExceptionsT
 import com.google.dart.tools.debug.core.webkit.WebkitDebugger.PausedReasonType;
 import com.google.dart.tools.debug.core.webkit.WebkitDom.DomListener;
 import com.google.dart.tools.debug.core.webkit.WebkitDom.InspectorListener;
+import com.google.dart.tools.debug.core.webkit.WebkitLocation;
 import com.google.dart.tools.debug.core.webkit.WebkitPage;
 import com.google.dart.tools.debug.core.webkit.WebkitRemoteObject;
 import com.google.dart.tools.debug.core.webkit.WebkitResult;
@@ -375,11 +376,22 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
       @Override
       public void debuggerPaused(PausedReasonType reason, List<WebkitCallFrame> frames,
           WebkitRemoteObject exception) {
-        if (exception != null) {
-          printExceptionToStdout(exception);
-        }
 
-        debugThread.handleDebuggerSuspended(reason, frames, exception);
+        if (exception != null && !DartDebugCorePlugin.getPlugin().getBreakOnJSException()
+            && isJavaScriptException(frames, exception)) {
+          try {
+            // Continue VM execution.
+            getConnection().getDebugger().resume();
+          } catch (IOException e) {
+
+          }
+        } else {
+          if (exception != null) {
+            printExceptionToStdout(exception);
+          }
+
+          debugThread.handleDebuggerSuspended(reason, frames, exception);
+        }
       }
 
       @Override
@@ -542,6 +554,23 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
         DebugUIHelper.getHelper().showDevtoolsDisconnectError("Debugger Connection Closed", this);
       }
     }
+  }
+
+  protected boolean isJavaScriptException(List<WebkitCallFrame> frames, WebkitRemoteObject exception) {
+    if (frames.size() == 0) {
+      return false;
+    }
+
+    WebkitLocation location = frames.get(0).getLocation();
+
+    WebkitScript script = getConnection().getDebugger().getScript(location.getScriptId());
+    String url = script.getUrl();
+
+    if (url.endsWith(".dart.js") || url.endsWith(".precompiled.js")) {
+      return false;
+    }
+
+    return url.endsWith(".js");
   }
 
   protected void printExceptionToStdout(final WebkitRemoteObject exception) {

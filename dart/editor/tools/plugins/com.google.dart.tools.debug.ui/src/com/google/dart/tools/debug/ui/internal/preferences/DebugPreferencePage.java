@@ -43,6 +43,7 @@ public class DebugPreferencePage extends PreferencePage implements IWorkbenchPre
   public static final String PAGE_ID = "com.google.dart.tools.debug.debugPreferencePage"; //$NON-NLS-1$
 
   private Combo exceptionsCombo;
+  private Button breakOnJSButton;
   private Button invokeToStringButton;
 
   private Button defaultBrowserButton;
@@ -69,6 +70,7 @@ public class DebugPreferencePage extends PreferencePage implements IWorkbenchPre
   public boolean performOk() {
     DartDebugCorePlugin.getPlugin().setBreakOnExceptions(
         BreakOnExceptions.valueOf(exceptionsCombo.getText()));
+    DartDebugCorePlugin.getPlugin().setBreakOnJSException(breakOnJSButton.getSelection());
     DartDebugCorePlugin.getPlugin().setInvokeToString(invokeToStringButton.getSelection());
 
     DartDebugCorePlugin.getPlugin().setBrowserPreferences(
@@ -102,6 +104,10 @@ public class DebugPreferencePage extends PreferencePage implements IWorkbenchPre
         BreakOnExceptions.all.toString()});
 
     exceptionsCombo.select(exceptionsCombo.indexOf(DartDebugCorePlugin.getPlugin().getBreakOnExceptions().toString()));
+
+    breakOnJSButton = new Button(group, SWT.CHECK);
+    breakOnJSButton.setText("Break on JavaScript exceptions");
+    GridDataFactory.swtDefaults().span(2, 1).applyTo(breakOnJSButton);
 
     invokeToStringButton = new Button(group, SWT.CHECK);
     invokeToStringButton.setText("Invoke toString() methods when debugging");
@@ -180,6 +186,7 @@ public class DebugPreferencePage extends PreferencePage implements IWorkbenchPre
     browserNameText.setText(DartDebugCorePlugin.getPlugin().getBrowserName());
     browserArgumentText.setText(DartDebugCorePlugin.getPlugin().getBrowserArgs());
     setEnablement(!useDefaultBrowser);
+    breakOnJSButton.setSelection(DartDebugCorePlugin.getPlugin().getBreakOnJSException());
     invokeToStringButton.setSelection(DartDebugCorePlugin.getPlugin().getInvokeToString());
   }
 
