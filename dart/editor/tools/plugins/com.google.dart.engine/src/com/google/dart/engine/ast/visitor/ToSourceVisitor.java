@@ -162,6 +162,7 @@ public class ToSourceVisitor implements AstVisitor<Void> {
 
   @Override
   public Void visitClassDeclaration(ClassDeclaration node) {
+    visitNodeListWithSeparatorAndSuffix(node.getMetadata(), " ", " ");
     visitTokenWithSuffix(node.getAbstractKeyword(), " ");
     writer.print("class ");
     visitNode(node.getName());
@@ -177,6 +178,7 @@ public class ToSourceVisitor implements AstVisitor<Void> {
 
   @Override
   public Void visitClassTypeAlias(ClassTypeAlias node) {
+    visitNodeListWithSeparatorAndSuffix(node.getMetadata(), " ", " ");
     if (node.getAbstractKeyword() != null) {
       writer.print("abstract ");
     }
@@ -227,6 +229,7 @@ public class ToSourceVisitor implements AstVisitor<Void> {
 
   @Override
   public Void visitConstructorDeclaration(ConstructorDeclaration node) {
+    visitNodeListWithSeparatorAndSuffix(node.getMetadata(), " ", " ");
     visitTokenWithSuffix(node.getExternalKeyword(), " ");
     visitTokenWithSuffix(node.getConstKeyword(), " ");
     visitTokenWithSuffix(node.getFactoryKeyword(), " ");
@@ -265,6 +268,7 @@ public class ToSourceVisitor implements AstVisitor<Void> {
 
   @Override
   public Void visitDeclaredIdentifier(DeclaredIdentifier node) {
+    visitNodeListWithSeparatorAndSuffix(node.getMetadata(), " ", " ");
     visitTokenWithSuffix(node.getKeyword(), " ");
     visitNodeWithSuffix(node.getType(), " ");
     visitNode(node.getIdentifier());
@@ -312,6 +316,7 @@ public class ToSourceVisitor implements AstVisitor<Void> {
 
   @Override
   public Void visitExportDirective(ExportDirective node) {
+    visitNodeListWithSeparatorAndSuffix(node.getMetadata(), " ", " ");
     writer.print("export ");
     visitNode(node.getUri());
     visitNodeListWithSeparatorAndPrefix(" ", node.getCombinators(), " ");
@@ -345,6 +350,7 @@ public class ToSourceVisitor implements AstVisitor<Void> {
 
   @Override
   public Void visitFieldDeclaration(FieldDeclaration node) {
+    visitNodeListWithSeparatorAndSuffix(node.getMetadata(), " ", " ");
     visitTokenWithSuffix(node.getStaticKeyword(), " ");
     visitNode(node.getFields());
     writer.print(";");
@@ -426,6 +432,7 @@ public class ToSourceVisitor implements AstVisitor<Void> {
 
   @Override
   public Void visitFunctionDeclaration(FunctionDeclaration node) {
+    visitNodeListWithSeparatorAndSuffix(node.getMetadata(), " ", " ");
     visitNodeWithSuffix(node.getReturnType(), " ");
     visitTokenWithSuffix(node.getPropertyKeyword(), " ");
     visitNode(node.getName());
@@ -457,6 +464,7 @@ public class ToSourceVisitor implements AstVisitor<Void> {
 
   @Override
   public Void visitFunctionTypeAlias(FunctionTypeAlias node) {
+    visitNodeListWithSeparatorAndSuffix(node.getMetadata(), " ", " ");
     writer.print("typedef ");
     visitNodeWithSuffix(node.getReturnType(), " ");
     visitNode(node.getName());
@@ -500,6 +508,7 @@ public class ToSourceVisitor implements AstVisitor<Void> {
 
   @Override
   public Void visitImportDirective(ImportDirective node) {
+    visitNodeListWithSeparatorAndSuffix(node.getMetadata(), " ", " ");
     writer.print("import ");
     visitNode(node.getUri());
     visitNodeWithPrefix(" as ", node.getPrefix());
@@ -582,6 +591,7 @@ public class ToSourceVisitor implements AstVisitor<Void> {
 
   @Override
   public Void visitLibraryDirective(LibraryDirective node) {
+    visitNodeListWithSeparatorAndSuffix(node.getMetadata(), " ", " ");
     writer.print("library ");
     visitNode(node.getName());
     writer.print(';');
@@ -630,6 +640,7 @@ public class ToSourceVisitor implements AstVisitor<Void> {
 
   @Override
   public Void visitMethodDeclaration(MethodDeclaration node) {
+    visitNodeListWithSeparatorAndSuffix(node.getMetadata(), " ", " ");
     visitTokenWithSuffix(node.getExternalKeyword(), " ");
     visitTokenWithSuffix(node.getModifierKeyword(), " ");
     visitNodeWithSuffix(node.getReturnType(), " ");
@@ -693,6 +704,7 @@ public class ToSourceVisitor implements AstVisitor<Void> {
 
   @Override
   public Void visitPartDirective(PartDirective node) {
+    visitNodeListWithSeparatorAndSuffix(node.getMetadata(), " ", " ");
     writer.print("part ");
     visitNode(node.getUri());
     writer.print(';');
@@ -701,6 +713,7 @@ public class ToSourceVisitor implements AstVisitor<Void> {
 
   @Override
   public Void visitPartOfDirective(PartOfDirective node) {
+    visitNodeListWithSeparatorAndSuffix(node.getMetadata(), " ", " ");
     writer.print("part of ");
     visitNode(node.getLibraryName());
     writer.print(';');
@@ -907,6 +920,7 @@ public class ToSourceVisitor implements AstVisitor<Void> {
 
   @Override
   public Void visitTypeParameter(TypeParameter node) {
+    visitNodeListWithSeparatorAndSuffix(node.getMetadata(), " ", " ");
     visitNode(node.getName());
     visitNodeWithPrefix(" extends ", node.getBound());
     return null;
@@ -922,6 +936,7 @@ public class ToSourceVisitor implements AstVisitor<Void> {
 
   @Override
   public Void visitVariableDeclaration(VariableDeclaration node) {
+    visitNodeListWithSeparatorAndSuffix(node.getMetadata(), " ", " ");
     visitNode(node.getName());
     visitNodeWithPrefix(" = ", node.getInitializer());
     return null;
@@ -929,6 +944,7 @@ public class ToSourceVisitor implements AstVisitor<Void> {
 
   @Override
   public Void visitVariableDeclarationList(VariableDeclarationList node) {
+    visitNodeListWithSeparatorAndSuffix(node.getMetadata(), " ", " ");
     visitTokenWithSuffix(node.getKeyword(), " ");
     visitNodeWithSuffix(node.getType(), " ");
     visitNodeListWithSeparator(node.getVariables(), ", ");

@@ -15,13 +15,28 @@ package com.google.dart.engine.ast.visitor;
 
 import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.ast.AstNode;
+import com.google.dart.engine.ast.ClassDeclaration;
+import com.google.dart.engine.ast.ClassTypeAlias;
 import com.google.dart.engine.ast.Combinator;
 import com.google.dart.engine.ast.Comment;
 import com.google.dart.engine.ast.CommentReference;
 import com.google.dart.engine.ast.CompilationUnitMember;
+import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.ConstructorInitializer;
 import com.google.dart.engine.ast.Directive;
+import com.google.dart.engine.ast.ExportDirective;
 import com.google.dart.engine.ast.Expression;
+import com.google.dart.engine.ast.FieldDeclaration;
+import com.google.dart.engine.ast.FunctionDeclaration;
+import com.google.dart.engine.ast.FunctionTypeAlias;
+import com.google.dart.engine.ast.ImportDirective;
+import com.google.dart.engine.ast.LibraryDirective;
+import com.google.dart.engine.ast.MethodDeclaration;
+import com.google.dart.engine.ast.PartDirective;
+import com.google.dart.engine.ast.PartOfDirective;
+import com.google.dart.engine.ast.TypeParameter;
+import com.google.dart.engine.ast.VariableDeclaration;
+import com.google.dart.engine.ast.VariableDeclarationList;
 import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
@@ -286,6 +301,12 @@ public class ToSourceVisitorTest extends EngineTestCase {
             fieldDeclaration(false, Keyword.VAR, variableDeclaration("a"))));
   }
 
+  public void test_visitClassDeclaration_withMetadata() {
+    ClassDeclaration declaration = classDeclaration(null, "C", null, null, null, null);
+    declaration.setMetadata(list(annotation(identifier("deprecated"))));
+    assertSource("@deprecated class C {}", declaration);
+  }
+
   public void test_visitClassTypeAlias_abstract() {
     assertSource(
         "abstract class C = S with M1;",
@@ -368,6 +389,18 @@ public class ToSourceVisitorTest extends EngineTestCase {
             typeName("S"),
             withClause(typeName("M1")),
             implementsClause(typeName("I"))));
+  }
+
+  public void test_visitClassTypeAlias_withMetadata() {
+    ClassTypeAlias declaration = classTypeAlias(
+        "C",
+        null,
+        null,
+        typeName("S"),
+        withClause(typeName("M1")),
+        null);
+    declaration.setMetadata(list(annotation(identifier("deprecated"))));
+    assertSource("@deprecated class C = S with M1;", declaration);
   }
 
   public void test_visitComment() {
@@ -525,6 +558,19 @@ public class ToSourceVisitorTest extends EngineTestCase {
             blockFunctionBody()));
   }
 
+  public void test_visitConstructorDeclaration_withMetadata() {
+    ConstructorDeclaration declaration = constructorDeclaration(
+        null,
+        null,
+        identifier("C"),
+        null,
+        formalParameterList(),
+        null,
+        blockFunctionBody());
+    declaration.setMetadata(list(annotation(identifier("deprecated"))));
+    assertSource("@deprecated C() {}", declaration);
+  }
+
   public void test_visitConstructorFieldInitializer_withoutThis() {
     assertSource("a = b", constructorFieldInitializer(false, "a", identifier("b")));
   }
@@ -601,6 +647,12 @@ public class ToSourceVisitorTest extends EngineTestCase {
     assertSource("export 'a.dart';", exportDirective("a.dart"));
   }
 
+  public void test_visitExportDirective_withMetadata() {
+    ExportDirective directive = exportDirective("a.dart");
+    directive.setMetadata(list(annotation(identifier("deprecated"))));
+    assertSource("@deprecated export 'a.dart';", directive);
+  }
+
   public void test_visitExpressionFunctionBody() {
     assertSource("=> a;", expressionFunctionBody(identifier("a")));
   }
@@ -619,6 +671,12 @@ public class ToSourceVisitorTest extends EngineTestCase {
 
   public void test_visitFieldDeclaration_static() {
     assertSource("static var a;", fieldDeclaration(true, Keyword.VAR, variableDeclaration("a")));
+  }
+
+  public void test_visitFieldDeclaration_withMetadata() {
+    FieldDeclaration declaration = fieldDeclaration(false, Keyword.VAR, variableDeclaration("a"));
+    declaration.setMetadata(list(annotation(identifier("deprecated"))));
+    assertSource("@deprecated var a;", declaration);
   }
 
   public void test_visitFieldFormalParameter_functionTyped() {
@@ -855,6 +913,12 @@ public class ToSourceVisitorTest extends EngineTestCase {
     assertSource("set f() {}", functionDeclaration(null, Keyword.SET, "f", functionExpression()));
   }
 
+  public void test_visitFunctionDeclaration_withMetadata() {
+    FunctionDeclaration declaration = functionDeclaration(null, null, "f", functionExpression());
+    declaration.setMetadata(list(annotation(identifier("deprecated"))));
+    assertSource("@deprecated f() {}", declaration);
+  }
+
   public void test_visitFunctionDeclarationStatement() {
     assertSource("f() {};", functionDeclarationStatement(null, null, "f", functionExpression()));
   }
@@ -865,6 +929,22 @@ public class ToSourceVisitorTest extends EngineTestCase {
 
   public void test_visitFunctionExpressionInvocation() {
     assertSource("f()", functionExpressionInvocation(identifier("f")));
+  }
+
+  public void test_visitFunctionTypeAlias_generic() {
+    assertSource(
+        "typedef A F<B>();",
+        typeAlias(typeName("A"), "F", typeParameterList("B"), formalParameterList()));
+  }
+
+  public void test_visitFunctionTypeAlias_nonGeneric() {
+    assertSource("typedef A F();", typeAlias(typeName("A"), "F", null, formalParameterList()));
+  }
+
+  public void test_visitFunctionTypeAlias_withMetadata() {
+    FunctionTypeAlias declaration = typeAlias(typeName("A"), "F", null, formalParameterList());
+    declaration.setMetadata(list(annotation(identifier("deprecated"))));
+    assertSource("@deprecated typedef A F();", declaration);
   }
 
   public void test_visitFunctionTypedFormalParameter_noType() {
@@ -929,6 +1009,12 @@ public class ToSourceVisitorTest extends EngineTestCase {
             "p",
             showCombinator(identifier("A")),
             hideCombinator(identifier("B"))));
+  }
+
+  public void test_visitImportDirective_withMetadata() {
+    ImportDirective directive = importDirective("a.dart", null);
+    directive.setMetadata(list(annotation(identifier("deprecated"))));
+    assertSource("@deprecated import 'a.dart';", directive);
   }
 
   public void test_visitImportHideCombinator_multiple() {
@@ -1001,6 +1087,12 @@ public class ToSourceVisitorTest extends EngineTestCase {
 
   public void test_visitLibraryDirective() {
     assertSource("library l;", libraryDirective("l"));
+  }
+
+  public void test_visitLibraryDirective_withMetadata() {
+    LibraryDirective directive = libraryDirective("l");
+    directive.setMetadata(list(annotation(identifier("deprecated"))));
+    assertSource("@deprecated library l;", directive);
   }
 
   public void test_visitLibraryIdentifier_multiple() {
@@ -1194,6 +1286,19 @@ public class ToSourceVisitorTest extends EngineTestCase {
             blockFunctionBody()));
   }
 
+  public void test_visitMethodDeclaration_withMetadata() {
+    MethodDeclaration declaration = methodDeclaration(
+        null,
+        null,
+        null,
+        null,
+        identifier("m"),
+        formalParameterList(),
+        blockFunctionBody());
+    declaration.setMetadata(list(annotation(identifier("deprecated"))));
+    assertSource("@deprecated m() {}", declaration);
+  }
+
   public void test_visitMethodInvocation_noTarget() {
     assertSource("m()", methodInvocation("m"));
   }
@@ -1232,8 +1337,20 @@ public class ToSourceVisitorTest extends EngineTestCase {
     assertSource("part 'a.dart';", partDirective("a.dart"));
   }
 
+  public void test_visitPartDirective_withMetadata() {
+    PartDirective directive = partDirective("a.dart");
+    directive.setMetadata(list(annotation(identifier("deprecated"))));
+    assertSource("@deprecated part 'a.dart';", directive);
+  }
+
   public void test_visitPartOfDirective() {
     assertSource("part of l;", partOfDirective(libraryIdentifier("l")));
+  }
+
+  public void test_visitPartOfDirective_withMetadata() {
+    PartOfDirective directive = partOfDirective(libraryIdentifier("l"));
+    directive.setMetadata(list(annotation(identifier("deprecated"))));
+    assertSource("@deprecated part of l;", directive);
   }
 
   public void test_visitPositionalFormalParameter() {
@@ -1410,16 +1527,6 @@ public class ToSourceVisitorTest extends EngineTestCase {
     assertSource("try {} finally {}", tryStatement(block(), block()));
   }
 
-  public void test_visitTypeAlias_generic() {
-    assertSource(
-        "typedef A F<B>();",
-        typeAlias(typeName("A"), "F", typeParameterList("B"), formalParameterList()));
-  }
-
-  public void test_visitTypeAlias_nonGeneric() {
-    assertSource("typedef A F();", typeAlias(typeName("A"), "F", null, formalParameterList()));
-  }
-
   public void test_visitTypeArgumentList_multiple() {
     assertSource("<E, F>", typeArgumentList(typeName("E"), typeName("F")));
   }
@@ -1448,6 +1555,12 @@ public class ToSourceVisitorTest extends EngineTestCase {
     assertSource("E extends C", typeParameter("E", typeName("C")));
   }
 
+  public void test_visitTypeParameter_withMetadata() {
+    TypeParameter parameter = typeParameter("E");
+    parameter.setMetadata(list(annotation(identifier("deprecated"))));
+    assertSource("@deprecated E", parameter);
+  }
+
   public void test_visitTypeParameter_withoutExtends() {
     assertSource("E", typeParameter("E"));
   }
@@ -1468,6 +1581,12 @@ public class ToSourceVisitorTest extends EngineTestCase {
     assertSource("a", variableDeclaration("a"));
   }
 
+  public void test_visitVariableDeclaration_withMetadata() {
+    VariableDeclaration declaration = variableDeclaration("a");
+    declaration.setMetadata(list(annotation(identifier("deprecated"))));
+    assertSource("@deprecated a", declaration);
+  }
+
   public void test_visitVariableDeclarationList_const_type() {
     assertSource(
         "const C a, b",
@@ -1482,6 +1601,15 @@ public class ToSourceVisitorTest extends EngineTestCase {
     assertSource(
         "final a, b",
         variableDeclarationList(Keyword.FINAL, variableDeclaration("a"), variableDeclaration("b")));
+  }
+
+  public void test_visitVariableDeclarationList_final_withMetadata() {
+    VariableDeclarationList declarationList = variableDeclarationList(
+        Keyword.FINAL,
+        variableDeclaration("a"),
+        variableDeclaration("b"));
+    declarationList.setMetadata(list(annotation(identifier("deprecated"))));
+    assertSource("@deprecated final a, b", declarationList);
   }
 
   public void test_visitVariableDeclarationList_type() {
