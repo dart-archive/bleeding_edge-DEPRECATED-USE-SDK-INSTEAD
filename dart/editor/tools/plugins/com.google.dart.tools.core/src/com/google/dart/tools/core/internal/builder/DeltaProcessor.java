@@ -52,7 +52,7 @@ import java.io.IOException;
  * 
  * @coverage dart.tools.core.builder
  */
-public class DeltaProcessor {
+public class DeltaProcessor extends DeltaBroadcaster {
 
   private class Event implements SourceDeltaEvent, SourceContainerDeltaEvent {
 
@@ -208,7 +208,6 @@ public class DeltaProcessor {
   }
 
   private final Project project;
-  private DeltaListener listener;
   private PubFolder pubFolder;
   private AnalysisContext context;
   private Event event;
@@ -220,15 +219,6 @@ public class DeltaProcessor {
    */
   public DeltaProcessor(Project project) {
     this.project = project;
-  }
-
-  /**
-   * Add a listener interested in receiving change information
-   * 
-   * @param listener the listener (not {@code null})
-   */
-  public void addDeltaListener(DeltaListener listener) {
-    this.listener = DeltaListenerList.add(this.listener, listener);
   }
 
   /**

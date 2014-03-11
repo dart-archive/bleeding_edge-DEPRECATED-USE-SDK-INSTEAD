@@ -1,0 +1,289 @@
+/*
+ * Copyright (c) 2014, the Dart project authors.
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
+ * http://www.eclipse.org/legal/epl-v10.html
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
+ */
+package com.google.dart.tools.core.internal.builder;
+
+import com.google.dart.tools.core.internal.model.DartIgnoreFile;
+import com.google.dart.tools.core.internal.model.DartIgnoreManager;
+import com.google.dart.tools.core.mock.MockProject;
+
+import junit.framework.TestCase;
+
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IFolder;
+import org.mockito.Mockito;
+
+import java.io.File;
+import java.io.IOException;
+
+public class IgnoreResourceFilterTest extends TestCase {
+
+  private final class MockIgnoreFile extends DartIgnoreFile {
+
+    private MockIgnoreFile() {
+      super(new File("/tmp/does/not/exist/ignores.txt"));
+    }
+
+    @Override
+    public void initFile() throws IOException {
+      // do not write to disk
+    }
+
+    @Override
+    public DartIgnoreFile load() throws IOException {
+      // do not read from disk
+      return this;
+    }
+
+    @Override
+    public DartIgnoreFile store() throws IOException {
+      // do not write to disk
+      return this;
+    }
+  }
+
+  private MockProject project;
+  private DartIgnoreManager ignoreManager;
+  private DeltaListener listener;
+
+  public void testPackageSourceAdded() throws Exception {
+    SourceDeltaEvent event = newSourceDeltaEvent();
+
+    ignoreManager.addToIgnores(event.getResource().getLocation());
+    newTarget().packageSourceAdded(event);
+    Mockito.verifyNoMoreInteractions(listener);
+
+    ignoreManager.removeFromIgnores(event.getResource().getLocation());
+    newTarget().packageSourceAdded(event);
+    Mockito.verify(listener).packageSourceAdded(event);
+    Mockito.verifyNoMoreInteractions(listener);
+
+    ignoreManager.addToIgnores(event.getResource().getParent().getLocation());
+    newTarget().packageSourceAdded(event);
+    Mockito.verifyNoMoreInteractions(listener);
+  }
+
+  public void testPackageSourceChanged() throws Exception {
+    SourceDeltaEvent event = newSourceDeltaEvent();
+
+    ignoreManager.addToIgnores(event.getResource().getLocation());
+    newTarget().packageSourceChanged(event);
+    Mockito.verifyNoMoreInteractions(listener);
+
+    ignoreManager.removeFromIgnores(event.getResource().getLocation());
+    newTarget().packageSourceChanged(event);
+    Mockito.verify(listener).packageSourceChanged(event);
+    Mockito.verifyNoMoreInteractions(listener);
+
+    ignoreManager.addToIgnores(event.getResource().getParent().getLocation());
+    newTarget().packageSourceChanged(event);
+    Mockito.verifyNoMoreInteractions(listener);
+  }
+
+  public void testPackageSourceContainerRemoved() throws Exception {
+    SourceContainerDeltaEvent event = newSourceContainerDeltaEvent();
+
+    ignoreManager.addToIgnores(event.getResource().getLocation());
+    newTarget().packageSourceContainerRemoved(event);
+    Mockito.verifyNoMoreInteractions(listener);
+
+    ignoreManager.removeFromIgnores(event.getResource().getLocation());
+    newTarget().packageSourceContainerRemoved(event);
+    Mockito.verify(listener).packageSourceContainerRemoved(event);
+    Mockito.verifyNoMoreInteractions(listener);
+
+    ignoreManager.addToIgnores(event.getResource().getParent().getLocation());
+    newTarget().packageSourceContainerRemoved(event);
+    Mockito.verifyNoMoreInteractions(listener);
+  }
+
+  public void testPackageSourceRemoved() throws Exception {
+    SourceDeltaEvent event = newSourceDeltaEvent();
+
+    ignoreManager.addToIgnores(event.getResource().getLocation());
+    newTarget().packageSourceRemoved(event);
+    Mockito.verifyNoMoreInteractions(listener);
+
+    ignoreManager.removeFromIgnores(event.getResource().getLocation());
+    newTarget().packageSourceRemoved(event);
+    Mockito.verify(listener).packageSourceRemoved(event);
+    Mockito.verifyNoMoreInteractions(listener);
+
+    ignoreManager.addToIgnores(event.getResource().getParent().getLocation());
+    newTarget().packageSourceRemoved(event);
+    Mockito.verifyNoMoreInteractions(listener);
+  }
+
+  public void testPubspecAdded() throws Exception {
+    SourceDeltaEvent event = newSourceDeltaEvent();
+
+    ignoreManager.addToIgnores(event.getResource().getLocation());
+    newTarget().pubspecAdded(event);
+    Mockito.verifyNoMoreInteractions(listener);
+
+    ignoreManager.removeFromIgnores(event.getResource().getLocation());
+    newTarget().pubspecAdded(event);
+    Mockito.verify(listener).pubspecAdded(event);
+    Mockito.verifyNoMoreInteractions(listener);
+
+    ignoreManager.addToIgnores(event.getResource().getParent().getLocation());
+    newTarget().pubspecAdded(event);
+    Mockito.verifyNoMoreInteractions(listener);
+  }
+
+  public void testPubspecChanged() throws Exception {
+    SourceDeltaEvent event = newSourceDeltaEvent();
+
+    ignoreManager.addToIgnores(event.getResource().getLocation());
+    newTarget().pubspecChanged(event);
+    Mockito.verifyNoMoreInteractions(listener);
+
+    ignoreManager.removeFromIgnores(event.getResource().getLocation());
+    newTarget().pubspecChanged(event);
+    Mockito.verify(listener).pubspecChanged(event);
+    Mockito.verifyNoMoreInteractions(listener);
+
+    ignoreManager.addToIgnores(event.getResource().getParent().getLocation());
+    newTarget().pubspecChanged(event);
+    Mockito.verifyNoMoreInteractions(listener);
+  }
+
+  public void testPubspecRemoved() throws Exception {
+    SourceDeltaEvent event = newSourceDeltaEvent();
+
+    ignoreManager.addToIgnores(event.getResource().getLocation());
+    newTarget().pubspecRemoved(event);
+    Mockito.verifyNoMoreInteractions(listener);
+
+    ignoreManager.removeFromIgnores(event.getResource().getLocation());
+    newTarget().pubspecRemoved(event);
+    Mockito.verify(listener).pubspecRemoved(event);
+    Mockito.verifyNoMoreInteractions(listener);
+
+    ignoreManager.addToIgnores(event.getResource().getParent().getLocation());
+    newTarget().pubspecRemoved(event);
+    Mockito.verifyNoMoreInteractions(listener);
+  }
+
+  public void testSourceAdded() throws Exception {
+    SourceDeltaEvent event = newSourceDeltaEvent();
+
+    ignoreManager.addToIgnores(event.getResource().getLocation());
+    newTarget().sourceAdded(event);
+    Mockito.verifyNoMoreInteractions(listener);
+
+    ignoreManager.removeFromIgnores(event.getResource().getLocation());
+    newTarget().sourceAdded(event);
+    Mockito.verify(listener).sourceAdded(event);
+    Mockito.verifyNoMoreInteractions(listener);
+
+    ignoreManager.addToIgnores(event.getResource().getParent().getLocation());
+    newTarget().sourceAdded(event);
+    Mockito.verifyNoMoreInteractions(listener);
+  }
+
+  public void testSourceChanged() throws Exception {
+    SourceDeltaEvent event = newSourceDeltaEvent();
+
+    ignoreManager.addToIgnores(event.getResource().getLocation());
+    newTarget().sourceChanged(event);
+    Mockito.verifyNoMoreInteractions(listener);
+
+    ignoreManager.removeFromIgnores(event.getResource().getLocation());
+    newTarget().sourceChanged(event);
+    Mockito.verify(listener).sourceChanged(event);
+    Mockito.verifyNoMoreInteractions(listener);
+
+    ignoreManager.addToIgnores(event.getResource().getParent().getLocation());
+    newTarget().sourceChanged(event);
+    Mockito.verifyNoMoreInteractions(listener);
+  }
+
+  public void testSourceContainerRemoved() throws Exception {
+    SourceContainerDeltaEvent event = newSourceContainerDeltaEvent();
+
+    ignoreManager.addToIgnores(event.getResource().getLocation());
+    newTarget().sourceContainerRemoved(event);
+    Mockito.verifyNoMoreInteractions(listener);
+
+    ignoreManager.removeFromIgnores(event.getResource().getLocation());
+    newTarget().sourceContainerRemoved(event);
+    Mockito.verify(listener).sourceContainerRemoved(event);
+    Mockito.verifyNoMoreInteractions(listener);
+
+    ignoreManager.addToIgnores(event.getResource().getParent().getLocation());
+    newTarget().sourceContainerRemoved(event);
+    Mockito.verifyNoMoreInteractions(listener);
+  }
+
+  public void testSourceRemoved() throws Exception {
+    SourceDeltaEvent event = newSourceDeltaEvent();
+
+    ignoreManager.addToIgnores(event.getResource().getLocation());
+    newTarget().sourceRemoved(event);
+    Mockito.verifyNoMoreInteractions(listener);
+
+    ignoreManager.removeFromIgnores(event.getResource().getLocation());
+    newTarget().sourceRemoved(event);
+    Mockito.verify(listener).sourceRemoved(event);
+    Mockito.verifyNoMoreInteractions(listener);
+
+    ignoreManager.addToIgnores(event.getResource().getParent().getLocation());
+    newTarget().sourceRemoved(event);
+    Mockito.verifyNoMoreInteractions(listener);
+  }
+
+  public void testVisitContext() throws Exception {
+    SourceContainerDeltaEvent event = newSourceContainerDeltaEvent();
+
+    ignoreManager.addToIgnores(event.getResource().getLocation());
+    newTarget().visitContext(event);
+    Mockito.verifyNoMoreInteractions(listener);
+
+    ignoreManager.removeFromIgnores(event.getResource().getLocation());
+    newTarget().visitContext(event);
+    Mockito.verify(listener).visitContext(event);
+    Mockito.verifyNoMoreInteractions(listener);
+
+    ignoreManager.addToIgnores(event.getResource().getParent().getLocation());
+    newTarget().visitContext(event);
+    Mockito.verifyNoMoreInteractions(listener);
+  }
+
+  @Override
+  protected void setUp() throws Exception {
+    project = TestProjects.newPubProject3();
+    ignoreManager = new DartIgnoreManager(new MockIgnoreFile());
+    listener = Mockito.mock(DeltaListener.class);
+  }
+
+  private SourceContainerDeltaEvent newSourceContainerDeltaEvent() {
+    IFolder folder = project.getFolder("web");
+    SourceContainerDeltaEvent event = Mockito.mock(SourceContainerDeltaEvent.class);
+    Mockito.when(event.getResource()).thenReturn(folder);
+    return event;
+  }
+
+  private SourceDeltaEvent newSourceDeltaEvent() {
+    IFile file = project.getFolder("web").getFile("other.dart");
+    SourceDeltaEvent event = Mockito.mock(SourceDeltaEvent.class);
+    Mockito.when(event.getResource()).thenReturn(file);
+    return event;
+  }
+
+  private IgnoreResourceFilter newTarget() {
+    IgnoreResourceFilter filter = new IgnoreResourceFilter(ignoreManager);
+    filter.addDeltaListener(listener);
+    return filter;
+  }
+}
