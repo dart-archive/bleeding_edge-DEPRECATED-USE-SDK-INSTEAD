@@ -318,6 +318,10 @@ public class CompletionEngine {
       }
     }
 
+    void addNamesDefinedByType(ClassElement classElement) {
+      addNamesDefinedByType(classElement.getType());
+    }
+
     void addNamesDefinedByType(InterfaceType type) {
       if (inPrivateLibrary(type)) {
         return;
@@ -2311,7 +2315,11 @@ public class CompletionEngine {
     // Complete identifier when it refers to field or method in classElement.
     filter = new Filter(identifier);
     NameCollector names = new NameCollector();
-    names.addNamesDefinedByHierarchy(classElement, forSuper);
+    if (state.areInstanceReferencesProhibited) {
+      names.addNamesDefinedByType(classElement);
+    } else {
+      names.addNamesDefinedByHierarchy(classElement, forSuper);
+    }
     proposeNames(names, identifier);
   }
 

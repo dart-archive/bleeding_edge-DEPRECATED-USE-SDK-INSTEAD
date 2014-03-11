@@ -2078,18 +2078,37 @@ public class CompletionTests extends CompletionTestCase {
         "}"), "1+FIELD", "1-field");
   }
 
+  public void testCompletion_propertyAccess_whenClassTarget_excludeSuper() throws Exception {
+    test(src(//
+        "class A {",
+        "  static int FIELD_A;",
+        "  static int methodA() {}",
+        "}",
+        "class B extends A {",
+        "  static int FIELD_B;",
+        "  static int methodB() {}",
+        "}",
+        "main() {",
+        "  B.!1;",
+        "}"), "1+FIELD_B", "1-FIELD_A", "1+methodB", "1-methodA");
+  }
+
   public void testCompletion_propertyAccess_whenInstanceTarget() throws Exception {
     test(src(//
         "class A {",
         "  static int FIELD;",
-        "  int field;",
+        "  int fieldA;",
         "}",
         "class B {",
         "  A a;",
         "}",
-        "main(B b) {",
-        "  b.a.!1",
-        "}"), "1-FIELD", "1+field");
+        "class C extends A {",
+        "  int fieldC;",
+        "}",
+        "main(B b, C c) {",
+        "  b.a.!1;",
+        "  c.!2;",
+        "}"), "1-FIELD", "1+fieldA", "2+fieldC", "2+fieldA");
   }
 
   public void testCompletion_return_withIdentifierPrefix() throws Exception {
