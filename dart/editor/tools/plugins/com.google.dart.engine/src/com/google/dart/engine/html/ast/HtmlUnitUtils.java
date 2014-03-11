@@ -119,31 +119,6 @@ public class HtmlUnitUtils {
           }
         }
       });
-//      htmlUnit.accept(new RecursiveXmlVisitor<Void>() {
-//        @Override
-//        public Void visitXmlAttributeNode(XmlAttributeNode node) {
-//          findExpression(offset, result, node.getExpressions());
-//          return super.visitXmlAttributeNode(node);
-//        }
-//        
-//        @Override
-//        public Void visitXmlTagNode(XmlTagNode node) {
-//          findExpression(offset, result, node.getExpressions());
-//          return super.visitXmlTagNode(node);
-//        }
-//        
-//        private void findExpression(final int offset, final Expression[] result,
-//            EmbeddedExpression[] expressions) throws FoundExpressionError {
-//          for (EmbeddedExpression embeddedExpression : expressions) {
-//            Expression expression = embeddedExpression.getExpression();
-//            Expression at = getExpressionAt(expression, offset);
-//            if (at != null) {
-//              result[0] = at;
-//              throw new FoundExpressionError();
-//            }
-//          }
-//        }
-//      });
     } catch (FoundExpressionError e) {
       return result[0];
     }
@@ -183,7 +158,7 @@ public class HtmlUnitUtils {
    * given offset.
    */
   private static Expression getExpressionAt(AstNode root, int offset) {
-    if (root.getOffset() <= offset && offset < root.getEnd()) {
+    if (root.getOffset() <= offset && offset <= root.getEnd()) {
       AstNode dartNode = new NodeLocator(offset).searchWithin(root);
       if (dartNode instanceof Expression) {
         return (Expression) dartNode;

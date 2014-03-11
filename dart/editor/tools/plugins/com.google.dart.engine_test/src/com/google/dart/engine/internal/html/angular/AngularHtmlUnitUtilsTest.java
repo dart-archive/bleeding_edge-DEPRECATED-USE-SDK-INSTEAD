@@ -92,6 +92,7 @@ public class AngularHtmlUnitUtilsTest extends AngularTest {
     assertNotNull(HtmlUnitUtils.getExpression(indexUnit, offset));
     assertNotNull(HtmlUnitUtils.getExpression(indexUnit, offset + 1));
     assertNotNull(HtmlUnitUtils.getExpression(indexUnit, offset + 2));
+    assertNotNull(HtmlUnitUtils.getExpression(indexUnit, offset + "ctrl.field".length()));
     // try without unit
     assertNull(HtmlUnitUtils.getExpression(null, offset));
   }
