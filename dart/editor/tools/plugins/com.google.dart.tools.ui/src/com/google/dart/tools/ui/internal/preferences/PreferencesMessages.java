@@ -762,20 +762,25 @@ public final class PreferencesMessages extends NLS {
   public static String DartBasePreferencePage_header_text;
   public static String DartBasePreferencePage_show_line_numbers;
   public static String DartBasePreferencePage_show_line_numbers_tooltip;
-  public static String DartBasePreferencePage_show_print_margin;
   public static String DartBasePreferencePage_font_group_label;
   public static String DartBasePreferencePage_font_scale_label;
   public static String DartBasePreferencePage_code_font_scale_label;
   public static String DartBasePreferencePage_code_font_select_label;
   public static String DartBasePreferencePage_reset_button_label;
   public static String DartBasePreferencePage_font_scale_indicator;
-  public static String DartBasePreferencePage_show_print_margin_tooltip;
   public static String DartBasePreferencePage_editor_preferences;
   public static String DartBasePreferencePage_general;
   public static String DartBasePreferencePage_enable_auto_completion;
   public static String DartBasePreferencePage_enable_auto_completion_tooltip;
   public static String DartBasePreferencePage_enable_code_folding;
   public static String DartBasePreferencePage_enable_code_folding_tooltip;
+
+  public static String DartBasePreferencePage_format;
+  public static String DartBasePreferencePage_max_line_length;
+  public static String DartBasePreferencePage_max_line_length_tooltip;
+  public static String DartBasePreferencePage_tab_width;
+  public static String DartBasePreferencePage_indent_using_spaces;
+  public static String DartBasePreferencePage_indent_using_spaces_tooltip;
 
   public static String HintPreferencePage_enable_hints;
   public static String HintPreferencePage_enable_hints_tooltip;
@@ -785,15 +790,12 @@ public final class PreferencesMessages extends NLS {
 
   public static String DartBasePreferencePage_groupTitle;
 
-  public static String DartBasePreferencePage_insert_spaces_for_tabsDartBasePreferencePage_insert_spaces_for_tabs;
-  public static String DartBasePreferencePage_insert_spaces_for_tabsDartBasePreferencePage_insert_spaces_for_tabs_tooltip;
   public static String DartBasePreferencePage_Package_Title;
   public static String DartBasePreferencePage_select;
   public static String DartBasePreferencePage_text_font;
   public static String DartBasePreferencePage_trailing_ws_details;
   public static String DartBasePreferencePage_pub_auto_label;
   public static String DartBasePreferencePage_pub_auto_details;
-  public static String DartBasePreferencePage_tab_width;
   public static String DartBasePreferencePage_trailing_ws_label;
   public static String DartBasePreferencePage_update_group_label;
 

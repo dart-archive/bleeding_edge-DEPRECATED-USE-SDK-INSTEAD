@@ -48,6 +48,32 @@ import java.io.IOException;
 @SuppressWarnings("restriction")
 public class DartBasePreferencePage extends PreferencePage implements IWorkbenchPreferencePage {
 
+  /**
+   * Listener that only allows digits to be entered into a text field
+   */
+  private final class ValidIntListener implements Listener {
+    @Override
+    public void handleEvent(Event e) {
+      String txt = e.text;
+      // Allow for delete
+      if (txt.isEmpty()) {
+        return;
+      }
+      try {
+        // Only allow digits
+        int num = Integer.parseInt(txt);
+        if (num >= 0) {
+          return;
+        }
+      } catch (NumberFormatException nfe) {
+        // Error
+      }
+
+      e.doit = false;
+      return;
+    }
+  }
+
   public static final String DART_BASE_PREF_PAGE_ID = "com.google.dart.tools.ui.preferences.DartBasePreferencePage"; //$NON-NLS-1$
 
   private Button lineNumbersCheck;
@@ -154,64 +180,6 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
         generalGroup);
     GridLayoutFactory.fillDefaults().numColumns(2).margins(8, 8).applyTo(generalGroup);
 
-    lineNumbersCheck = createCheckBox(
-        generalGroup,
-        PreferencesMessages.DartBasePreferencePage_show_line_numbers,
-        PreferencesMessages.DartBasePreferencePage_show_line_numbers_tooltip);
-    GridDataFactory.fillDefaults().span(2, 1).applyTo(lineNumbersCheck);
-
-    printMarginCheck = createCheckBox(
-        generalGroup,
-        PreferencesMessages.DartBasePreferencePage_show_print_margin,
-        PreferencesMessages.DartBasePreferencePage_show_print_margin_tooltip);
-    printMarginCheck.addSelectionListener(new SelectionAdapter() {
-      @Override
-      public void widgetSelected(SelectionEvent e) {
-        printMarginText.setEnabled(printMarginCheck.getSelection());
-      }
-    });
-
-    printMarginText = new Text(generalGroup, SWT.BORDER | SWT.SINGLE | SWT.RIGHT);
-    printMarginText.setTextLimit(5);
-    GridDataFactory.fillDefaults().hint(50, SWT.DEFAULT).applyTo(printMarginText);
-
-    Label tabDisplayLabel = new Label(generalGroup, SWT.NONE);
-    tabDisplayLabel.setText(PreferencesMessages.DartBasePreferencePage_tab_width);
-
-    tabDisplaySize = new Text(generalGroup, SWT.BORDER | SWT.SINGLE | SWT.RIGHT);
-    tabDisplaySize.setTextLimit(2);
-    GridDataFactory.fillDefaults().hint(50, SWT.DEFAULT).applyTo(tabDisplaySize);
-
-    // Only allow sensible integer values
-    tabDisplaySize.addListener(SWT.Verify, new Listener() {
-      @Override
-      public void handleEvent(Event e) {
-        String txt = e.text;
-        // Allow for delete
-        if (txt.isEmpty()) {
-          return;
-        }
-        try {
-          int num = Integer.parseInt(txt);
-          // Valid entry is between 0 and 20
-          if (num >= 0 && num < 20) {
-            return;
-          }
-        } catch (NumberFormatException nfe) {
-          // Error
-        }
-
-        e.doit = false;
-        return;
-      }
-    });
-
-    insertSpacesForTabs = createCheckBox(
-        generalGroup,
-        PreferencesMessages.DartBasePreferencePage_insert_spaces_for_tabsDartBasePreferencePage_insert_spaces_for_tabs,
-        PreferencesMessages.DartBasePreferencePage_insert_spaces_for_tabsDartBasePreferencePage_insert_spaces_for_tabs_tooltip);
-    GridDataFactory.fillDefaults().span(2, 1).applyTo(insertSpacesForTabs);
-
     enableAutoCompletion = createCheckBox(
         generalGroup,
         PreferencesMessages.DartBasePreferencePage_enable_auto_completion,
@@ -223,6 +191,53 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
         PreferencesMessages.DartBasePreferencePage_enable_code_folding,
         PreferencesMessages.DartBasePreferencePage_enable_code_folding_tooltip);
     GridDataFactory.fillDefaults().span(2, 1).applyTo(enableFolding);
+
+    lineNumbersCheck = createCheckBox(
+        generalGroup,
+        PreferencesMessages.DartBasePreferencePage_show_line_numbers,
+        PreferencesMessages.DartBasePreferencePage_show_line_numbers_tooltip);
+    GridDataFactory.fillDefaults().span(2, 1).applyTo(lineNumbersCheck);
+
+    // Format group
+    Group formatGroup = new Group(composite, SWT.NONE);
+    formatGroup.setText(PreferencesMessages.DartBasePreferencePage_format);
+    GridDataFactory.fillDefaults().grab(true, false).align(SWT.FILL, SWT.BEGINNING).applyTo(
+        formatGroup);
+    GridLayoutFactory.fillDefaults().numColumns(2).margins(8, 8).applyTo(formatGroup);
+
+    printMarginCheck = createCheckBox(
+        formatGroup,
+        PreferencesMessages.DartBasePreferencePage_max_line_length,
+        PreferencesMessages.DartBasePreferencePage_max_line_length_tooltip);
+    printMarginCheck.addSelectionListener(new SelectionAdapter() {
+      @Override
+      public void widgetSelected(SelectionEvent e) {
+        printMarginText.setEnabled(printMarginCheck.getSelection());
+      }
+    });
+
+    printMarginText = new Text(formatGroup, SWT.BORDER | SWT.SINGLE | SWT.RIGHT);
+    printMarginText.setTextLimit(5);
+    GridDataFactory.fillDefaults().hint(50, SWT.DEFAULT).applyTo(printMarginText);
+
+    // Only allow integer values
+    printMarginText.addListener(SWT.Verify, new ValidIntListener());
+
+    Label tabDisplayLabel = new Label(formatGroup, SWT.NONE);
+    tabDisplayLabel.setText(PreferencesMessages.DartBasePreferencePage_tab_width);
+
+    tabDisplaySize = new Text(formatGroup, SWT.BORDER | SWT.SINGLE | SWT.RIGHT);
+    tabDisplaySize.setTextLimit(2);
+    GridDataFactory.fillDefaults().hint(50, SWT.DEFAULT).applyTo(tabDisplaySize);
+
+    // Only allow integer values
+    tabDisplaySize.addListener(SWT.Verify, new ValidIntListener());
+
+    insertSpacesForTabs = createCheckBox(
+        formatGroup,
+        PreferencesMessages.DartBasePreferencePage_indent_using_spaces,
+        PreferencesMessages.DartBasePreferencePage_indent_using_spaces_tooltip);
+    GridDataFactory.fillDefaults().span(2, 1).applyTo(insertSpacesForTabs);
 
     // Save actions group
     Group saveGroup = new Group(composite, SWT.NONE);
@@ -294,6 +309,5 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
     if (prefs != null) {
       runPubAutoCheck.setSelection(prefs.getBoolean(DartCore.PUB_AUTO_RUN_PREFERENCE, true));
     }
-
   }
 }
