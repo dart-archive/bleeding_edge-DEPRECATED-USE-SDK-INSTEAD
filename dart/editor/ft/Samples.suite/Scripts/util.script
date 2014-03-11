@@ -21,12 +21,15 @@ to init
 		throw "Screen size must be 1920x1200"
 	end if
 	Set the ImageDoctor to Auto
-	put connectioninfo().name
-	if  connectioninfo().name is empty then
-		put 5 into universal waitFactor
+	log connectioninfo().name
+	if  connectioninfo().name is "vm127-m3:1 (chrome-bot)" then
+		put 5 into universal waitFactor (* linux bot is slow *)
+	else if  connectioninfo().name is "vm620-m3:1 (chrome-bot)" then
+		put 5 into universal waitFactor (* mac bot is slow *)
 	else
 		put 1 into universal waitFactor
 	end if
+	log @universal waitFactor
 	put "initialized" into universal initialized
 end init
 

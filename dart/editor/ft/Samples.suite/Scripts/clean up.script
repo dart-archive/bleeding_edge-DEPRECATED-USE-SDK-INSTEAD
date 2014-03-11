@@ -1,3 +1,5 @@
+TypeText escape (* In case a prompt is showing *)
+TypeText escape
 (* if the debugger is open, close it after stopping it*)
 util.closeDebugger
 (* close the project folder, discarding changes *)
