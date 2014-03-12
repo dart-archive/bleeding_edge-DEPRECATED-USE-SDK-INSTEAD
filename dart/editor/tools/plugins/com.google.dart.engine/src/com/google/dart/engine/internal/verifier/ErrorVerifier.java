@@ -4194,9 +4194,6 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
         continue;
       }
 
-      // Reference the type of the enclosing class
-      InterfaceType enclosingType = enclosingClass.getType();
-
       // Check to see if some element is in local enclosing class that matches the name of the
       // required member.
       if (isMemberInClassOrMixin(executableElt, enclosingClass)) {
@@ -4208,10 +4205,19 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
 
       // First check to see if this element was declared in the superclass chain, in which case
       // there is already a concrete implementation.
-      ExecutableElement elt = membersInheritedFromSuperclasses.get(executableElt.getName());
+      ExecutableElement elt = membersInheritedFromSuperclasses.get(memberName);
 
       // Check to see if an element was found in the superclass chain with the correct name.
       if (elt != null) {
+
+        // Reference the types, if any are null then continue.
+        InterfaceType enclosingType = enclosingClass.getType();
+        FunctionType concreteType = elt.getType();
+        FunctionType requiredMemberType = executableElt.getType();
+        if (enclosingType == null || concreteType == null || requiredMemberType == null) {
+          continue;
+        }
+
         // Some element was found in the superclass chain that matches the name of the required
         // member.
         // If it is not abstract and it is the correct one (types match- the version of this method
@@ -4222,12 +4228,12 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
           // Since we are comparing two function types, we need to do the appropriate type
           // substitutions first ().
           FunctionType foundConcreteFT = inheritanceManager.substituteTypeArgumentsInMemberFromInheritance(
-              elt.getType(),
-              executableElt.getName(),
+              concreteType,
+              memberName,
               enclosingType);
           FunctionType requiredMemberFT = inheritanceManager.substituteTypeArgumentsInMemberFromInheritance(
-              executableElt.getType(),
-              executableElt.getName(),
+              requiredMemberType,
+              memberName,
               enclosingType);
           if (foundConcreteFT.isSubtypeOf(requiredMemberFT)) {
             continue;
