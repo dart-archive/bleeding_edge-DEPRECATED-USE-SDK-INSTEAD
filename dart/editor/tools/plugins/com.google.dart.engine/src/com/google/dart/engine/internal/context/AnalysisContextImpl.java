@@ -1677,11 +1677,17 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       // change, this loop will eventually terminate.
       //
       dartEntry = cacheDartParseData(source, dartEntry, DartEntry.PARSED_UNIT);
+      CompilationUnit unit = dartEntry.getAnyParsedCompilationUnit();
+      if (unit == null) {
+        throw new AnalysisException(
+            "Could not cache Dart dependency data: no parse unit",
+            dartEntry.getException());
+      }
       dartEntry = (DartEntry) new ResolveDartDependenciesTask(
           this,
           source,
           dartEntry.getModificationTime(),
-          dartEntry.getAnyParsedCompilationUnit()).perform(resultRecorder);
+          unit).perform(resultRecorder);
       state = dartEntry.getState(descriptor);
     }
     return dartEntry;
