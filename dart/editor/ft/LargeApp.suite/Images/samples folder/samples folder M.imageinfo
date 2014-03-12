@@ -9,6 +9,7 @@
     HonorAlpha = <*BY>;
     HotSpotX = <*R28>;
     HotSpotY = <*R5>;
+    ImageDescription = <>;
     LastKnownLocationX = <*I0>;
     LastKnownLocationY = <*I0>;
     OriginalLocationX = <*I51>;
