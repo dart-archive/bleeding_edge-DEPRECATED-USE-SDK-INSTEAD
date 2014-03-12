@@ -378,11 +378,10 @@ public class InheritanceManager {
    */
   public FunctionType substituteTypeArgumentsInMemberFromInheritance(FunctionType baseFunctionType,
       String memberName, InterfaceType definingType) {
-    if (baseFunctionType == null) {
+    // if the baseFunctionType is null, or does not have any parameters, return it.
+    if (baseFunctionType == null || baseFunctionType.getTypeArguments().length == 0) {
       return baseFunctionType;
     }
-    // TODO (jwren) add optimization: first check to see if the baseFunctionType has any
-    // parameterized types, if it doesn't have any, return the baseFuntionType
 
     // First, generate the path from the defining type to the overridden member
     LinkedList<InterfaceType> inheritancePath = new LinkedList<InterfaceType>();
