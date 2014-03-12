@@ -196,6 +196,8 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
     }
   }
 
+  private static final String NEW_LINE = System.getProperty("line.separator");
+
   public static final String VIEW_ID = "com.google.dart.tools.ui.console";
 
   private Composite parent;
@@ -309,6 +311,7 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
         StyledText control = (StyledText) page.getControl();
         if (control != null && !control.isDisposed()) {
           control.append(cmdline);
+          control.append(NEW_LINE);
         }
       }
     }
