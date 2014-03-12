@@ -399,6 +399,8 @@ public class ServerDebugValue extends ServerDebugElement implements IValue, IDar
   private String getValueString_impl() {
     if (valueRetriever != null) {
       return valueRetriever.getDisplayName();
+    } else if (value == null) {
+      return "null";
     } else {
       return value.getText();
     }
