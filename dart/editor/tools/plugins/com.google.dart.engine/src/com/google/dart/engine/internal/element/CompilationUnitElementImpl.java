@@ -41,7 +41,8 @@ import java.util.Map;
  * 
  * @coverage dart.engine.element
  */
-public class CompilationUnitElementImpl extends ElementImpl implements CompilationUnitElement {
+public class CompilationUnitElementImpl extends UriReferencedElementImpl implements
+    CompilationUnitElement {
   /**
    * An empty array of compilation unit elements.
    */
@@ -82,12 +83,6 @@ public class CompilationUnitElementImpl extends ElementImpl implements Compilati
    * An array containing all of the variables contained in this compilation unit.
    */
   private TopLevelVariableElement[] variables = TopLevelVariableElementImpl.EMPTY_ARRAY;
-
-  /**
-   * The URI that is specified by the "part" directive in the enclosing library, or {@code null} if
-   * this is the defining compilation unit of a library.
-   */
-  private String uri;
 
   /**
    * An array containing all of the Angular views contained in this compilation unit.
@@ -210,11 +205,6 @@ public class CompilationUnitElementImpl extends ElementImpl implements Compilati
   }
 
   @Override
-  public String getUri() {
-    return uri;
-  }
-
-  @Override
   public int hashCode() {
     return source.hashCode();
   }
@@ -299,15 +289,6 @@ public class CompilationUnitElementImpl extends ElementImpl implements Compilati
       ((ClassElementImpl) type).setEnclosingElement(this);
     }
     this.types = types;
-  }
-
-  /**
-   * Set the URI that is specified by the "part" directive in the enclosing library.
-   * 
-   * @param uri the URI that is specified by the "part" directive in the enclosing library.
-   */
-  public void setUri(String uri) {
-    this.uri = uri;
   }
 
   @Override

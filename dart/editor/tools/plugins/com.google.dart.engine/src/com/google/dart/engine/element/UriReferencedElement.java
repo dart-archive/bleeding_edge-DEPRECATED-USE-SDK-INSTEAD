@@ -21,6 +21,21 @@ package com.google.dart.engine.element;
  */
 public interface UriReferencedElement extends Element {
   /**
+   * Return the offset of the character immediately following the last character of this node's URI,
+   * or {@code -1} for synthetic import.
+   * 
+   * @return the offset of the character just past the node's URI
+   */
+  public int getUriEnd();
+
+  /**
+   * Return the offset of the URU in the file, or {@code -1} if this element is synthetic.
+   * 
+   * @return the offset of the URI
+   */
+  public int getUriOffset();
+
+  /**
    * Return the URI that is used to include this element into the enclosing library, or {@code null}
    * if this is the defining compilation unit of a library.
    * 

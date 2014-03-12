@@ -113,6 +113,8 @@ public class LibraryElementBuilder {
           CompilationUnitElementImpl part = builder.buildCompilationUnit(
               partSource,
               library.getAST(partSource));
+          part.setUriOffset(partUri.getOffset());
+          part.setUriEnd(partUri.getEnd());
           part.setUri(library.getUri(partDirective));
           //
           // Validate that the part contains a part-of directive with the same name as the library.

@@ -71,6 +71,11 @@ public class ImportElementHandle extends ElementHandle implements ImportElement 
   }
 
   @Override
+  public int getUriOffset() {
+    return getActualElement().getUriOffset();
+  }
+
+  @Override
   protected ImportElement getActualElement() {
     return (ImportElement) super.getActualElement();
   }

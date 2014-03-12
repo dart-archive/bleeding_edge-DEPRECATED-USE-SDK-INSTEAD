@@ -14,10 +14,6 @@
 package com.google.dart.tools.internal.corext.refactoring.rename;
 
 import com.google.common.base.Objects;
-import com.google.dart.engine.ast.CompilationUnit;
-import com.google.dart.engine.ast.Directive;
-import com.google.dart.engine.ast.StringLiteral;
-import com.google.dart.engine.ast.UriBasedDirective;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
@@ -93,11 +89,10 @@ public class MoveResourceParticipant extends MoveParticipant {
   }
 
   /**
-   * @return {@code true} if we can prove that the given {@link UriBasedDirective} has relative URI,
-   *         so should be updated.
+   * @return {@code true} if we can prove that the given {@link UriReferencedElement} has a relative
+   *         URI, so should be updated.
    */
-  private static boolean isRelativeUri(UriBasedDirective directive) {
-    UriReferencedElement uriElement = (UriReferencedElement) directive.getElement();
+  private static boolean isRelativeUri(UriReferencedElement uriElement) {
     if (uriElement == null) {
       return false;
     }
@@ -205,10 +200,9 @@ public class MoveResourceParticipant extends MoveParticipant {
   }
 
   private void addUnitUriTextEdit(CompilationUnitElement fileElement, URI newUnitUri,
-      Element element, StringLiteral uriNode) {
+      Element element, SourceRange uriRange) {
     if (element != null) {
       Source partUnit = element.getSource();
-      SourceRange uriRange = SourceRangeFactory.rangeNode(uriNode);
       addUnitUriTextEdit(fileElement.getSource(), newUnitUri, uriRange, partUnit);
     }
   }
@@ -259,32 +253,16 @@ public class MoveResourceParticipant extends MoveParticipant {
       {
         LibraryElement library = fileElement.getLibrary();
         if (library != null && Objects.equal(library.getDefiningCompilationUnit(), fileElement)) {
-          // prepare resolved unit AST
-          CompilationUnit fileUnit = DartElementUtil.resolveCompilationUnit(file);
-          if (fileUnit == null) {
-            return null;
-          }
           //  update directives
           URI newUnitUri = destContainer.getLocationURI();
-          for (Directive directive : fileUnit.getDirectives()) {
-            if (directive instanceof UriBasedDirective) {
-              UriBasedDirective uriDirective = (UriBasedDirective) directive;
-              // may be not relative
-              if (!isRelativeUri(uriDirective)) {
-                continue;
-              }
-              // prepare target Element
-              Element targetElement = directive.getElement();
-              if (targetElement instanceof ImportElement) {
-                targetElement = ((ImportElement) targetElement).getImportedLibrary();
-              }
-              if (targetElement instanceof ExportElement) {
-                targetElement = ((ExportElement) targetElement).getExportedLibrary();
-              }
-              // do update
-              StringLiteral uriNode = uriDirective.getUri();
-              addUnitUriTextEdit(fileElement, newUnitUri, targetElement, uriNode);
-            }
+          for (CompilationUnitElement unitElement : library.getParts()) {
+            updateUriElement(fileElement, unitElement, newUnitUri);
+          }
+          for (ImportElement importElement : library.getImports()) {
+            updateUriElement(fileElement, importElement, newUnitUri);
+          }
+          for (ExportElement exportElement : library.getExports()) {
+            updateUriElement(fileElement, exportElement, newUnitUri);
           }
         }
       }
@@ -296,5 +274,26 @@ public class MoveResourceParticipant extends MoveParticipant {
     } else {
       return null;
     }
+  }
+
+  private void updateUriElement(CompilationUnitElement fileElement,
+      UriReferencedElement uriElement, URI newUnitUri) {
+    // may be not relative
+    if (!isRelativeUri(uriElement)) {
+      return;
+    }
+    // prepare target Element
+    Element targetElement = uriElement;
+    if (targetElement instanceof ImportElement) {
+      targetElement = ((ImportElement) targetElement).getImportedLibrary();
+    }
+    if (targetElement instanceof ExportElement) {
+      targetElement = ((ExportElement) targetElement).getExportedLibrary();
+    }
+    // do update
+    SourceRange uriRange = SourceRangeFactory.rangeStartEnd(
+        uriElement.getUriOffset(),
+        uriElement.getUriEnd());
+    addUnitUriTextEdit(fileElement, newUnitUri, targetElement, uriRange);
   }
 }

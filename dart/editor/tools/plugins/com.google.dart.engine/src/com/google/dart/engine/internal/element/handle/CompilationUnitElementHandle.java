@@ -103,6 +103,16 @@ public class CompilationUnitElementHandle extends ElementHandle implements Compi
   }
 
   @Override
+  public int getUriEnd() {
+    return getActualElement().getUriEnd();
+  }
+
+  @Override
+  public int getUriOffset() {
+    return getActualElement().getUriOffset();
+  }
+
+  @Override
   protected CompilationUnitElement getActualElement() {
     return (CompilationUnitElement) super.getActualElement();
   }

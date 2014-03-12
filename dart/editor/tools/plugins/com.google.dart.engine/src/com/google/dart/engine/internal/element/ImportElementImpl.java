@@ -25,23 +25,12 @@ import com.google.dart.engine.element.PrefixElement;
  * 
  * @coverage dart.engine.element
  */
-public class ImportElementImpl extends ElementImpl implements ImportElement {
-  /**
-   * The offset of the character immediately following the last character of this node's URI, may be
-   * {@code -1} if synthetic.
-   */
-  private int uriEnd = -1;
-
+public class ImportElementImpl extends UriReferencedElementImpl implements ImportElement {
   /**
    * The offset of the prefix of this import in the file that contains the this import directive, or
    * {@code -1} if this import is synthetic.
    */
   private int prefixOffset;
-
-  /**
-   * The URI that is specified by this directive.
-   */
-  private String uri;
 
   /**
    * The library that is imported into this library by this import directive.
@@ -99,16 +88,6 @@ public class ImportElementImpl extends ElementImpl implements ImportElement {
     return prefixOffset;
   }
 
-  @Override
-  public String getUri() {
-    return uri;
-  }
-
-  @Override
-  public int getUriEnd() {
-    return uriEnd;
-  }
-
   /**
    * Set the combinators that were specified as part of the import directive to the given array of
    * combinators.
@@ -144,23 +123,6 @@ public class ImportElementImpl extends ElementImpl implements ImportElement {
    */
   public void setPrefixOffset(int prefixOffset) {
     this.prefixOffset = prefixOffset;
-  }
-
-  /**
-   * Set the URI that is specified by this directive.
-   * 
-   * @param uri the URI that is specified by this directive.
-   */
-  public void setUri(String uri) {
-    this.uri = uri;
-  }
-
-  /**
-   * Set the the offset of the character immediately following the last character of this node's
-   * URI. {@code -1} for synthetic import.
-   */
-  public void setUriEnd(int uriEnd) {
-    this.uriEnd = uriEnd;
   }
 
   @Override

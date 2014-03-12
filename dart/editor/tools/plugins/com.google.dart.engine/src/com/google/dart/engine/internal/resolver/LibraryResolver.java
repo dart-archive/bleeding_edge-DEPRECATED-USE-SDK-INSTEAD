@@ -443,9 +443,8 @@ public class LibraryResolver {
             if (importedLibrary != null) {
               ImportElementImpl importElement = new ImportElementImpl(directive.getOffset());
               StringLiteral uriLiteral = importDirective.getUri();
-              if (uriLiteral != null) {
-                importElement.setUriEnd(uriLiteral.getEnd());
-              }
+              importElement.setUriOffset(uriLiteral.getOffset());
+              importElement.setUriEnd(uriLiteral.getEnd());
               importElement.setUri(library.getUri(importDirective));
               importElement.setCombinators(buildCombinators(importDirective));
               LibraryElement importedLibraryElement = importedLibrary.getLibraryElement();
@@ -485,6 +484,9 @@ public class LibraryResolver {
             Library exportedLibrary = libraryMap.get(exportedSource);
             if (exportedLibrary != null) {
               ExportElementImpl exportElement = new ExportElementImpl();
+              StringLiteral uriLiteral = exportDirective.getUri();
+              exportElement.setUriOffset(uriLiteral.getOffset());
+              exportElement.setUriEnd(uriLiteral.getEnd());
               exportElement.setUri(library.getUri(exportDirective));
               exportElement.setCombinators(buildCombinators(exportDirective));
               LibraryElement exportedLibraryElement = exportedLibrary.getLibraryElement();
@@ -495,7 +497,6 @@ public class LibraryResolver {
               exports.add(exportElement);
 
               if (analysisContext.computeKindOf(exportedSource) != SourceKind.LIBRARY) {
-                StringLiteral uriLiteral = exportDirective.getUri();
                 errorListener.onError(new AnalysisError(
                     library.getLibrarySource(),
                     uriLiteral.getOffset(),
