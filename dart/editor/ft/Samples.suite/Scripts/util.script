@@ -1,4 +1,4 @@
-universal platform
+﻿universal platform
 universal initialized
 universal waitFactor
 
@@ -266,7 +266,7 @@ to saveFile
 end saveFile
 
 to openFileDialog
-	SelectMenuItem "File", "Existing Folder"
+	SelectMenuItem "File", "Existing F" (* Open Existing Folder, but without O's *)
 	xWait 0.5
 end openFileDialog
 
