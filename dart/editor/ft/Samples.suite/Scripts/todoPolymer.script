@@ -18,8 +18,9 @@ util.xWait 0.5
 TypeText "something"
 util.xWait 0.5
 util.newline
-util.xWait 0.5
-put UL + (100,200) into BR
+util.xWait 1
+put UL + (150,200) into BR
+put UL - (50,0) into UL
 set the searchRectangle to (UL,BR)
 put ImageRectangle("check mark") into checkRect
 Click center(checkRect)
