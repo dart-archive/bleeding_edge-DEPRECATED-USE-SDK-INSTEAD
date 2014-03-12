@@ -19,6 +19,7 @@ import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.element.angular.AngularControllerElement;
 import com.google.dart.engine.html.ast.HtmlUnitUtils;
+import com.google.dart.engine.html.ast.XmlTagNode;
 
 /**
  * Tests for {@link HtmlUnitUtils} for Angular HTMLs.
@@ -82,6 +83,27 @@ public class AngularHtmlUnitUtilsTest extends AngularTest {
     assertEquals("field", element.getName());
   }
 
+  public void test_getEnclosingTagNode() throws Exception {
+    resolveIndex(createSource(//
+        "<html>",
+        "  <body ng-app>",
+        "    <badge name='abc'> 123 </badge>",
+        "  </body>",
+        "</html>"));
+    // no unit
+    assertNull(HtmlUnitUtils.getEnclosingTagNode(null, 0));
+    // wrong offset
+    assertNull(HtmlUnitUtils.getEnclosingTagNode(indexUnit, -1));
+    // valid offset
+    XmlTagNode expected = getEnclosingTagNode("<badge");
+    assertNotNull(expected);
+    assertEquals("badge", expected.getTag());
+    assertSame(expected, getEnclosingTagNode("badge"));
+    assertSame(expected, getEnclosingTagNode("name="));
+    assertSame(expected, getEnclosingTagNode("123"));
+    assertSame(expected, getEnclosingTagNode("/badge"));
+  }
+
   public void test_getExpression() throws Exception {
     addMyController();
     resolveSimpleCtrlFieldHtml();
@@ -95,6 +117,40 @@ public class AngularHtmlUnitUtilsTest extends AngularTest {
     assertNotNull(HtmlUnitUtils.getExpression(indexUnit, offset + "ctrl.field".length()));
     // try without unit
     assertNull(HtmlUnitUtils.getExpression(null, offset));
+  }
+
+  public void test_getTagNode() throws Exception {
+    resolveIndex(createSource(//
+        "<html>",
+        "  <body ng-app>",
+        "    <badge name='abc'> 123 </badge> done",
+        "  </body>",
+        "</html>"));
+    // no unit
+    assertNull(HtmlUnitUtils.getTagNode(null, 0));
+    // wrong offset
+    assertNull(HtmlUnitUtils.getTagNode(indexUnit, -1));
+    // on tag name
+    XmlTagNode expected = getTagNode("badge name=");
+    assertNotNull(expected);
+    assertEquals("badge", expected.getTag());
+    assertSame(expected, getTagNode("badge"));
+    assertSame(expected, getTagNode(" name="));
+    assertSame(expected, getTagNode("adge name="));
+    assertSame(expected, getTagNode("badge>"));
+    assertSame(expected, getTagNode("adge>"));
+    assertSame(expected, getTagNode("> done"));
+    // in tag node, but not on the name token
+    assertNull(getTagNode("name="));
+    assertNull(getTagNode("123"));
+  }
+
+  private XmlTagNode getEnclosingTagNode(String search) {
+    return HtmlUnitUtils.getEnclosingTagNode(indexUnit, indexContent.indexOf(search));
+  }
+
+  private XmlTagNode getTagNode(String search) {
+    return HtmlUnitUtils.getTagNode(indexUnit, indexContent.indexOf(search));
   }
 
   private void resolveSimpleCtrlFieldHtml() throws Exception {

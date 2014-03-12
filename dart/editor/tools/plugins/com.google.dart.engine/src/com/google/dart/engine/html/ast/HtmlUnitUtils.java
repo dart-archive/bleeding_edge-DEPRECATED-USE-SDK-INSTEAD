@@ -52,7 +52,7 @@ public class HtmlUnitUtils {
         @Override
         public Void visitXmlAttributeNode(XmlAttributeNode node) {
           Token nameToken = node.getNameToken();
-          if (nameToken.getOffset() <= offset && offset < nameToken.getEnd()) {
+          if (nameToken.getOffset() <= offset && offset <= nameToken.getEnd()) {
             result[0] = node;
             throw new FoundAttributeNodeError();
           }
@@ -99,6 +99,33 @@ public class HtmlUnitUtils {
   }
 
   /**
+   * Returns the {@link XmlTagNode} that is part of the given {@link HtmlUnit} and encloses the
+   * given offset.
+   */
+  public static XmlTagNode getEnclosingTagNode(HtmlUnit htmlUnit, final int offset) {
+    if (htmlUnit == null) {
+      return null;
+    }
+    final XmlTagNode[] result = {null};
+    try {
+      htmlUnit.accept(new RecursiveXmlVisitor<Void>() {
+        @Override
+        public Void visitXmlTagNode(XmlTagNode node) {
+          if (node.getOffset() <= offset && offset < node.getEnd()) {
+            result[0] = node;
+            super.visitXmlTagNode(node);
+            throw new FoundTagNodeError();
+          }
+          return null;
+        }
+      });
+    } catch (FoundTagNodeError e) {
+      return result[0];
+    }
+    return null;
+  }
+
+  /**
    * Returns the {@link Expression} that is part of the given {@link HtmlUnit} and encloses the
    * given offset.
    */
@@ -126,30 +153,26 @@ public class HtmlUnitUtils {
   }
 
   /**
-   * Returns the {@link XmlTagNode} that is part of the given {@link HtmlUnit} and encloses the
-   * given offset.
+   * Returns the {@link XmlTagNode} that is part of the given {@link HtmlUnit} and its open or
+   * closing tag name encloses the given offset.
    */
-  public static XmlTagNode getTagNode(HtmlUnit htmlUnit, final int offset) {
-    if (htmlUnit == null) {
+  public static XmlTagNode getTagNode(HtmlUnit htmlUnit, int offset) {
+    XmlTagNode node = getEnclosingTagNode(htmlUnit, offset);
+    // do we have an enclosing tag at all?
+    if (node == null) {
       return null;
     }
-    final XmlTagNode[] result = {null};
-    try {
-      htmlUnit.accept(new RecursiveXmlVisitor<Void>() {
-        @Override
-        public Void visitXmlTagNode(XmlTagNode node) {
-          super.visitXmlTagNode(node);
-          Token tagToken = node.getTagToken();
-          if (tagToken.getOffset() <= offset && offset < tagToken.getEnd()) {
-            result[0] = node;
-            throw new FoundTagNodeError();
-          }
-          return null;
-        }
-      });
-    } catch (FoundTagNodeError e) {
-      return result[0];
+    // is "offset" in the open tag?
+    Token openTag = node.getTagToken();
+    if (openTag.getOffset() <= offset && offset <= openTag.getEnd()) {
+      return node;
     }
+    // is "offset" in the open tag?
+    Token closeTag = node.getClosingTag();
+    if (closeTag != null && closeTag.getOffset() <= offset && offset <= closeTag.getEnd()) {
+      return node;
+    }
+    // not on a tag name
     return null;
   }
 
