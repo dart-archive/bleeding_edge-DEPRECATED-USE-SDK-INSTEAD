@@ -6,13 +6,20 @@ import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.CompilationUnitElement;
+import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.HtmlElement;
+import com.google.dart.engine.element.angular.AngularComponentElement;
+import com.google.dart.engine.element.angular.AngularPropertyElement;
+import com.google.dart.engine.element.angular.AngularTagSelectorElement;
 import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.html.ast.HtmlUnitUtils;
+import com.google.dart.engine.html.ast.XmlTagNode;
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.search.SearchEngineFactory;
 import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.deploy.Activator;
+import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.text.dart.DartCompletionProposalComputer;
 import com.google.dart.tools.ui.text.dart.ContentAssistInvocationContext;
 import com.google.dart.tools.ui.text.dart.DartContentAssistInvocationContext;
@@ -20,39 +27,128 @@ import com.google.dart.tools.wst.ui.HtmlReconcilerHook;
 import com.google.dart.tools.wst.ui.HtmlReconcilerManager;
 
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.ITextViewer;
+import org.eclipse.jface.text.contentassist.CompletionProposal;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
+import org.eclipse.wst.sse.core.internal.provisional.text.IStructuredDocument;
+import org.eclipse.wst.sse.core.internal.provisional.text.IStructuredDocumentRegion;
+import org.eclipse.wst.sse.core.internal.provisional.text.ITextRegion;
 import org.eclipse.wst.sse.ui.contentassist.CompletionProposalInvocationContext;
 import org.eclipse.wst.sse.ui.contentassist.ICompletionProposalComputer;
+import org.eclipse.wst.xml.core.internal.regions.DOMRegionContext;
 
+import static org.eclipse.wst.sse.ui.internal.contentassist.ContentAssistUtils.getStructuredDocumentRegion;
+
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 /**
  * {@link ICompletionProposalComputer} for Angular HTML.
  */
+@SuppressWarnings("restriction")
 public class AngularCompletionProposalComputer implements ICompletionProposalComputer {
   private static final List<ICompletionProposal> EMPTY_PROPOSALS = ImmutableList.of();
+
+  private static List<AngularPropertyElement> getSortedProperties(AngularComponentElement component) {
+    List<AngularPropertyElement> properties = Lists.newArrayList(component.getProperties());
+    Collections.sort(properties, new Comparator<AngularPropertyElement>() {
+      @Override
+      public int compare(AngularPropertyElement o1, AngularPropertyElement o2) {
+        String name1 = o1.getName();
+        String name2 = o2.getName();
+        return name1.compareTo(name2);
+      }
+    });
+    return properties;
+  }
+
   private final DartCompletionProposalComputer proposalComputer = new DartCompletionProposalComputer();
+  private ITextViewer viewer;
+  private IStructuredDocument document;
+  private int offset;
+  private HtmlUnit htmlUnit;
+  private HtmlElement htmlElement;
+  private List<ICompletionProposal> proposals;
 
   @Override
   public List<ICompletionProposal> computeCompletionProposals(
       CompletionProposalInvocationContext context, IProgressMonitor monitor) {
-    // prepare resolved HtmlUnit
-    HtmlUnit htmlUnit = getResolvedHtmlUnit(context);
-    if (htmlUnit == null) {
-      return EMPTY_PROPOSALS;
+    try {
+      viewer = context.getViewer();
+      document = (IStructuredDocument) viewer.getDocument();
+      offset = context.getInvocationOffset();
+      // prepare resolved HtmlUnit
+      htmlUnit = getResolvedHtmlUnit();
+      if (htmlUnit == null) {
+        return EMPTY_PROPOSALS;
+      }
+      // prepare HtmlElement
+      htmlElement = htmlUnit.getElement();
+      if (htmlElement == null) {
+        return EMPTY_PROPOSALS;
+      }
+      // try to complete as Dart
+      {
+        List<ICompletionProposal> result = completeExpression(monitor);
+        if (result != null) {
+          return result;
+        }
+      }
+      // try to complete as Angular specific HTML entity
+      proposals = Lists.newArrayList();
+      completeTagOrAttribute(monitor);
+      return proposals;
+    } catch (Throwable e) {
+      DartToolsPlugin.log(e);
+    } finally {
+      viewer = null;
+      document = null;
+      offset = 0;
     }
-    // prepare HtmlElement
-    final HtmlElement htmlElement = htmlUnit.getElement();
-    if (htmlElement == null) {
-      return EMPTY_PROPOSALS;
-    }
+    return EMPTY_PROPOSALS;
+  }
+
+  @Override
+  public List<ICompletionProposal> computeContextInformation(
+      CompletionProposalInvocationContext context, IProgressMonitor monitor) {
+    List<ICompletionProposal> proposals = Lists.newArrayList();
+    return proposals;
+  }
+
+  @Override
+  public String getErrorMessage() {
+    return null;
+  }
+
+  @Override
+  public void sessionEnded() {
+  }
+
+  @Override
+  public void sessionStarted() {
+  }
+
+  private void addEmptyAttributeProposal(int offset, int length, String name) {
+    String replacement = name + "=" + '"';
+    int cursorPosition = replacement.length();
+    replacement += '"';
+    proposals.add(new CompletionProposal(
+        replacement,
+        offset,
+        length,
+        cursorPosition,
+        Activator.getImage("icons/full/dart16/angular_16_blue.png"),
+        null,
+        null,
+        null));
+  }
+
+  private List<ICompletionProposal> completeExpression(IProgressMonitor monitor) {
     // find Expression
-    int offset = context.getInvocationOffset();
     final Expression expression = HtmlUnitUtils.getExpression(htmlUnit, offset);
     if (expression == null) {
-      return EMPTY_PROPOSALS;
+      return null;
     }
     // prepare AssistContext
     final AssistContext assistContext;
@@ -76,8 +172,7 @@ public class AngularCompletionProposalComputer implements ICompletionProposalCom
         }
       };
     }
-    //
-    ITextViewer viewer = context.getViewer();
+    // use Dart completion
     ContentAssistInvocationContext completionContext = new DartContentAssistInvocationContext(
         viewer,
         offset,
@@ -90,28 +185,73 @@ public class AngularCompletionProposalComputer implements ICompletionProposalCom
     return proposalComputer.computeCompletionProposals(completionContext, monitor);
   }
 
-  @Override
-  public List<ICompletionProposal> computeContextInformation(
-      CompletionProposalInvocationContext context, IProgressMonitor monitor) {
-    List<ICompletionProposal> proposals = Lists.newArrayList();
-    return proposals;
+  private void completeTagOrAttribute(IProgressMonitor monitor) throws Exception {
+    // prepare region in document
+    IStructuredDocumentRegion tagRegion = getStructuredDocumentRegion(viewer, offset);
+    if (tagRegion == null) {
+      return;
+    }
+    String tagType = tagRegion.getType();
+    int tagOffset = tagRegion.getStartOffset();
+    // prepare Angular component
+    AngularComponentElement component = null;
+    if (DOMRegionContext.XML_TAG_NAME.equals(tagType)) {
+      // prepare enclosing tag
+      XmlTagNode tagNode = HtmlUnitUtils.getEnclosingTagNode(htmlUnit, tagOffset);
+      if (tagNode == null) {
+        return;
+      }
+      // prepare Angular selector
+      Element tagElement = tagNode.getElement();
+      if (!(tagElement instanceof AngularTagSelectorElement)) {
+        return;
+      }
+      AngularTagSelectorElement selector = (AngularTagSelectorElement) tagElement;
+      // prepare Angular component
+      if (!(selector.getEnclosingElement() instanceof AngularComponentElement)) {
+        return;
+      }
+      component = (AngularComponentElement) selector.getEnclosingElement();
+    }
+    if (component == null) {
+      return;
+    }
+    // prepare text region
+    ITextRegion textRegion = tagRegion.getRegionAtCharacterOffset(offset);
+    if (textRegion == null) {
+      return;
+    }
+    String textType = textRegion.getType();
+    // attribute name prefix
+    if (DOMRegionContext.XML_TAG_ATTRIBUTE_NAME.equals(textType)) {
+      int attrOffset = tagOffset + textRegion.getStart();
+      int attrLength = textRegion.getTextLength();
+      String attrPrefix = document.get(attrOffset, attrLength);
+      // propose component properties
+      for (AngularPropertyElement property : getSortedProperties(component)) {
+        String propertyName = property.getName();
+        if (propertyName.startsWith(attrPrefix)) {
+          addEmptyAttributeProposal(attrOffset, attrLength, propertyName);
+        }
+      }
+      // done
+      return;
+    }
+    // after tag name or other attribute value
+    if (DOMRegionContext.XML_TAG_NAME.equals(textType)
+        || DOMRegionContext.XML_TAG_ATTRIBUTE_VALUE.equals(textType)) {
+      if (textRegion.getLength() > 1 + textRegion.getTextLength()) {
+        for (AngularPropertyElement property : getSortedProperties(component)) {
+          String propertyName = property.getName();
+          addEmptyAttributeProposal(offset, 0, propertyName);
+        }
+        // done
+        return;
+      }
+    }
   }
 
-  @Override
-  public String getErrorMessage() {
-    return null;
-  }
-
-  @Override
-  public void sessionEnded() {
-  }
-
-  @Override
-  public void sessionStarted() {
-  }
-
-  private HtmlUnit getResolvedHtmlUnit(CompletionProposalInvocationContext context) {
-    IDocument document = context.getDocument();
+  private HtmlUnit getResolvedHtmlUnit() {
     HtmlReconcilerHook reconciler = HtmlReconcilerManager.getInstance().reconcilerFor(document);
     return reconciler.getResolvedUnit();
   }
