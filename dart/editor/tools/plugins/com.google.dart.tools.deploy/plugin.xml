@@ -536,6 +536,19 @@
             name="Welcome">
       </editor>
    </extension>
+   
+   <extension point="org.eclipse.core.contenttype.contentTypes"> 
+      <file-association
+            content-type="org.eclipse.core.runtime.text"
+            file-names="BUILD"/>
+   </extension> 
+   
+   <extension point="org.eclipse.core.contenttype.contentTypes"> 
+      <file-association
+            content-type="org.eclipse.wst.css.core.csssource"
+            file-extensions="ess"/>
+   </extension> 
+   
 
    <extension-point id="com.google.dart.tools.ui.theme.mapper" name="Editor Mapping" schema="schema/com.google.dart.tools.ui.theme.mapper.exsd"/>
    <extension-point id="com.google.dart.tools.ui.theme.theme" name="Color Theme" schema="schema/com.google.dart.tools.ui.theme.theme.exsd"/>
