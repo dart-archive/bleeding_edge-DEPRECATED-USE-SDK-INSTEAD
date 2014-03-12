@@ -704,6 +704,9 @@
       <theme
             file="themes/debugging.xml">
       </theme>
+      <theme
+            file="themes/rainbow.xml">
+      </theme>
    </extension>
 
    <extension point="org.eclipse.ui.perspectiveExtensions">
