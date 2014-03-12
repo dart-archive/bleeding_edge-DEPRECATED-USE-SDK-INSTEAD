@@ -1,6 +1,7 @@
 package com.google.dart.tools.core.internal.builder;
 
 import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.context.AnalysisContentStatistics;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisErrorInfo;
 import com.google.dart.engine.context.AnalysisException;
@@ -14,9 +15,14 @@ import com.google.dart.engine.element.HtmlElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.html.ast.HtmlUnit;
+import com.google.dart.engine.internal.cache.SourceEntry;
 import com.google.dart.engine.internal.context.AnalysisErrorInfoImpl;
 import com.google.dart.engine.internal.context.AnalysisOptionsImpl;
+import com.google.dart.engine.internal.context.InternalAnalysisContext;
+import com.google.dart.engine.internal.context.ResolvableCompilationUnit;
 import com.google.dart.engine.internal.context.TimestampedData;
+import com.google.dart.engine.internal.resolver.TypeProvider;
+import com.google.dart.engine.internal.scope.Namespace;
 import com.google.dart.engine.source.ContentCache;
 import com.google.dart.engine.source.DirectoryBasedSourceContainer;
 import com.google.dart.engine.source.FileBasedSource;
@@ -38,12 +44,13 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Mock {@link AnalysisContext} that validates calls and returns Mocks rather than performing the
  * requested analysis.
  */
-public class MockContext implements AnalysisContext {
+public class MockContext implements InternalAnalysisContext {
   private final class ChangedCall extends Call {
     private ChangedCall(AnalysisContext target, ChangeSet expected) {
       super(target, APPLY_CHANGES, expected);
@@ -108,6 +115,11 @@ public class MockContext implements AnalysisContext {
   private final CallList calls = new CallList();
   private final ContentCache contentCache = new ContentCache();
   private SourceFactory factory = new SourceFactory();
+
+  @Override
+  public void addSourceInfo(Source source, SourceEntry info) {
+    throw new UnsupportedOperationException();
+  }
 
   @Override
   public void applyChanges(ChangeSet changes) {
@@ -213,8 +225,18 @@ public class MockContext implements AnalysisContext {
   }
 
   @Override
+  public Source[] computeExportedLibraries(Source source) throws AnalysisException {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
   public HtmlElement computeHtmlElement(Source source) throws AnalysisException {
     return null;
+  }
+
+  @Override
+  public Source[] computeImportedLibraries(Source source) throws AnalysisException {
+    throw new UnsupportedOperationException();
   }
 
   @Override
@@ -229,6 +251,12 @@ public class MockContext implements AnalysisContext {
 
   @Override
   public LineInfo computeLineInfo(Source source) throws AnalysisException {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public ResolvableCompilationUnit computeResolvableCompilationUnit(Source source)
+      throws AnalysisException {
     throw new UnsupportedOperationException();
   }
 
@@ -251,6 +279,12 @@ public class MockContext implements AnalysisContext {
   public AnalysisContext extractContext(SourceContainer container) {
     calls.add(this, EXTRACT_CONTEXT, container);
     return new MockContext();
+  }
+
+  @Override
+  public InternalAnalysisContext extractContextInto(SourceContainer container,
+      InternalAnalysisContext newContext) {
+    return newContext;
   }
 
   @Override
@@ -358,6 +392,16 @@ public class MockContext implements AnalysisContext {
   }
 
   @Override
+  public Namespace getPublicNamespace(LibraryElement library) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public Namespace getPublicNamespace(Source source) throws AnalysisException {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
   public Source[] getRefactoringUnsafeSources() {
     return Source.EMPTY_ARRAY;
   }
@@ -380,6 +424,22 @@ public class MockContext implements AnalysisContext {
   @Override
   public SourceFactory getSourceFactory() {
     return factory;
+  }
+
+  @Override
+  public AnalysisContentStatistics getStatistics() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public TypeProvider getTypeProvider() throws AnalysisException {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public TimestampedData<CompilationUnit> internalResolveCompilationUnit(Source unitSource,
+      LibraryElement libraryElement) throws AnalysisException {
+    throw new UnsupportedOperationException();
   }
 
   @Override
@@ -416,6 +476,11 @@ public class MockContext implements AnalysisContext {
   public AnalysisResult performAnalysisTask() {
     // indicate no analysis to be performed
     return new AnalysisResult(null, 0L, null, -1L);
+  }
+
+  @Override
+  public void recordLibraryElements(Map<Source, LibraryElement> elementMap) {
+    throw new UnsupportedOperationException();
   }
 
   @Override

@@ -13,9 +13,12 @@
  */
 package com.google.dart.tools.core.internal.analysis.model;
 
+import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.index.Index;
+import com.google.dart.engine.internal.context.InstrumentedAnalysisContextImpl;
+import com.google.dart.engine.internal.context.InternalAnalysisContext;
 import com.google.dart.engine.source.DirectoryBasedSourceContainer;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
@@ -27,6 +30,7 @@ import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.IFileInfo;
 import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.analysis.model.PubFolder;
+import com.google.dart.tools.core.analysis.model.ResourceMap;
 import com.google.dart.tools.core.internal.analysis.model.ProjectImpl.AnalysisContextFactory;
 import com.google.dart.tools.core.internal.builder.MockContext;
 import com.google.dart.tools.core.internal.builder.TestProjects;
@@ -83,6 +87,7 @@ public class ProjectImplTest extends ContextManagerImplTest {
 
   private Index index;
   private TestProject testProject;
+  private boolean useInstrumentedContexts;
 
   public void assertUriResolvedToPackageRoot(Project project, IPath expectedPackageRoot) {
     IPath expected = expectedPackageRoot != null ? expectedPackageRoot.append("foo").append(
@@ -312,6 +317,65 @@ public class ProjectImplTest extends ContextManagerImplTest {
     File file = new File("/does/not/exist.dart");
     Source source = new FileBasedSource(file);
     assertNull(project.getResource(source));
+  }
+
+  public void test_getResourceMap_forContext() {
+    projectContainer.remove(DartCore.PUBSPEC_FILE_NAME);
+
+    // Initialize the project without instrumented contexts
+    ProjectImpl project = newTarget();
+    useInstrumentedContexts = false;
+    assertFalse(project.getDefaultContext() instanceof InstrumentedAnalysisContextImpl);
+
+    AnalysisContext defaultContext = project.getDefaultContext();
+    assertFalse(defaultContext instanceof InstrumentedAnalysisContextImpl);
+    AnalysisContext pubContext = project.getContext(appContainer);
+    assertFalse(pubContext instanceof InstrumentedAnalysisContextImpl);
+    assertNotSame(defaultContext, pubContext);
+
+    ResourceMap defaultResourceMap = project.getResourceMap(projectContainer);
+    assertNotNull(defaultResourceMap);
+    ResourceMap pubResourceMap = project.getResourceMap(appContainer);
+    assertNotNull(pubResourceMap);
+    assertNotSame(defaultResourceMap, pubResourceMap);
+
+    assertNull(project.getResourceMap((AnalysisContext) null));
+    assertNull(project.getResourceMap(AnalysisEngine.getInstance().createAnalysisContext()));
+
+    assertSame(defaultResourceMap, project.getResourceMap(defaultContext));
+    assertSame(pubResourceMap, project.getResourceMap(pubContext));
+  }
+
+  public void test_getResourceMap_forInstrumentedContext() {
+    projectContainer.remove(DartCore.PUBSPEC_FILE_NAME);
+
+    // Initialize the project with instrumented contexts
+    ProjectImpl project = newTarget();
+    useInstrumentedContexts = true;
+    assertTrue(project.getDefaultContext() instanceof InstrumentedAnalysisContextImpl);
+
+    AnalysisContext defaultContext = project.getDefaultContext();
+    assertTrue(defaultContext instanceof InstrumentedAnalysisContextImpl);
+    AnalysisContext pubContext = project.getContext(appContainer);
+    assertTrue(pubContext instanceof InstrumentedAnalysisContextImpl);
+    assertNotSame(defaultContext, pubContext);
+
+    ResourceMap defaultResourceMap = project.getResourceMap(projectContainer);
+    assertNotNull(defaultResourceMap);
+    ResourceMap pubResourceMap = project.getResourceMap(appContainer);
+    assertNotNull(pubResourceMap);
+    assertNotSame(defaultResourceMap, pubResourceMap);
+
+    assertNull(project.getResourceMap((AnalysisContext) null));
+    assertNull(project.getResourceMap(AnalysisEngine.getInstance().createAnalysisContext()));
+
+    AnalysisContext uninstrumentedDefaultContext = ((InstrumentedAnalysisContextImpl) defaultContext).getBasis();
+    AnalysisContext uninstrumentedPubContext = ((InstrumentedAnalysisContextImpl) pubContext).getBasis();
+
+    assertSame(defaultResourceMap, project.getResourceMap(defaultContext));
+    assertSame(pubResourceMap, project.getResourceMap(pubContext));
+    assertSame(defaultResourceMap, project.getResourceMap(uninstrumentedDefaultContext));
+    assertSame(pubResourceMap, project.getResourceMap(uninstrumentedPubContext));
   }
 
   public void test_packageRoots_ignored() throws Exception {
@@ -651,7 +715,11 @@ public class ProjectImplTest extends ContextManagerImplTest {
     return new ProjectImpl(projectContainer, sdk, index, new AnalysisContextFactory() {
       @Override
       public AnalysisContext createContext() {
-        return new MockContextForTest();
+        InternalAnalysisContext context = new MockContextForTest();
+        if (useInstrumentedContexts) {
+          context = new InstrumentedAnalysisContextImpl(context);
+        }
+        return context;
       }
 
       @Override

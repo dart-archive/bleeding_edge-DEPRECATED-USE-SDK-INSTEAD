@@ -333,23 +333,22 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
     synchronized (pubFolders) {
       for (PubFolder pubFolder : getPubFolders()) {
         AnalysisContext folderContext = pubFolder.getContext();
-        if (folderContext instanceof InstrumentedAnalysisContextImpl) {
-          folderContext = ((InstrumentedAnalysisContextImpl) folderContext).getBasis();
-        }
         if (folderContext == context) {
+          return pubFolder;
+        }
+        if (folderContext instanceof InstrumentedAnalysisContextImpl
+            && ((InstrumentedAnalysisContextImpl) folderContext).getBasis() == context) {
           return pubFolder;
         }
       }
     }
 
-    if (defaultContext instanceof InstrumentedAnalysisContextImpl) {
-      if (((InstrumentedAnalysisContextImpl) defaultContext).getBasis() == context) {
-        return defaultResourceMap;
-      }
-    } else {
-      if (defaultContext == context) {
-        return defaultResourceMap;
-      }
+    if (defaultContext == context) {
+      return defaultResourceMap;
+    }
+    if (defaultContext instanceof InstrumentedAnalysisContextImpl
+        && ((InstrumentedAnalysisContextImpl) defaultContext).getBasis() == context) {
+      return defaultResourceMap;
     }
     return null;
   }
