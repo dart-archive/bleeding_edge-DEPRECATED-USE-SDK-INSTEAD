@@ -10,7 +10,7 @@ vars.update({
   "chromium_url": "http://src.chromium.org/svn",
   "dartium_base": "http://src.chromium.org",
   "dartium_chromium_branch": "/chrome/branches/dart/1750/src",
-  "dartium_chromium_revision": "253181",
+  "dartium_chromium_revision": "256290",
   "clank_url": "https://chrome-internal.googlesource.com/clank/",
   # This revision number should be kept in sync with the version of clank that
   # uses a similar chromium revision to that mentioned just above in
@@ -22,7 +22,7 @@ vars.update({
   # updated to "https" for committers.
   "dart_branch": "/branches/bleeding_edge",
   "dartium_webkit_branch": "/blink/branches/dart/1750",
-  "dartium_webkit_revision": "168754",
+  "dartium_webkit_revision": "169066",
   "bootstrap_css_rev" : "@28387",
   "co19_rev": "@672",
   "gsutil_rev" : "@33376",
