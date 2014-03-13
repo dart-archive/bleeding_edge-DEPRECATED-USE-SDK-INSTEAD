@@ -252,6 +252,10 @@ public class JavaUtils {
       IVariableBinding varBinding = (IVariableBinding) binding;
       return varBinding.getVariableDeclaration();
     }
+    if (binding instanceof ITypeBinding) {
+      ITypeBinding typeBinding = (ITypeBinding) binding;
+      return typeBinding.getTypeDeclaration();
+    }
     return binding;
   }
 

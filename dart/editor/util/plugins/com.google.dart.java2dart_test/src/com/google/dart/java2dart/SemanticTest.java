@@ -451,6 +451,43 @@ public class SemanticTest extends AbstractSemanticTest {
         getFormattedSource(unit));
   }
 
+  public void test_classInner_static_generic() throws Exception {
+    setFileLines(
+        "test/Test.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "public class A<T> {",
+            "  public static class B<T> {",
+            "    public B(A<T> a) {",
+            "    }",
+            "    public int getValue() {",
+            "      return 42;",
+            "    }",
+            "  }",
+            "  int test() {",
+            "    B<T> b = new B<T>(this);",
+            "    return b.getValue();",
+            "  }",
+            "}"));
+    context.addSourceFolder(tmpFolder);
+    context.addSourceFiles(tmpFolder);
+    // do translate
+    translate();
+    assertEquals(
+        toString(
+            "class A<T> {",
+            "  int _test() {",
+            "    A_B<T> b = new A_B<T>(this);",
+            "    return b.getValue();",
+            "  }",
+            "}",
+            "class A_B<T> {",
+            "  A_B(A<T> a);",
+            "  int getValue() => 42;",
+            "}"),
+        getFormattedSource(unit));
+  }
+
   public void test_classInner2() throws Exception {
     setFileLines(
         "test/Test.java",

@@ -221,6 +221,9 @@ public class MainEngine {
         "com/google/dart/engine/utilities/collection/BooleanArray.java"));
     context.addSourceFile(new File(
         engineFolder,
+        "com/google/dart/engine/utilities/collection/DirectedGraph.java"));
+    context.addSourceFile(new File(
+        engineFolder,
         "com/google/dart/engine/utilities/collection/ListUtilities.java"));
     context.addSourceFile(new File(
         engineFolder,
@@ -407,24 +410,6 @@ public class MainEngine {
     {
       CompilationUnit library = buildConstantLibrary();
       String source = getFormattedSource(library);
-      source = replaceSourceFragment(
-          source,
-          makeSource(
-              "  N _findSink() {",
-              "    for (MapEntry<N, Set<N>> entry in getMapEntrySet(_edges)) {",
-              "      if (entry.getValue().isEmpty) {",
-              "        return entry.getKey();",
-              "      }",
-              "    }",
-              "    return null;",
-              "  }"),
-          makeSource(
-              "  N _findSink() {",
-              "    for (N key in _edges.keys) {",
-              "      if (_edges[key].isEmpty) return key;",
-              "    }",
-              "    return null;",
-              "  }"));
       Files.write(source, new File(targetFolder + "/constant.dart"), Charsets.UTF_8);
     }
     {
@@ -549,7 +534,8 @@ public class MainEngine {
     unit.getDirectives().add(importDirective("dart:collection", null));
     unit.getDirectives().add(importDirective("java_core.dart", null));
     unit.getDirectives().add(importDirective("java_engine.dart", null));
-    unit.getDirectives().add(importDirective("source.dart", null, importShowCombinator("LineInfo")));
+    unit.getDirectives().add(
+        importDirective("source.dart", null, importShowCombinator("LineInfo", "Source")));
     unit.getDirectives().add(importDirective("scanner.dart", null));
     unit.getDirectives().add(
         importDirective("engine.dart", null, importShowCombinator("AnalysisEngine")));
@@ -637,6 +623,8 @@ public class MainEngine {
         importDirective("engine.dart", null, importShowCombinator("AnalysisEngine")));
     unit.getDirectives().add(
         importDirective("utilities_dart.dart", null, importShowCombinator("ParameterKind")));
+    unit.getDirectives().add(
+        importDirective("utilities_collection.dart", null, importShowCombinator("DirectedGraph")));
     for (CompilationUnitMember member : dartUnit.getDeclarations()) {
       File file = context.getMemberToFile().get(member);
       if (isEnginePath(file, "constant/") || isEnginePath(file, "internal/constant/")

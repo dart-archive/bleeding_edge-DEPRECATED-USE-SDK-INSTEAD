@@ -13,6 +13,8 @@
  */
 package com.google.dart.engine.utilities.collection;
 
+import com.google.dart.engine.utilities.translation.DartBlockBody;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -73,7 +75,12 @@ public class DirectedGraph<N> {
    * Instances of the class {@code SccFinder} implement Tarjan's Algorithm for finding the strongly
    * connected components in a graph.
    */
-  private class SccFinder {
+  private static class SccFinder<N> {
+    /**
+     * The graph to work with.
+     */
+    private DirectedGraph<N> graph;
+
     /**
      * The index used to uniquely identify the depth of nodes.
      */
@@ -92,8 +99,9 @@ public class DirectedGraph<N> {
     /**
      * Initialize a newly created finder.
      */
-    public SccFinder() {
+    public SccFinder(DirectedGraph<N> graph) {
       super();
+      this.graph = graph;
     }
 
 //    public HashSet<ArrayList<N>> allComponents() {
@@ -160,7 +168,7 @@ public class DirectedGraph<N> {
       //
       // Consider successors of v
       //
-      HashSet<N> tails = edges.get(v);
+      HashSet<N> tails = graph.edges.get(v);
       if (tails != null) {
         for (N w : tails) {
           NodeInfo<N> wInfo = nodeMap.get(w);
@@ -261,7 +269,7 @@ public class DirectedGraph<N> {
     if (node == null) {
       throw new IllegalArgumentException();
     }
-    SccFinder finder = new SccFinder();
+    SccFinder<N> finder = new SccFinder<N>(this);
     return finder.componentContaining(node);
   }
 
@@ -364,6 +372,11 @@ public class DirectedGraph<N> {
    * 
    * @return a sink node
    */
+  @DartBlockBody({//
+  "for (N key in _edges.keys) {",//
+      "  if (_edges[key].isEmpty) return key;",//
+      "}",//
+      "return null;"})
   private N findSink() {
     for (Map.Entry<N, HashSet<N>> entry : edges.entrySet()) {
       if (entry.getValue().isEmpty()) {

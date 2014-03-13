@@ -116,6 +116,9 @@ class NodeList<E extends AstNode> extends Object with ListMixin<E> {
     owner.becomeParentOf(node);
     _elements[index] = node;
   }
+  void clear() {
+    _elements = <E> [];
+  }
   int get length => _elements.length;
   void set length(int value) {
     throw new UnsupportedError("Cannot resize NodeList.");
