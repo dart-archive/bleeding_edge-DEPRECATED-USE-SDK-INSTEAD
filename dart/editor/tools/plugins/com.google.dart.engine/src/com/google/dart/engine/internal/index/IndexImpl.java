@@ -93,13 +93,11 @@ public class IndexImpl implements Index {
 
   @Override
   public void removeSource(AnalysisContext context, Source source) {
-    System.out.println("removeSource: " + source);
     queue.enqueue(new RemoveSourceOperation(store, context, source));
   }
 
   @Override
   public void removeSources(AnalysisContext context, SourceContainer container) {
-    System.out.println("removeSources: " + container);
     queue.enqueue(new RemoveSourcesOperation(store, context, container));
   }
 
