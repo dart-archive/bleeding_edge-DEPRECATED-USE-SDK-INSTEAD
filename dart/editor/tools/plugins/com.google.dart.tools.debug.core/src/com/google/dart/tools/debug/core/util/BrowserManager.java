@@ -689,7 +689,7 @@ public class BrowserManager {
         launchConfig,
         browserLocation,
         url,
-        enableDebugging,
+        true,
         devToolsPortNumber);
     builder.command(arguments);
     builder.redirectErrorStream(true);
