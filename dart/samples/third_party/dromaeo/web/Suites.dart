@@ -90,8 +90,8 @@ class Suites {
       case 'dart2js':
         int i = path.indexOf('/');
         String topLevelDir = '';
-        if (i != -1) topLevelDir = '${path.substring(0, i)}/';
-        return '$topLevelDir$platform/'
+        if (i != -1) topLevelDir = '${path.substring(0, i)}';
+        return '$topLevelDir/'
             '${path.substring(i + 1).replaceFirst(".html", "$lib-js.html")}';
     }
   }

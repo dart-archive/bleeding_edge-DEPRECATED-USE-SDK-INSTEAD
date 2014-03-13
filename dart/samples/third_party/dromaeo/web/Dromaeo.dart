@@ -4,6 +4,7 @@ import 'dart:html';
 import 'dart:async';
 import "dart:convert";
 import 'dart:math' as Math;
+import 'dart:js' as js;
 import 'Suites.dart';
 
 main() {
@@ -201,6 +202,18 @@ class Dromaeo {
             return running;
           }
           document.body.attributes['class'] = 'alldone';
+
+          var report = js.context['reportPerformanceTestDone'];
+          if (report != null) {
+            report.apply([]);
+          } else {
+            // This is not running as a performance test. Continue as normal.
+            window.console.log('Warning: failed to call '
+                'reportPerformanceTestDone. If this is a performance test, '
+                'please include '
+                'packages/browser_controller/perf_test_controller.js in your '
+                'html file.');
+          }
           return done;
 
         default:
