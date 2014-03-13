@@ -327,17 +327,6 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
   private Source[] includedParts = Source.EMPTY_ARRAY;
 
   /**
-   * The state of the cached directive errors.
-   */
-  private CacheState directiveErrorsState = CacheState.INVALID;
-
-  /**
-   * The errors produced while resolving the directives, or an empty array if the errors are not
-   * currently cached.
-   */
-  private AnalysisError[] directiveErrors = AnalysisError.NO_ERRORS;
-
-  /**
    * The list of libraries that contain this compilation unit. The list will be empty if there are
    * no known libraries that contain this compilation unit.
    */
@@ -441,7 +430,6 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     ArrayList<AnalysisError> errors = new ArrayList<AnalysisError>();
     ListUtilities.addAll(errors, scanErrors);
     ListUtilities.addAll(errors, parseErrors);
-    ListUtilities.addAll(errors, directiveErrors);
     ResolutionState state = resolutionState;
     while (state != null) {
       ListUtilities.addAll(errors, state.resolutionErrors);
@@ -526,9 +514,7 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
 
   @Override
   public CacheState getState(DataDescriptor<?> descriptor) {
-    if (descriptor == DIRECTIVE_ERRORS) {
-      return directiveErrorsState;
-    } else if (descriptor == ELEMENT) {
+    if (descriptor == ELEMENT) {
       return elementState;
     } else if (descriptor == EXPORTED_LIBRARIES) {
       return exportedLibrariesState;
@@ -591,8 +577,6 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
       return (E) angularErrors;
     } else if (descriptor == CONTAINING_LIBRARIES) {
       return (E) containingLibraries.toArray(new Source[containingLibraries.size()]);
-    } else if (descriptor == DIRECTIVE_ERRORS) {
-      return (E) directiveErrors;
     } else if (descriptor == ELEMENT) {
       return (E) element;
     } else if (descriptor == EXPORTED_LIBRARIES) {
@@ -660,9 +644,7 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
 
   @Override
   public boolean hasInvalidData(DataDescriptor<?> descriptor) {
-    if (descriptor == DIRECTIVE_ERRORS) {
-      return directiveErrorsState == CacheState.INVALID;
-    } else if (descriptor == ELEMENT) {
+    if (descriptor == ELEMENT) {
       return elementState == CacheState.INVALID;
     } else if (descriptor == EXPORTED_LIBRARIES) {
       return exportedLibrariesState == CacheState.INVALID;
@@ -726,6 +708,15 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     parsedUnitAccessed = false;
     parsedUnitState = CacheState.INVALID;
 
+    importedLibraries = Source.EMPTY_ARRAY;
+    importedLibrariesState = CacheState.INVALID;
+
+    exportedLibraries = Source.EMPTY_ARRAY;
+    exportedLibrariesState = CacheState.INVALID;
+
+    includedParts = Source.EMPTY_ARRAY;
+    includedPartsState = CacheState.INVALID;
+
     discardCachedResolutionInformation();
   }
 
@@ -768,62 +759,6 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
   }
 
   /**
-   * Record that an error occurred while attempting to resolve the directives in the source
-   * represented by this entry.
-   */
-  public void recordDependencyError() {
-    exportedLibraries = Source.EMPTY_ARRAY;
-    exportedLibrariesState = CacheState.ERROR;
-
-    importedLibraries = Source.EMPTY_ARRAY;
-    importedLibrariesState = CacheState.ERROR;
-
-    includedParts = Source.EMPTY_ARRAY;
-    includedPartsState = CacheState.ERROR;
-
-    directiveErrors = AnalysisError.NO_ERRORS;
-    directiveErrorsState = CacheState.ERROR;
-  }
-
-  /**
-   * Record that the information related to resolving dependencies for the associated source is
-   * about to be computed by the current thread.
-   */
-  public void recordDependencyInProcess() {
-    if (exportedLibrariesState != CacheState.VALID) {
-      exportedLibrariesState = CacheState.IN_PROCESS;
-    }
-    if (importedLibrariesState != CacheState.VALID) {
-      importedLibrariesState = CacheState.IN_PROCESS;
-    }
-    if (includedPartsState != CacheState.VALID) {
-      includedPartsState = CacheState.IN_PROCESS;
-    }
-    if (directiveErrorsState != CacheState.VALID) {
-      directiveErrorsState = CacheState.IN_PROCESS;
-    }
-  }
-
-  /**
-   * Record that an in-process dependency resolution has stopped without recording results because
-   * the results were invalidated before they could be recorded.
-   */
-  public void recordDependencyNotInProcess() {
-    if (exportedLibrariesState == CacheState.IN_PROCESS) {
-      exportedLibrariesState = CacheState.INVALID;
-    }
-    if (importedLibrariesState == CacheState.IN_PROCESS) {
-      importedLibrariesState = CacheState.INVALID;
-    }
-    if (includedPartsState == CacheState.IN_PROCESS) {
-      includedPartsState = CacheState.INVALID;
-    }
-    if (directiveErrorsState == CacheState.IN_PROCESS) {
-      directiveErrorsState = CacheState.INVALID;
-    }
-  }
-
-  /**
    * Record that an error occurred while attempting to scan or parse the entry represented by this
    * entry. This will set the state of all information, including any resolution-based information,
    * as being in error.
@@ -839,7 +774,15 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     parsedUnitAccessed = false;
     parsedUnitState = CacheState.ERROR;
 
-    recordDependencyError();
+    exportedLibraries = Source.EMPTY_ARRAY;
+    exportedLibrariesState = CacheState.ERROR;
+
+    importedLibraries = Source.EMPTY_ARRAY;
+    importedLibrariesState = CacheState.ERROR;
+
+    includedParts = Source.EMPTY_ARRAY;
+    includedPartsState = CacheState.ERROR;
+
     recordResolutionError();
   }
 
@@ -856,6 +799,15 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     }
     if (parsedUnitState != CacheState.VALID) {
       parsedUnitState = CacheState.IN_PROCESS;
+    }
+    if (exportedLibrariesState != CacheState.VALID) {
+      exportedLibrariesState = CacheState.IN_PROCESS;
+    }
+    if (importedLibrariesState != CacheState.VALID) {
+      importedLibrariesState = CacheState.IN_PROCESS;
+    }
+    if (includedPartsState != CacheState.VALID) {
+      includedPartsState = CacheState.IN_PROCESS;
     }
   }
 
@@ -875,6 +827,15 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     }
     if (parsedUnitState == CacheState.IN_PROCESS) {
       parsedUnitState = CacheState.INVALID;
+    }
+    if (exportedLibrariesState == CacheState.IN_PROCESS) {
+      exportedLibrariesState = CacheState.INVALID;
+    }
+    if (importedLibrariesState == CacheState.IN_PROCESS) {
+      importedLibrariesState = CacheState.INVALID;
+    }
+    if (includedPartsState == CacheState.IN_PROCESS) {
+      includedPartsState = CacheState.INVALID;
     }
   }
 
@@ -1019,10 +980,7 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
 
   @Override
   public void setState(DataDescriptor<?> descriptor, CacheState state) {
-    if (descriptor == DIRECTIVE_ERRORS) {
-      directiveErrors = updatedValue(state, directiveErrors, null);
-      directiveErrorsState = state;
-    } else if (descriptor == ELEMENT) {
+    if (descriptor == ELEMENT) {
       element = updatedValue(state, element, null);
       elementState = state;
     } else if (descriptor == EXPORTED_LIBRARIES) {
@@ -1106,9 +1064,6 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
   public <E> void setValue(DataDescriptor<E> descriptor, E value) {
     if (descriptor == ANGULAR_ERRORS) {
       angularErrors = value == null ? AnalysisError.NO_ERRORS : (AnalysisError[]) value;
-    } else if (descriptor == DIRECTIVE_ERRORS) {
-      directiveErrors = (AnalysisError[]) value;
-      directiveErrorsState = CacheState.VALID;
     } else if (descriptor == ELEMENT) {
       element = (LibraryElement) value;
       elementState = CacheState.VALID;
@@ -1198,8 +1153,6 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     exportedLibraries = other.exportedLibraries;
     importedLibrariesState = other.importedLibrariesState;
     importedLibraries = other.importedLibraries;
-    directiveErrorsState = other.directiveErrorsState;
-    directiveErrors = other.directiveErrors;
     containingLibraries = new ArrayList<Source>(other.containingLibraries);
     resolutionState.copyFrom(other.resolutionState);
     elementState = other.elementState;
@@ -1218,10 +1171,9 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
         || tokenStreamState == CacheState.ERROR || sourceKindState == CacheState.ERROR
         || parsedUnitState == CacheState.ERROR || parseErrorsState == CacheState.ERROR
         || importedLibrariesState == CacheState.ERROR || exportedLibrariesState == CacheState.ERROR
-        || includedPartsState == CacheState.ERROR || directiveErrorsState == CacheState.ERROR
-        || elementState == CacheState.ERROR || publicNamespaceState == CacheState.ERROR
-        || clientServerState == CacheState.ERROR || launchableState == CacheState.ERROR
-        || resolutionState.hasErrorState();
+        || includedPartsState == CacheState.ERROR || elementState == CacheState.ERROR
+        || publicNamespaceState == CacheState.ERROR || clientServerState == CacheState.ERROR
+        || launchableState == CacheState.ERROR || resolutionState.hasErrorState();
   }
 
   @Override
@@ -1246,8 +1198,6 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     builder.append(importedLibrariesState);
     builder.append("; includedParts = ");
     builder.append(includedPartsState);
-    builder.append("; directiveErrors = ");
-    builder.append(directiveErrorsState);
     builder.append("; element = ");
     builder.append(elementState);
     builder.append("; publicNamespace = ");
@@ -1266,18 +1216,6 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
   private void discardCachedResolutionInformation() {
     element = null;
     elementState = CacheState.INVALID;
-
-    includedParts = Source.EMPTY_ARRAY;
-    includedPartsState = CacheState.INVALID;
-
-    exportedLibraries = Source.EMPTY_ARRAY;
-    exportedLibrariesState = CacheState.INVALID;
-
-    importedLibraries = Source.EMPTY_ARRAY;
-    importedLibrariesState = CacheState.INVALID;
-
-    directiveErrors = AnalysisError.NO_ERRORS;
-    directiveErrorsState = CacheState.INVALID;
 
     bitmask = 0;
     clientServerState = CacheState.INVALID;
