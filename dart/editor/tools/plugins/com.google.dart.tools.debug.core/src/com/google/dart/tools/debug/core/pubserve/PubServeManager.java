@@ -17,23 +17,42 @@ import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.MessageConsole;
 import com.google.dart.tools.core.model.DartSdk;
 import com.google.dart.tools.core.model.DartSdkManager;
+import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
+import com.google.dart.tools.debug.core.pubserve.PubConnection.PubConnectionListener;
 
+import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.osgi.util.NLS;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Manages the pub serve process for launches
+ * Manages the pub serve process for launches. Clients should call
+ * startPubServe(DartLaunchconfigWrapper) and if successful then call
+ * connectToPub(PubCallback<String>) with a callback to process the communication received from pub.
+ * - currently pub serve does not have a api to add directories to an existing serve, so pub serve
+ * is started for all the directories sibling to pubpsec.yaml - pub serve reserves the first two
+ * ports for web and test directory, so the output from pub is used to find the port for the
+ * websocket connection.
  */
 public class PubServeManager {
 
-  private static final String SERVE_COMMAND = "serve";
   public static final String PORT_NUMBER = "3031";
+
+  private static final String SERVE_COMMAND = "serve";
+
+  private static final String LOCAL_HOST_ADDR = "127.0.0.1";
+
+  private static final String WEBSOCKET_URL = "ws://{0}:{1}/";
 
   private static PubServeManager manager = new PubServeManager();
 
@@ -46,36 +65,107 @@ public class PubServeManager {
   private StringBuilder stdOut;
   private StringBuilder stdError;
   private MessageConsole console;
+  private PubConnection pubConnection;
+  private IContainer workingDir;
+  private String portNo;
+
+  /**
+   * This starts a websocket connection with pub and if successful, sends a "assetIdToUrl" command
+   * to pub to get the url to launch for the resource that was specifed in the launch configuration
+   * 
+   * @param pubCallback - users should pass in a method to process the response for the
+   *          "assetIdToUrl" command
+   * @return true if the websocket connection was established and the command sent
+   */
+  public boolean connectToPub(PubCallback<String> pubCallback) {
+
+    if (pubConnection != null && pubConnection.isConnected()) {
+      return sendGetUrlCommand(pubCallback);
+    } else {
+      if (portNo == null) {
+        portNo = PORT_NUMBER;
+      }
+      try {
+        pubConnection = new PubConnection(new URI(NLS.bind(WEBSOCKET_URL, LOCAL_HOST_ADDR, portNo)));
+
+        pubConnection.addConnectionListener(new PubConnectionListener() {
+          @Override
+          public void connectionClosed(PubConnection connection) {
+            pubConnection = null;
+          }
+        });
+
+        pubConnection.connect();
+
+        return sendGetUrlCommand(pubCallback);
+
+      } catch (URISyntaxException e) {
+        DartDebugCorePlugin.logError(e);
+        return false;
+      } catch (IOException e) {
+        DartDebugCorePlugin.logError(e);
+        return false;
+      }
+    }
+  }
 
   public void dispose() {
-    if (process != null) {
-      process.destroy();
-      process = null;
+    // TODO(keertip): stop pub serve first when api available
+    if (pubConnection != null) {
+      try {
+        pubConnection.close();
+      } catch (IOException e) {
+        DartDebugCorePlugin.logError(e);
+      } finally {
+        pubConnection = null;
+      }
     }
+    if (process != null) {
+      try {
+        process.destroy();
+      } catch (Exception e) {
+
+      } finally {
+        process = null;
+      }
+    }
+
   }
 
   public String getStdErrorString() {
     return stdError.toString();
   }
 
+  /**
+   * Starts pub serve for a given launch configuration. Checks if the current pub serve is for the
+   * same pubspec.yaml, if not then starts up pub serve.
+   * 
+   * @param wrapper - the launch config wrapper
+   * @return - true if pub serve starts
+   */
   public boolean startPubServe(DartLaunchConfigWrapper wrapper) {
 
     console = DartCore.getConsole();
 
     if (currentLaunch != null) {
       IResource resource = currentLaunch.getApplicationResource();
-      if (resource != null && resource.equals(wrapper.getApplicationResource())) {
-        if (process != null && !isTerminated()) {
-          console.printSeparator("Starting pub serve : " + resource.getProject().getName());
-          return true;
+      if (resource != null) {
+        // check if previous launch and new launch share the same pubspec. If so, and pub serve is
+        // running, then current pub serve can be used.
+        IContainer appDir = DartCore.getApplicationDirectory(resource);
+        if (appDir.equals(DartCore.getApplicationDirectory(wrapper.getApplicationResource()))) {
+          if (process != null && !isTerminated()) {
+            console.printSeparator("Starting pub serve : " + resource.getProject().getName());
+            currentLaunch = wrapper;
+            return true;
+          }
         }
       }
     }
 
-    currentLaunch = wrapper;
     // terminate existing pub serve if any
     dispose();
-    return runPubServe();
+    return runPubServe(wrapper);
   }
 
   private List<String> buildPubServeCommand() {
@@ -86,11 +176,17 @@ public class PubServeManager {
     args.add(SERVE_COMMAND);
     args.add("--port");
     args.add(PORT_NUMBER);
+    args.add("--hostname");
+    args.add(LOCAL_HOST_ADDR);
+    //TODO(keertip): for now list out all the dirs, remove this once add/stop dirs is added to 
+    // the websocket api for pub
+    for (String name : getPubserveRootDirs(workingDir)) {
+      args.add(name);
+    }
     return args;
   }
 
-  private void copyStream(InputStream in, StringBuilder stringBuilder, boolean toConsole)
-      throws IOException {
+  private void copyStream(InputStream in, StringBuilder stringBuilder, boolean toConsole) {
     byte[] buffer = new byte[2048];
     try {
       int count = in.read(buffer);
@@ -106,8 +202,40 @@ public class PubServeManager {
       }
       in.close();
     } catch (IOException ioe) {
-
+      DartCore.logError(ioe);
     }
+  }
+
+  /**
+   * Returns the path to the resource from the directory where the pubspec resides. - myproj -
+   * pubspec.yaml - web - index.html => web/index.html
+   */
+  private String getPathFromWorkingDir(IResource resource) {
+    return resource.getFullPath().removeFirstSegments(workingDir.getFullPath().segmentCount()).toString();
+  }
+
+  /**
+   * Returns a list of directories that can be used as root by pub serve. Pub serve uses the
+   * directories that are siblings to the pubspec as root.
+   * 
+   * @param container
+   * @return
+   */
+  private List<String> getPubserveRootDirs(IContainer container) {
+    List<String> dirs = new ArrayList<String>();
+    try {
+      IResource[] folders = container.members();
+      for (IResource folder : folders) {
+        if (folder instanceof IFolder
+            && !(folder.getName().equals(DartCore.PACKAGES_DIRECTORY_NAME) || folder.getName().equals(
+                DartCore.BUILD_DIRECTORY_NAME))) {
+          dirs.add(folder.getName());
+        }
+      }
+    } catch (CoreException e) {
+      DartCore.logError(e);
+    }
+    return dirs;
   }
 
   private boolean isTerminated() {
@@ -121,33 +249,36 @@ public class PubServeManager {
     return true;
   }
 
-  private boolean runPubServe() {
+  private boolean runPubServe(DartLaunchConfigWrapper wrapper) {
 
     stdOut = new StringBuilder();
     stdError = new StringBuilder();
-    IResource resource = currentLaunch.getApplicationResource();
+    IResource resource = wrapper.getApplicationResource();
     console.printSeparator("Starting pub serve : " + resource.getProject().getName());
+
+    // there can be nested pubspecs in a project with a example directory. So set the project pub folder as
+    // working dir instead of the application dir for the resource
+    // 
+    workingDir = DartCore.getApplicationDirectory(resource);
 
     List<String> args = buildPubServeCommand();
 
     ProcessBuilder builder = new ProcessBuilder();
     builder.command(args);
-    File workingDir = DartCore.getApplicationDirectory(resource.getParent().getLocation().toFile());
-    builder.directory(workingDir);
+
+    builder.directory(workingDir.getLocation().toFile());
+
     try {
       process = builder.start();
     } catch (IOException e) {
       DartCore.logError(e);
+      return false;
     }
 
     Thread stdoutThread = new Thread(new Runnable() {
       @Override
       public void run() {
-        try {
-          copyStream(process.getInputStream(), stdOut, true);
-        } catch (IOException e) {
-
-        }
+        copyStream(process.getInputStream(), stdOut, true);
       }
     });
     stdoutThread.start();
@@ -155,24 +286,41 @@ public class PubServeManager {
     Thread stderrThread = new Thread(new Runnable() {
       @Override
       public void run() {
-        try {
-          copyStream(process.getErrorStream(), stdError, true);
-        } catch (IOException e) {
-
-        }
+        copyStream(process.getErrorStream(), stdError, true);
       }
     });
     stderrThread.start();
 
-    while (!isTerminated()
-        && !stdOut.toString().contains("http://localhost:" + PubServeManager.PORT_NUMBER)) {
+    while (!isTerminated() && !stdOut.toString().contains(LOCAL_HOST_ADDR)) {
       try {
         Thread.sleep(200);
       } catch (Exception exception) {
 
       }
     }
+
+    // get port number, for now. This is cause if there is no web dir in the project, then pub serve 
+    // does not connect to specified port. First two ports are for web and test.
+    String stdOutString = stdOut.toString();
+    if (stdOutString.contains(LOCAL_HOST_ADDR)) {
+      int index = stdOutString.indexOf(LOCAL_HOST_ADDR) + LOCAL_HOST_ADDR.length() + 1;
+      portNo = stdOutString.substring(index, index + 4);
+    }
+
     if (isTerminated()) {
+      return false;
+    }
+    currentLaunch = wrapper;
+    return true;
+  }
+
+  private boolean sendGetUrlCommand(PubCallback<String> callback) {
+
+    PubCommands command = pubConnection.getCommands();
+    try {
+      command.assetIdToUrl(getPathFromWorkingDir(currentLaunch.getApplicationResource()), callback);
+    } catch (IOException e) {
+      DartDebugCorePlugin.logError(e);
       return false;
     }
     return true;

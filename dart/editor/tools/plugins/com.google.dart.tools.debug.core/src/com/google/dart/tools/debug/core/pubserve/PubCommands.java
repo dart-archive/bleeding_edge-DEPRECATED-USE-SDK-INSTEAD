@@ -25,7 +25,7 @@ import java.io.IOException;
 public class PubCommands {
   private PubConnection connection;
 
-  public PubCommands(PubConnection connection) {
+  protected PubCommands(PubConnection connection) {
     this.connection = connection;
   }
 
@@ -37,13 +37,13 @@ public class PubCommands {
    * @throws IOException
    */
   public void assetIdToUrl(String path, final PubCallback<String> callback) throws IOException {
-    // { "command": "assetIdToUrl", "path": "web/index.html" }
+    // { "command": "assetIdToUrls", "path": "web/index.html" }
     // ==>{ "urls": ["http://localhost:8080/index.html"] }
 
     try {
       JSONObject request = new JSONObject();
 
-      request.put("method", "assetIdToUrl");
+      request.put("command", "assetIdToUrls");
 
       request.put("path", path);
 
@@ -75,7 +75,7 @@ public class PubCommands {
     try {
       JSONObject request = new JSONObject();
 
-      request.put("method", "urlToAssetId");
+      request.put("command", "urlToAssetId");
 
       request.put("url", url);
 
@@ -93,8 +93,9 @@ public class PubCommands {
   private PubResult<String> convertAssetToUrlResult(JSONObject obj) throws JSONException {
     PubResult<String> result = PubResult.createFrom(obj);
 
-    if (obj.has("result")) {
-      result.setResult(obj.getJSONObject("result").getJSONArray("urls").getString(0));
+    //TODO(keertip): return multiple urls
+    if (obj.has("urls")) {
+      result.setResult(obj.getJSONArray("urls").getString(0));
     }
 
     return result;
@@ -102,10 +103,7 @@ public class PubCommands {
 
   private PubResult<PubAsset> convertUrlToAssetResult(JSONObject obj) throws JSONException {
     PubResult<PubAsset> result = PubResult.createFrom(obj);
-
-    if (obj.has("result")) {
-      result.setResult(PubAsset.createFrom(obj.getJSONObject("result")));
-    }
+    result.setResult(PubAsset.createFrom(obj));
 
     return result;
   }

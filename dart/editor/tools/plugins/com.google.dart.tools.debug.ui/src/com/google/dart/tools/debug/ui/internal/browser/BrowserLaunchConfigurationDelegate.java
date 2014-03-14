@@ -14,28 +14,25 @@
 package com.google.dart.tools.debug.ui.internal.browser;
 
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
-import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.core.DartLaunchConfigurationDelegate;
-import com.google.dart.tools.debug.core.util.ResourceServer;
-import com.google.dart.tools.debug.core.util.ResourceServerManager;
+import com.google.dart.tools.debug.core.DebugUIHelper;
+import com.google.dart.tools.debug.core.pubserve.PubCallback;
+import com.google.dart.tools.debug.core.pubserve.PubResult;
+import com.google.dart.tools.debug.core.pubserve.PubServeManager;
+import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 import com.google.dart.tools.debug.ui.internal.util.LaunchUtils;
 
-import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
-import org.eclipse.debug.core.ILaunchManager;
 
-import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -44,19 +41,41 @@ import java.net.URISyntaxException;
  */
 public class BrowserLaunchConfigurationDelegate extends DartLaunchConfigurationDelegate {
 
-  /**
-   * Match both the input and id, so that different types of editor can be opened on the same input.
-   */
+  private String url;
+
+  private static DartLaunchConfigWrapper wrapper;
+
+  private static PubCallback<String> pubConnectionCallback = new PubCallback<String>() {
+
+    @Override
+    public void handleResult(PubResult<String> result) {
+      if (result.isError()) {
+        DebugUIHelper.getHelper().showError(
+            "Launch Error",
+            "Pub serve communication error: " + result.getErrorMessage());
+        return;
+      }
+
+      try {
+        String launchUrl = result.getResult();
+        launchUrl = wrapper.appendQueryParams(launchUrl);
+        if (DartDebugCorePlugin.getPlugin().getIsDefaultBrowser()) {
+          LaunchUtils.openBrowser(launchUrl);
+        } else {
+          LaunchUtils.launchInExternalBrowser(launchUrl);
+        }
+      } catch (CoreException e) {
+        DartDebugUIPlugin.logError(e);
+      }
+    }
+  };
+
   @Override
   public void doLaunch(ILaunchConfiguration configuration, String mode, ILaunch launch,
       IProgressMonitor monitor, InstrumentationBuilder instrumentation) throws CoreException {
 
-    mode = ILaunchManager.RUN_MODE;
-
-    DartLaunchConfigWrapper wrapper = new DartLaunchConfigWrapper(configuration);
+    wrapper = new DartLaunchConfigWrapper(configuration);
     wrapper.markAsLaunched();
-
-    String url;
 
     if (wrapper.getShouldLaunchFile()) {
       IResource resource = wrapper.getApplicationResource();
@@ -68,20 +87,23 @@ public class BrowserLaunchConfigurationDelegate extends DartLaunchConfigurationD
             Messages.BrowserLaunchConfigurationDelegate_HtmlFileNotFound));
       }
 
-      try {
-        // This returns just a plain file: url.
-        ResourceServer server = ResourceServerManager.getServer();
+      // launch pub serve 
+      PubServeManager manager = PubServeManager.getManager();
 
-        url = server.getUrlForResource(resource);
-
-        url = wrapper.appendQueryParams(url);
-      } catch (IOException ioe) {
+      if (!manager.startPubServe(wrapper)) {
         throw new CoreException(new Status(
             IStatus.ERROR,
             DartDebugCorePlugin.PLUGIN_ID,
-            "Could not launch browser - unable to start embedded server",
-            ioe));
+            "Could not start pub serve\n" + manager.getStdErrorString()));
       }
+
+      if (!manager.connectToPub(pubConnectionCallback)) {
+        throw new CoreException(new Status(
+            IStatus.ERROR,
+            DartDebugCorePlugin.PLUGIN_ID,
+            "Could not connect to pub\n"));
+      }
+
     } else {
       url = wrapper.getUrl();
 
@@ -97,31 +119,14 @@ public class BrowserLaunchConfigurationDelegate extends DartLaunchConfigurationD
             DartDebugCorePlugin.PLUGIN_ID,
             Messages.BrowserLaunchConfigurationDelegate_UrlError));
       }
-    }
-
-    if (DartDebugCorePlugin.getPlugin().getIsDefaultBrowser()) {
-      LaunchUtils.openBrowser(url);
-    } else {
-      LaunchUtils.launchInExternalBrowser(url);
+      if (DartDebugCorePlugin.getPlugin().getIsDefaultBrowser()) {
+        LaunchUtils.openBrowser(url);
+      } else {
+        LaunchUtils.launchInExternalBrowser(url);
+      }
     }
 
     DebugPlugin.getDefault().getLaunchManager().removeLaunch(launch);
 
   }
-
-  @SuppressWarnings("unused")
-  private IResource locateMappedFile(IResource resourceFile) {
-    String mappingPath = DartCore.getResourceRemapping((IFile) resourceFile);
-
-    if (mappingPath != null) {
-      IResource mappedResource = ResourcesPlugin.getWorkspace().getRoot().findMember(
-          Path.fromPortableString(mappingPath));
-
-      if (mappedResource != null && mappedResource.exists()) {
-        return mappedResource;
-      }
-    }
-    return null;
-  }
-
 }
