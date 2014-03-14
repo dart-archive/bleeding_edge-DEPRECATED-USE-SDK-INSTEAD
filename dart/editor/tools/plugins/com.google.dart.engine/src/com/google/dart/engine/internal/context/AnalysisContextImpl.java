@@ -228,33 +228,15 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     private boolean blocked;
 
     /**
-     * The source that needs to be analyzed before further progress can be made on the associated
-     * source.
-     */
-    private Source dependentSource;
-
-    /**
      * Initialize a newly created data holder.
      * 
      * @param task the task that is to be performed
      * @param blocked {@code true} if the associated source is blocked waiting for its contents to
      *          be loaded
-     * @param dependentSource t
      */
-    public TaskData(AnalysisTask task, boolean blocked, Source dependentSource) {
+    public TaskData(AnalysisTask task, boolean blocked) {
       this.task = task;
       this.blocked = blocked;
-      this.dependentSource = dependentSource;
-    }
-
-    /**
-     * Return the source that needs to be analyzed before further progress can be made on the
-     * associated source.
-     * 
-     * @return the source that needs to be analyzed before further progress can be made
-     */
-    public Source getDependentSource() {
-      return dependentSource;
     }
 
     /**
@@ -1938,7 +1920,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     SourceEntryImpl sourceCopy = sourceEntry.getWritableCopy();
     sourceCopy.setState(SourceEntry.CONTENT, CacheState.IN_PROCESS);
     cache.put(source, sourceCopy);
-    return new TaskData(new GetContentTask(this, source), false, null);
+    return new TaskData(new GetContentTask(this, source), false);
   }
 
   /**
@@ -1964,7 +1946,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         source,
         dartCopy.getModificationTime(),
         tokenStream,
-        dartEntry.getValue(SourceEntry.LINE_INFO)), false, null);
+        dartEntry.getValue(SourceEntry.LINE_INFO)), false);
   }
 
   /**
@@ -1986,8 +1968,55 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     cache.put(source, htmlCopy);
     return new TaskData(
         new ParseHtmlTask(this, source, htmlCopy.getModificationTime(), content),
-        false,
-        null);
+        false);
+  }
+
+  /**
+   * Create a {@link ResolveAngularComponentTemplateTask} for the given source, marking the angular
+   * errors as being in-process.
+   * 
+   * @param source the source whose content is to be resolved
+   * @param htmlEntry the entry for the source
+   * @return task data representing the created task
+   */
+  private TaskData createResolveAngularComponentTemplateTask(Source source, HtmlEntry htmlEntry) {
+    if (htmlEntry.getState(HtmlEntry.RESOLVED_UNIT) != CacheState.VALID) {
+      return createResolveHtmlTask(source, htmlEntry);
+    }
+    AngularApplication application = htmlEntry.getValue(HtmlEntry.ANGULAR_APPLICATION);
+    AngularComponentElement component = htmlEntry.getValue(HtmlEntry.ANGULAR_COMPONENT);
+    HtmlEntryImpl htmlCopy = htmlEntry.getWritableCopy();
+    htmlCopy.setState(HtmlEntry.ANGULAR_ERRORS, CacheState.IN_PROCESS);
+    cache.put(source, htmlCopy);
+    return new TaskData(new ResolveAngularComponentTemplateTask(
+        this,
+        source,
+        htmlCopy.getModificationTime(),
+        htmlCopy.getValue(HtmlEntry.RESOLVED_UNIT),
+        component,
+        application), false);
+  }
+
+  /**
+   * Create a {@link ResolveAngularEntryHtmlTask} for the given source, marking the angular entry as
+   * being in-process.
+   * 
+   * @param source the source whose content is to be resolved
+   * @param htmlEntry the entry for the source
+   * @return task data representing the created task
+   */
+  private TaskData createResolveAngularEntryHtmlTask(Source source, HtmlEntry htmlEntry) {
+    if (htmlEntry.getState(HtmlEntry.RESOLVED_UNIT) != CacheState.VALID) {
+      return createResolveHtmlTask(source, htmlEntry);
+    }
+    HtmlEntryImpl htmlCopy = htmlEntry.getWritableCopy();
+    htmlCopy.setState(HtmlEntry.ANGULAR_ENTRY, CacheState.IN_PROCESS);
+    cache.put(source, htmlCopy);
+    return new TaskData(new ResolveAngularEntryHtmlTask(
+        this,
+        source,
+        htmlCopy.getModificationTime(),
+        htmlCopy.getValue(HtmlEntry.RESOLVED_UNIT)), false);
   }
 
   /**
@@ -2009,7 +2038,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         this,
         source,
         htmlCopy.getModificationTime(),
-        htmlCopy.getValue(HtmlEntry.PARSED_UNIT)), false, null);
+        htmlCopy.getValue(HtmlEntry.PARSED_UNIT)), false);
   }
 
   /**
@@ -2031,8 +2060,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     cache.put(source, dartCopy);
     return new TaskData(
         new ScanDartTask(this, source, dartCopy.getModificationTime(), content),
-        false,
-        null);
+        false);
   }
 
   /**
@@ -2393,8 +2421,9 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       // Look for a priority source that needs to be analyzed.
       //
       for (Source source : priorityOrder) {
-        TaskData taskData = getNextNondependentAnalysisTask(
+        TaskData taskData = getNextAnalysisTaskForSource(
             source,
+            cache.get(source),
             true,
             hintsEnabled,
             sdkErrorsEnabled);
@@ -2410,8 +2439,9 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       //
       Source source = workManager.getNextSource();
       while (source != null) {
-        TaskData taskData = getNextNondependentAnalysisTask(
+        TaskData taskData = getNextAnalysisTaskForSource(
             source,
+            cache.get(source),
             false,
             hintsEnabled,
             sdkErrorsEnabled);
@@ -2462,7 +2492,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   private TaskData getNextAnalysisTaskForSource(Source source, SourceEntry sourceEntry,
       boolean isPriority, boolean hintsEnabled, boolean sdkErrorsEnabled) {
     if (sourceEntry == null) {
-      return new TaskData(null, false, null);
+      return new TaskData(null, false);
     }
 
     CacheState contentState = sourceEntry.getState(SourceEntry.CONTENT);
@@ -2471,7 +2501,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     } else if (contentState == CacheState.IN_PROCESS) {
       // We are already in the process of getting the content. There's nothing else we can do with
       // this source until that's complete.
-      return new TaskData(null, true, null);
+      return new TaskData(null, true);
     }
 
     if (sourceEntry instanceof DartEntry) {
@@ -2505,10 +2535,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
             DartEntryImpl libraryCopy = ((DartEntry) libraryEntry).getWritableCopy();
             libraryCopy.setState(DartEntry.ELEMENT, CacheState.IN_PROCESS);
             cache.put(librarySource, libraryCopy);
-            return new TaskData(
-                new ResolveDartLibraryTask(this, source, librarySource),
-                false,
-                null);
+            return new TaskData(new ResolveDartLibraryTask(this, source, librarySource), false);
           }
           CacheState resolvedUnitState = dartEntry.getStateInLibrary(
               DartEntry.RESOLVED_UNIT,
@@ -2529,10 +2556,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
                 CacheState.IN_PROCESS);
             cache.put(source, dartCopy);
             //return new ResolveDartUnitTask(this, source, libraryElement);
-            return new TaskData(
-                new ResolveDartLibraryTask(this, source, librarySource),
-                false,
-                null);
+            return new TaskData(new ResolveDartLibraryTask(this, source, librarySource), false);
             //}
           }
           if (sdkErrorsEnabled || !source.isInSystemLibrary()) {
@@ -2549,10 +2573,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
                     librarySource,
                     CacheState.IN_PROCESS);
                 cache.put(source, dartCopy);
-                return new TaskData(
-                    new GenerateDartErrorsTask(this, source, libraryElement),
-                    false,
-                    null);
+                return new TaskData(new GenerateDartErrorsTask(this, source, libraryElement), false);
               }
             }
             if (hintsEnabled) {
@@ -2564,7 +2585,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
                   DartEntryImpl dartCopy = dartEntry.getWritableCopy();
                   dartCopy.setStateInLibrary(DartEntry.HINTS, librarySource, CacheState.IN_PROCESS);
                   cache.put(source, dartCopy);
-                  return new TaskData(new GenerateDartHintsTask(this, libraryElement), false, null);
+                  return new TaskData(new GenerateDartHintsTask(this, libraryElement), false);
                 }
               }
             }
@@ -2591,72 +2612,23 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
           || (isPriority && resolvedUnitState == CacheState.FLUSHED)) {
         return createResolveHtmlTask(source, htmlEntry);
       }
-
+      //
       // Angular support
+      //
       if (options.getAnalyzeAngular()) {
-        // try to resolve as an Angular entry point
+        // Try to resolve the HTML as an Angular entry point.
         CacheState angularEntryState = htmlEntry.getState(HtmlEntry.ANGULAR_ENTRY);
         if (angularEntryState == CacheState.INVALID) {
-          if (htmlEntry.getState(HtmlEntry.RESOLVED_UNIT) != CacheState.VALID) {
-            return createResolveHtmlTask(source, htmlEntry);
-          }
-          HtmlEntryImpl htmlCopy = htmlEntry.getWritableCopy();
-          htmlCopy.setState(HtmlEntry.ANGULAR_ENTRY, CacheState.IN_PROCESS);
-          cache.put(source, htmlCopy);
-          return new TaskData(new ResolveAngularEntryHtmlTask(
-              this,
-              source,
-              htmlCopy.getModificationTime(),
-              htmlCopy.getValue(HtmlEntry.RESOLVED_UNIT)), false, null);
+          return createResolveAngularEntryHtmlTask(source, htmlEntry);
         }
-        // try to resolve as an Angular application part
+        // Try to resolve the HTML as an Angular application part.
         CacheState angularErrorsState = htmlEntry.getState(HtmlEntry.ANGULAR_ERRORS);
         if (angularErrorsState == CacheState.INVALID) {
-          if (htmlEntry.getState(HtmlEntry.RESOLVED_UNIT) != CacheState.VALID) {
-            return createResolveHtmlTask(source, htmlEntry);
-          }
-          AngularApplication application = htmlEntry.getValue(HtmlEntry.ANGULAR_APPLICATION);
-          // try to resolve as an Angular template
-          AngularComponentElement component = htmlEntry.getValue(HtmlEntry.ANGULAR_COMPONENT);
-          HtmlEntryImpl htmlCopy = htmlEntry.getWritableCopy();
-          htmlCopy.setState(HtmlEntry.ANGULAR_ERRORS, CacheState.IN_PROCESS);
-          cache.put(source, htmlCopy);
-          return new TaskData(new ResolveAngularComponentTemplateTask(
-              this,
-              source,
-              htmlCopy.getModificationTime(),
-              htmlCopy.getValue(HtmlEntry.RESOLVED_UNIT),
-              component,
-              application), false, null);
+          return createResolveAngularComponentTemplateTask(source, htmlEntry);
         }
       }
     }
-    return new TaskData(null, false, null);
-  }
-
-  private TaskData getNextNondependentAnalysisTask(Source source, boolean isPriority,
-      boolean hintsEnabled, boolean sdkErrorsEnabled) {
-    TaskData taskData = getNextAnalysisTaskForSource(
-        source,
-        cache.get(source),
-        isPriority,
-        hintsEnabled,
-        sdkErrorsEnabled);
-    if (taskData.getTask() != null || taskData.isBlocked()) {
-      return taskData;
-    }
-    while (taskData.getDependentSource() != null) {
-      taskData = getNextAnalysisTaskForSource(
-          source,
-          cache.get(source),
-          isPriority,
-          hintsEnabled,
-          sdkErrorsEnabled);
-      if (taskData.getTask() != null || taskData.isBlocked()) {
-        return taskData;
-      }
-    }
-    return new TaskData(null, false, null);
+    return new TaskData(null, false);
   }
 
   /**
