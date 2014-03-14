@@ -167,6 +167,21 @@ public class ExecutionUtils {
   }
 
   /**
+   * Runs given {@link RunnableObjectEx} and logs an exception.
+   * 
+   * @return the {@link Object} returned by {@link RunnableObjectEx#run()}, or default value if
+   *         exception happens.
+   */
+  public static <T> T runObjectLog(RunnableObjectEx<T> runnable, T defaultValue) {
+    try {
+      return runnable.runObject();
+    } catch (Throwable e) {
+      DartCore.logError(e);
+      return defaultValue;
+    }
+  }
+
+  /**
    * Runs given {@link RunnableEx} inside of UI thread, using {@link Display#syncExec(Runnable)}.
    */
   @SuppressWarnings("unchecked")

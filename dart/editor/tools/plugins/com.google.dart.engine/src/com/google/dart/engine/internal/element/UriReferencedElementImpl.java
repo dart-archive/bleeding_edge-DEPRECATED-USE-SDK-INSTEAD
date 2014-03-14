@@ -23,7 +23,7 @@ import com.google.dart.engine.element.UriReferencedElement;
  */
 public abstract class UriReferencedElementImpl extends ElementImpl implements UriReferencedElement {
   /**
-   * The offset of the URU in the file, may be {@code -1} if synthetic.
+   * The offset of the URI in the file, may be {@code -1} if synthetic.
    */
   private int uriOffset = -1;
 
@@ -81,7 +81,7 @@ public abstract class UriReferencedElementImpl extends ElementImpl implements Ur
   }
 
   /**
-   * Sets the offset of the URU in the file.
+   * Sets the offset of the URI in the file.
    */
   public void setUriOffset(int uriOffset) {
     this.uriOffset = uriOffset;

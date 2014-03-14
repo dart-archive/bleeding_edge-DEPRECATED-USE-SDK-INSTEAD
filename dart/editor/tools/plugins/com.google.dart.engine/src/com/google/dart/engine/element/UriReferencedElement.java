@@ -29,7 +29,7 @@ public interface UriReferencedElement extends Element {
   public int getUriEnd();
 
   /**
-   * Return the offset of the URU in the file, or {@code -1} if this element is synthetic.
+   * Return the offset of the URI in the file, or {@code -1} if this element is synthetic.
    * 
    * @return the offset of the URI
    */

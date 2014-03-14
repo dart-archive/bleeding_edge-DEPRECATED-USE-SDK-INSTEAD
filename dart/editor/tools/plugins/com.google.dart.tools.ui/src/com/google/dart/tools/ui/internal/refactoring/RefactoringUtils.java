@@ -16,6 +16,7 @@ package com.google.dart.tools.ui.internal.refactoring;
 
 import com.google.common.util.concurrent.Uninterruptibles;
 import com.google.dart.tools.core.internal.builder.AnalysisWorker;
+import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -24,14 +25,18 @@ import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.core.runtime.jobs.IJobManager;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
+import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.progress.IProgressService;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Utilities for refactoring UI.
@@ -48,7 +53,7 @@ public class RefactoringUtils {
       IProgressService progressService = PlatformUI.getWorkbench().getProgressService();
       progressService.busyCursorWhile(new IRunnableWithProgress() {
         @Override
-        public void run(IProgressMonitor pm) throws InvocationTargetException, InterruptedException {
+        public void run(IProgressMonitor pm) throws InterruptedException {
           waitReadyForRefactoring(pm);
         }
       });
@@ -68,23 +73,47 @@ public class RefactoringUtils {
    * @throws OperationCanceledException if {@link IProgressMonitor} was cancelled.
    */
   public static void waitReadyForRefactoring(IProgressMonitor pm) throws OperationCanceledException {
-    pm.beginTask("Waiting for background analysis...", IProgressMonitor.UNKNOWN);
-    // builder
+    waitReadyForRefactoring(pm, null);
+  }
+
+  /**
+   * Waits until all background tasks affecting refactoring are finished.
+   * 
+   * @return {@code true} if waiting was successful or {@code Do It Now} button was pressed,
+   *         {@code false} if cancelled.
+   */
+  public static boolean waitReadyForRefactoring2() {
+    Control focusControl = Display.getCurrent().getFocusControl();
     try {
-      IJobManager jobManager = Job.getJobManager();
-      jobManager.join(ResourcesPlugin.FAMILY_MANUAL_BUILD, new SubProgressMonitor(pm, 1));
-      jobManager.join(ResourcesPlugin.FAMILY_AUTO_BUILD, new SubProgressMonitor(pm, 1));
-    } catch (InterruptedException e) {
-      throw new OperationCanceledException(e.getMessage());
-    }
-    // wait for AnalysisWorker(s)
-    while (true) {
-      if (pm.isCanceled()) {
-        throw new OperationCanceledException();
-      }
-      boolean done = AnalysisWorker.waitForBackgroundAnalysis(100);
-      if (done) {
-        break;
+      final AtomicBoolean stopFlag = new AtomicBoolean();
+      IRunnableWithProgress runnable = new IRunnableWithProgress() {
+        @Override
+        public void run(IProgressMonitor pm) throws InterruptedException {
+          waitReadyForRefactoring(pm, stopFlag);
+        }
+      };
+      // run in ProgressMonitorDialog
+      Shell parentShell = DartToolsPlugin.getActiveWorkbenchShell();
+      ProgressMonitorDialog dialog = new ProgressMonitorDialog(parentShell) {
+        @Override
+        protected void createButtonsForButtonBar(Composite parent) {
+          createButton(parent, IDialogConstants.OK_ID, "Do It Now", false);
+          super.createButtonsForButtonBar(parent);
+        }
+
+        @Override
+        protected void okPressed() {
+          stopFlag.set(true);
+          getProgressMonitor().setCanceled(true);
+        }
+      };
+      dialog.run(true, true, runnable);
+      return dialog.getReturnCode() == 0;
+    } catch (Throwable ie) {
+      return false;
+    } finally {
+      if (focusControl != null) {
+        focusControl.setFocus();
       }
     }
   }
@@ -106,6 +135,43 @@ public class RefactoringUtils {
         break;
       }
       Uninterruptibles.sleepUninterruptibly(5, TimeUnit.MILLISECONDS);
+    }
+  }
+
+  /**
+   * Waits until all background tasks affecting refactoring are finished.
+   * 
+   * @param stop is set to {@code true} when user wants to stop waiting and perform an operation
+   *          with the available information; at the same time the given {@link IProgressMonitor} is
+   *          also cancelled
+   * @throws OperationCanceledException if {@link IProgressMonitor} was cancelled.
+   */
+  private static void waitReadyForRefactoring(IProgressMonitor pm, AtomicBoolean stop)
+      throws OperationCanceledException {
+    pm.beginTask("Waiting for background analysis...", IProgressMonitor.UNKNOWN);
+    // builder
+    try {
+      IJobManager jobManager = Job.getJobManager();
+      jobManager.join(ResourcesPlugin.FAMILY_MANUAL_BUILD, new SubProgressMonitor(pm, 1));
+      jobManager.join(ResourcesPlugin.FAMILY_AUTO_BUILD, new SubProgressMonitor(pm, 1));
+    } catch (InterruptedException e) {
+      if (stop != null && stop.get()) {
+        return;
+      }
+      throw new OperationCanceledException(e.getMessage());
+    }
+    // wait for AnalysisWorker(s)
+    while (true) {
+      if (pm.isCanceled()) {
+        if (stop != null && stop.get()) {
+          return;
+        }
+        throw new OperationCanceledException();
+      }
+      boolean done = AnalysisWorker.waitForBackgroundAnalysis(100);
+      if (done) {
+        break;
+      }
     }
   }
 }

@@ -81,7 +81,7 @@ public class FilesViewDropAdapter extends NavigatorDropAdapter {
         }
       }
       // wait for background analysis
-      if (!RefactoringUtils.waitReadyForRefactoring()) {
+      if (!RefactoringUtils.waitReadyForRefactoring2()) {
         return false;
       }
       // execute MoveRefactoring

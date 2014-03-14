@@ -126,12 +126,12 @@ public class MoveResourceParticipant extends MoveParticipant {
   @Override
   public Change createPreChange(final IProgressMonitor pm) throws CoreException,
       OperationCanceledException {
-    return ExecutionUtils.runObjectCore(new RunnableObjectEx<Change>() {
+    return ExecutionUtils.runObjectLog(new RunnableObjectEx<Change>() {
       @Override
       public Change runObject() throws Exception {
         return createChangeEx(pm);
       }
-    });
+    }, null);
   }
 
   @Override
@@ -247,6 +247,9 @@ public class MoveResourceParticipant extends MoveParticipant {
       List<SearchMatch> references = searchEngine.searchReferences(fileElement, null, null);
       // update references
       for (SearchMatch match : references) {
+        if (!isFileReference(match)) {
+          continue;
+        }
         addReferenceUpdate(match, destContainer);
       }
       // if moved Unit is defining library, updates references from it to its components
@@ -274,6 +277,24 @@ public class MoveResourceParticipant extends MoveParticipant {
     } else {
       return null;
     }
+  }
+
+  /**
+   * Check if the the given {@link SearchMatch} is a reference to {@link #file}.
+   */
+  private boolean isFileReference(SearchMatch match) throws Exception {
+    Source source = match.getElement().getSource();
+    SourceRange range = match.getSourceRange();
+    CharSequence sourceContent = source.getContents().getData();
+    String uri = sourceContent.subSequence(range.getOffset(), range.getEnd()).toString();
+    String fileName = file.getName();
+    if (uri.startsWith("\"") && uri.endsWith(fileName + "\"")) {
+      return true;
+    }
+    if (uri.startsWith("'") && uri.endsWith(fileName + "'")) {
+      return true;
+    }
+    return false;
   }
 
   private void updateUriElement(CompilationUnitElement fileElement,
