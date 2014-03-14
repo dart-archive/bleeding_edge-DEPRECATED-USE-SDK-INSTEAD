@@ -15,6 +15,7 @@ package com.google.dart.engine.internal.context;
 
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.internal.resolver.LibraryResolver;
+import com.google.dart.engine.source.Source;
 
 /**
  * Instances of the class {@code ResolvableCompilationUnit} represent a compilation unit that is not
@@ -22,6 +23,11 @@ import com.google.dart.engine.internal.resolver.LibraryResolver;
  * by the {@link LibraryResolver library resolver} to resolve a library.
  */
 public class ResolvableCompilationUnit extends TimestampedData<CompilationUnit> {
+  /**
+   * The source of the compilation unit.
+   */
+  private Source source;
+
   /**
    * Initialize a newly created holder to hold the given values.
    * 
@@ -33,11 +39,32 @@ public class ResolvableCompilationUnit extends TimestampedData<CompilationUnit> 
   }
 
   /**
+   * Initialize a newly created holder to hold the given values.
+   * 
+   * @param modificationTime the modification time of the source from which the AST was created
+   * @param unit the AST that was created from the source
+   * @param source the source of the compilation unit
+   */
+  public ResolvableCompilationUnit(long modificationTime, CompilationUnit unit, Source source) {
+    super(modificationTime, unit);
+    this.source = source;
+  }
+
+  /**
    * Return the AST that was created from the source.
    * 
    * @return the AST that was created from the source
    */
   public CompilationUnit getCompilationUnit() {
     return getData();
+  }
+
+  /**
+   * Return the source of the compilation unit.
+   * 
+   * @return the source of the compilation unit
+   */
+  public Source getSource() {
+    return source;
   }
 }

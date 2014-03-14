@@ -16,12 +16,75 @@ package com.google.dart.engine.internal.context;
 import com.google.dart.engine.source.Source;
 
 import java.util.ArrayList;
+import java.util.NoSuchElementException;
 
 /**
  * Instances of the class {@code WorkManager} manage a list of sources that need to have analysis
  * work performed on them.
  */
 public class WorkManager {
+  /**
+   * Instances of the class {@code WorkIterator} implement an iterator that returns the sources in a
+   * work manager in the order in which they are to be analyzed.
+   */
+  public class WorkIterator {
+    /**
+     * The index of the work queue through which we are currently iterating.
+     */
+    private int queueIndex = 0;
+
+    /**
+     * The index of the next element of the work queue to be returned.
+     */
+    private int index = -1;
+
+    /**
+     * Initialize a newly created iterator to be ready to return the first element in the iteration.
+     */
+    public WorkIterator() {
+      advance();
+    }
+
+    /**
+     * Return {@code true} if there is another {@link Source} available for processing.
+     * 
+     * @return {@code true} if there is another {@link Source} available for processing
+     */
+    public boolean hasNext() {
+      return queueIndex < workQueues.length;
+    }
+
+    /**
+     * Return the next {@link Source} available for processing and advance so that the returned
+     * source will not be returned again.
+     * 
+     * @return the next {@link Source} available for processing
+     */
+    public Source next() {
+      if (!hasNext()) {
+        throw new NoSuchElementException();
+      }
+      Source source = workQueues[queueIndex].get(index);
+      advance();
+      return source;
+    }
+
+    /**
+     * Increment the {@link #index} and {@link #queueIndex} so that they are either indicating the
+     * next source to be returned or are indicating that there are no more sources to be returned.
+     */
+    private void advance() {
+      index++;
+      if (index >= workQueues[queueIndex].size()) {
+        index = 0;
+        queueIndex++;
+        while (queueIndex < workQueues.length && workQueues[queueIndex].isEmpty()) {
+          queueIndex++;
+        }
+      }
+    }
+  }
+
   /**
    * An array containing the various queues is priority order.
    */
@@ -41,14 +104,14 @@ public class WorkManager {
 
   /**
    * Record that the given source needs to be analyzed. The priority level is used to control when
-   * the source will be analyzed with respect to other sources.
+   * the source will be analyzed with respect to other sources. If the source was previously added
+   * then it's priority is updated. If it was previously added with the same priority then it's
+   * position in the queue is unchanged.
    * 
    * @param source the source that needs to be analyzed
    * @param priority the priority level of the source
    */
   public void add(Source source, SourcePriority priority) {
-    // TODO(brianwilkerson) Optimize the order of the libraries so that libraries that depend on
-    // other libraries get analyzed after the other libraries.
     int queueCount = workQueues.length;
     int ordinal = priority.ordinal();
     for (int i = 0; i < queueCount; i++) {
@@ -64,19 +127,41 @@ public class WorkManager {
   }
 
   /**
-   * Return the next source for which some analysis work needs to be done.
+   * Record that the given source needs to be analyzed. The priority level is used to control when
+   * the source will be analyzed with respect to other sources. If the source was previously added
+   * then it's priority is updated. In either case, it will be analyzed before other sources of the
+   * same priority.
    * 
-   * @return the next source for which some analysis work needs to be done
+   * @param source the source that needs to be analyzed
+   * @param priority the priority level of the source
    */
-  public Source getNextSource() {
+  public void addFirst(Source source, SourcePriority priority) {
     int queueCount = workQueues.length;
+    int ordinal = priority.ordinal();
     for (int i = 0; i < queueCount; i++) {
       ArrayList<Source> queue = workQueues[i];
-      if (!queue.isEmpty()) {
-        return queue.get(0);
+      if (i == ordinal) {
+        queue.remove(source);
+        queue.add(0, source);
+      } else {
+        queue.remove(source);
       }
     }
-    return null;
+  }
+
+  /**
+   * Return an iterator that can be used to access the sources to be analyzed in the order in which
+   * they should be analyzed.
+   * <p>
+   * <b>Note:</b> As with other iterators, no sources can be added or removed from this work manager
+   * while the iterator is being used. Unlike some implementations, however, the iterator will not
+   * detect when this requirement has been violated; it might work correctly, it might return the
+   * wrong source, or it might throw an exception.
+   * 
+   * @return an iterator that can be used to access the next source to be analyzed
+   */
+  public WorkIterator iterator() {
+    return new WorkIterator();
   }
 
   /**

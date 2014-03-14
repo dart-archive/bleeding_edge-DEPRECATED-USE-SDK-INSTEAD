@@ -1749,6 +1749,8 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
    * the state of the data represented by the given descriptor is either {@link CacheState#VALID} or
    * {@link CacheState#ERROR}. This method assumes that the data can be produced by verifying the
    * source in the given library if the data is not already cached.
+   * <p>
+   * <b>Note:</b> This method cannot be used in an async environment.
    * 
    * @param unitSource the source representing the Dart file
    * @param librarySource the source representing the library containing the Dart file
@@ -2301,6 +2303,8 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
    * Given a source for a Dart file and the library that contains it, return the data represented by
    * the given descriptor that is associated with that source. This method assumes that the data can
    * be produced by verifying the source within the given library if it is not already cached.
+   * <p>
+   * <b>Note:</b> This method cannot be used in an async environment.
    * 
    * @param unitSource the source representing the Dart file
    * @param librarySource the source representing the library containing the Dart file
@@ -2437,8 +2441,10 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       //
       // Look for a non-priority source that needs to be analyzed.
       //
-      Source source = workManager.getNextSource();
-      while (source != null) {
+      ArrayList<Source> sourcesToRemove = new ArrayList<Source>();
+      WorkManager.WorkIterator sources = workManager.iterator();
+      while (sources.hasNext()) {
+        Source source = sources.next();
         TaskData taskData = getNextAnalysisTaskForSource(
             source,
             cache.get(source),
@@ -2451,9 +2457,12 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         } else if (taskData.isBlocked()) {
           hasBlockedTask = true;
         } else {
-          workManager.remove(source);
+          sourcesToRemove.add(source);
         }
-        source = workManager.getNextSource();
+      }
+      int count = sourcesToRemove.size();
+      for (int i = 0; i < count; i++) {
+        workManager.remove(sourcesToRemove.get(i));
       }
 //      //
 //      // Look for a non-priority source that needs to be analyzed and was missed by the loop above.
@@ -2468,6 +2477,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
 //        }
 //      }
       if (hasBlockedTask) {
+        // All of the analysis work is blocked waiting for an asynchronous task to complete.
         return WaitForAsyncTask.getInstance();
       }
       return null;
@@ -2502,6 +2512,9 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       // We are already in the process of getting the content. There's nothing else we can do with
       // this source until that's complete.
       return new TaskData(null, true);
+    } else if (contentState == CacheState.ERROR) {
+      // We have done all of the analysis we can for this source because we cannot get its content.
+      return new TaskData(null, false);
     }
 
     if (sourceEntry instanceof DartEntry) {
