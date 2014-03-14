@@ -342,6 +342,10 @@ public class PropertySemanticProcessor extends SemanticProcessor {
 
   private void convertToFieldFormalInitializers(FieldPropertyInfo property,
       List<SimpleIdentifier> references) {
+    // FIXME(scheglov) disabled for now, see https://code.google.com/p/dart/issues/detail?id=17495
+    if (true) {
+      return;
+    }
     for (SimpleIdentifier reference : references) {
       // prepare constructor
       ConstructorDeclaration constructor = reference.getAncestor(ConstructorDeclaration.class);
