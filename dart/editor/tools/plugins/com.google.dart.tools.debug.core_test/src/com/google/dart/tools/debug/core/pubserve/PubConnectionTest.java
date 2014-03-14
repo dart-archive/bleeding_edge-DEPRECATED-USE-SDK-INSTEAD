@@ -149,7 +149,12 @@ public class PubConnectionTest extends TestCase {
   @Override
   protected void tearDown() throws Exception {
 
-    testProject.dispose();
+    try {
+
+      testProject.dispose();
+    } catch (Exception e) {
+
+    }
     try {
       if (process != null) {
         process.destroy();
