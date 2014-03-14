@@ -96,8 +96,10 @@ public class SearchEngine extends Thread {
 
     @Override
     public void select(Match match) {
-      super.select(match);
-      listener.setMatchIndex(match.getIndex());
+      if (match != null) {
+        super.select(match);
+        listener.setMatchIndex(match.getIndex());
+      }
     }
 
     public void updateResult() {
