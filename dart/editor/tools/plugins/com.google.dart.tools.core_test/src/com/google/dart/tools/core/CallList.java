@@ -247,6 +247,10 @@ public class CallList {
     }
   }
 
+  public void clear() {
+    calls.clear();
+  }
+
   private void fail(Object expected) {
     PrintStringWriter writer = new PrintStringWriter();
     writer.println("Expected:");

@@ -230,6 +230,25 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
   }
 
   @Override
+  public PubFolder[] getContainedPubFolders(IContainer container) {
+    if (!getResource().equals(container.getProject())) {
+      throw new IllegalArgumentException();
+    }
+    ArrayList<PubFolder> result = new ArrayList<PubFolder>();
+    IPath prefix = container.getFullPath();
+    synchronized (pubFolders) {
+      initialize();
+      for (Entry<IPath, PubFolder> entry : pubFolders.entrySet()) {
+        IPath pubPath = entry.getKey();
+        if (prefix.segmentCount() < pubPath.segmentCount() && prefix.isPrefixOf(pubPath)) {
+          result.add(entry.getValue());
+        }
+      }
+    }
+    return result.toArray(new PubFolder[result.size()]);
+  }
+
+  @Override
   public AnalysisContext getContext(IResource resource) {
     synchronized (pubFolders) {
       PubFolder pubFolder = getPubFolder(resource);

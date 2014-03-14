@@ -47,6 +47,10 @@ public class MockProject extends MockContainer implements IProject {
     super(root, name);
   }
 
+  public MockProject(MockWorkspaceRoot root, String name, boolean exists) {
+    super(root, name, exists);
+  }
+
   public MockProject(String name) {
     super(null, name);
   }

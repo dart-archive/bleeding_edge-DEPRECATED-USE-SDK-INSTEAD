@@ -47,6 +47,7 @@ import com.google.dart.tools.core.mock.MockWorkspace;
 
 import junit.framework.TestCase;
 
+import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
@@ -152,6 +153,11 @@ public class ScanTimings extends TestCase {
 
     @Override
     public void addWorker(AnalysisWorker worker) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public PubFolder[] getContainedPubFolders(IContainer container) {
       throw new UnsupportedOperationException();
     }
 

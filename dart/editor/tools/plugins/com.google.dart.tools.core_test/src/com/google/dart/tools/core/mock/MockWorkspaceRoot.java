@@ -84,11 +84,37 @@ public class MockWorkspaceRoot extends MockContainer implements IWorkspaceRoot {
 
   @Override
   public IContainer getContainerForLocation(IPath location) {
+    if (location == null || location.segmentCount() == 0) {
+      return null;
+    }
+    if (getLocation().isPrefixOf(location)) {
+      IPath relPath = location.removeFirstSegments(getLocation().segmentCount());
+      if (relPath.segmentCount() > 0) {
+        IProject project = getProject(relPath.segment(0));
+        if (relPath.segmentCount() > 1) {
+          return project.getFolder(relPath.removeFirstSegments(1));
+        }
+        return project;
+      }
+    }
     return null;
   }
 
   @Override
   public IFile getFileForLocation(IPath location) {
+    if (location == null || location.segmentCount() == 0) {
+      return null;
+    }
+    if (getLocation().isPrefixOf(location)) {
+      IPath relPath = location.removeFirstSegments(getLocation().segmentCount());
+      if (relPath.segmentCount() > 0) {
+        IProject project = getProject(relPath.segment(0));
+        if (relPath.segmentCount() > 1) {
+          return project.getFile(relPath.removeFirstSegments(1));
+        }
+        return null;
+      }
+    }
     return null;
   }
 
@@ -99,7 +125,14 @@ public class MockWorkspaceRoot extends MockContainer implements IWorkspaceRoot {
 
   @Override
   public IProject getProject(String name) {
-    return null;
+    if (name == null || name.length() == 0) {
+      return null;
+    }
+    MockResource existingChild = getExistingChild(name);
+    if (existingChild instanceof MockProject) {
+      return (MockProject) existingChild;
+    }
+    return new MockProject(this, name, false);
   }
 
   @Override

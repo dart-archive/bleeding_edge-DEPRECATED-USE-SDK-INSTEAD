@@ -37,7 +37,6 @@ import com.google.dart.tools.core.CallList;
 import com.google.dart.tools.core.CallList.Call;
 
 import org.eclipse.core.resources.IContainer;
-import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IResource;
 
 import java.io.File;
@@ -160,7 +159,7 @@ public class MockContext implements InternalAnalysisContext {
         asFiles(added),
         asFiles(changed),
         asFiles(filesOnly(removed)),
-        asFiles(foldersOnly(removed)));
+        asFiles(containersOnly(removed)));
   }
 
   public void assertExtracted(IContainer expectedContainer) {
@@ -212,6 +211,10 @@ public class MockContext implements InternalAnalysisContext {
         calls.assertCall(this, SOURCE_DELETED, sourceContainer);
       }
     }
+  }
+
+  public void clearCalls() {
+    calls.clear();
   }
 
   @Override
@@ -537,26 +540,26 @@ public class MockContext implements InternalAnalysisContext {
     return files;
   }
 
-  private IResource[] filesOnly(IResource[] resources) {
+  private IResource[] containersOnly(IResource[] resources) {
     if (resources == null) {
       return null;
     }
     ArrayList<IResource> result = new ArrayList<IResource>();
     for (IResource res : resources) {
-      if (!(res instanceof IFolder)) {
+      if (res instanceof IContainer) {
         result.add(res);
       }
     }
     return result.toArray(new IResource[result.size()]);
   }
 
-  private IResource[] foldersOnly(IResource[] resources) {
+  private IResource[] filesOnly(IResource[] resources) {
     if (resources == null) {
       return null;
     }
     ArrayList<IResource> result = new ArrayList<IResource>();
     for (IResource res : resources) {
-      if (res instanceof IFolder) {
+      if (!(res instanceof IContainer)) {
         result.add(res);
       }
     }
