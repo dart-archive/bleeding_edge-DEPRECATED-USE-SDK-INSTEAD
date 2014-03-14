@@ -51,6 +51,7 @@ public class PubConnection {
 
   private WebSocket websocket;
   private boolean connected;
+  private PubCommands commands;
 
   private List<PubConnectionListener> connectionListeners = new ArrayList<PubConnectionListener>();
   private Map<Integer, Callback> callbackMap = new HashMap<Integer, Callback>();
@@ -130,6 +131,13 @@ public class PubConnection {
       // Defensively catch any programming errors from the weberknecht library.
       throw new IOException(exception);
     }
+  }
+
+  public PubCommands getCommands() {
+    if (commands == null) {
+      commands = new PubCommands(this);
+    }
+    return commands;
   }
 
   public boolean isConnected() {
