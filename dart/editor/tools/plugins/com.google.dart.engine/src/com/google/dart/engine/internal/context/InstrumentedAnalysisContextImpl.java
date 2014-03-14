@@ -525,11 +525,6 @@ public class InstrumentedAnalysisContextImpl implements InternalAnalysisContext 
   }
 
   @Override
-  public Namespace getPublicNamespace(Source source) throws AnalysisException {
-    return basis.getPublicNamespace(source);
-  }
-
-  @Override
   public Source[] getRefactoringUnsafeSources() {
     InstrumentationBuilder instrumentation = Instrumentation.builder("Analysis-getRefactoringUnsafeSources");
     checkThread(instrumentation);

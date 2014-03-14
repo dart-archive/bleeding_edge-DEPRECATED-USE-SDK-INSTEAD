@@ -400,11 +400,6 @@ public class MockContext implements InternalAnalysisContext {
   }
 
   @Override
-  public Namespace getPublicNamespace(Source source) throws AnalysisException {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
   public Source[] getRefactoringUnsafeSources() {
     return Source.EMPTY_ARRAY;
   }

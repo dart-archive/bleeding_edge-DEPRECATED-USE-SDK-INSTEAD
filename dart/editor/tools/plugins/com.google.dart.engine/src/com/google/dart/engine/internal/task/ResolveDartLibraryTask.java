@@ -19,7 +19,7 @@ import com.google.dart.engine.internal.resolver.LibraryResolver;
 import com.google.dart.engine.source.Source;
 
 /**
- * Instances of the class {@code ResolveDartLibraryTask} parse a specific Dart library.
+ * Instances of the class {@code ResolveDartLibraryTask} resolve a specific Dart library.
  */
 public class ResolveDartLibraryTask extends AnalysisTask {
   /**

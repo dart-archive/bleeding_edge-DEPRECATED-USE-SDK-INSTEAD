@@ -97,16 +97,6 @@ public interface InternalAnalysisContext extends AnalysisContext {
   public Namespace getPublicNamespace(LibraryElement library);
 
   /**
-   * Return a namespace containing mappings for all of the public names defined by the library
-   * defined by the given source.
-   * 
-   * @param source the source defining the library whose public namespace is to be returned
-   * @return the public namespace corresponding to the library defined by the given source
-   * @throws AnalysisException if the public namespace could not be computed
-   */
-  public Namespace getPublicNamespace(Source source) throws AnalysisException;
-
-  /**
    * Returns a statistics about this context.
    */
   public AnalysisContentStatistics getStatistics();

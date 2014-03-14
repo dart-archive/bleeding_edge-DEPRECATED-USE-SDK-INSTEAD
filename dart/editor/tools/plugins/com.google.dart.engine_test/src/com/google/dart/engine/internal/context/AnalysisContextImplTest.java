@@ -695,23 +695,6 @@ public class AnalysisContextImplTest extends EngineTestCase {
     assertInstanceOf(ClassElement.class, namespace.get("A"));
   }
 
-  public void test_getPublicNamespace_source_dart() throws Exception {
-    context = AnalysisContextFactory.contextWithCore();
-    sourceFactory = context.getSourceFactory();
-    Source source = addSource("/test.dart", "class A {}");
-    context.computeLibraryElement(source);
-    Namespace namespace = context.getPublicNamespace(source);
-    assertNotNull(namespace);
-    assertInstanceOf(ClassElement.class, namespace.get("A"));
-  }
-
-  public void test_getPublicNamespace_source_html() throws Exception {
-    context = AnalysisContextFactory.contextWithCore();
-    sourceFactory = context.getSourceFactory();
-    Source source = addSource("/test.html", "<html></html>");
-    assertNull(context.getPublicNamespace(source));
-  }
-
   public void test_getRefactoringUnsafeSources() throws Exception {
     // not sources initially
     Source[] sources = context.getRefactoringUnsafeSources();

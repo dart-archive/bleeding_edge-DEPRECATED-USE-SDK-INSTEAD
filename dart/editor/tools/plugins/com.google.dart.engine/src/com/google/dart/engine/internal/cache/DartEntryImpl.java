@@ -689,6 +689,21 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
   }
 
   @Override
+  public boolean hasResolvableCompilationUnit() {
+    if (parsedUnitState == CacheState.VALID) {
+      return true;
+    }
+    ResolutionState state = resolutionState;
+    while (state != null) {
+      if (state.resolvedUnitState == CacheState.VALID) {
+        return true;
+      }
+      state = state.nextState;
+    };
+    return false;
+  }
+
+  @Override
   public void invalidateAllInformation() {
     super.invalidateAllInformation();
 

@@ -968,37 +968,6 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @Override
-  public Namespace getPublicNamespace(Source source) throws AnalysisException {
-    // TODO(brianwilkerson) Rename this to not start with 'get'. Note that this is not part of the
-    // API of the interface.
-    DartEntry dartEntry = getReadableDartEntry(source);
-    if (dartEntry == null) {
-      return null;
-    }
-    Namespace namespace = dartEntry.getValue(DartEntry.PUBLIC_NAMESPACE);
-    if (namespace == null) {
-      LibraryElement library = computeLibraryElement(source);
-      if (library == null) {
-        return null;
-      }
-      NamespaceBuilder builder = new NamespaceBuilder();
-      namespace = builder.createPublicNamespaceForLibrary(library);
-      synchronized (cacheLock) {
-        dartEntry = getReadableDartEntry(source);
-        if (dartEntry == null) {
-          throw new AnalysisException("A Dart file became a non-Dart file: " + source.getFullName());
-        }
-        if (dartEntry.getValue(DartEntry.ELEMENT) == library) {
-          DartEntryImpl dartCopy = getReadableDartEntry(source).getWritableCopy();
-          dartCopy.setValue(DartEntry.PUBLIC_NAMESPACE, namespace);
-          cache.put(source, dartCopy);
-        }
-      }
-    }
-    return namespace;
-  }
-
-  @Override
   public Source[] getRefactoringUnsafeSources() {
     ArrayList<Source> sources = new ArrayList<Source>();
     synchronized (cacheLock) {

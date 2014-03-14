@@ -203,6 +203,15 @@ public interface DartEntry extends SourceEntry {
   public boolean hasInvalidData(DataDescriptor<?> descriptor);
 
   /**
+   * Return {@code true} if this entry has an AST structure that can be resolved (even if it needs
+   * to be copied).
+   * 
+   * @return {@code true} if the method {@link DartEntryImpl#getResolvableCompilationUnit()} will
+   *         return a non-{@code null} result
+   */
+  public boolean hasResolvableCompilationUnit();
+
+  /**
    * Return {@code true} if this data is safe to use in refactoring.
    */
   public boolean isRefactoringSafe();

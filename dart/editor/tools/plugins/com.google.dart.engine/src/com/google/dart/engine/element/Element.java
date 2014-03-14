@@ -169,6 +169,8 @@ public interface Element {
    * <p>
    * This method is expensive, because resolved AST might be evicted from cache, so parsing and
    * resolving will be performed.
+   * <p>
+   * <b>Note:</b> This method cannot be used in an async environment.
    * 
    * @return the resolved {@link AstNode}, maybe {@code null} if {@link Element} is synthetic or
    *         isn't contained in a compilation unit, such as a {@link LibraryElement}.
