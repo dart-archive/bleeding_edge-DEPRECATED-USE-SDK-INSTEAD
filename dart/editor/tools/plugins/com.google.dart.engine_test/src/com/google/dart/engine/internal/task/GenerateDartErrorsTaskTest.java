@@ -14,6 +14,7 @@
 package com.google.dart.engine.internal.task;
 
 import com.google.dart.engine.EngineTestCase;
+import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContextFactory;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.context.ChangeSet;
@@ -28,7 +29,7 @@ import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
 
 public class GenerateDartErrorsTaskTest extends EngineTestCase {
   public void test_accept() throws AnalysisException {
-    GenerateDartErrorsTask task = new GenerateDartErrorsTask(null, null, null);
+    GenerateDartErrorsTask task = new GenerateDartErrorsTask(null, null, 0L, null, null);
     assertTrue(task.accept(new TestTaskVisitor<Boolean>() {
       @Override
       public Boolean visitGenerateDartErrorsTask(GenerateDartErrorsTask task)
@@ -39,37 +40,43 @@ public class GenerateDartErrorsTaskTest extends EngineTestCase {
   }
 
   public void test_getException() {
-    GenerateDartErrorsTask task = new GenerateDartErrorsTask(null, null, null);
+    GenerateDartErrorsTask task = new GenerateDartErrorsTask(null, null, 0L, null, null);
     assertNull(task.getException());
   }
 
   public void test_getLibraryElement() {
     InternalAnalysisContext context = AnalysisContextFactory.contextWithCore();
     LibraryElement element = library(context, "lib");
-    GenerateDartErrorsTask task = new GenerateDartErrorsTask(context, null, element);
+    GenerateDartErrorsTask task = new GenerateDartErrorsTask(context, null, 0L, null, element);
     assertSame(element, task.getLibraryElement());
   }
 
   public void test_getSource() {
     Source source = new FileBasedSource(createFile("/test.dart"));
-    GenerateDartErrorsTask task = new GenerateDartErrorsTask(null, source, null);
+    GenerateDartErrorsTask task = new GenerateDartErrorsTask(null, source, 0L, null, null);
     assertSame(source, task.getSource());
   }
 
   public void test_perform() throws AnalysisException {
     InternalAnalysisContext context = AnalysisContextFactory.contextWithCore();
-    final Source librarySource = new FileBasedSource(createFile("/test.dart"));
+    final Source source = new FileBasedSource(createFile("/test.dart"));
     ChangeSet changeSet = new ChangeSet();
-    changeSet.addedSource(librarySource);
+    changeSet.addedSource(source);
     context.applyChanges(changeSet);
-    context.setContents(librarySource, createSource(//
+    context.setContents(source, createSource(createSource(//
         "library lib;",
         "class A {",
         "  int f = new A();",
-        "}"));
-    final LibraryElement libraryElement = context.computeLibraryElement(librarySource);
+        "}")));
+    final LibraryElement libraryElement = context.computeLibraryElement(source);
+    CompilationUnit unit = context.getResolvedCompilationUnit(source, libraryElement);
 
-    GenerateDartErrorsTask task = new GenerateDartErrorsTask(context, librarySource, libraryElement);
+    GenerateDartErrorsTask task = new GenerateDartErrorsTask(
+        context,
+        source,
+        context.getModificationStamp(source),
+        unit,
+        libraryElement);
     task.perform(new TestTaskVisitor<Boolean>() {
       @Override
       public Boolean visitGenerateDartErrorsTask(GenerateDartErrorsTask task)
@@ -79,7 +86,7 @@ public class GenerateDartErrorsTaskTest extends EngineTestCase {
           throw exception;
         }
         assertSame(libraryElement, task.getLibraryElement());
-        assertSame(librarySource, task.getSource());
+        assertSame(source, task.getSource());
         AnalysisError[] errors = task.getErrors();
         assertLength(1, errors);
         return true;

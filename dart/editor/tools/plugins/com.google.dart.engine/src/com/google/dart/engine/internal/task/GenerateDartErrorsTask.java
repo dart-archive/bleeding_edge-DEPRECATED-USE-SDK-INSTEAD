@@ -20,7 +20,6 @@ import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
 import com.google.dart.engine.internal.context.PerformanceStatistics;
 import com.google.dart.engine.internal.context.RecordingErrorListener;
-import com.google.dart.engine.internal.context.TimestampedData;
 import com.google.dart.engine.internal.error.ErrorReporter;
 import com.google.dart.engine.internal.resolver.InheritanceManager;
 import com.google.dart.engine.internal.resolver.TypeProvider;
@@ -40,14 +39,19 @@ public class GenerateDartErrorsTask extends AnalysisTask {
   private Source source;
 
   /**
+   * The time at which the contents of the source were last modified.
+   */
+  private long modificationTime;
+
+  /**
+   * The compilation unit used to resolve the dependencies.
+   */
+  private CompilationUnit unit;
+
+  /**
    * The element model for the library containing the source.
    */
   private LibraryElement libraryElement;
-
-  /**
-   * The time at which the contents of the source were last modified.
-   */
-  private long modificationTime = -1L;
 
   /**
    * The errors that were generated for the source.
@@ -59,12 +63,16 @@ public class GenerateDartErrorsTask extends AnalysisTask {
    * 
    * @param context the context in which the task is to be performed
    * @param source the source for which errors and warnings are to be produced
+   * @param modificationTime the time at which the contents of the source were last modified
+   * @param unit the compilation unit used to resolve the dependencies
    * @param libraryElement the element model for the library containing the source
    */
   public GenerateDartErrorsTask(InternalAnalysisContext context, Source source,
-      LibraryElement libraryElement) {
+      long modificationTime, CompilationUnit unit, LibraryElement libraryElement) {
     super(context);
     this.source = source;
+    this.modificationTime = modificationTime;
+    this.unit = unit;
     this.libraryElement = libraryElement;
   }
 
@@ -117,18 +125,11 @@ public class GenerateDartErrorsTask extends AnalysisTask {
 
   @Override
   protected void internalPerform() throws AnalysisException {
-    InternalAnalysisContext context = getContext();
-    TimestampedData<CompilationUnit> data = context.internalResolveCompilationUnit(
-        source,
-        libraryElement);
-
     TimeCounterHandle timeCounter = PerformanceStatistics.errors.start();
     try {
-      modificationTime = data.getModificationTime();
-      CompilationUnit unit = data.getData();
       RecordingErrorListener errorListener = new RecordingErrorListener();
       ErrorReporter errorReporter = new ErrorReporter(errorListener, source);
-      TypeProvider typeProvider = context.getTypeProvider();
+      TypeProvider typeProvider = getContext().getTypeProvider();
       //
       // Use the ConstantVerifier to verify the use of constants. This needs to happen before using
       // the ErrorVerifier because some error codes need the computed constant values.

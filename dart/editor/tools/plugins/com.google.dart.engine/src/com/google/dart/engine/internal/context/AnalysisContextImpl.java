@@ -1780,10 +1780,13 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       // If not, compute the information. Unless the modification date of the source continues to
       // change, this loop will eventually terminate.
       //
+      LibraryElement library = computeLibraryElement(librarySource);
       dartEntry = (DartEntry) new GenerateDartErrorsTask(
           this,
           unitSource,
-          getLibraryElement(librarySource)).perform(resultRecorder);
+          dartEntry.getModificationTime(),
+          resolveCompilationUnit(unitSource, library),
+          library).perform(resultRecorder);
       state = dartEntry.getStateInLibrary(descriptor, librarySource);
     }
     return dartEntry;
@@ -1919,6 +1922,35 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       }
     }
     return false;
+  }
+
+  /**
+   * Create a {@link GenerateDartErrorsTask} for the given source, marking the verification errors
+   * as being in-process.
+   * 
+   * @param source the source whose content is to be verified
+   * @param dartEntry the entry for the source
+   * @param librarySource the source for the library containing the source
+   * @param libraryEntry the entry for the library
+   * @return task data representing the created task
+   */
+  private TaskData createGenerateDartErrorsTask(Source source, DartEntry dartEntry,
+      Source librarySource, SourceEntry libraryEntry) {
+    if (dartEntry.getStateInLibrary(DartEntry.RESOLVED_UNIT, librarySource) != CacheState.VALID
+        || libraryEntry.getState(DartEntry.ELEMENT) != CacheState.VALID) {
+      // TODO Return a ResolveDartLibraryTask.
+    }
+    CompilationUnit unit = dartEntry.getValueInLibrary(DartEntry.RESOLVED_UNIT, librarySource);
+    LibraryElement libraryElement = libraryEntry.getValue(DartEntry.ELEMENT);
+    DartEntryImpl dartCopy = dartEntry.getWritableCopy();
+    dartCopy.setStateInLibrary(DartEntry.VERIFICATION_ERRORS, librarySource, CacheState.IN_PROCESS);
+    cache.put(source, dartCopy);
+    return new TaskData(new GenerateDartErrorsTask(
+        this,
+        source,
+        dartCopy.getModificationTime(),
+        unit,
+        libraryElement), false);
   }
 
   /**
@@ -2588,16 +2620,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
                 librarySource);
             if (verificationErrorsState == CacheState.INVALID
                 || (isPriority && verificationErrorsState == CacheState.FLUSHED)) {
-              LibraryElement libraryElement = libraryEntry.getValue(DartEntry.ELEMENT);
-              if (libraryElement != null) {
-                DartEntryImpl dartCopy = dartEntry.getWritableCopy();
-                dartCopy.setStateInLibrary(
-                    DartEntry.VERIFICATION_ERRORS,
-                    librarySource,
-                    CacheState.IN_PROCESS);
-                cache.put(source, dartCopy);
-                return new TaskData(new GenerateDartErrorsTask(this, source, libraryElement), false);
-              }
+              return createGenerateDartErrorsTask(source, dartEntry, librarySource, libraryEntry);
             }
             if (hintsEnabled) {
               CacheState hintsState = dartEntry.getStateInLibrary(DartEntry.HINTS, librarySource);
