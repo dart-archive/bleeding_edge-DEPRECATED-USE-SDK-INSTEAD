@@ -15,7 +15,6 @@ package com.google.dart.engine.internal.task;
 
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisException;
-import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
@@ -25,12 +24,17 @@ import com.google.dart.engine.internal.hint.HintGenerator;
 import com.google.dart.engine.source.Source;
 
 import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Instances of the class {@code GenerateDartHintsTask} generate hints for a single Dart library.
  */
 public class GenerateDartHintsTask extends AnalysisTask {
+  /**
+   * The compilation units that comprise the library, with the defining compilation unit appearing
+   * first in the array.
+   */
+  private TimestampedData<CompilationUnit>[] units;
+
   /**
    * The element model for the library being analyzed.
    */
@@ -46,10 +50,14 @@ public class GenerateDartHintsTask extends AnalysisTask {
    * Initialize a newly created task to perform analysis within the given context.
    * 
    * @param context the context in which the task is to be performed
+   * @param units the compilation units that comprise the library, with the defining compilation
+   *          unit appearing first in the array
    * @param libraryElement the element model for the library being analyzed
    */
-  public GenerateDartHintsTask(InternalAnalysisContext context, LibraryElement libraryElement) {
+  public GenerateDartHintsTask(InternalAnalysisContext context,
+      TimestampedData<CompilationUnit>[] units, LibraryElement libraryElement) {
     super(context);
+    this.units = units;
     this.libraryElement = libraryElement;
   }
 
@@ -90,65 +98,29 @@ public class GenerateDartHintsTask extends AnalysisTask {
 
   @Override
   protected void internalPerform() throws AnalysisException {
-    RecordingErrorListener errorListener = new RecordingErrorListener();
-    CompilationUnitElement[] parts = libraryElement.getParts();
-    int partCount = parts.length;
-    CompilationUnit[] compilationUnits = new CompilationUnit[partCount + 1];
-    HashMap<Source, TimestampedData<CompilationUnit>> timestampMap = new HashMap<Source, TimestampedData<CompilationUnit>>(
-        partCount + 1);
     //
-    // Get all of the (fully resolved) compilation units that will be analyzed.
+    // Gather the compilation units.
     //
-    Source unitSource = libraryElement.getDefiningCompilationUnit().getSource();
-    TimestampedData<CompilationUnit> resolvedUnit = getCompilationUnit(unitSource);
-    timestampMap.put(unitSource, resolvedUnit);
-    CompilationUnit unit = resolvedUnit.getData();
-    if (unit == null) {
-      throw new AnalysisException(
-          "Internal error: GenerateDartHintsTask failed to access resolved compilation unit for "
-              + unitSource.getFullName());
-    }
-    compilationUnits[0] = unit;
-    for (int i = 0; i < partCount; i++) {
-      unitSource = parts[i].getSource();
-      resolvedUnit = getCompilationUnit(unitSource);
-      timestampMap.put(unitSource, resolvedUnit);
-      unit = resolvedUnit.getData();
-      if (unit == null) {
-        throw new AnalysisException(
-            "Internal error: GenerateDartHintsTask failed to access resolved compilation unit for "
-                + unitSource.getFullName());
-      }
-      compilationUnits[i + 1] = unit;
+    int unitCount = units.length;
+    CompilationUnit[] compilationUnits = new CompilationUnit[unitCount];
+    for (int i = 0; i < unitCount; i++) {
+      compilationUnits[i] = units[i].getData();
     }
     //
     // Analyze all of the units.
     //
+    RecordingErrorListener errorListener = new RecordingErrorListener();
     HintGenerator hintGenerator = new HintGenerator(compilationUnits, getContext(), errorListener);
     hintGenerator.generateForLibrary();
     //
     // Store the results.
     //
-    hintMap = new HashMap<Source, TimestampedData<AnalysisError[]>>();
-    for (Map.Entry<Source, TimestampedData<CompilationUnit>> entry : timestampMap.entrySet()) {
-      Source source = entry.getKey();
-      TimestampedData<CompilationUnit> unitData = entry.getValue();
+    hintMap = new HashMap<Source, TimestampedData<AnalysisError[]>>(unitCount);
+    for (int i = 0; i < unitCount; i++) {
+      long modificationTime = units[i].getModificationTime();
+      Source source = units[i].getData().getElement().getSource();
       AnalysisError[] errors = errorListener.getErrorsForSource(source);
-      hintMap.put(source, new TimestampedData<AnalysisError[]>(
-          unitData.getModificationTime(),
-          errors));
+      hintMap.put(source, new TimestampedData<AnalysisError[]>(modificationTime, errors));
     }
-  }
-
-  /**
-   * Return the resolved compilation unit associated with the given source.
-   * 
-   * @param unitSource the source for the compilation unit whose resolved AST is to be returned
-   * @return the resolved compilation unit associated with the given source
-   * @throws AnalysisException if the resolved compilation unit could not be computed
-   */
-  private TimestampedData<CompilationUnit> getCompilationUnit(Source unitSource)
-      throws AnalysisException {
-    return getContext().internalResolveCompilationUnit(unitSource, libraryElement);
   }
 }

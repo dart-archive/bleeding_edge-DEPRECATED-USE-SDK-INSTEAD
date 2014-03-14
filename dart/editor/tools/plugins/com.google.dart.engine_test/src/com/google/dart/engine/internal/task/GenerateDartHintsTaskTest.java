@@ -14,6 +14,7 @@
 package com.google.dart.engine.internal.task;
 
 import com.google.dart.engine.EngineTestCase;
+import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContextFactory;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.context.ChangeSet;
@@ -31,7 +32,7 @@ import java.util.HashMap;
 
 public class GenerateDartHintsTaskTest extends EngineTestCase {
   public void test_accept() throws AnalysisException {
-    GenerateDartHintsTask task = new GenerateDartHintsTask(null, null);
+    GenerateDartHintsTask task = new GenerateDartHintsTask(null, null, null);
     assertTrue(task.accept(new TestTaskVisitor<Boolean>() {
       @Override
       public Boolean visitGenerateDartHintsTask(GenerateDartHintsTask task)
@@ -42,19 +43,19 @@ public class GenerateDartHintsTaskTest extends EngineTestCase {
   }
 
   public void test_getException() {
-    GenerateDartHintsTask task = new GenerateDartHintsTask(null, null);
+    GenerateDartHintsTask task = new GenerateDartHintsTask(null, null, null);
     assertNull(task.getException());
   }
 
   public void test_getHintMap() {
-    GenerateDartHintsTask task = new GenerateDartHintsTask(null, null);
+    GenerateDartHintsTask task = new GenerateDartHintsTask(null, null, null);
     assertNull(task.getHintMap());
   }
 
   public void test_getLibraryElement() {
     InternalAnalysisContext context = AnalysisContextFactory.contextWithCore();
     LibraryElement element = library(context, "lib");
-    GenerateDartHintsTask task = new GenerateDartHintsTask(context, element);
+    GenerateDartHintsTask task = new GenerateDartHintsTask(context, null, element);
     assertSame(element, task.getLibraryElement());
   }
 
@@ -78,8 +79,17 @@ public class GenerateDartHintsTaskTest extends EngineTestCase {
     context.setContents(partSource, createSource(//
         "part of lib;"));
 
+    @SuppressWarnings("unchecked")
+    TimestampedData<CompilationUnit>[] units = new TimestampedData[2];
+    units[0] = new TimestampedData<CompilationUnit>(
+        context.getModificationStamp(librarySource),
+        context.resolveCompilationUnit(librarySource, librarySource));
+    units[1] = new TimestampedData<CompilationUnit>(
+        context.getModificationStamp(partSource),
+        context.resolveCompilationUnit(partSource, librarySource));
     GenerateDartHintsTask task = new GenerateDartHintsTask(
         context,
+        units,
         context.computeLibraryElement(librarySource));
     task.perform(new TestTaskVisitor<Boolean>() {
       @Override

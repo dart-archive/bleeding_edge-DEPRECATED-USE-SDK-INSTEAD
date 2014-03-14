@@ -1095,25 +1095,6 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @Override
-  public TimestampedData<CompilationUnit> internalResolveCompilationUnit(Source unitSource,
-      LibraryElement libraryElement) throws AnalysisException {
-    DartEntry dartEntry = getReadableDartEntry(unitSource);
-    if (dartEntry == null) {
-      throw new AnalysisException("internalResolveCompilationUnit invoked for non-Dart file: "
-          + unitSource.getFullName());
-    }
-    Source librarySource = libraryElement.getSource();
-    dartEntry = cacheDartResolutionData(
-        unitSource,
-        librarySource,
-        dartEntry,
-        DartEntry.RESOLVED_UNIT);
-    return new TimestampedData<CompilationUnit>(
-        dartEntry.getModificationTime(),
-        dartEntry.getValueInLibrary(DartEntry.RESOLVED_UNIT, librarySource));
-  }
-
-  @Override
   public boolean isClientLibrary(Source librarySource) {
     SourceEntry sourceEntry = getReadableSourceEntry(librarySource);
     if (sourceEntry instanceof DartEntry) {
@@ -1628,7 +1609,37 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       // If not, compute the information. Unless the modification date of the source continues to
       // change, this loop will eventually terminate.
       //
-      dartEntry = (DartEntry) new GenerateDartHintsTask(this, getLibraryElement(librarySource)).perform(resultRecorder);
+      DartEntry libraryEntry = getReadableDartEntry(librarySource);
+      libraryEntry = cacheDartResolutionData(
+          librarySource,
+          librarySource,
+          libraryEntry,
+          DartEntry.ELEMENT);
+      LibraryElement libraryElement = libraryEntry.getValue(DartEntry.ELEMENT);
+      CompilationUnitElement definingUnit = libraryElement.getDefiningCompilationUnit();
+      CompilationUnitElement[] parts = libraryElement.getParts();
+      @SuppressWarnings("unchecked")
+      TimestampedData<CompilationUnit>[] units = new TimestampedData[parts.length + 1];
+      units[0] = getResolvedUnit(definingUnit, librarySource);
+      if (units[0] == null) {
+        Source source = definingUnit.getSource();
+        units[0] = new TimestampedData<CompilationUnit>(
+            getModificationStamp(source),
+            resolveCompilationUnit(source, libraryElement));
+      }
+      for (int i = 0; i < parts.length; i++) {
+        units[i + 1] = getResolvedUnit(parts[i], librarySource);
+        if (units[i + 1] == null) {
+          Source source = parts[i].getSource();
+          units[i + 1] = new TimestampedData<CompilationUnit>(
+              getModificationStamp(source),
+              resolveCompilationUnit(source, libraryElement));
+        }
+      }
+      dartEntry = (DartEntry) new GenerateDartHintsTask(
+          this,
+          units,
+          getLibraryElement(librarySource)).perform(resultRecorder);
       state = dartEntry.getStateInLibrary(descriptor, librarySource);
     }
     return dartEntry;
@@ -1951,6 +1962,47 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         dartCopy.getModificationTime(),
         unit,
         libraryElement), false);
+  }
+
+  /**
+   * Create a {@link GenerateDartHintsTask} for the given source, marking the hints as being
+   * in-process.
+   * 
+   * @param source the source whose content is to be verified
+   * @param dartEntry the entry for the source
+   * @param librarySource the source for the library containing the source
+   * @param libraryEntry the entry for the library
+   * @return task data representing the created task
+   */
+  private TaskData createGenerateDartHintsTask(Source source, DartEntry dartEntry,
+      Source librarySource, SourceEntry libraryEntry) {
+    if (libraryEntry.getState(DartEntry.ELEMENT) != CacheState.VALID) {
+      // TODO Return a ResolveDartLibraryTask.
+    }
+    LibraryElement libraryElement = libraryEntry.getValue(DartEntry.ELEMENT);
+    CompilationUnitElement definingUnit = libraryElement.getDefiningCompilationUnit();
+    CompilationUnitElement[] parts = libraryElement.getParts();
+    @SuppressWarnings("unchecked")
+    TimestampedData<CompilationUnit>[] units = new TimestampedData[parts.length + 1];
+    units[0] = getResolvedUnit(definingUnit, librarySource);
+    if (units[0] == null) {
+      // TODO Return a ResolveDartUnitTask? We ought to be preserving the resolved AST
+      // structure until errors and hints have completed, so this might represent an
+      // internal error.
+    }
+    for (int i = 0; i < parts.length; i++) {
+      units[i + 1] = getResolvedUnit(parts[i], librarySource);
+      if (units[i + 1] == null) {
+        // TODO Return a ResolveDartUnitTask? We ought to be preserving the resolved AST
+        // structure until errors and hints have completed, so this might represent an
+        // internal error.
+      }
+    }
+
+    DartEntryImpl dartCopy = dartEntry.getWritableCopy();
+    dartCopy.setStateInLibrary(DartEntry.HINTS, librarySource, CacheState.IN_PROCESS);
+    cache.put(source, dartCopy);
+    return new TaskData(new GenerateDartHintsTask(this, units, libraryElement), false);
   }
 
   /**
@@ -2626,13 +2678,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
               CacheState hintsState = dartEntry.getStateInLibrary(DartEntry.HINTS, librarySource);
               if (hintsState == CacheState.INVALID
                   || (isPriority && hintsState == CacheState.FLUSHED)) {
-                LibraryElement libraryElement = libraryEntry.getValue(DartEntry.ELEMENT);
-                if (libraryElement != null) {
-                  DartEntryImpl dartCopy = dartEntry.getWritableCopy();
-                  dartCopy.setStateInLibrary(DartEntry.HINTS, librarySource, CacheState.IN_PROCESS);
-                  cache.put(source, dartCopy);
-                  return new TaskData(new GenerateDartHintsTask(this, libraryElement), false);
-                }
+                return createGenerateDartHintsTask(source, dartEntry, librarySource, libraryEntry);
               }
             }
           }
@@ -2759,6 +2805,28 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     synchronized (cacheLock) {
       return cache.get(source);
     }
+  }
+
+  /**
+   * Return a resolved compilation unit corresponding to the given element in the given library, or
+   * {@code null} if the information is not cached.
+   * 
+   * @param element the element representing the compilation unit
+   * @param librarySource the source representing the library containing the unit
+   * @return the specified resolved compilation unit
+   */
+  private TimestampedData<CompilationUnit> getResolvedUnit(CompilationUnitElement element,
+      Source librarySource) {
+    SourceEntry sourceEntry = cache.get(element.getSource());
+    if (sourceEntry instanceof DartEntry) {
+      DartEntry dartEntry = (DartEntry) sourceEntry;
+      if (dartEntry.getStateInLibrary(DartEntry.RESOLVED_UNIT, librarySource) == CacheState.VALID) {
+        return new TimestampedData<CompilationUnit>(
+            dartEntry.getModificationTime(),
+            dartEntry.getValueInLibrary(DartEntry.RESOLVED_UNIT, librarySource));
+      }
+    }
+    return null;
   }
 
   /**

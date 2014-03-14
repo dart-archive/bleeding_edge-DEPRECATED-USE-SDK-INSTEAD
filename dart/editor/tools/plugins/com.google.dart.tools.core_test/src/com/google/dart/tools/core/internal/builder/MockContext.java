@@ -440,12 +440,6 @@ public class MockContext implements InternalAnalysisContext {
   }
 
   @Override
-  public TimestampedData<CompilationUnit> internalResolveCompilationUnit(Source unitSource,
-      LibraryElement libraryElement) throws AnalysisException {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
   public boolean isClientLibrary(Source librarySource) {
     return false;
   }
