@@ -105,6 +105,27 @@ public class LightweightModel {
 
       @Override
       public void resolvedHtml(ResolvedHtmlEvent event) {
+        IResource htmlResource = event.getResource();
+        if (htmlResource instanceof IFile) {
+          IFile htmlFile = (IFile) htmlResource;
+          AnalysisContext context = event.getContext();
+          ResourceMap resourceMap = event.getResourceMap();
+          Source htmlSource = event.getSource();
+          // in tests some information may be missing
+          if (context == null || resourceMap == null || htmlSource == null) {
+            return;
+          }
+          // OK, process the change
+          try {
+            Source[] librarySources = context.getLibrariesReferencedFromHtml(htmlSource);
+            for (Source librarySource : librarySources) {
+              IFile libraryFile = resourceMap.getResource(librarySource);
+              setFileProperty(libraryFile, HTML_FILE, htmlFile);
+            }
+          } catch (CoreException e) {
+            DartCore.logInformation("Exception updating: " + htmlSource);
+          }
+        }
       }
     });
   }
@@ -338,7 +359,7 @@ public class LightweightModel {
     boolean serverLaunchable = source == null ? false : context.isServerLibrary(source);
     setFileProperty(file, SERVER_LIBRARY, serverLaunchable);
 
-    // Set the html file property.
+    // Set the HTML file property.
     Source[] htmlSources = source == null ? null : context.getHtmlFilesReferencing(source);
     if (htmlSources == null || htmlSources.length == 0) {
       setFileProperty(file, HTML_FILE, (String) null);

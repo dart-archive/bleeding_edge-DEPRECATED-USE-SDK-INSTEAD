@@ -371,6 +371,11 @@ public class MockContext implements InternalAnalysisContext {
   }
 
   @Override
+  public Source[] getLibrariesReferencedFromHtml(Source htmlSource) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
   public LibraryElement getLibraryElement(Source source) {
     return null;
   }

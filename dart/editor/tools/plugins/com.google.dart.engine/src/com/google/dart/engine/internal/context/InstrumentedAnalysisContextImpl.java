@@ -468,6 +468,18 @@ public class InstrumentedAnalysisContextImpl implements InternalAnalysisContext 
   }
 
   @Override
+  public Source[] getLibrariesReferencedFromHtml(Source htmlSource) {
+    InstrumentationBuilder instrumentation = Instrumentation.builder("Analysis-getLibrariesReferencedFromHtml");
+    checkThread(instrumentation);
+    try {
+      instrumentation.metric("contextId", contextId);
+      return basis.getLibrariesReferencedFromHtml(htmlSource);
+    } finally {
+      instrumentation.log();
+    }
+  }
+
+  @Override
   public LibraryElement getLibraryElement(Source source) {
     InstrumentationBuilder instrumentation = Instrumentation.builder("Analysis-getLibraryElement");
     checkThread(instrumentation);

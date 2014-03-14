@@ -882,6 +882,16 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @Override
+  public Source[] getLibrariesReferencedFromHtml(Source htmlSource) {
+    SourceEntry sourceEntry = getReadableSourceEntryOrNull(htmlSource);
+    if (sourceEntry instanceof HtmlEntry) {
+      HtmlEntry htmlEntry = (HtmlEntry) sourceEntry;
+      return htmlEntry.getValue(HtmlEntry.REFERENCED_LIBRARIES);
+    }
+    return Source.EMPTY_ARRAY;
+  }
+
+  @Override
   public LibraryElement getLibraryElement(Source source) {
     SourceEntry sourceEntry = getReadableSourceEntryOrNull(source);
     if (sourceEntry instanceof DartEntry) {

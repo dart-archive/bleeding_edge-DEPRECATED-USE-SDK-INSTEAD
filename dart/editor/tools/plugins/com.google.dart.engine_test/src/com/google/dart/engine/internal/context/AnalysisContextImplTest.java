@@ -633,6 +633,35 @@ public class AnalysisContextImplTest extends EngineTestCase {
     assertContains(result, lib1Source, lib2Source);
   }
 
+  public void test_getLibrariesReferencedFromHtml() throws Exception {
+    context = AnalysisContextFactory.contextWithCore();
+    sourceFactory = context.getSourceFactory();
+    Source htmlSource = addSource("/test.html", createSource(//
+        "<html><head>",
+        "<script type='application/dart' src='test.dart'/>",
+        "<script type='application/dart' src='test.js'/>",
+        "</head></html>"));
+    Source librarySource = addSource("/test.dart", "library lib;");
+    context.computeLibraryElement(librarySource);
+    context.parseHtmlUnit(htmlSource);
+    Source[] result = context.getLibrariesReferencedFromHtml(htmlSource);
+    assertLength(1, result);
+    assertEquals(librarySource, result[0]);
+  }
+
+  public void test_getLibrariesReferencedFromHtml_no() throws Exception {
+    context = AnalysisContextFactory.contextWithCore();
+    sourceFactory = context.getSourceFactory();
+    Source htmlSource = addSource("/test.html", createSource(//
+        "<html><head>",
+        "<script type='application/dart' src='test.js'/>",
+        "</head></html>"));
+    addSource("/test.dart", "library lib;");
+    context.parseHtmlUnit(htmlSource);
+    Source[] result = context.getLibrariesReferencedFromHtml(htmlSource);
+    assertLength(0, result);
+  }
+
   public void test_getLibraryElement() throws Exception {
     context = AnalysisContextFactory.contextWithCore();
     sourceFactory = context.getSourceFactory();

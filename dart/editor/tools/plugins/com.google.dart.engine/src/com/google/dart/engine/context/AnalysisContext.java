@@ -350,6 +350,15 @@ public interface AnalysisContext {
   public Source[] getLibrariesDependingOn(Source librarySource);
 
   /**
+   * Return the sources for the defining compilation units of any libraries that are referenced from
+   * the given HTML file.
+   * 
+   * @param htmlSource the source for the HTML file
+   * @return the sources for the libraries that are referenced by the given HTML file
+   */
+  public Source[] getLibrariesReferencedFromHtml(Source htmlSource);
+
+  /**
    * Return the element model corresponding to the library defined by the given source, or
    * {@code null} if the element model does not currently exist or if the library cannot be analyzed
    * for some reason.
