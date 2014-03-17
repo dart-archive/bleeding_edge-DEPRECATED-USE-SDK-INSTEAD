@@ -301,6 +301,12 @@ public class DependencyDetailsPage extends AbstractFormPart implements IDetailsP
     }
     boolean pathFields = false;
     boolean gitRefFields = false;
+    if (type.equals(Type.HOSTED)) {
+      pathText.setText(EMPTY_STRING);
+      gitrefText.setText(EMPTY_STRING);
+      input.setPath(EMPTY_STRING);
+      input.setGitRef(EMPTY_STRING);
+    }
     if (type.equals(Type.GIT)) {
       pathFields = gitRefFields = true;
     } else if (type.equals(Type.PATH)) {
