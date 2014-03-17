@@ -15,15 +15,12 @@
 package com.google.dart.engine.services.internal.refactoring;
 
 import com.google.common.base.Objects;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LocalElement;
 import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.internal.context.InstrumentedAnalysisContextImpl;
-import com.google.dart.engine.search.MatchKind;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchMatch;
 import com.google.dart.engine.services.change.Edit;
@@ -39,9 +36,6 @@ import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeEl
 
 import org.apache.commons.lang3.ArrayUtils;
 
-import java.util.List;
-import java.util.Map;
-
 /**
  * Abstract implementation of {@link RenameRefactoring}.
  */
@@ -51,29 +45,6 @@ public abstract class RenameRefactoringImpl extends RefactoringImpl implements R
    */
   protected static Edit createReferenceEdit(SourceReference reference, String newText) {
     return new Edit(reference.range, newText);
-  }
-
-  /**
-   * When one {@link Source} (one file) is used in more than one context, {@link SearchEngine} will
-   * return separate {@link SearchMatch} for each context. But in rename refactoring we want to
-   * update {@link Source} only once.
-   */
-  protected static List<SourceReference> getSourceReferences(List<SearchMatch> matches) {
-    Map<SourceReference, SourceReference> uniqueReferences = Maps.newHashMap();
-    for (SearchMatch match : matches) {
-      Element element = match.getElement();
-      MatchKind kind = match.getKind();
-      Source source = element.getSource();
-      SourceRange range = match.getSourceRange();
-      SourceReference newReference = new SourceReference(kind, source, range);
-      SourceReference oldReference = uniqueReferences.get(newReference);
-      if (oldReference == null) {
-        uniqueReferences.put(newReference, newReference);
-        oldReference = newReference;
-      }
-      oldReference.elements.add(element);
-    }
-    return Lists.newArrayList(uniqueReferences.keySet());
   }
 
   /**

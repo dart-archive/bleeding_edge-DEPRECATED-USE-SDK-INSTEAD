@@ -173,11 +173,11 @@ public class ConvertGetterToMethodRefactoringImpl extends RefactoringImpl implem
   }
 
   private void updateElementReferences(Element element) throws Exception {
-    List<SearchMatch> references = searchEngine.searchReferences(element, null, null);
-    for (SearchMatch reference : references) {
-      Element refElement = reference.getElement();
-      SourceRange refRange = reference.getSourceRange();
-      SourceChange refChange = changeManager.get(refElement.getSource());
+    List<SearchMatch> matches = searchEngine.searchReferences(element, null, null);
+    List<SourceReference> references = getSourceReferences(matches);
+    for (SourceReference reference : references) {
+      SourceRange refRange = reference.range;
+      SourceChange refChange = changeManager.get(reference.source);
       // insert "()"
       refChange.addEdit(
           "Replace field access with invocation",
