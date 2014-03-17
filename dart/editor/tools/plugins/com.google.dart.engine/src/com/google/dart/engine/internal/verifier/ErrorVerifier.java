@@ -514,6 +514,8 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
     checkForBuiltInIdentifierAsName(
         node.getName(),
         CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME);
+    checkForExtendsDisallowedClassInTypeAlias(node);
+    checkForImplementsDisallowedClass(node.getImplementsClause());
     checkForAllMixinErrorCodes(node.getWithClause());
     ClassElement outerClassElement = enclosingClass;
     try {
@@ -3043,6 +3045,22 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
    * @see CompileTimeErrorCode#EXTENDS_DISALLOWED_CLASS
    */
   private boolean checkForExtendsDisallowedClass(ExtendsClause node) {
+    if (node == null) {
+      return false;
+    }
+    return checkForExtendsOrImplementsDisallowedClass(
+        node.getSuperclass(),
+        CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS);
+  }
+
+  /**
+   * This verifies that the passed type alias does not extend classes such as num or String.
+   * 
+   * @param node the extends clause to test
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#EXTENDS_DISALLOWED_CLASS
+   */
+  private boolean checkForExtendsDisallowedClassInTypeAlias(ClassTypeAlias node) {
     if (node == null) {
       return false;
     }
