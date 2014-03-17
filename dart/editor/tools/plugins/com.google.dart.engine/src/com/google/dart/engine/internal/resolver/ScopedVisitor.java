@@ -157,6 +157,22 @@ public abstract class ScopedVisitor extends UnifyingAstVisitor<Void> {
   }
 
   /**
+   * Initialize a newly created visitor to resolve the nodes in a compilation unit.
+   * 
+   * @param library the library containing the compilation unit being resolved
+   * @param source the source representing the compilation unit being visited
+   * @param typeProvider the object used to access the types from the core library
+   */
+  public ScopedVisitor(ResolvableLibrary library, Source source, TypeProvider typeProvider) {
+    this.definingLibrary = library.getLibraryElement();
+    this.source = source;
+    LibraryScope libraryScope = library.getLibraryScope();
+    this.errorListener = libraryScope.getErrorListener();
+    this.nameScope = libraryScope;
+    this.typeProvider = typeProvider;
+  }
+
+  /**
    * Return the library element for the library containing the compilation unit being resolved.
    * 
    * @return the library element for the library containing the compilation unit being resolved

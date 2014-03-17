@@ -2,6 +2,7 @@ package com.google.dart.engine.context;
 
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.internal.context.AnalysisOptionsImpl;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
 
@@ -18,13 +19,18 @@ public class AnalysisContextHelper {
    */
   public AnalysisContextHelper() {
     context = AnalysisContextFactory.contextWithCore();
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl(context.getAnalysisOptions());
+    options.setCacheSize(256);
+    context.setAnalysisOptions(options);
   }
 
   public Source addSource(String path, String code) {
     Source source = new FileBasedSource(createFile(path));
-    ChangeSet changeSet = new ChangeSet();
-    changeSet.addedSource(source);
-    context.applyChanges(changeSet);
+    if (path.endsWith(".dart") || path.endsWith(".html")) {
+      ChangeSet changeSet = new ChangeSet();
+      changeSet.addedSource(source);
+      context.applyChanges(changeSet);
+    }
     context.setContents(source, code);
     return source;
   }

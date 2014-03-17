@@ -65,11 +65,13 @@ public class LibraryElementBuilder {
   /**
    * Initialize a newly created library element builder.
    * 
-   * @param resolver the resolver for which the element model is being built
+   * @param analysisContext the analysis context in which the element model will be built
+   * @param errorListener the listener to which errors will be reported
    */
-  public LibraryElementBuilder(LibraryResolver resolver) {
-    this.analysisContext = resolver.getAnalysisContext();
-    this.errorListener = resolver.getErrorListener();
+  public LibraryElementBuilder(InternalAnalysisContext analysisContext,
+      AnalysisErrorListener errorListener) {
+    this.analysisContext = analysisContext;
+    this.errorListener = errorListener;
   }
 
   /**
@@ -110,16 +112,117 @@ public class LibraryElementBuilder {
         Source partSource = library.getSource(partDirective);
         if (analysisContext.exists(partSource)) {
           hasPartDirective = true;
-          CompilationUnitElementImpl part = builder.buildCompilationUnit(
-              partSource,
-              library.getAST(partSource));
+          CompilationUnit partUnit = library.getAST(partSource);
+          CompilationUnitElementImpl part = builder.buildCompilationUnit(partSource, partUnit);
           part.setUriOffset(partUri.getOffset());
           part.setUriEnd(partUri.getEnd());
           part.setUri(library.getUri(partDirective));
           //
           // Validate that the part contains a part-of directive with the same name as the library.
           //
-          String partLibraryName = getPartLibraryName(library, partSource, directivesToResolve);
+          String partLibraryName = getPartLibraryName(partSource, partUnit, directivesToResolve);
+          if (partLibraryName == null) {
+            errorListener.onError(new AnalysisError(
+                librarySource,
+                partUri.getOffset(),
+                partUri.getLength(),
+                CompileTimeErrorCode.PART_OF_NON_PART,
+                partUri.toSource()));
+          } else if (libraryNameNode == null) {
+            // TODO(brianwilkerson) Collect the names declared by the part. If they are all the same
+            // then we can use that name as the inferred name of the library and present it in a
+            // quick-fix.
+            // partLibraryNames.add(partLibraryName);
+          } else if (!libraryNameNode.getName().equals(partLibraryName)) {
+            errorListener.onError(new AnalysisError(
+                librarySource,
+                partUri.getOffset(),
+                partUri.getLength(),
+                StaticWarningCode.PART_OF_DIFFERENT_LIBRARY,
+                libraryNameNode.getName(),
+                partLibraryName));
+          }
+          if (entryPoint == null) {
+            entryPoint = findEntryPoint(part);
+          }
+          directive.setElement(part);
+          sourcedCompilationUnits.add(part);
+        }
+      }
+    }
+
+    if (hasPartDirective && libraryNameNode == null) {
+      errorListener.onError(new AnalysisError(
+          librarySource,
+          ResolverErrorCode.MISSING_LIBRARY_DIRECTIVE_WITH_PART));
+    }
+    //
+    // Create and populate the library element.
+    //
+    LibraryElementImpl libraryElement = new LibraryElementImpl(analysisContext, libraryNameNode);
+    libraryElement.setDefiningCompilationUnit(definingCompilationUnitElement);
+    if (entryPoint != null) {
+      libraryElement.setEntryPoint(entryPoint);
+    }
+    int sourcedUnitCount = sourcedCompilationUnits.size();
+    libraryElement.setParts(sourcedCompilationUnits.toArray(new CompilationUnitElementImpl[sourcedUnitCount]));
+    for (Directive directive : directivesToResolve) {
+      directive.setElement(libraryElement);
+    }
+    library.setLibraryElement(libraryElement);
+    if (sourcedUnitCount > 0) {
+      patchTopLevelAccessors(libraryElement);
+    }
+    return libraryElement;
+  }
+
+  /**
+   * Build the library element for the given library.
+   * 
+   * @param library the library for which an element model is to be built
+   * @return the library element that was built
+   * @throws AnalysisException if the analysis could not be performed
+   */
+  public LibraryElementImpl buildLibrary(ResolvableLibrary library) throws AnalysisException {
+    CompilationUnitBuilder builder = new CompilationUnitBuilder();
+    Source librarySource = library.getLibrarySource();
+    CompilationUnit definingCompilationUnit = library.getDefiningCompilationUnit();
+    CompilationUnitElementImpl definingCompilationUnitElement = builder.buildCompilationUnit(
+        librarySource,
+        definingCompilationUnit);
+    NodeList<Directive> directives = definingCompilationUnit.getDirectives();
+    LibraryIdentifier libraryNameNode = null;
+    boolean hasPartDirective = false;
+    FunctionElement entryPoint = findEntryPoint(definingCompilationUnitElement);
+    ArrayList<Directive> directivesToResolve = new ArrayList<Directive>();
+    ArrayList<CompilationUnitElementImpl> sourcedCompilationUnits = new ArrayList<CompilationUnitElementImpl>();
+    for (Directive directive : directives) {
+      //
+      // We do not build the elements representing the import and export directives at this point.
+      // That is not done until we get to LibraryResolver.buildDirectiveModels() because we need the
+      // LibraryElements for the referenced libraries, which might not exist at this point (due to
+      // the possibility of circular references).
+      //
+      if (directive instanceof LibraryDirective) {
+        if (libraryNameNode == null) {
+          libraryNameNode = ((LibraryDirective) directive).getName();
+          directivesToResolve.add(directive);
+        }
+      } else if (directive instanceof PartDirective) {
+        PartDirective partDirective = (PartDirective) directive;
+        StringLiteral partUri = partDirective.getUri();
+        Source partSource = partDirective.getSource();
+        if (analysisContext.exists(partSource)) {
+          hasPartDirective = true;
+          CompilationUnit partUnit = library.getAST(partSource);
+          CompilationUnitElementImpl part = builder.buildCompilationUnit(partSource, partUnit);
+          part.setUriOffset(partUri.getOffset());
+          part.setUriEnd(partUri.getEnd());
+          part.setUri(partDirective.getUriContent());
+          //
+          // Validate that the part contains a part-of directive with the same name as the library.
+          //
+          String partLibraryName = getPartLibraryName(partSource, partUnit, directivesToResolve);
           if (partLibraryName == null) {
             errorListener.onError(new AnalysisError(
                 librarySource,
@@ -218,27 +321,22 @@ public class LibraryElementBuilder {
    * Return the name of the library that the given part is declared to be a part of, or {@code null}
    * if the part does not contain a part-of directive.
    * 
-   * @param library the library containing the part
    * @param partSource the source representing the part
+   * @param partUnit the AST structure of the part
    * @param directivesToResolve a list of directives that should be resolved to the library being
    *          built
    * @return the name of the library that the given part is declared to be a part of
    */
-  private String getPartLibraryName(Library library, Source partSource,
+  private String getPartLibraryName(Source partSource, CompilationUnit partUnit,
       ArrayList<Directive> directivesToResolve) {
-    try {
-      CompilationUnit partUnit = library.getAST(partSource);
-      for (Directive directive : partUnit.getDirectives()) {
-        if (directive instanceof PartOfDirective) {
-          directivesToResolve.add(directive);
-          LibraryIdentifier libraryName = ((PartOfDirective) directive).getLibraryName();
-          if (libraryName != null) {
-            return libraryName.getName();
-          }
+    for (Directive directive : partUnit.getDirectives()) {
+      if (directive instanceof PartOfDirective) {
+        directivesToResolve.add(directive);
+        LibraryIdentifier libraryName = ((PartOfDirective) directive).getLibraryName();
+        if (libraryName != null) {
+          return libraryName.getName();
         }
       }
-    } catch (AnalysisException exception) {
-      // Fall through to return null.
     }
     return null;
   }

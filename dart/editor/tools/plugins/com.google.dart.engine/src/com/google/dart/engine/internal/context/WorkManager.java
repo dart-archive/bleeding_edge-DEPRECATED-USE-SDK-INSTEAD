@@ -175,4 +175,31 @@ public class WorkManager {
       workQueues[i].remove(source);
     }
   }
+
+  @Override
+  public String toString() {
+    StringBuilder builder = new StringBuilder();
+    SourcePriority[] priorities = SourcePriority.values();
+    boolean needsSeparator = false;
+    int queueCount = workQueues.length;
+    for (int i = 0; i < queueCount; i++) {
+      ArrayList<Source> queue = workQueues[i];
+      if (!queue.isEmpty()) {
+        if (needsSeparator) {
+          builder.append("; ");
+        }
+        builder.append(priorities[i]);
+        builder.append(": ");
+        int queueSize = queue.size();
+        for (int j = 0; j < queueSize; j++) {
+          if (j > 0) {
+            builder.append(", ");
+          }
+          builder.append(queue.get(j).getFullName());
+        }
+        needsSeparator = true;
+      }
+    }
+    return builder.toString();
+  }
 }

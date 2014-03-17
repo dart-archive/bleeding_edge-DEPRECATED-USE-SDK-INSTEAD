@@ -75,6 +75,13 @@ public class TestTaskVisitor<E> implements AnalysisTaskVisitor<E> {
   }
 
   @Override
+  public E visitResolveDartLibraryCycleTask(ResolveDartLibraryCycleTask task)
+      throws AnalysisException {
+    Assert.fail("Unexpectedly invoked visitResolveDartLibraryCycleTask");
+    return null;
+  }
+
+  @Override
   public E visitResolveDartLibraryTask(ResolveDartLibraryTask task) throws AnalysisException {
     Assert.fail("Unexpectedly invoked visitResolveDartLibraryTask");
     return null;

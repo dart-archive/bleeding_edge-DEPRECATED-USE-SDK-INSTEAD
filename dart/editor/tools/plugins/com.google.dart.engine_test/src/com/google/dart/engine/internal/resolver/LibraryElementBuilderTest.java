@@ -222,7 +222,9 @@ public class LibraryElementBuilderTest extends EngineTestCase {
   private LibraryElement buildLibrary(Source librarySource, ErrorCode... expectedErrorCodes)
       throws Exception {
     LibraryResolver resolver = new LibraryResolver(context);
-    LibraryElementBuilder builder = new LibraryElementBuilder(resolver);
+    LibraryElementBuilder builder = new LibraryElementBuilder(
+        resolver.getAnalysisContext(),
+        resolver.getErrorListener());
     Method method = resolver.getClass().getDeclaredMethod(
         "createLibrary",
         new Class[] {Source.class});

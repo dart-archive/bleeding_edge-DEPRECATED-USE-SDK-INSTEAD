@@ -97,6 +97,16 @@ public interface AnalysisTaskVisitor<E> {
       throws AnalysisException;
 
   /**
+   * Visit a {@link ResolveDartLibraryCycleTask}.
+   * 
+   * @param task the task to be visited
+   * @return the result of visiting the task
+   * @throws AnalysisException if the visitor throws an exception for some reason
+   */
+  public E visitResolveDartLibraryCycleTask(ResolveDartLibraryCycleTask task)
+      throws AnalysisException;
+
+  /**
    * Visit a {@link ResolveDartLibraryTask}.
    * 
    * @param task the task to be visited

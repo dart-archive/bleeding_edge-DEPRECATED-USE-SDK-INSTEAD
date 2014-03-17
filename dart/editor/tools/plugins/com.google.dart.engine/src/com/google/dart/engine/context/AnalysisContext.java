@@ -108,7 +108,7 @@ public interface AnalysisContext {
   /**
    * Return the element model corresponding to the HTML file defined by the given source. If the
    * element model does not yet exist it will be created. The process of creating an element model
-   * for an HTML file can long-running, depending on the size of the file and the number of
+   * for an HTML file can be long-running, depending on the size of the file and the number of
    * libraries that are defined in it (via script tags) that also need to have a model built for
    * them.
    * <p>
@@ -532,6 +532,8 @@ public interface AnalysisContext {
 
   /**
    * Parse and resolve a single source within the given context to produce a fully resolved AST.
+   * <p>
+   * <b>Note:</b> This method cannot be used in an async environment.
    * 
    * @param unitSource the source to be parsed and resolved
    * @param library the library containing the source to be resolved
@@ -547,6 +549,8 @@ public interface AnalysisContext {
    * Parse and resolve a single source within the given context to produce a fully resolved AST.
    * Return the resolved AST structure, or {@code null} if the source could not be either parsed or
    * resolved.
+   * <p>
+   * <b>Note:</b> This method cannot be used in an async environment.
    * 
    * @param unitSource the source to be parsed and resolved
    * @param librarySource the source of the defining compilation unit of the library containing the
@@ -561,6 +565,8 @@ public interface AnalysisContext {
 
   /**
    * Parse and resolve a single source within the given context to produce a fully resolved AST.
+   * <p>
+   * <b>Note:</b> This method cannot be used in an async environment.
    * 
    * @param htmlSource the source to be parsed and resolved
    * @return the result of resolving the AST structure representing the content of the source

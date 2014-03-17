@@ -73,6 +73,17 @@ public class VariableResolverVisitor extends ScopedVisitor {
     super(definingLibrary, source, typeProvider, nameScope, errorListener);
   }
 
+  /**
+   * Initialize a newly created visitor to resolve the nodes in a compilation unit.
+   * 
+   * @param library the library containing the compilation unit being resolved
+   * @param source the source representing the compilation unit being visited
+   * @param typeProvider the object used to access the types from the core library
+   */
+  public VariableResolverVisitor(ResolvableLibrary library, Source source, TypeProvider typeProvider) {
+    super(library, source, typeProvider);
+  }
+
   @Override
   public Void visitFunctionDeclaration(FunctionDeclaration node) {
     ExecutableElement outerFunction = enclosingFunction;

@@ -13,10 +13,10 @@
  */
 package com.google.dart.engine.internal.resolver;
 
-import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.ArgumentList;
 import com.google.dart.engine.ast.AsExpression;
 import com.google.dart.engine.ast.AssertStatement;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.Block;
 import com.google.dart.engine.ast.BlockFunctionBody;
@@ -196,6 +196,20 @@ public class ResolverVisitor extends ScopedVisitor {
       Scope nameScope, AnalysisErrorListener errorListener) {
     super(definingLibrary, source, typeProvider, nameScope, errorListener);
     this.inheritanceManager = new InheritanceManager(definingLibrary);
+    this.elementResolver = new ElementResolver(this);
+    this.typeAnalyzer = new StaticTypeAnalyzer(this);
+  }
+
+  /**
+   * Initialize a newly created visitor to resolve the nodes in a compilation unit.
+   * 
+   * @param library the library containing the compilation unit being resolved
+   * @param source the source representing the compilation unit being visited
+   * @param typeProvider the object used to access the types from the core library
+   */
+  public ResolverVisitor(ResolvableLibrary library, Source source, TypeProvider typeProvider) {
+    super(library, source, typeProvider);
+    this.inheritanceManager = library.getInheritanceManager();
     this.elementResolver = new ElementResolver(this);
     this.typeAnalyzer = new StaticTypeAnalyzer(this);
   }
@@ -963,11 +977,26 @@ public class ResolverVisitor extends ScopedVisitor {
    * 
    * @param enclosingElement the enclosing element
    * @param errorCode the error code of the error to be reported
+   * @param token the token specifying the location of the error
+   * @param arguments the arguments to the error, used to compose the error message
+   */
+  protected void reportErrorProxyConditionalAnalysisError(Element enclosingElement,
+      ErrorCode errorCode, Token token, Object... arguments) {
+    proxyConditionalAnalysisErrors.add(new ProxyConditionalAnalysisError(
+        enclosingElement,
+        new AnalysisError(getSource(), token.getOffset(), token.getLength(), errorCode, arguments)));
+  }
+
+  /**
+   * Report a conditional analysis error with the given error code and arguments.
+   * 
+   * @param enclosingElement the enclosing element
+   * @param errorCode the error code of the error to be reported
    * @param node the node specifying the location of the error
    * @param arguments the arguments to the error, used to compose the error message
    */
-  protected void reportProxyConditionalErrorForNode(Element enclosingElement,
-      ErrorCode errorCode, AstNode node, Object... arguments) {
+  protected void reportProxyConditionalErrorForNode(Element enclosingElement, ErrorCode errorCode,
+      AstNode node, Object... arguments) {
     proxyConditionalAnalysisErrors.add(new ProxyConditionalAnalysisError(
         enclosingElement,
         new AnalysisError(getSource(), node.getOffset(), node.getLength(), errorCode, arguments)));
@@ -987,21 +1016,6 @@ public class ResolverVisitor extends ScopedVisitor {
     proxyConditionalAnalysisErrors.add(new ProxyConditionalAnalysisError(
         enclosingElement,
         new AnalysisError(getSource(), offset, length, errorCode, arguments)));
-  }
-
-  /**
-   * Report a conditional analysis error with the given error code and arguments.
-   * 
-   * @param enclosingElement the enclosing element
-   * @param errorCode the error code of the error to be reported
-   * @param token the token specifying the location of the error
-   * @param arguments the arguments to the error, used to compose the error message
-   */
-  protected void reportErrorProxyConditionalAnalysisError(Element enclosingElement,
-      ErrorCode errorCode, Token token, Object... arguments) {
-    proxyConditionalAnalysisErrors.add(new ProxyConditionalAnalysisError(
-        enclosingElement,
-        new AnalysisError(getSource(), token.getOffset(), token.getLength(), errorCode, arguments)));
   }
 
   @Override

@@ -189,6 +189,18 @@ public class TypeResolverVisitor extends ScopedVisitor {
     dynamicType = typeProvider.getDynamicType();
   }
 
+  /**
+   * Initialize a newly created visitor to resolve the nodes in a compilation unit.
+   * 
+   * @param library the library containing the compilation unit being resolved
+   * @param source the source representing the compilation unit being visited
+   * @param typeProvider the object used to access the types from the core library
+   */
+  public TypeResolverVisitor(ResolvableLibrary library, Source source, TypeProvider typeProvider) {
+    super(library, source, typeProvider);
+    dynamicType = typeProvider.getDynamicType();
+  }
+
   @Override
   public Void visitCatchClause(CatchClause node) {
     super.visitCatchClause(node);

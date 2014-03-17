@@ -535,7 +535,9 @@ public class LibraryResolver {
    */
   private void buildElementModels() throws AnalysisException {
     for (Library library : librariesInCycles) {
-      LibraryElementBuilder builder = new LibraryElementBuilder(this);
+      LibraryElementBuilder builder = new LibraryElementBuilder(
+          getAnalysisContext(),
+          getErrorListener());
       LibraryElementImpl libraryElement = builder.buildLibrary(library);
       library.setLibraryElement(libraryElement);
     }
