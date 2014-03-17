@@ -334,6 +334,18 @@ public class SemanticHighlightingReconciler implements IDartReconcilingListener,
     fPresenter = null;
   }
 
+  private boolean canReconcilePositions() {
+    ISourceViewer viewer = fSourceViewer;
+    if (viewer == null) {
+      return false;
+    }
+    IDocument document = viewer.getDocument();
+    if (document == null) {
+      return false;
+    }
+    return document.getLength() < MAX_DOCUMENT_LENGTH;
+  }
+
   private final void processNode(SemanticToken token, AstNode node) {
     ISourceViewer sourceViewer = this.fSourceViewer;
     if (sourceViewer == null) {
@@ -395,7 +407,7 @@ public class SemanticHighlightingReconciler implements IDartReconcilingListener,
     Arrays.sort(removedPositions, positionsComparator);
     removedPositionsDeleted = new boolean[removedPositions.length];
 
-    if (fSourceViewer.getDocument().getLength() < MAX_DOCUMENT_LENGTH) {
+    if (canReconcilePositions()) {
       unit.accept(fCollector);
     }
 
