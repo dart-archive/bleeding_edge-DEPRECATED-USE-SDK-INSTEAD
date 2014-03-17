@@ -1,4 +1,4 @@
-util.init
+﻿util.init
 util.openWelcomePage
 Click "sunflower icon"
-util.xWait 3
+util.xWait 5
