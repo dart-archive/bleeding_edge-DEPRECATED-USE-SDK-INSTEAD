@@ -1189,6 +1189,20 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @Override
+  public AngularApplication getAngularApplicationWithHtml(Source htmlSource) {
+    SourceEntry sourceEntry = getReadableSourceEntryOrNull(htmlSource);
+    if (sourceEntry instanceof HtmlEntry) {
+      HtmlEntry htmlEntry = (HtmlEntry) sourceEntry;
+      AngularApplication application = htmlEntry.getValue(HtmlEntry.ANGULAR_APPLICATION);
+      if (application != null) {
+        return application;
+      }
+      return htmlEntry.getValue(HtmlEntry.ANGULAR_ENTRY);
+    }
+    return null;
+  }
+
+  @Override
   public CompilationUnitElement getCompilationUnitElement(Source unitSource, Source librarySource) {
     LibraryElement libraryElement = getLibraryElement(librarySource);
     if (libraryElement != null) {

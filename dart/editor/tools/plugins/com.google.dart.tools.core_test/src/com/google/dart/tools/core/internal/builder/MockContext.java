@@ -21,6 +21,7 @@ import com.google.dart.engine.internal.context.AnalysisOptionsImpl;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
 import com.google.dart.engine.internal.context.ResolvableCompilationUnit;
 import com.google.dart.engine.internal.context.TimestampedData;
+import com.google.dart.engine.internal.element.angular.AngularApplication;
 import com.google.dart.engine.internal.resolver.TypeProvider;
 import com.google.dart.engine.internal.scope.Namespace;
 import com.google.dart.engine.source.ContentCache;
@@ -293,6 +294,11 @@ public class MockContext implements InternalAnalysisContext {
   @Override
   public AnalysisOptions getAnalysisOptions() {
     return options;
+  }
+
+  @Override
+  public AngularApplication getAngularApplicationWithHtml(Source htmlSource) {
+    throw new UnsupportedOperationException();
   }
 
   @Override

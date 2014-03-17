@@ -22,6 +22,7 @@ import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.internal.context.TimestampedData;
+import com.google.dart.engine.internal.element.angular.AngularApplication;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.Source.ContentReceiver;
 import com.google.dart.engine.source.SourceContainer;
@@ -201,6 +202,16 @@ public interface AnalysisContext {
    * @return the set of analysis options controlling the behavior of this context
    */
   public AnalysisOptions getAnalysisOptions();
+
+  /**
+   * Return the Angular application that contains the HTML file defined by the given source, or
+   * {@code null} if the source does not represent an HTML file, the Angular application containing
+   * the file has not yet been resolved, or the analysis of the HTML file failed for some reason.
+   * 
+   * @param htmlSource the source defining the HTML file
+   * @return the Angular application that contains the HTML file defined by the given source
+   */
+  public AngularApplication getAngularApplicationWithHtml(Source htmlSource);
 
   /**
    * Return the element model corresponding to the compilation unit defined by the given source in

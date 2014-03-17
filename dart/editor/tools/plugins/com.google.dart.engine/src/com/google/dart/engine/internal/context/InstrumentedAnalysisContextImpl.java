@@ -17,6 +17,7 @@ import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.internal.cache.SourceEntry;
+import com.google.dart.engine.internal.element.angular.AngularApplication;
 import com.google.dart.engine.internal.resolver.TypeProvider;
 import com.google.dart.engine.internal.scope.Namespace;
 import com.google.dart.engine.source.Source;
@@ -283,6 +284,18 @@ public class InstrumentedAnalysisContextImpl implements InternalAnalysisContext 
     try {
       instrumentation.metric("contextId", contextId);
       return basis.getAnalysisOptions();
+    } finally {
+      instrumentation.log();
+    }
+  }
+
+  @Override
+  public AngularApplication getAngularApplicationWithHtml(Source htmlSource) {
+    InstrumentationBuilder instrumentation = Instrumentation.builder("Analysis-getAngularApplication");
+    checkThread(instrumentation);
+    try {
+      instrumentation.metric("contextId", contextId);
+      return basis.getAngularApplicationWithHtml(htmlSource);
     } finally {
       instrumentation.log();
     }
