@@ -394,7 +394,7 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
         node.setPropagatedElement(propagatedMethod);
 
         if (shouldReportMissingMember(staticType, staticMethod)) {
-          resolver.reportErrorProxyConditionalAnalysisError(
+          resolver.reportProxyConditionalErrorForToken(
               staticType.getElement(),
               StaticTypeWarningCode.UNDEFINED_METHOD,
               operator,
@@ -402,7 +402,7 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
               staticType.getDisplayName());
         } else if (enableHints && shouldReportMissingMember(propagatedType, propagatedMethod)
             && !memberFoundInSubclass(propagatedType.getElement(), methodName, true, false)) {
-          resolver.reportErrorProxyConditionalAnalysisError(
+          resolver.reportProxyConditionalErrorForToken(
               propagatedType.getElement(),
               HintCode.UNDEFINED_METHOD,
               operator,
@@ -431,7 +431,7 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
         node.setPropagatedElement(propagatedMethod);
 
         if (shouldReportMissingMember(staticType, staticMethod)) {
-          resolver.reportErrorProxyConditionalAnalysisError(
+          resolver.reportProxyConditionalErrorForToken(
               staticType.getElement(),
               StaticTypeWarningCode.UNDEFINED_OPERATOR,
               operator,
@@ -439,7 +439,7 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
               staticType.getDisplayName());
         } else if (enableHints && shouldReportMissingMember(propagatedType, propagatedMethod)
             && !memberFoundInSubclass(propagatedType.getElement(), methodName, true, false)) {
-          resolver.reportErrorProxyConditionalAnalysisError(
+          resolver.reportProxyConditionalErrorForToken(
               propagatedType.getElement(),
               HintCode.UNDEFINED_OPERATOR,
               operator,
@@ -1032,7 +1032,7 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
     node.setPropagatedElement(propagatedMethod);
 
     if (shouldReportMissingMember(staticType, staticMethod)) {
-      resolver.reportErrorProxyConditionalAnalysisError(
+      resolver.reportProxyConditionalErrorForToken(
           staticType.getElement(),
           StaticTypeWarningCode.UNDEFINED_OPERATOR,
           node.getOperator(),
@@ -1040,7 +1040,7 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
           staticType.getDisplayName());
     } else if (enableHints && shouldReportMissingMember(propagatedType, propagatedMethod)
         && !memberFoundInSubclass(propagatedType.getElement(), methodName, true, false)) {
-      resolver.reportErrorProxyConditionalAnalysisError(
+      resolver.reportProxyConditionalErrorForToken(
           propagatedType.getElement(),
           HintCode.UNDEFINED_OPERATOR,
           node.getOperator(),
@@ -1138,7 +1138,7 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
       node.setPropagatedElement(propagatedMethod);
 
       if (shouldReportMissingMember(staticType, staticMethod)) {
-        resolver.reportErrorProxyConditionalAnalysisError(
+        resolver.reportProxyConditionalErrorForToken(
             staticType.getElement(),
             StaticTypeWarningCode.UNDEFINED_OPERATOR,
             operator,
@@ -1146,7 +1146,7 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
             staticType.getDisplayName());
       } else if (enableHints && shouldReportMissingMember(propagatedType, propagatedMethod)
           && !memberFoundInSubclass(propagatedType.getElement(), methodName, true, false)) {
-        resolver.reportErrorProxyConditionalAnalysisError(
+        resolver.reportProxyConditionalErrorForToken(
             propagatedType.getElement(),
             HintCode.UNDEFINED_OPERATOR,
             operator,

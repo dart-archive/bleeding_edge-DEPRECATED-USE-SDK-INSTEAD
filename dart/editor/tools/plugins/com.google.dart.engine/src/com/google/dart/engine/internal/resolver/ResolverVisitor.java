@@ -977,21 +977,6 @@ public class ResolverVisitor extends ScopedVisitor {
    * 
    * @param enclosingElement the enclosing element
    * @param errorCode the error code of the error to be reported
-   * @param token the token specifying the location of the error
-   * @param arguments the arguments to the error, used to compose the error message
-   */
-  protected void reportErrorProxyConditionalAnalysisError(Element enclosingElement,
-      ErrorCode errorCode, Token token, Object... arguments) {
-    proxyConditionalAnalysisErrors.add(new ProxyConditionalAnalysisError(
-        enclosingElement,
-        new AnalysisError(getSource(), token.getOffset(), token.getLength(), errorCode, arguments)));
-  }
-
-  /**
-   * Report a conditional analysis error with the given error code and arguments.
-   * 
-   * @param enclosingElement the enclosing element
-   * @param errorCode the error code of the error to be reported
    * @param node the node specifying the location of the error
    * @param arguments the arguments to the error, used to compose the error message
    */
@@ -1016,6 +1001,21 @@ public class ResolverVisitor extends ScopedVisitor {
     proxyConditionalAnalysisErrors.add(new ProxyConditionalAnalysisError(
         enclosingElement,
         new AnalysisError(getSource(), offset, length, errorCode, arguments)));
+  }
+
+  /**
+   * Report a conditional analysis error with the given error code and arguments.
+   * 
+   * @param enclosingElement the enclosing element
+   * @param errorCode the error code of the error to be reported
+   * @param token the token specifying the location of the error
+   * @param arguments the arguments to the error, used to compose the error message
+   */
+  protected void reportProxyConditionalErrorForToken(Element enclosingElement, ErrorCode errorCode,
+      Token token, Object... arguments) {
+    proxyConditionalAnalysisErrors.add(new ProxyConditionalAnalysisError(
+        enclosingElement,
+        new AnalysisError(getSource(), token.getOffset(), token.getLength(), errorCode, arguments)));
   }
 
   @Override
