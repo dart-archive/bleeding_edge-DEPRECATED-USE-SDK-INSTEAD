@@ -23,7 +23,6 @@ import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -34,6 +33,7 @@ import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 
@@ -109,11 +109,24 @@ public class RunPubAction extends InstrumentedSelectionDispatchAction {
       return;
     }
 
+    IContainer container = null;
     IEditorInput editorInput = part.getEditorInput();
-    IProject project = EditorUtility.getProject(editorInput);
-    instrumentation.data("Project", project.getName());
-    savePubspecFile(project);
-    runPubJob(project);
+    if (editorInput instanceof IFileEditorInput) {
+      container = DartCore.getApplicationDirectory(((IFileEditorInput) editorInput).getFile());
+    }
+    if (container != null) {
+      instrumentation.data("Container", container.getName());
+      savePubspecFile(container);
+      runPubJob(container);
+    } else {
+      instrumentation.metric("Problem", "Object was null").log();
+      MessageDialog.openError(
+          getShell(),
+          ActionMessages.RunPubAction_fail,
+          ActionMessages.RunPubAction_fileNotFound);
+
+      instrumentation.log();
+    }
   }
 
   @Override
