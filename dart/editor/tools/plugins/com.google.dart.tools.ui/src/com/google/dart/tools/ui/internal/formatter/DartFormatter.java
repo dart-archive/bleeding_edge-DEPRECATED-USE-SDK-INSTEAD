@@ -61,56 +61,6 @@ import java.util.List;
 @SuppressWarnings("restriction")
 public class DartFormatter {
 
-//  /**
-//   * Run the formatter on the given input path.
-//   * 
-//   * @param path the path to pass to the formatter
-//   * @param monitor the monitor for displaying progress
-//   * @param console the console to which output should be directed
-//   * @throws IOException if an exception was thrown during execution
-//   * @throws CoreException if an exception occurs in file refresh
-//   */
-//  public static void format(IPath path, IProgressMonitor monitor, MessageConsole console)
-//      throws IOException, CoreException {
-//
-//    File dartfmt = DartSdkManager.getManager().getSdk().getDartFmtExecutable();
-//    if (!dartfmt.canExecute()) {
-//      return;
-//    }
-//
-//    ProcessBuilder builder = new ProcessBuilder();
-//
-//    List<String> args = new ArrayList<String>();
-//    args.add(dartfmt.getPath());
-//    args.addAll(buildArguments(path));
-//
-//    builder.command(args);
-//    builder.redirectErrorStream(true);
-//
-//    ProcessRunner runner = new ProcessRunner(builder);
-//    runner.runSync(monitor);
-//
-//    if (runner.getExitCode() == 0) {
-//      ResourcesPlugin.getWorkspace().getRoot().getFile(path).refreshLocal(
-//          IResource.DEPTH_INFINITE,
-//          monitor);
-//    }
-//
-//    StringBuilder sb = new StringBuilder();
-//
-//    if (!runner.getStdOut().isEmpty()) {
-//      sb.append(runner.getStdOut() + "\n");
-//    }
-//
-//    //TODO (pquitslund): better error handling
-//    if (!runner.getStdErr().isEmpty()) {
-//      sb.append(runner.getStdErr() + "\n");
-//    }
-//
-//    console.print(sb.toString());
-//
-//  }
-
   public static class FormatFileAction extends WorkspaceAction {
 
     private List<IFile> files = Arrays.asList(new IFile[0]);
@@ -241,7 +191,9 @@ public class DartFormatter {
     }
     args.add(ARGS_INDENT_FLAG);
     args.add(getInsertSpacesForTabs() ? getSpacesPerIndent() : "tab");
-    args.add(ARGS_TRANSFORMS_FLAG);
+    if (getPerformTransforms()) {
+      args.add(ARGS_TRANSFORMS_FLAG);
+    }
     args.add(ARGS_MACHINE_FORMAT_FLAG);
 
     builder.command(args);
@@ -308,6 +260,11 @@ public class DartFormatter {
         AbstractDecoratedTextEditorPreferenceConstants.EDITOR_PRINT_MARGIN);
   }
 
+  public static boolean getPerformTransforms() {
+    return PreferenceConstants.getPreferenceStore().getBoolean(
+        PreferenceConstants.FORMATTER_PERFORM_TRANSFORMS);
+  }
+
   public static String getSpacesPerIndent() {
     return PreferenceConstants.getPreferenceStore().getString(
         AbstractDecoratedTextEditorPreferenceConstants.EDITOR_TAB_WIDTH);
@@ -336,6 +293,12 @@ public class DartFormatter {
     EditorsPlugin.getDefault().getPreferenceStore().setValue(
         AbstractDecoratedTextEditorPreferenceConstants.EDITOR_PRINT_MARGIN,
         enabled);
+  }
+
+  public static void setPerformTransforms(boolean performTransforms) {
+    PreferenceConstants.getPreferenceStore().setValue(
+        PreferenceConstants.FORMATTER_PERFORM_TRANSFORMS,
+        performTransforms);
   }
 
   public static void setSpacesPerIndent(String tabWidth) {

@@ -102,6 +102,9 @@ public final class PreferencesMessages extends NLS {
 
   public static String DartBasePreferencePage_Browse;
 
+  public static String DartBasePreferencePage_perform_code_transforms;
+  public static String DartBasePreferencePage_perform_code_transforms_tooltip;
+
   public static String DartBasePreferencePage_description;
   public static String DartBasePreferencePage_doubleclick_action;
   public static String DartBasePreferencePage_doubleclick_gointo;

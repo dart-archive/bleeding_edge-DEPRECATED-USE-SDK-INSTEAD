@@ -87,6 +87,8 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
   private Button enableAutoCompletion;
   private Button runPubAutoCheck;
 
+  private Button performCodeTransforms;
+
   public DartBasePreferencePage() {
     setPreferenceStore(DartToolsPlugin.getDefault().getPreferenceStore());
 
@@ -133,6 +135,8 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
       tabWidth = Integer.toString(PreferenceConstants.EDITOR_DEFAULT_TAB_WIDTH);
     }
     DartFormatter.setSpacesPerIndent(tabWidth);
+
+    DartFormatter.setPerformTransforms(performCodeTransforms.getSelection());
 
     handleSave(editorPreferences);
     handleSave(toolsPreferenceStore);
@@ -224,6 +228,12 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
         PreferencesMessages.DartBasePreferencePage_indent_using_spaces_tooltip);
     GridDataFactory.fillDefaults().span(2, 1).applyTo(insertSpacesForTabs);
 
+    performCodeTransforms = createCheckBox(
+        formatGroup,
+        PreferencesMessages.DartBasePreferencePage_perform_code_transforms,
+        PreferencesMessages.DartBasePreferencePage_perform_code_transforms_tooltip);
+    GridDataFactory.fillDefaults().span(2, 1).applyTo(performCodeTransforms);
+
     // Save actions group
     Group saveGroup = new Group(composite, SWT.NONE);
     saveGroup.setText(PreferencesMessages.DartBasePreferencePage_save);
@@ -289,6 +299,7 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
     enableFolding.setSelection(toolsPreferences.getBoolean(PreferenceConstants.EDITOR_FOLDING_ENABLED));
     insertSpacesForTabs.setSelection(DartFormatter.getInsertSpacesForTabs());
     tabDisplaySize.setText(DartFormatter.getSpacesPerIndent());
+    performCodeTransforms.setSelection(DartFormatter.getPerformTransforms());
 
     IEclipsePreferences prefs = DartCore.getPlugin().getPrefs();
     if (prefs != null) {
