@@ -22,7 +22,10 @@ import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.FunctionTypeAlias;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.context.AnalysisException;
+import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
+import com.google.dart.engine.element.ConstructorElement;
+import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.internal.resolver.IncrementalResolver;
@@ -93,27 +96,41 @@ public final class ScopeBuilder {
     }
     Scope scope = scopeForAstNode(parent);
     if (node instanceof ClassDeclaration) {
-      scope = new ClassScope(scope, ((ClassDeclaration) node).getElement());
+      ClassElement element = ((ClassDeclaration) node).getElement();
+      if (element == null) {
+        throw new AnalysisException("Cannot build a scope for an unresolved class");
+      }
+      scope = new ClassScope(scope, element);
     } else if (node instanceof ClassTypeAlias) {
-      scope = new ClassScope(scope, ((ClassTypeAlias) node).getElement());
+      ClassElement element = ((ClassTypeAlias) node).getElement();
+      if (element == null) {
+        throw new AnalysisException("Cannot build a scope for an unresolved class type alias");
+      }
+      scope = new ClassScope(scope, element);
     } else if (node instanceof ConstructorDeclaration) {
-      FunctionScope functionScope = new FunctionScope(
-          scope,
-          ((ConstructorDeclaration) node).getElement());
+      ConstructorElement element = ((ConstructorDeclaration) node).getElement();
+      if (element == null) {
+        throw new AnalysisException("Cannot build a scope for an unresolved constructor");
+      }
+      FunctionScope functionScope = new FunctionScope(scope, element);
       functionScope.defineParameters();
       scope = functionScope;
     } else if (node instanceof FunctionDeclaration) {
-      FunctionScope functionScope = new FunctionScope(
-          scope,
-          ((FunctionDeclaration) node).getElement());
+      ExecutableElement element = ((FunctionDeclaration) node).getElement();
+      if (element == null) {
+        throw new AnalysisException("Cannot build a scope for an unresolved function");
+      }
+      FunctionScope functionScope = new FunctionScope(scope, element);
       functionScope.defineParameters();
       scope = functionScope;
     } else if (node instanceof FunctionTypeAlias) {
       scope = new FunctionTypeScope(scope, ((FunctionTypeAlias) node).getElement());
     } else if (node instanceof MethodDeclaration) {
-      FunctionScope functionScope = new FunctionScope(
-          scope,
-          ((MethodDeclaration) node).getElement());
+      ExecutableElement element = ((MethodDeclaration) node).getElement();
+      if (element == null) {
+        throw new AnalysisException("Cannot build a scope for an unresolved method");
+      }
+      FunctionScope functionScope = new FunctionScope(scope, element);
       functionScope.defineParameters();
       scope = functionScope;
     }

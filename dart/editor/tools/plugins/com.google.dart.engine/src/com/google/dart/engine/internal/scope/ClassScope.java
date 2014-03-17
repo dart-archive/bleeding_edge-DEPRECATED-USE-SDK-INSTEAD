@@ -39,6 +39,9 @@ public class ClassScope extends EnclosedScope {
    */
   public ClassScope(Scope enclosingScope, ClassElement typeElement) {
     super(new EnclosedScope(enclosingScope));
+    if (typeElement == null) {
+      throw new IllegalArgumentException("class element cannot be null");
+    }
     defineTypeParameters(typeElement);
     defineMembers(typeElement);
   }

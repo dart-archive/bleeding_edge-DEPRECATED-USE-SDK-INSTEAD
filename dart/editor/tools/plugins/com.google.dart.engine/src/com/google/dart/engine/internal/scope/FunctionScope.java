@@ -33,6 +33,9 @@ public class FunctionScope extends EnclosedScope {
    */
   public FunctionScope(Scope enclosingScope, ExecutableElement functionElement) {
     super(new EnclosedScope(enclosingScope));
+    if (functionElement == null) {
+      throw new IllegalArgumentException("function element cannot be null");
+    }
     this.functionElement = functionElement;
   }
 
