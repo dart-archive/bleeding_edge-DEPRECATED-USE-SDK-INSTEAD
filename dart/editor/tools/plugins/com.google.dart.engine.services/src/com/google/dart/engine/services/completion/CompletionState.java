@@ -11,6 +11,7 @@ class CompletionState {
   boolean isVoidAllowed;
   boolean isDynamicAllowed;
   boolean isSourceDeclarationStatic;
+  boolean isThisAllowed;
   boolean isVarAllowed;
   boolean areLiteralsAllowed;
   boolean areLiteralsProhibited;
@@ -37,6 +38,10 @@ class CompletionState {
 
   void includesOperators() {
     areOperatorsAllowed = true;
+  }
+
+  void includesThisExpression() {
+    isThisAllowed = true;
   }
 
   void includesUndefinedDeclarationTypes() {

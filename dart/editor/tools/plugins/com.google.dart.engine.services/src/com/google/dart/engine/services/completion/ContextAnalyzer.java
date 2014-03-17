@@ -1,10 +1,11 @@
 package com.google.dart.engine.services.completion;
 
-import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.Annotation;
 import com.google.dart.engine.ast.ArgumentDefinitionTest;
 import com.google.dart.engine.ast.ArgumentList;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.CatchClause;
+import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.Declaration;
 import com.google.dart.engine.ast.Directive;
 import com.google.dart.engine.ast.DoStatement;
@@ -65,6 +66,12 @@ class ContextAnalyzer extends GeneralizingAstVisitor<Void> {
       state.prohibitsLiterals();
     }
     return null;
+  }
+
+  @Override
+  public Void visitClassDeclaration(ClassDeclaration node) {
+    state.includesThisExpression();
+    return super.visitClassDeclaration(node);
   }
 
   @Override

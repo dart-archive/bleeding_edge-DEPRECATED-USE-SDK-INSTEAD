@@ -2184,6 +2184,13 @@ public class CompletionTests extends CompletionTestCase {
         "}"), "1+fa", "1+fb", "1+ma", "1+mb");
   }
 
+  public void testCompletion_this_inTopLevelFunction() throws Exception {
+    test(src(//
+        "main() {",
+        "  this.!1;",
+        "}"), "1-toString");
+  }
+
   public void testCompletion_topLevelField_init2() throws Exception {
     test("class DateTime{static var JUN;}final num M = Dat!1eTime.JUN;", "1+DateTime", "1-void");
   }

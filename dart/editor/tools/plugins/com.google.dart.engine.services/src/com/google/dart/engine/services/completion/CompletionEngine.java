@@ -83,6 +83,7 @@ import com.google.dart.engine.ast.SuperExpression;
 import com.google.dart.engine.ast.SwitchCase;
 import com.google.dart.engine.ast.SwitchMember;
 import com.google.dart.engine.ast.SwitchStatement;
+import com.google.dart.engine.ast.ThisExpression;
 import com.google.dart.engine.ast.TryStatement;
 import com.google.dart.engine.ast.TypeArgumentList;
 import com.google.dart.engine.ast.TypeName;
@@ -1969,6 +1970,9 @@ public class CompletionEngine {
   }
 
   void analyzePrefixedAccess(Expression receiver, SimpleIdentifier completionNode) {
+    if (receiver instanceof ThisExpression && !state.isThisAllowed) {
+      return;
+    }
     Type receiverType = typeOf(receiver);
     boolean forSuper = receiver instanceof SuperExpression;
     analyzePrefixedAccess(receiverType, forSuper, completionNode);
