@@ -792,6 +792,12 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   private AnalysisOptionsImpl options = new AnalysisOptionsImpl();
 
   /**
+   * A flag indicating whether errors related to sources in the SDK should be generated and
+   * reported.
+   */
+  boolean generateSdkErrors = true;
+
+  /**
    * A flag indicating whether this context is disposed.
    */
   private boolean disposed;
@@ -1579,6 +1585,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
 
   @Override
   public AnalysisContentStatistics getStatistics() {
+    boolean hintsEnabled = options.getHint();
     AnalysisContentStatisticsImpl statistics = new AnalysisContentStatisticsImpl();
     synchronized (cacheLock) {
       for (Entry<Source, SourceEntry> mapEntry : cache.entrySet()) {
@@ -1607,13 +1614,17 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
           // get library-specific values
           Source[] librarySources = getLibrariesContaining(source);
           for (Source librarySource : librarySources) {
-            statistics.putCacheItemInLibrary(dartEntry, librarySource, DartEntry.HINTS);
             statistics.putCacheItemInLibrary(dartEntry, librarySource, DartEntry.RESOLUTION_ERRORS);
             statistics.putCacheItemInLibrary(dartEntry, librarySource, DartEntry.RESOLVED_UNIT);
-            statistics.putCacheItemInLibrary(
-                dartEntry,
-                librarySource,
-                DartEntry.VERIFICATION_ERRORS);
+            if (generateSdkErrors || !source.isInSystemLibrary()) {
+              statistics.putCacheItemInLibrary(
+                  dartEntry,
+                  librarySource,
+                  DartEntry.VERIFICATION_ERRORS);
+              if (hintsEnabled) {
+                statistics.putCacheItemInLibrary(dartEntry, librarySource, DartEntry.HINTS);
+              }
+            }
           }
         } else if (entry instanceof HtmlEntry) {
           HtmlEntry htmlEntry = (HtmlEntry) entry;
@@ -1788,6 +1799,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   public void setAnalysisOptions(AnalysisOptions options) {
     synchronized (cacheLock) {
       boolean needsRecompute = this.options.getAnalyzeFunctionBodies() != options.getAnalyzeFunctionBodies()
+          || this.options.getGenerateSdkErrors() != options.getGenerateSdkErrors()
           || this.options.getDart2jsHint() != options.getDart2jsHint()
           || (this.options.getHint() && !options.getHint())
           || this.options.getPreserveComments() != options.getPreserveComments();
@@ -1809,10 +1821,13 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         }
       }
       this.options.setAnalyzeFunctionBodies(options.getAnalyzeFunctionBodies());
+      this.options.setGenerateSdkErrors(options.getGenerateSdkErrors());
       this.options.setDart2jsHint(options.getDart2jsHint());
       this.options.setHint(options.getHint());
       this.options.setIncremental(options.getIncremental());
       this.options.setPreserveComments(options.getPreserveComments());
+
+      generateSdkErrors = options.getGenerateSdkErrors();
 
       if (needsRecompute) {
         invalidateAllResolutionInformation();
@@ -2013,9 +2028,11 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
                 unitEntry = dartCopy;
               }
 
-              ChangeNoticeImpl notice = getNotice(source);
-              notice.setCompilationUnit(unit);
-              notice.setErrors(dartCopy.getAllErrors(), lineInfo);
+              if (generateSdkErrors || !source.isInSystemLibrary()) {
+                ChangeNoticeImpl notice = getNotice(source);
+                notice.setCompilationUnit(unit);
+                notice.setErrors(dartCopy.getAllErrors(), lineInfo);
+              }
             }
           }
         } else {
@@ -2162,9 +2179,11 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
                 unitEntry = dartCopy;
               }
 
-              ChangeNoticeImpl notice = getNotice(source);
-              notice.setCompilationUnit(unit);
-              notice.setErrors(dartCopy.getAllErrors(), lineInfo);
+              if (generateSdkErrors || !source.isInSystemLibrary()) {
+                ChangeNoticeImpl notice = getNotice(source);
+                notice.setCompilationUnit(unit);
+                notice.setErrors(dartCopy.getAllErrors(), lineInfo);
+              }
             }
           }
         } else {
@@ -3279,7 +3298,6 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   private AnalysisTask getNextAnalysisTask() {
     synchronized (cacheLock) {
       boolean hintsEnabled = options.getHint();
-      boolean sdkErrorsEnabled = options.getGenerateSdkErrors();
       boolean hasBlockedTask = false;
       //
       // Look for incremental analysis
@@ -3299,8 +3317,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
             source,
             cache.get(source),
             true,
-            hintsEnabled,
-            sdkErrorsEnabled);
+            hintsEnabled);
         AnalysisTask task = taskData.getTask();
         if (task != null) {
           return task;
@@ -3336,8 +3353,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
             source,
             cache.get(source),
             false,
-            hintsEnabled,
-            sdkErrorsEnabled);
+            hintsEnabled);
         AnalysisTask task = taskData.getTask();
         if (task != null) {
           int count = sourcesToRemove.size();
@@ -3386,12 +3402,10 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
    * @param sourceEntry the cache entry associated with the source
    * @param isPriority {@code true} if the source is a priority source
    * @param hintsEnabled {@code true} if hints are currently enabled
-   * @param sdkErrorsEnabled {@code true} if errors, warnings and hints should be generated for
-   *          sources in the SDK
    * @return the next task that needs to be performed for the given source
    */
   private TaskData getNextAnalysisTaskForSource(Source source, SourceEntry sourceEntry,
-      boolean isPriority, boolean hintsEnabled, boolean sdkErrorsEnabled) {
+      boolean isPriority, boolean hintsEnabled) {
     if (sourceEntry == null) {
       return new TaskData(null, false);
     }
@@ -3432,11 +3446,11 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       SourceKind kind = dartEntry.getValue(DartEntry.SOURCE_KIND);
       if (kind == SourceKind.UNKNOWN) {
         return createParseDartTask(source, dartEntry);
-//      } else if (kind == SourceKind.LIBRARY) {
-//        CacheState elementState = dartEntry.getState(DartEntry.ELEMENT);
-//        if (elementState == CacheState.INVALID) {
-//          return createResolveDartLibraryTask(source, dartEntry);
-//        }
+      } else if (kind == SourceKind.LIBRARY) {
+        CacheState elementState = dartEntry.getState(DartEntry.ELEMENT);
+        if (elementState == CacheState.INVALID) {
+          return createResolveDartLibraryTask(source, dartEntry);
+        }
       }
 
       Source[] librariesContaining = dartEntry.getValue(DartEntry.CONTAINING_LIBRARIES);
@@ -3473,7 +3487,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
             return new TaskData(new ResolveDartLibraryTask(this, source, librarySource), false);
             //}
           }
-          if (sdkErrorsEnabled || !source.isInSystemLibrary()) {
+          if (generateSdkErrors || !source.isInSystemLibrary()) {
             CacheState verificationErrorsState = dartEntry.getStateInLibrary(
                 DartEntry.VERIFICATION_ERRORS,
                 librarySource);
@@ -3840,8 +3854,10 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       dartCopy.setValue(DartEntry.ANGULAR_ERRORS, AnalysisError.NO_ERRORS);
       cache.put(elementSource, dartCopy);
       // notify about (disappeared) Angular errors
-      ChangeNoticeImpl notice = getNotice(elementSource);
-      notice.setErrors(dartCopy.getAllErrors(), dartEntry.getValue(SourceEntry.LINE_INFO));
+      if (generateSdkErrors || !elementSource.isInSystemLibrary()) {
+        ChangeNoticeImpl notice = getNotice(elementSource);
+        notice.setErrors(dartCopy.getAllErrors(), dartEntry.getValue(SourceEntry.LINE_INFO));
+      }
     }
   }
 
@@ -3997,8 +4013,10 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         dartCopy.setValue(DartEntry.ANGULAR_ERRORS, task.getErrors(elementSource));
         cache.put(elementSource, dartCopy);
         // notify about Dart errors
-        ChangeNoticeImpl notice = getNotice(elementSource);
-        notice.setErrors(dartCopy.getAllErrors(), computeLineInfo(elementSource));
+        if (generateSdkErrors || !elementSource.isInSystemLibrary()) {
+          ChangeNoticeImpl notice = getNotice(elementSource);
+          notice.setErrors(dartCopy.getAllErrors(), computeLineInfo(elementSource));
+        }
       }
     }
     // remember Angular entry point
@@ -4084,8 +4102,10 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         DartEntryImpl dartCopy = dartEntry.getWritableCopy();
         if (thrownException == null) {
           dartCopy.setValueInLibrary(DartEntry.VERIFICATION_ERRORS, librarySource, task.getErrors());
-          ChangeNoticeImpl notice = getNotice(source);
-          notice.setErrors(dartCopy.getAllErrors(), dartCopy.getValue(SourceEntry.LINE_INFO));
+          if (generateSdkErrors || !source.isInSystemLibrary()) {
+            ChangeNoticeImpl notice = getNotice(source);
+            notice.setErrors(dartCopy.getAllErrors(), dartCopy.getValue(SourceEntry.LINE_INFO));
+          }
         } else {
           dartCopy.setStateInLibrary(DartEntry.VERIFICATION_ERRORS, librarySource, CacheState.ERROR);
         }
@@ -4198,8 +4218,10 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
           DartEntryImpl dartCopy = dartEntry.getWritableCopy();
           if (thrownException == null) {
             dartCopy.setValueInLibrary(DartEntry.HINTS, librarySource, results.getData());
-            ChangeNoticeImpl notice = getNotice(unitSource);
-            notice.setErrors(dartCopy.getAllErrors(), dartCopy.getValue(SourceEntry.LINE_INFO));
+            if (generateSdkErrors || !unitSource.isInSystemLibrary()) {
+              ChangeNoticeImpl notice = getNotice(unitSource);
+              notice.setErrors(dartCopy.getAllErrors(), dartCopy.getValue(SourceEntry.LINE_INFO));
+            }
           } else {
             dartCopy.setStateInLibrary(DartEntry.HINTS, librarySource, CacheState.ERROR);
           }
@@ -4293,8 +4315,10 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     synchronized (cacheLock) {
       CompilationUnit unit = task.getCompilationUnit();
       if (unit != null) {
-        ChangeNoticeImpl notice = getNotice(task.getSource());
-        notice.setCompilationUnit(unit);
+        if (generateSdkErrors || !task.getSource().isInSystemLibrary()) {
+          ChangeNoticeImpl notice = getNotice(task.getSource());
+          notice.setCompilationUnit(unit);
+        }
         incrementalAnalysisCache = IncrementalAnalysisCache.cacheResult(task.getCache(), unit);
       }
     }
@@ -4366,8 +4390,10 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
           dartCopy.setValue(DartEntry.INCLUDED_PARTS, newParts);
           cache.storedAst(source);
 
-          ChangeNoticeImpl notice = getNotice(source);
-          notice.setErrors(dartCopy.getAllErrors(), dartCopy.getValue(SourceEntry.LINE_INFO));
+          if (generateSdkErrors || !source.isInSystemLibrary()) {
+            ChangeNoticeImpl notice = getNotice(source);
+            notice.setErrors(dartCopy.getAllErrors(), dartCopy.getValue(SourceEntry.LINE_INFO));
+          }
 
           // Verify that the incrementally parsed and resolved unit in the incremental cache
           // is structurally equivalent to the fully parsed unit
@@ -4466,8 +4492,10 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
           htmlCopy.setValue(HtmlEntry.REFERENCED_LIBRARIES, task.getReferencedLibraries());
           cache.storedAst(source);
 
-          ChangeNoticeImpl notice = getNotice(source);
-          notice.setErrors(htmlCopy.getAllErrors(), lineInfo);
+          if (generateSdkErrors || !source.isInSystemLibrary()) {
+            ChangeNoticeImpl notice = getNotice(source);
+            notice.setErrors(htmlCopy.getAllErrors(), lineInfo);
+          }
         } else {
           htmlCopy.recordParseError();
           cache.removedAst(source);
@@ -4561,9 +4589,11 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         if (thrownException == null) {
           htmlCopy.setValue(HtmlEntry.ANGULAR_ERRORS, task.getResolutionErrors());
           // notify about errors
-          ChangeNoticeImpl notice = getNotice(source);
-          notice.setHtmlUnit(task.getResolvedUnit());
-          notice.setErrors(htmlCopy.getAllErrors(), htmlCopy.getValue(SourceEntry.LINE_INFO));
+          if (generateSdkErrors || !source.isInSystemLibrary()) {
+            ChangeNoticeImpl notice = getNotice(source);
+            notice.setHtmlUnit(task.getResolvedUnit());
+            notice.setErrors(htmlCopy.getAllErrors(), htmlCopy.getValue(SourceEntry.LINE_INFO));
+          }
         } else {
           htmlCopy.recordResolutionError();
         }
@@ -4650,9 +4680,11 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
           recordAngularEntryPoint(htmlCopy, task);
           cache.storedAst(source);
 
-          ChangeNoticeImpl notice = getNotice(source);
-          notice.setHtmlUnit(task.getResolvedUnit());
-          notice.setErrors(htmlCopy.getAllErrors(), htmlCopy.getValue(SourceEntry.LINE_INFO));
+          if (generateSdkErrors || !source.isInSystemLibrary()) {
+            ChangeNoticeImpl notice = getNotice(source);
+            notice.setHtmlUnit(task.getResolvedUnit());
+            notice.setErrors(htmlCopy.getAllErrors(), htmlCopy.getValue(SourceEntry.LINE_INFO));
+          }
         } else {
           htmlCopy.recordResolutionError();
         }
@@ -4828,9 +4860,11 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
           htmlCopy.setValue(HtmlEntry.RESOLUTION_ERRORS, task.getResolutionErrors());
           cache.storedAst(source);
 
-          ChangeNoticeImpl notice = getNotice(source);
-          notice.setHtmlUnit(task.getResolvedUnit());
-          notice.setErrors(htmlCopy.getAllErrors(), htmlCopy.getValue(SourceEntry.LINE_INFO));
+          if (generateSdkErrors || !source.isInSystemLibrary()) {
+            ChangeNoticeImpl notice = getNotice(source);
+            notice.setHtmlUnit(task.getResolvedUnit());
+            notice.setErrors(htmlCopy.getAllErrors(), htmlCopy.getValue(SourceEntry.LINE_INFO));
+          }
         } else {
           htmlCopy.recordResolutionError();
           cache.removedAst(source);
@@ -4921,8 +4955,10 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
           cache.storedAst(source);
           workManager.add(source, SourcePriority.NORMAL_PART);
 
-          ChangeNoticeImpl notice = getNotice(source);
-          notice.setErrors(dartEntry.getAllErrors(), lineInfo);
+          if (generateSdkErrors || !source.isInSystemLibrary()) {
+            ChangeNoticeImpl notice = getNotice(source);
+            notice.setErrors(dartEntry.getAllErrors(), lineInfo);
+          }
         } else {
           removeFromParts(source, dartEntry);
           dartCopy.recordScanError();
