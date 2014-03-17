@@ -29,7 +29,7 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 public class RunInBrowserPropertyTester extends PropertyTester {
 
   private static final String CAN_LAUNCH_BROWSER = "canLaunchBrowser";
-  private static final String CAN_PUB_BUILD = "canPubBuild";
+  private static final String CAN_RUN_AS_JS = "canRunAsJs";
 
   public RunInBrowserPropertyTester() {
 
@@ -51,7 +51,7 @@ public class RunInBrowserPropertyTester extends PropertyTester {
       }
     }
 
-    if (CAN_PUB_BUILD.equalsIgnoreCase(property)) {
+    if (CAN_RUN_AS_JS.equalsIgnoreCase(property)) {
       if (receiver instanceof IStructuredSelection) {
         Object o = ((IStructuredSelection) receiver).getFirstElement();
         if (o instanceof IFile) {

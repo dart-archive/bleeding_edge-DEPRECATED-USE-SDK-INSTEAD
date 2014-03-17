@@ -26,9 +26,9 @@
       </propertyTester>
        <propertyTester
             class="com.google.dart.tools.debug.ui.launch.RunInBrowserPropertyTester"
-            id="com.google.dart.tools.debug.ui.run.pubBuildPropertyTester"
+            id="com.google.dart.tools.debug.ui.run.jsPropertyTester"
             namespace="com.google.dart.tools.debug.ui.launch"
-            properties=" canPubBuild"
+            properties=" canRunAsJs"
             type="org.eclipse.jface.viewers.ISelection">
       </propertyTester>
        <propertyTester
@@ -483,9 +483,9 @@
       </command>
       <command
             categoryId="org.eclipse.ui.category.window"
-            defaultHandler="com.google.dart.tools.debug.ui.launch.RunPubBuildHandler"
+            defaultHandler="com.google.dart.tools.debug.ui.launch.RunAsJavaScriptHandler"
             description="Run as JavaScript"
-            id="com.google.dart.tools.debug.ui.run.pubbuild"
+            id="com.google.dart.tools.debug.ui.run.js"
             name="Run as JavaScript">
       </command>
    </extension>
@@ -603,7 +603,7 @@
             allPopups="false"
             locationURI="popup:com.google.dart.tools.ui.FileExplorer?after=additions">
          <command
-               commandId="com.google.dart.tools.debug.ui.run.pubbuild"
+               commandId="com.google.dart.tools.debug.ui.run.js"
                icon="icons/obj16/run_exc.png"
                label="Run as JavaScript"
                style="push">
@@ -617,7 +617,7 @@
                   <and>
                      <test
                            forcePluginActivation="true"
-                           property="com.google.dart.tools.debug.ui.launch.canPubBuild">
+                           property="com.google.dart.tools.debug.ui.launch.canRunAsJs">
                      </test>
                   </and>
                </with>
