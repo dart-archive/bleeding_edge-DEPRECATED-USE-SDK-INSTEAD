@@ -573,12 +573,13 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
      * 
      * @param library the library being tested
      */
-    private void ensureExports(ResolvableLibrary library) {
+    private void ensureExports(ResolvableLibrary library, HashSet<Source> visitedLibraries) {
       ResolvableLibrary[] dependencies = library.getExports();
       int dependencyCount = dependencies.length;
       for (int i = 0; i < dependencyCount; i++) {
         ResolvableLibrary dependency = dependencies[i];
-        if (!librariesInCycle.contains(dependency)) {
+        if (!librariesInCycle.contains(dependency)
+            && visitedLibraries.add(dependency.getLibrarySource())) {
           if (dependency.getLibraryElement() == null) {
             Source dependencySource = dependency.getLibrarySource();
             workManager.addFirst(dependencySource, SourcePriority.LIBRARY);
@@ -588,7 +589,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
                   getReadableDartEntry(dependencySource));
             }
           } else {
-            ensureExports(dependency);
+            ensureExports(dependency, visitedLibraries);
           }
         }
       }
@@ -624,11 +625,12 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
      * cycle (but are not themselves in the cycle) have element models built for them.
      */
     private void ensureImportsAndExports() {
+      HashSet<Source> visitedLibraries = new HashSet<Source>();
       int libraryCount = librariesInCycle.size();
       for (int i = 0; i < libraryCount; i++) {
         ResolvableLibrary library = librariesInCycle.get(i);
         ensureImports(library);
-        ensureExports(library);
+        ensureExports(library, visitedLibraries);
       }
     }
 
@@ -3416,11 +3418,11 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       SourceKind kind = dartEntry.getValue(DartEntry.SOURCE_KIND);
       if (kind == SourceKind.UNKNOWN) {
         return createParseDartTask(source, dartEntry);
-      } else if (kind == SourceKind.LIBRARY) {
-        CacheState elementState = dartEntry.getState(DartEntry.ELEMENT);
-        if (elementState == CacheState.INVALID) {
-          return createResolveDartLibraryTask(source, dartEntry);
-        }
+//      } else if (kind == SourceKind.LIBRARY) {
+//        CacheState elementState = dartEntry.getState(DartEntry.ELEMENT);
+//        if (elementState == CacheState.INVALID) {
+//          return createResolveDartLibraryTask(source, dartEntry);
+//        }
       }
 
       Source[] librariesContaining = dartEntry.getValue(DartEntry.CONTAINING_LIBRARIES);
