@@ -53,7 +53,6 @@ public abstract class MockContainer extends MockResource implements IContainer {
     }
   }
 
-  @Override
   public void accept(IResourceProxyVisitor visitor, int depth, int memberFlags)
       throws CoreException {
     accept(visitor, memberFlags);
