@@ -594,6 +594,7 @@ public class CompletionEngine {
             node.getLeftParenthesis().getEnd(),
             node.getRightParenthesis().getOffset())) {
           analyzeLocalName(completionNode);
+          analyzePositionalArgument(node, completionNode);
           analyzeNamedParameter(node, completionNode);
         }
       }
@@ -1007,6 +1008,7 @@ public class CompletionEngine {
           node.getRightParenthesis().getOffset())) {
         Ident ident = new Ident(node);
         analyzeLocalName(ident);
+        analyzePositionalArgument(node, ident);
         analyzeNamedParameter(node, ident);
       }
       return null;
@@ -1885,30 +1887,7 @@ public class CompletionEngine {
     // Completion x!
     filter = new Filter(identifier);
     // prepare parameters
-    ParameterElement[] parameters = null;
-    AstNode argsParent = args.getParent();
-    if (argsParent instanceof MethodInvocation) {
-      MethodInvocation invocation = (MethodInvocation) argsParent;
-      Element nameElement = invocation.getMethodName().getStaticElement();
-      FunctionType functionType = getFunctionType(nameElement);
-      if (functionType != null) {
-        parameters = functionType.getParameters();
-      }
-    }
-    if (argsParent instanceof InstanceCreationExpression) {
-      InstanceCreationExpression creation = (InstanceCreationExpression) argsParent;
-      ConstructorElement element = creation.getStaticElement();
-      if (element != null) {
-        parameters = ((ExecutableElement) element).getParameters();
-      }
-    }
-    if (argsParent instanceof Annotation) {
-      Annotation annotation = (Annotation) argsParent;
-      Element element = annotation.getElement();
-      if (element instanceof ConstructorElement) {
-        parameters = ((ConstructorElement) element).getParameters();
-      }
-    }
+    ParameterElement[] parameters = getParameterElements(args);
     if (parameters == null) {
       return;
     }
@@ -1966,6 +1945,36 @@ public class CompletionEngine {
       if (typeName != null && !typeName.isEmpty()) {
         pParamName(makeNonconflictingName(typeName.toLowerCase(), names));
       }
+    }
+  }
+
+  void analyzePositionalArgument(ArgumentList args, SimpleIdentifier identifier) {
+    // Show parameter name only if there is nothing to complete, so that if there is only
+    // one match, we won't to force user to choose.
+    if (!StringUtils.isEmpty(identifier.getName())) {
+      return;
+    }
+    // prepare parameters
+    ParameterElement[] parameters = getParameterElements(args);
+    if (parameters == null) {
+      return;
+    }
+    // show current parameter
+    int argIndex = args.getArguments().indexOf(identifier);
+    if (argIndex == -1) {
+      argIndex = 0;
+    }
+    if (argIndex >= 0 && argIndex < parameters.length) {
+      ParameterElement parameter = parameters[argIndex];
+      String parameterName = parameter.getDisplayName();
+      CompletionProposal prop = createProposal(ProposalKind.OPTIONAL_ARGUMENT);
+      prop.setCompletion(parameterName);
+      prop.setParameterName(parameterName);
+      prop.setParameterType(parameter.getType().getDisplayName());
+      prop.setLocation(identifier.getOffset());
+      prop.setReplacementLength(identifier.getLength());
+      prop.setRelevance(CompletionProposal.RELEVANCE_HIGH);
+      requestor.accept(prop);
     }
   }
 
@@ -2586,6 +2595,34 @@ public class CompletionEngine {
 
   private ClassElement getObjectClassElement() {
     return getTypeProvider().getObjectType().getElement();
+  }
+
+  private ParameterElement[] getParameterElements(ArgumentList args) {
+    ParameterElement[] parameters = null;
+    AstNode argsParent = args.getParent();
+    if (argsParent instanceof MethodInvocation) {
+      MethodInvocation invocation = (MethodInvocation) argsParent;
+      Element nameElement = invocation.getMethodName().getStaticElement();
+      FunctionType functionType = getFunctionType(nameElement);
+      if (functionType != null) {
+        parameters = functionType.getParameters();
+      }
+    }
+    if (argsParent instanceof InstanceCreationExpression) {
+      InstanceCreationExpression creation = (InstanceCreationExpression) argsParent;
+      ConstructorElement element = creation.getStaticElement();
+      if (element != null) {
+        parameters = ((ExecutableElement) element).getParameters();
+      }
+    }
+    if (argsParent instanceof Annotation) {
+      Annotation annotation = (Annotation) argsParent;
+      Element element = annotation.getElement();
+      if (element instanceof ConstructorElement) {
+        parameters = ((ConstructorElement) element).getParameters();
+      }
+    }
+    return parameters;
   }
 
   private TypeProvider getTypeProvider() {

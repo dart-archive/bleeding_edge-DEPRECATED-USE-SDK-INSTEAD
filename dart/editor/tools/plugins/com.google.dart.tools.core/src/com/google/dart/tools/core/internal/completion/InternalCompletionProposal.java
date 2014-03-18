@@ -866,6 +866,9 @@ public class InternalCompletionProposal extends CompletionProposal {
       case CompletionProposal.ARGUMENT_LIST:
         buffer.append("ARGUMENT_LIST");
         break;
+      case CompletionProposal.OPTIONAL_ARGUMENT:
+        buffer.append("OPTIONAL_ARGUMENT");
+        break;
       case CompletionProposal.NAMED_ARGUMENT:
         buffer.append("NAMED_ARGUMENT");
         break;

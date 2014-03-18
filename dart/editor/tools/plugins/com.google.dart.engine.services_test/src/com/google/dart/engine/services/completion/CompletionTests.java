@@ -2045,6 +2045,28 @@ public class CompletionTests extends CompletionTestCase {
         "1-List");
   }
 
+  public void testCompletion_positionalArgument_constructor() throws Exception {
+    test(src(//
+        "class A {",
+        "  A([foo, bar]);",
+        "}",
+        "main() {",
+        "  new A(!1);",
+        "  new A(0, !2);",
+        "}"), "1+foo:" + ProposalKind.OPTIONAL_ARGUMENT, "1-bar", "2-foo", "2+bar:"
+        + ProposalKind.OPTIONAL_ARGUMENT);
+  }
+
+  public void testCompletion_positionalArgument_function() throws Exception {
+    test(src(//
+        "func([foo, bar]) {}",
+        "main() {",
+        "  func(!1);",
+        "  func(0, !2);",
+        "}"), "1+foo:" + ProposalKind.OPTIONAL_ARGUMENT, "1-bar", "2-foo", "2+bar:"
+        + ProposalKind.OPTIONAL_ARGUMENT);
+  }
+
   public void testCompletion_privateElement_sameLibrary_constructor() throws Exception {
     test(src(//
         "class A {",

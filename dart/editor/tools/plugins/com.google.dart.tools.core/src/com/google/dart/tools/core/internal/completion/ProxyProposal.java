@@ -89,6 +89,8 @@ public class ProxyProposal extends CompletionProposal {
         return CompletionProposal.METHOD_REF;
       case METHOD_NAME:
         return CompletionProposal.METHOD_NAME_REFERENCE;
+      case OPTIONAL_ARGUMENT:
+        return CompletionProposal.OPTIONAL_ARGUMENT;
       case NAMED_ARGUMENT:
         return CompletionProposal.NAMED_ARGUMENT;
       case PARAMETER:

@@ -60,7 +60,7 @@ public final class FilledArgumentNamesMethodProposal extends DartMethodCompletio
     String replacement = getReplacementString();
 
     ITextViewer textViewer = getTextViewer();
-    if (fArgumentOffsets != null && textViewer != null) {
+    if (fArgumentOffsets != null && fArgumentOffsets.length != 0 && textViewer != null) {
       try {
         OptionalArgumentModel model = new OptionalArgumentModel();
         buildLinkedModeModel(model, document, baseOffset);
@@ -144,8 +144,14 @@ public final class FilledArgumentNamesMethodProposal extends DartMethodCompletio
       appendMethodNameReplacement(buffer);
     }
 
+    int positionalCount = fProposal.getPositionalParameterCount();
+    boolean hasNamed = fProposal.hasNamedParameters();
+
     char[][] parameterNames = fProposal.findParameterNames(null);
     int count = parameterNames.length;
+    if (fProposal.getKind() != CompletionProposal.ARGUMENT_LIST) {
+      count = positionalCount;
+    }
     fArgumentOffsets = new int[count];
     fArgumentLengths = new int[count];
 
@@ -157,8 +163,6 @@ public final class FilledArgumentNamesMethodProposal extends DartMethodCompletio
       buffer.append(SPACE);
     }
 
-    boolean hasNamed = fProposal.hasNamedParameters();
-    int positionalCount = fProposal.getPositionalParameterCount();
     for (int i = 0; i != count; i++) {
       if (i != 0) {
         if (prefs.beforeComma) {

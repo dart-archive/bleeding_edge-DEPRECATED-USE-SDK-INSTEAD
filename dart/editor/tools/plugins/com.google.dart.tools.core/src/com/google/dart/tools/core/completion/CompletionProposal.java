@@ -612,7 +612,9 @@ public class CompletionProposal {
 
   public static final int ARGUMENT_LIST = 28;
 
-  public static final int NAMED_ARGUMENT = 29;
+  public static final int OPTIONAL_ARGUMENT = 29;
+
+  public static final int NAMED_ARGUMENT = 30;
 
   /**
    * First valid completion kind.

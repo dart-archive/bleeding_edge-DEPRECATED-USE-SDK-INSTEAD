@@ -24,14 +24,14 @@ import org.eclipse.jface.text.source.SourceViewer;
 import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.swt.widgets.Display;
 
-public class NamedArgumentCompletionProposal extends AbstractDartCompletionProposal {
+public class OptionalArgumentCompletionProposal extends AbstractDartCompletionProposal {
   private final String name;
   private final String type;
 
-  public NamedArgumentCompletionProposal(CompletionProposal proxy) {
+  public OptionalArgumentCompletionProposal(CompletionProposal proxy) {
     setReplacementOffset(proxy.getReplaceStart());
     setReplacementLength(proxy.getReplaceEnd() - proxy.getReceiverStart());
-    String completion = new String(proxy.getCompletion()) + ": ";
+    String completion = "";
     setReplacementString(completion);
     setSortString(completion);
     setCursorPosition(completion.length());
@@ -54,7 +54,7 @@ public class NamedArgumentCompletionProposal extends AbstractDartCompletionPropo
 
   @Override
   public StyledString getStyledDisplayString() {
-    return new StyledString("{" + type + " " + name + "}");
+    return new StyledString("[" + type + " " + name + "]");
   }
 
   @Override
