@@ -104,7 +104,7 @@ public class PubConnectionTest extends TestCase {
     latch = new CountDownLatch(1);
     command.serveDirectory("test", serveDirectoryCallback);
     if (!latch.await(3000, TimeUnit.MILLISECONDS)) {
-      throw new Exception("No response from pub command urlToAssestId");
+      throw new Exception("No response from pub command serveDirectory");
     }
 
   }
@@ -194,6 +194,7 @@ public class PubConnectionTest extends TestCase {
     args.add(port);
     args.add("--hostname");
     args.add("127.0.0.1");
+    //  args.add("--verbose");
     return args;
   }
 
