@@ -13,12 +13,14 @@
  */
 package com.google.dart.engine.internal.resolver;
 
+import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.Block;
 import com.google.dart.engine.ast.CatchClause;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.ClassTypeAlias;
 import com.google.dart.engine.ast.ConstructorDeclaration;
+import com.google.dart.engine.ast.Declaration;
 import com.google.dart.engine.ast.DeclaredIdentifier;
 import com.google.dart.engine.ast.DoStatement;
 import com.google.dart.engine.ast.FieldDeclaration;
@@ -45,7 +47,10 @@ import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationStatement;
 import com.google.dart.engine.ast.WhileStatement;
 import com.google.dart.engine.ast.visitor.UnifyingAstVisitor;
+import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
+import com.google.dart.engine.element.ConstructorElement;
+import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.LabelElement;
 import com.google.dart.engine.element.LibraryElement;
@@ -258,9 +263,17 @@ public abstract class ScopedVisitor extends UnifyingAstVisitor<Void> {
 
   @Override
   public Void visitClassDeclaration(ClassDeclaration node) {
+    ClassElement classElement = node.getElement();
     Scope outerScope = nameScope;
     try {
-      nameScope = new ClassScope(nameScope, node.getElement());
+      if (classElement == null) {
+        AnalysisEngine.getInstance().getLogger().logInformation(
+            "Missing element for constructor " + node.getName().getName() + " in "
+                + getDefiningLibrary().getSource().getFullName(),
+            new Exception());
+      } else {
+        nameScope = new ClassScope(nameScope, classElement);
+      }
       visitClassDeclarationInScope(node);
     } finally {
       nameScope = outerScope;
@@ -282,9 +295,23 @@ public abstract class ScopedVisitor extends UnifyingAstVisitor<Void> {
 
   @Override
   public Void visitConstructorDeclaration(ConstructorDeclaration node) {
+    ConstructorElement constructorElement = node.getElement();
     Scope outerScope = nameScope;
     try {
-      nameScope = new FunctionScope(nameScope, node.getElement());
+      if (constructorElement == null) {
+        StringBuilder builder = new StringBuilder();
+        builder.append("Missing element for constructor ");
+        builder.append(node.getReturnType().getName());
+        if (node.getName() != null) {
+          builder.append(".");
+          builder.append(node.getName().getName());
+        }
+        builder.append(" in ");
+        builder.append(getDefiningLibrary().getSource().getFullName());
+        AnalysisEngine.getInstance().getLogger().logInformation(builder.toString(), new Exception());
+      } else {
+        nameScope = new FunctionScope(nameScope, constructorElement);
+      }
       super.visitConstructorDeclaration(node);
     } finally {
       nameScope = outerScope;
@@ -364,7 +391,10 @@ public abstract class ScopedVisitor extends UnifyingAstVisitor<Void> {
     Scope outerScope = nameScope;
     try {
       if (functionElement == null) {
-        // TODO(brianwilkerson) Report this internal error
+        AnalysisEngine.getInstance().getLogger().logInformation(
+            "Missing element for top-level function " + node.getName().getName() + " in "
+                + getDefiningLibrary().getSource().getFullName(),
+            new Exception());
       } else {
         nameScope = new FunctionScope(nameScope, functionElement);
       }
@@ -388,7 +418,21 @@ public abstract class ScopedVisitor extends UnifyingAstVisitor<Void> {
       try {
         ExecutableElement functionElement = node.getElement();
         if (functionElement == null) {
-          // TODO(brianwilkerson) Report this internal error
+          StringBuilder builder = new StringBuilder();
+          builder.append("Missing element for function ");
+          AstNode parent = node.getParent();
+          while (parent != null) {
+            if (parent instanceof Declaration) {
+              Element parentElement = ((Declaration) parent).getElement();
+              builder.append(parentElement == null ? "<unknown> " : (parentElement.getName() + " "));
+            }
+            parent = parent.getParent();
+          }
+          builder.append("in ");
+          builder.append(getDefiningLibrary().getSource().getFullName());
+          AnalysisEngine.getInstance().getLogger().logInformation(
+              builder.toString(),
+              new Exception());
         } else {
           nameScope = new FunctionScope(nameScope, functionElement);
         }
@@ -435,7 +479,15 @@ public abstract class ScopedVisitor extends UnifyingAstVisitor<Void> {
   public Void visitMethodDeclaration(MethodDeclaration node) {
     Scope outerScope = nameScope;
     try {
-      nameScope = new FunctionScope(nameScope, node.getElement());
+      ExecutableElement methodElement = node.getElement();
+      if (methodElement == null) {
+        AnalysisEngine.getInstance().getLogger().logInformation(
+            "Missing element for method " + node.getName().getName() + " in "
+                + getDefiningLibrary().getSource().getFullName(),
+            new Exception());
+      } else {
+        nameScope = new FunctionScope(nameScope, methodElement);
+      }
       super.visitMethodDeclaration(node);
     } finally {
       nameScope = outerScope;
