@@ -2169,7 +2169,55 @@ public class CompletionTests extends CompletionTestCase {
         "}"), "1+fooA", "1+fooB", "1-bar");
   }
 
-  public void testCompletion_this() throws Exception {
+  public void testCompletion_this_bad_inConstructorInitializer() throws Exception {
+    test(src(//
+        "class A {",
+        "  var f;",
+        "  A() : f = this.!1;",
+        "}"), "1-toString");
+  }
+
+  public void testCompletion_this_bad_inFieldDeclaration() throws Exception {
+    test(src(//
+        "class A {",
+        "  var f = this.!1;",
+        "}"), "1-toString");
+  }
+
+  public void testCompletion_this_bad_inStaticMethod() throws Exception {
+    test(src(//
+        "class A {",
+        "  static m() {",
+        "    this.!1;",
+        "  }",
+        "}"), "1-toString");
+  }
+
+  public void testCompletion_this_bad_inTopLevelFunction() throws Exception {
+    test(src(//
+        "main() {",
+        "  this.!1;",
+        "}"), "1-toString");
+  }
+
+  public void testCompletion_this_bad_inTopLevelVariableDeclaration() throws Exception {
+    test(src(//
+        "var v = this.!1;"),
+        "1-toString");
+  }
+
+  public void testCompletion_this_OK_inConstructorBody() throws Exception {
+    test(src(//
+        "class A {",
+        "  var f;",
+        "  m() {}",
+        "  A() {",
+        "    this.!1;",
+        "  }",
+        "}"), "1+f", "1+m");
+  }
+
+  public void testCompletion_this_OK_localAndSuper() throws Exception {
     test(src(//
         "class A {",
         "  var fa;",
@@ -2182,13 +2230,6 @@ public class CompletionTests extends CompletionTestCase {
         "    this.!1",
         "  }",
         "}"), "1+fa", "1+fb", "1+ma", "1+mb");
-  }
-
-  public void testCompletion_this_inTopLevelFunction() throws Exception {
-    test(src(//
-        "main() {",
-        "  this.!1;",
-        "}"), "1-toString");
   }
 
   public void testCompletion_topLevelField_init2() throws Exception {

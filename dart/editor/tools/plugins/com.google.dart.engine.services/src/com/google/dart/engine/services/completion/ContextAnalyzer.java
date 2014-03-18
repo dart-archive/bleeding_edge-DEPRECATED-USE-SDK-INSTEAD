@@ -6,10 +6,13 @@ import com.google.dart.engine.ast.ArgumentList;
 import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.CatchClause;
 import com.google.dart.engine.ast.ClassDeclaration;
+import com.google.dart.engine.ast.CompilationUnitMember;
+import com.google.dart.engine.ast.ConstructorInitializer;
 import com.google.dart.engine.ast.Declaration;
 import com.google.dart.engine.ast.Directive;
 import com.google.dart.engine.ast.DoStatement;
 import com.google.dart.engine.ast.Expression;
+import com.google.dart.engine.ast.FieldDeclaration;
 import com.google.dart.engine.ast.ForEachStatement;
 import com.google.dart.engine.ast.FunctionExpression;
 import com.google.dart.engine.ast.FunctionTypeAlias;
@@ -29,7 +32,6 @@ import com.google.dart.engine.ast.WhileStatement;
 import com.google.dart.engine.ast.WithClause;
 import com.google.dart.engine.ast.visitor.GeneralizingAstVisitor;
 import com.google.dart.engine.element.ClassElement;
-import com.google.dart.engine.element.Element;
 
 /**
  * @coverage com.google.dart.engine.services.completion
@@ -69,9 +71,17 @@ class ContextAnalyzer extends GeneralizingAstVisitor<Void> {
   }
 
   @Override
-  public Void visitClassDeclaration(ClassDeclaration node) {
-    state.includesThisExpression();
-    return super.visitClassDeclaration(node);
+  public Void visitCompilationUnitMember(CompilationUnitMember node) {
+    if (!(node instanceof ClassDeclaration)) {
+      state.prohibitThis();
+    }
+    return super.visitCompilationUnitMember(node);
+  }
+
+  @Override
+  public Void visitConstructorInitializer(ConstructorInitializer node) {
+    state.prohibitThis();
+    return super.visitConstructorInitializer(node);
   }
 
   @Override
@@ -94,6 +104,12 @@ class ContextAnalyzer extends GeneralizingAstVisitor<Void> {
     state.includesLiterals();
     mayBeSetParameterElement(node);
     return super.visitExpression(node);
+  }
+
+  @Override
+  public Void visitFieldDeclaration(FieldDeclaration node) {
+    state.prohibitThis();
+    return super.visitFieldDeclaration(node);
   }
 
   @Override
@@ -148,6 +164,9 @@ class ContextAnalyzer extends GeneralizingAstVisitor<Void> {
     if (child == node.getReturnType()) {
       state.includesUndefinedDeclarationTypes();
     }
+    if (node.isStatic()) {
+      state.prohibitThis();
+    }
     return super.visitMethodDeclaration(node);
   }
 
@@ -166,11 +185,11 @@ class ContextAnalyzer extends GeneralizingAstVisitor<Void> {
   @Override
   public Void visitPrefixedIdentifier(PrefixedIdentifier node) {
     if (node == completionNode || node.getIdentifier() == completionNode) {
-      Element element = node.getPrefix().getBestElement();
-      if (!(element instanceof ClassElement)) {
-        state.prohibitsStaticReferences();
-      } else {
+      SimpleIdentifier prefix = node.getPrefix();
+      if (isClassLiteral(prefix)) {
         state.prohibitsInstanceReferences();
+      } else {
+        state.prohibitsStaticReferences();
       }
     }
     return super.visitPrefixedIdentifier(node);
@@ -180,8 +199,7 @@ class ContextAnalyzer extends GeneralizingAstVisitor<Void> {
   public Void visitPropertyAccess(PropertyAccess node) {
     if (node == completionNode || node.getPropertyName() == completionNode) {
       Expression target = node.getRealTarget();
-      if (target instanceof Identifier
-          && ((Identifier) target).getBestElement() instanceof ClassElement) {
+      if (isClassLiteral(target)) {
         state.prohibitsInstanceReferences();
       } else {
         state.prohibitsStaticReferences();
@@ -248,6 +266,11 @@ class ContextAnalyzer extends GeneralizingAstVisitor<Void> {
   public Void visitWithClause(WithClause node) {
     state.mustBeMixin();
     return super.visitWithClause(node);
+  }
+
+  private boolean isClassLiteral(Expression expression) {
+    return expression instanceof Identifier
+        && ((Identifier) expression).getStaticElement() instanceof ClassElement;
   }
 
   private void mayBeSetParameterElement(Expression node) {

@@ -11,7 +11,7 @@ class CompletionState {
   boolean isVoidAllowed;
   boolean isDynamicAllowed;
   boolean isSourceDeclarationStatic;
-  boolean isThisAllowed;
+  boolean isThisAllowed = true;
   boolean isVarAllowed;
   boolean areLiteralsAllowed;
   boolean areLiteralsProhibited;
@@ -38,10 +38,6 @@ class CompletionState {
 
   void includesOperators() {
     areOperatorsAllowed = true;
-  }
-
-  void includesThisExpression() {
-    isThisAllowed = true;
   }
 
   void includesUndefinedDeclarationTypes() {
@@ -71,6 +67,10 @@ class CompletionState {
 
   void prohibitsStaticReferences() {
     areStaticReferencesProhibited = true;
+  }
+
+  void prohibitThis() {
+    isThisAllowed = false;
   }
 
   void prohibitsUndefinedTypes() {
