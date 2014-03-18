@@ -1,0 +1,50 @@
+#!/bin/bash
+
+export SUT_MAC="192.168.130.181" #vm680-m3
+export SUT_LINUX="192.168.131.127" #vm127-m3
+export WORD=editor
+
+#export EGG="./dart_eggplant"
+# Use the standard install of EggPlant since the custom version
+# does not work when invoked as a command-line app
+export EGG="/usr/GNUstep/Local/Applications/Eggplant.app/runscript"
+
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+export LOC="$DIR"
+export OPT="-DefaultDocumentDirectory $LOC"
+export RESULTS="$1/ftr"
+
+run_test() {
+  # Run a functional test suite and pack the results
+  # Param 1: Name of test suite
+  # Param 2: Slave IP addr
+  # Param 3: File suffix to indicate platform (l/m/w)
+
+  # Delete all previous results -- will be managed elsewhere
+  rm -rf "$LOC/$1.suite/Results"
+
+  # Run functional test suite
+  $EGG "$LOC/$1.suite/Scripts/exec.script" $OPT -params $2 $WORD 5901
+
+  # Package up results to ship elsewhere
+  pushd "$LOC/$1.suite"
+  tar cfa "$RESULTS/$1-$3.tgz" Results
+  popd
+}
+
+# Delete all previously packaged results
+rm -rf $RESULTS
+mkdir $RESULTS
+
+# Run the tests
+run_test "UpdateEditor" $SUT_LINUX l
+run_test "Samples" $SUT_LINUX l
+run_test "DartEditor" $SUT_LINUX l
+#run_test "CodeLabLegacy" $SUT_LINUX l
+#run_test "LargeApp" $SUT_LINUX l
+run_test "UpdateEditor" $SUT_MAC m
+run_test "Samples" $SUT_MAC m
+run_test "DartEditor" $SUT_MAC m
+#run_test "CodeLabLegacy" $SUT_MAC m
+#run_test "LargeApp" $SUT_MAC m
+
