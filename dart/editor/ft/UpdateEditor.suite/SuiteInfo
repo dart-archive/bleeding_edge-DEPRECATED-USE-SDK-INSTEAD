@@ -1,1 +1,14 @@
-﻿{EPVersionNumber = 1403101909; Schedules = (); ScriptMetaData = {exec = {}; }; helperSuitesInfo = ({filePath = "/usr/local/google/home/messick/src/dart/dart/editor/ft/Samples.suite"; }); }
+﻿{
+    EPVersionNumber = 1403101909;
+    Schedules =     (
+    );
+    ScriptMetaData =     {
+        exec =         {
+        };
+    };
+    helperSuitesInfo =     (
+                {
+            filePath = "./Samples.suite";
+        }
+    );
+}
