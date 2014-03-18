@@ -928,7 +928,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         // that might have been referencing the not-yet-existing source that was just added. Longer
         // term we need to keep track of which libraries are referencing non-existing sources and
         // only re-analyze those libraries.
-        logInformation("Added Dart sources, invalidating all resolution information");
+//        logInformation("Added Dart sources, invalidating all resolution information");
         for (Map.Entry<Source, SourceEntry> mapEntry : cache.entrySet()) {
           Source source = mapEntry.getKey();
           SourceEntry sourceEntry = mapEntry.getValue();
@@ -1721,14 +1721,14 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       return new AnalysisResult(getChangeNotices(true), getEnd - getStart, null, -1L);
     }
     String taskDescriptor = task.toString();
-    if (recentTasks.add(taskDescriptor)) {
-      logInformation("Performing task: " + taskDescriptor);
-    } else {
-      if (TRACE_PERFORM_TASK) {
-        System.out.print("* ");
-      }
-      logInformation("*** Performing repeated task: " + taskDescriptor);
-    }
+//    if (recentTasks.add(taskDescriptor)) {
+//      logInformation("Performing task: " + taskDescriptor);
+//    } else {
+//      if (TRACE_PERFORM_TASK) {
+//        System.out.print("* ");
+//      }
+//      logInformation("*** Performing repeated task: " + taskDescriptor);
+//    }
     if (TRACE_PERFORM_TASK) {
       System.out.println(taskDescriptor);
     }
@@ -3881,29 +3881,29 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     if (libraryEntry != null) {
       Source[] includedParts = libraryEntry.getValue(DartEntry.INCLUDED_PARTS);
       DartEntryImpl libraryCopy = libraryEntry.getWritableCopy();
-      long oldTime = libraryCopy.getModificationTime();
+//      long oldTime = libraryCopy.getModificationTime();
       libraryCopy.invalidateAllResolutionInformation();
       cache.put(librarySource, libraryCopy);
       workManager.add(librarySource, SourcePriority.LIBRARY);
-      if (writer != null) {
-        writer.println("  Invalidated library source: " + debuggingString(librarySource)
-            + " (previously modified at " + oldTime + ")");
-      }
+//      if (writer != null) {
+//        writer.println("  Invalidated library source: " + debuggingString(librarySource)
+//            + " (previously modified at " + oldTime + ")");
+//      }
       for (Source partSource : includedParts) {
         SourceEntry partEntry = cache.get(partSource);
         if (partEntry instanceof DartEntry) {
           DartEntryImpl partCopy = ((DartEntry) partEntry).getWritableCopy();
-          oldTime = partCopy.getModificationTime();
+//          oldTime = partCopy.getModificationTime();
           if (partEntry != libraryCopy) {
             partCopy.removeContainingLibrary(librarySource);
             workManager.add(librarySource, SourcePriority.NORMAL_PART);
           }
           partCopy.invalidateAllResolutionInformation();
           cache.put(partSource, partCopy);
-          if (writer != null) {
-            writer.println("  Invalidated part source: " + debuggingString(partSource)
-                + " (previously modified at " + oldTime + ")");
-          }
+//          if (writer != null) {
+//            writer.println("  Invalidated part source: " + debuggingString(partSource)
+//                + " (previously modified at " + oldTime + ")");
+//          }
         }
       }
     }
@@ -5061,15 +5061,15 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     SourceEntry sourceEntry = cache.get(source);
     if (sourceEntry == null) {
       sourceEntry = createSourceEntry(source);
-      logInformation("Added new source: " + debuggingString(source));
+//      logInformation("Added new source: " + debuggingString(source));
     } else {
       SourceEntryImpl sourceCopy = sourceEntry.getWritableCopy();
-      long oldTime = sourceCopy.getModificationTime();
+//      long oldTime = sourceCopy.getModificationTime();
       sourceCopy.setModificationTime(getModificationStamp(source));
       // TODO(brianwilkerson) Understand why we're not invalidating the cache.
       cache.put(source, sourceCopy);
-      logInformation("Added new source: " + debuggingString(source) + " (previously modified at "
-          + oldTime + ")");
+//      logInformation("Added new source: " + debuggingString(source) + " (previously modified at "
+//          + oldTime + ")");
     }
     if (sourceEntry instanceof HtmlEntry) {
       workManager.add(source, SourcePriority.HTML);
@@ -5089,24 +5089,24 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     if (sourceEntry == null || sourceEntry.getModificationTime() == getModificationStamp(source)) {
       // Either we have removed this source, in which case we don't care that it is changed, or we
       // have already invalidated the cache and don't need to invalidate it again.
-      if (sourceEntry == null) {
-        logInformation("Modified source, but there is no entry: " + debuggingString(source));
-      } else {
-        logInformation("Modified source, but modification time matches: " + debuggingString(source));
-      }
+//      if (sourceEntry == null) {
+//        logInformation("Modified source, but there is no entry: " + debuggingString(source));
+//      } else {
+//        logInformation("Modified source, but modification time matches: " + debuggingString(source));
+//      }
       return;
     }
     if (sourceEntry instanceof HtmlEntry) {
       HtmlEntryImpl htmlCopy = ((HtmlEntry) sourceEntry).getWritableCopy();
-      long oldTime = htmlCopy.getModificationTime();
+//      long oldTime = htmlCopy.getModificationTime();
       htmlCopy.setModificationTime(getModificationStamp(source));
       invalidateAngularResolution(htmlCopy);
       htmlCopy.invalidateAllInformation();
       cache.put(source, htmlCopy);
       cache.removedAst(source);
       workManager.add(source, SourcePriority.HTML);
-      logInformation("Modified HTML source: " + debuggingString(source)
-          + " (previously modified at " + oldTime + ")");
+//      logInformation("Modified HTML source: " + debuggingString(source)
+//          + " (previously modified at " + oldTime + ")");
     } else if (sourceEntry instanceof DartEntry) {
       Source[] containingLibraries = getLibrariesContaining(source);
       HashSet<Source> librariesToInvalidate = new HashSet<Source>();
@@ -5118,9 +5118,9 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       }
 
       PrintStringWriter writer = new PrintStringWriter();
-      long oldTime = sourceEntry.getModificationTime();
-      writer.println("Modified Dart source: " + debuggingString(source)
-          + " (previously modified at " + oldTime + ")");
+//      long oldTime = sourceEntry.getModificationTime();
+//      writer.println("Modified Dart source: " + debuggingString(source)
+//          + " (previously modified at " + oldTime + ")");
 
       for (Source library : librariesToInvalidate) {
 //    for (Source library : containingLibraries) {
@@ -5135,7 +5135,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       cache.removedAst(source);
       workManager.add(source, SourcePriority.UNKNOWN);
 
-      logInformation(writer.toString());
+//      logInformation(writer.toString());
     }
   }
 
@@ -5146,7 +5146,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
    */
   private void sourceRemoved(Source source) {
     PrintStringWriter writer = new PrintStringWriter();
-    writer.println("Removed source: " + debuggingString(source));
+//    writer.println("Removed source: " + debuggingString(source));
 
     SourceEntry sourceEntry = cache.get(source);
     if (sourceEntry instanceof HtmlEntry) {
@@ -5167,7 +5167,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     cache.remove(source);
     workManager.remove(source);
     removeFromPriorityOrder(source);
-    logInformation(writer.toString());
+//    logInformation(writer.toString());
   }
 
   /**
@@ -5200,22 +5200,24 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       }
     }
     long consistencyCheckEnd = System.nanoTime();
-    @SuppressWarnings("resource")
-    PrintStringWriter writer = new PrintStringWriter();
-    writer.print("Consistency check took ");
-    writer.print((consistencyCheckEnd - consistencyCheckStart) / 1000000.0);
-    writer.println(" ms and found");
-    writer.print("  ");
-    writer.print(inconsistentCount);
-    writer.println(" inconsistent entries");
-    writer.print("  ");
-    writer.print(missingSources.size());
-    writer.println(" missing sources");
-    for (Source source : missingSources) {
-      writer.print("    ");
-      writer.println(source.getFullName());
+    if (inconsistentCount > 0 || missingSources.size() > 0) {
+      @SuppressWarnings("resource")
+      PrintStringWriter writer = new PrintStringWriter();
+      writer.print("Consistency check took ");
+      writer.print((consistencyCheckEnd - consistencyCheckStart) / 1000000.0);
+      writer.println(" ms and found");
+      writer.print("  ");
+      writer.print(inconsistentCount);
+      writer.println(" inconsistent entries");
+      writer.print("  ");
+      writer.print(missingSources.size());
+      writer.println(" missing sources");
+      for (Source source : missingSources) {
+        writer.print("    ");
+        writer.println(source.getFullName());
+      }
+      logInformation(writer.toString());
     }
-    logInformation(writer.toString());
     return inconsistentCount > 0;
   }
 }

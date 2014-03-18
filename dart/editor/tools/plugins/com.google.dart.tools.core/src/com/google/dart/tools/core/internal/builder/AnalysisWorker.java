@@ -24,6 +24,7 @@ import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
+import com.google.dart.engine.utilities.io.PrintStringWriter;
 import com.google.dart.engine.utilities.source.LineInfo;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.AnalysisEvent;
@@ -550,14 +551,24 @@ public class AnalysisWorker {
           if (location != null && !DartCore.isContainedInPackages(location.toFile())) {
             LineInfo lineInfo = change.getLineInfo();
             if (lineInfo == null) {
-              DartCore.logError("Missing line information for: " + source);
               // Sometimes this happens in UI tests, but we don't know what error.
-              StringBuilder sb = new StringBuilder();
+              @SuppressWarnings("resource")
+              PrintStringWriter writer = new PrintStringWriter();
+              writer.print("Missing line information for: ");
+              writer.println(source);
               for (AnalysisError error : errors) {
-                sb.append("Error: " + error.getErrorCode() + " " + error.getSource() + " "
-                    + error.getOffset() + " " + error.getLength() + " " + error.getMessage() + "\n");
+                writer.print("Error: ");
+                writer.print(error.getErrorCode());
+                writer.print(" ");
+                writer.print(error.getSource());
+                writer.print(" ");
+                writer.print(error.getOffset());
+                writer.print(" ");
+                writer.print(error.getLength());
+                writer.print(" ");
+                writer.println(error.getMessage());
               }
-              DartCore.logError(sb.toString());
+              DartCore.logInformation(writer.toString());
             } else {
               markerManager.queueErrors(res, lineInfo, errors);
             }
