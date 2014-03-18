@@ -41,6 +41,16 @@ public class PubConnectionTest extends TestCase {
 //  pub <== {"error":"\"127.0.0.1:53894\" is not being served by pub.","code":"NOT_SERVED"}
 //  pub <== {"id":2,"path":"web/foo.html","package":"foo"}
 
+  private PubCallback<String> serveDirectoryCallback = new PubCallback<String>() {
+
+    @Override
+    public void handleResult(PubResult<String> result) {
+      assertTrue(!result.isError());
+      assertTrue(result.getResult().startsWith("http://127.0.0.1:"));
+      latch.countDown();
+    }
+  };
+
   private PubCallback<String> assetToUrlCallback = new PubCallback<String>() {
 
     @Override
@@ -91,6 +101,12 @@ public class PubConnectionTest extends TestCase {
       throw new Exception("No response from pub command urlToAssestId");
     }
 
+    latch = new CountDownLatch(1);
+    command.serveDirectory("test", serveDirectoryCallback);
+    if (!latch.await(3000, TimeUnit.MILLISECONDS)) {
+      throw new Exception("No response from pub command urlToAssestId");
+    }
+
   }
 
   @Override
@@ -103,6 +119,9 @@ public class PubConnectionTest extends TestCase {
 
     testProject.setFileContent("pubspec.lock", "packages:\n"
         + "  browser:\n    description: browser\n    source: hosted\n    version: \"0.10.0\"");
+
+    testProject.createFolder("test");
+    testProject.setFileContent("test/test.dart", "main() {}");
 
     List<String> args = buildPubServeCommand();
 

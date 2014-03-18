@@ -59,6 +59,35 @@ public class PubCommands {
   }
 
   /**
+   * Given a relative directory path within the entrypoint package, binds a new port to serve from
+   * that path and returns its URL.
+   * <p>
+   * If successful, it returns a map containing the URL that can be used to access the directory.
+   */
+  public void serveDirectory(String path, final PubCallback<String> callback) throws IOException {
+    // { "command": "serveDirectory","path": "example/awesome" } 
+    // ==> {  "url": "http://localhost:8083" } 
+    try {
+      JSONObject request = new JSONObject();
+
+      request.put("command", "serveDirectory");
+
+      request.put("path", path);
+
+      connection.sendRequest(request, new PubConnection.Callback() {
+        @Override
+        public void handleResult(JSONObject result) throws JSONException {
+          callback.handleResult(convertServeDirectoryResult(result));
+        }
+
+      });
+    } catch (JSONException exception) {
+      throw new IOException(exception);
+    }
+
+  }
+
+  /**
    * Given a URL to an asset that is served by pub, returns the ID of the asset that would be
    * accessed by that URL.
    * <p>
@@ -101,10 +130,21 @@ public class PubCommands {
     return result;
   }
 
+  private PubResult<String> convertServeDirectoryResult(JSONObject obj) throws JSONException {
+    PubResult<String> result = PubResult.createFrom(obj);
+
+    if (obj.has("url")) {
+      result.setResult(obj.getString("url"));
+    }
+
+    return result;
+  }
+
   private PubResult<PubAsset> convertUrlToAssetResult(JSONObject obj) throws JSONException {
     PubResult<PubAsset> result = PubResult.createFrom(obj);
     result.setResult(PubAsset.createFrom(obj));
 
     return result;
   }
+
 }
