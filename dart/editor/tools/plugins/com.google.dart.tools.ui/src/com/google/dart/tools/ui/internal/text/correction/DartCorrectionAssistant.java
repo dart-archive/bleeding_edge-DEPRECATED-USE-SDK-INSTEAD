@@ -21,6 +21,8 @@ import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
+import com.google.dart.tools.ui.internal.util.RunnableObject;
+import com.google.dart.tools.ui.internal.util.TimeboxUtils;
 
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.runtime.Assert;
@@ -43,6 +45,7 @@ import org.eclipse.ui.texteditor.ITextEditor;
 import org.eclipse.ui.texteditor.MarkerAnnotation;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @coverage dart.editor.ui.correction
@@ -145,7 +148,7 @@ public class DartCorrectionAssistant extends QuickAssistAssistant {
       return null;
     }
     // find AnalysisError
-    AnalysisError[] errors = context.getErrors();
+    AnalysisError[] errors = getErrorsTimeBoxed(context);
     for (AnalysisError error : errors) {
       if (error.getErrorCode() == errorCode && error.getOffset() == markerOffset
           && error.getLength() == markerLength) {
@@ -154,6 +157,15 @@ public class DartCorrectionAssistant extends QuickAssistAssistant {
     }
     // not found
     return null;
+  }
+
+  private AnalysisError[] getErrorsTimeBoxed(final AssistContext context) {
+    return TimeboxUtils.runObject(new RunnableObject<AnalysisError[]>() {
+      @Override
+      public AnalysisError[] runObject() {
+        return context.getErrors();
+      }
+    }, AnalysisError.NO_ERRORS, 50, TimeUnit.MILLISECONDS);
   }
 
   /**
@@ -189,7 +201,7 @@ public class DartCorrectionAssistant extends QuickAssistAssistant {
       if (analysisContext == null) {
         return;
       }
-      AnalysisError[] errors = context.getErrors();
+      AnalysisError[] errors = getErrorsTimeBoxed(context);
       // prepare current line range
       IRegion lineInfo = getRegionOfInterest(editor, currOffset);
       if (lineInfo == null) {
