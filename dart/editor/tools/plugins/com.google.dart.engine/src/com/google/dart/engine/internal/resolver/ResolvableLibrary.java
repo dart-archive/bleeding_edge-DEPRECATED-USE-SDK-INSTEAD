@@ -263,7 +263,7 @@ public class ResolvableLibrary {
    * 
    * @return the compilation units that comprise this library
    */
-  public ResolvableCompilationUnit[] getResolvableCompilationUnit() {
+  public ResolvableCompilationUnit[] getResolvableCompilationUnits() {
     return compilationUnits;
   }
 
@@ -273,7 +273,7 @@ public class ResolvableLibrary {
    * 
    * @param units the compilation units in this library
    */
-  public void setCompilationUnits(ResolvableCompilationUnit[] units) {
+  public void setResolvableCompilationUnits(ResolvableCompilationUnit[] units) {
     compilationUnits = units;
   }
 

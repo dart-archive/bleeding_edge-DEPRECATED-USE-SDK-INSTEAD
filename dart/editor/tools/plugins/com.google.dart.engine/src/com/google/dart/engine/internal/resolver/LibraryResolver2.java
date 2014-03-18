@@ -402,7 +402,7 @@ public class LibraryResolver2 {
     TimeCounterHandle timeCounter = PerformanceStatistics.resolve.start();
     try {
       for (ResolvableLibrary library : librariesInCycle) {
-        for (ResolvableCompilationUnit unit : library.getResolvableCompilationUnit()) {
+        for (ResolvableCompilationUnit unit : library.getResolvableCompilationUnits()) {
           Source source = unit.getSource();
           CompilationUnit ast = unit.getCompilationUnit();
           TypeResolverVisitor visitor = new TypeResolverVisitor(library, source, typeProvider);
@@ -438,7 +438,7 @@ public class LibraryResolver2 {
     try {
       ConstantValueComputer computer = new ConstantValueComputer(typeProvider);
       for (ResolvableLibrary library : librariesInCycle) {
-        for (ResolvableCompilationUnit unit : library.getResolvableCompilationUnit()) {
+        for (ResolvableCompilationUnit unit : library.getResolvableCompilationUnits()) {
           CompilationUnit ast = unit.getCompilationUnit();
           if (ast != null) {
             computer.add(ast);
@@ -474,7 +474,7 @@ public class LibraryResolver2 {
       throws AnalysisException {
     TimeCounterHandle timeCounter = PerformanceStatistics.resolve.start();
     try {
-      for (ResolvableCompilationUnit unit : library.getResolvableCompilationUnit()) {
+      for (ResolvableCompilationUnit unit : library.getResolvableCompilationUnits()) {
         Source source = unit.getSource();
         CompilationUnit ast = unit.getCompilationUnit();
         ast.accept(new VariableResolverVisitor(library, source, typeProvider));
@@ -492,7 +492,7 @@ public class LibraryResolver2 {
     // Angular
     timeCounter = PerformanceStatistics.angular.start();
     try {
-      for (ResolvableCompilationUnit unit : library.getResolvableCompilationUnit()) {
+      for (ResolvableCompilationUnit unit : library.getResolvableCompilationUnits()) {
         Source source = unit.getSource();
         CompilationUnit ast = unit.getCompilationUnit();
         new AngularCompilationUnitBuilder(errorListener, source, ast).build();

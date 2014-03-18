@@ -521,7 +521,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
             source);
         cache.put(source, dartCopy);
       }
-      library.setCompilationUnits(units);
+      library.setResolvableCompilationUnits(units);
     }
 
     /**
