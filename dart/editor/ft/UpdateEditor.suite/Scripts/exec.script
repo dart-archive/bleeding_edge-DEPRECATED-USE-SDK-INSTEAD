@@ -1,0 +1,13 @@
+﻿params server, passwd, port
+
+Connect (serverID: server, portNum: port, password: passwd, visible: "No")
+util.init()
+set the SearchRectangle to ((0,100),(200,300))
+DoubleClick "UpdateEditor"
+if util.isMacOSX() then
+	repeat while imageFound("UpdateMacIcon")
+		wait 2
+	end repeat
+else if util.isLinux() then
+	(* TODO *)
+end if
