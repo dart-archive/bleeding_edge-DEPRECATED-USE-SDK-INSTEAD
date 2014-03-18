@@ -338,7 +338,7 @@ public class PubServeManager {
 
     PubCommands command = pubConnection.getCommands();
     try {
-      command.assetIdToUrl(getPathFromWorkingDir(currentLaunch.getApplicationResource()), callback);
+      command.pathToUrl(getPathFromWorkingDir(currentLaunch.getApplicationResource()), callback);
     } catch (IOException e) {
       DartDebugCorePlugin.logError(e);
       return false;

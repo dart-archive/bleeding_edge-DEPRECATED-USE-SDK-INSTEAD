@@ -36,14 +36,14 @@ public class PubCommands {
    * @param callback
    * @throws IOException
    */
-  public void assetIdToUrl(String path, final PubCallback<String> callback) throws IOException {
-    // { "command": "assetIdToUrls", "path": "web/index.html" }
+  public void pathToUrl(String path, final PubCallback<String> callback) throws IOException {
+    // { "command": "pathToUrls", "path": "web/index.html" }
     // ==>{ "urls": ["http://localhost:8080/index.html"] }
 
     try {
       JSONObject request = new JSONObject();
 
-      request.put("command", "assetIdToUrls");
+      request.put("command", "pathToUrls");
 
       request.put("path", path);
 

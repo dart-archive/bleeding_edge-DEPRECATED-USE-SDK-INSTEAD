@@ -90,7 +90,7 @@ public class PubConnectionTest extends TestCase {
     PubCommands command = pubConnection.getCommands();
 
     latch = new CountDownLatch(1);
-    command.assetIdToUrl("web/foo.html", assetToUrlCallback);
+    command.pathToUrl("web/foo.html", assetToUrlCallback);
     if (!latch.await(3000, TimeUnit.MILLISECONDS)) {
       throw new Exception("No response from pub command assetIdToUrl");
     }
