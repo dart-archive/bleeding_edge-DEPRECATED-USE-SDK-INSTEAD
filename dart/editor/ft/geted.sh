@@ -1,5 +1,5 @@
 #!/bin/bash
-export DEV=http://gsdview.appspot.com/dart-archive/channels/dev
+export DEV=http://gsdview.appspot.com/dart-archive/channels/be
 export ED_DIR=$DEV/raw/latest/editor
 export ED_FILE=darteditor-macos-x64.zip
 rm -f $ED_FILE
