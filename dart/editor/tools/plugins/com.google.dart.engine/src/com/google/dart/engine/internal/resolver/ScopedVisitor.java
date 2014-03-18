@@ -360,16 +360,20 @@ public abstract class ScopedVisitor extends UnifyingAstVisitor<Void> {
 
   @Override
   public Void visitFunctionDeclaration(FunctionDeclaration node) {
-    ExecutableElement function = node.getElement();
+    ExecutableElement functionElement = node.getElement();
     Scope outerScope = nameScope;
     try {
-      nameScope = new FunctionScope(nameScope, function);
+      if (functionElement == null) {
+        // TODO(brianwilkerson) Report this internal error
+      } else {
+        nameScope = new FunctionScope(nameScope, functionElement);
+      }
       super.visitFunctionDeclaration(node);
     } finally {
       nameScope = outerScope;
     }
-    if (!(function.getEnclosingElement() instanceof CompilationUnitElement)) {
-      nameScope.define(function);
+    if (!(functionElement.getEnclosingElement() instanceof CompilationUnitElement)) {
+      nameScope.define(functionElement);
     }
     return null;
   }
