@@ -42,6 +42,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.jface.text.Document;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.ltk.core.refactoring.TextEditBasedChangeGroup;
 import org.eclipse.ltk.core.refactoring.TextFileChange;
@@ -218,6 +219,26 @@ public class ServiceUtilsTest extends AbstractDartTest {
     assertThat(textEdits).hasSize(2);
     assertEquals("a", ((ReplaceEdit) textEdits[0]).getText());
     assertEquals("b", ((ReplaceEdit) textEdits[1]).getText());
+  }
+
+  /**
+   * It is OK to apply more than one insert {@link Edit} with the same offset.
+   * <p>
+   * For example Quick Fix "Implement Missing Overrides" inserts several method declarations.
+   */
+  public void test_toLTK_SourceChange_twoInserts() throws Exception {
+    Source source = createTestFileSource();
+    // fill SourceChange
+    SourceChange sourceChange = new SourceChange("My change", source);
+    sourceChange.addEdit(new Edit(2, 0, "a"));
+    sourceChange.addEdit(new Edit(2, 0, "b"));
+    // toLTK
+    TextFileChange ltkChange = ServiceUtils.toLTK(sourceChange);
+    TextEdit textEdit = ltkChange.getEdit();
+    // apply
+    Document document = new Document("01234");
+    textEdit.apply(document);
+    assertEquals("01ab234", document.get());
   }
 
   public void test_toLTK_SourceChange_withGroups() throws Exception {
