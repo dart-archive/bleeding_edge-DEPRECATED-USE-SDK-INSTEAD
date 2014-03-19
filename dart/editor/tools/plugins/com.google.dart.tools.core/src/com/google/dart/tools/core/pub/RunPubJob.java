@@ -139,6 +139,8 @@ public class RunPubJob extends Job {
       }
       // add flags for pub build
       if (command.equals(BUILD_COMMAND)) {
+        args.add("--mode");
+        args.add("debug");
         // TODO(keertip): figure out why build fails when passing in folder name.
         args.add("--all");
 //        if (sourceFolder != null) {
