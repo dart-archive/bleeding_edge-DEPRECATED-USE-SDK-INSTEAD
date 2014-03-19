@@ -714,6 +714,23 @@ public class NonHintCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_unusedImport_metadata() throws Exception {
+    Source source = addSource(createSource(//
+        "library L;",
+        "@A(x)",
+        "import 'lib1.dart';",
+        "class A {",
+        "  final int value;",
+        "  const A(this.value);",
+        "}"));
+    addNamedSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "const x = 0;"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
   public void test_unusedImport_prefix_topLevelFunction() throws Exception {
     Source source = addSource(createSource(//
         "library L;",

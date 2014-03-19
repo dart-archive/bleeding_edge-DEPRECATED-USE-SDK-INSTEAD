@@ -17,7 +17,6 @@ import com.google.dart.engine.ast.Annotation;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.Directive;
 import com.google.dart.engine.ast.ExportDirective;
-import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.ast.ImportDirective;
 import com.google.dart.engine.ast.LibraryDirective;
 import com.google.dart.engine.ast.NodeList;
@@ -398,9 +397,9 @@ public class ImportsVerifier extends RecursiveAstVisitor<Void> {
    * @param annotations the list of annotations to visit
    */
   private void visitMetadata(NodeList<Annotation> annotations) {
-    for (Annotation annotation : annotations) {
-      Identifier name = annotation.getName();
-      visitIdentifier(name.getStaticElement(), name.getName());
+    int count = annotations.size();
+    for (int i = 0; i < count; i++) {
+      annotations.get(i).accept(this);
     }
   }
 }
