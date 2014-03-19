@@ -14,6 +14,12 @@
 package com.google.dart.engine.internal.cache;
 
 import com.google.dart.engine.EngineTestCase;
+import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.ast.Directive;
+import com.google.dart.engine.ast.ExportDirective;
+import com.google.dart.engine.ast.ImportDirective;
+import com.google.dart.engine.ast.NodeList;
+import com.google.dart.engine.ast.PartDirective;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.CompileTimeErrorCode;
@@ -31,7 +37,10 @@ import com.google.dart.engine.source.TestSource;
 import com.google.dart.engine.utilities.source.LineInfo;
 
 import static com.google.dart.engine.ast.AstFactory.compilationUnit;
+import static com.google.dart.engine.ast.AstFactory.exportDirective;
+import static com.google.dart.engine.ast.AstFactory.importDirective;
 import static com.google.dart.engine.ast.AstFactory.libraryIdentifier;
+import static com.google.dart.engine.ast.AstFactory.partDirective;
 import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
 
 import java.util.HashMap;
@@ -78,6 +87,100 @@ public class DartEntryImplTest extends EngineTestCase {
         source,
         HintCode.DEAD_CODE)});
     assertLength(5, entry.getAllErrors());
+  }
+
+  public void test_getResolvableCompilationUnit_none() {
+    DartEntryImpl entry = new DartEntryImpl();
+    assertNull(entry.getResolvableCompilationUnit());
+  }
+
+  public void test_getResolvableCompilationUnit_parsed_accessed() {
+    String importUri = "f1.dart";
+    Source importSource = new TestSource(createFile(importUri), "");
+    ImportDirective importDirective = importDirective(importUri, null);
+    importDirective.setSource(importSource);
+    importDirective.setUriContent(importUri);
+
+    String exportUri = "f2.dart";
+    Source exportSource = new TestSource(createFile(exportUri), "");
+    ExportDirective exportDirective = exportDirective(exportUri);
+    exportDirective.setSource(exportSource);
+    exportDirective.setUriContent(exportUri);
+
+    String partUri = "f3.dart";
+    Source partSource = new TestSource(createFile(partUri), "");
+    PartDirective partDirective = partDirective(partUri);
+    partDirective.setSource(partSource);
+    partDirective.setUriContent(partUri);
+
+    CompilationUnit unit = compilationUnit(importDirective, exportDirective, partDirective);
+    DartEntryImpl entry = new DartEntryImpl();
+    entry.setValue(DartEntry.PARSED_UNIT, unit);
+    entry.getValue(DartEntry.PARSED_UNIT);
+
+    CompilationUnit result = entry.getResolvableCompilationUnit();
+    assertNotSame(unit, result);
+    NodeList<Directive> directives = result.getDirectives();
+    ImportDirective resultImportDirective = (ImportDirective) directives.get(0);
+    assertEquals(importUri, resultImportDirective.getUriContent());
+    assertSame(importSource, resultImportDirective.getSource());
+
+    ExportDirective resultExportDirective = (ExportDirective) directives.get(1);
+    assertEquals(exportUri, resultExportDirective.getUriContent());
+    assertSame(exportSource, resultExportDirective.getSource());
+
+    PartDirective resultPartDirective = (PartDirective) directives.get(2);
+    assertEquals(partUri, resultPartDirective.getUriContent());
+    assertSame(partSource, resultPartDirective.getSource());
+  }
+
+  public void test_getResolvableCompilationUnit_parsed_notAccessed() {
+    CompilationUnit unit = compilationUnit();
+    DartEntryImpl entry = new DartEntryImpl();
+    entry.setValue(DartEntry.PARSED_UNIT, unit);
+    assertSame(unit, entry.getResolvableCompilationUnit());
+  }
+
+  public void test_getResolvableCompilationUnit_resolved() {
+    String importUri = "f1.dart";
+    Source importSource = new TestSource(createFile(importUri), "");
+    ImportDirective importDirective = importDirective(importUri, null);
+    importDirective.setSource(importSource);
+    importDirective.setUriContent(importUri);
+
+    String exportUri = "f2.dart";
+    Source exportSource = new TestSource(createFile(exportUri), "");
+    ExportDirective exportDirective = exportDirective(exportUri);
+    exportDirective.setSource(exportSource);
+    exportDirective.setUriContent(exportUri);
+
+    String partUri = "f3.dart";
+    Source partSource = new TestSource(createFile(partUri), "");
+    PartDirective partDirective = partDirective(partUri);
+    partDirective.setSource(partSource);
+    partDirective.setUriContent(partUri);
+
+    CompilationUnit unit = compilationUnit(importDirective, exportDirective, partDirective);
+    DartEntryImpl entry = new DartEntryImpl();
+    entry.setValueInLibrary(
+        DartEntry.RESOLVED_UNIT,
+        new TestSource(createFile("lib.dart"), ""),
+        unit);
+
+    CompilationUnit result = entry.getResolvableCompilationUnit();
+    assertNotSame(unit, result);
+    NodeList<Directive> directives = result.getDirectives();
+    ImportDirective resultImportDirective = (ImportDirective) directives.get(0);
+    assertEquals(importUri, resultImportDirective.getUriContent());
+    assertSame(importSource, resultImportDirective.getSource());
+
+    ExportDirective resultExportDirective = (ExportDirective) directives.get(1);
+    assertEquals(exportUri, resultExportDirective.getUriContent());
+    assertSame(exportSource, resultExportDirective.getSource());
+
+    PartDirective resultPartDirective = (PartDirective) directives.get(2);
+    assertEquals(partUri, resultPartDirective.getUriContent());
+    assertSame(partSource, resultPartDirective.getSource());
   }
 
   public void test_getState_invalid_resolutionErrors() {

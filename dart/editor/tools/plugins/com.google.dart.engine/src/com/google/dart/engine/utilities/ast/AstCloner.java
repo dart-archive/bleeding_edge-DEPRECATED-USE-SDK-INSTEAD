@@ -295,13 +295,16 @@ public class AstCloner implements AstVisitor<AstNode> {
 
   @Override
   public ExportDirective visitExportDirective(ExportDirective node) {
-    return new ExportDirective(
+    ExportDirective directive = new ExportDirective(
         cloneNode(node.getDocumentationComment()),
         cloneNodeList(node.getMetadata()),
         node.getKeyword(),
         cloneNode(node.getUri()),
         cloneNodeList(node.getCombinators()),
         node.getSemicolon());
+    directive.setSource(node.getSource());
+    directive.setUriContent(node.getUriContent());
+    return directive;
   }
 
   @Override
@@ -472,7 +475,7 @@ public class AstCloner implements AstVisitor<AstNode> {
 
   @Override
   public ImportDirective visitImportDirective(ImportDirective node) {
-    return new ImportDirective(
+    ImportDirective directive = new ImportDirective(
         cloneNode(node.getDocumentationComment()),
         cloneNodeList(node.getMetadata()),
         node.getKeyword(),
@@ -481,6 +484,9 @@ public class AstCloner implements AstVisitor<AstNode> {
         cloneNode(node.getPrefix()),
         cloneNodeList(node.getCombinators()),
         node.getSemicolon());
+    directive.setSource(node.getSource());
+    directive.setUriContent(node.getUriContent());
+    return directive;
   }
 
   @Override
@@ -646,12 +652,15 @@ public class AstCloner implements AstVisitor<AstNode> {
 
   @Override
   public PartDirective visitPartDirective(PartDirective node) {
-    return new PartDirective(
+    PartDirective directive = new PartDirective(
         cloneNode(node.getDocumentationComment()),
         cloneNodeList(node.getMetadata()),
         node.getPartToken(),
         cloneNode(node.getUri()),
         node.getSemicolon());
+    directive.setSource(node.getSource());
+    directive.setUriContent(node.getUriContent());
+    return directive;
   }
 
   @Override

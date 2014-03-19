@@ -279,11 +279,6 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     }
 
     /**
-     * The representation of the core library.
-     */
-    private ResolvableLibrary coreLibrary;
-
-    /**
      * A table mapping the sources of the defining compilation units of libraries to the
      * representation of the library that has the information needed to resolve the library.
      */
@@ -324,17 +319,9 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
      */
     public void computeCycleContaining(Source librarySource) throws AnalysisException {
       //
-      // Create the objects representing the library being resolved and the core library.
+      // Create the object representing the library being resolved.
       //
       ResolvableLibrary targetLibrary = createLibrary(librarySource);
-      coreLibrary = libraryMap.get(coreLibrarySource);
-      if (coreLibrary == null) {
-        // This will be true unless the library being analyzed is the core library.
-        coreLibrary = createLibraryOrNull(coreLibrarySource);
-        if (coreLibrary == null) {
-          throw new AnalysisException("Core library does not exist");
-        }
-      }
       //
       // Compute the set of libraries that need to be resolved together.
       //
@@ -400,10 +387,15 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     private void computeLibraryDependencies(ResolvableLibrary library) {
       Source librarySource = library.getLibrarySource();
       DartEntry dartEntry = getReadableDartEntry(librarySource);
-      computeLibraryDependenciesFromDirectives(
-          library,
-          getSources(librarySource, dartEntry, DartEntry.IMPORTED_LIBRARIES),
-          getSources(librarySource, dartEntry, DartEntry.EXPORTED_LIBRARIES));
+      Source[] importedSources = getSources(librarySource, dartEntry, DartEntry.IMPORTED_LIBRARIES);
+      if (taskData != null) {
+        return;
+      }
+      Source[] exportedSources = getSources(librarySource, dartEntry, DartEntry.EXPORTED_LIBRARIES);
+      if (taskData != null) {
+        return;
+      }
+      computeLibraryDependenciesFromDirectives(library, importedSources, exportedSources);
     }
 
     /**
@@ -419,57 +411,91 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
      */
     private void computeLibraryDependenciesFromDirectives(ResolvableLibrary library,
         Source[] importedSources, Source[] exportedSources) {
-      ArrayList<ResolvableLibrary> importedLibraries = new ArrayList<ResolvableLibrary>();
-      boolean explicitlyImportsCore = false;
-      for (Source importedSource : importedSources) {
-        if (importedSource.equals(coreLibrarySource)) {
-          explicitlyImportsCore = true;
-        }
-        ResolvableLibrary importedLibrary = libraryMap.get(importedSource);
-        if (importedLibrary == null) {
-          importedLibrary = createLibraryOrNull(importedSource);
+      int importCount = importedSources.length;
+      if (importCount > 0) {
+        ArrayList<ResolvableLibrary> importedLibraries = new ArrayList<ResolvableLibrary>();
+        boolean explicitlyImportsCore = false;
+        for (int i = 0; i < importCount; i++) {
+          Source importedSource = importedSources[i];
+          if (importedSource.equals(coreLibrarySource)) {
+            explicitlyImportsCore = true;
+          }
+          ResolvableLibrary importedLibrary = libraryMap.get(importedSource);
+          if (importedLibrary == null) {
+            importedLibrary = createLibraryOrNull(importedSource);
+            if (importedLibrary != null) {
+              computeLibraryDependencies(importedLibrary);
+              if (taskData != null) {
+                return;
+              }
+            }
+          }
           if (importedLibrary != null) {
-            computeLibraryDependencies(importedLibrary);
+            importedLibraries.add(importedLibrary);
+            dependencyGraph.addEdge(library, importedLibrary);
           }
         }
-        if (importedLibrary != null) {
-          importedLibraries.add(importedLibrary);
-          dependencyGraph.addEdge(library, importedLibrary);
-        }
-      }
 
-      library.setExplicitlyImportsCore(explicitlyImportsCore);
-      if (!explicitlyImportsCore && !coreLibrarySource.equals(library.getLibrarySource())) {
+        library.setExplicitlyImportsCore(explicitlyImportsCore);
+        if (!explicitlyImportsCore && !coreLibrarySource.equals(library.getLibrarySource())) {
+          ResolvableLibrary importedLibrary = libraryMap.get(coreLibrarySource);
+          if (importedLibrary == null) {
+            importedLibrary = createLibraryOrNull(coreLibrarySource);
+            if (importedLibrary != null) {
+              computeLibraryDependencies(importedLibrary);
+              if (taskData != null) {
+                return;
+              }
+            }
+          }
+          if (importedLibrary != null) {
+            importedLibraries.add(importedLibrary);
+            dependencyGraph.addEdge(library, importedLibrary);
+          }
+        }
+
+        library.setImportedLibraries(importedLibraries.toArray(new ResolvableLibrary[importedLibraries.size()]));
+      } else {
+        library.setExplicitlyImportsCore(false);
         ResolvableLibrary importedLibrary = libraryMap.get(coreLibrarySource);
         if (importedLibrary == null) {
           importedLibrary = createLibraryOrNull(coreLibrarySource);
           if (importedLibrary != null) {
             computeLibraryDependencies(importedLibrary);
+            if (taskData != null) {
+              return;
+            }
           }
         }
         if (importedLibrary != null) {
-          importedLibraries.add(importedLibrary);
           dependencyGraph.addEdge(library, importedLibrary);
+          library.setImportedLibraries(new ResolvableLibrary[] {importedLibrary});
         }
       }
 
-      library.setImportedLibraries(importedLibraries.toArray(new ResolvableLibrary[importedLibraries.size()]));
-
-      ArrayList<ResolvableLibrary> exportedLibraries = new ArrayList<ResolvableLibrary>();
-      for (Source exportedSource : exportedSources) {
-        ResolvableLibrary exportedLibrary = libraryMap.get(exportedSource);
-        if (exportedLibrary == null) {
-          exportedLibrary = createLibraryOrNull(exportedSource);
+      int exportCount = exportedSources.length;
+      if (exportCount > 0) {
+        ArrayList<ResolvableLibrary> exportedLibraries = new ArrayList<ResolvableLibrary>(
+            exportCount);
+        for (int i = 0; i < exportCount; i++) {
+          Source exportedSource = exportedSources[i];
+          ResolvableLibrary exportedLibrary = libraryMap.get(exportedSource);
+          if (exportedLibrary == null) {
+            exportedLibrary = createLibraryOrNull(exportedSource);
+            if (exportedLibrary != null) {
+              computeLibraryDependencies(exportedLibrary);
+              if (taskData != null) {
+                return;
+              }
+            }
+          }
           if (exportedLibrary != null) {
-            computeLibraryDependencies(exportedLibrary);
+            exportedLibraries.add(exportedLibrary);
+            dependencyGraph.addEdge(library, exportedLibrary);
           }
         }
-        if (exportedLibrary != null) {
-          exportedLibraries.add(exportedLibrary);
-          dependencyGraph.addEdge(library, exportedLibrary);
-        }
+        library.setExportedLibraries(exportedLibraries.toArray(new ResolvableLibrary[exportedLibraries.size()]));
       }
-      library.setExportedLibraries(exportedLibraries.toArray(new ResolvableLibrary[exportedLibraries.size()]));
     }
 
     /**
@@ -769,6 +795,14 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
      */
     public boolean isBlocked() {
       return blocked;
+    }
+
+    @Override
+    public String toString() {
+      if (task == null) {
+        return "blocked: " + blocked;
+      }
+      return task.toString();
     }
   }
 
