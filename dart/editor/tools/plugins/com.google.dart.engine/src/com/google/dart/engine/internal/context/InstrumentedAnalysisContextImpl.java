@@ -600,7 +600,6 @@ public class InstrumentedAnalysisContextImpl implements InternalAnalysisContext 
   @Override
   public SourceFactory getSourceFactory() {
     InstrumentationBuilder instrumentation = Instrumentation.builder("Analysis-getSourceFactory");
-    checkThread(instrumentation);
     try {
       instrumentation.metric("contextId", contextId);
       return basis.getSourceFactory();
