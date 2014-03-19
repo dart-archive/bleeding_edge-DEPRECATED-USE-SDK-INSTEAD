@@ -23,12 +23,12 @@ vars = {
   "libcxxabi_revision": "197063",
   "webkit_trunk": "http://src.chromium.org/blink/trunk",
   "nacl_trunk": "http://src.chromium.org/native_client/trunk",
-  "webkit_revision": "168834",
+  "webkit_revision": "169292",
   "chromium_git": "https://chromium.googlesource.com",
   "chromiumos_git": "https://chromium.googlesource.com/chromiumos",
   "skia_git": "https://skia.googlesource.com",
   "swig_revision": "230490",
-  "nacl_revision": "12835",
+  "nacl_revision": "12889",
   # After changing nacl_revision, run 'glient sync' and check native_client/DEPS
   # to update other nacl_*_revision's.
   "nacl_tools_revision": "12760",  # native_client/DEPS: tools_rev
@@ -45,27 +45,31 @@ vars = {
 
   "sfntly_revision": "228",
   "lighttpd_revision": "33737",
-  "skia_revision": "13719",
-  "skia_hash": "e8ead8e510d4df85a703dcec83c9de1bbaed038a",
+  "skia_revision": "13821",
+  "skia_hash": "beca2ee3ecce7a39b8bd23f53f6e46c2e4650b21",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and V8 without interference from each other.
   "v8_branch": "trunk",
-  "v8_revision": "19696",
+  "v8_revision": "19958",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling WebRTC
   # and V8 without interference from each other.
-  "webrtc_revision": "5645",
+  "webrtc_revision": "5699",
   "jsoncpp_revision": "248",
-  "nss_revision": "254867",
+  "nss_revision": "256695",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling swarming_client
   # and whatever else without interference from each other.
-  "swarming_revision": "dd806d645e711260c24bf7a2f061d6db091c3715",
+  "swarming_revision": "2808311e2ba2c19f268a58a2c0f81c967910d52f",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling openssl
   # and whatever else without interference from each other.
   "openssl_revision": "253925",
+  # Three lines of non-changing comments so that
+  # the commit queue can handle CLs rolling ANGLE
+  # and whatever else without interference from each other.
+  "angle_revision": "fa63e947cb3eccf463648d21a05d5002c9b8adfa",
 }
 
 deps = {
@@ -82,8 +86,7 @@ deps = {
     (Var("googlecode_url") % "googlemock") + "/trunk@410",
 
   "src/third_party/angle":
-    Var("chromium_git") +
-    "/angle/angle.git@fa63e947cb3eccf463648d21a05d5002c9b8adfa",
+    Var("chromium_git") + "/angle/angle.git@" + Var("angle_revision"),
 
   "src/third_party/trace-viewer":
     (Var("googlecode_url") % "trace-viewer") + "/trunk@1203",
@@ -106,7 +109,7 @@ deps = {
     "/trunk/deps/third_party/libexif/sources@146817",
 
   "src/third_party/hunspell":
-   "/trunk/deps/third_party/hunspell@206172",
+   "/trunk/deps/third_party/hunspell@256272",
 
   "src/third_party/hunspell_dictionaries":
     "/trunk/deps/third_party/hunspell_dictionaries@193701",
@@ -131,10 +134,10 @@ deps = {
     (Var("googlecode_url") % "snappy") + "/trunk@80",
 
   "src/tools/grit":
-    (Var("googlecode_url") % "grit-i18n") + "/trunk@155",
+    (Var("googlecode_url") % "grit-i18n") + "/trunk@156",
 
   "src/tools/gyp":
-    (Var("googlecode_url") % "gyp") + "/trunk@1860",
+    (Var("googlecode_url") % "gyp") + "/trunk@1874",
 
   "src/tools/swarming_client":
     Var("chromium_git") + "/external/swarming.client.git@" +
@@ -188,7 +191,7 @@ deps = {
 
   "src/third_party/webgl/src":
     Var("chromium_git") +
-    "/external/khronosgroup/webgl.git@159f31dd34842c871032d97d360a9dce5153f585",
+    "/external/khronosgroup/webgl.git@b6bce42c2484666d3e28dc25b12f27eb06f39f27",
 
   "src/third_party/swig/Lib":
     "/trunk/deps/third_party/swig/Lib@" + Var("swig_revision"),
@@ -294,7 +297,7 @@ deps = {
     "/trunk/deps/third_party/mesa@254411",
 
   "src/third_party/cld_2/src":
-    (Var("googlecode_url") % "cld2") + "/trunk@84",
+    (Var("googlecode_url") % "cld2") + "/trunk@157",
 
   "src/chrome/browser/resources/pdf/html_office":
      Var("chromium_git") +
@@ -303,6 +306,9 @@ deps = {
   "src/third_party/libwebm/source":
     Var("chromium_git") +
       "/webm/libwebm.git@0f7815b036651e242ec8c2fcfb59fe54f69be1a8",
+
+  "src/third_party/openssl":
+    "/trunk/deps/third_party/openssl@" + Var("openssl_revision"),
 }
 
 
@@ -460,9 +466,6 @@ deps_os = {
       ((Var("googlecode_url") % "linux-syscall-support") + "/trunk/lss@" +
        Var("lss_revision")),
 
-    "src/third_party/openssl":
-      "/trunk/deps/third_party/openssl@" + Var("openssl_revision"),
-
     "src/third_party/gold":
       "/trunk/deps/third_party/gold@228995",
 
@@ -482,7 +485,7 @@ deps_os = {
     # For Linux and Chromium OS.
     "src/third_party/cros_system_api":
       Var("chromiumos_git") + "/platform/system_api.git" +
-      "@cca4793e883a03da9d472dbe0712104d49119b00",
+      "@f5a15cd055c066c026ec0f495c875bc9426eb24c",
 
     # Note that this is different from Android's freetype repo.
     "src/third_party/freetype2/src":
@@ -548,9 +551,6 @@ deps_os = {
     "src/third_party/lss":
       ((Var("googlecode_url") % "linux-syscall-support") + "/trunk/lss@" +
        Var("lss_revision")),
-
-    "src/third_party/openssl":
-      "/trunk/deps/third_party/openssl@" + Var("openssl_revision"),
 
     "src/third_party/eyesfree/src/android/java/src/com/googlecode/eyesfree/braille":
       (Var("googlecode_url") % "eyes-free") + "/trunk/braille/client/src/com/googlecode/eyesfree/braille@797",
