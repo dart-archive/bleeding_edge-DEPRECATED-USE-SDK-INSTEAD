@@ -45,6 +45,8 @@ public class StructuredDocumentDartInfo {
     } catch (CoreException ex) {
       return null;
     }
+    // prepare Source
+    Source source = new FileBasedSource(file);
     // prepare IResource
     IResource resource = ResourceUtil.getResource(file);
     if (resource == null) {
@@ -54,19 +56,21 @@ public class StructuredDocumentDartInfo {
     IProject resourceProject = resource.getProject();
     Project project = DartCore.getProjectManager().getProject(resourceProject);
     // done
-    return new StructuredDocumentDartInfo(document, file, resourceProject, project);
+    return new StructuredDocumentDartInfo(document, file, resource, source, project);
   }
 
   private final IDocument document;
   private final File file;
   private final IResource resource;
+  private final Source source;
   private final Project project;
 
   private StructuredDocumentDartInfo(IDocument document, File file, IResource resource,
-      Project project) {
+      Source source, Project project) {
     this.document = document;
     this.file = file;
     this.resource = resource;
+    this.source = source;
     this.project = project;
   }
 
@@ -91,10 +95,6 @@ public class StructuredDocumentDartInfo {
   }
 
   public Source getSource() {
-    AnalysisContext analysisContext = getContext();
-    if (analysisContext == null) {
-      return null;
-    }
-    return new FileBasedSource(file);
+    return source;
   }
 }

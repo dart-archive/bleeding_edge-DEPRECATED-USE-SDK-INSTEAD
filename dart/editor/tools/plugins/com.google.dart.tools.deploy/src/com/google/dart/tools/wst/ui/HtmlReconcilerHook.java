@@ -16,7 +16,11 @@ package com.google.dart.tools.wst.ui;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.utilities.general.ObjectUtilities;
+import com.google.dart.tools.core.analysis.model.AnalysisListener;
 import com.google.dart.tools.core.analysis.model.Project;
+import com.google.dart.tools.core.analysis.model.ResolvedHtmlEvent;
+import com.google.dart.tools.core.internal.builder.AnalysisWorker;
 
 import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocument;
@@ -45,6 +49,8 @@ public class HtmlReconcilerHook implements ISourceValidator, IValidator {
 
   private IDocument document;
   private StructuredDocumentDartInfo documentInfo;
+  private HtmlUnit resolvedUnit;
+  private AnalysisListener analysisListener;
 
   public HtmlReconcilerHook() {
   }
@@ -65,30 +71,38 @@ public class HtmlReconcilerHook implements ISourceValidator, IValidator {
     // track changes
     document.addDocumentListener(documentListener);
     HtmlReconcilerManager.getInstance().reconcileWith(document, this);
+    // remember resolved HtmlUnit
+    analysisListener = new AnalysisListener.Empty() {
+      @Override
+      public void resolvedHtml(ResolvedHtmlEvent event) {
+        StructuredDocumentDartInfo info = documentInfo;
+        if (info != null) {
+          if (event.getContext() == info.getContext()
+              && ObjectUtilities.equals(event.getSource(), info.getSource())) {
+            resolvedUnit = event.getUnit();
+          }
+        }
+      }
+    };
+    AnalysisWorker.addListener(analysisListener);
     // force reconcile
     sourceChanged(document.get());
   }
 
   @Override
   public void disconnect(IDocument document) {
+    AnalysisWorker.removeListener(analysisListener);
     sourceChanged(null);
     // clean up
     document.removeDocumentListener(documentListener);
     DartReconcilerManager.getInstance().reconcileWith(document, null);
     this.document = null;
     this.documentInfo = null;
+    this.resolvedUnit = null;
   }
 
   public HtmlUnit getResolvedUnit() {
-    if (documentInfo != null) {
-      AnalysisContext context = documentInfo.getContext();
-      Source source = documentInfo.getSource();
-      if (context == null || source == null) {
-        return null;
-      }
-      return context.getResolvedHtmlUnit(source);
-    }
-    return null;
+    return resolvedUnit;
   }
 
   @Override
@@ -113,11 +127,12 @@ public class HtmlReconcilerHook implements ISourceValidator, IValidator {
    * @param code the new source code or {@code null} if the source should be pulled from disk
    */
   private void sourceChanged(String code) {
+    resolvedUnit = null;
     if (documentInfo != null) {
       AnalysisContext context = documentInfo.getContext();
-      Source source = documentInfo.getSource();
-      if (context != null && source != null) {
+      if (context != null) {
         Project project = documentInfo.getProject();
+        Source source = documentInfo.getSource();
         HtmlReconcilerManager.performUpdateInBackground(project, context, source, code);
       }
     }

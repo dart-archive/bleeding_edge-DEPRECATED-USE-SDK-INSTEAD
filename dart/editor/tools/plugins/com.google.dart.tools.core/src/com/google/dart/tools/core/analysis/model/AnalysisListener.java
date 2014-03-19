@@ -21,6 +21,23 @@ import com.google.dart.engine.context.AnalysisContext;
  * @coverage dart.tools.core.model
  */
 public interface AnalysisListener {
+  /**
+   * Implementation of {@link AnalysisListener} that does nothing.
+   */
+  public class Empty implements AnalysisListener {
+    @Override
+    public void complete(AnalysisEvent event) {
+    }
+
+    @Override
+    public void resolved(ResolvedEvent event) {
+    }
+
+    @Override
+    public void resolvedHtml(ResolvedHtmlEvent event) {
+    }
+
+  }
 
   /**
    * Called when analysis for a particular {@link AnalysisContext} is complete.
