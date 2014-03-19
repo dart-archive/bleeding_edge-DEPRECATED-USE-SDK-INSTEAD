@@ -5,9 +5,9 @@ import 'dart:web_audio';
 import 'package:bot/bot.dart';
 import 'package:bot_web/bot_html.dart';
 import 'package:bot_web/bot_texture.dart';
-import 'package:poppopwin/canvas.dart';
-import 'package:poppopwin/platform_target.dart';
-import 'package:poppopwin/html.dart';
+import 'package:pop_pop_win/canvas.dart';
+import 'package:pop_pop_win/platform_target.dart';
+import 'package:pop_pop_win/html.dart';
 
 import 'texture_data.dart';
 

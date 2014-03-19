@@ -2,7 +2,7 @@ library ppw_platform_web;
 
 import 'dart:async';
 import 'dart:html';
-import 'package:poppopwin/platform_target.dart';
+import 'package:pop_pop_win/platform_target.dart';
 
 class PlatformWeb extends PlatformTarget {
   static const String _BIG_HASH = '#big';

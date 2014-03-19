@@ -191,6 +191,9 @@ build system.  The PDE build system has to run under Eclipse.
                 <include name="sunflower/**"/>
                 <include name="pop_pop_win/**"/>
 
+                <!-- Exclude the tool directory as well -->
+                <exclude name="pop_pop_win/tool/**"/>
+
                 <!-- the READMEs are out of date -->
                 <exclude name="**/README"/>
 
@@ -209,7 +212,6 @@ build system.  The PDE build system has to run under Eclipse.
                 <exclude name="**/test/"/>
                 <exclude name="**/app_package/"/>
                 <exclude name="**/resouce/"/>
-               
             </fileset>
         </copy>
 
