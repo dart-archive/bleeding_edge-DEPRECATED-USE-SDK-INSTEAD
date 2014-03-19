@@ -163,6 +163,12 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
       resolvedUnitState = CacheState.FLUSHED;
       resolvedUnit = null;
     }
+    if (angularEntryState == CacheState.VALID) {
+      angularEntryState = CacheState.FLUSHED;
+    }
+    if (angularErrorsState == CacheState.VALID) {
+      angularErrorsState = CacheState.FLUSHED;
+    }
   }
 
   @Override

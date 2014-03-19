@@ -3565,12 +3565,14 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       if (options.getAnalyzeAngular()) {
         // Try to resolve the HTML as an Angular entry point.
         CacheState angularEntryState = htmlEntry.getState(HtmlEntry.ANGULAR_ENTRY);
-        if (angularEntryState == CacheState.INVALID) {
+        if (angularEntryState == CacheState.INVALID
+            || (isPriority && angularEntryState == CacheState.FLUSHED)) {
           return createResolveAngularEntryHtmlTask(source, htmlEntry);
         }
         // Try to resolve the HTML as an Angular application part.
         CacheState angularErrorsState = htmlEntry.getState(HtmlEntry.ANGULAR_ERRORS);
-        if (angularErrorsState == CacheState.INVALID) {
+        if (angularErrorsState == CacheState.INVALID
+            || (isPriority && angularErrorsState == CacheState.FLUSHED)) {
           return createResolveAngularComponentTemplateTask(source, htmlEntry);
         }
       }
@@ -3801,7 +3803,8 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       // Angular
       if (options.getAnalyzeAngular()) {
         CacheState angularErrorsState = htmlEntry.getState(HtmlEntry.ANGULAR_ERRORS);
-        if (angularErrorsState == CacheState.INVALID) {
+        if (angularErrorsState == CacheState.INVALID
+            || (isPriority && angularErrorsState == CacheState.FLUSHED)) {
           AngularApplication entryInfo = htmlEntry.getValue(HtmlEntry.ANGULAR_ENTRY);
           if (entryInfo != null) {
             sources.add(source);
