@@ -4416,7 +4416,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
 
           if (generateSdkErrors || !source.isInSystemLibrary()) {
             ChangeNoticeImpl notice = getNotice(source);
-            notice.setErrors(dartCopy.getAllErrors(), dartCopy.getValue(SourceEntry.LINE_INFO));
+            notice.setErrors(dartCopy.getAllErrors(), task.getLineInfo());
           }
 
           // Verify that the incrementally parsed and resolved unit in the incremental cache

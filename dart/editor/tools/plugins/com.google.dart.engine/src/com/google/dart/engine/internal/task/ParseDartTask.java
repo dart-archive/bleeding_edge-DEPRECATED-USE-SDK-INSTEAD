@@ -180,6 +180,15 @@ public class ParseDartTask extends AnalysisTask {
   }
 
   /**
+   * Return the line information associated with the source.
+   * 
+   * @return the line information associated with the source
+   */
+  public LineInfo getLineInfo() {
+    return lineInfo;
+  }
+
+  /**
    * Return the time at which the contents of the source that was parsed were last modified, or a
    * negative value if the task has not yet been performed or if an exception occurred.
    * 
