@@ -29,6 +29,8 @@ import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 
 import java.util.List;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * Helper for updating the order in which sources are analyzed in contexts associated with editors.
@@ -37,6 +39,39 @@ import java.util.List;
  * called for the 2 visible editors.
  */
 public class DartPrioritySourcesHelper {
+  private static class PriorityOrderRequest {
+    final AnalysisContext context;
+    final List<Source> sources;
+
+    public PriorityOrderRequest(AnalysisContext context, List<Source> sources) {
+      this.context = context;
+      this.sources = sources;
+    }
+
+    public void perform() {
+      context.setAnalysisPriorityOrder(sources);
+    }
+  }
+
+  private static class PriorityOrderThread extends Thread {
+    public PriorityOrderThread() {
+      setName("PriorityOrderThread");
+      setDaemon(true);
+    }
+
+    @Override
+    public void run() {
+      while (true) {
+        try {
+          PriorityOrderRequest request = requestQueue.take();
+          request.perform();
+        } catch (InterruptedException e) {
+        }
+      }
+    }
+  }
+
+  private static final BlockingQueue<PriorityOrderRequest> requestQueue = new LinkedBlockingQueue<PriorityOrderRequest>();
 
   /**
    * Schedules helper start, once {@link IWorkbenchPage} is created.
@@ -55,6 +90,7 @@ public class DartPrioritySourcesHelper {
         }
       }
     });
+    new PriorityOrderThread().start();
   }
 
   /**
@@ -187,10 +223,24 @@ public class DartPrioritySourcesHelper {
   }
 
   /**
+   * Schedules {@link AnalysisContext#setAnalysisPriorityOrder(List)} execution in background.
+   */
+  private static void updateAnalysisPriorityOrderInBackground(AnalysisContext context,
+      List<Source> sources) {
+    try {
+      requestQueue.add(new PriorityOrderRequest(context, sources));
+    } catch (IllegalStateException e) {
+      // Should never happen, "requestQueue" has a very high capacity.
+    }
+  }
+
+  /**
    * Update the order in which sources are analyzed in the context associated with the editor. This
    * is called once per instantiated editor on startup and then once for each editor as it becomes
    * active. For example, if there are 2 of 7 editors visible on startup, then this will be called
-   * for the 2 visible editors. MUST be called on the UI thread.
+   * for the 2 visible editors.
+   * <p>
+   * MUST be called on the UI thread.
    * 
    * @param isOpen {@code true} if the editor is open and the source should be the first source
    *          analyzed or {@code false} if the editor is closed and the source should be removed
@@ -201,12 +251,12 @@ public class DartPrioritySourcesHelper {
     AnalysisContext context = editor.getInputAnalysisContext();
     Source source = editor.getInputSource();
     if (context != null && source != null) {
-      final List<Source> sources = getVisibleSourcesForContext(context);
+      List<Source> sources = getVisibleSourcesForContext(context);
       sources.remove(source);
       if (isOpen) {
         sources.add(0, source);
       }
-      context.setAnalysisPriorityOrder(sources);
+      updateAnalysisPriorityOrderInBackground(context, sources);
     }
   }
 }
