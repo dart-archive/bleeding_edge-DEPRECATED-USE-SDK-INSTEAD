@@ -55,24 +55,29 @@ class NgDirectiveElementProcessor extends NgDirectiveProcessor {
       if (name.equals(".")) {
         name = selectorAttributeName;
       }
-      // resolve attribute expression
+      // prepare attribute
       XmlAttributeNode attribute = node.getAttribute(name);
-      if (attribute != null) {
-        // if not resolved as the selector, resolve as a property
-        if (!name.equals(selectorAttributeName)) {
-          attribute.setElement(property);
-        }
-        // resolve if binding
-        if (property.getPropertyKind() != AngularPropertyKind.ATTR) {
-          resolver.pushNameScope();
-          try {
-            onNgEventDirective(resolver);
-            AngularExpression expression = parseAngularExpression(resolver, attribute);
-            resolver.resolveExpression(expression);
-            setAngularExpression(attribute, expression);
-          } finally {
-            resolver.popNameScope();
-          }
+      if (attribute == null) {
+        continue;
+      }
+      // if not resolved as the selector, resolve as a property
+      if (!name.equals(selectorAttributeName)) {
+        attribute.setElement(property);
+      }
+      // skip if attribute has no value
+      if (!hasValue(attribute)) {
+        continue;
+      }
+      // resolve if binding
+      if (property.getPropertyKind() != AngularPropertyKind.ATTR) {
+        resolver.pushNameScope();
+        try {
+          onNgEventDirective(resolver);
+          AngularExpression expression = parseAngularExpression(resolver, attribute);
+          resolver.resolveExpression(expression);
+          setAngularExpression(attribute, expression);
+        } finally {
+          resolver.popNameScope();
         }
       }
     }

@@ -281,6 +281,33 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
     }
   }
 
+  public void test_NgDirective_noAttribute() throws Exception {
+    addMainSource(createSource("",//
+        "import 'angular.dart';",
+        "",
+        "@NgDirective(selector: '[my-directive]', map: const {'foo': '=>input'})",
+        "class MyDirective {",
+        "  set input(value) {}",
+        "}"));
+    resolveIndexNoErrors(createHtmlWithMyController(//
+        "<div my-directive>",
+        "</div>"));
+    // no "foo" attribute, but it is OK
+  }
+
+  public void test_NgDirective_noExpression() throws Exception {
+    addMainSource(createSource("",//
+        "import 'angular.dart';",
+        "",
+        "@NgDirective(selector: '[my-directive]', map: const {'.': '=>input'})",
+        "class MyDirective {",
+        "  set input(value) {}",
+        "}"));
+    resolveIndexNoErrors(createHtmlWithMyController(//
+        "<div my-directive>",
+        "</div>"));
+  }
+
   public void test_NgDirective_resolvedExpression() throws Exception {
     addMainSource(createSource("",//
         "import 'angular.dart';",
