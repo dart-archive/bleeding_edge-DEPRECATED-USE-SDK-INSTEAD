@@ -2767,9 +2767,9 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
    * @return task data representing the created task
    */
   private TaskData createGenerateDartHintsTask(Source source, DartEntry dartEntry,
-      Source librarySource, SourceEntry libraryEntry) {
+      Source librarySource, DartEntry libraryEntry) {
     if (libraryEntry.getState(DartEntry.ELEMENT) != CacheState.VALID) {
-      // TODO Return a ResolveDartLibraryTask.
+      return createResolveDartLibraryTask(librarySource, libraryEntry);
     }
     LibraryElement libraryElement = libraryEntry.getValue(DartEntry.ELEMENT);
     CompilationUnitElement definingUnit = libraryElement.getDefiningCompilationUnit();
@@ -2778,16 +2778,16 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     TimestampedData<CompilationUnit>[] units = new TimestampedData[parts.length + 1];
     units[0] = getResolvedUnit(definingUnit, librarySource);
     if (units[0] == null) {
-      // TODO Return a ResolveDartUnitTask? We ought to be preserving the resolved AST
-      // structure until errors and hints have completed, so this might represent an
-      // internal error.
+      // TODO(brianwilkerson) We should return a ResolveDartUnitTask (unless there are multiple ASTs
+      // that need to be resolved.
+      return createResolveDartLibraryTask(librarySource, libraryEntry);
     }
     for (int i = 0; i < parts.length; i++) {
       units[i + 1] = getResolvedUnit(parts[i], librarySource);
       if (units[i + 1] == null) {
-        // TODO Return a ResolveDartUnitTask? We ought to be preserving the resolved AST
-        // structure until errors and hints have completed, so this might represent an
-        // internal error.
+        // TODO(brianwilkerson) We should return a ResolveDartUnitTask (unless there are multiple
+        // ASTs that need to be resolved.
+        return createResolveDartLibraryTask(librarySource, libraryEntry);
       }
     }
 
@@ -3494,6 +3494,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
           CacheState elementState = libraryEntry.getState(DartEntry.ELEMENT);
           if (elementState == CacheState.INVALID
               || (isPriority && elementState == CacheState.FLUSHED)) {
+            //return createResolveDartLibraryTask(librarySource, (DartEntry) libraryEntry);
             DartEntryImpl libraryCopy = ((DartEntry) libraryEntry).getWritableCopy();
             libraryCopy.setState(DartEntry.ELEMENT, CacheState.IN_PROCESS);
             cache.put(librarySource, libraryCopy);
@@ -3511,15 +3512,16 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
             //
             //LibraryElement libraryElement = libraryEntry.getValue(DartEntry.ELEMENT);
             //if (libraryElement != null) {
+            //  return new ResolveDartUnitTask(this, source, libraryElement);
+            //}
+            // Possibly replace with: return createResolveDartLibraryTask(librarySource, (DartEntry) libraryEntry);
             DartEntryImpl dartCopy = dartEntry.getWritableCopy();
             dartCopy.setStateInLibrary(
                 DartEntry.RESOLVED_UNIT,
                 librarySource,
                 CacheState.IN_PROCESS);
             cache.put(source, dartCopy);
-            //return new ResolveDartUnitTask(this, source, libraryElement);
             return new TaskData(new ResolveDartLibraryTask(this, source, librarySource), false);
-            //}
           }
           if (generateSdkErrors || !source.isInSystemLibrary()) {
             CacheState verificationErrorsState = dartEntry.getStateInLibrary(
@@ -3533,7 +3535,11 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
               CacheState hintsState = dartEntry.getStateInLibrary(DartEntry.HINTS, librarySource);
               if (hintsState == CacheState.INVALID
                   || (isPriority && hintsState == CacheState.FLUSHED)) {
-                return createGenerateDartHintsTask(source, dartEntry, librarySource, libraryEntry);
+                return createGenerateDartHintsTask(
+                    source,
+                    dartEntry,
+                    librarySource,
+                    (DartEntry) libraryEntry);
               }
             }
           }
