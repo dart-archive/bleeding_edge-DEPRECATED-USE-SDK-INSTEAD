@@ -8,7 +8,7 @@ import 'package:bot_web/bot_html.dart';
 import 'package:bot_web/bot_retained.dart';
 import 'package:bot_web/bot_texture.dart';
 import 'html.dart';
-import 'poppopwin.dart';
+import 'pop_pop_win.dart';
 
 part 'src/canvas/board_element.dart';
 part 'src/canvas/game_background_element.dart';

@@ -10,7 +10,7 @@ class PlatformWeb extends PlatformTarget {
 
   final StreamController _aboutController = new StreamController(sync: true);
 
-  PlatformWeb() : super.base() {
+  PlatformWeb(): super.base() {
     window.onPopState.listen((args) => _processUrlHash());
   }
 
@@ -42,13 +42,13 @@ class PlatformWeb extends PlatformTarget {
     var hash = loc.hash.length == 0 ? '#' : loc.hash;
 
     var isOpen = hash == _ABOUT_HASH;
-    if(value == null) {
+    if (value == null) {
       // then toggle the current value
       value = !isOpen;
     }
 
     var targetHash = value ? _ABOUT_HASH : '#';
-    if(targetHash != hash) {
+    if (targetHash != hash) {
       loc.assign(targetHash);
     }
     _aboutController.add(null);
@@ -62,7 +62,7 @@ class PlatformWeb extends PlatformTarget {
     var href = loc.href;
 
     final History history = window.history;
-    switch(hash) {
+    switch (hash) {
       case "#reset":
         assert(href.endsWith(hash));
         var newLoc = href.substring(0, href.length - hash.length);

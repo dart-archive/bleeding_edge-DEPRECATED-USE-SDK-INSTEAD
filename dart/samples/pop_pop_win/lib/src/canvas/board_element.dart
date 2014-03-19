@@ -3,12 +3,12 @@ part of ppw_canvas;
 class BoardElement extends ParentThing {
   Array2d<SquareElement> _elements;
 
-  BoardElement() : super(0, 0) {
+  BoardElement(): super(0, 0) {
     cacheEnabled = true;
   }
 
   int get visualChildCount {
-    if(_elements == null) {
+    if (_elements == null) {
       return 0;
     } else {
       return _elements.length;
@@ -20,13 +20,13 @@ class BoardElement extends ParentThing {
   }
 
   void update() {
-    if(_game == null) {
+    if (_game == null) {
       _elements = null;
     } else if(_elementsNeedUpdate) {
       _elements = new Array2d<SquareElement>(
           _game.field.width, _game.field.height);
 
-      for(int i=0;i<_elements.length;i++) {
+      for (int i = 0; i < _elements.length; i++) {
         final coords = _elements.getCoordinate(i);
         final se = new SquareElement(coords.item1, coords.item2);
         se.registerParent(this);

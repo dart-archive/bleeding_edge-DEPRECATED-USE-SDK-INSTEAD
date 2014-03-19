@@ -9,7 +9,7 @@ class PlatformApp extends PlatformTarget {
   final StreamController _aboutController = new StreamController(sync: true);
   bool _about = false;
 
-  PlatformApp() : super.base();
+  PlatformApp(): super.base();
 
   @override
   Future clearValues() => storage.local.clear();
@@ -30,7 +30,7 @@ class PlatformApp extends PlatformTarget {
 
   void toggleAbout([bool value]) {
     assert(_about != null);
-    if(value == null) {
+    if (value == null) {
       value = !_about;
     }
     _about = value;

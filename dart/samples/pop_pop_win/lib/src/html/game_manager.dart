@@ -21,7 +21,7 @@ abstract class GameManager {
       _gameStorage.getBestTimeMilliseconds(_width, _height, _bombCount);
 
   void newGame() {
-    if(_updatedEventId != null) {
+    if (_updatedEventId != null) {
       assert(_game != null);
       assert(_gameStateChangedId != null);
       _updatedEventId.cancel();
@@ -43,50 +43,48 @@ abstract class GameManager {
   void _click(int x, int y, bool alt) {
     final ss = _game.getSquareState(x, y);
 
-    if(alt) {
-      if(ss == SquareState.hidden) {
+    if (alt) {
+      if (ss == SquareState.hidden) {
         _game.setFlag(x, y, true);
-      } else if(ss == SquareState.flagged) {
+      } else if (ss == SquareState.flagged) {
         _game.setFlag(x, y, false);
-      } else if(ss == SquareState.revealed) {
+      } else if (ss == SquareState.revealed) {
         _game.reveal(x, y);
       }
     } else {
-      if(ss == SquareState.hidden) {
+      if (ss == SquareState.hidden) {
         _game.reveal(x, y);
       }
     }
   }
 
   void updateClock() {
-    if(_clockTimer == null && _game.state == GameState.started) {
+    if (_clockTimer == null && _game.state == GameState.started) {
       _clockTimer = new Timer(const Duration(seconds: 1), updateClock);
-    } else if(_clockTimer != null && _game.state != GameState.started) {
+    } else if (_clockTimer != null && _game.state != GameState.started) {
       _clockTimer.cancel();
       _clockTimer = null;
     }
   }
 
-  void onNewBestTime(int value){}
+  void onNewBestTime(int value) {}
 
-  void onGameStateChanged(GameState value){}
+  void onGameStateChanged(GameState value) {}
 
   bool get _canClick {
-    return _game.state == GameState.reset ||
-        _game.state == GameState.started;
+    return _game.state == GameState.reset || _game.state == GameState.started;
   }
 
   void _gameStateChanged(GameState newState) {
     _gameStorage.recordState(newState);
-    if(newState == GameState.won) {
-      _gameStorage.updateBestTime(_game)
-        .then((bool newBestTime) {
-          if(newBestTime) {
-            bestTimeMilliseconds.then((int val) {
-              onNewBestTime(val);
-            });
-          }
-        });
+    if (newState == GameState.won) {
+      _gameStorage.updateBestTime(_game).then((bool newBestTime) {
+        if (newBestTime) {
+          bestTimeMilliseconds.then((int val) {
+            onNewBestTime(val);
+          });
+        }
+      });
     }
     updateClock();
     onGameStateChanged(newState);

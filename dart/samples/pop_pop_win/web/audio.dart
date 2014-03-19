@@ -11,7 +11,7 @@ class _Audio {
   static final _audioFormat = _getAudioFormat();
 
   factory _Audio() {
-    if(_audioFormat != null) {
+    if (_audioFormat != null) {
       try {
         final audioContext = new AudioContext();
         final loader = new AudioLoader(audioContext, _getAudioPaths(_AUDIO_NAMES));
@@ -23,7 +23,7 @@ class _Audio {
     return new _Audio._disabled();
   }
 
-  _Audio._disabled() : this._audioLoader = null;
+  _Audio._disabled(): this._audioLoader = null;
 
   _Audio._internal(this._audioLoader) {
     // TODO: less than ideal. Binding to event handlers defined in game.dart
@@ -36,7 +36,7 @@ class _Audio {
   }
 
   int get completedBytes {
-    if(_audioLoader == null) {
+    if (_audioLoader == null) {
       return 0;
     } else {
       return _audioLoader.completedBytes;
@@ -44,7 +44,7 @@ class _Audio {
   }
 
   int get totalBytes {
-    if(_audioLoader == null) {
+    if (_audioLoader == null) {
       return 0;
     } else {
       return _audioLoader.totalBytes;
@@ -52,7 +52,7 @@ class _Audio {
   }
 
   bool get done {
-    if(_audioLoader == null) {
+    if (_audioLoader == null) {
       return true;
     } else {
       return _audioLoader.state == ResourceLoader.StateLoaded;
@@ -60,7 +60,7 @@ class _Audio {
   }
 
   AudioContext get _audioContext {
-    if(_audioLoader != null) {
+    if (_audioLoader != null) {
       return _audioLoader.context;
     } else {
       return null;
@@ -69,14 +69,14 @@ class _Audio {
 
   void _onLoad(args) {
     assert(_buffers.length == 0);
-    for(final name in _AUDIO_NAMES) {
+    for (final name in _AUDIO_NAMES) {
       final path = _getAudioPath(name);
       _buffers[name] = _audioLoader.getResource(path);
     }
   }
 
   void _playAudio(String name) {
-    switch(name) {
+    switch (name) {
       case GameAudio.POP:
         final i = rnd.nextInt(8);
         name = '${GameAudio.POP}$i';
@@ -90,7 +90,7 @@ class _Audio {
   }
 
   void _playAudioCore(String name) {
-    if(_audioContext != null) {
+    if (_audioContext != null) {
       var source = _audioContext.createBufferSource();
       final buffer = _buffers[name];
       assert(buffer != null);
@@ -104,9 +104,9 @@ class _Audio {
     try {
       final userAgent = window.navigator.userAgent;
       final isWebKit = userAgent.contains("WebKit");
-      if(isWebKit) {
+      if (isWebKit) {
         final isChrome = userAgent.contains("Chrome");
-        if(isChrome) {
+        if (isChrome) {
           return 'webm';
         } else {
           return 'm4a';

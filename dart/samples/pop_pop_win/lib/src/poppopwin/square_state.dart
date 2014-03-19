@@ -1,4 +1,4 @@
-part of ppw;
+part of pop_pop_win;
 
 class SquareState {
   static const SquareState hidden = const SquareState._internal("hidden");

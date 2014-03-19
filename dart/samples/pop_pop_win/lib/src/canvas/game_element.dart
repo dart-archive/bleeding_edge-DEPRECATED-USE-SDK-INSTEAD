@@ -32,12 +32,12 @@ class GameElement extends ParentThing {
 
   Game _game;
 
-  GameElement(TextureData textureData) :
-    _textureData = textureData,
-    _popAnimationLayer = new TextureAnimationThing(0, 0, textureData),
-    _dartAnimationLayer = new TextureAnimationThing(0, 0, textureData),
-    _scoreElement = new ScoreElement(),
-    super(100, 100) {
+  GameElement(TextureData textureData)
+      : _textureData = textureData,
+        _popAnimationLayer = new TextureAnimationThing(0, 0, textureData),
+        _dartAnimationLayer = new TextureAnimationThing(0, 0, textureData),
+        _scoreElement = new ScoreElement(),
+        super(100, 100) {
     _canvas.registerParent(this);
     _canvas.add(_background);
     _canvas.add(_boardElement);
@@ -60,7 +60,7 @@ class GameElement extends ParentThing {
 
   void set game(Game value) {
     _game = value;
-    if(value == null) {
+    if (value == null) {
       size = const Size(100, 100);
     } else {
       _updateSize(value.field.width, value.field.height);
@@ -78,16 +78,16 @@ class GameElement extends ParentThing {
   }
 
   void revealTarget() {
-    if(_targetX != null) {
+    if (_targetX != null) {
       game.reveal(_targetX, _targetY);
       _target(null, null);
     }
   }
 
   void toggleTargetFlag() {
-    if(_targetX != null) {
+    if (_targetX != null) {
       final success = _toggleFlag(_targetX, _targetY);
-      if(success) {
+      if (success) {
         _target(null, null);
       }
     }
@@ -137,11 +137,11 @@ class GameElement extends ParentThing {
 
     // draw target element
     _drawTarget(ctx);
- }
+  }
 
   void _drawTarget(CanvasRenderingContext2D ctx) {
     assert((_targetX == null) == (_targetY == null));
-    if(_targetX != null) {
+    if (_targetX != null) {
       final halfSize = SquareElement._size * 0.5;
       var targetLoc = new Vector(_targetX, _targetY);
       targetLoc = targetLoc.scale(SquareElement._size);
@@ -184,7 +184,7 @@ class GameElement extends ParentThing {
       return da.compareTo(db);
     });
 
-    for(final v in values) {
+    for (final v in values) {
       final Coordinate c = v[0];
       final Vector initialOffset = v[1];
       final Vector squareOffset = v[2];
@@ -195,7 +195,7 @@ class GameElement extends ParentThing {
       String texturePrefix;
       int frameCount;
 
-      switch(ss) {
+      switch (ss) {
         case SquareState.revealed:
         case SquareState.hidden:
           texturePrefix = 'balloon_pop';
@@ -212,7 +212,7 @@ class GameElement extends ParentThing {
       final request = new TextureAnimationRequest(texturePrefix, frameCount, squareOffset,
           delay: delay, initialFrame: 'balloon.png', initialFrameOffset: initialOffset);
 
-      switch(ss) {
+      switch (ss) {
         case SquareState.revealed:
         case SquareState.hidden:
           request.started.listen((args) => GameAudio.pop());
@@ -246,7 +246,7 @@ class GameElement extends ParentThing {
   }
 
   void _squareClicked(ThingMouseEventArgs args) {
-    if(!_game.gameEnded && _lastHoldUnfreeze == null) {
+    if (!_game.gameEnded && _lastHoldUnfreeze == null) {
       final SquareElement se = args.thing;
       _click(se.x, se.y, args.shiftKey);
     }
@@ -254,7 +254,7 @@ class GameElement extends ParentThing {
 
   void _squareMouseDown(ThingMouseEventArgs args) {
     _lastHoldUnfreeze = null;
-    if(_mouseDownTimer != null) {
+    if (_mouseDownTimer != null) {
       _mouseDownTimer.cancel();
     }
     final SquareElement se = args.thing;
@@ -264,7 +264,7 @@ class GameElement extends ParentThing {
 
   void _squareMouseMove(ThingMouseEventArgs args) {
     final SquareElement se = args.thing;
-    if(_mouseDownElement != se) {
+    if (_mouseDownElement != se) {
       _clearTimeout();
     }
   }
@@ -283,7 +283,7 @@ class GameElement extends ParentThing {
   }
 
   void _clearTimeout() {
-    if(_mouseDownTimer != null) {
+    if (_mouseDownTimer != null) {
       _mouseDownTimer.cancel();
       _mouseDownTimer = null;
     }
@@ -300,11 +300,11 @@ class GameElement extends ParentThing {
   bool _toggleFlag(int x, int y) {
     assert(!game.gameEnded);
     final ss = game.getSquareState(x, y);
-    if(ss == SquareState.hidden) {
+    if (ss == SquareState.hidden) {
       game.setFlag(x, y, true);
       GameAudio.flag();
       return true;
-    } else if(ss == SquareState.flagged) {
+    } else if (ss == SquareState.flagged) {
       game.setFlag(x, y, false);
       GameAudio.unflag();
       return true;
@@ -318,11 +318,11 @@ class GameElement extends ParentThing {
 
     List<Coordinate> reveals = null;
 
-    if(alt) {
-      if(ss == SquareState.hidden || ss == SquareState.flagged) {
+    if (alt) {
+      if (ss == SquareState.hidden || ss == SquareState.flagged) {
         _toggleFlag(x, y);
-      } else if(ss == SquareState.revealed) {
-        if(game.canReveal(x, y)) {
+      } else if (ss == SquareState.revealed) {
+        if (game.canReveal(x, y)) {
           // get adjacent ballons
           final adjHidden = game.field.getAdjacentIndices(x, y)
               .map((i) {
@@ -339,22 +339,22 @@ class GameElement extends ParentThing {
         }
       }
     } else {
-      if(ss == SquareState.hidden) {
+      if (ss == SquareState.hidden) {
         _startDartAnimation([new Coordinate(x, y)]);
         reveals = game.reveal(x, y);
       }
     }
 
-    if(reveals != null && reveals.length > 0) {
+    if (reveals != null && reveals.length > 0) {
       assert(game.state != GameState.lost);
-      if(!alt) {
+      if (!alt) {
         // if it was a normal click, the first item should be the clicked item
         var first = reveals[0];
         assert(first.x == x);
         assert(first.y == y);
       }
       _startPopAnimation(new Coordinate(x, y), reveals);
-    } else if(game.state == GameState.lost) {
+    } else if (game.state == GameState.lost) {
       _startPopAnimation(new Coordinate(x, y));
     }
   }

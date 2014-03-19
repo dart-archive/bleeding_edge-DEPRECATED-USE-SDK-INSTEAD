@@ -11,9 +11,9 @@ import 'package:pop_pop_win/html.dart';
 
 import 'texture_data.dart';
 
-part '_audio.dart';
+part 'audio.dart';
 
-const String _ASSET_DIR = 'assets/poppopwin/';
+const String _ASSET_DIR = 'assets/pop_pop_win/';
 
 const String _TRANSPARENT_TEXTURE = '${_ASSET_DIR}images/transparent_animated.png';
 const String _OPAQUE_TEXTURE = '${_ASSET_DIR}images/dart_opaque_01.jpg';
@@ -56,7 +56,7 @@ void _onProgress(_) {
 }
 
 void _onLoaded(_) {
-  if(_imageLoader.state == ResourceLoader.StateLoaded && _audio.done) {
+  if (_imageLoader.state == ResourceLoader.StateLoaded && _audio.done) {
 
     //
     // load textures
@@ -101,13 +101,13 @@ void _runPPW(TextureData textureData) {
 }
 
 void _onPopupClick(MouseEvent args) {
-  if(!(args.toElement is AnchorElement)) {
+  if (!(args.toElement is AnchorElement)) {
     targetPlatform.toggleAbout(false);
   }
 }
 
 void _onKeyDown(KeyboardEvent args) {
-  switch(args.keyCode) {
+  switch (args.keyCode) {
     case 27: // esc
       targetPlatform.toggleAbout(false);
       break;

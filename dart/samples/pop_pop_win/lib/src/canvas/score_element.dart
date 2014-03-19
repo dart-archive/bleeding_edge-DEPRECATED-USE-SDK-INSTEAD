@@ -11,7 +11,7 @@ class ScoreElement extends Thing {
   String _clockStr, _bombsStr, _bestTimeStr;
   num _textSize;
 
-  ScoreElement() : super(400, 96);
+  ScoreElement(): super(400, 96);
 
   void setGameManager(GameManager manager) {
     assert(_gameManager == null);
@@ -22,26 +22,26 @@ class ScoreElement extends Thing {
 
   void update() {
     final newBombStr = _game.bombsLeft.toString();
-    if(newBombStr != _bombsStr) {
+    if (newBombStr != _bombsStr) {
       _bombsStr = newBombStr;
       invalidateDraw();
     }
 
     var newClockStr = '';
-    if(_game.duration != null) {
+    if (_game.duration != null) {
       newClockStr = toRecordString(_game.duration.inMilliseconds);
     }
-    if(newClockStr != _clockStr) {
+    if (newClockStr != _clockStr) {
       _clockStr = newClockStr;
       invalidateDraw();
     }
 
     var bestTimeStr = null;
     _gameManager.bestTimeMilliseconds.then((int val) {
-      if(val != null) {
+      if (val != null) {
         bestTimeStr = toRecordString(val);
       }
-      if(_bestTimeStr != bestTimeStr) {
+      if (_bestTimeStr != bestTimeStr) {
         _bestTimeStr = bestTimeStr;
         invalidateDraw();
       }
@@ -69,7 +69,7 @@ class ScoreElement extends Thing {
     ctx.textAlign = 'left';
     ctx.fillText(_clockStr, textSize + _valueOffset, 1.5 * rowHeight);
 
-    if(_bestTimeStr != null) {
+    if (_bestTimeStr != null) {
       ctx.textAlign = 'right';
       ctx.fillText('RECORD:', textSize, 2.5 * rowHeight);
       ctx.textAlign = 'left';
@@ -82,7 +82,7 @@ class ScoreElement extends Thing {
   }
 
   num _getTextSize(CanvasRenderingContext2D ctx) {
-    if(_textSize == null) {
+    if (_textSize == null) {
       final mets = ctx.measureText(_bombsLeftStr);
       _textSize = mets.width;
     }

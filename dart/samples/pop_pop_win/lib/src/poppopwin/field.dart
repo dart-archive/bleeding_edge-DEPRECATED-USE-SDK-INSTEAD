@@ -1,4 +1,4 @@
-part of ppw;
+part of pop_pop_win;
 
 class Field extends Array2d<bool> {
   final int bombCount;
@@ -15,11 +15,11 @@ class Field extends Array2d<bool> {
     // bombCount approaches the square count.
     // But more efficient if bombCount << square count
     // which is expected.
-    for(int i = 0; i < bombCount; i++) {
+    for (int i = 0; i < bombCount; i++) {
       int index;
       do {
         index = rnd.nextInt(squares.length);
-      } while(squares[index]);
+      } while (squares[index]);
       squares[index] = true;
     }
 
@@ -33,8 +33,8 @@ class Field extends Array2d<bool> {
     assert(squares.length == cols * rows);
 
     int count = 0;
-    for(final m in squares) {
-      if(m) {
+    for (final m in squares) {
+      if (m) {
         count++;
       }
     }
@@ -54,8 +54,8 @@ class Field extends Array2d<bool> {
     assert(bombCount < length);
 
     int count = 0;
-    for(final m in this) {
-      if(m) {
+    for (final m in this) {
+      if (m) {
         count++;
       }
     }
@@ -63,16 +63,16 @@ class Field extends Array2d<bool> {
   }
 
   int getAdjacentCount(int x, int y) {
-    if(get(x,y)) {
+    if (get(x, y)) {
       return null;
     }
 
     int val = _adjacents.get(x, y);
 
-    if(val == null) {
+    if (val == null) {
       val = 0;
-      for(final i in getAdjacentIndices(x,y)) {
-        if(this[i]) {
+      for (final i in getAdjacentIndices(x, y)) {
+        if (this[i]) {
           val++;
         }
       }

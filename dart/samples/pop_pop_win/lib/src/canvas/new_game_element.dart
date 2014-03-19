@@ -4,7 +4,7 @@ class NewGameElement extends Thing {
   final EventHandle<EventArgs> _clickedEvent =
       new EventHandle<EventArgs>();
 
-  NewGameElement() : super(294, 92) {
+  NewGameElement(): super(294, 92) {
     MouseManager.setClickable(this, true);
     MouseManager.getClickStream(this).listen((args) =>
         _clickedEvent.add(EventArgs.empty));

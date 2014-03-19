@@ -3,7 +3,7 @@ library ppw_html;
 import 'dart:async';
 import 'dart:html';
 import 'package:bot/bot.dart';
-import 'poppopwin.dart';
+import 'pop_pop_win.dart';
 import 'platform_target.dart';
 
 part 'src/html/high_score_view.dart';
@@ -22,7 +22,7 @@ void initPlatform(PlatformTarget value) {
 }
 
 PlatformTarget get targetPlatform {
-  if(_platformImpl == null) {
+  if (_platformImpl == null) {
     initPlatform(new PlatformTarget());
   }
   return _platformImpl;

@@ -8,4 +8,4 @@ dependencies:
   browser: '>=0.10.0 <0.11.0'
   chrome_gen: '>=0.3.0 <0.4.0'
 dev_dependencies:
-  hop: '>=0.30.2 <0.31.0'
+  unittest: '>=0.10.0 <0.11.0'

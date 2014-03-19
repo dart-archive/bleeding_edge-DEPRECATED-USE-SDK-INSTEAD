@@ -1,4 +1,4 @@
-library ppw;
+library pop_pop_win;
 
 import 'dart:async';
 import 'dart:math' as math;

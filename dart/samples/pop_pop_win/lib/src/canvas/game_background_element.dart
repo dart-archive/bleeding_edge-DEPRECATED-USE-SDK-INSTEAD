@@ -1,12 +1,12 @@
 part of ppw_canvas;
 
 class GameBackgroundElement extends Thing {
-  GameBackgroundElement() : super(0, 0) {
+  GameBackgroundElement(): super(0, 0) {
     cacheEnabled = true;
   }
 
   void update() {
-    if(size != this._gameElement.size) {
+    if (size != this._gameElement.size) {
       size = this._gameElement.size;
     }
   }
@@ -26,11 +26,11 @@ class GameBackgroundElement extends Thing {
         new Coordinate(rightBgLoc, 0));
 
     _textureData.drawTextureKeyAt(ctx, 'game_board_corner_bottom_left.png',
-                     new Coordinate(0, bottomBgLoc));
+        new Coordinate(0, bottomBgLoc));
     _textureData.drawTextureKeyAt(ctx, 'game_board_corner_bottom_right.png',
         new Coordinate(rightBgLoc, bottomBgLoc));
 
-    for(var i = 1; i < _gameElement._game.field.width - 1; i++) {
+    for (var i = 1; i < _gameElement._game.field.width - 1; i++) {
       final xLoc = SquareElement._size * i + GameElement._edgeOffset;
       _textureData.drawTextureKeyAt(ctx, 'game_board_side_top.png',
           new Coordinate(xLoc, 0));
@@ -38,7 +38,7 @@ class GameBackgroundElement extends Thing {
           new Coordinate(xLoc, bottomBgLoc));
     }
 
-    for(var i = 1; i < _gameElement._game.field.height - 1; i++) {
+    for (var i = 1; i < _gameElement._game.field.height - 1; i++) {
       final yLoc = SquareElement._size * i + GameElement._edgeOffset;
       _textureData.drawTextureKeyAt(ctx, 'game_board_side_left.png',
           new Coordinate(0, yLoc));
@@ -59,17 +59,17 @@ class GameBackgroundElement extends Thing {
 
     // right flip
     ctx.save();
-    ctx.transform(-1 , 0, 0, 1, GameElement._backgroundSize.width, 0);
+    ctx.transform(-1, 0, 0, 1, GameElement._backgroundSize.width, 0);
     _drawCorner(ctx);
 
     // nested bottom, right flip
-    ctx.transform(1 , 0, 0, -1, 0, GameElement._backgroundSize.height);
+    ctx.transform(1, 0, 0, -1, 0, GameElement._backgroundSize.height);
     _drawCorner(ctx);
 
     ctx.restore();
 
     // bottom left
-    ctx.transform(1 , 0, 0, -1, 0, GameElement._backgroundSize.height);
+    ctx.transform(1, 0, 0, -1, 0, GameElement._backgroundSize.height);
     _drawCorner(ctx);
 
     ctx.restore();

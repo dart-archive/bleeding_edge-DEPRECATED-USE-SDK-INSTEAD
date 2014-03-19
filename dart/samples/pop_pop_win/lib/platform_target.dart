@@ -36,7 +36,7 @@ class _DefaultPlatform extends PlatformTarget {
   final StreamController _aboutController = new StreamController(sync: true);
   bool _about = false;
 
-  _DefaultPlatform() : super.base();
+  _DefaultPlatform(): super.base();
 
   @override
   Future clearValues() => new Future(_values.clear);
@@ -52,7 +52,7 @@ class _DefaultPlatform extends PlatformTarget {
 
   void toggleAbout([bool value]) {
     assert(_about != null);
-    if(value == null) {
+    if (value == null) {
       value = !_about;
     }
     _about = value;

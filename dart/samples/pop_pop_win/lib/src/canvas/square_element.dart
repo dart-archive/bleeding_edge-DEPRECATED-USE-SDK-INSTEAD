@@ -18,12 +18,12 @@ class SquareElement extends Thing {
 
   SquareState _lastDrawingState;
 
-  SquareElement(this.x, this.y) : super(_size, _size) {
+  SquareElement(this.x, this.y): super(_size, _size) {
     MouseManager.setClickable(this, true);
   }
 
   void update() {
-    if(_lastDrawingState != _squareState) {
+    if (_lastDrawingState != _squareState) {
       _lastDrawingState = _squareState;
       invalidateDraw();
     }
@@ -31,7 +31,7 @@ class SquareElement extends Thing {
 
   void drawOverride(CanvasRenderingContext2D ctx) {
     var textureName;
-    switch(_lastDrawingState) {
+    switch (_lastDrawingState) {
       case SquareState.hidden:
         textureName = _getHiddenTexture();
         break;
@@ -57,7 +57,7 @@ class SquareElement extends Thing {
 
   String _getHiddenTexture() {
     assert(_lastDrawingState == SquareState.hidden);
-    if(_game.state == GameState.lost) {
+    if (_game.state == GameState.lost) {
       final index = (x + y) % _balloonBits.length;
       return _balloonBits[index];
     } else {
