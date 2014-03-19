@@ -43,6 +43,8 @@ public class CmdLineOptions {
 
   private static final String EXPERIMENTAL = "--experimental";
 
+  private static final String NO_INSTRUMENTATION = "--no-instrumentation";
+
   private static CmdLineOptions globalOptions;
 
   /**
@@ -79,6 +81,8 @@ public class CmdLineOptions {
         }
       } else if (arg.equals(EXPERIMENTAL)) {
         options.experimental = true;
+      } else if (arg.equals(NO_INSTRUMENTATION)) {
+        options.allowInstrumentation = false;
       } else if (arg.equals(PERF)) {
         // --perf [<startTime-in-milliseconds>]
         options.measurePerformance = true;
@@ -185,9 +189,21 @@ public class CmdLineOptions {
   private File packageOverrideDirectory = null;
   private ArrayList<String> warnings = new ArrayList<String>();
   private boolean experimental = false;
+  private boolean allowInstrumentation = true;
 
   // use parseCmdLine(...) to construct new options
   private CmdLineOptions() {
+  }
+
+  /**
+   * Determine if instrumentation should be allowed.
+   * Specifying the --no-instrumentation flag on the command line will prevent instrumentation
+   * from running regardless of whether instrumentation is installed.
+   *
+   * @return {@code true} if instrumentation should be allowed, else {@code false}
+   */
+  public boolean allowInstrumentation() {
+    return allowInstrumentation;
   }
 
   /**

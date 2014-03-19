@@ -15,6 +15,7 @@
 package com.google.dart.tools.core.instrumentation;
 
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
+import com.google.dart.tools.core.CmdLineOptions;
 import com.google.dart.tools.core.DartCore;
 
 import org.eclipse.core.runtime.IConfigurationElement;
@@ -40,7 +41,9 @@ public class InstrumentationLogger {
   public static void ensureLoggerStarted() {
     if (!initialized) {
       initialized = true;
-      init();
+      if (CmdLineOptions.getOptions().allowInstrumentation()) {
+        init();
+      }
     }
   }
 
