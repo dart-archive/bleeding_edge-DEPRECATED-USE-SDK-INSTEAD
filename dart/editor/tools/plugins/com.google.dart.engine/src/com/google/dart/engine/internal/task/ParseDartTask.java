@@ -254,7 +254,7 @@ public class ParseDartTask extends AnalysisTask {
           containsLibraryDirective = true;
         } else if (directive instanceof PartDirective) {
           Source partSource = resolveSource(source, (PartDirective) directive, errorListener);
-          if (partSource != null) {
+          if (partSource != null && !partSource.equals(source)) {
             includedSources.add(partSource);
           }
         } else if (directive instanceof PartOfDirective) {

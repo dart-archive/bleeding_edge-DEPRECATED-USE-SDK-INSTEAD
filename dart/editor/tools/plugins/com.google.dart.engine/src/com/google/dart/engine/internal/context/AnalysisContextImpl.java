@@ -4040,25 +4040,6 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     dartCopy.setValue(
         DartEntry.IS_CLIENT,
         isClient(library, htmlSource, new HashSet<LibraryElement>()));
-    // TODO(brianwilkerson) Understand why we're doing this both here and in
-    // ResolveDartDependenciesTask and whether we should also be capturing the imported and exported
-    // sources here.
-    removeFromParts(librarySource, dartEntry);
-    CompilationUnitElement[] parts = library.getParts();
-    int count = parts.length;
-    Source[] unitSources = new Source[count + 1];
-    unitSources[0] = library.getDefiningCompilationUnit().getSource();
-    for (int i = 0; i < count; i++) {
-      Source unitSource = parts[i].getSource();
-      unitSources[i + 1] = unitSource;
-      DartEntry unitEntry = getReadableDartEntry(unitSource);
-      if (unitSource != null) {
-        DartEntryImpl unitCopy = unitEntry.getWritableCopy();
-        unitCopy.addContainingLibrary(librarySource);
-        cache.put(unitSource, unitCopy);
-      }
-    }
-    dartCopy.setValue(DartEntry.INCLUDED_PARTS, unitSources);
   }
 
   /**
