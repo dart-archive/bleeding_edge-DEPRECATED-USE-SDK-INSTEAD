@@ -188,8 +188,8 @@ build system.  The PDE build system has to run under Eclipse.
         <copy todir="${samples.out.dir}">
             <fileset dir="${build.source.root}/samples">
                 <include name="dartiverse_search/**"/>
-                
                 <include name="sunflower/**"/>
+                <include name="pop_pop_win/**"/>
 
                 <!-- the READMEs are out of date -->
                 <exclude name="**/README"/>
@@ -203,7 +203,6 @@ build system.  The PDE build system has to run under Eclipse.
             <fileset dir="${build.source.root}/samples/third_party">
                 <include name="todomvc/**"/>
                 <include name="angular_todo/**"/>
-                <include name="pop-pop-win/**"/>
                 <exclude name="**/tool/"/>
                 <exclude name="**/.git/"/>
                 <exclude name="**/.gitignore"/>

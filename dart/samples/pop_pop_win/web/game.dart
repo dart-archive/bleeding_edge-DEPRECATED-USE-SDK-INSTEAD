@@ -13,16 +13,18 @@ import 'texture_data.dart';
 
 part '_audio.dart';
 
-const String _TRANSPARENT_TEXTURE = 'images/transparent_animated.png';
-const String _OPAQUE_TEXTURE = 'images/dart_opaque_01.jpg';
-const String _TRANSPARENT_STATIC_TEXTURE = 'images/transparent_static.png';
+const String _ASSET_DIR = 'assets/poppopwin/';
+
+const String _TRANSPARENT_TEXTURE = '${_ASSET_DIR}images/transparent_animated.png';
+const String _OPAQUE_TEXTURE = '${_ASSET_DIR}images/dart_opaque_01.jpg';
+const String _TRANSPARENT_STATIC_TEXTURE = '${_ASSET_DIR}images/transparent_static.png';
 
 const int _LOADING_BAR_PX_WIDTH = 398;
 
 DivElement _loadingBar;
 ImageLoader _imageLoader;
 
-_Audio _audio;
+final _Audio _audio = new _Audio();
 
 void startGame(PlatformTarget platform) {
   initPlatform(platform);
@@ -36,25 +38,24 @@ void startGame(PlatformTarget platform) {
   _imageLoader.loaded.listen(_onLoaded);
   _imageLoader.progress.listen(_onProgress);
   _imageLoader.load();
-
-  _audio = new _Audio();
 }
 
-void _onProgress(args) {
+void _onProgress(_) {
   int completedBytes = _imageLoader.completedBytes;
   int totalBytes = _imageLoader.totalBytes;
 
   completedBytes += _audio.completedBytes;
   totalBytes += _audio.totalBytes;
 
-  final percent = completedBytes / totalBytes;
-  final percentClean = (percent * 1000).floor() / 10;
+  var percent = completedBytes / totalBytes;
+  if (percent == double.INFINITY) percent = 0;
+  var percentClean = (percent * 1000).floor() / 10;
 
-  final barWidth = percent * _LOADING_BAR_PX_WIDTH;
+  var barWidth = percent * _LOADING_BAR_PX_WIDTH;
   _loadingBar.style.width = '${barWidth.toInt()}px';
 }
 
-void _onLoaded(args) {
+void _onLoaded(_) {
   if(_imageLoader.state == ResourceLoader.StateLoaded && _audio.done) {
 
     //

@@ -2,7 +2,6 @@ library ppw_platform_web;
 
 import 'dart:async';
 import 'dart:html';
-import 'dart:js' as js;
 import 'package:poppopwin/platform_target.dart';
 
 class PlatformWeb extends PlatformTarget {
@@ -31,22 +30,6 @@ class PlatformWeb extends PlatformTarget {
   Future<String> getValue(String key) =>
       new Future.value(window.localStorage[key]);
 
-  @override
-  void trackAnalyticsEvent(String category, String action, [String label,
-                                                            int value]) {
-    var args = ['send', 'event', category, action];
-    if(label != null) {
-      args.add(label);
-    }
-
-    if(value != null) {
-      assert(label != null);
-      args.add(value);
-    }
-
-    js.context.callMethod('ga', args);
-  }
-
   bool get renderBig => _urlHash == _BIG_HASH;
 
   bool get showAbout => _urlHash == _ABOUT_HASH;
@@ -54,11 +37,11 @@ class PlatformWeb extends PlatformTarget {
   Stream get aboutChanged => _aboutController.stream;
 
   void toggleAbout([bool value]) {
-    final Location loc = window.location;
+    var loc = window.location;
     // ensure we treat empty hash like '#', which makes comparison easy later
-    final hash = loc.hash.length == 0 ? '#' : loc.hash;
+    var hash = loc.hash.length == 0 ? '#' : loc.hash;
 
-    final isOpen = hash == _ABOUT_HASH;
+    var isOpen = hash == _ABOUT_HASH;
     if(value == null) {
       // then toggle the current value
       value = !isOpen;
@@ -74,9 +57,9 @@ class PlatformWeb extends PlatformTarget {
   String get _urlHash => window.location.hash;
 
   void _processUrlHash() {
-    final Location loc = window.location;
-    final hash = loc.hash;
-    final href = loc.href;
+    var loc = window.location;
+    var hash = loc.hash;
+    var href = loc.href;
 
     final History history = window.history;
     switch(hash) {
@@ -89,7 +72,7 @@ class PlatformWeb extends PlatformTarget {
         loc.replace(newLoc);
         break;
       case _BIG_HASH:
-        loc.reload();
+        if (!renderBig) loc.reload();
         break;
       case _ABOUT_HASH:
         _aboutController.add(null);

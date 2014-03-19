@@ -1,9 +1,7 @@
-name: poppopwin
-author: Kevin Moore <kevmoo@google.com>
+name: pop_pop_win
 description: '"Pop, Pop, Win!" is an implementation of Minesweeper in Dart.'
-homepage: https://code.google.com/p/dart/source/browse/branches/bleeding_edge/dart/samples/third_party/pop-pop-win/
 environment:
-  sdk: '>=1.0.0 <2.0.0'
+  sdk: '>=1.3.0-dev.4.1 <2.0.0'
 dependencies:
   bot: '>=0.26.0 <0.27.0'
   bot_web: '>=0.21.0 <0.22.0'

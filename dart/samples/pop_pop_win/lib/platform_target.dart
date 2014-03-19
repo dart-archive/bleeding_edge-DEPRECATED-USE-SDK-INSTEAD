@@ -22,12 +22,6 @@ abstract class PlatformTarget {
 
   Future<String> getValue(String key);
 
-  void trackAnalyticsEvent(String category, String action, [String label,
-                                                            int value]) {
-    print('Analytics:: '
-        'category: $category; action: $action; label: $label; value: $value');
-  }
-
   bool get renderBig;
 
   bool get showAbout;

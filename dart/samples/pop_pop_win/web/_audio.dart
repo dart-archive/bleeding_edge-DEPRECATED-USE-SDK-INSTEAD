@@ -120,7 +120,7 @@ class _Audio {
 
   static String _getAudioPath(String name) {
     assert(_audioFormat != null);
-    return 'audio/${_audioFormat}/$name.${_audioFormat}';
+    return '${_ASSET_DIR}audio/${_audioFormat}/$name.${_audioFormat}';
   }
 
   static Iterable<String> _getAudioPaths(Iterable<String> names) {
