@@ -265,19 +265,6 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
   }
 
   @Override
-  public Source[] getLaunchableClientLibrarySources() {
-    AnalysisContext[] contexts;
-    synchronized (pubFolders) {
-      contexts = getAnalysisContexts();
-    }
-    List<Source> sources = new ArrayList<Source>();
-    for (AnalysisContext context : contexts) {
-      sources.addAll(Arrays.asList(context.getLaunchableClientLibrarySources()));
-    }
-    return sources.toArray(new Source[sources.size()]);
-  }
-
-  @Override
   public Source[] getLaunchableServerLibrarySources() {
     AnalysisContext[] contexts;
     synchronized (pubFolders) {

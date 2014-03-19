@@ -182,11 +182,6 @@ public class ScanTimings extends TestCase {
     }
 
     @Override
-    public Source[] getLaunchableClientLibrarySources() {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
     public Source[] getLaunchableServerLibrarySources() {
       throw new UnsupportedOperationException();
     }

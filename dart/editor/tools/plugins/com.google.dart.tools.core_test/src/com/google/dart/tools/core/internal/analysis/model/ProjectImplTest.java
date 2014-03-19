@@ -208,21 +208,6 @@ public class ProjectImplTest extends ContextManagerImplTest {
     assertFactoryInitialized(projectContainer, context1);
   }
 
-  public void test_getLaunchableClientLibrarySources() {
-    ProjectImpl project = newTarget();
-    // TODO(keertip): complete implementation when API is available 
-    Source[] sources = project.getLaunchableClientLibrarySources();
-    assertTrue(sources.length == 0);
-    MockFolder folder = projectContainer.getMockFolder("web");
-    MockFile clientfile = new MockFile(
-        folder,
-        "client.dart",
-        "library client;\nimport 'dart:html'\n\n main(){}");
-    folder.add(clientfile);
-    sources = project.getLaunchableClientLibrarySources();
-//    assertTrue(sources.length == 1);
-  }
-
   public void test_getLaunchableServerLibrarySources() {
     ProjectImpl project = newTarget();
     // TODO(keertip): complete implementation when API is available
