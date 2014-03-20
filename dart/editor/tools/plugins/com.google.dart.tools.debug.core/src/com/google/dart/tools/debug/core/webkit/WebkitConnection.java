@@ -26,6 +26,7 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -268,6 +269,18 @@ public class WebkitConnection {
     }
 
     return runtime;
+  }
+
+  public URI getWebSocketUri() {
+    if (webSocketUri != null) {
+      return webSocketUri;
+    } else {
+      try {
+        return new URI("ws", null, host, port, webSocketFile, null, null);
+      } catch (URISyntaxException e) {
+        return null;
+      }
+    }
   }
 
   public WebkitWorker getWorker() {

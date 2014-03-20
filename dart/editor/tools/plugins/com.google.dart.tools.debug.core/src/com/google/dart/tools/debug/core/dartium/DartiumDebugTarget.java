@@ -69,6 +69,7 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
   }
 
   private String debugTargetName;
+  private String disconnectMessage;
   private WebkitConnection connection;
   private ILaunch launch;
   private DartiumProcess process;
@@ -252,7 +253,11 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
 
   @Override
   public String getName() {
-    return debugTargetName;
+    if (disconnectMessage != null) {
+      return debugTargetName + " <" + disconnectMessage + ">";
+    } else {
+      return debugTargetName;
+    }
   }
 
   @Override
@@ -551,7 +556,9 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
       // when the debugger connection is closing.      
       if (enableBreakpoints) {
         // Only show this message if the user launched Dartium with debugging enabled.
-        DebugUIHelper.getHelper().showDevtoolsDisconnectError("Debugger Connection Closed", this);
+        disconnectMessage = "devtools disconnect";
+
+        DebugUIHelper.getHelper().handleDevtoolsDisconnect(this);
       }
     }
   }
