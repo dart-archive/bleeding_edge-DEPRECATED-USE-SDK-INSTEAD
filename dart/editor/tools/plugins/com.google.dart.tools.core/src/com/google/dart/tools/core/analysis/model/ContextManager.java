@@ -58,13 +58,6 @@ public interface ContextManager {
   AnalysisContext getContext(IResource resource);
 
   /**
-   * Answer with all the library sources that can be launched on the VM
-   * 
-   * @return library sources that can be launched on the VM
-   */
-  Source[] getLaunchableServerLibrarySources();
-
-  /**
    * Answer the LibraryElement associated with the specified file
    * 
    * @param file the file (not {@code null})

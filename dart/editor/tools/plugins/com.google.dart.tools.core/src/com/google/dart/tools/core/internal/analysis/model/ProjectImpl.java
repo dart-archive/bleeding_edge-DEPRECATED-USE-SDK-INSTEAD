@@ -65,7 +65,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 
@@ -262,20 +261,6 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
       initialize();
       return defaultContext;
     }
-  }
-
-  @Override
-  public Source[] getLaunchableServerLibrarySources() {
-    AnalysisContext[] contexts;
-    synchronized (pubFolders) {
-      initialize();
-      contexts = getAnalysisContexts();
-    }
-    List<Source> sources = new ArrayList<Source>();
-    for (AnalysisContext context : contexts) {
-      sources.addAll(Arrays.asList(context.getLaunchableServerLibrarySources()));
-    }
-    return sources.toArray(new Source[sources.size()]);
   }
 
   @Override

@@ -183,21 +183,6 @@ public class ProjectManagerImplTest extends ContextManagerImplTest {
     assertSame(index, manager.getIndex());
   }
 
-  public void test_getLaunchableServerLibrarySources() {
-    MockProjectManagerImpl manager = newTarget();
-    // TODO(keertip): complete implementation when API is available
-    Source[] sources = manager.getLaunchableServerLibrarySources();
-    assertTrue(sources.length == 0);
-    MockFolder folder = projectContainer.getMockFolder("web");
-    MockFile file = new MockFile(folder, "server.dart", "library server;\n\n main(){}");
-    folder.add(file);
-    Project project = manager.getProject(projectContainer);
-    Source[] libSources = project.getLaunchableServerLibrarySources();
-    sources = manager.getLaunchableServerLibrarySources();
-//    assertSame(sources.length, libSources.length);
-//    assertTrue(sources[0].equals(libSources[0]));
-  }
-
   public void test_getLibrarySources() {
     MockProjectManagerImpl manager = newTarget();
     MockFolder mockFolder = projectContainer.getMockFolder("web");
