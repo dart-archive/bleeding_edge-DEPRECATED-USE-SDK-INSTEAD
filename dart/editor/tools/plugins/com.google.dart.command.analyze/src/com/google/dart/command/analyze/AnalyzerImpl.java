@@ -14,10 +14,6 @@
 package com.google.dart.command.analyze;
 
 import com.google.dart.engine.AnalysisEngine;
-import com.google.dart.engine.ast.CompilationUnit;
-import com.google.dart.engine.ast.Directive;
-import com.google.dart.engine.ast.LibraryDirective;
-import com.google.dart.engine.ast.PartOfDirective;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.CompilationUnitElement;
@@ -35,6 +31,7 @@ import com.google.dart.engine.source.FileUriResolver;
 import com.google.dart.engine.source.PackageUriResolver;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceFactory;
+import com.google.dart.engine.source.SourceKind;
 import com.google.dart.engine.source.UriKind;
 import com.google.dart.engine.utilities.source.LineInfo;
 
@@ -129,14 +126,7 @@ public class AnalyzerImpl {
       File sourceFile, Map<Source, LineInfo> lineInfoMap, List<AnalysisError> errors)
       throws AnalysisException {
     // don't try to analyze parts
-    CompilationUnit unit = context.parseCompilationUnit(librarySource);
-    boolean hasLibraryDirective = false;
-    boolean hasPartOfDirective = false;
-    for (Directive directive : unit.getDirectives()) {
-      hasLibraryDirective |= directive instanceof LibraryDirective;
-      hasPartOfDirective |= directive instanceof PartOfDirective;
-    }
-    if (hasPartOfDirective && !hasLibraryDirective) {
+    if (context.getKindOf(librarySource) == SourceKind.PART) {
       System.err.println("Only libraries can be analyzed.");
       System.err.println(sourceFile + " is a part and can not be analyzed.");
       return ErrorSeverity.NONE;

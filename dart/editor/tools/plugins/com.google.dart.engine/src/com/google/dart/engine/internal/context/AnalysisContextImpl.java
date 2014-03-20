@@ -2468,8 +2468,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   private DartEntry cacheDartParseData(Source source, DartEntry dartEntry,
       DataDescriptor<?> descriptor) throws AnalysisException {
     if (descriptor == DartEntry.PARSED_UNIT) {
-      CompilationUnit unit = dartEntry.getAnyParsedCompilationUnit();
-      if (unit != null) {
+      if (dartEntry.hasResolvableCompilationUnit()) {
         return dartEntry;
       }
     }
@@ -3497,8 +3496,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         return createParseDartTask(source, dartEntry);
       }
       if (isPriority && parseErrorsState != CacheState.ERROR) {
-        CompilationUnit parseUnit = dartEntry.getAnyParsedCompilationUnit();
-        if (parseUnit == null) {
+        if (!dartEntry.hasResolvableCompilationUnit()) {
           return createParseDartTask(source, dartEntry);
         }
       }
@@ -3768,8 +3766,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         return;
       }
       if (isPriority) {
-        CompilationUnit parseUnit = dartEntry.getAnyParsedCompilationUnit();
-        if (parseUnit == null) {
+        if (!dartEntry.hasResolvableCompilationUnit()) {
           sources.add(source);
           return;
         }
