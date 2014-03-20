@@ -1174,6 +1174,13 @@ public class ResolverVisitor extends ScopedVisitor {
       return;
     }
     FunctionType expectedClosureType = (FunctionType) mayByFunctionType;
+
+    // If the expectedClosureType is not more specific than the static type, return.
+    Type staticClosureType = closure.getElement() != null ? closure.getElement().getType() : null;
+    if (staticClosureType != null && !expectedClosureType.isMoreSpecificThan(staticClosureType)) {
+      return;
+    }
+
     // set propagated type for the closure
     closure.setPropagatedType(expectedClosureType);
     // set inferred types for parameters

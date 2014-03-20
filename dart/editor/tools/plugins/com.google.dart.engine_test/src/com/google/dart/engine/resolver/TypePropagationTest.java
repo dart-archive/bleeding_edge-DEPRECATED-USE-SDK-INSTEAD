@@ -22,6 +22,7 @@ import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.ExpressionStatement;
 import com.google.dart.engine.ast.FormalParameter;
 import com.google.dart.engine.ast.FunctionDeclaration;
+import com.google.dart.engine.ast.FunctionExpression;
 import com.google.dart.engine.ast.IfStatement;
 import com.google.dart.engine.ast.IndexExpression;
 import com.google.dart.engine.ast.ListLiteral;
@@ -35,7 +36,9 @@ import com.google.dart.engine.ast.Statement;
 import com.google.dart.engine.ast.VariableDeclarationStatement;
 import com.google.dart.engine.ast.WhileStatement;
 import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
 
@@ -264,6 +267,31 @@ public class TypePropagationTest extends ResolverTestCase {
     SimpleIdentifier vIdentifier = findNode(unit, code, "v;", SimpleIdentifier.class);
     assertSame(intType, vIdentifier.getStaticType());
     assertSame(null, vIdentifier.getPropagatedType());
+  }
+
+  public void test_functionExpression_asInvocationArgument_notSubtypeOfStaticType()
+      throws Exception {
+    String code = createSource(//
+        "class A {",
+        "  m(void f(int i)) {}",
+        "}",
+        "x() {",
+        "  A a = new A();",
+        "  a.m(() => 0);",
+        "}");
+    Source source = addSource(code);
+    LibraryElement library = resolve(source);
+    assertErrors(source, StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
+    verify(source);
+    CompilationUnit unit = resolveCompilationUnit(source, library);
+    // () => 0
+    FunctionExpression functionExpression = findNode(
+        unit,
+        code,
+        "() => 0)",
+        FunctionExpression.class);
+    assertSame(0, ((FunctionType) functionExpression.getStaticType()).getParameters().length);
+    assertSame(null, functionExpression.getPropagatedType());
   }
 
   public void test_functionExpression_asInvocationArgument_replaceIfMoreSpecific() throws Exception {
