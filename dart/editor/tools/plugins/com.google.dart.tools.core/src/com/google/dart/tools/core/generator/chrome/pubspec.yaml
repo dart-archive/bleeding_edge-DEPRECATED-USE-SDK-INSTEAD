@@ -1,5 +1,6 @@
 name: {name}
 description: A sample Chrome packaged application
 dependencies:
-  browser: any
   chrome: any
+transformers:
+- chrome

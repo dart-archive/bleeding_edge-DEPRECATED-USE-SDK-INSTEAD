@@ -6,10 +6,11 @@ import 'package:chrome/chrome_app.dart' as chrome;
 int boundsChange = 100;
 
 /**
- * For non-trivial uses of the Chrome Apps API, please see the
- * [chrome](http://pub.dartlang.org/packages/chrome).
- * 
- * * http://developer.chrome.com/apps/api_index.html
+ * A `hello world` application for Chrome Apps written in Dart.
+ *
+ * For more information, see:
+ * - http://developer.chrome.com/apps/api_index.html
+ * - https://github.com/dart-gde/chrome.dart
  */
 void main() {
   querySelector("#text_id").onClick.listen(resizeWindow);
