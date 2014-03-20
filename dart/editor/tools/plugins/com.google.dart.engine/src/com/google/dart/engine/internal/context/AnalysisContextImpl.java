@@ -963,24 +963,30 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         // term we need to keep track of which libraries are referencing non-existing sources and
         // only re-analyze those libraries.
 //        logInformation("Added Dart sources, invalidating all resolution information");
+        ArrayList<Source> sourcesToInvalidate = new ArrayList<Source>();
         for (Map.Entry<Source, SourceEntry> mapEntry : cache.entrySet()) {
           Source source = mapEntry.getKey();
           SourceEntry sourceEntry = mapEntry.getValue();
           if (!source.isInSystemLibrary() && sourceEntry instanceof DartEntry) {
-            DartEntry dartEntry = (DartEntry) sourceEntry;
-            DartEntryImpl dartCopy = dartEntry.getWritableCopy();
-            removeFromParts(source, dartEntry);
-            dartCopy.invalidateAllResolutionInformation();
-            mapEntry.setValue(dartCopy);
-            SourcePriority priority = SourcePriority.UNKNOWN;
-            SourceKind kind = dartCopy.getKind();
-            if (kind == SourceKind.LIBRARY) {
-              priority = SourcePriority.LIBRARY;
-            } else if (kind == SourceKind.PART) {
-              priority = SourcePriority.NORMAL_PART;
-            }
-            workManager.add(source, priority);
+            sourcesToInvalidate.add(source);
           }
+        }
+        int count = sourcesToInvalidate.size();
+        for (int i = 0; i < count; i++) {
+          Source source = sourcesToInvalidate.get(i);
+          DartEntry dartEntry = getReadableDartEntry(source);
+          removeFromParts(source, dartEntry);
+          DartEntryImpl dartCopy = dartEntry.getWritableCopy();
+          dartCopy.invalidateAllResolutionInformation();
+          cache.put(source, dartCopy);
+          SourcePriority priority = SourcePriority.UNKNOWN;
+          SourceKind kind = dartCopy.getKind();
+          if (kind == SourceKind.LIBRARY) {
+            priority = SourcePriority.LIBRARY;
+          } else if (kind == SourceKind.PART) {
+            priority = SourcePriority.NORMAL_PART;
+          }
+          workManager.add(source, priority);
         }
       }
     }
