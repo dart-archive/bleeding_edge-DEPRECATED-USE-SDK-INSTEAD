@@ -58,6 +58,9 @@ public enum StaticWarningCode implements ErrorCode {
    * p<sub>n+k</sub>}</i> or a static warning occurs. It is a static warning if
    * <i>T<sub>m+j</sub></i> may not be assigned to <i>S<sub>r</sub></i>, where <i>r = q<sub>j</sub>,
    * 1 &lt;= j &lt;= l</i>.
+   * 
+   * @param actualType the name of the actual argument type
+   * @param expectedType the name of the expected type
    */
   ARGUMENT_TYPE_NOT_ASSIGNABLE(
       "The argument type '%s' cannot be assigned to the parameter type '%s'"),

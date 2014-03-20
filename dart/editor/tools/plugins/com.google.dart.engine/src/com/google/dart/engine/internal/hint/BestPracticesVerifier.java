@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.internal.hint;
 
+import com.google.dart.engine.ast.ArgumentList;
 import com.google.dart.engine.ast.AsExpression;
 import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.AstNode;
@@ -48,7 +49,9 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
+import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
+import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.error.HintCode;
 import com.google.dart.engine.internal.error.ErrorReporter;
 import com.google.dart.engine.internal.type.VoidTypeImpl;
@@ -115,6 +118,12 @@ public class BestPracticesVerifier extends RecursiveAstVisitor<Void> {
    */
   public BestPracticesVerifier(ErrorReporter errorReporter) {
     this.errorReporter = errorReporter;
+  }
+
+  @Override
+  public Void visitArgumentList(ArgumentList node) {
+    checkForArgumentTypesNotAssignableInList(node);
+    return super.visitArgumentList(node);
   }
 
   @Override
@@ -291,6 +300,128 @@ public class BestPracticesVerifier extends RecursiveAstVisitor<Void> {
       }
     }
     return false;
+  }
+
+  /**
+   * This verifies that the passed expression can be assigned to its corresponding parameters.
+   * <p>
+   * This method corresponds to ErrorVerifier.checkForArgumentTypeNotAssignable.
+   * <p>
+   * TODO (jwren) In the ErrorVerifier there are other warnings that we could have a corresponding
+   * hint for: see other callers of ErrorVerifier.checkForArgumentTypeNotAssignable(..).
+   * 
+   * @param expression the expression to evaluate
+   * @param expectedStaticType the expected static type of the parameter
+   * @param actualStaticType the actual static type of the argument
+   * @param expectedPropagatedType the expected propagated type of the parameter, may be
+   *          {@code null}
+   * @param actualPropagatedType the expected propagated type of the parameter, may be {@code null}
+   * @return {@code true} if and only if an hint code is generated on the passed node
+   * @see HintCode#ARGUMENT_TYPE_NOT_ASSIGNABLE
+   */
+  private boolean checkForArgumentTypeNotAssignable(Expression expression, Type expectedStaticType,
+      Type actualStaticType, Type expectedPropagatedType, Type actualPropagatedType,
+      ErrorCode hintCode) {
+    //
+    // Warning case: test static type information
+    //
+    if (actualStaticType != null && expectedStaticType != null) {
+      if (!actualStaticType.isAssignableTo(expectedStaticType)) {
+        // A warning was created in the ErrorVerifier, return false, don't create a hint when a
+        // warning has already been created.
+        return false;
+      }
+    }
+    //
+    // Hint case: test propagated type information
+    //
+    // Compute the best types to use.
+    Type expectedBestType = expectedPropagatedType != null ? expectedPropagatedType
+        : expectedStaticType;
+    Type actualBestType = actualPropagatedType != null ? actualPropagatedType : actualStaticType;
+
+    if (actualBestType != null && expectedBestType != null) {
+      if (!actualBestType.isAssignableTo(expectedBestType)) {
+        errorReporter.reportErrorForNode(
+            hintCode,
+            expression,
+            actualBestType.getDisplayName(),
+            expectedBestType.getDisplayName());
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * This verifies that the passed argument can be assigned to its corresponding parameter.
+   * <p>
+   * This method corresponds to ErrorCode.checkForArgumentTypeNotAssignableForArgument.
+   * 
+   * @param argument the argument to evaluate
+   * @return {@code true} if and only if an hint code is generated on the passed node
+   * @see HintCode#ARGUMENT_TYPE_NOT_ASSIGNABLE
+   */
+  private boolean checkForArgumentTypeNotAssignableForArgument(Expression argument) {
+    if (argument == null) {
+      return false;
+    }
+
+    ParameterElement staticParameterElement = argument.getStaticParameterElement();
+    Type staticParameterType = staticParameterElement == null ? null
+        : staticParameterElement.getType();
+
+    ParameterElement propagatedParameterElement = argument.getPropagatedParameterElement();
+    Type propagatedParameterType = propagatedParameterElement == null ? null
+        : propagatedParameterElement.getType();
+
+    return checkForArgumentTypeNotAssignableWithExpectedTypes(
+        argument,
+        staticParameterType,
+        propagatedParameterType,
+        HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
+  }
+
+  /**
+   * This verifies that the passed expression can be assigned to its corresponding parameters.
+   * <p>
+   * This method corresponds to ErrorCode.checkForArgumentTypeNotAssignableWithExpectedTypes.
+   * 
+   * @param expression the expression to evaluate
+   * @param expectedStaticType the expected static type
+   * @param expectedPropagatedType the expected propagated type, may be {@code null}
+   * @return {@code true} if and only if an hint code is generated on the passed node
+   * @see HintCode#ARGUMENT_TYPE_NOT_ASSIGNABLE
+   */
+  private boolean checkForArgumentTypeNotAssignableWithExpectedTypes(Expression expression,
+      Type expectedStaticType, Type expectedPropagatedType, ErrorCode errorCode) {
+    return checkForArgumentTypeNotAssignable(
+        expression,
+        expectedStaticType,
+        expression.getStaticType(),
+        expectedPropagatedType,
+        expression.getPropagatedType(),
+        errorCode);
+  }
+
+  /**
+   * This verifies that the passed arguments can be assigned to their corresponding parameters.
+   * <p>
+   * This method corresponds to ErrorCode.checkForArgumentTypesNotAssignableInList.
+   * 
+   * @param node the arguments to evaluate
+   * @return {@code true} if and only if an hint code is generated on the passed node
+   * @see HintCode#ARGUMENT_TYPE_NOT_ASSIGNABLE
+   */
+  private boolean checkForArgumentTypesNotAssignableInList(ArgumentList argumentList) {
+    if (argumentList == null) {
+      return false;
+    }
+    boolean problemReported = false;
+    for (Expression argument : argumentList.getArguments()) {
+      problemReported |= checkForArgumentTypeNotAssignableForArgument(argument);
+    }
+    return problemReported;
   }
 
   /**
@@ -566,9 +697,13 @@ public class BestPracticesVerifier extends RecursiveAstVisitor<Void> {
     MethodInvocation methodInvocation = (MethodInvocation) expression;
     if (methodInvocation.getStaticType() == VoidTypeImpl.getInstance()) {
       SimpleIdentifier methodName = methodInvocation.getMethodName();
-      errorReporter.reportErrorForNode(HintCode.USE_OF_VOID_RESULT, methodName, methodName.getName());
+      errorReporter.reportErrorForNode(
+          HintCode.USE_OF_VOID_RESULT,
+          methodName,
+          methodName.getName());
       return true;
     }
     return false;
   }
+
 }

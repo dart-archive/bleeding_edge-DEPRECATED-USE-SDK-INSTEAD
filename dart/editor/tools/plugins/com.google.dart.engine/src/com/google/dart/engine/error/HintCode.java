@@ -19,6 +19,17 @@ package com.google.dart.engine.error;
  */
 public enum HintCode implements ErrorCode {
   /**
+   * This hint is generated anywhere where the
+   * {@link StaticWarningCode#ARGUMENT_TYPE_NOT_ASSIGNABLE} would have been generated, if we used
+   * propagated information for the warnings.
+   * 
+   * @param actualType the name of the actual argument type
+   * @param expectedType the name of the expected type
+   * @see StaticWarningCode#ARGUMENT_TYPE_NOT_ASSIGNABLE
+   */
+  ARGUMENT_TYPE_NOT_ASSIGNABLE(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE.getMessage()),
+
+  /**
    * Dead code is code that is never reached, this can happen for instance if a statement follows a
    * return statement.
    */

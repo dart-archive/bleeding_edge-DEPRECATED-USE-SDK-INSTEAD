@@ -1846,6 +1846,8 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
 
   /**
    * This verifies that the passed expression can be assigned to its corresponding parameters.
+   * <p>
+   * This method corresponds to BestPracticesVerifier.checkForArgumentTypeNotAssignable.
    * 
    * @param expression the expression to evaluate
    * @param expectedStaticType the expected static type of the parameter
@@ -1855,57 +1857,35 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
    * @param actualPropagatedType the expected propagated type of the parameter, may be {@code null}
    * @return {@code true} if and only if an error code is generated on the passed node
    * @see StaticWarningCode#ARGUMENT_TYPE_NOT_ASSIGNABLE
+   * @see CompileTimeErrorCode#LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
+   * @see StaticWarningCode#LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
+   * @see CompileTimeErrorCode#MAP_KEY_TYPE_NOT_ASSIGNABLE
+   * @see CompileTimeErrorCode#MAP_VALUE_TYPE_NOT_ASSIGNABLE
+   * @see StaticWarningCode#MAP_KEY_TYPE_NOT_ASSIGNABLE
+   * @see StaticWarningCode#MAP_VALUE_TYPE_NOT_ASSIGNABLE
    */
   private boolean checkForArgumentTypeNotAssignable(Expression expression, Type expectedStaticType,
-      Type actualStaticType, Type expectedPropagatedType, Type actualPropagatedType,
-      ErrorCode errorCode) {
+      Type actualStaticType, ErrorCode errorCode) {
     //
-    // Test static type information
+    // Warning case: test static type information
     //
-    if (actualStaticType == null || expectedStaticType == null) {
-      return false;
+    if (actualStaticType != null && expectedStaticType != null) {
+      if (!actualStaticType.isAssignableTo(expectedStaticType)) {
+        errorReporter.reportErrorForNode(
+            errorCode,
+            expression,
+            actualStaticType.getDisplayName(),
+            expectedStaticType.getDisplayName());
+        return true;
+      }
     }
-    if (actualStaticType.isAssignableTo(expectedStaticType)) {
-      return false;
-    }
-    errorReporter.reportErrorForNode(
-        errorCode,
-        expression,
-        actualStaticType.getDisplayName(),
-        expectedStaticType.getDisplayName());
-    return true;
-    //
-    // Test propagated type information
-    //
-    // TODO(brianwilkerson) Define a hint corresponding to the error and produce it when appropriate.
-//    if (actualPropagatedType == null || expectedPropagatedType == null) {
-//      if (actualStaticType.isAssignableTo(expectedStaticType)) {
-//        return false;
-//      }
-//      errorReporter.reportError(
-//          errorCode,
-//          expression,
-//          actualStaticType.getDisplayName(),
-//          expectedStaticType.getDisplayName());
-//      return true;
-//    }
-//
-//    if (actualStaticType.isAssignableTo(expectedStaticType)
-//        || actualStaticType.isAssignableTo(expectedPropagatedType)
-//        || actualPropagatedType.isAssignableTo(expectedStaticType)
-//        || actualPropagatedType.isAssignableTo(expectedPropagatedType)) {
-//      return false;
-//    }
-//    errorReporter.reportError(
-//        errorCode,
-//        expression,
-//        (actualPropagatedType == null ? actualStaticType : actualPropagatedType).getDisplayName(),
-//        (expectedPropagatedType == null ? expectedStaticType : expectedPropagatedType).getDisplayName());
-//    return true;
+    return false;
   }
 
   /**
    * This verifies that the passed argument can be assigned to its corresponding parameter.
+   * <p>
+   * This method corresponds to BestPracticesVerifier.checkForArgumentTypeNotAssignableForArgument.
    * 
    * @param argument the argument to evaluate
    * @return {@code true} if and only if an error code is generated on the passed node
@@ -1920,39 +1900,43 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
     Type staticParameterType = staticParameterElement == null ? null
         : staticParameterElement.getType();
 
-    ParameterElement propagatedParameterElement = argument.getPropagatedParameterElement();
-    Type propagatedParameterType = propagatedParameterElement == null ? null
-        : propagatedParameterElement.getType();
-
     return checkForArgumentTypeNotAssignableWithExpectedTypes(
         argument,
         staticParameterType,
-        propagatedParameterType,
         StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
   }
 
   /**
    * This verifies that the passed expression can be assigned to its corresponding parameters.
+   * <p>
+   * This method corresponds to
+   * BestPracticesVerifier.checkForArgumentTypeNotAssignableWithExpectedTypes.
    * 
    * @param expression the expression to evaluate
    * @param expectedStaticType the expected static type
    * @param expectedPropagatedType the expected propagated type, may be {@code null}
    * @return {@code true} if and only if an error code is generated on the passed node
    * @see StaticWarningCode#ARGUMENT_TYPE_NOT_ASSIGNABLE
+   * @see CompileTimeErrorCode#LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
+   * @see StaticWarningCode#LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
+   * @see CompileTimeErrorCode#MAP_KEY_TYPE_NOT_ASSIGNABLE
+   * @see CompileTimeErrorCode#MAP_VALUE_TYPE_NOT_ASSIGNABLE
+   * @see StaticWarningCode#MAP_KEY_TYPE_NOT_ASSIGNABLE
+   * @see StaticWarningCode#MAP_VALUE_TYPE_NOT_ASSIGNABLE
    */
   private boolean checkForArgumentTypeNotAssignableWithExpectedTypes(Expression expression,
-      Type expectedStaticType, Type expectedPropagatedType, ErrorCode errorCode) {
+      Type expectedStaticType, ErrorCode errorCode) {
     return checkForArgumentTypeNotAssignable(
         expression,
         expectedStaticType,
         getStaticType(expression),
-        expectedPropagatedType,
-        expression.getPropagatedType(),
         errorCode);
   }
 
   /**
    * This verifies that the passed arguments can be assigned to their corresponding parameters.
+   * <p>
+   * This method corresponds to BestPracticesVerifier.checkForArgumentTypesNotAssignableInList.
    * 
    * @param node the arguments to evaluate
    * @return {@code true} if and only if an error code is generated on the passed node
@@ -1966,7 +1950,6 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
     for (Expression argument : argumentList.getArguments()) {
       problemReported |= checkForArgumentTypeNotAssignableForArgument(argument);
     }
-    // done
     return problemReported;
   }
 
@@ -3561,15 +3544,9 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
     Type staticParameterType = staticParameterElement == null ? null
         : staticParameterElement.getType();
 
-    ParameterElement propagatedParameterElement = argument.getPropagatedParameterElement();
-    Type propagatedParameterType = propagatedParameterElement == null ? null
-        : propagatedParameterElement.getType();
-
     return checkForArgumentTypeNotAssignable(
         argument,
         staticParameterType,
-        intType,
-        propagatedParameterType,
         intType,
         StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
   }
@@ -3758,7 +3735,6 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
       hasProblems |= checkForArgumentTypeNotAssignableWithExpectedTypes(
           element,
           listElementType,
-          null,
           errorCode);
     }
     return hasProblems;
@@ -3803,15 +3779,10 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
     for (MapLiteralEntry entry : entries) {
       Expression key = entry.getKey();
       Expression value = entry.getValue();
-      hasProblems |= checkForArgumentTypeNotAssignableWithExpectedTypes(
-          key,
-          keyType,
-          null,
-          keyErrorCode);
+      hasProblems |= checkForArgumentTypeNotAssignableWithExpectedTypes(key, keyType, keyErrorCode);
       hasProblems |= checkForArgumentTypeNotAssignableWithExpectedTypes(
           value,
           valueType,
-          null,
           valueErrorCode);
     }
     return hasProblems;

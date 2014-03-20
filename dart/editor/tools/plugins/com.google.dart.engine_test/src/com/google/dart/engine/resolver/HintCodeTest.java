@@ -111,6 +111,42 @@ public class HintCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_argumentTypeNotAssignable_functionType() throws Exception {
+    Source source = addSource(createSource(//
+        // 17290
+        "m() {",
+        "  var a = new A();",
+        "  a.n(() => 0);",
+        "}",
+        "class A {",
+        "  n(void f(int i)) {}",
+        "}"));
+    resolve(source);
+    assertErrors(source, HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
+    verify(source);
+  }
+
+  public void test_argumentTypeNotAssignable_message() throws Exception {
+    // The implementation of HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE assumes that
+    // StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE has the same message.
+    assertEquals(
+        HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE.getMessage(),
+        StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE.getMessage());
+  }
+
+  public void test_argumentTypeNotAssignable_type() throws Exception {
+    Source source = addSource(createSource(//
+        // 17290
+        "m() {",
+        "  var i = '';",
+        "  n(i);",
+        "}",
+        "n(int i) {}"));
+    resolve(source);
+    assertErrors(source, HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
+    verify(source);
+  }
+
   public void test_deadCode_deadBlock_conditionalElse() throws Exception {
     Source source = addSource(createSource(//
         "f() {",
@@ -766,9 +802,9 @@ public class HintCodeTest extends ResolverTestCase {
     assertErrors(source, HintCode.UNDEFINED_GETTER);
   }
 
-  // The implementation of HintCode.UNDEFINED_SETTER assumes that UNDEFINED_SETTER in
-  // StaticTypeWarningCode and StaticWarningCode are the same, this verifies that assumption.
   public void test_undefinedGetter_message() throws Exception {
+    // The implementation of HintCode.UNDEFINED_SETTER assumes that UNDEFINED_SETTER in
+    // StaticTypeWarningCode and StaticWarningCode are the same, this verifies that assumption.
     assertEquals(
         StaticTypeWarningCode.UNDEFINED_GETTER.getMessage(),
         StaticWarningCode.UNDEFINED_GETTER.getMessage());
@@ -882,9 +918,9 @@ public class HintCodeTest extends ResolverTestCase {
     assertErrors(source, HintCode.UNDEFINED_SETTER);
   }
 
-  // The implementation of HintCode.UNDEFINED_SETTER assumes that UNDEFINED_SETTER in
-  // StaticTypeWarningCode and StaticWarningCode are the same, this verifies that assumption.
   public void test_undefinedSetter_message() throws Exception {
+    // The implementation of HintCode.UNDEFINED_SETTER assumes that UNDEFINED_SETTER in
+    // StaticTypeWarningCode and StaticWarningCode are the same, this verifies that assumption.
     assertEquals(
         StaticTypeWarningCode.UNDEFINED_SETTER.getMessage(),
         StaticWarningCode.UNDEFINED_SETTER.getMessage());
