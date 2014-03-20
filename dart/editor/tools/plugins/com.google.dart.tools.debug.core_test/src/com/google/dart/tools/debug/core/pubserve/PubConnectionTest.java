@@ -139,7 +139,8 @@ public class PubConnectionTest extends TestCase {
         try {
           copyStream(process.getInputStream(), stdOut);
         } catch (IOException e) {
-
+          processDestroy();
+          fail("Exception while reading pub serve stdout");
         }
       }
     });
@@ -151,8 +152,8 @@ public class PubConnectionTest extends TestCase {
         && System.currentTimeMillis() < endTime) {
       try {
         Thread.sleep(200);
-      } catch (Exception exception) {
-
+      } catch (InterruptedException exception) {
+        // do nothing, continue
       }
     }
     if (isTerminated()) {
@@ -160,6 +161,7 @@ public class PubConnectionTest extends TestCase {
     }
     if (!stdOut.toString().contains("127.0.0.1")) {
       fail("Timeout: pub serve did not start in 3 secs");
+      processDestroy();
     }
     pubConnection = new PubConnection(new URI("ws://127.0.0.1:" + port + "/"));
     pubConnection.connect();
@@ -170,18 +172,13 @@ public class PubConnectionTest extends TestCase {
   protected void tearDown() throws Exception {
 
     try {
-
       testProject.dispose();
     } catch (Exception e) {
-
+      fail("Exception while deleting test project");
+    } finally {
+      process.destroy();
     }
-    try {
-      if (process != null) {
-        process.destroy();
-      }
-    } catch (Exception e) {
 
-    }
   }
 
   private List<String> buildPubServeCommand() {
@@ -212,7 +209,10 @@ public class PubConnectionTest extends TestCase {
       }
       in.close();
     } catch (IOException ioe) {
-
+      fail("IOException while reading pub serve stream");
+    } finally {
+      in.close();
+      process.destroy();
     }
   }
 
@@ -225,6 +225,12 @@ public class PubConnectionTest extends TestCase {
       return false;
     }
     return true;
+  }
+
+  private void processDestroy() {
+    if (process != null) {
+      process.destroy();
+    }
   }
 
 }
