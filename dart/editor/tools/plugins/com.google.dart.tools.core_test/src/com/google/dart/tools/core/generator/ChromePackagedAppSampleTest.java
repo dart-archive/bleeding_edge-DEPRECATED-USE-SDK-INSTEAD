@@ -33,18 +33,12 @@ public class ChromePackagedAppSampleTest extends TestCase {
 
       IFile mainFile = generator.generateInto(project, "foo");
 
-      assertEquals("app/manifest.json", mainFile.getProjectRelativePath().toPortableString());
+      assertEquals("web/manifest.json", mainFile.getProjectRelativePath().toPortableString());
       assertTrue(mainFile.exists());
 
       IContainer parent = mainFile.getParent();
 
       // assert that there are no analysis errors
-
-      IFile buildFile = parent.getParent().getFile(new Path("build.dart"));
-      assertTrue(buildFile.exists());
-      // TODO(devoncarew): moving to package:chrome means we loose the ability to analyze this sample
-      //GeneratorUtils.assertNoAnalysisErrors(buildFile);
-
       IFile fooDartFile = parent.getFile(new Path("foo.dart"));
       assertTrue(fooDartFile.exists());
       // TODO(devoncarew): figure out a way to analyze this
