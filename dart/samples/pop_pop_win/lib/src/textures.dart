@@ -1,4 +1,4 @@
-library data;
+library pop_pop_win.textures;
 
 import 'dart:html';
 import 'package:bot_web/bot_texture.dart';
@@ -6,28 +6,24 @@ import 'package:bot_web/bot_texture.dart';
 Map<String, TextureInput> getTextures(ImageElement transparentElement,
     ImageElement opaqueElement, ImageElement transparentStaticElement) {
 
-  final frames = <String, TextureInput>{};
+  var frames = <String, TextureInput>{};
 
   _getTransparentItems().forEach((String key, Map<String, dynamic> value) {
-    final parsed = new TextureInput.fromHash(key, value, transparentElement);
-    frames[key] = parsed;
+    frames[key] = new TextureInput.fromHash(key, value, transparentElement);
   });
 
   _getOpaqueItems().forEach((String key, Map<String, dynamic> value) {
-    final parsed = new TextureInput.fromHash(key, value, opaqueElement);
-    frames[key] = parsed;
+    frames[key] = new TextureInput.fromHash(key, value, opaqueElement);
   });
 
   _getTransparentStaticItems().forEach((String key, Map<String, dynamic> value) {
-    final parsed = new TextureInput.fromHash(key, value, transparentStaticElement);
-    frames[key] = parsed;
+    frames[key] = new TextureInput.fromHash(key, value, transparentStaticElement);
   });
 
   return frames;
 }
 
-Map _getTransparentStaticItems() {
-  return {
+Map _getTransparentStaticItems() => {
 
 "button_new_game.png":
 {
@@ -53,11 +49,9 @@ Map _getTransparentStaticItems() {
   "spriteSourceSize": {"x":0,"y":0,"w":318,"h":96},
   "sourceSize": {"w":318,"h":96}
 }};
-}
 
-Map _getOpaqueItems() {
-  return {
 
+Map _getOpaqueItems() => {
 "background_side_left.png":
 {
   "frame": {"x":0,"y":96,"w":352,"h":672},
@@ -282,9 +276,9 @@ Map _getOpaqueItems() {
   "spriteSourceSize": {"x":0,"y":0,"w":80,"h":80},
   "sourceSize": {"w":80,"h":80}
 }};
-}
-Map _getTransparentItems() {
-  return {
+
+
+Map _getTransparentItems() => {
 
 "balloon_explode_0000.png":
 {
@@ -1582,4 +1576,3 @@ Map _getTransparentItems() {
   "spriteSourceSize": {"x":0,"y":0,"w":1,"h":1},
   "sourceSize": {"w":1024,"h":768}
 }};
-}

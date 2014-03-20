@@ -1,4 +1,4 @@
-part of ppw_canvas;
+part of pop_pop_win.canvas;
 
 // NOTE: setGameManager must be called immediately after construction
 

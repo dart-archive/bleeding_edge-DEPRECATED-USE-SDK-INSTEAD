@@ -2,7 +2,7 @@ library pop_pop_win.game_test;
 
 import 'dart:math';
 import 'package:bot/bot.dart';
-import 'package:pop_pop_win/pop_pop_win.dart';
+import 'package:pop_pop_win/src/game.dart';
 import 'package:unittest/unittest.dart';
 
 import 'test_util.dart';

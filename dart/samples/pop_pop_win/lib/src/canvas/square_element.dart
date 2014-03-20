@@ -1,4 +1,4 @@
-part of ppw_canvas;
+part of pop_pop_win.canvas;
 
 class SquareElement extends Thing {
   static const int _size = 80;

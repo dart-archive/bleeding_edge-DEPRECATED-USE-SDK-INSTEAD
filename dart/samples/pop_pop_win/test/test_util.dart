@@ -1,6 +1,6 @@
 library pop_pop_win.test_util;
 
-import 'package:pop_pop_win/pop_pop_win.dart';
+import 'package:pop_pop_win/src/game.dart';
 
 // This grid
 // XXXXX2

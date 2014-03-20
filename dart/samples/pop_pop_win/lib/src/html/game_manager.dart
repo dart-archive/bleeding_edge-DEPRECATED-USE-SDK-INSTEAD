@@ -1,4 +1,4 @@
-part of ppw_html;
+part of pop_pop_win.html;
 
 abstract class GameManager {
   final int _width, _height, _bombCount;

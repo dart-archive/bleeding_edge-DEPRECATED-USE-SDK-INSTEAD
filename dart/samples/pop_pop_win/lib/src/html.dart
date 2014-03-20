@@ -1,15 +1,17 @@
-library ppw_html;
+library pop_pop_win.html;
 
 import 'dart:async';
 import 'dart:html';
-import 'package:bot/bot.dart';
-import 'pop_pop_win.dart';
-import 'platform_target.dart';
 
-part 'src/html/high_score_view.dart';
-part 'src/html/game_view.dart';
-part 'src/html/game_storage.dart';
-part 'src/html/game_manager.dart';
+import 'package:bot/bot.dart';
+import 'package:pop_pop_win/platform_target.dart';
+
+import 'game.dart';
+
+part 'html/high_score_view.dart';
+part 'html/game_view.dart';
+part 'html/game_storage.dart';
+part 'html/game_manager.dart';
 
 PlatformTarget _platformImpl;
 

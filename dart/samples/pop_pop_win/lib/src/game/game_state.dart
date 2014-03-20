@@ -1,4 +1,4 @@
-part of pop_pop_win;
+part of pop_pop_win.game;
 
 class GameState {
   static const GameState reset = const GameState._internal("reset");

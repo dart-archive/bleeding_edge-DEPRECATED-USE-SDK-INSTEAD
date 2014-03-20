@@ -1,4 +1,4 @@
-part of ppw_canvas;
+part of pop_pop_win.canvas;
 
 class NewGameElement extends Thing {
   final EventHandle<EventArgs> _clickedEvent =

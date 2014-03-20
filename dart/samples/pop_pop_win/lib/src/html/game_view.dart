@@ -1,4 +1,4 @@
-part of ppw_html;
+part of pop_pop_win.html;
 
 class GameView extends GameManager {
   static const String _xKey = 'x';

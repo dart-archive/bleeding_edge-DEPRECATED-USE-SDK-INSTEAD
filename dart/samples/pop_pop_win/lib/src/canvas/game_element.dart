@@ -1,4 +1,4 @@
-part of ppw_canvas;
+part of pop_pop_win.canvas;
 
 class GameElement extends ParentThing {
   static const _edgeOffset = 32;

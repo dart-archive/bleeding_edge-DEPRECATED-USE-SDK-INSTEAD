@@ -1,4 +1,4 @@
-part of ppw_canvas;
+part of pop_pop_win.canvas;
 
 class GameAudio {
   static const String WIN = 'win', CLICK = 'click', POP = 'Pop', FLAG = 'flag',

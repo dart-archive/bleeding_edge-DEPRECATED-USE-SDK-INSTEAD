@@ -1,4 +1,4 @@
-part of game;
+part of pop_pop_win;
 
 class _Audio {
   static const List<String> _AUDIO_NAMES =
@@ -11,14 +11,12 @@ class _Audio {
   static final _audioFormat = _getAudioFormat();
 
   factory _Audio() {
+    if (!AudioContext.supported) new _Audio._disabled();
+
     if (_audioFormat != null) {
-      try {
-        final audioContext = new AudioContext();
-        final loader = new AudioLoader(audioContext, _getAudioPaths(_AUDIO_NAMES));
-        return new _Audio._internal(loader);
-      } catch (e) {
-        print("Error creating AudioContext: ${e}");
-      }
+      var audioContext = new AudioContext();
+      var loader = new AudioLoader(audioContext, _getAudioPaths(_AUDIO_NAMES));
+      return new _Audio._internal(loader);
     }
     return new _Audio._disabled();
   }
@@ -101,20 +99,18 @@ class _Audio {
   }
 
   static String _getAudioFormat() {
-    try {
-      final userAgent = window.navigator.userAgent;
-      final isWebKit = userAgent.contains("WebKit");
-      if (isWebKit) {
-        final isChrome = userAgent.contains("Chrome");
-        if (isChrome) {
-          return 'webm';
-        } else {
-          return 'm4a';
-        }
-      }
-    } catch (e) {
-      print("Error getting client info: ${e}");
+    var audioElement = new AudioElement();
+
+    var canPlayMp4 = audioElement.canPlayType('audio/mp4');
+    if (canPlayMp4 == 'maybe') {
+      return 'm4a';
     }
+
+    var canPlayWebM = audioElement.canPlayType('audio/webm');
+    if (canPlayWebM == 'maybe') {
+      return 'webm';
+    }
+
     return null;
   }
 

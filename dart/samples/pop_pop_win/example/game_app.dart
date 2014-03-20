@@ -1,6 +1,6 @@
 library game_app;
 
-import '../web/game.dart';
+import 'package:pop_pop_win/pop_pop_win.dart';
 import 'platform_app.dart';
 
 void main() {

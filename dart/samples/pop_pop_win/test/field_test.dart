@@ -1,6 +1,6 @@
 library pop_pop_win.field_test;
 
-import 'package:pop_pop_win/pop_pop_win.dart';
+import 'package:pop_pop_win/src/game.dart';
 import 'package:unittest/unittest.dart';
 
 import 'test_util.dart';
