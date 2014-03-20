@@ -82,6 +82,9 @@ public class AnalysisContextImplTest extends EngineTestCase {
         new DartUriResolver(DirectoryBasedDartSdk.getDefaultSdk()),
         new FileUriResolver());
     context.setSourceFactory(sourceFactory);
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl(context.getAnalysisOptions());
+    options.setCacheSize(256);
+    context.setAnalysisOptions(options);
   }
 
   public void test_applyChanges_add() {
@@ -866,6 +869,67 @@ public class AnalysisContextImplTest extends EngineTestCase {
     assertNotNull(unit);
   }
 
+  public void test_performAnalysisTask_IOException() throws Exception {
+    addSourceWithException("/test.dart");
+    //
+    // Simulate a typical analysis worker.
+    //
+    int maxCount = 25;
+    context.performAnalysisTask();
+    for (int count = 0; count < maxCount; count++) {
+      if (context.performAnalysisTask().getChangeNotices() == null) {
+        return;
+      }
+    }
+    fail("Did not finish analysis after " + maxCount + " iterations");
+  }
+
+  public void test_performAnalysisTask_missingPart() throws Exception {
+    Source source = addSource("/test.dart", "library lib; part 'no-such-file.dart';");
+    for (int i = 0; i < 512; i++) {
+      ChangeNotice[] notice = context.performAnalysisTask().getChangeNotices();
+      if (notice == null) {
+        //System.out.println("test_performAnalysisTask_missingPart: " + i);
+        break;
+      }
+    }
+    ChangeNotice[] notice = context.performAnalysisTask().getChangeNotices();
+    if (notice != null) {
+      fail("performAnalysisTask failed to terminate after analyzing all sources");
+    }
+    assertNotNull(
+        "performAnalysisTask failed to compute an element model",
+        context.getLibraryElement(source));
+  }
+
+  public void test_performAnalysisTask_modifiedAfterParse() throws Exception {
+    Source source = addSource("/test.dart", "library lib;");
+    long initialTime = context.getModificationStamp(source);
+    ArrayList<Source> sources = new ArrayList<Source>();
+    sources.add(source);
+    context.setAnalysisPriorityOrder(sources);
+    context.parseCompilationUnit(source);
+    while (initialTime == System.currentTimeMillis()) {
+      Thread.sleep(1); // Force the modification time to be different.
+    }
+    context.setContents(source, "library test;");
+    assertTrue(initialTime != context.getModificationStamp(source));
+    for (int i = 0; i < 512; i++) {
+      ChangeNotice[] notice = context.performAnalysisTask().getChangeNotices();
+      if (notice == null) {
+        //System.out.println("test_performAnalysisTask_modifiedAfterParse: " + i);
+        break;
+      }
+    }
+    ChangeNotice[] notice = context.performAnalysisTask().getChangeNotices();
+    if (notice != null) {
+      fail("performAnalysisTask failed to terminate after analyzing all sources");
+    }
+    assertNotNull(
+        "performAnalysisTask failed to compute an element model",
+        context.getLibraryElement(source));
+  }
+
   public void test_resolveCompilationUnit_library() throws Exception {
     context = AnalysisContextFactory.contextWithCore();
     sourceFactory = context.getSourceFactory();
@@ -1070,48 +1134,6 @@ public class AnalysisContextImplTest extends EngineTestCase {
     assertEquals(factory, context.getSourceFactory());
   }
 
-  public void xtest_performAnalysisTask_IOException() throws Exception {
-    addSourceWithException("/test.dart");
-    //
-    // Simulate a typical analysis worker.
-    //
-    int maxCount = 25;
-    context.performAnalysisTask();
-    for (int count = 0; count < maxCount; count++) {
-      if (context.performAnalysisTask().getChangeNotices() == null) {
-        return;
-      }
-    }
-    fail("Did not finish analysis after " + maxCount + " iterations");
-  }
-
-  public void xtest_performAnalysisTask_modifiedAfterParse() throws Exception {
-    Source source = addSource("/test.dart", "library lib;");
-    long initialTime = context.getModificationStamp(source);
-    ArrayList<Source> sources = new ArrayList<Source>();
-    sources.add(source);
-    context.setAnalysisPriorityOrder(sources);
-    context.parseCompilationUnit(source);
-    while (initialTime == System.currentTimeMillis()) {
-      Thread.sleep(1); // Force the modification time to be different.
-    }
-    context.setContents(source, "library test;");
-    assertTrue(initialTime != context.getModificationStamp(source));
-    for (int i = 0; i < 100; i++) {
-      ChangeNotice[] notice = context.performAnalysisTask().getChangeNotices();
-      if (notice == null) {
-        break;
-      }
-    }
-    ChangeNotice[] notice = context.performAnalysisTask().getChangeNotices();
-    if (notice != null) {
-      fail("performAnalysisTask failed to terminate after analyzing all sources");
-    }
-    assertNotNull(
-        "performAnalysisTask failed to compute an element model",
-        context.getLibraryElement(source));
-  }
-
   public void xtest_performAnalysisTask_stress() throws Exception {
     int maxCacheSize = 4;
     AnalysisOptionsImpl options = new AnalysisOptionsImpl(context.getAnalysisOptions());
@@ -1127,9 +1149,10 @@ public class AnalysisContextImplTest extends EngineTestCase {
     }
     context.applyChanges(changeSet);
     context.setAnalysisPriorityOrder(sources);
-    for (int i = 0; i < (sourceCount * 5) + 100; i++) {
+    for (int i = 0; i < 1000; i++) { // (sourceCount * 20)
       ChangeNotice[] notice = context.performAnalysisTask().getChangeNotices();
       if (notice == null) {
+        //System.out.println("test_performAnalysisTask_stress: " + i);
         break;
       }
     }

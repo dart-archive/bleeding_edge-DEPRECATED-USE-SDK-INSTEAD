@@ -613,9 +613,13 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
               taskData = createResolveDartLibraryTask(
                   dependencySource,
                   getReadableDartEntry(dependencySource));
+              return;
             }
           } else {
             ensureExports(dependency, visitedLibraries);
+            if (taskData != null) {
+              return;
+            }
           }
         }
       }
@@ -641,6 +645,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
             taskData = createResolveDartLibraryTask(
                 dependencySource,
                 getReadableDartEntry(dependencySource));
+            return;
           }
         }
       }
@@ -656,7 +661,13 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       for (int i = 0; i < libraryCount; i++) {
         ResolvableLibrary library = librariesInCycle.get(i);
         ensureImports(library);
+        if (taskData != null) {
+          return;
+        }
         ensureExports(library, visitedLibraries);
+        if (taskData != null) {
+          return;
+        }
       }
     }
 
@@ -678,7 +689,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       for (int i = 0; i < count; i++) {
         Source partSource = partSources[i];
         DartEntry partEntry = getReadableDartEntry(partSource);
-        if (partEntry != null) {
+        if (partEntry != null && partEntry.getState(DartEntry.PARSED_UNIT) != CacheState.ERROR) {
           ensureResolvableCompilationUnit(partSource, partEntry);
           pairs.add(new SourceEntryPair(partSource, partEntry));
         }
@@ -3366,20 +3377,29 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         }
       }
       if (neededForResolution != null) {
+        ArrayList<Source> sourcesToRemove = new ArrayList<Source>();
         for (Source source : neededForResolution) {
           SourceEntry sourceEntry = cache.get(source);
           if (sourceEntry instanceof DartEntry) {
             DartEntry dartEntry = (DartEntry) sourceEntry;
             if (!dartEntry.hasResolvableCompilationUnit()) {
-              TaskData taskData = createParseDartTask(source, dartEntry);
-              AnalysisTask task = taskData.getTask();
-              if (task != null) {
-                return task;
-              } else if (taskData.isBlocked()) {
-                hasBlockedTask = true;
+              if (dartEntry.getState(DartEntry.PARSED_UNIT) == CacheState.ERROR) {
+                sourcesToRemove.add(source);
+              } else {
+                TaskData taskData = createParseDartTask(source, dartEntry);
+                AnalysisTask task = taskData.getTask();
+                if (task != null) {
+                  return task;
+                } else if (taskData.isBlocked()) {
+                  hasBlockedTask = true;
+                }
               }
             }
           }
+        }
+        int count = sourcesToRemove.size();
+        for (int i = 0; i < count; i++) {
+          neededForResolution.remove(sourcesToRemove.get(i));
         }
       }
       //
