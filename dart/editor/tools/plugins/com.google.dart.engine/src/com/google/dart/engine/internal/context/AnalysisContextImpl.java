@@ -5231,16 +5231,15 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
    */
   private boolean validateCacheConsistency() {
     long consistencyCheckStart = System.nanoTime();
+    ArrayList<Source> changedSources = new ArrayList<Source>();
     ArrayList<Source> missingSources = new ArrayList<Source>();
-    int inconsistentCount = 0;
     synchronized (cacheLock) {
       for (Map.Entry<Source, SourceEntry> entry : cache.entrySet()) {
         Source source = entry.getKey();
         SourceEntry sourceEntry = entry.getValue();
         long sourceTime = getModificationStamp(source);
         if (sourceTime != sourceEntry.getModificationTime()) {
-          sourceChanged(source);
-          inconsistentCount++;
+          changedSources.add(source);
         }
         if (sourceEntry.getException() != null) {
           if (!exists(source)) {
@@ -5248,16 +5247,20 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
           }
         }
       }
+      int count = changedSources.size();
+      for (int i = 0; i < count; i++) {
+        sourceChanged(changedSources.get(i));
+      }
     }
     long consistencyCheckEnd = System.nanoTime();
-    if (inconsistentCount > 0 || missingSources.size() > 0) {
+    if (changedSources.size() > 0 || missingSources.size() > 0) {
       @SuppressWarnings("resource")
       PrintStringWriter writer = new PrintStringWriter();
       writer.print("Consistency check took ");
       writer.print((consistencyCheckEnd - consistencyCheckStart) / 1000000.0);
       writer.println(" ms and found");
       writer.print("  ");
-      writer.print(inconsistentCount);
+      writer.print(changedSources.size());
       writer.println(" inconsistent entries");
       writer.print("  ");
       writer.print(missingSources.size());
@@ -5268,6 +5271,6 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       }
       logInformation(writer.toString());
     }
-    return inconsistentCount > 0;
+    return changedSources.size() > 0;
   }
 }
