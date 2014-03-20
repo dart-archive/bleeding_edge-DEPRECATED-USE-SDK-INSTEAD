@@ -1134,7 +1134,7 @@ public class ResolverVisitor extends ScopedVisitor {
    * @return the type of objects that will be assigned to the loop variable
    */
   private Type getIteratorElementType(Expression iteratorExpression) {
-    Type expressionType = iteratorExpression.getStaticType();
+    Type expressionType = iteratorExpression.getBestType();
     if (expressionType instanceof InterfaceType) {
       InterfaceType interfaceType = (InterfaceType) expressionType;
       FunctionType iteratorFunction = inheritanceManager.lookupMemberType(interfaceType, "iterator");

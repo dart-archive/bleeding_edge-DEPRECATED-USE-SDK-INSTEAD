@@ -140,8 +140,9 @@ public class TypePropagationTest extends ResolverTestCase {
 
   public void test_forEach() throws Exception {
     String code = createSource(//
-        "f(List<String> p) {",
-        "  for (var e in p) {",
+        "main() {",
+        "  var list = <String> [];",
+        "  for (var e in list) {",
         "    e;",
         "  }",
         "}");
