@@ -104,6 +104,26 @@ public class IOSemanticProcessorTest extends SemanticProcessorTest {
         "}");
   }
 
+  public void test_System_out_println() throws Exception {
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "public class Test {",
+        "  public void test() {",
+        "    System.out.print(1);",
+        "    System.out.println(2);",
+        "  }",
+        "}");
+    runProcessor();
+    assertFormattedSource(//
+        "class Test {",
+        "  void test() {",
+        "    print(1);",
+        "    print(2);",
+        "  }",
+        "}");
+  }
+
   public void test_URI_create() throws Exception {
     translateSingleFile(
         "// filler filler filler filler filler filler filler filler filler filler",

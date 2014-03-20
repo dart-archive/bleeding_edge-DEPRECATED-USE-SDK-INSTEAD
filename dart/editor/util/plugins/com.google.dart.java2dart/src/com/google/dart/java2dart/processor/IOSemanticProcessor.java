@@ -90,8 +90,25 @@ public class IOSemanticProcessor extends SemanticProcessor {
       @Override
       public Void visitMethodInvocation(MethodInvocation node) {
         super.visitMethodInvocation(node);
+        Expression target = node.getTarget();
         List<Expression> args = node.getArgumentList().getArguments();
         SimpleIdentifier nameNode = node.getMethodName();
+        // System.out.print[ln](x) -> print(x)
+        if (isMethodInClass(node, "print", "java.io.PrintStream")
+            || isMethodInClass(node, "println", "java.io.PrintStream")) {
+          if (target instanceof PropertyAccess) {
+            PropertyAccess propertyAccess = (PropertyAccess) target;
+            SimpleIdentifier propertyName = propertyAccess.getPropertyName();
+            Expression propertyTarget = propertyAccess.getTarget();
+            if (propertyName.getName().equals("out") && propertyTarget instanceof SimpleIdentifier) {
+              if (((SimpleIdentifier) propertyTarget).getName().equals("System")) {
+                replaceNode(node, methodInvocation("print", args));
+                return null;
+              }
+            }
+          }
+        }
+        // java.net.URI
         if (isMethodInClass2(node, "create(java.lang.String)", "java.net.URI")) {
           replaceNode(node, methodInvocation(identifier("parseUriWithException"), args));
           return null;
@@ -113,7 +130,6 @@ public class IOSemanticProcessor extends SemanticProcessor {
           nameNode.setToken(token("resolveUri"));
           return null;
         }
-        // remove URI.normalize()
         if (isMethodInClass2(node, "normalize()", "java.net.URI")) {
           replaceNode(node, node.getTarget());
           return null;

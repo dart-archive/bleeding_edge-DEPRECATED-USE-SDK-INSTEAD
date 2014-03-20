@@ -1864,11 +1864,14 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
 
   private SimpleIdentifier replaceEnclosingClassMemberReferences(final ClassDeclaration innerClass,
       final ITypeBinding enclosingTypeBinding) {
-    final SimpleIdentifier enclosingTypeRef;
+    final SimpleIdentifier enclosingTypeInstRef;
+    final SimpleIdentifier enclosingTypeNameRef;
     final AtomicBoolean addEnclosingTypeRef = new AtomicBoolean();
     {
       if (enclosingTypeBinding != null) {
-        enclosingTypeRef = identifier(enclosingTypeBinding.getName() + "_this");
+        String enclosingTypeName = enclosingTypeBinding.getName();
+        enclosingTypeInstRef = identifier(enclosingTypeName + "_this");
+        enclosingTypeNameRef = identifier(enclosingTypeName);
         // add enclosing class references
         innerClass.accept(new RecursiveAstVisitor<Void>() {
           @Override
@@ -1880,24 +1883,22 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
               if (methodBinding != null
                   && JavaUtils.isSubtype(enclosingTypeBinding, methodBinding.getDeclaringClass())) {
                 addEnclosingTypeRef.set(true);
-                node.setTarget(enclosingTypeRef);
+                node.setTarget(enclosingTypeInstRef);
               }
             }
             return super.visitMethodInvocation(node);
           }
 
           @Override
+          public Void visitPropertyAccess(PropertyAccess node) {
+            node.getTarget().accept(this);
+            return null;
+          }
+
+          @Override
           public Void visitSimpleIdentifier(SimpleIdentifier node) {
-            AstNode target = null;
             if (node.getParent() instanceof PrefixedIdentifier) {
               return null;
-            }
-            if (node.getParent() instanceof PropertyAccess) {
-              PropertyAccess access = (PropertyAccess) node.getParent();
-              target = access.getTarget();
-              if (!(target instanceof ThisExpression)) {
-                return null;
-              }
             }
             Object binding = context.getNodeBinding(node);
             if (binding instanceof IVariableBinding) {
@@ -1905,10 +1906,10 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
               if (variableBinding.isField()
                   && variableBinding.getDeclaringClass() == enclosingTypeBinding) {
                 addEnclosingTypeRef.set(true);
-                if (target == null) {
-                  replaceNode(node.getParent(), node, propertyAccess(enclosingTypeRef, node));
+                if (JavaUtils.isStatic(variableBinding)) {
+                  replaceNode(node.getParent(), node, propertyAccess(enclosingTypeNameRef, node));
                 } else {
-                  replaceNode(target.getParent(), target, enclosingTypeRef);
+                  replaceNode(node.getParent(), node, propertyAccess(enclosingTypeInstRef, node));
                 }
               }
             }
@@ -1920,19 +1921,19 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
             ITypeBinding binding = context.getNodeTypeBinding(node);
             if (JavaUtils.isSubtype(enclosingTypeBinding, binding)) {
               addEnclosingTypeRef.set(true);
-              replaceNode(node.getParent(), node, enclosingTypeRef);
+              replaceNode(node.getParent(), node, enclosingTypeInstRef);
             }
             return super.visitThisExpression(node);
           }
         });
       } else {
-        enclosingTypeRef = null;
+        enclosingTypeInstRef = null;
       }
     }
     if (!addEnclosingTypeRef.get()) {
       return null;
     }
-    return enclosingTypeRef;
+    return enclosingTypeInstRef;
   }
 
   /**

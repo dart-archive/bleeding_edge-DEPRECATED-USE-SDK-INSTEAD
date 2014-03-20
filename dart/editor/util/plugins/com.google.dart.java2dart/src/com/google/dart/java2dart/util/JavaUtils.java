@@ -355,6 +355,10 @@ public class JavaUtils {
     return false;
   }
 
+  public static boolean isStatic(IBinding binding) {
+    return Modifier.isStatic(binding.getModifiers());
+  }
+
   public static boolean isStaticFieldBinding(Object binding) {
     if (binding instanceof IVariableBinding) {
       IVariableBinding fieldBinding = (IVariableBinding) binding;
@@ -461,9 +465,5 @@ public class JavaUtils {
     } else {
       return null;
     }
-  }
-
-  private static boolean isStatic(IBinding binding) {
-    return Modifier.isStatic(binding.getModifiers());
   }
 }

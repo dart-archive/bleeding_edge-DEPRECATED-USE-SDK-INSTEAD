@@ -206,12 +206,14 @@ public class SemanticTest extends AbstractSemanticTest {
             "package test;",
             "public class Test {",
             "  boolean hasErrors;",
+            "  static boolean staticField;",
             "  public void foo() {};",
             "  public void main() {",
             "    ErrorListener v = new ErrorListener() {",
             "      public void onError() {",
             "        foo();",
             "        hasErrors = true;",
+            "        staticField = true;",
             "      }",
             "    };",
             "  }",
@@ -226,6 +228,7 @@ public class SemanticTest extends AbstractSemanticTest {
             "}",
             "class Test {",
             "  bool _hasErrors = false;",
+            "  static bool _staticField = false;",
             "  void foo() {",
             "  }",
             "  void main() {",
@@ -238,6 +241,7 @@ public class SemanticTest extends AbstractSemanticTest {
             "  void onError() {",
             "    Test_this.foo();",
             "    Test_this._hasErrors = true;",
+            "    Test._staticField = true;",
             "  }",
             "}"),
         getFormattedSource(unit));
@@ -407,6 +411,37 @@ public class SemanticTest extends AbstractSemanticTest {
             "    A_this.outerMethod();",
             "    A_this.test3(A_this);",
             "  }",
+            "}"),
+        getFormattedSource(unit));
+  }
+
+  public void test_classInner_referenceEnclosingClassField_array() throws Exception {
+    setFileLines(
+        "test/A.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "public class A {",
+            "  public class B {",
+            "    public int test() {",
+            "      return values.length;",
+            "    }",
+            "  }",
+            "  int[] values;",
+            "}"));
+    context.addSourceFolder(tmpFolder);
+    context.addSourceFiles(tmpFolder);
+    // do translate
+    translate();
+    printFormattedSource(unit);
+    assertEquals(
+        toString(
+            "class A {",
+            "  List<int> _values;",
+            "}",
+            "class A_B {",
+            "  final A A_this;",
+            "  A_B(this.A_this);",
+            "  int test() => A_this._values.length;",
             "}"),
         getFormattedSource(unit));
   }
