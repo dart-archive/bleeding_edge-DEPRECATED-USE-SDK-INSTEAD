@@ -13,7 +13,7 @@ class _Audio {
   factory _Audio() {
     if (!AudioContext.supported) new _Audio._disabled();
 
-    if (_audioFormat != null) {
+    if (_audioFormat != null && AudioContext.supported) {
       var audioContext = new AudioContext();
       var loader = new AudioLoader(audioContext, _getAudioPaths(_AUDIO_NAMES));
       return new _Audio._internal(loader);
@@ -101,14 +101,12 @@ class _Audio {
   static String _getAudioFormat() {
     var audioElement = new AudioElement();
 
-    var canPlayMp4 = audioElement.canPlayType('audio/mp4');
-    if (canPlayMp4 == 'maybe') {
-      return 'm4a';
+    if (audioElement.canPlayType('audio/mpeg') == 'maybe') {
+      return 'mp3';
     }
 
-    var canPlayWebM = audioElement.canPlayType('audio/webm');
-    if (canPlayWebM == 'maybe') {
-      return 'webm';
+    if (audioElement.canPlayType('audio/ogg') == 'maybe') {
+      return 'ogg';
     }
 
     return null;
