@@ -55,7 +55,7 @@ public class DartPrioritySourcesHelper {
 
   private static class PriorityOrderThread extends Thread {
     public PriorityOrderThread() {
-      setName("PriorityOrderThread");
+      setName("DartPrioritySourcesHelper-PriorityOrderThread");
       setDaemon(true);
     }
 

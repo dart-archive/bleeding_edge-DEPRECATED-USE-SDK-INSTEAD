@@ -21,6 +21,7 @@ import com.google.dart.tools.core.analysis.model.AnalysisListener;
 import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.analysis.model.ResolvedHtmlEvent;
 import com.google.dart.tools.core.internal.builder.AnalysisWorker;
+import com.google.dart.tools.ui.internal.text.dart.DartUpdateSourceHelper;
 
 import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocument;
@@ -133,7 +134,7 @@ public class HtmlReconcilerHook implements ISourceValidator, IValidator {
       if (context != null) {
         Project project = documentInfo.getProject();
         Source source = documentInfo.getSource();
-        HtmlReconcilerManager.performUpdateInBackground(project, context, source, code);
+        DartUpdateSourceHelper.getInstance().updateWithDelay(project, context, source, code);
       }
     }
   }

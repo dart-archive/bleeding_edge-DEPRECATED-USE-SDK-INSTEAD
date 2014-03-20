@@ -197,7 +197,7 @@ public class DartReconcilingStrategyTest extends TestCase {
 
     mockEditor.getDisposeListener().widgetDisposed(null);
 
-    // Assert reconciler requested background analysis
+    waitForBackgroundThread();
     analysisManager.assertBackgroundAnalysis(1);
   }
 
@@ -218,6 +218,7 @@ public class DartReconcilingStrategyTest extends TestCase {
     assertNotNull(mockEditor.getAppliedCompilationUnit());
 
     mockDocument.replace(offset, 0, insertedText);
+    waitForBackgroundThread();
 
     // assert "." causes immediate update of the context
 
@@ -296,6 +297,7 @@ public class DartReconcilingStrategyTest extends TestCase {
     assertNull(mockEditor.getAppliedCompilationUnit());
 
     strategy.reconcile();
+    waitForBackgroundThread();
 
     assertNull(mockEditor.getAppliedCompilationUnit());
     analysisManager.assertBackgroundAnalysis(2);
@@ -324,6 +326,7 @@ public class DartReconcilingStrategyTest extends TestCase {
     assertNull(mockEditor.getAppliedCompilationUnit());
 
     strategy.reconcile();
+    waitForBackgroundThread();
     mockContext.assertSetChangedContentsCount(1, 0, 10, 0);
     mockContext.assertSetContentsCount(0);
 
@@ -369,6 +372,7 @@ public class DartReconcilingStrategyTest extends TestCase {
     assertNull(mockEditor.getAppliedCompilationUnit());
 
     strategy.reconcile(new DirtyRegion(0, 0, DirtyRegion.INSERT, insertedText), new Region(0, 0));
+    waitForBackgroundThread();
 
     mockContext.assertSetChangedContentsCount(1, 0, 0, insertedText.length());
     mockContext.assertSetContentsCount(0);
@@ -397,6 +401,7 @@ public class DartReconcilingStrategyTest extends TestCase {
     assertNull(mockEditor.getAppliedCompilationUnit());
 
     strategy.reconcile(new DirtyRegion(0, 10, DirtyRegion.REMOVE, null), new Region(0, 0));
+    waitForBackgroundThread();
 
     mockContext.assertSetChangedContentsCount(1, 0, 10, 0);
     mockContext.assertSetContentsCount(0);
@@ -439,6 +444,7 @@ public class DartReconcilingStrategyTest extends TestCase {
     assertNull(mockEditor.getAppliedCompilationUnit());
 
     strategy.reconcile(new Region(0, insertedText.length()));
+    waitForBackgroundThread();
 
     mockContext.assertSetChangedContentsCount(1, 0, 0, insertedText.length());
     mockContext.assertSetContentsCount(0);
@@ -464,6 +470,7 @@ public class DartReconcilingStrategyTest extends TestCase {
     assertNull(mockEditor.getAppliedCompilationUnit());
 
     strategy.reconcile(new Region(0, 10));
+    waitForBackgroundThread();
 
     mockContext.assertSetChangedContentsCount(1, 0, 10, 0);
     mockContext.assertSetContentsCount(0);
@@ -504,5 +511,13 @@ public class DartReconcilingStrategyTest extends TestCase {
     if (strategy != null) {
       strategy.dispose();
     }
+  }
+
+  /**
+   * We cannot talk to {@link AnalysisContext} on the UI thread, so we push update/analyze requests
+   * and execute them in background. But in test we want to wait until these requests are executed.
+   */
+  private void waitForBackgroundThread() {
+    DartUpdateSourceHelper.getInstance().waitForEmptyQueue();
   }
 }

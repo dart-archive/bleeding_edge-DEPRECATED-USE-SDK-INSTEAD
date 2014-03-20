@@ -166,7 +166,6 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
     document.removeDocumentListener(documentListener);
     AnalysisWorker.removeListener(analysisListener);
     sourceChanged(null);
-    performAnalysisInBackground();
   }
 
   @Override
@@ -206,7 +205,6 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
         String code = document.get();
         instrumentation.data("Length", code.length());
         sourceChanged(code);
-        performAnalysisInBackground();
       } else if (!region.isEmpty()) {
         instrumentation.data("Offset", region.getOffset());
         instrumentation.data("OldLength", region.getOldLength());
@@ -216,7 +214,6 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
             region.getOffset(),
             region.getOldLength(),
             region.getNewLength());
-        performAnalysisInBackground();
       }
     } finally {
       instrumentation.log();
@@ -287,21 +284,29 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
   }
 
   /**
+   * Return the {@link ContextManager} to use for this editor.
+   */
+  private ContextManager getContextManager() {
+    ContextManager manager = editor.getInputProject();
+    if (manager == null) {
+      manager = DartCore.getProjectManager();
+    }
+    return manager;
+  }
+
+  /**
    * Start background analysis of the context containing the source being edited.
    */
   private void performAnalysisInBackground() {
     AnalysisContext context = editor.getInputAnalysisContext();
     if (context != null) {
-      ContextManager manager = editor.getInputProject();
-      if (manager == null) {
-        manager = DartCore.getProjectManager();
-      }
+      ContextManager manager = getContextManager();
       analysisManager.performAnalysisInBackground(manager, context);
     }
   }
 
   /**
-   * Notify the context that the source has changed.
+   * Schedules the source change notification and analysis.
    * 
    * @param code the new source code or {@code null} if the source should be pulled from disk
    */
@@ -309,12 +314,18 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
     AnalysisContext context = editor.getInputAnalysisContext();
     Source source = editor.getInputSource();
     if (context != null && source != null) {
-      context.setContents(source, code);
+      ContextManager manager = getContextManager();
+      DartUpdateSourceHelper.getInstance().updateFast(
+          analysisManager,
+          manager,
+          context,
+          source,
+          code);
     }
   }
 
   /**
-   * Notify the context that the source has changed.
+   * Schedules the source change notification and analysis.
    * 
    * @param code the new source code or {@code null} if the source should be pulled from disk
    * @param offset the offset into the current contents
@@ -325,7 +336,16 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
     AnalysisContext context = editor.getInputAnalysisContext();
     Source source = editor.getInputSource();
     if (context != null && source != null) {
-      context.setChangedContents(source, code, offset, oldLength, newLength);
+      ContextManager manager = getContextManager();
+      DartUpdateSourceHelper.getInstance().updateFast(
+          analysisManager,
+          manager,
+          context,
+          source,
+          code,
+          offset,
+          oldLength,
+          newLength);
     }
   }
 }
