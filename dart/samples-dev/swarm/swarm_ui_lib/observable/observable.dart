@@ -315,7 +315,7 @@ class ObservableList<T>
   }
 
   void shuffle([random]) => throw new UnimplementedError();
-  void remove(T element) => throw new UnimplementedError();
+  bool remove(T element) => throw new UnimplementedError();
   void removeWhere(bool test(T element)) => throw new UnimplementedError();
   void retainWhere(bool test(T element)) => throw new UnimplementedError();
   List<T> toList({bool growable:true}) => throw new UnimplementedError();
