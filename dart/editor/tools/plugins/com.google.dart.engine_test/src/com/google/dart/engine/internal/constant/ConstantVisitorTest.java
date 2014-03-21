@@ -16,14 +16,27 @@ package com.google.dart.engine.internal.constant;
 import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.ast.ConditionalExpression;
 import com.google.dart.engine.ast.Expression;
+import com.google.dart.engine.ast.InstanceCreationExpression;
+import com.google.dart.engine.element.ClassElement;
+import com.google.dart.engine.internal.element.ClassElementImpl;
+import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
+import com.google.dart.engine.internal.element.ConstructorElementImpl;
+import com.google.dart.engine.internal.element.FieldFormalParameterElementImpl;
+import com.google.dart.engine.internal.element.LibraryElementImpl;
 import com.google.dart.engine.internal.object.DartObjectImpl;
 import com.google.dart.engine.internal.resolver.TestTypeProvider;
+import com.google.dart.engine.scanner.Keyword;
 
 import static com.google.dart.engine.ast.AstFactory.booleanLiteral;
 import static com.google.dart.engine.ast.AstFactory.conditionalExpression;
 import static com.google.dart.engine.ast.AstFactory.identifier;
+import static com.google.dart.engine.ast.AstFactory.instanceCreationExpression;
 import static com.google.dart.engine.ast.AstFactory.integer;
 import static com.google.dart.engine.ast.AstFactory.nullLiteral;
+import static com.google.dart.engine.ast.AstFactory.typeName;
+import static com.google.dart.engine.element.ElementFactory.classElement;
+import static com.google.dart.engine.element.ElementFactory.constructorElement;
+import static com.google.dart.engine.element.ElementFactory.library;
 
 public class ConstantVisitorTest extends EngineTestCase {
   public void test_visitConditionalExpression_false() {
@@ -34,6 +47,26 @@ public class ConstantVisitorTest extends EngineTestCase {
         thenExpression,
         elseExpression);
     assertValue(0L, expression.accept(new ConstantVisitor(new TestTypeProvider())));
+  }
+
+  public void test_visitConditionalExpression_instanceCreation_invalidFieldInitializer() {
+    TestTypeProvider typeProvider = new TestTypeProvider();
+    LibraryElementImpl libraryElement = library(null, "lib");
+    String className = "C";
+    ClassElementImpl classElement = classElement(className);
+    ((CompilationUnitElementImpl) libraryElement.getDefiningCompilationUnit()).setTypes(new ClassElement[] {classElement});
+    ConstructorElementImpl constructorElement = constructorElement(
+        classElement,
+        null,
+        true,
+        typeProvider.getIntType());
+    constructorElement.getParameters()[0] = new FieldFormalParameterElementImpl(identifier("x"));
+    InstanceCreationExpression expression = instanceCreationExpression(
+        Keyword.CONST,
+        typeName(className),
+        integer(0L));
+    expression.setStaticElement(constructorElement);
+    expression.accept(new ConstantVisitor(typeProvider));
   }
 
   public void test_visitConditionalExpression_nonBooleanCondition() {

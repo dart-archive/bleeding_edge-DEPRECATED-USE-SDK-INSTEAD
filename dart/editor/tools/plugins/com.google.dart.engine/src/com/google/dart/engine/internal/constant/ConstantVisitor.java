@@ -47,6 +47,7 @@ import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
+import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.FieldFormalParameterElement;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.FunctionTypeAliasElement;
@@ -294,16 +295,19 @@ public class ConstantVisitor extends UnifyingAstVisitor<EvaluationResultImpl> {
       for (int i = 0; i < parameterCount; i++) {
         ParameterElement parameter = parameters[i];
         if (parameter.isInitializingFormal()) {
-          String fieldName = ((FieldFormalParameterElement) parameter).getField().getName();
-          if (parameter.getParameterKind() == ParameterKind.NAMED) {
-            DartObjectImpl argumentValue = namedArgumentValues.get(parameter.getName());
-            if (argumentValue != null) {
-              fieldMap.put(fieldName, argumentValue);
+          FieldElement field = ((FieldFormalParameterElement) parameter).getField();
+          if (field != null) {
+            String fieldName = field.getName();
+            if (parameter.getParameterKind() == ParameterKind.NAMED) {
+              DartObjectImpl argumentValue = namedArgumentValues.get(parameter.getName());
+              if (argumentValue != null) {
+                fieldMap.put(fieldName, argumentValue);
+              }
+            } else if (i < argumentCount) {
+              fieldMap.put(fieldName, argumentValues[i]);
+              // Otherwise, the parameter is assumed to be an optional positional parameter for which
+              // no value was provided.
             }
-          } else if (i < argumentCount) {
-            fieldMap.put(fieldName, argumentValues[i]);
-            // Otherwise, the parameter is assumed to be an optional positional parameter for which
-            // no value was provided.
           }
         }
       }
