@@ -36,8 +36,18 @@ do
 done
 
 if [ $FOUND_SDK = 0 ]; then
-  exec "$BUILD_DIR/dart" "--package-root=$PACKAGE_ROOT" "${PKG_ANALYZER}" \
+  exec "$BUILD_DIR/dart" \
+       "--package-root=$PACKAGE_ROOT" \
+       --heap_growth_rate=512 \
+       --inlining_hotness=90 \
+       --optimization_counter_threshold=5000 \
+       "${PKG_ANALYZER}" \
        --dart-sdk "${SDK_DIR}" "$@"
 else
-  exec "$BUILD_DIR/dart" "--package-root=$PACKAGE_ROOT" "${PKG_ANALYZER}" "$@"
+  exec "$BUILD_DIR/dart" \
+       "--package-root=$PACKAGE_ROOT" \
+       --heap_growth_rate=512 \
+       --inlining_hotness=90 \
+       --optimization_counter_threshold=5000 \
+       "${PKG_ANALYZER}" "$@"
 fi
