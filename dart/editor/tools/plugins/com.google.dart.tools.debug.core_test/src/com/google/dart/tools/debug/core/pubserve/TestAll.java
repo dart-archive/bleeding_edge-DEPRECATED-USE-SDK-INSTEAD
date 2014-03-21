@@ -14,13 +14,17 @@
 
 package com.google.dart.tools.debug.core.pubserve;
 
+import com.google.dart.tools.core.DartCore;
+
 import junit.framework.Test;
 import junit.framework.TestSuite;
 
 public class TestAll {
   public static Test suite() {
     TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
-    suite.addTestSuite(PubConnectionTest.class);
+    if (!DartCore.isWindows()) {
+      suite.addTestSuite(PubConnectionTest.class);
+    }
     return suite;
   }
 }
