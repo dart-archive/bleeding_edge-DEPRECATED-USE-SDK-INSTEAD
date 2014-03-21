@@ -66,7 +66,7 @@ public class PubServeManager {
     }
   }
 
-  public static final String PORT_NUMBER = "3031";
+  public static final String PORT_NUMBER = "4031";
 
   private static final String SERVE_COMMAND = "serve";
 
