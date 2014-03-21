@@ -975,6 +975,45 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
     assertErrors(source, StaticTypeWarningCode.UNDEFINED_GETTER);
   }
 
+  public void test_undefinedGetter_wrongNumberOfTypeArguments_tooLittle() throws Exception {
+    Source source = addSource(createSource(//
+        "class A<K, V> {",
+        "  K element;",
+        "}",
+        "main(A<int> a) {",
+        "  a.element.anyGetterExistsInDynamic;",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS);
+    verify(source);
+  }
+
+  public void test_undefinedGetter_wrongNumberOfTypeArguments_tooMany() throws Exception {
+    Source source = addSource(createSource(//
+        "class A<E> {",
+        "  E element;",
+        "}",
+        "main(A<int,int> a) {",
+        "  a.element.anyGetterExistsInDynamic;",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS);
+    verify(source);
+  }
+
+  public void test_undefinedGetter_wrongOfTypeArgument() throws Exception {
+    Source source = addSource(createSource(//
+        "class A<E> {",
+        "  E element;",
+        "}",
+        "main(A<NoSuchType> a) {",
+        "  a.element.anyGetterExistsInDynamic;",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT);
+    verify(source);
+  }
+
   public void test_undefinedMethod() throws Exception {
     Source source = addSource(createSource(//
         "class A {",

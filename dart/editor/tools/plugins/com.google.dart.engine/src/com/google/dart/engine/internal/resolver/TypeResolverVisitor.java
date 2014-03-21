@@ -650,39 +650,33 @@ public class TypeResolverVisitor extends ScopedVisitor {
       int argumentCount = arguments.size();
       Type[] parameters = getTypeArguments(type);
       int parameterCount = parameters.length;
-      int count = Math.min(argumentCount, parameterCount);
-      ArrayList<Type> typeArguments = new ArrayList<Type>(count);
-      for (int i = 0; i < count; i++) {
-        Type argumentType = getType(arguments.get(i));
-        if (argumentType != null) {
-          typeArguments.add(argumentType);
+      Type[] typeArguments = new Type[parameterCount];
+      if (argumentCount == parameterCount) {
+        for (int i = 0; i < parameterCount; i++) {
+          TypeName argumentTypeName = arguments.get(i);
+          Type argumentType = getType(argumentTypeName);
+          if (argumentType == null) {
+            argumentType = dynamicType;
+          }
+          typeArguments[i] = argumentType;
         }
-      }
-      if (argumentCount != parameterCount) {
+      } else {
         reportErrorForNode(
             getInvalidTypeParametersErrorCode(node),
             node,
             typeName.getName(),
             parameterCount,
             argumentCount);
-      }
-      argumentCount = typeArguments.size();
-      if (argumentCount < parameterCount) {
-        //
-        // If there were too many arguments, we already handled it by not adding the values of the
-        // extra arguments to the list. If there are too few, we handle it by adding 'dynamic'
-        // enough times to make the count equal.
-        //
-        for (int i = argumentCount; i < parameterCount; i++) {
-          typeArguments.add(dynamicType);
+        for (int i = 0; i < parameterCount; i++) {
+          typeArguments[i] = dynamicType;
         }
       }
       if (type instanceof InterfaceTypeImpl) {
         InterfaceTypeImpl interfaceType = (InterfaceTypeImpl) type;
-        type = interfaceType.substitute(typeArguments.toArray(new Type[typeArguments.size()]));
+        type = interfaceType.substitute(typeArguments);
       } else if (type instanceof FunctionTypeImpl) {
         FunctionTypeImpl functionType = (FunctionTypeImpl) type;
-        type = functionType.substitute(typeArguments.toArray(new Type[typeArguments.size()]));
+        type = functionType.substitute(typeArguments);
       } else {
         // TODO(brianwilkerson) Report this internal error.
       }
