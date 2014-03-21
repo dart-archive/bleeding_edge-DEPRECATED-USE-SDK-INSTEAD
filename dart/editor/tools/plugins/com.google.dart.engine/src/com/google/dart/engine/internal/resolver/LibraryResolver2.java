@@ -49,6 +49,7 @@ import com.google.dart.engine.internal.element.ShowElementCombinatorImpl;
 import com.google.dart.engine.internal.scope.Namespace;
 import com.google.dart.engine.internal.scope.NamespaceBuilder;
 import com.google.dart.engine.sdk.DartSdk;
+import com.google.dart.engine.source.DartUriResolver;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceKind;
 import com.google.dart.engine.utilities.general.TimeCounter.TimeCounterHandle;
@@ -263,6 +264,10 @@ public class LibraryResolver2 {
       for (Directive directive : library.getDefiningCompilationUnit().getDirectives()) {
         if (directive instanceof ImportDirective) {
           ImportDirective importDirective = (ImportDirective) directive;
+          String uriContent = importDirective.getUriContent();
+          if (DartUriResolver.isDartExtUri(uriContent)) {
+            library.getLibraryElement().setHasExtUri(true);
+          }
           Source importedSource = importDirective.getSource();
           if (importedSource != null && analysisContext.exists(importedSource)) {
             // The imported source will be null if the URI in the import directive was invalid.
@@ -274,7 +279,7 @@ public class LibraryResolver2 {
                 importElement.setUriOffset(uriLiteral.getOffset());
                 importElement.setUriEnd(uriLiteral.getEnd());
               }
-              importElement.setUri(importDirective.getUriContent());
+              importElement.setUri(uriContent);
               importElement.setCombinators(buildCombinators(importDirective));
               LibraryElement importedLibraryElement = importedLibrary.getLibraryElement();
               if (importedLibraryElement != null) {

@@ -24,6 +24,16 @@ import java.net.URI;
  */
 public class DartUriResolver extends UriResolver {
   /**
+   * Return {@code true} if the given URI is a {@code dart-ext:} URI.
+   * 
+   * @param uriContent the textual representation of the URI being tested
+   * @return {@code true} if the given URI is a {@code dart-ext:} URI
+   */
+  public static boolean isDartExtUri(String uriContent) {
+    return uriContent != null && uriContent.startsWith(DART_EXT_SCHEME);
+  }
+
+  /**
    * The Dart SDK against which URI's are to be resolved.
    */
   private final DartSdk sdk;
@@ -32,6 +42,11 @@ public class DartUriResolver extends UriResolver {
    * The name of the {@code dart} scheme.
    */
   private static final String DART_SCHEME = "dart";
+
+  /**
+   * The prefix of a URI using the dart-ext scheme to reference a native code library.
+   */
+  private static final String DART_EXT_SCHEME = "dart-ext:";
 
   /**
    * Return {@code true} if the given URI is a {@code dart:} URI.

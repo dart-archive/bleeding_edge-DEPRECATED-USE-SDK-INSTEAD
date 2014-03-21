@@ -98,8 +98,7 @@ public class ParseDartTaskTest extends EngineTestCase {
         "import 'lib2.dart';",
         "export 'lib3.dart';",
         "part 'part.dart';",
-        "class A {}",
-        ";");
+        "class A {}");
     final Source source = new TestSource(content);
     final InternalAnalysisContext context = new AnalysisContextImpl();
     context.setSourceFactory(new SourceFactory(new FileUriResolver()));
@@ -112,7 +111,7 @@ public class ParseDartTaskTest extends EngineTestCase {
           throw exception;
         }
         assertNotNull(task.getCompilationUnit());
-        assertLength(1, task.getErrors());
+        assertLength(3, task.getErrors());
         assertEquals(context.getModificationStamp(source), task.getModificationTime());
         assertSame(source, task.getSource());
         assertTrue(task.hasLibraryDirective());

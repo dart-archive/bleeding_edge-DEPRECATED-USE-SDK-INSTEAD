@@ -109,7 +109,7 @@ public class LibraryElementBuilder {
       } else if (directive instanceof PartDirective) {
         PartDirective partDirective = (PartDirective) directive;
         StringLiteral partUri = partDirective.getUri();
-        Source partSource = library.getSource(partDirective);
+        Source partSource = partDirective.getSource();
         if (analysisContext.exists(partSource)) {
           hasPartDirective = true;
           CompilationUnit partUnit = library.getAST(partSource);

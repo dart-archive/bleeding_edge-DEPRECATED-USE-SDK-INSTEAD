@@ -247,7 +247,6 @@ public class ParseDartTask extends AnalysisTask {
       parser.setParseFunctionBodies(getContext().getAnalysisOptions().getAnalyzeFunctionBodies());
       unit = parser.parseCompilationUnit(tokenStream);
       unit.setLineInfo(lineInfo);
-      errors = errorListener.getErrorsForSource(source);
       for (Directive directive : unit.getDirectives()) {
         if (directive instanceof ExportDirective) {
           Source exportSource = resolveSource(source, (ExportDirective) directive, errorListener);
@@ -270,6 +269,7 @@ public class ParseDartTask extends AnalysisTask {
           containsPartOfDirective = true;
         }
       }
+      errors = errorListener.getErrorsForSource(source);
     } finally {
       timeCounterParse.stop();
     }

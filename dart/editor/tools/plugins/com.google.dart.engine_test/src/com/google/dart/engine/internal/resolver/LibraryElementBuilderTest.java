@@ -96,18 +96,6 @@ public class LibraryElementBuilderTest extends EngineTestCase {
     assertLength(0, unit.getTopLevelVariables());
   }
 
-  public void test_invalidUri_part() throws Exception {
-    Source librarySource = addSource("/lib.dart", createSource(//
-        "library lib;",
-        "",
-        "part '${'a'}.dart';"));
-
-    LibraryElement element = buildLibrary(
-        librarySource,
-        CompileTimeErrorCode.URI_WITH_INTERPOLATION);
-    assertNotNull(element);
-  }
-
   public void test_missingLibraryDirectiveWithPart() throws Exception {
     addSource("/a.dart", createSource(//
         "part of lib;"));

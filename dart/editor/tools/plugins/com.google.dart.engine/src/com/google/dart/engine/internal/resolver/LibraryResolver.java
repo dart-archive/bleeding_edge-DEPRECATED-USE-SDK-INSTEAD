@@ -51,6 +51,7 @@ import com.google.dart.engine.internal.element.ShowElementCombinatorImpl;
 import com.google.dart.engine.internal.scope.Namespace;
 import com.google.dart.engine.internal.scope.NamespaceBuilder;
 import com.google.dart.engine.sdk.DartSdk;
+import com.google.dart.engine.source.DartUriResolver;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceKind;
 import com.google.dart.engine.utilities.general.TimeCounter.TimeCounterHandle;
@@ -436,7 +437,11 @@ public class LibraryResolver {
       for (Directive directive : library.getDefiningCompilationUnit().getDirectives()) {
         if (directive instanceof ImportDirective) {
           ImportDirective importDirective = (ImportDirective) directive;
-          Source importedSource = library.getSource(importDirective);
+          String uriContent = importDirective.getUriContent();
+          if (DartUriResolver.isDartExtUri(uriContent)) {
+            library.getLibraryElement().setHasExtUri(true);
+          }
+          Source importedSource = importDirective.getSource();
           if (importedSource != null) {
             // The imported source will be null if the URI in the import directive was invalid.
             Library importedLibrary = libraryMap.get(importedSource);
@@ -445,7 +450,7 @@ public class LibraryResolver {
               StringLiteral uriLiteral = importDirective.getUri();
               importElement.setUriOffset(uriLiteral.getOffset());
               importElement.setUriEnd(uriLiteral.getEnd());
-              importElement.setUri(library.getUri(importDirective));
+              importElement.setUri(uriContent);
               importElement.setCombinators(buildCombinators(importDirective));
               LibraryElement importedLibraryElement = importedLibrary.getLibraryElement();
               if (importedLibraryElement != null) {
@@ -478,7 +483,7 @@ public class LibraryResolver {
           }
         } else if (directive instanceof ExportDirective) {
           ExportDirective exportDirective = (ExportDirective) directive;
-          Source exportedSource = library.getSource(exportDirective);
+          Source exportedSource = exportDirective.getSource();
           if (exportedSource != null) {
             // The exported source will be null if the URI in the export directive was invalid.
             Library exportedLibrary = libraryMap.get(exportedSource);
@@ -487,7 +492,7 @@ public class LibraryResolver {
               StringLiteral uriLiteral = exportDirective.getUri();
               exportElement.setUriOffset(uriLiteral.getOffset());
               exportElement.setUriEnd(uriLiteral.getEnd());
-              exportElement.setUri(library.getUri(exportDirective));
+              exportElement.setUri(exportDirective.getUriContent());
               exportElement.setCombinators(buildCombinators(exportDirective));
               LibraryElement exportedLibraryElement = exportedLibrary.getLibraryElement();
               if (exportedLibraryElement != null) {
