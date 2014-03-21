@@ -126,7 +126,7 @@ public class AnalyzerImpl {
       File sourceFile, Map<Source, LineInfo> lineInfoMap, List<AnalysisError> errors)
       throws AnalysisException {
     // don't try to analyze parts
-    if (context.getKindOf(librarySource) == SourceKind.PART) {
+    if (context.computeKindOf(librarySource) == SourceKind.PART) {
       System.err.println("Only libraries can be analyzed.");
       System.err.println(sourceFile + " is a part and can not be analyzed.");
       return ErrorSeverity.NONE;
