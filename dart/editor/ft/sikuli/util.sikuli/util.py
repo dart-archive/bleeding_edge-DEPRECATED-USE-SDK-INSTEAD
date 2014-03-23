@@ -184,6 +184,28 @@ def start_dart_editor():
   _init_editor_window(r)
   return dartEditor
 
+def timeout(func, args=(), kwargs={}, timeout_duration=1.0, default=None):
+    '''This function will spwan a thread and run the given function using the args, kwargs and 
+    return the given default value if the timeout_duration is exceeded 
+    ''' 
+    import threading
+    class InterruptableThread(threading.Thread):
+        def __init__(self):
+            threading.Thread.__init__(self)
+            self.result = default
+        def run(self):
+            try:
+                self.result = func(*args, **kwargs)
+            except:
+                self.result = default
+    it = InterruptableThread()
+    it.start()
+    it.join(timeout_duration)
+    if it.isAlive():
+        return default
+    else:
+        return it.result
+
 def top_project_name_region():
   "Return a region containing the name of the top-most project."
   return files_tab_region().left(20).below(40).left(1).right(200)
