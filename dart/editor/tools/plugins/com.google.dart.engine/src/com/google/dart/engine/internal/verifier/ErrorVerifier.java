@@ -2583,7 +2583,7 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
     // default constructor is not 'const', report problem
     errorReporter.reportErrorForNode(
         CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER,
-        node);
+        node.getReturnType());
     return true;
   }
 
