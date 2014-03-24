@@ -71,6 +71,21 @@ public class AnalysisContextImplTest extends EngineTestCase {
     fail("Implement this");
   }
 
+  public void fail_performAnalysisTask_changePartContents() throws Exception {
+    Source libSource = addSource("/test.dart", "library lib; part 'test-part.dart';");
+    Source partSource = addSource("/test-part.dart", "part of lib;");
+    analyzeAll_assertFinished();
+    assertNotNull("part resolved 1", context.getResolvedCompilationUnit(partSource, libSource));
+    // update and analyze #1
+    context.setContents(partSource, "part of lib; // 1");
+    analyzeAll_assertFinished();
+    assertNotNull("part resolved 2", context.getResolvedCompilationUnit(partSource, libSource));
+    // update and analyze #2
+    context.setContents(partSource, "part of lib; // 12");
+    analyzeAll_assertFinished();
+    assertNotNull("part resolved 3", context.getResolvedCompilationUnit(partSource, libSource));
+  }
+
   public void fail_recordLibraryElements() {
     fail("Implement this");
   }
@@ -886,17 +901,7 @@ public class AnalysisContextImplTest extends EngineTestCase {
 
   public void test_performAnalysisTask_missingPart() throws Exception {
     Source source = addSource("/test.dart", "library lib; part 'no-such-file.dart';");
-    for (int i = 0; i < 512; i++) {
-      ChangeNotice[] notice = context.performAnalysisTask().getChangeNotices();
-      if (notice == null) {
-        //System.out.println("test_performAnalysisTask_missingPart: " + i);
-        break;
-      }
-    }
-    ChangeNotice[] notice = context.performAnalysisTask().getChangeNotices();
-    if (notice != null) {
-      fail("performAnalysisTask failed to terminate after analyzing all sources");
-    }
+    analyzeAll_assertFinished();
     assertNotNull(
         "performAnalysisTask failed to compute an element model",
         context.getLibraryElement(source));
@@ -914,17 +919,7 @@ public class AnalysisContextImplTest extends EngineTestCase {
     }
     context.setContents(source, "library test;");
     assertTrue(initialTime != context.getModificationStamp(source));
-    for (int i = 0; i < 512; i++) {
-      ChangeNotice[] notice = context.performAnalysisTask().getChangeNotices();
-      if (notice == null) {
-        //System.out.println("test_performAnalysisTask_modifiedAfterParse: " + i);
-        break;
-      }
-    }
-    ChangeNotice[] notice = context.performAnalysisTask().getChangeNotices();
-    if (notice != null) {
-      fail("performAnalysisTask failed to terminate after analyzing all sources");
-    }
+    analyzeAll_assertFinished();
     assertNotNull(
         "performAnalysisTask failed to compute an element model",
         context.getLibraryElement(source));
@@ -1182,6 +1177,19 @@ public class AnalysisContextImplTest extends EngineTestCase {
     changeSet.addedSource(source);
     context.applyChanges(changeSet);
     return source;
+  }
+
+  /**
+   * Performs up to {@code 512} analysis tasks and asserts that that was enough.
+   */
+  private void analyzeAll_assertFinished() {
+    for (int i = 0; i < 512; i++) {
+      ChangeNotice[] notice = context.performAnalysisTask().getChangeNotices();
+      if (notice == null) {
+        return;
+      }
+    }
+    fail("performAnalysisTask failed to terminate after analyzing all sources");
   }
 
   /**
