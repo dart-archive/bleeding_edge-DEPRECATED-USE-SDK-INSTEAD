@@ -77,6 +77,7 @@ public class AngularCompletionProposalComputer implements ICompletionProposalCom
   private HtmlElement htmlElement;
   private AngularApplication application;
   private List<ICompletionProposal> proposals;
+  private boolean doExpressionCompletion;
 
   @Override
   public List<ICompletionProposal> computeCompletionProposals(
@@ -85,34 +86,20 @@ public class AngularCompletionProposalComputer implements ICompletionProposalCom
       viewer = completionContext.getViewer();
       document = (IStructuredDocument) viewer.getDocument();
       offset = completionContext.getInvocationOffset();
-      // prepare resolved HtmlUnit
-      htmlUnit = getResolvedHtmlUnit();
-      if (htmlUnit == null) {
-        return EMPTY_PROPOSALS;
-      }
-      // prepare HtmlElement
-      htmlElement = htmlUnit.getElement();
-      if (htmlElement == null) {
-        return EMPTY_PROPOSALS;
-      }
-      analysisContext = htmlElement.getContext();
-      source = htmlElement.getSource();
-      // prepare AngularApplication
-      application = analysisContext.getAngularApplicationWithHtml(source);
-      if (application == null) {
-        return EMPTY_PROPOSALS;
-      }
-      // try to complete as Dart
-      {
-        List<ICompletionProposal> result = completeExpression(monitor);
-        if (result != null) {
-          return result;
-        }
-      }
+      prepareResolution();
       // try to complete as Angular specific HTML entity
       proposals = Lists.newArrayList();
+      doExpressionCompletion = true;
       completeAttribute();
       completeTag();
+      // maybe complete as Dart
+      if (doExpressionCompletion) {
+        boolean success = waitForResolution();
+        if (success) {
+          completeExpression(monitor);
+        }
+      }
+      // done
       return proposals;
     } catch (Throwable e) {
       DartToolsPlugin.log(e);
@@ -175,6 +162,9 @@ public class AngularCompletionProposalComputer implements ICompletionProposalCom
       if (tagNode == null) {
         return;
       }
+      if (!tagRegion.isEnded()) {
+        return;
+      }
       // prepare Angular selector
       Element tagElement = tagNode.getElement();
       if (!(tagElement instanceof AngularTagSelectorElement)) {
@@ -196,6 +186,8 @@ public class AngularCompletionProposalComputer implements ICompletionProposalCom
       return;
     }
     String textType = textRegion.getType();
+    // cannot be a Dart expression
+    doExpressionCompletion = false;
     // attribute name prefix
     if (DOMRegionContext.XML_TAG_ATTRIBUTE_NAME.equals(textType)) {
       int attrOffset = tagOffset + textRegion.getStart();
@@ -236,11 +228,11 @@ public class AngularCompletionProposalComputer implements ICompletionProposalCom
     }
   }
 
-  private List<ICompletionProposal> completeExpression(IProgressMonitor monitor) {
+  private void completeExpression(IProgressMonitor monitor) {
     // find Expression
     final Expression expression = HtmlUnitUtils.getExpression(htmlUnit, offset);
     if (expression == null) {
-      return null;
+      return;
     }
     // prepare AssistContext
     final AssistContext assistContext;
@@ -274,39 +266,59 @@ public class AngularCompletionProposalComputer implements ICompletionProposalCom
         return assistContext;
       }
     };
-    return proposalComputer.computeCompletionProposals(completionContext, monitor);
+    List<ICompletionProposal> dartProposals = proposalComputer.computeCompletionProposals(
+        completionContext,
+        monitor);
+    proposals.addAll(dartProposals);
   }
 
   private void completeTag() throws Exception {
+    int nameOffset = 0;
+    int nameLength = 0;
+    String namePrefix = null;
     // prepare region in document
     IStructuredDocumentRegion tagRegion = getStructuredDocumentRegion(viewer, offset);
     if (tagRegion == null) {
       return;
     }
     String tagType = tagRegion.getType();
-    int tagOffset = tagRegion.getStartOffset();
-    // should be XML_TAG_NAME completion
-    if (!DOMRegionContext.XML_TAG_NAME.equals(tagType)) {
+    //  "<prefix!" completion
+    if (DOMRegionContext.XML_TAG_NAME.equals(tagType)) {
+      int tagOffset = tagRegion.getStartOffset();
+      // we want a tag completion for "<prefix! <some-other-tag>" but not for "<closed-tag !>"
+      if (tagRegion.isEnded()) {
+        return;
+      }
+      // prepare text region
+      ITextRegion textRegion = tagRegion.getRegionAtCharacterOffset(offset);
+      if (textRegion == null) {
+        return;
+      }
+      String textType = textRegion.getType();
+      // should be XML_TAG_NAME completion
+      if (!DOMRegionContext.XML_TAG_NAME.equals(textType)) {
+        return;
+      }
+      // prepare name information
+      nameOffset = tagOffset + textRegion.getStart();
+      nameLength = textRegion.getTextLength();
+      namePrefix = document.get(nameOffset, nameLength);
+    }
+    //  "<!" completion
+    if (DOMRegionContext.XML_CONTENT.equals(tagType)) {
+      if (offset != 0 && document.get(offset - 1, 1).equals("<")) {
+        nameOffset = offset;
+        nameLength = 0;
+        namePrefix = "";
+      }
+    }
+    // check if completion is activated at a supported position
+    if (namePrefix == null) {
       return;
     }
-    // we want a tag completion for "<prefix! <some-other-tag>" but not for "<closed-tag !>"
-    if (tagRegion.isEnded()) {
-      return;
-    }
-    // prepare text region
-    ITextRegion textRegion = tagRegion.getRegionAtCharacterOffset(offset);
-    if (textRegion == null) {
-      return;
-    }
-    String textType = textRegion.getType();
-    // should be XML_TAG_NAME completion
-    if (!DOMRegionContext.XML_TAG_NAME.equals(textType)) {
-      return;
-    }
+    // cannot be a Dart expression
+    doExpressionCompletion = false;
     // complete the tag name
-    int nameOffset = tagOffset + textRegion.getStart();
-    int nameLength = textRegion.getTextLength();
-    String namePrefix = document.get(nameOffset, nameLength);
     for (AngularElement element : application.getElements()) {
       if (element instanceof AngularComponentElement) {
         AngularComponentElement component = (AngularComponentElement) element;
@@ -324,18 +336,13 @@ public class AngularCompletionProposalComputer implements ICompletionProposalCom
                 nameLength,
                 cursorPosition,
                 Activator.getImage("icons/full/dart16/angular_16_blue.png"),
-                null,
+                tagName,
                 null,
                 null));
           }
         }
       }
     }
-  }
-
-  private HtmlUnit getResolvedHtmlUnit() {
-    HtmlReconcilerHook reconciler = HtmlReconcilerManager.getInstance().reconcilerFor(document);
-    return reconciler.getResolvedUnit();
   }
 
   private boolean hasWhitespaceBetweenLastAndOffset(IStructuredDocumentRegion tagRegion) {
@@ -346,5 +353,34 @@ public class AngularCompletionProposalComputer implements ICompletionProposalCom
     }
     // we need a whitespace: "<tag !" or "<tag foo='bar' !"
     return offset > tagRegion.getStartOffset() + textRegion.getTextEnd();
+  }
+
+  private boolean isSourceResolvedAsAngular() {
+    return analysisContext.getAngularApplicationWithHtml(source) != null;
+  }
+
+  private void prepareResolution() {
+    HtmlReconcilerHook reconciler = HtmlReconcilerManager.getInstance().reconcilerFor(document);
+    analysisContext = reconciler.getContext();
+    source = reconciler.getSource();
+    htmlUnit = reconciler.getResolvedUnit();
+    application = reconciler.getApplication();
+    if (htmlUnit != null) {
+      htmlElement = htmlUnit.getElement();
+    }
+  }
+
+  private boolean waitForResolution() {
+    long start = System.currentTimeMillis();
+    while (System.currentTimeMillis() - start < 300) {
+      prepareResolution();
+      if (htmlUnit != null && htmlElement != null) {
+        if (isSourceResolvedAsAngular()) {
+          return true;
+        }
+      }
+      Thread.yield();
+    }
+    return false;
   }
 }

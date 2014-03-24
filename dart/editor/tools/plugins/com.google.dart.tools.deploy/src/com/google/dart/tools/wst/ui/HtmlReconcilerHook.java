@@ -15,6 +15,7 @@ package com.google.dart.tools.wst.ui;
 
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.html.ast.HtmlUnit;
+import com.google.dart.engine.internal.element.angular.AngularApplication;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.general.ObjectUtilities;
 import com.google.dart.tools.core.analysis.model.AnalysisListener;
@@ -51,6 +52,7 @@ public class HtmlReconcilerHook implements ISourceValidator, IValidator {
   private IDocument document;
   private StructuredDocumentDartInfo documentInfo;
   private HtmlUnit resolvedUnit;
+  private AngularApplication application;
   private AnalysisListener analysisListener;
 
   public HtmlReconcilerHook() {
@@ -78,9 +80,12 @@ public class HtmlReconcilerHook implements ISourceValidator, IValidator {
       public void resolvedHtml(ResolvedHtmlEvent event) {
         StructuredDocumentDartInfo info = documentInfo;
         if (info != null) {
-          if (event.getContext() == info.getContext()
-              && ObjectUtilities.equals(event.getSource(), info.getSource())) {
+          AnalysisContext eventContext = event.getContext();
+          Source eventSource = event.getSource();
+          if (eventContext == info.getContext()
+              && ObjectUtilities.equals(eventSource, info.getSource())) {
             resolvedUnit = event.getUnit();
+            application = eventContext.getAngularApplicationWithHtml(eventSource);
           }
         }
       }
@@ -102,8 +107,22 @@ public class HtmlReconcilerHook implements ISourceValidator, IValidator {
     this.resolvedUnit = null;
   }
 
+  public AngularApplication getApplication() {
+    return application;
+  }
+
+  public AnalysisContext getContext() {
+    StructuredDocumentDartInfo info = documentInfo;
+    return info != null ? info.getContext() : null;
+  }
+
   public HtmlUnit getResolvedUnit() {
     return resolvedUnit;
+  }
+
+  public Source getSource() {
+    StructuredDocumentDartInfo info = documentInfo;
+    return info != null ? info.getSource() : null;
   }
 
   @Override
