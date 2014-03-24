@@ -37,12 +37,10 @@ rm -rf $RESULTS
 mkdir $RESULTS
 
 # Run the tests
-run_test "UpdateEditor" $SUT_LINUX l
 run_test "Samples" $SUT_LINUX l
 run_test "DartEditor" $SUT_LINUX l
 #run_test "CodeLabLegacy" $SUT_LINUX l
 #run_test "LargeApp" $SUT_LINUX l
-run_test "UpdateEditor" $SUT_MAC m
 run_test "Samples" $SUT_MAC m
 run_test "DartEditor" $SUT_MAC m
 #run_test "CodeLabLegacy" $SUT_MAC m
