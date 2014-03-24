@@ -3960,10 +3960,10 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         if (partEntry instanceof DartEntry) {
           DartEntryImpl partCopy = ((DartEntry) partEntry).getWritableCopy();
 //          oldTime = partCopy.getModificationTime();
-          if (partEntry != libraryCopy) {
-            partCopy.removeContainingLibrary(librarySource);
-            workManager.add(librarySource, SourcePriority.NORMAL_PART);
-          }
+//          if (partEntry != libraryCopy) {
+//            partCopy.removeContainingLibrary(librarySource);
+//            workManager.add(librarySource, SourcePriority.NORMAL_PART);
+//          }
           partCopy.invalidateAllResolutionInformation();
           cache.put(partSource, partCopy);
 //          if (writer != null) {
