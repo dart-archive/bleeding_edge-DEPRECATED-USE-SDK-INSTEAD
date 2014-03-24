@@ -840,7 +840,12 @@ public enum StaticWarningCode implements ErrorCode {
    * @param enclosingType the name of the enclosing type where the method is being looked for
    */
   // Note: all cases of this method are covered by the StaticWarningCode.UNDEFINED_METHOD/UNDEFINED_GETTER and UNDEFINED_SETTER codes
-  UNDEFINED_STATIC_METHOD_OR_GETTER("There is no such static method, getter or setter '%s' in '%s'");
+  UNDEFINED_STATIC_METHOD_OR_GETTER("There is no such static method, getter or setter '%s' in '%s'"),
+
+  /**
+   * 7.2 Getters: It is a static warning if the return type of a getter is void.
+   */
+  VOID_RETURN_FOR_GETTER("The return type of the getter must not be 'void'");
 
   /**
    * The template used to create the message to be displayed for this error.

@@ -2696,4 +2696,13 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     resolve(source);
     assertErrors(source, StaticTypeWarningCode.UNDEFINED_SETTER);
   }
+
+  public void test_voidReturnForGetter() throws Exception {
+    Source source = addSource(createSource(//
+        "class S {",
+        "  void get value {}",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.VOID_RETURN_FOR_GETTER);
+  }
 }
