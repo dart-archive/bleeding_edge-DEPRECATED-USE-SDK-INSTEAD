@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.ui.omni.elements;
 
-import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.ui.DartElementLabels;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
@@ -56,12 +55,17 @@ public class FileElement extends OmniElement {
     }
 
     IContainer container = file.getParent();
+    // add a few levels of info to disambiguate results
     if (container != null) {
       result.append(DartElementLabels.CONCAT_STRING);
-      result.append(container.getName());
-      if (DartCore.isContainedInPackages(file)) {
-        result.append(" [packages]");
+      IContainer parent = container.getParent();
+      if (parent != null) {
+        if (parent.getParent() != null) {
+          result.append(parent.getParent().getName() + "/");
+        }
+        result.append(parent.getName() + "/");
       }
+      result.append(container.getName());
     }
     return result.toString();
   }
