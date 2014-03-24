@@ -83,8 +83,11 @@ public class SimpleTextEditor extends TextEditor {
       descriptor = IDE.getEditorDescriptor(file);
     }
     //Re-open input with a more appropriate editor if there's a better fit
-    if (descriptor != null && !descriptor.getId().equals(ID)) {
+    if (descriptor != null && !descriptor.getId().equals(ID)
+        && !descriptor.getId().equals(EditorUtility.ID_ORG_ECLIPSE_UI_DEFAULT_TEXT_EDITOR)) {
 
+      // Ensure input is set before closing to prevent problems
+      super.doSetInput(input);
       close(true);
 
       Display.getDefault().asyncExec(new Runnable() {

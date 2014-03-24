@@ -102,7 +102,7 @@ import java.util.Set;
  */
 public class EditorUtility {
 
-  private static final String ID_ORG_ECLIPSE_UI_DEFAULT_TEXT_EDITOR = "org.eclipse.ui.DefaultTextEditor"; //$NON-NLS-1$
+  public static final String ID_ORG_ECLIPSE_UI_DEFAULT_TEXT_EDITOR = "org.eclipse.ui.DefaultTextEditor"; //$NON-NLS-1$
 
   /**
    * Workaround a bug in 64 bit GTK linux that causes the active editor to steal paste insertions
