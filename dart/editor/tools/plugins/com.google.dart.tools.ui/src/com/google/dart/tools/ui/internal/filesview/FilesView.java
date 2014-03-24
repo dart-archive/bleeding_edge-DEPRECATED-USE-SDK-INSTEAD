@@ -44,6 +44,9 @@ import com.google.dart.tools.ui.internal.projects.OpenNewApplicationWizardAction
 import com.google.dart.tools.ui.internal.refactoring.RefactoringUtils;
 import com.google.dart.tools.ui.internal.util.SWTUtil;
 
+import static com.google.dart.tools.core.DartCore.isDartLikeFileName;
+import static com.google.dart.tools.core.DartCore.isHtmlLikeFileName;
+
 import org.eclipse.core.commands.operations.IUndoContext;
 import org.eclipse.core.filesystem.IFileInfo;
 import org.eclipse.core.filesystem.IFileStore;
@@ -569,7 +572,7 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
 
         boolean analysisTargets = true;
         for (Object elem : selection.toList()) {
-          if (!(elem instanceof IContainer || isDartLikeFile(elem))) {
+          if (!isAnalyzable(elem)) {
             analysisTargets = false;
             break;
           }
@@ -777,8 +780,15 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     treeViewer.addDropSupport(ops | DND.DROP_DEFAULT, transfers, adapter);
   }
 
-  private boolean isDartLikeFile(Object file) {
-    return file instanceof IResource && DartCore.isDartLikeFileName(((IResource) file).getName());
+  private boolean isAnalyzable(Object obj) {
+    if (obj instanceof IContainer) {
+      return true;
+    }
+    if (obj instanceof IFile) {
+      String name = ((IFile) obj).getName();
+      return isDartLikeFileName(name) || isHtmlLikeFileName(name);
+    }
+    return false;
   }
 
   private boolean isInDartSdkNode(Object selection) {
