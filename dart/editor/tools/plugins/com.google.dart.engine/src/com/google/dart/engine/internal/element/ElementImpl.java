@@ -198,7 +198,13 @@ public abstract class ElementImpl implements Element {
     // TODO: We might want to re-visit this optimization in the future.
     // We cache the hash code value as this is a very frequently called method.
     if (cachedHashCode == 0) {
-      cachedHashCode = getLocation().hashCode();
+      int hashIdentifier = getIdentifier().hashCode();
+      Element enclosing = getEnclosingElement();
+      if (enclosing != null) {
+        cachedHashCode = hashIdentifier + enclosing.hashCode();
+      } else {
+        cachedHashCode = hashIdentifier;
+      }
     }
     return cachedHashCode;
   }
