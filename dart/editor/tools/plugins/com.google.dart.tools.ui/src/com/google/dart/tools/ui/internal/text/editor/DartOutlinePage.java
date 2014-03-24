@@ -15,6 +15,7 @@ package com.google.dart.tools.ui.internal.text.editor;
 
 import com.google.common.base.Objects;
 import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.search.internal.ui.DartSearchActionGroup;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
@@ -53,6 +54,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.BusyIndicator;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Tree;
@@ -355,11 +357,14 @@ public class DartOutlinePage extends Page implements IContentOutlinePage {
     }
   }
 
-  public void select(LightNodeElement element) {
-    if (viewer != null) {
-      setSelection(new StructuredSelection(element));
-      viewer.reveal(element);
-    }
+  public void select(final LightNodeElement element) {
+    updateViewerWithoutDraw(new Runnable() {
+      @Override
+      public void run() {
+        setSelection(new StructuredSelection(element));
+        viewer.reveal(element);
+      }
+    });
   }
 
   @Override
@@ -369,32 +374,32 @@ public class DartOutlinePage extends Page implements IContentOutlinePage {
     }
   }
 
-  public void setInput(CompilationUnit input) {
+  public void setInput(final CompilationUnit input) {
     this.input = input;
-    if (viewer != null) {
-      Control control = viewer.getControl();
-      control.setRedraw(false);
-      try {
+    updateViewerWithoutDraw(new Runnable() {
+      @Override
+      public void run() {
         Object[] expandedElements = viewer.getExpandedElements();
         viewer.setInput(input);
         viewer.setExpandedElements(expandedElements);
-      } finally {
-        control.setRedraw(true);
       }
-    }
+    });
   }
 
   @Override
-  public void setSelection(ISelection newSelection) {
-    if (viewer != null) {
-      if (!Objects.equal(viewer.getSelection(), newSelection)) {
-        ignoreSelectionChangedEvent = true;
-        try {
-          viewer.setSelection(newSelection, true);
-        } finally {
-          ignoreSelectionChangedEvent = false;
+  public void setSelection(final ISelection newSelection) {
+    if (!Objects.equal(viewer.getSelection(), newSelection)) {
+      updateViewerWithoutDraw(new Runnable() {
+        @Override
+        public void run() {
+          ignoreSelectionChangedEvent = true;
+          try {
+            viewer.setSelection(newSelection, true);
+          } finally {
+            ignoreSelectionChangedEvent = false;
+          }
         }
-      }
+      });
     }
   }
 
@@ -423,6 +428,32 @@ public class DartOutlinePage extends Page implements IContentOutlinePage {
     if (viewer != null) {
       viewer.updateColors();
       viewer.refresh(false);
+    }
+  }
+
+  /**
+   * Performs the given operation over {@link #viewer} while redraw is disabled.
+   */
+  private void updateViewerWithoutDraw(Runnable runnable) {
+    if (viewer != null) {
+      final Control control = viewer.getControl().getParent();
+      control.setRedraw(false);
+      try {
+        runnable.run();
+      } finally {
+        if (DartCore.isLinux()) {
+          // By some reason on Linux we need to add a delay.
+          // It seems like Tree operations are performed not in the UI thread.
+          Display.getCurrent().timerExec(50, new Runnable() {
+            @Override
+            public void run() {
+              control.setRedraw(true);
+            }
+          });
+        } else {
+          control.setRedraw(true);
+        }
+      }
     }
   }
 }
