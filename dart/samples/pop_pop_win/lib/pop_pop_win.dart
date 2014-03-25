@@ -14,7 +14,7 @@ import 'src/textures.dart';
 
 part 'src/pop_pop_win/audio.dart';
 
-const String _ASSET_DIR = 'assets/pop_pop_win/';
+const String _ASSET_DIR = 'resources/';
 
 const String _TRANSPARENT_TEXTURE =
     '${_ASSET_DIR}images/transparent_animated.png';
