@@ -18,7 +18,6 @@ import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.engine.utilities.logging.Logger;
-import com.google.dart.tools.core.analysis.model.LightweightModel;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
 import com.google.dart.tools.core.analysis.model.PubFolder;
 import com.google.dart.tools.core.internal.MessageConsoleImpl;
@@ -1594,19 +1593,7 @@ public class DartCore extends Plugin implements DartSdkListener {
     });
 
     DartSdkManager.getManager().addSdkListener(this);
-
-    // Perform the project manager initialization in a job.
     getProjectManager().hookListeners();
-    Job job = new Job("Initialize ProjectManager") {
-      @Override
-      protected IStatus run(IProgressMonitor monitor) {
-        LightweightModel.init();
-        getProjectManager().start();
-        return Status.OK_STATUS;
-      }
-    };
-    job.setSystem(true);
-    job.schedule();
   }
 
   @Override

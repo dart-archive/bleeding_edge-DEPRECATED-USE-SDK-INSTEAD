@@ -19,12 +19,16 @@ import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.core.CmdLineOptions;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
+import com.google.dart.tools.core.analysis.model.LightweightModel;
 import com.google.dart.tools.core.instrumentation.InstrumentationLogger;
 import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.ui.feedback.FeedbackUtils;
 import com.google.dart.tools.ui.internal.text.dart.DartPrioritySourcesHelper;
 import com.google.dart.tools.ui.internal.text.editor.AutoSaveHelper;
 
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IStartup;
@@ -61,6 +65,20 @@ public class DartUIStartup implements IStartup {
     });
 
     try {
+
+      // Perform the project manager initialization in a job after the UI starts up
+      // so that the analysis worker job will display progress in the UI
+      Job job = new Job("Initialize ProjectManager") {
+        @Override
+        protected IStatus run(IProgressMonitor monitor) {
+          LightweightModel.init();
+          DartCore.getProjectManager().start();
+          return Status.OK_STATUS;
+        }
+      };
+      job.setSystem(true);
+      job.schedule();
+
       reportPlatformStatistics();
       reportDartCoreDebug();
       DartPrioritySourcesHelper.start();
