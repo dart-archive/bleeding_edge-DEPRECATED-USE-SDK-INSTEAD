@@ -25,6 +25,7 @@ import com.google.dart.engine.utilities.collection.BooleanArray;
 import com.google.dart.engine.utilities.collection.ListUtilities;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Instances of the class {@code DartEntryImpl} implement a {@link DartEntry}.
@@ -463,6 +464,15 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
       state = state.nextState;
     };
     return null;
+  }
+
+  /**
+   * Return a list containing the libraries that are known to contain this part.
+   * 
+   * @return a list containing the libraries that are known to contain this part
+   */
+  public List<Source> getContainingLibraries() {
+    return containingLibraries;
   }
 
   @Override

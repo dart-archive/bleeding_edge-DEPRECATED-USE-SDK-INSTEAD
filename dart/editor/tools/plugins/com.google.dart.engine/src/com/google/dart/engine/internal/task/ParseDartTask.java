@@ -17,7 +17,6 @@ import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.Directive;
 import com.google.dart.engine.ast.ExportDirective;
 import com.google.dart.engine.ast.ImportDirective;
-import com.google.dart.engine.ast.LibraryDirective;
 import com.google.dart.engine.ast.PartDirective;
 import com.google.dart.engine.ast.PartOfDirective;
 import com.google.dart.engine.ast.StringInterpolation;
@@ -72,14 +71,14 @@ public class ParseDartTask extends AnalysisTask {
   private CompilationUnit unit;
 
   /**
-   * A flag indicating whether the source contains a 'library' directive.
-   */
-  private boolean containsLibraryDirective = false;
-
-  /**
    * A flag indicating whether the source contains a 'part of' directive.
    */
   private boolean containsPartOfDirective = false;
+
+  /**
+   * A flag indicating whether the source contains any directive other than a 'part of' directive.
+   */
+  private boolean containsNonPartOfDirective = false;
 
   /**
    * A set containing the sources referenced by 'export' directives.
@@ -208,13 +207,13 @@ public class ParseDartTask extends AnalysisTask {
   }
 
   /**
-   * Return {@code true} if the source contains a 'library' directive, or {@code false} if the task
-   * has not yet been performed or if an exception occurred.
+   * Return {@code true} if the source contains any directive other than a 'part of' directive, or
+   * {@code false} if the task has not yet been performed or if an exception occurred.
    * 
-   * @return {@code true} if the source contains a 'library' directive
+   * @return {@code true} if the source contains any directive other than a 'part of' directive
    */
-  public boolean hasLibraryDirective() {
-    return containsLibraryDirective;
+  public boolean hasNonPartOfDirective() {
+    return containsNonPartOfDirective;
   }
 
   /**
@@ -248,25 +247,26 @@ public class ParseDartTask extends AnalysisTask {
       unit = parser.parseCompilationUnit(tokenStream);
       unit.setLineInfo(lineInfo);
       for (Directive directive : unit.getDirectives()) {
-        if (directive instanceof ExportDirective) {
-          Source exportSource = resolveSource(source, (ExportDirective) directive, errorListener);
-          if (exportSource != null) {
-            exportedSources.add(exportSource);
-          }
-        } else if (directive instanceof ImportDirective) {
-          Source importSource = resolveSource(source, (ImportDirective) directive, errorListener);
-          if (importSource != null) {
-            importedSources.add(importSource);
-          }
-        } else if (directive instanceof LibraryDirective) {
-          containsLibraryDirective = true;
-        } else if (directive instanceof PartDirective) {
-          Source partSource = resolveSource(source, (PartDirective) directive, errorListener);
-          if (partSource != null && !partSource.equals(source)) {
-            includedSources.add(partSource);
-          }
-        } else if (directive instanceof PartOfDirective) {
+        if (directive instanceof PartOfDirective) {
           containsPartOfDirective = true;
+        } else {
+          containsNonPartOfDirective = true;
+          if (directive instanceof ExportDirective) {
+            Source exportSource = resolveSource(source, (ExportDirective) directive, errorListener);
+            if (exportSource != null) {
+              exportedSources.add(exportSource);
+            }
+          } else if (directive instanceof ImportDirective) {
+            Source importSource = resolveSource(source, (ImportDirective) directive, errorListener);
+            if (importSource != null) {
+              importedSources.add(importSource);
+            }
+          } else if (directive instanceof PartDirective) {
+            Source partSource = resolveSource(source, (PartDirective) directive, errorListener);
+            if (partSource != null && !partSource.equals(source)) {
+              includedSources.add(partSource);
+            }
+          }
         }
       }
       errors = errorListener.getErrorsForSource(source);

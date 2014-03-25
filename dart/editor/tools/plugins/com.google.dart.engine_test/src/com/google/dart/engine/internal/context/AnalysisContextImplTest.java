@@ -937,6 +937,30 @@ public class AnalysisContextImplTest extends EngineTestCase {
     assertNotNull("part resolved 3", context.getResolvedCompilationUnit(partSource, libSource));
   }
 
+  public void test_performAnalysisTask_changePartContents2() throws Exception {
+    Source libSource = addSource("/lib.dart", createSource(//
+        "library lib;",
+        "part 'part.dart';",
+        "void f(x) {}"));
+    Source partSource = addSource("/part.dart", createSource(//
+        "void g() { f(null); }"));
+    analyzeAll_assertFinished();
+    assertNotNull("library resolved 1", context.getResolvedCompilationUnit(libSource, libSource));
+    assertNotNull("part resolved 1", context.getResolvedCompilationUnit(partSource, libSource));
+    // update and analyze
+    context.setContents(partSource, createSource(//
+        "part of lib;",
+        "void g() { f(null); }"));
+    assertNull("library changed 2", context.getResolvedCompilationUnit(libSource, libSource));
+    assertNull("part changed 2", context.getResolvedCompilationUnit(partSource, libSource));
+    analyzeAll_assertFinished();
+    assertNotNull("library resolved 2", context.getResolvedCompilationUnit(libSource, libSource));
+    assertNotNull("part resolved 2", context.getResolvedCompilationUnit(partSource, libSource));
+
+    assertLength(0, context.getErrors(libSource).getErrors());
+    assertLength(0, context.getErrors(partSource).getErrors());
+  }
+
   public void test_performAnalysisTask_IOException() throws Exception {
     addSourceWithException("/test.dart");
     //

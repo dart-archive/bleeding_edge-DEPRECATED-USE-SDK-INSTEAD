@@ -63,9 +63,9 @@ public class ParseDartTaskTest extends EngineTestCase {
     assertSame(source, task.getSource());
   }
 
-  public void test_hasLibraryDirective() {
+  public void test_hasNonPartOfDirective() {
     ParseDartTask task = new ParseDartTask(null, null, 0L, null, null);
-    assertFalse(task.hasLibraryDirective());
+    assertFalse(task.hasNonPartOfDirective());
   }
 
   public void test_hasPartOfDirective() {
@@ -114,7 +114,7 @@ public class ParseDartTaskTest extends EngineTestCase {
         assertLength(3, task.getErrors());
         assertEquals(context.getModificationStamp(source), task.getModificationTime());
         assertSame(source, task.getSource());
-        assertTrue(task.hasLibraryDirective());
+        assertTrue(task.hasNonPartOfDirective());
         assertFalse(task.hasPartOfDirective());
         return null;
       }
@@ -140,7 +140,7 @@ public class ParseDartTaskTest extends EngineTestCase {
         assertLength(0, task.getErrors());
         assertEquals(context.getModificationStamp(source), task.getModificationTime());
         assertSame(source, task.getSource());
-        assertFalse(task.hasLibraryDirective());
+        assertFalse(task.hasNonPartOfDirective());
         assertTrue(task.hasPartOfDirective());
         return null;
       }

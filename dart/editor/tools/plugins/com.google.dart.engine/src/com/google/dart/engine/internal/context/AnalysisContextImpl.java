@@ -4411,14 +4411,27 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         removeFromParts(source, dartEntry);
         DartEntryImpl dartCopy = dartEntry.getWritableCopy();
         if (thrownException == null) {
-          if (task.hasPartOfDirective() && !task.hasLibraryDirective()) {
+          if (task.hasNonPartOfDirective()) {
+            dartCopy.setValue(DartEntry.SOURCE_KIND, SourceKind.LIBRARY);
+            dartCopy.setContainingLibrary(source);
+            workManager.add(source, SourcePriority.LIBRARY);
+          } else if (task.hasPartOfDirective()) {
             dartCopy.setValue(DartEntry.SOURCE_KIND, SourceKind.PART);
             dartCopy.removeContainingLibrary(source);
             workManager.add(source, SourcePriority.NORMAL_PART);
           } else {
-            dartCopy.setValue(DartEntry.SOURCE_KIND, SourceKind.LIBRARY);
-            dartCopy.setContainingLibrary(source);
-            workManager.add(source, SourcePriority.LIBRARY);
+            // The file contains no directives.
+            List<Source> containingLibraries = dartCopy.getContainingLibraries();
+            if (containingLibraries.size() > 1
+                || (containingLibraries.size() == 1 && !containingLibraries.get(0).equals(source))) {
+              dartCopy.setValue(DartEntry.SOURCE_KIND, SourceKind.PART);
+              dartCopy.removeContainingLibrary(source);
+              workManager.add(source, SourcePriority.NORMAL_PART);
+            } else {
+              dartCopy.setValue(DartEntry.SOURCE_KIND, SourceKind.LIBRARY);
+              dartCopy.setContainingLibrary(source);
+              workManager.add(source, SourcePriority.LIBRARY);
+            }
           }
           Source[] newParts = task.getIncludedSources();
           for (int i = 0; i < newParts.length; i++) {
@@ -4426,6 +4439,8 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
             DartEntry partEntry = getReadableDartEntry(partSource);
             if (partEntry != null && partEntry != dartEntry) {
               DartEntryImpl partCopy = partEntry.getWritableCopy();
+              // TODO(brianwilkerson) Change the kind of the "part" if it was marked as a library
+              // and it has no directives.
               partCopy.addContainingLibrary(source);
               cache.put(partSource, partCopy);
             }
@@ -5068,7 +5083,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       if (partEntry != null && partEntry != dartEntry) {
         DartEntryImpl partCopy = partEntry.getWritableCopy();
         partCopy.removeContainingLibrary(librarySource);
-        if (partCopy.getLibrariesContaining().length == 0 && !exists(partSource)) {
+        if (partCopy.getContainingLibraries().size() == 0 && !exists(partSource)) {
           cache.remove(partSource);
         } else {
           cache.put(partSource, partCopy);
