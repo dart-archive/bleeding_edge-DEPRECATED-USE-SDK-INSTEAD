@@ -130,7 +130,7 @@ public class DartHover implements ITextHover, ITextHoverExtension, ITextHoverExt
       setGridVisible(section.section, visible);
     }
 
-    private HoverInfo hoverInfo;
+    private boolean hasContents;
 
     private Composite container;
     private TextSection elementSection;
@@ -165,12 +165,12 @@ public class DartHover implements ITextHover, ITextHoverExtension, ITextHoverExt
 
     @Override
     public boolean hasContents() {
-      return hoverInfo != null;
+      return hasContents;
     }
 
     @Override
     public void setInput(Object input) {
-      hoverInfo = null;
+      hasContents = false;
       // Hide all sections.
       setGridVisible(elementSection, false);
       setGridVisible(librarySection, false);
@@ -183,7 +183,8 @@ public class DartHover implements ITextHover, ITextHoverExtension, ITextHoverExt
       if (!(input instanceof HoverInfo)) {
         return;
       }
-      hoverInfo = (HoverInfo) input;
+      hasContents = true;
+      HoverInfo hoverInfo = (HoverInfo) input;
       AstNode node = hoverInfo.node;
       Element element = hoverInfo.element;
       // Element
