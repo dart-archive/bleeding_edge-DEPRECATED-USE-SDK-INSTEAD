@@ -19,6 +19,7 @@ import com.google.dart.engine.search.SearchScope;
 import com.google.dart.engine.search.SearchScopeFactory;
 import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.analysis.model.IFileInfo;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
 import com.google.dart.tools.core.analysis.model.ResourceMap;
 import com.google.dart.tools.core.model.DartElement;
@@ -507,12 +508,28 @@ public final class DartUI {
       return null;
     }
     IFile file = map.getResource(elementSource);
-    // TODO(keertip): move this to a check for sources that are referenced by package: only. We cannot
-    // quite figure this out right now, so we do this for all files. Package sources have their canonical
-    // path, so look for a resource with the same path in the workspace.
+
     if (file != null) {
       IResource resource = DartCore.getProjectManager().getResource(elementSource);
       if (resource instanceof IFile) {
+        // on Windows, check if there is an resource in project/lib in workspace that is 
+        // the same as the one in packages. If so, open the local source and not packages
+        if (DartCore.isWindows()
+            && resource.getFullPath().toString().contains(DartCore.PACKAGES_DIRECTORY_PATH)) {
+
+          String path = resource.getFullPath().toString();
+          int index = path.indexOf(DartCore.PACKAGES_DIRECTORY_PATH);
+          String packageUri = DartCore.PACKAGE_SCHEME_SPEC
+              + path.substring(index + DartCore.PACKAGES_DIRECTORY_PATH.length());
+
+          IFileInfo info = DartCore.getProjectManager().resolveUriToFileInfo(
+              map.getResource(),
+              packageUri);
+          if (info != null && info.getResource() != null) {
+            return info.getResource();
+          }
+        }
+
         file = (IFile) resource;
       }
     }
