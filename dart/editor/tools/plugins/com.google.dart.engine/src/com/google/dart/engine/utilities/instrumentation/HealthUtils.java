@@ -46,6 +46,10 @@ public class HealthUtils {
     instrumentation.metric("threads-count", thInfos.length);
 
     for (ThreadInfo thInfo : thInfos) {
+      if (thInfo == null) {
+        instrumentation.metric("Thread-Name", "<unknown>");
+        continue;
+      }
       instrumentation.metric("Thread-Name", thInfo.getThreadName());
       instrumentation.metric("Thread-ID", thInfo.getThreadId());
       instrumentation.metric("Thread-State", thInfo.getThreadState().toString());
