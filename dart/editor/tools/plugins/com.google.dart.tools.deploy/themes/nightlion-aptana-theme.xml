@@ -20,6 +20,7 @@
     <findScope color="#BCADAD" />
     <foreground color="#E2E2E2" />
     <function color="#DFBE95" />
+    <functionTypeAlias color="#CAE682" />
     <getter color="#E8E2B7" />
     <importPrefix color="#E2E2E2" />
     <inheritedMethod color="#E0E2E4" />

@@ -600,6 +600,17 @@ public class SemanticHighlightingTest extends
     assertHasWordPosition(SemanticHighlightings.FUNCTION, "f );");
   }
 
+  public void test_functionTypeAlias() throws Exception {
+    preparePositions(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "typedef String Foo ();",
+        "main(Foo f) {",
+        "}",
+        "");
+    assertHasWordPosition(SemanticHighlightings.FUNCTION_TYPE_ALIAS, "Foo (");
+    assertHasWordPosition(SemanticHighlightings.FUNCTION_TYPE_ALIAS, "Foo f)");
+  }
+
   public void test_getterDeclaration_function() throws Exception {
     preparePositions(
         "// filler filler filler filler filler filler filler filler filler filler",

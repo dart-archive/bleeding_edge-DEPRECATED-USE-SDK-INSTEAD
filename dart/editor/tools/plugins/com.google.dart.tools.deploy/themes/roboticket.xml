@@ -17,6 +17,7 @@
     <findScope color="#BDD8F2" />
     <foreground color="#585858" />
     <function color="#BC5A65" bold="true" />
+    <functionTypeAlias color="#AB2525" />
     <importPrefix color="#585858" />
     <inheritedMethod color="#2C577C" />
     <interface color="#9B5656" />

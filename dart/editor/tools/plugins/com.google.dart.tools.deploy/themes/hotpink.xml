@@ -20,6 +20,7 @@
     <findScope color="#BCADAD" />
     <foreground color="#000000" />
     <function color="#8000B0" />
+    <functionTypeAlias color="#006000" bold="true"/>
     <getter color="#0200C0" />
     <importPrefix color="#000000" bold="true" />
     <inheritedMethod color="#2c577c" />
@@ -38,7 +39,7 @@
     <multiLineComment color="#417e60" />
     <multiLineString color="#2000FF" />
     <number color="#008000" />
-    <occurrenceIndication color="#CC6633" />
+    <occurrenceIndication color="#FFFFD0" />
     <operator color="#5f97a9" />
     <parameterVariable color="#D7721E" />
     <searchResultIndication color="#D0D0D0" />

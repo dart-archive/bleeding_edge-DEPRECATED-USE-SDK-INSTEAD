@@ -116,6 +116,7 @@ final class DartEditorMessages extends NLS {
   public static String SemanticHighlighting_staticMethod;
   public static String SemanticHighlighting_staticMethodDeclaration;
   public static String SemanticHighlighting_class;
+  public static String SemanticHighlighting_functionTypeAlias;
   public static String SemanticHighlighting_typeVariable;
   public static String SemanticHighlighting_topLevelMember;
   public static String JavaEditor_markOccurrences_job_name;

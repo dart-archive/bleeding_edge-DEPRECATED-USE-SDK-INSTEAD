@@ -14,10 +14,10 @@
 package com.google.dart.tools.ui.internal.text.editor;
 
 import com.google.common.collect.Lists;
-import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.Annotation;
 import com.google.dart.engine.ast.ArgumentList;
 import com.google.dart.engine.ast.AsExpression;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.CatchClause;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.Combinator;
@@ -51,6 +51,7 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.FieldFormalParameterElement;
 import com.google.dart.engine.element.FunctionElement;
+import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
@@ -413,13 +414,6 @@ public class SemanticHighlightings {
       return false;
     }
 
-    protected List<SourceRange> addPosition(List<SourceRange> positions, AstNode node) {
-      if (node != null) {
-        return addPosition(positions, rangeNode(node));
-      }
-      return positions;
-    }
-
     protected List<SourceRange> addPosition(List<SourceRange> positions, SourceRange range) {
       if (positions == null) {
         positions = Lists.newArrayList();
@@ -662,6 +656,29 @@ public class SemanticHighlightings {
     @Override
     public String getPreferenceKey() {
       return FUNCTION;
+    }
+
+    @Override
+    public boolean isEnabledByDefault() {
+      return true;
+    }
+  }
+
+  private static class FunctionTypeAliasHighlighting extends DefaultSemanticHighlighting {
+    @Override
+    public boolean consumesIdentifier(SemanticToken token) {
+      SimpleIdentifier node = token.getNodeIdentifier();
+      return node.getStaticElement() instanceof FunctionTypeAliasElement;
+    }
+
+    @Override
+    public String getDisplayName() {
+      return DartEditorMessages.SemanticHighlighting_functionTypeAlias;
+    }
+
+    @Override
+    public String getPreferenceKey() {
+      return FUNCTION_TYPE_ALIAS;
     }
 
     @Override
@@ -1216,6 +1233,11 @@ public class SemanticHighlightings {
   public static final String CLASS = "class"; //$NON-NLS-1$
 
   /**
+   * A named preference part that controls the highlighting of function type aliases (typedefs).
+   */
+  public static final String FUNCTION_TYPE_ALIAS = "functionTypeAlias"; //$NON-NLS-1$
+
+  /**
    * A named preference part that controls the highlighting of import prefix.
    */
   public static final String IMPORT_PREFIX = "importPrefix"; //$NON-NLS-1$
@@ -1343,7 +1365,8 @@ public class SemanticHighlightings {
           new DeprecatedElementHighlighting(), new GetterDeclarationHighlighting(),
           new SetterDeclarationHighlighting(), new AnnotationHighlighting(),
           new StaticFieldHighlighting(), new FieldHighlighting(), new DynamicTypeHighlighting(),
-          new ClassHighlighting(), new TypeVariableHighlighting(), new NumberHighlighting(),
+          new ClassHighlighting(), new FunctionTypeAliasHighlighting(),
+          new TypeVariableHighlighting(), new NumberHighlighting(),
           new LocalVariableDeclarationHighlighting(), new LocalVariableHighlighting(),
           new ParameterHighlighting(), new StaticMethodDeclarationHighlighting(),
           new StaticMethodHighlighting(), new ConstructorHighlighting(),
