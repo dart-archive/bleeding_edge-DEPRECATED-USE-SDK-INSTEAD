@@ -20,6 +20,33 @@ import com.google.dart.engine.source.Source;
 
 public class HintCodeTest extends ResolverTestCase {
 
+  public void fail_deadCode_statementAfterRehrow() throws Exception {
+    Source source = addSource(createSource(//
+        "f() {",
+        "  try {",
+        "    var one = 1;",
+        "  } catch (e) {",
+        "    rethrow;",
+        "    var two = 2;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(source, HintCode.DEAD_CODE);
+    verify(source);
+  }
+
+  public void fail_deadCode_statementAfterThrow() throws Exception {
+    Source source = addSource(createSource(//
+        "f() {",
+        "  var one = 1;",
+        "  throw 'Stop here';",
+        "  var two = 2;",
+        "}"));
+    resolve(source);
+    assertErrors(source, HintCode.DEAD_CODE);
+    verify(source);
+  }
+
   public void fail_isInt() throws Exception {
     Source source = addSource(createSource(//
     "var v = 1 is int;"));
