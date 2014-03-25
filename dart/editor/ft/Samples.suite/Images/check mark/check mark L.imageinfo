@@ -1,35 +1,20 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-	<key>CaptureDate</key>
-	<date>2014-03-10T21:38:32Z</date>
-	<key>CaptureHost</key>
-	<string>kyodai</string>
-	<key>CaptureScreenSize</key>
-	<array>
-		<integer>1920</integer>
-		<integer>1200</integer>
-	</array>
-	<key>HasAlpha</key>
-	<false/>
-	<key>HonorAlpha</key>
-	<true/>
-	<key>HotSpotX</key>
-	<real>20</real>
-	<key>HotSpotY</key>
-	<real>8</real>
-	<key>LastKnownLocationX</key>
-	<integer>0</integer>
-	<key>LastKnownLocationY</key>
-	<integer>0</integer>
-	<key>OriginalLocationX</key>
-	<integer>262</integer>
-	<key>OriginalLocationY</key>
-	<integer>363</integer>
-	<key>Pulsing</key>
-	<false/>
-	<key>Scale</key>
-	<real>1</real>
-</dict>
-</plist>
+﻿{
+    CaptureDate = "2014-03-10 21:38:32 +0000";
+    CaptureHost = kyodai;
+    CaptureScreenSize =     (
+        1920,
+        1200
+    );
+    HasAlpha = 1;
+    HonorAlpha = 1;
+    HotSpotX = 20;
+    HotSpotY = 8;
+    ImageDescription = <7b5c7274 66315c61 6e73695c 616e7369 63706731 3235325c 636f636f 61727466 31323635 5c636f63 6f617375 62727466 3139300a 5c636f63 6f617363 7265656e 666f6e74 73317b5c 666f6e74 74626c7d 0a7b5c63 6f6c6f72 74626c3b 5c726564 3235355c 67726565 6e323535 5c626c75 65323535 3b7d0a7d>;
+    ImageTolerance = 25;
+    LastKnownLocationX = 0;
+    LastKnownLocationY = 0;
+    OriginalLocationX = 262;
+    OriginalLocationY = 363;
+    Pulsing = 0;
+    Scale = 1;
+}
