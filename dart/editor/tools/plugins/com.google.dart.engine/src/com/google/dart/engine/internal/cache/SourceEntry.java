@@ -48,6 +48,14 @@ public interface SourceEntry {
   public AnalysisException getException();
 
   /**
+   * Return {@code true} if the source was explicitly added to the context or {@code false} if the
+   * source was implicitly added because it was referenced by another source.
+   * 
+   * @return {@code true} if the source was explicitly added to the context
+   */
+  public boolean getExplicitlyAdded();
+
+  /**
    * Return the kind of the source, or {@code null} if the kind is not currently cached.
    * 
    * @return the kind of the source

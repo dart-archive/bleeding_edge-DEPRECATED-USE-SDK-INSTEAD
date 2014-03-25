@@ -21,7 +21,6 @@ import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceKind;
 import com.google.dart.engine.utilities.ast.AstCloner;
-import com.google.dart.engine.utilities.collection.BooleanArray;
 import com.google.dart.engine.utilities.collection.ListUtilities;
 
 import java.util.ArrayList;
@@ -370,26 +369,21 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
   private CacheState launchableState = CacheState.INVALID;
 
   /**
-   * An integer holding bit masks such as {@link #LAUNCHABLE} and {@link #CLIENT_CODE}.
-   */
-  private int bitmask = 0;
-
-  /**
    * The error produced while performing Angular resolution, or an empty array if there are no
    * errors if the error are not currently cached.
    */
   private AnalysisError[] angularErrors = AnalysisError.NO_ERRORS;
 
   /**
-   * The index of the bit in the {@link #bitmask} indicating that this library is launchable: that
-   * the file has a main method.
+   * The index of the flag indicating whether this library is launchable (whether the file has a
+   * main method).
    */
   private static final int LAUNCHABLE_INDEX = 1;
 
   /**
-   * The index of the bit in the {@link #bitmask} indicating that the library is client code: that
-   * the library depends on the html library. If the library is not "client code", then it is
-   * referred to as "server code".
+   * The index of the flag indicating whether the library is client code (whether the library
+   * depends on the html library). If the library is not "client code", then it is referred to as
+   * "server code".
    */
   private static final int CLIENT_CODE_INDEX = 2;
 
@@ -596,9 +590,9 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     } else if (descriptor == INCLUDED_PARTS) {
       return (E) includedParts;
     } else if (descriptor == IS_CLIENT) {
-      return (E) (Boolean) BooleanArray.get(bitmask, CLIENT_CODE_INDEX);
+      return (E) (Boolean) getFlag(CLIENT_CODE_INDEX);
     } else if (descriptor == IS_LAUNCHABLE) {
-      return (E) (Boolean) BooleanArray.get(bitmask, LAUNCHABLE_INDEX);
+      return (E) (Boolean) getFlag(LAUNCHABLE_INDEX);
     } else if (descriptor == PARSE_ERRORS) {
       return (E) parseErrors;
     } else if (descriptor == PARSED_UNIT) {
@@ -873,7 +867,7 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     element = null;
     elementState = CacheState.ERROR;
 
-    bitmask = 0;
+    clearFlags(LAUNCHABLE_INDEX, CLIENT_CODE_INDEX);
     clientServerState = CacheState.ERROR;
     launchableState = CacheState.ERROR;
 
@@ -1018,10 +1012,10 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
       includedParts = updatedValue(state, includedParts, Source.EMPTY_ARRAY);
       includedPartsState = state;
     } else if (descriptor == IS_CLIENT) {
-      bitmask = updatedValueOfFlag(state, bitmask, CLIENT_CODE_INDEX);
+      updateValueOfFlag(CLIENT_CODE_INDEX, state);
       clientServerState = state;
     } else if (descriptor == IS_LAUNCHABLE) {
-      bitmask = updatedValueOfFlag(state, bitmask, LAUNCHABLE_INDEX);
+      updateValueOfFlag(LAUNCHABLE_INDEX, state);
       launchableState = state;
     } else if (descriptor == PARSE_ERRORS) {
       parseErrors = updatedValue(state, parseErrors, AnalysisError.NO_ERRORS);
@@ -1102,10 +1096,10 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
       includedParts = value == null ? Source.EMPTY_ARRAY : (Source[]) value;
       includedPartsState = CacheState.VALID;
     } else if (descriptor == IS_CLIENT) {
-      bitmask = BooleanArray.set(bitmask, CLIENT_CODE_INDEX, ((Boolean) value).booleanValue());
+      setFlag(CLIENT_CODE_INDEX, ((Boolean) value).booleanValue());
       clientServerState = CacheState.VALID;
     } else if (descriptor == IS_LAUNCHABLE) {
-      bitmask = BooleanArray.set(bitmask, LAUNCHABLE_INDEX, ((Boolean) value).booleanValue());
+      setFlag(LAUNCHABLE_INDEX, ((Boolean) value).booleanValue());
       launchableState = CacheState.VALID;
     } else if (descriptor == PARSE_ERRORS) {
       parseErrors = value == null ? AnalysisError.NO_ERRORS : (AnalysisError[]) value;
@@ -1186,7 +1180,6 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     publicNamespace = other.publicNamespace;
     clientServerState = other.clientServerState;
     launchableState = other.launchableState;
-    bitmask = other.bitmask;
     angularErrors = other.angularErrors;
   }
 
@@ -1242,7 +1235,7 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     element = null;
     elementState = CacheState.INVALID;
 
-    bitmask = 0;
+    clearFlags(LAUNCHABLE_INDEX, CLIENT_CODE_INDEX);
     clientServerState = CacheState.INVALID;
     launchableState = CacheState.INVALID;
 
@@ -1277,23 +1270,21 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
   }
 
   /**
-   * Given that one of the flags is being transitioned to the given state, return the value of the
-   * flags that should be kept in the cache.
+   * Given that the specified flag is being transitioned to the given state, set the value of the
+   * flag to the value that should be kept in the cache.
    * 
-   * @param state the state to which the data is being transitioned
-   * @param currentValue the value of the flags before the transition
-   * @param bitMask the mask used to access the bit whose state is being set
-   * @return the value of the data that should be kept in the cache
+   * @param index the index of the flag whose state is being set
+   * @param state the state to which the value is being transitioned
    */
-  private int updatedValueOfFlag(CacheState state, int currentValue, int bitIndex) {
+  private void updateValueOfFlag(int index, CacheState state) {
     if (state == CacheState.VALID) {
       throw new IllegalArgumentException("Use setValue() to set the state to VALID");
-    } else if (state == CacheState.IN_PROCESS) {
+    } else if (state != CacheState.IN_PROCESS) {
       //
-      // We can leave the current value in the cache for any 'get' methods to access.
+      // If the value is in process, we can leave the current value in the cache for any 'get'
+      // methods to access.
       //
-      return currentValue;
+      setFlag(index, false);
     }
-    return BooleanArray.set(currentValue, bitIndex, false);
   }
 }
