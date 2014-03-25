@@ -228,18 +228,26 @@ public class IgnoreResourceFilterTest extends TestCase {
 
   public void testSourceRemoved() throws Exception {
     SourceDeltaEvent event = newSourceDeltaEvent();
-
-    ignoreManager.addToIgnores(event.getResource().getLocation());
-    newTarget().sourceRemoved(event);
-    Mockito.verifyNoMoreInteractions(listener);
-
-    ignoreManager.removeFromIgnores(event.getResource().getLocation());
     newTarget().sourceRemoved(event);
     Mockito.verify(listener).sourceRemoved(event);
     Mockito.verifyNoMoreInteractions(listener);
+  }
 
-    ignoreManager.addToIgnores(event.getResource().getParent().getLocation());
+  public void testSourceRemoved_ignored() throws Exception {
+    SourceDeltaEvent event = newSourceDeltaEvent();
+    // Pass along removed sources... even if it is ignored
+    ignoreManager.addToIgnores(event.getResource().getLocation());
     newTarget().sourceRemoved(event);
+    Mockito.verify(listener).sourceRemoved(event);
+    Mockito.verifyNoMoreInteractions(listener);
+  }
+
+  public void testSourceRemoved_unignored() throws Exception {
+    SourceDeltaEvent event = newSourceDeltaEvent();
+    ignoreManager.addToIgnores(event.getResource().getLocation());
+    ignoreManager.removeFromIgnores(event.getResource().getLocation());
+    newTarget().sourceRemoved(event);
+    Mockito.verify(listener).sourceRemoved(event);
     Mockito.verifyNoMoreInteractions(listener);
   }
 

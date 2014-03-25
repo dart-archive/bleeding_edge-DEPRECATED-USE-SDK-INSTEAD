@@ -111,9 +111,7 @@ public class IgnoreResourceFilter extends DeltaBroadcaster implements DeltaListe
 
   @Override
   public void sourceRemoved(SourceDeltaEvent event) {
-    if (shouldForward(event)) {
-      listener.sourceRemoved(event);
-    }
+    listener.sourceRemoved(event);
   }
 
   @Override
