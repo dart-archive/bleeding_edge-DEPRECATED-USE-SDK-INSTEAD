@@ -138,7 +138,14 @@ public class TestProject {
     }
 
     // do dispose
-    TestUtilities.deleteProject(project);
+    try {
+      TestUtilities.deleteProject(project);
+    } catch (CoreException ce) {
+      // still could not delete
+      if (project.exists()) {
+        throw ce;
+      }
+    }
   }
 
   /**
