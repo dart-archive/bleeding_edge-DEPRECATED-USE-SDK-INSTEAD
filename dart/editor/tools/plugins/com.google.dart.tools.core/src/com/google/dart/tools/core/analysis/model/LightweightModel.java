@@ -274,7 +274,8 @@ public class LightweightModel {
    */
   protected void setFileProperty(IFile file, QualifiedName property, IFile newValue)
       throws CoreException {
-    setFileProperty(file, property, newValue.getFullPath().toString());
+    String value = newValue != null ? newValue.getFullPath().toString() : null;
+    setFileProperty(file, property, value);
   }
 
   /**
