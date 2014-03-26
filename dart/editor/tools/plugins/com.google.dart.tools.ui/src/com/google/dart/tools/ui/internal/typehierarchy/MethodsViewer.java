@@ -10,6 +10,7 @@ import com.google.dart.tools.ui.DartElementLabelProvider;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.actions.MemberFilterActionGroup;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
+import com.google.dart.tools.ui.internal.typehierarchy.TypeHierarchyContentProvider.TypeItem;
 
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
@@ -112,7 +113,10 @@ public class MethodsViewer extends TableViewer {
     memento.putString(TAG_SHOWINHERITED, String.valueOf(showInheritedMembers));
   }
 
-  public void setInputType(final/*ClassElement*/Object _inputType) {
+  public void setInputType(Object _inputType) {
+    if (_inputType instanceof TypeItem) {
+      _inputType = ((TypeItem) _inputType).element;
+    }
     this.inputType = (ClassElement) _inputType;
     // may be no type
     if (inputType == null) {
