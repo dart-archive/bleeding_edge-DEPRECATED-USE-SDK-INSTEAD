@@ -592,6 +592,8 @@ public class DartFoldingStructureProvider implements IDartFoldingStructureProvid
     }
   }
 
+  private static final int MAX_DOCUMENT_LENGTH = 1024 * 1024;
+
   private static boolean isAvailable(SourceRange range) {
     return range != null && range.getOffset() != -1;
   }
@@ -1224,6 +1226,9 @@ public class DartFoldingStructureProvider implements IDartFoldingStructureProvid
 
   private void update(FoldingStructureComputationContext ctx) {
     if (ctx == null) {
+      return;
+    }
+    if (ctx.getDocument().getLength() >= MAX_DOCUMENT_LENGTH) {
       return;
     }
     Map<DartProjectionAnnotation, Position> additions = new HashMap<DartProjectionAnnotation, Position>();
