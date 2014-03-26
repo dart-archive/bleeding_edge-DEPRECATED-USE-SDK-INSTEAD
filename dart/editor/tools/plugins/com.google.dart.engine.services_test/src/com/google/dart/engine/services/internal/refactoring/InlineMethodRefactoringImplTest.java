@@ -400,6 +400,37 @@ public class InlineMethodRefactoringImplTest extends RefactoringImplTest {
         "}");
   }
 
+  public void test_function_multilineString() throws Exception {
+    indexTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  {",
+        "    test();",
+        "  }",
+        "}",
+        "test() {",
+        "  print('''",
+        "first line",
+        "second line",
+        "    ''');",
+        "}",
+        "");
+    selection = findOffset("test() {");
+    createRefactoring();
+    // do refactoring
+    assertSuccessfulRefactoring(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  {",
+        "    print('''",
+        "first line",
+        "second line",
+        "    ''');",
+        "  }",
+        "}",
+        "");
+  }
+
   public void test_function_noReturn_hasVars_hasConflict_fieldSuperClass() throws Exception {
     indexTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",

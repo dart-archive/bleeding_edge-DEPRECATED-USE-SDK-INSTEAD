@@ -19,9 +19,9 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.google.dart.engine.ast.AsExpression;
 import com.google.dart.engine.ast.AstFactory;
 import com.google.dart.engine.ast.AstNode;
-import com.google.dart.engine.ast.AsExpression;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.Block;
 import com.google.dart.engine.ast.BlockFunctionBody;
@@ -514,12 +514,76 @@ public class CorrectionUtilsTest extends AbstractDartTest {
   public void test_getIndentSource_String() throws Exception {
     parseTestUnit("");
     CorrectionUtils utils = getTestCorrectionUtils();
-    assertEquals("{\n  B\n}\n", utils.getIndentSource("  {\n    B\n  }\n", "  ", ""));
-    assertEquals("  {\n    B\n  }\n", utils.getIndentSource("{\n  B\n}\n", "", "  "));
-    assertEquals("  {\n  \n    B\n  }\n", utils.getIndentSource("{\n\n  B\n}\n", "", "  "));
-    assertEquals(
-        "    {\n      B\n    }\n",
-        utils.getIndentSource("  {\n    B\n  }\n", "  ", "    "));
+    assertEquals(makeSource(//
+        "{",
+        "  var v;",
+        "}",
+        ""), utils.getIndentSource(makeSource(//
+        "  {",
+        "    var v;",
+        "  }",
+        ""), "  ", ""));
+    assertEquals(makeSource(//
+        "  {",
+        "    var v;",
+        "  }",
+        ""), utils.getIndentSource(makeSource(//
+        "{",
+        "  var v;",
+        "}",
+        ""), "", "  "));
+    assertEquals(makeSource(//
+        "  {",
+        "  ",
+        "    var v;",
+        "  }",
+        ""), utils.getIndentSource(makeSource(//
+        "{",
+        "",
+        "  var v;",
+        "}",
+        ""), "", "  "));
+    assertEquals(makeSource(//
+        "    {",
+        "      var v;",
+        "    }",
+        ""), utils.getIndentSource(makeSource(//
+        "  {",
+        "    var v;",
+        "  }",
+        ""), "  ", "    "));
+    // don't change multiline strings
+    assertEquals(makeSource(//
+        "  {",
+        "    var v = '''",
+        "first line",
+        "second line",
+        "  ''';",
+        "    var v2 = 5;",
+        "  }",
+        ""), utils.getIndentSource(makeSource(//
+        "{",
+        "  var v = '''",
+        "first line",
+        "second line",
+        "  ''';",
+        "  var v2 = 5;",
+        "}",
+        ""), "", "  "));
+    // when the line starts not _within_ of a string, we still can indent it
+    assertEquals(makeSource(//
+        "  {",
+        "  '''aaa",
+        "bbb'''.length;",
+        "    var v2 = 5;",
+        "  }",
+        ""), utils.getIndentSource(makeSource(//
+        "{",
+        "'''aaa",
+        "bbb'''.length;",
+        "  var v2 = 5;",
+        "}",
+        ""), "", "  "));
   }
 
   public void test_getInsertDescImport_emptyUnit() throws Exception {

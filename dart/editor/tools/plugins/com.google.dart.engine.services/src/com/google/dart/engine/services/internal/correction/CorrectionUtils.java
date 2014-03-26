@@ -17,8 +17,8 @@ import com.google.common.base.CharMatcher;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.AsExpression;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.Block;
 import com.google.dart.engine.ast.BooleanLiteral;
@@ -87,6 +87,7 @@ import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeNo
 import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeNodes;
 import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeStartEnd;
 import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeStartStart;
+import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeToken;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -1132,17 +1133,37 @@ public class CorrectionUtils {
    *         indentation of the lines relative to each other.
    */
   public String getIndentSource(String source, String oldIndent, String newIndent) {
+    // prepare STRING token ranges
+    List<SourceRange> lineRanges = Lists.newArrayList();
+    for (Token token : TokenUtils.getTokens(source)) {
+      if (token.getType() == TokenType.STRING) {
+        lineRanges.add(rangeToken(token));
+      }
+    }
+    // re-indent lines
     StringBuilder sb = new StringBuilder();
     String eol = getEndOfLine();
     String[] lines = StringUtils.splitByWholeSeparatorPreserveAllTokens(source, eol);
+    int lineOffset = 0;
     for (int i = 0; i < lines.length; i++) {
       String line = lines[i];
       // last line, stop if empty
       if (i == lines.length - 1 && StringUtils.isEmpty(line)) {
         break;
       }
-      // line should have new indent
-      line = newIndent + StringUtils.removeStart(line, oldIndent);
+      // check if "offset" is in one of the String ranges
+      boolean inString = false;
+      for (SourceRange lineRange : lineRanges) {
+        inString |= lineOffset > lineRange.getOffset() && lineOffset < lineRange.getEnd();
+        if (lineOffset > lineRange.getEnd()) {
+          break;
+        }
+      }
+      lineOffset += line.length() + eol.length();
+      // update line indent
+      if (!inString) {
+        line = newIndent + StringUtils.removeStart(line, oldIndent);
+      }
       // append line
       sb.append(line);
       sb.append(eol);
