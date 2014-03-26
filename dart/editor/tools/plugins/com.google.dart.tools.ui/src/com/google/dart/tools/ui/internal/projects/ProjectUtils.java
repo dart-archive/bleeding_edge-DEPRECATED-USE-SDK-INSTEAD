@@ -119,8 +119,6 @@ public class ProjectUtils {
           shellListener.setMonitor(monitor);
           IStatus status = op.execute(monitor, WorkspaceUndoUtil.getUIInfoAdapter(shell));
 
-          newProjectHandle.setDefaultCharset("UTF-8", null);
-
           if (status.isOK() && projectType != ProjectType.NONE) {
             createProjectContent(newProjectHandle, projectType);
           }
