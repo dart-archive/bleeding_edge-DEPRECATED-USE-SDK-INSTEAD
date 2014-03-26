@@ -92,35 +92,47 @@ public class IgnoreResourceFilterTest extends TestCase {
 
   public void testPackageSourceContainerRemoved() throws Exception {
     SourceContainerDeltaEvent event = newSourceContainerDeltaEvent();
-
-    ignoreManager.addToIgnores(event.getResource().getLocation());
-    newTarget().packageSourceContainerRemoved(event);
-    Mockito.verifyNoMoreInteractions(listener);
-
-    ignoreManager.removeFromIgnores(event.getResource().getLocation());
     newTarget().packageSourceContainerRemoved(event);
     Mockito.verify(listener).packageSourceContainerRemoved(event);
     Mockito.verifyNoMoreInteractions(listener);
+  }
 
-    ignoreManager.addToIgnores(event.getResource().getParent().getLocation());
+  public void testPackageSourceContainerRemoved_ignored() throws Exception {
+    SourceContainerDeltaEvent event = newSourceContainerDeltaEvent();
+    ignoreManager.addToIgnores(event.getResource().getLocation());
     newTarget().packageSourceContainerRemoved(event);
+    Mockito.verifyNoMoreInteractions(listener);
+  }
+
+  public void testPackageSourceContainerRemoved_unignored() throws Exception {
+    SourceContainerDeltaEvent event = newSourceContainerDeltaEvent();
+    ignoreManager.addToIgnores(event.getResource().getLocation());
+    ignoreManager.removeFromIgnores(event.getResource().getLocation());
+    newTarget().packageSourceContainerRemoved(event);
+    Mockito.verify(listener).packageSourceContainerRemoved(event);
     Mockito.verifyNoMoreInteractions(listener);
   }
 
   public void testPackageSourceRemoved() throws Exception {
     SourceDeltaEvent event = newSourceDeltaEvent();
-
-    ignoreManager.addToIgnores(event.getResource().getLocation());
-    newTarget().packageSourceRemoved(event);
-    Mockito.verifyNoMoreInteractions(listener);
-
-    ignoreManager.removeFromIgnores(event.getResource().getLocation());
     newTarget().packageSourceRemoved(event);
     Mockito.verify(listener).packageSourceRemoved(event);
     Mockito.verifyNoMoreInteractions(listener);
+  }
 
-    ignoreManager.addToIgnores(event.getResource().getParent().getLocation());
+  public void testPackageSourceRemoved_ignored() throws Exception {
+    SourceDeltaEvent event = newSourceDeltaEvent();
+    ignoreManager.addToIgnores(event.getResource().getLocation());
     newTarget().packageSourceRemoved(event);
+    Mockito.verifyNoMoreInteractions(listener);
+  }
+
+  public void testPackageSourceRemoved_unignored() throws Exception {
+    SourceDeltaEvent event = newSourceDeltaEvent();
+    ignoreManager.addToIgnores(event.getResource().getLocation());
+    ignoreManager.removeFromIgnores(event.getResource().getLocation());
+    newTarget().packageSourceRemoved(event);
+    Mockito.verify(listener).packageSourceRemoved(event);
     Mockito.verifyNoMoreInteractions(listener);
   }
 
@@ -211,18 +223,24 @@ public class IgnoreResourceFilterTest extends TestCase {
 
   public void testSourceContainerRemoved() throws Exception {
     SourceContainerDeltaEvent event = newSourceContainerDeltaEvent();
-
-    ignoreManager.addToIgnores(event.getResource().getLocation());
-    newTarget().sourceContainerRemoved(event);
-    Mockito.verifyNoMoreInteractions(listener);
-
-    ignoreManager.removeFromIgnores(event.getResource().getLocation());
     newTarget().sourceContainerRemoved(event);
     Mockito.verify(listener).sourceContainerRemoved(event);
     Mockito.verifyNoMoreInteractions(listener);
+  }
 
-    ignoreManager.addToIgnores(event.getResource().getParent().getLocation());
+  public void testSourceContainerRemoved_ignored() throws Exception {
+    SourceContainerDeltaEvent event = newSourceContainerDeltaEvent();
+    ignoreManager.addToIgnores(event.getResource().getLocation());
     newTarget().sourceContainerRemoved(event);
+    Mockito.verifyNoMoreInteractions(listener);
+  }
+
+  public void testSourceContainerRemoved_unignored() throws Exception {
+    SourceContainerDeltaEvent event = newSourceContainerDeltaEvent();
+    ignoreManager.addToIgnores(event.getResource().getLocation());
+    ignoreManager.removeFromIgnores(event.getResource().getLocation());
+    newTarget().sourceContainerRemoved(event);
+    Mockito.verify(listener).sourceContainerRemoved(event);
     Mockito.verifyNoMoreInteractions(listener);
   }
 
@@ -235,10 +253,8 @@ public class IgnoreResourceFilterTest extends TestCase {
 
   public void testSourceRemoved_ignored() throws Exception {
     SourceDeltaEvent event = newSourceDeltaEvent();
-    // Pass along removed sources... even if it is ignored
     ignoreManager.addToIgnores(event.getResource().getLocation());
     newTarget().sourceRemoved(event);
-    Mockito.verify(listener).sourceRemoved(event);
     Mockito.verifyNoMoreInteractions(listener);
   }
 
@@ -253,18 +269,26 @@ public class IgnoreResourceFilterTest extends TestCase {
 
   public void testVisitContext() throws Exception {
     SourceContainerDeltaEvent event = newSourceContainerDeltaEvent();
-
-    ignoreManager.addToIgnores(event.getResource().getLocation());
-    newTarget().visitContext(event);
-    Mockito.verifyNoMoreInteractions(listener);
-
-    ignoreManager.removeFromIgnores(event.getResource().getLocation());
     newTarget().visitContext(event);
     Mockito.verify(listener).visitContext(event);
     Mockito.verifyNoMoreInteractions(listener);
+  }
 
-    ignoreManager.addToIgnores(event.getResource().getParent().getLocation());
+  public void testVisitContext_ignored() throws Exception {
+    SourceContainerDeltaEvent event = newSourceContainerDeltaEvent();
+    // Pass along visit context... even if it is ignored
+    ignoreManager.addToIgnores(event.getResource().getLocation());
     newTarget().visitContext(event);
+    Mockito.verify(listener).visitContext(event);
+    Mockito.verifyNoMoreInteractions(listener);
+  }
+
+  public void testVisitContext_unignored() throws Exception {
+    SourceContainerDeltaEvent event = newSourceContainerDeltaEvent();
+    ignoreManager.addToIgnores(event.getResource().getLocation());
+    ignoreManager.removeFromIgnores(event.getResource().getLocation());
+    newTarget().visitContext(event);
+    Mockito.verify(listener).visitContext(event);
     Mockito.verifyNoMoreInteractions(listener);
   }
 

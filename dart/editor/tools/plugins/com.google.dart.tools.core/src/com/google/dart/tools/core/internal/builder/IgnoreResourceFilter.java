@@ -111,14 +111,14 @@ public class IgnoreResourceFilter extends DeltaBroadcaster implements DeltaListe
 
   @Override
   public void sourceRemoved(SourceDeltaEvent event) {
-    listener.sourceRemoved(event);
+    if (shouldForward(event)) {
+      listener.sourceRemoved(event);
+    }
   }
 
   @Override
   public void visitContext(ResourceDeltaEvent event) {
-    if (shouldForward(event)) {
-      listener.visitContext(event);
-    }
+    listener.visitContext(event);
   }
 
   /**
@@ -128,6 +128,6 @@ public class IgnoreResourceFilter extends DeltaBroadcaster implements DeltaListe
    * @return {@code true} if the event should be forwarded
    */
   private boolean shouldForward(ResourceDeltaEvent event) {
-    return !hasIgnores || ignoreManager.isAnalyzed(event.getResource());
+    return !hasIgnores || ignoreManager.isAnalyzed(event.getResource().getLocation());
   }
 }
