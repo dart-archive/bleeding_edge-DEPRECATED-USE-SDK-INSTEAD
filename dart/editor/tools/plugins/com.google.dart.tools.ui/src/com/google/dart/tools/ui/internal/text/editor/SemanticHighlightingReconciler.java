@@ -22,6 +22,7 @@ import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.visitor.GeneralizingAstVisitor;
 import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.internal.text.dart.IDartReconcilingListener;
 import com.google.dart.tools.ui.internal.text.editor.SemanticHighlightingManager.HighlightedPosition;
 import com.google.dart.tools.ui.internal.text.editor.SemanticHighlightingManager.Highlighting;
@@ -153,8 +154,6 @@ public class SemanticHighlightingReconciler implements IDartReconcilingListener,
       }
     }
   }
-
-  private static final int MAX_DOCUMENT_LENGTH = 1024 * 1024;
 
   /** Position collector */
   private final PositionCollector fCollector = new PositionCollector();
@@ -340,10 +339,7 @@ public class SemanticHighlightingReconciler implements IDartReconcilingListener,
       return false;
     }
     IDocument document = viewer.getDocument();
-    if (document == null) {
-      return false;
-    }
-    return document.getLength() < MAX_DOCUMENT_LENGTH;
+    return !DartUI.isTooComplexDartDocument(document);
   }
 
   private final void processNode(SemanticToken token, AstNode node) {

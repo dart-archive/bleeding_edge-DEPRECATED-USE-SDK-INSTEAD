@@ -29,6 +29,7 @@ import com.google.dart.engine.scanner.Scanner;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.PreferenceConstants;
 import com.google.dart.tools.ui.internal.text.dart.IDartReconcilingListener;
 import com.google.dart.tools.ui.internal.text.editor.CompilationUnitEditor;
@@ -591,8 +592,6 @@ public class DartFoldingStructureProvider implements IDartFoldingStructureProvid
       this.position = position;
     }
   }
-
-  private static final int MAX_DOCUMENT_LENGTH = 1024 * 1024;
 
   private static boolean isAvailable(SourceRange range) {
     return range != null && range.getOffset() != -1;
@@ -1228,7 +1227,7 @@ public class DartFoldingStructureProvider implements IDartFoldingStructureProvid
     if (ctx == null) {
       return;
     }
-    if (ctx.getDocument().getLength() >= MAX_DOCUMENT_LENGTH) {
+    if (DartUI.isTooComplexDartDocument(ctx.getDocument())) {
       return;
     }
     Map<DartProjectionAnnotation, Position> additions = new HashMap<DartProjectionAnnotation, Position>();

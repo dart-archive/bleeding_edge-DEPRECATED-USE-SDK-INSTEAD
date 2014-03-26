@@ -981,11 +981,13 @@ public class EditorUtility {
 
       IEditorDescriptor desc = IDE.getEditorDescriptor(file, true);
 
-      IEditorPart editorPart = IDE.openEditor(
-          p,
-          file,
-          maybeSwapDefaultEditorDescriptor(desc.getId()),
-          activate);
+      String editorId = desc.getId();
+      editorId = maybeSwapDefaultEditorDescriptor(editorId);
+      if (DartUI.isTooComplexDartFile(file)) {
+        editorId = EditorsUI.DEFAULT_TEXT_EDITOR_ID;
+      }
+
+      IEditorPart editorPart = IDE.openEditor(p, file, editorId, activate);
       initializeHighlightRange(editorPart);
       return editorPart;
     } catch (RuntimeException e) {

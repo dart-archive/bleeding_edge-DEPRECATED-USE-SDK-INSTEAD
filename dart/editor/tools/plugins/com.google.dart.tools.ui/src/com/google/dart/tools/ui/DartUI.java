@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui;
 
+import com.google.common.base.Charsets;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.search.SearchScope;
@@ -36,9 +37,12 @@ import com.google.dart.tools.ui.text.IColorManager;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.jface.operation.IRunnableContext;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.PreferenceConverter;
+import org.eclipse.jface.text.BadLocationException;
+import org.eclipse.jface.text.IDocument;
 import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.RGB;
@@ -52,6 +56,11 @@ import org.eclipse.ui.texteditor.AbstractDecoratedTextEditorPreferenceConstants;
 import org.eclipse.ui.texteditor.AbstractTextEditor;
 import org.eclipse.ui.texteditor.IDocumentProvider;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.net.URL;
 
 /**
@@ -235,6 +244,16 @@ public final class DartUI {
    * <code>"com.google.dart.tools.ui.MembersView"</code>).
    */
   public static String ID_MEMBERS_VIEW = "com.google.dart.tools.ui.MembersView"; //$NON-NLS-1$
+
+  /**
+   * The maximal length of a document for which we want to support Dart editing features.
+   */
+  private static final int MAX_DOCUMENT_LENGTH = 1024 * 1024;
+
+  /**
+   * The maximal length of a line in a document for which we want to support Dart editing features.
+   */
+  private static final int MAX_LINE_LENGTH = 1000;
 
   /**
    * Creates a selection dialog that lists all types in the given project. The caller is responsible
@@ -665,6 +684,65 @@ public final class DartUI {
    */
   public static IWorkingCopyManager getWorkingCopyManager() {
     return DartToolsPlugin.getDefault().getWorkingCopyManager();
+  }
+
+  /**
+   * Eclipse StyledText becomes very slow (practically hangs) when it attempts to render a long line
+   * with many style ranges. We need to check for this and avoid creating styles.
+   * <p>
+   * https://code.google.com/p/dart/issues/detail?id=17204
+   * <p>
+   * https://bugs.eclipse.org/bugs/show_bug.cgi?id=196731
+   */
+  public static boolean isTooComplexDartDocument(IDocument document) {
+    if (document == null) {
+      return false;
+    }
+    if (document.getLength() > MAX_DOCUMENT_LENGTH) {
+      return true;
+    }
+    int numberOfLines = document.getNumberOfLines();
+    for (int i = 0; i < numberOfLines; i++) {
+      try {
+        if (document.getLineLength(i) > MAX_LINE_LENGTH) {
+          return true;
+        }
+      } catch (BadLocationException e) {
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Checks if the given Dart file will be too complex for the opening it in the Dart editor.
+   */
+  public static boolean isTooComplexDartFile(IFile resource) {
+    IPath resourceLoc = resource.getLocation();
+    if (resourceLoc == null) {
+      return false;
+    }
+    // should not be too long
+    File file = resourceLoc.toFile();
+    if (file.length() > MAX_DOCUMENT_LENGTH) {
+      return true;
+    }
+    // check line length
+    try {
+      Reader reader = new InputStreamReader(new FileInputStream(file), Charsets.UTF_8);
+      BufferedReader br = new BufferedReader(reader);
+      try {
+        String line = br.readLine();
+        if (line.length() > MAX_LINE_LENGTH) {
+          return true;
+        }
+      } finally {
+        br.close();
+      }
+    } catch (Throwable e) {
+      return true;
+    }
+    // OK
+    return false;
   }
 
   /**

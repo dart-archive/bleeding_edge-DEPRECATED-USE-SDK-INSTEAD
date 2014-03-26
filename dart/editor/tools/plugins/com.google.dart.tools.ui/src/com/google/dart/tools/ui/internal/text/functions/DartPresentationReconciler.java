@@ -13,7 +13,8 @@
  */
 package com.google.dart.tools.ui.internal.text.functions;
 
-import org.eclipse.jface.text.BadLocationException;
+import com.google.dart.tools.ui.DartUI;
+
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.TextPresentation;
@@ -49,30 +50,9 @@ public class DartPresentationReconciler extends PresentationReconciler {
 
   @Override
   protected TextPresentation createPresentation(IRegion damage, IDocument document) {
-    if (isTooComplexDartDocument(document)) {
+    if (DartUI.isTooComplexDartDocument(document)) {
       return null;
     }
     return super.createPresentation(damage, document);
-  }
-
-  /**
-   * Eclipse StyledText becomes very slow (practically hangs) when it attempts to render a long line
-   * with many style ranges. We need to check for this and avoid creating styles.
-   * <p>
-   * https://code.google.com/p/dart/issues/detail?id=17204
-   * <p>
-   * https://bugs.eclipse.org/bugs/show_bug.cgi?id=196731
-   */
-  private boolean isTooComplexDartDocument(IDocument document) {
-    int numberOfLines = document.getNumberOfLines();
-    for (int i = 0; i < numberOfLines; i++) {
-      try {
-        if (document.getLineLength(i) > 1000) {
-          return true;
-        }
-      } catch (BadLocationException e) {
-      }
-    }
-    return false;
   }
 }

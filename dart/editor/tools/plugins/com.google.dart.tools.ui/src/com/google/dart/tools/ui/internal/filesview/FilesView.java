@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.ui.internal.filesview;
 
-import com.google.common.base.Charsets;
 import com.google.dart.engine.utilities.io.FileUtilities;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.util.Extensions;
@@ -56,7 +55,6 @@ import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
@@ -106,9 +104,6 @@ import org.eclipse.ui.part.ResourceTransfer;
 import org.eclipse.ui.part.ViewPart;
 import org.eclipse.ui.views.navigator.LocalSelectionTransfer;
 
-import java.io.FileInputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -202,45 +197,6 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
       }
     }
     return true;
-  }
-
-  /**
-   * Checks if the given Dart file will be too complex for the opening it in the Dart editor.
-   */
-  private static boolean isTooComplexDartFile(IFile file) {
-    IPath fileLoc = file.getLocation();
-    if (fileLoc == null) {
-      return false;
-    }
-    try {
-      // read up to 1000 characters
-      char buf[] = new char[1000];
-      Reader reader = new InputStreamReader(new FileInputStream(fileLoc.toFile()), Charsets.UTF_8);
-      try {
-        int bufSize = 0;
-        while (bufSize < buf.length) {
-          int n = reader.read(buf, bufSize, buf.length - bufSize);
-          // too small file
-          if (n == -1) {
-            return false;
-          }
-          // update size
-          bufSize += n;
-        }
-      } finally {
-        reader.close();
-      }
-      // check if there is a line break
-      for (int i = 0; i < buf.length; i++) {
-        if (buf[i] == '\n' || buf[i] == '\r') {
-          return false;
-        }
-      }
-      // one long line, too complex
-      return true;
-    } catch (Throwable e) {
-    }
-    return false;
   }
 
   private TreeViewer treeViewer;
@@ -668,7 +624,7 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
             String editorId = IDE.getEditorDescriptor(file).getId();
             if (DartUI.ID_CU_EDITOR.equals(editorId)) {
               // Gracefully degrade by opening a simpler text editor on too complex files.
-              if (isTooComplexDartFile(file)) {
+              if (DartUI.isTooComplexDartFile(file)) {
                 instrumentation.metric("isTooComplexDartFile", true);
                 editorId = EditorsUI.DEFAULT_TEXT_EDITOR_ID;
               }
