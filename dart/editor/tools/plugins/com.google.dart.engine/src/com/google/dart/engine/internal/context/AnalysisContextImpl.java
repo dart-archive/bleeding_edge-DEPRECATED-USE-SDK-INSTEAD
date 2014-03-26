@@ -3857,6 +3857,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
    * <b>Note:</b> This method must only be invoked while we are synchronized on {@link #cacheLock}.
    */
   private void invalidateAllResolutionInformation() {
+    HashMap<Source, Source[]> oldPartMap = new HashMap<Source, Source[]>();
     for (Map.Entry<Source, SourceEntry> mapEntry : cache.entrySet()) {
       Source source = mapEntry.getKey();
       SourceEntry sourceEntry = mapEntry.getValue();
@@ -3866,13 +3867,14 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         mapEntry.setValue(htmlCopy);
       } else if (sourceEntry instanceof DartEntry) {
         DartEntry dartEntry = (DartEntry) sourceEntry;
-        removeFromParts(source, dartEntry);
+        oldPartMap.put(source, dartEntry.getValue(DartEntry.INCLUDED_PARTS));
         DartEntryImpl dartCopy = dartEntry.getWritableCopy();
         dartCopy.invalidateAllResolutionInformation();
         mapEntry.setValue(dartCopy);
         workManager.add(source, SourcePriority.UNKNOWN);
       }
     }
+    removeFromPartsUsingMap(oldPartMap);
   }
 
   /**
@@ -5049,6 +5051,36 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
           cache.remove(partSource);
         } else {
           cache.put(partSource, partCopy);
+        }
+      }
+    }
+  }
+
+  /**
+   * Remove the given libraries that are keys in the given map from the list of containing libraries
+   * for each of the parts in the corresponding value.
+   * <p>
+   * <b>Note:</b> This method must only be invoked while we are synchronized on {@link #cacheLock}.
+   * 
+   * @param oldPartMap the table containing the parts associated with each library
+   */
+  private void removeFromPartsUsingMap(HashMap<Source, Source[]> oldPartMap) {
+    for (Map.Entry<Source, Source[]> entry : oldPartMap.entrySet()) {
+      Source librarySource = entry.getKey();
+      Source[] oldParts = entry.getValue();
+      for (int i = 0; i < oldParts.length; i++) {
+        Source partSource = oldParts[i];
+        if (!partSource.equals(librarySource)) {
+          DartEntry partEntry = getReadableDartEntry(partSource);
+          if (partEntry != null) {
+            DartEntryImpl partCopy = partEntry.getWritableCopy();
+            partCopy.removeContainingLibrary(librarySource);
+            if (partCopy.getContainingLibraries().size() == 0 && !exists(partSource)) {
+              cache.remove(partSource);
+            } else {
+              cache.put(partSource, partCopy);
+            }
+          }
         }
       }
     }
