@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.debug.ui.internal.preferences;
 
+import com.google.dart.tools.core.DartCoreDebug;
+import com.google.dart.tools.core.mobile.AndroidSdkManager;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin.BreakOnExceptions;
 
@@ -29,6 +31,7 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
@@ -54,6 +57,8 @@ public class DebugPreferencePage extends PreferencePage implements IWorkbenchPre
 
   private Text browserArgumentText;
 
+  private Text androidSdkText;
+
   /**
    * Create a new preference page.
    */
@@ -78,6 +83,9 @@ public class DebugPreferencePage extends PreferencePage implements IWorkbenchPre
         browserNameText.getText().trim(),
         browserArgumentText.getText().trim());
 
+    if (DartCoreDebug.ENABLE_MOBILE) {
+      AndroidSdkManager.getManager().setSdkLocationPreference(androidSdkText.getText().trim());
+    }
     return true;
   }
 
@@ -115,7 +123,41 @@ public class DebugPreferencePage extends PreferencePage implements IWorkbenchPre
 
     createBrowserConfig(composite, labelWidth);
 
+    if (DartCoreDebug.ENABLE_MOBILE) {
+      createAndroidSdkConfig(composite, labelWidth);
+    }
+
     return composite;
+  }
+
+  private void createAndroidSdkConfig(Composite composite, int labelWidth) {
+    Group androidGroup = new Group(composite, SWT.NONE);
+    androidGroup.setText("Android SDK");
+    GridDataFactory.fillDefaults().grab(true, false).applyTo(androidGroup);
+    GridLayoutFactory.swtDefaults().numColumns(3).applyTo(androidGroup);
+    ((GridLayout) androidGroup.getLayout()).marginBottom = 5;
+
+    Label sdkLabel = new Label(androidGroup, SWT.NONE);
+    sdkLabel.setText("SDK Location:");
+    GridDataFactory.swtDefaults().hint(labelWidth, -1).applyTo(sdkLabel);
+
+    androidSdkText = new Text(androidGroup, SWT.BORDER | SWT.SINGLE);
+    GridDataFactory.swtDefaults().align(SWT.FILL, SWT.CENTER).grab(true, false).applyTo(
+        androidSdkText);
+
+    Button selectSdkButton = new Button(androidGroup, SWT.PUSH);
+    selectSdkButton.setText(DebugPreferenceMessages.DebugPreferencePage_Select);
+    PixelConverter converter = new PixelConverter(selectSdkButton);
+    int widthHint = converter.convertHorizontalDLUsToPixels(IDialogConstants.BUTTON_WIDTH);
+    GridDataFactory.swtDefaults().hint(widthHint, -1).applyTo(selectSdkButton);
+    selectSdkButton.addSelectionListener(new SelectionAdapter() {
+      @Override
+      public void widgetSelected(SelectionEvent e) {
+        handleSdkConfigBrowseButton();
+      }
+    });
+
+    androidSdkText.setText(AndroidSdkManager.getManager().getSdkLocationPreference());
   }
 
   private void createBrowserConfig(Composite composite, int labelWidth) {
@@ -180,6 +222,16 @@ public class DebugPreferencePage extends PreferencePage implements IWorkbenchPre
     }
   }
 
+  private void handleSdkConfigBrowseButton() {
+    DirectoryDialog dirDialog = new DirectoryDialog(getShell(), SWT.OPEN);
+
+    String dirPath = dirDialog.open();
+
+    if (dirPath != null) {
+      androidSdkText.setText(dirPath);
+    }
+  }
+
   private void initFromPrefs() {
     boolean useDefaultBrowser = DartDebugCorePlugin.getPlugin().getIsDefaultBrowser();
     defaultBrowserButton.setSelection(useDefaultBrowser);
@@ -188,6 +240,7 @@ public class DebugPreferencePage extends PreferencePage implements IWorkbenchPre
     setEnablement(!useDefaultBrowser);
     breakOnJSButton.setSelection(DartDebugCorePlugin.getPlugin().getBreakOnJSException());
     invokeToStringButton.setSelection(DartDebugCorePlugin.getPlugin().getInvokeToString());
+
   }
 
   private void setEnablement(boolean value) {
