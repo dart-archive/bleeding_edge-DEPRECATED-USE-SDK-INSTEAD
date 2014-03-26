@@ -136,7 +136,8 @@ public class ExitDetector extends GeneralizingAstVisitor<Boolean> {
         }
       }
     }
-    return lhsExpression.accept(this) || node.getRightOperand().accept(this);
+    Expression rhsExpression = node.getRightOperand();
+    return lhsExpression.accept(this) || (rhsExpression != null && rhsExpression.accept(this));
   }
 
   @Override
