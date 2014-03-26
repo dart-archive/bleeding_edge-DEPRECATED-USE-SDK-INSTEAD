@@ -27,7 +27,6 @@ import com.google.dart.engine.ast.visitor.NodeLocator;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.tools.core.utilities.performance.PerformanceManager;
-import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.actions.InstrumentedSelectionDispatchAction;
 import com.google.dart.tools.ui.actions.OpenAction;
@@ -80,8 +79,8 @@ public class DartElementHyperlinkDetector extends AbstractHyperlinkDetector {
       return null;
     }
 
-    // Get the associated CU (retrying if necessary)
-    CompilationUnit cu = waitForEditorInput(editor, 2000);
+    // Get the associated CU
+    CompilationUnit cu = editor.getInputUnit();
     if (cu == null) {
       return null;
     }
@@ -104,21 +103,6 @@ public class DartElementHyperlinkDetector extends AbstractHyperlinkDetector {
 
     return null;
 
-  }
-
-  private CompilationUnit waitForEditorInput(DartEditor editor, int ms) {
-
-    CompilationUnit cu = null;
-
-    long endTime = System.currentTimeMillis() + ms;
-    while (System.currentTimeMillis() < endTime) {
-      cu = editor.getInputUnit();
-      if (cu != null) {
-        return cu;
-      }
-      ExecutionUtils.sleep(5);
-    }
-    return null;
   }
 
 }
