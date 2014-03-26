@@ -305,11 +305,14 @@ public class TypeResolverVisitor extends ScopedVisitor {
   public Void visitConstructorDeclaration(ConstructorDeclaration node) {
     super.visitConstructorDeclaration(node);
     ExecutableElementImpl element = (ExecutableElementImpl) node.getElement();
-    ClassElement definingClass = (ClassElement) element.getEnclosingElement();
-    element.setReturnType(definingClass.getType());
-    FunctionTypeImpl type = new FunctionTypeImpl(element);
-    type.setTypeArguments(definingClass.getType().getTypeArguments());
-    element.setType(type);
+    if (element != null) {
+      // TODO(brianwilkerson) Figure out how the element could ever be null.
+      ClassElement definingClass = (ClassElement) element.getEnclosingElement();
+      element.setReturnType(definingClass.getType());
+      FunctionTypeImpl type = new FunctionTypeImpl(element);
+      type.setTypeArguments(definingClass.getType().getTypeArguments());
+      element.setType(type);
+    }
     return null;
   }
 
