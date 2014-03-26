@@ -87,7 +87,10 @@ public class ProjectUtils {
         CreateProjectOperation op = new CreateProjectOperation(description, "Creating project");
         try {
           op.execute(monitor, WorkspaceUndoUtil.getUIInfoAdapter(shell));
+          project.setDefaultCharset("UTF-8", null);
         } catch (ExecutionException e) {
+          throw new InvocationTargetException(e);
+        } catch (CoreException e) {
           throw new InvocationTargetException(e);
         }
       }
