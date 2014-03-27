@@ -25,7 +25,7 @@ vars.update({
   "dartium_webkit_branch": "/blink/branches/dart/1847",
   "dartium_webkit_revision": "169879",
   "bootstrap_css_rev" : "@28387",
-  "co19_rev": "@706",
+  "co19_rev": "@672",
   "gsutil_rev" : "@33376",
 })
 
