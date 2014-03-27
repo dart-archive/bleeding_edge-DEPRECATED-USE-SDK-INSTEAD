@@ -1966,11 +1966,16 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
   private boolean checkForAssignmentToFinal(Expression expression) {
     // prepare element
     Element element = null;
+    AstNode highlightedNode = expression;
     if (expression instanceof Identifier) {
       element = ((Identifier) expression).getStaticElement();
-    }
-    if (expression instanceof PropertyAccess) {
-      element = ((PropertyAccess) expression).getPropertyName().getStaticElement();
+      if (expression instanceof PrefixedIdentifier) {
+        highlightedNode = ((PrefixedIdentifier) expression).getIdentifier();
+      }
+    } else if (expression instanceof PropertyAccess) {
+      PropertyAccess propertyAccess = (PropertyAccess) expression;
+      element = propertyAccess.getPropertyName().getStaticElement();
+      highlightedNode = propertyAccess.getPropertyName();
     }
     // check if element is assignable
     if (element instanceof PropertyAccessorElement) {
@@ -1986,7 +1991,7 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
       if (variable.isFinal()) {
         errorReporter.reportErrorForNode(
             StaticWarningCode.ASSIGNMENT_TO_FINAL,
-            expression,
+            highlightedNode,
             variable.getName());
         return true;
       }
