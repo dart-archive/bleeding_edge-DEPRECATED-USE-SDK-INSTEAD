@@ -237,12 +237,34 @@ to stopDartEditor
 	end if
 end stopDartEditor
 
+(* Force the editor to quit *)
+to killDartEditor
+	if isMacOSX()
+		shell "killall DartEditor.app"
+	else if isLinux()
+		shell "killall DartEditor"
+	else
+		throw "Error" "Not implemented: killDartEditor for Windows"
+	end if
+end killDartEditor
+
+(* Force dartium to quit *)
+to killDartium
+	if isMacOSX()
+		shell "killall Dartium.app"
+	else if isLinux()
+		shell "killall Dartium"
+	else
+		throw "Error" "Not implemented: killDartium for Windows"
+	end if
+end killDartium
+
 to doKeyCmd key
 	if isMacOSX()
 		TypeText commandKey,key
 	else
 		TypeText controlKey,key
-	end if
+		end if
 end doKeyCmd
 
 to doShiftKeyCmd key
