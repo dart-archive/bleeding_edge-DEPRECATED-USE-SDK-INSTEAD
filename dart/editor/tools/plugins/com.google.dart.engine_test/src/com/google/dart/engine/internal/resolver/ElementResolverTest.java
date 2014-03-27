@@ -243,12 +243,30 @@ public class ElementResolverTest extends EngineTestCase {
   }
 
   public void test_visitBinaryExpression() throws Exception { // _found and _notFound?
+    // num i;
+    // var j;
+    // i + j
     InterfaceType numType = typeProvider.getNumType();
     SimpleIdentifier left = identifier("i");
     left.setStaticType(numType);
     BinaryExpression expression = binaryExpression(left, TokenType.PLUS, identifier("j"));
     resolveNode(expression);
     assertEquals(getMethod(numType, "+"), expression.getStaticElement());
+    assertNull(expression.getPropagatedElement());
+    listener.assertNoErrors();
+  }
+
+  public void test_visitBinaryExpression_propagatedElement() throws Exception {
+    // var i = 1;
+    // var j;
+    // i + j
+    InterfaceType numType = typeProvider.getNumType();
+    SimpleIdentifier left = identifier("i");
+    left.setPropagatedType(numType);
+    BinaryExpression expression = binaryExpression(left, TokenType.PLUS, identifier("j"));
+    resolveNode(expression);
+    assertNull(expression.getStaticElement());
+    assertEquals(getMethod(numType, "+"), expression.getPropagatedElement());
     listener.assertNoErrors();
   }
 
