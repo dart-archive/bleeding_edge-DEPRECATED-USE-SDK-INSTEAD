@@ -79,33 +79,6 @@ public class PropertySemanticProcessorTest extends SemanticProcessorTest {
         "}");
   }
 
-  public void test_field_BAD_noSetter_butCannotBeFinal() throws Exception {
-    translateSingleFile(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "package test;",
-        "public class Test {",
-        "  private int foo;",
-        "  public int getFoo() {",
-        "    return foo;",
-        "  }",
-        "  public Test(int foo) {",
-        "     this.foo = foo;",
-        "  }",
-        "  public Test(boolean bar) {",
-        "  }",
-        "}");
-    runProcessor();
-    assertFormattedSource(
-        "class Test {",
-        "  int _foo = 0;",
-        "  int get foo => _foo;",
-        "  Test.con1(int foo) {",
-        "    this._foo = foo;",
-        "  }",
-        "  Test.con2(bool bar);",
-        "}");
-  }
-
   public void test_field_BAD_notSameGetterSetterFields() throws Exception {
     translateSingleFile(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -249,7 +222,6 @@ public class PropertySemanticProcessorTest extends SemanticProcessorTest {
         "}");
   }
 
-  // XXX
   public void test_field_OK_getter_hasInitializer() throws Exception {
     translateSingleFile(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -307,6 +279,31 @@ public class PropertySemanticProcessorTest extends SemanticProcessorTest {
         "class Test {",
         "  final int foo;",
         "  Test(this.foo);",
+        "}");
+  }
+
+  public void test_field_OK_getter_withConstructor2() throws Exception {
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "public class Test {",
+        "  private int foo;",
+        "  public Test() {",
+        "    this(5);",
+        "  }",
+        "  public Test(int foo) {",
+        "    this.foo = foo;",
+        "  }",
+        "  public int getFoo() {",
+        "    return foo;",
+        "  }",
+        "}");
+    runProcessor();
+    assertFormattedSource(//
+        "class Test {",
+        "  final int foo;",
+        "  Test() : this.con1(5);",
+        "  Test.con1(this.foo);",
         "}");
   }
 
@@ -391,6 +388,55 @@ public class PropertySemanticProcessorTest extends SemanticProcessorTest {
     assertFormattedSource(//
         "class Test {",
         "  bool isFoo = false;",
+        "}");
+  }
+
+  public void test_field_OK_noGetterSetter_constructor() throws Exception {
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "public class Test {",
+        "  private int foo;",
+        "  public int getBar() {",
+        "    return foo + 1;",
+        "  }",
+        "  public Test(int foo) {",
+        "     this.foo = foo;",
+        "     int baz = foo;",
+        "  }",
+        "}");
+    runProcessor();
+    assertFormattedSource(
+        "class Test {",
+        "  final int _foo;",
+        "  int get bar => _foo + 1;",
+        "  Test(this._foo) {",
+        "    int baz = _foo;",
+        "  }",
+        "}");
+  }
+
+  public void test_field_OK_noSetter_constructor() throws Exception {
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "public class Test {",
+        "  private int foo;",
+        "  public int getFoo() {",
+        "    return foo;",
+        "  }",
+        "  public Test(int foo) {",
+        "     this.foo = foo;",
+        "  }",
+        "  public Test(boolean bar) {",
+        "  }",
+        "}");
+    runProcessor();
+    assertFormattedSource(
+        "class Test {",
+        "  final int foo;",
+        "  Test.con1(this.foo);",
+        "  Test.con2(bool bar);",
         "}");
   }
 

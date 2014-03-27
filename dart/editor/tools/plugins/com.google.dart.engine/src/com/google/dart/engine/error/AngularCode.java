@@ -19,15 +19,14 @@ package com.google.dart.engine.error;
 public enum AngularCode implements ErrorCode {
   CANNOT_PARSE_SELECTOR("The selector '%s' cannot be parsed"),
   INVALID_PROPERTY_KIND(
-      "Unknown property binding kind '%s', use one of the '@', '=>', '=>!' or '<=>'",
-      ErrorSeverity.ERROR),
+      "Unknown property binding kind '%s', use one of the '@', '=>', '=>!' or '<=>'"),
   INVALID_PROPERTY_FIELD("Unknown property field '%s'"),
   INVALID_PROPERTY_MAP("Argument 'map' must be a constant map literal"),
   INVALID_PROPERTY_NAME("Property name must be a string literal"),
   INVALID_PROPERTY_SPEC("Property binding specification must be a string literal"),
   INVALID_REPEAT_SYNTAX("Expected statement in form '_item_ in _collection_ [tracked by _id_]'"),
   INVALID_REPEAT_ITEM_SYNTAX("Item must by identifier or in '(_key_, _value_)' pair."),
-  INVALID_URI("Invalid URI syntax: '%s'", ErrorSeverity.ERROR),
+  INVALID_URI("Invalid URI syntax: '%s'"),
   MISSING_FILTER_COLON("Missing ':' before filter argument"),
   MISSING_NAME("Argument 'name' must be provided"),
   MISSING_PUBLISH_AS("Argument 'publishAs' must be provided"),
@@ -40,28 +39,12 @@ public enum AngularCode implements ErrorCode {
   private final String message;
 
   /**
-   * The severity of the problem.
-   */
-  private final ErrorSeverity severity;
-
-  /**
    * Initialize a newly created error code to have the given message.
    * 
    * @param message the message template used to create the message to be displayed for the error
    */
   private AngularCode(String message) {
-    this(message, ErrorSeverity.WARNING);
-  }
-
-  /**
-   * Initialize a newly created error code to have the given message.
-   * 
-   * @param message the message template used to create the message to be displayed for the error
-   * @param severity the severity of the problem
-   */
-  private AngularCode(String message, ErrorSeverity severity) {
     this.message = message;
-    this.severity = ErrorSeverity.INFO; //severity;
   }
 
   @Override
@@ -71,7 +54,7 @@ public enum AngularCode implements ErrorCode {
 
   @Override
   public ErrorSeverity getErrorSeverity() {
-    return severity;
+    return ErrorSeverity.INFO;
   }
 
   @Override

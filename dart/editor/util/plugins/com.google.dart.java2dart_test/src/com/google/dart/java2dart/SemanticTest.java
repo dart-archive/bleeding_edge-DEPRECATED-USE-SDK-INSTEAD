@@ -432,7 +432,6 @@ public class SemanticTest extends AbstractSemanticTest {
     context.addSourceFiles(tmpFolder);
     // do translate
     translate();
-    printFormattedSource(unit);
     assertEquals(
         toString(
             "class A {",
@@ -906,17 +905,17 @@ public class SemanticTest extends AbstractSemanticTest {
     assertEquals(
         toString(
             "class Test extends Enum<Test> {",
-            "  static final Test EOF = new Test_EOF('EOF', 0, 5);",
-            "  static final Test DEF = new Test.con1('DEF', 1);",
-            "  static final List<Test> values = [EOF, DEF];",
-            "  Test.con1(String name, int ordinal) : super(name, ordinal);",
-            "  Test.con2(String name, int ordinal, int p) : super(name, ordinal);",
+            "  static const Test EOF = const Test_EOF('EOF', 0, 5);",
+            "  static const Test DEF = const Test.con1('DEF', 1);",
+            "  static const List<Test> values = const [EOF, DEF];",
+            "  const Test.con1(String name, int ordinal) : super(name, ordinal);",
+            "  const Test.con2(String name, int ordinal, int p) : super(name, ordinal);",
             "  void foo() {",
             "    print(1);",
             "  }",
             "}",
             "class Test_EOF extends Test {",
-            "  Test_EOF(String name, int ordinal, int arg0) : super.con2(name, ordinal, arg0);",
+            "  const Test_EOF(String name, int ordinal, int arg0) : super.con2(name, ordinal, arg0);",
             "  void foo() {",
             "    print(2);",
             "  }",
@@ -943,10 +942,10 @@ public class SemanticTest extends AbstractSemanticTest {
             "class Test {",
             "}",
             "class MyEnum extends Enum<MyEnum> {",
-            "  static final MyEnum ONE = new MyEnum('ONE', 0);",
-            "  static final MyEnum TWO = new MyEnum('TWO', 1);",
-            "  static final List<MyEnum> values = [ONE, TWO];",
-            "  MyEnum(String name, int ordinal) : super(name, ordinal);",
+            "  static const MyEnum ONE = const MyEnum('ONE', 0);",
+            "  static const MyEnum TWO = const MyEnum('TWO', 1);",
+            "  static const List<MyEnum> values = const [ONE, TWO];",
+            "  const MyEnum(String name, int ordinal) : super(name, ordinal);",
             "}"),
         getFormattedSource(unit));
   }
@@ -966,10 +965,10 @@ public class SemanticTest extends AbstractSemanticTest {
     assertEquals(
         toString(
             "class Test extends Enum<Test> {",
-            "  static final Test ONE = new Test('ONE', 0);",
-            "  static final Test TWO = new Test('TWO', 1);",
-            "  static final List<Test> values = [ONE, TWO];",
-            "  Test(String name, int ordinal) : super(name, ordinal);",
+            "  static const Test ONE = const Test('ONE', 0);",
+            "  static const Test TWO = const Test('TWO', 1);",
+            "  static const List<Test> values = const [ONE, TWO];",
+            "  const Test(String name, int ordinal) : super(name, ordinal);",
             "}"),
         getFormattedSource(unit));
   }
@@ -995,11 +994,11 @@ public class SemanticTest extends AbstractSemanticTest {
     assertEquals(
         toString(
             "class Test extends Enum<Test> {",
-            "  static final Test ONE = new Test.con1('ONE', 0);",
-            "  static final Test TWO = new Test.con2('TWO', 1, 2);",
-            "  static final List<Test> values = [ONE, TWO];",
-            "  Test.con1(String name, int ordinal) : this.con2(name, ordinal, 0);",
-            "  Test.con2(String name, int ordinal, int p) : super(name, ordinal) {",
+            "  static const Test ONE = const Test.con1('ONE', 0);",
+            "  static const Test TWO = const Test.con2('TWO', 1, 2);",
+            "  static const List<Test> values = const [ONE, TWO];",
+            "  const Test.con1(String name, int ordinal) : this.con2(name, ordinal, 0);",
+            "  const Test.con2(String name, int ordinal, int p) : super(name, ordinal) {",
             "    print(p);",
             "  }",
             "}"),
@@ -1879,10 +1878,10 @@ public class SemanticTest extends AbstractSemanticTest {
     assertEquals(
         toString(
             "class A extends Enum<A> {",
-            "  static final A ONE = new A('ONE', 0);",
-            "  static final A TWO = new A('TWO', 1);",
-            "  static final List<A> values = [ONE, TWO];",
-            "  A(String name, int ordinal) : super(name, ordinal);",
+            "  static const A ONE = const A('ONE', 0);",
+            "  static const A TWO = const A('TWO', 1);",
+            "  static const List<A> values = const [ONE, TWO];",
+            "  const A(String name, int ordinal) : super(name, ordinal);",
             "}",
             "class B {",
             "  void main(A p) {",

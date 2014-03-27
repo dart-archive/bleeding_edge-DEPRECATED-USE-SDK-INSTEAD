@@ -62,7 +62,7 @@ public class GatheringErrorListener implements AnalysisErrorListener {
    * Initialize a newly created error listener to collect errors.
    */
   public GatheringErrorListener() {
-    super();
+    this(null);
   }
 
   /**

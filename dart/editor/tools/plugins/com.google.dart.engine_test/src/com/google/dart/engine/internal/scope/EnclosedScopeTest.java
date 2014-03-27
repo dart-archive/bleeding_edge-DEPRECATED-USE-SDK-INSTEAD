@@ -27,11 +27,11 @@ import static com.google.dart.engine.element.ElementFactory.localVariableElement
 
 public class EnclosedScopeTest extends ResolverTestCase {
   public void test_define_duplicate() {
-    final GatheringErrorListener errorListener = new GatheringErrorListener();
+    final GatheringErrorListener listener = new GatheringErrorListener();
     Scope rootScope = new Scope() {
       @Override
       public AnalysisErrorListener getErrorListener() {
-        return errorListener;
+        return listener;
       }
 
       @Override
@@ -44,15 +44,15 @@ public class EnclosedScopeTest extends ResolverTestCase {
     VariableElement element2 = localVariableElement(identifier("v1"));
     scope.define(element1);
     scope.define(element2);
-    errorListener.assertErrorsWithSeverities(ErrorSeverity.ERROR);
+    listener.assertErrorsWithSeverities(ErrorSeverity.ERROR);
   }
 
   public void test_define_normal() {
-    final GatheringErrorListener errorListener = new GatheringErrorListener();
+    final GatheringErrorListener listener = new GatheringErrorListener();
     Scope rootScope = new Scope() {
       @Override
       public AnalysisErrorListener getErrorListener() {
-        return errorListener;
+        return listener;
       }
 
       @Override
@@ -66,6 +66,6 @@ public class EnclosedScopeTest extends ResolverTestCase {
     VariableElement element2 = localVariableElement(identifier("v2"));
     outerScope.define(element1);
     innerScope.define(element2);
-    errorListener.assertNoErrors();
+    listener.assertNoErrors();
   }
 }

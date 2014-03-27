@@ -864,7 +864,7 @@ public enum StaticWarningCode implements ErrorCode {
    * @param message the message template used to create the message to be displayed for the error
    */
   private StaticWarningCode(String message) {
-    this.message = message;
+    this(message, null);
   }
 
   /**

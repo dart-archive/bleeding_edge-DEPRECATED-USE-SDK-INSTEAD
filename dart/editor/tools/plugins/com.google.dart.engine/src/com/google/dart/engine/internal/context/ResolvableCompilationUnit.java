@@ -35,7 +35,7 @@ public class ResolvableCompilationUnit extends TimestampedData<CompilationUnit> 
    * @param unit the AST that was created from the source
    */
   public ResolvableCompilationUnit(long modificationTime, CompilationUnit unit) {
-    super(modificationTime, unit);
+    this(modificationTime, unit, null);
   }
 
   /**

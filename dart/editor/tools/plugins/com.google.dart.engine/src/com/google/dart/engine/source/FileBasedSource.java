@@ -180,7 +180,7 @@ public class FileBasedSource implements Source {
    * @throws Exception if the contents of this source could not be accessed
    * @see #getContents()
    */
-  @DartBlockBody({"return new TimestampedData<String>(_file.lastModified(), _file.readAsStringSync());"})
+  @DartBlockBody({"return new TimestampedData<String>(file.lastModified(), file.readAsStringSync());"})
   protected TimestampedData<CharSequence> getContentsFromFile() throws Exception {
     String contents;
     long modificationTime = file.lastModified();

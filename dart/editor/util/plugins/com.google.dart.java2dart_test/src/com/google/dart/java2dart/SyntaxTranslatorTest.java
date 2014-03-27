@@ -322,8 +322,8 @@ public class SyntaxTranslatorTest extends AbstractSemanticTest {
         "abstract class I {",
         "}",
         "class Direction extends Enum<Direction> implements I {",
-        "  static final List<Direction> values = [];",
-        "  Direction.jtd_constructor_0_decl(String name, int ordinal) : super(name, ordinal) {",
+        "  static const List<Direction> values = const [];",
+        "  const Direction.jtd_constructor_0_decl(String name, int ordinal) : super(name, ordinal) {",
         "  }",
         "}");
   }

@@ -1255,7 +1255,7 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * @param message the message template used to create the message to be displayed for the error
    */
   private CompileTimeErrorCode(String message) {
-    this.message = message;
+    this(message, null);
   }
 
   /**

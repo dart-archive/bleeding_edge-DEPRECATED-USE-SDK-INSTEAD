@@ -25,6 +25,7 @@ import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.ClassMember;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.ConstructorDeclaration;
+import com.google.dart.engine.ast.EmptyFunctionBody;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.ExpressionFunctionBody;
 import com.google.dart.engine.ast.ExpressionStatement;
@@ -79,6 +80,7 @@ public class PropertySemanticProcessor extends SemanticProcessor {
     VariableDeclaration setterField;
     VariableDeclaration field;
     SimpleIdentifier fieldName;
+    String fieldFormalParameterName;
     List<SimpleIdentifier> fieldAssignmentReferences;
 
     public FieldPropertyInfo(ClassDeclaration clazz, String name) {
@@ -89,10 +91,14 @@ public class PropertySemanticProcessor extends SemanticProcessor {
 
   public static final String KEY_ORIGINAL_PARAMETER = "original-formal-parameter";
 
-  private static int getNumConstructors(ClassDeclaration classDeclaration) {
+  private static int getNumConstructorsWithBody(ClassDeclaration classDeclaration) {
     int numConstructors = 0;
     for (ClassMember member : classDeclaration.getMembers()) {
       if (member instanceof ConstructorDeclaration) {
+        ConstructorDeclaration constructor = (ConstructorDeclaration) member;
+        if (constructor.getBody() instanceof EmptyFunctionBody) {
+          continue;
+        }
         numConstructors++;
       }
     }
@@ -178,7 +184,7 @@ public class PropertySemanticProcessor extends SemanticProcessor {
     MethodDeclaration setter = property.setter;
     VariableDeclaration field = property.field;
     SimpleIdentifier fieldName = property.fieldName;
-    int numConstructors = getNumConstructors(property.clazz);
+    int numConstructors = getNumConstructorsWithBody(property.clazz);
     // analyze field assignments
     boolean canBeFinal;
     {
@@ -241,6 +247,48 @@ public class PropertySemanticProcessor extends SemanticProcessor {
     });
   }
 
+  public void convertToFinalFields(CompilationUnit unit) {
+    unit.accept(new RecursiveAstVisitor<Void>() {
+      @Override
+      public Void visitClassDeclaration(ClassDeclaration node) {
+        NodeList<ClassMember> members = node.getMembers();
+        for (ClassMember member : members) {
+          if (member instanceof FieldDeclaration) {
+            FieldDeclaration fieldDeclaration = (FieldDeclaration) member;
+            VariableDeclaration field = fieldDeclaration.getFields().getVariables().get(0);
+            processField(node, field);
+          }
+        }
+        return null;
+      }
+
+      private void processField(ClassDeclaration node, VariableDeclaration field) {
+        SimpleIdentifier fieldNameNode = field.getName();
+        String fieldName = fieldNameNode.getName();
+        if (!fieldName.startsWith("_")) {
+          return;
+        }
+        String propertyName = fieldName.substring(1);
+        // prepare property
+        FieldPropertyInfo property = new FieldPropertyInfo(node, propertyName);
+        property.fieldName = fieldNameNode;
+        property.fieldFormalParameterName = fieldName;
+        int numConstructors = getNumConstructorsWithBody(property.clazz);
+        // analyze field assignments
+        getAssignmentReferencesInConstructors(property);
+        List<SimpleIdentifier> references = property.fieldAssignmentReferences;
+        if (references == null || numConstructors == 0 || references.size() != numConstructors) {
+          return;
+        }
+        // convert to "this.property" in constructors
+        convertToFieldFormalInitializers(property, references);
+        // update field
+        ((VariableDeclarationList) field.getParent()).setKeyword(token(Keyword.FINAL));
+        field.setInitializer(null);
+      }
+    });
+  }
+
   @Override
   public void process(CompilationUnit unit) {
     convertGettersSetters(unit);
@@ -248,6 +296,7 @@ public class PropertySemanticProcessor extends SemanticProcessor {
       return;
     }
     convertToFields(unit);
+    convertToFinalFields(unit);
   }
 
   /**
@@ -342,10 +391,6 @@ public class PropertySemanticProcessor extends SemanticProcessor {
 
   private void convertToFieldFormalInitializers(FieldPropertyInfo property,
       List<SimpleIdentifier> references) {
-    // FIXME(scheglov) disabled for now, see https://code.google.com/p/dart/issues/detail?id=17495
-    if (true) {
-      return;
-    }
     for (SimpleIdentifier reference : references) {
       // prepare constructor
       ConstructorDeclaration constructor = reference.getAncestor(ConstructorDeclaration.class);
@@ -356,6 +401,9 @@ public class PropertySemanticProcessor extends SemanticProcessor {
           SimpleFormalParameter simpleParameter = (SimpleFormalParameter) parameter;
           SimpleIdentifier parameterName = simpleParameter.getIdentifier();
           if (parameterName.getName().equals(property.name)) {
+            if (property.fieldFormalParameterName != null) {
+              context.renameIdentifier(parameterName, property.fieldFormalParameterName);
+            }
             FormalParameter ffp = fieldFormalParameter(null, null, parameterName);
             ffp.setProperty(KEY_ORIGINAL_PARAMETER, parameter);
             replaceNode(simpleParameter, ffp);

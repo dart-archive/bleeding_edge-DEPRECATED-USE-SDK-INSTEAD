@@ -531,9 +531,10 @@ public class Context {
    * Remembers that "identifier" is reference to the given Java binding.
    */
   public void putReference(SimpleIdentifier identifier, IBinding binding, String bindingSignature) {
+    String name = identifier.getName();
     if (binding != null) {
       signatureToBinding.put(bindingSignature, binding);
-      identifierToName.put(identifier, identifier.getName());
+      identifierToName.put(identifier, name);
       // remember binding for reference
       nodeToBinding.put(identifier, binding);
       // add reference to binding
@@ -545,7 +546,7 @@ public class Context {
       identifiers.add(identifier);
     }
     // remember global name
-    usedNames.add(identifier.getName());
+    usedNames.add(name);
   }
 
   /**

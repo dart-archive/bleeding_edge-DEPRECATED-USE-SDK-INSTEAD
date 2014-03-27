@@ -703,14 +703,14 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
       }
       InstanceCreationExpression init;
       if (innerClassName == null) {
-        init = instanceCreationExpression(Keyword.NEW, typeName(enumTypeName), argList);
+        init = instanceCreationExpression(Keyword.CONST, typeName(enumTypeName), argList);
         context.getConstructorDescription(constructorBinding).instanceCreations.add(init);
       } else {
-        init = instanceCreationExpression(Keyword.NEW, typeName(innerClassName), argList);
+        init = instanceCreationExpression(Keyword.CONST, typeName(innerClassName), argList);
       }
       variables.add(variableDeclaration(fieldName, init));
     }
-    return done(fieldDeclaration(translateJavadoc(node), true, Keyword.FINAL, type, variables));
+    return done(fieldDeclaration(translateJavadoc(node), true, Keyword.CONST, type, variables));
   }
 
   @Override
@@ -743,9 +743,9 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
       // values
       members.add(fieldDeclaration(
           true,
-          Keyword.FINAL,
+          Keyword.CONST,
           listType(typeName(name), 1),
-          variableDeclaration("values", listLiteral(valuesList))));
+          variableDeclaration("values", listLiteral(Keyword.CONST, null, valuesList))));
       // body declarations
       boolean hasConstructor = false;
       for (Iterator<?> I = node.bodyDeclarations().iterator(); I.hasNext();) {
@@ -1747,6 +1747,9 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
           parameterList,
           ImmutableList.<ConstructorInitializer> of(superCI),
           emptyFunctionBody());
+      if (superTypeBinding.isEnum()) {
+        innerConstructor.setConstKeyword(token(Keyword.CONST));
+      }
       innerClass.getMembers().add(innerConstructor);
     }
     for (Object javaBodyDeclaration : anoClassDeclaration.bodyDeclarations()) {
@@ -2125,6 +2128,9 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
         parameterList,
         initializers,
         body);
+    if (isEnumConstructor) {
+      constructor.setConstKeyword(token(Keyword.CONST));
+    }
     context.putConstructorBinding(constructor, binding);
     translateAnnotations(constructor, node.modifiers());
     return done(constructor);

@@ -27,7 +27,8 @@ public enum HintCode implements ErrorCode {
    * @param expectedType the name of the expected type
    * @see StaticWarningCode#ARGUMENT_TYPE_NOT_ASSIGNABLE
    */
-  ARGUMENT_TYPE_NOT_ASSIGNABLE(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE.getMessage()),
+  ARGUMENT_TYPE_NOT_ASSIGNABLE(
+      "The argument type '%s' cannot be assigned to the parameter type '%s'"),
 
   /**
    * Dead code is code that is never reached, this can happen for instance if a statement follows a
@@ -157,7 +158,7 @@ public enum HintCode implements ErrorCode {
    * @see StaticTypeWarningCode#UNDEFINED_GETTER
    * @see StaticWarningCode#UNDEFINED_GETTER
    */
-  UNDEFINED_GETTER(StaticTypeWarningCode.UNDEFINED_GETTER.getMessage()),
+  UNDEFINED_GETTER("There is no such getter '%s' in '%s'"),
 
   /**
    * This hint is generated anywhere where the {@link StaticTypeWarningCode#UNDEFINED_METHOD} would
@@ -167,7 +168,7 @@ public enum HintCode implements ErrorCode {
    * @param typeName the resolved type name that the method lookup is happening on
    * @see StaticTypeWarningCode#UNDEFINED_METHOD
    */
-  UNDEFINED_METHOD(StaticTypeWarningCode.UNDEFINED_METHOD.getMessage()),
+  UNDEFINED_METHOD("The method '%s' is not defined for the class '%s'"),
 
   /**
    * This hint is generated anywhere where the {@link StaticTypeWarningCode#UNDEFINED_OPERATOR}
@@ -177,7 +178,7 @@ public enum HintCode implements ErrorCode {
    * @param enclosingType the name of the enclosing type where the operator is being looked for
    * @see StaticTypeWarningCode#UNDEFINED_OPERATOR
    */
-  UNDEFINED_OPERATOR(StaticTypeWarningCode.UNDEFINED_OPERATOR.getMessage()),
+  UNDEFINED_OPERATOR("There is no such operator '%s' in '%s'"),
 
   /**
    * This hint is generated anywhere where the {@link StaticTypeWarningCode#UNDEFINED_SETTER} or
@@ -189,7 +190,7 @@ public enum HintCode implements ErrorCode {
    * @see StaticTypeWarningCode#UNDEFINED_SETTER
    * @see StaticWarningCode#UNDEFINED_SETTER
    */
-  UNDEFINED_SETTER(StaticTypeWarningCode.UNDEFINED_SETTER.getMessage()),
+  UNDEFINED_SETTER("There is no such setter '%s' in '%s'"),
 
   /**
    * Unnecessary cast.
@@ -236,7 +237,7 @@ public enum HintCode implements ErrorCode {
    * @param message the message template used to create the message to be displayed for the error
    */
   private HintCode(String message) {
-    this.message = message;
+    this(message, null);
   }
 
   /**
