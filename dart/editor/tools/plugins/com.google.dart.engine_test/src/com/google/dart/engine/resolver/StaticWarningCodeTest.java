@@ -1762,6 +1762,25 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_mixedReturnTypes_factoryConstructor() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  factory A(int x) {",
+        "    if (x < 0) {",
+        "      return new A (0);",
+        "    }",
+        "    return;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(
+        source,
+        StaticWarningCode.MIXED_RETURN_TYPES,
+        StaticWarningCode.MIXED_RETURN_TYPES,
+        StaticWarningCode.RETURN_WITHOUT_VALUE);
+    verify(source);
+  }
+
   public void test_mixedReturnTypes_localFunction() throws Exception {
     Source source = addSource(createSource(//
         "class C {",
