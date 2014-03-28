@@ -21,7 +21,25 @@ import java.net.URI;
 
 /**
  * The interface {@code Source} defines the behavior of objects representing source code that can be
- * compiled.
+ * analyzed by the analysis engine.
+ * <p>
+ * Implementations of this interface need to be aware of some assumptions made by the analysis
+ * engine concerning sources:
+ * <ul>
+ * <li>Sources are not required to be unique. That is, there can be multiple instances representing
+ * the same source.</li>
+ * <li>Sources are long lived. That is, the engine is allowed to hold on to a source for an extended
+ * period of time and that source must continue to report accurate and up-to-date information.</li>
+ * </ul>
+ * Because of these assumptions, most implementations will not maintain any state but will delegate
+ * to an authoritative system of record in order to implement this API. For example, a source that
+ * represents files on disk would typically query the file system to determine the state of the
+ * file.
+ * <p>
+ * If the instances that implement this API are the system of record, then they will typically be
+ * unique. In that case, sources that are created that represent non-existent files must also be
+ * retained so that if those files are created at a later date the long-lived sources representing
+ * those files will know that they now exist.
  * 
  * @coverage dart.engine.source
  */

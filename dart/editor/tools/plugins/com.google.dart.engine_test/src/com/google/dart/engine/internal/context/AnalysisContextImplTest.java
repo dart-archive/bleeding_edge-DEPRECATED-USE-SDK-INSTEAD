@@ -202,15 +202,21 @@ public class AnalysisContextImplTest extends EngineTestCase {
         "import 'libB.dart';"));
     Source libB = addSource("/libB.dart", createSource(//
         "library libB;"));
-    context.computeLibraryElement(libA);
+    LibraryElement libAElement = context.computeLibraryElement(libA);
+    LibraryElement[] importedLibraries = libAElement.getImportedLibraries();
+    assertLength(2, importedLibraries);
     context.computeErrors(libA);
     context.computeErrors(libB);
     assertSizeOfList(0, context.getSourcesNeedingProcessing());
-
+    context.setContents(libB, null);
     removeSource(libB);
     List<Source> sources = context.getSourcesNeedingProcessing();
     assertSizeOfList(1, sources);
     assertSame(libA, sources.get(0));
+
+    libAElement = context.computeLibraryElement(libA);
+    importedLibraries = libAElement.getImportedLibraries();
+    assertLength(1, importedLibraries);
   }
 
   public void test_applyChanges_removeContainer() throws Exception {

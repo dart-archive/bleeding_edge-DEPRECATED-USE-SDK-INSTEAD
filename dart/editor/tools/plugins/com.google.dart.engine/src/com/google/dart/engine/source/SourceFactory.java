@@ -138,9 +138,9 @@ public class SourceFactory {
 
   /**
    * Return a source object representing the URI that results from resolving the given (possibly
-   * relative) contained URI against the URI associated with an existing source object, or
-   * {@code null} if either the contained URI is invalid or if it cannot be resolved against the
-   * source object's URI.
+   * relative) contained URI against the URI associated with an existing source object, whether or
+   * not the resulting source exists, or {@code null} if either the contained URI is invalid or if
+   * it cannot be resolved against the source object's URI.
    * 
    * @param containingSource the source containing the given URI
    * @param containedUri the (possibly relative) URI to be resolved against the containing source
@@ -159,10 +159,11 @@ public class SourceFactory {
   }
 
   /**
-   * Return an absolute URI that represents the given source.
+   * Return an absolute URI that represents the given source, or {@code null} if a valid URI cannot
+   * be computed.
    * 
    * @param source the source to get URI for
-   * @return the absolute URI representing the given source, may be {@code null}
+   * @return the absolute URI representing the given source
    */
   public URI restoreUri(Source source) {
     for (UriResolver resolver : resolvers) {
