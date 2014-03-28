@@ -21,6 +21,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.dart.engine.ast.ArgumentList;
 import com.google.dart.engine.ast.AsExpression;
+import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.ClassDeclaration;
@@ -32,6 +33,7 @@ import com.google.dart.engine.ast.ConstructorInitializer;
 import com.google.dart.engine.ast.ConstructorName;
 import com.google.dart.engine.ast.Directive;
 import com.google.dart.engine.ast.Expression;
+import com.google.dart.engine.ast.ExpressionStatement;
 import com.google.dart.engine.ast.FieldDeclaration;
 import com.google.dart.engine.ast.FunctionBody;
 import com.google.dart.engine.ast.Identifier;
@@ -45,6 +47,7 @@ import com.google.dart.engine.ast.NamespaceDirective;
 import com.google.dart.engine.ast.ParenthesizedExpression;
 import com.google.dart.engine.ast.PartDirective;
 import com.google.dart.engine.ast.PrefixedIdentifier;
+import com.google.dart.engine.ast.ReturnStatement;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.SimpleStringLiteral;
 import com.google.dart.engine.ast.TypeName;
@@ -76,7 +79,9 @@ import com.google.dart.engine.error.ErrorProperty;
 import com.google.dart.engine.error.HintCode;
 import com.google.dart.engine.error.StaticTypeWarningCode;
 import com.google.dart.engine.error.StaticWarningCode;
+import com.google.dart.engine.internal.type.VoidTypeImpl;
 import com.google.dart.engine.parser.ParserErrorCode;
+import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.sdk.SdkLibrary;
 import com.google.dart.engine.services.assist.AssistContext;
@@ -1456,8 +1461,19 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
    * @return the possible return {@link Type}, may be <code>null</code> if can not be identified.
    */
   private Type addFix_undefinedMethod_create_getReturnType(MethodInvocation invocation) {
-    if (invocation.getParent() instanceof VariableDeclaration) {
-      VariableDeclaration variableDeclaration = (VariableDeclaration) invocation.getParent();
+    AstNode parent = invocation.getParent();
+    // myFunction();
+    if (parent instanceof ExpressionStatement) {
+      return VoidTypeImpl.getInstance();
+    }
+    // return myFunction();
+    if (parent instanceof ReturnStatement) {
+      ExecutableElement executable = CorrectionUtils.getEnclosingExecutableElement(invocation);
+      return executable != null ? executable.getReturnType() : null;
+    }
+    // int v = myFunction();
+    if (parent instanceof VariableDeclaration) {
+      VariableDeclaration variableDeclaration = (VariableDeclaration) parent;
       if (variableDeclaration.getInitializer() == invocation) {
         VariableElement variableElement = variableDeclaration.getElement();
         if (variableElement != null) {
@@ -1465,6 +1481,45 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
         }
       }
     }
+    // v = myFunction();
+    if (parent instanceof AssignmentExpression) {
+      AssignmentExpression assignment = (AssignmentExpression) parent;
+      if (assignment.getRightHandSide() == invocation) {
+        if (assignment.getOperator().getType() == TokenType.EQ) {
+          // v = myFunction();
+          Expression lhs = assignment.getLeftHandSide();
+          if (lhs != null) {
+            return lhs.getBestType();
+          }
+        } else {
+          // v += myFunction();
+          MethodElement method = assignment.getBestElement();
+          if (method != null) {
+            ParameterElement[] parameters = method.getParameters();
+            if (parameters.length == 1) {
+              return parameters[0].getType();
+            }
+          }
+        }
+      }
+    }
+    // v + myFunction();
+    if (parent instanceof BinaryExpression) {
+      BinaryExpression binary = (BinaryExpression) parent;
+      MethodElement method = binary.getBestElement();
+      if (method != null) {
+        if (binary.getRightOperand() == invocation) {
+          ParameterElement[] parameters = method.getParameters();
+          return parameters.length == 1 ? parameters[0].getType() : null;
+        }
+      }
+    }
+    // foo( myFunction() );
+    if (parent instanceof ArgumentList) {
+      ParameterElement parameter = invocation.getBestParameterElement();
+      return parameter != null ? parameter.getType() : null;
+    }
+    // we don't know
     return null;
   }
 

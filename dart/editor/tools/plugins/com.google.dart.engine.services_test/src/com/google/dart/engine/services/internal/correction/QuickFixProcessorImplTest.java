@@ -1643,6 +1643,152 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
             ""));
   }
 
+  public void test_undefinedFunction_create_returnType_fromAssignment_eq() throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  int v;",
+        "  v = myUndefinedFunction();",
+        "}",
+        "");
+    assert_runProcessor(
+        CorrectionKind.QF_CREATE_FUNCTION,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "main() {",
+            "  int v;",
+            "  v = myUndefinedFunction();",
+            "}",
+            "",
+            "int myUndefinedFunction() {",
+            "}",
+            ""));
+  }
+
+  public void test_undefinedFunction_create_returnType_fromAssignment_plusEq() throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  int v;",
+        "  v += myUndefinedFunction();",
+        "}",
+        "");
+    assert_runProcessor(
+        CorrectionKind.QF_CREATE_FUNCTION,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "main() {",
+            "  int v;",
+            "  v += myUndefinedFunction();",
+            "}",
+            "",
+            "num myUndefinedFunction() {",
+            "}",
+            ""));
+  }
+
+  public void test_undefinedFunction_create_returnType_fromBinary_right() throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  0 + myUndefinedFunction();",
+        "}",
+        "");
+    assert_runProcessor(
+        CorrectionKind.QF_CREATE_FUNCTION,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "main() {",
+            "  0 + myUndefinedFunction();",
+            "}",
+            "",
+            "num myUndefinedFunction() {",
+            "}",
+            ""));
+  }
+
+  public void test_undefinedFunction_create_returnType_fromInitializer() throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  int v = myUndefinedFunction();",
+        "}",
+        "");
+    assert_runProcessor(
+        CorrectionKind.QF_CREATE_FUNCTION,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "main() {",
+            "  int v = myUndefinedFunction();",
+            "}",
+            "",
+            "int myUndefinedFunction() {",
+            "}",
+            ""));
+  }
+
+  public void test_undefinedFunction_create_returnType_fromInvocationArgument() throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "foo(int p) {}",
+        "main() {",
+        "  foo( myUndefinedFunction() );",
+        "}",
+        "");
+    assert_runProcessor(
+        CorrectionKind.QF_CREATE_FUNCTION,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "foo(int p) {}",
+            "main() {",
+            "  foo( myUndefinedFunction() );",
+            "}",
+            "",
+            "int myUndefinedFunction() {",
+            "}",
+            ""));
+  }
+
+  public void test_undefinedFunction_create_returnType_fromReturn() throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "int main() {",
+        "  return myUndefinedFunction();",
+        "}",
+        "");
+    assert_runProcessor(
+        CorrectionKind.QF_CREATE_FUNCTION,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "int main() {",
+            "  return myUndefinedFunction();",
+            "}",
+            "",
+            "int myUndefinedFunction() {",
+            "}",
+            ""));
+  }
+
+  public void test_undefinedFunction_create_returnType_void() throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  myUndefinedFunction();",
+        "}",
+        "");
+    assert_runProcessor(
+        CorrectionKind.QF_CREATE_FUNCTION,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "main() {",
+            "  myUndefinedFunction();",
+            "}",
+            "",
+            "void myUndefinedFunction() {",
+            "}",
+            ""));
+  }
+
   public void test_undefinedFunction_useSimilar_fromImport() throws Exception {
     prepareProblemWithFix(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -1689,7 +1835,7 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
         makeSource(
             "// filler filler filler filler filler filler filler filler filler filler",
             "class A {",
-            "  static myUndefinedMethod() {",
+            "  static void myUndefinedMethod() {",
             "  }",
             "}",
             "main() {",
@@ -1715,7 +1861,7 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
             "class A {",
             "  foo() {}",
             "  ",
-            "  static myUndefinedMethod() {",
+            "  static void myUndefinedMethod() {",
             "  }",
             "}",
             "main() {",
@@ -1749,7 +1895,7 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
         makeSource(
             "// filler filler filler filler filler filler filler filler filler filler",
             "class A {",
-            "  myUndefinedMethod() {",
+            "  void myUndefinedMethod() {",
             "  }",
             "}",
             "main() {",
@@ -1761,6 +1907,7 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
     {
       Map<String, List<SourceRange>> expected = Maps.newHashMap();
       expected.put("NAME", getResultRanges("myUndefinedMethod();", "myUndefinedMethod() {"));
+      expected.put("RETURN_TYPE", getResultRanges("void myUndefinedMethod()"));
       assertEquals(expected, resultProposal.getLinkedPositions());
     }
   }
@@ -1793,13 +1940,14 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
             "    myUndefinedMethod(0, 1.0, '3');",
             "  }",
             "  ",
-            "  myUndefinedMethod(int i, double d, String s) {",
+            "  void myUndefinedMethod(int i, double d, String s) {",
             "  }",
             "}"));
     // linked positions
     {
       Map<String, List<SourceRange>> expected = Maps.newHashMap();
       expected.put("NAME", getResultRanges("myUndefinedMethod(0", "myUndefinedMethod(int"));
+      expected.put("RETURN_TYPE", getResultRanges("void myUndefinedMethod("));
       expected.put("TYPE0", getResultRanges("int i"));
       expected.put("TYPE1", getResultRanges("double d"));
       expected.put("TYPE2", getResultRanges("String s"));
@@ -1878,7 +2026,7 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
             "    myUndefinedMethod();",
             "  }",
             "  ",
-            "  static myUndefinedMethod() {",
+            "  static void myUndefinedMethod() {",
             "  }",
             "}"));
   }
