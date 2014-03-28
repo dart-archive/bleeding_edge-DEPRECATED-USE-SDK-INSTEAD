@@ -13,8 +13,15 @@
  */
 package com.google.dart.engine.internal.task;
 
+import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.ast.Directive;
+import com.google.dart.engine.ast.ExportDirective;
+import com.google.dart.engine.ast.ImportDirective;
+import com.google.dart.engine.ast.PartDirective;
+import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.error.AnalysisError;
+import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.html.ast.HtmlScriptTagNode;
 import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.html.ast.XmlAttributeNode;
@@ -174,8 +181,15 @@ public class ParseHtmlTask extends AnalysisTask {
       scanner.setPassThroughElements(new String[] {TAG_SCRIPT});
       Token token = scanner.tokenize();
       lineInfo = new LineInfo(scanner.getLineStarts());
-      RecordingErrorListener errorListener = new RecordingErrorListener();
+      final RecordingErrorListener errorListener = new RecordingErrorListener();
       unit = new HtmlParser(source, errorListener).parse(token, lineInfo);
+      unit.accept(new RecursiveXmlVisitor<Void>() {
+        @Override
+        public Void visitHtmlScriptTagNode(HtmlScriptTagNode node) {
+          resolveScriptDirectives(node.getScript(), errorListener);
+          return null;
+        }
+      });
       errors = errorListener.getErrorsForSource(source);
       referencedLibraries = getLibrarySources();
     } catch (Exception exception) {
@@ -218,5 +232,36 @@ public class ParseHtmlTask extends AnalysisTask {
       return Source.EMPTY_ARRAY;
     }
     return libraries.toArray(new Source[libraries.size()]);
+  }
+
+  /**
+   * Resolves directives in the given {@link CompilationUnit}.
+   */
+  private void resolveScriptDirectives(CompilationUnit script, AnalysisErrorListener errorListener) {
+    if (script == null) {
+      return;
+    }
+    AnalysisContext analysisContext = getContext();
+    for (Directive directive : script.getDirectives()) {
+      if (directive instanceof ExportDirective) {
+        ParseDartTask.resolveSource(
+            analysisContext,
+            source,
+            (ExportDirective) directive,
+            errorListener);
+      } else if (directive instanceof ImportDirective) {
+        ParseDartTask.resolveSource(
+            analysisContext,
+            source,
+            (ImportDirective) directive,
+            errorListener);
+      } else if (directive instanceof PartDirective) {
+        ParseDartTask.resolveSource(
+            analysisContext,
+            source,
+            (PartDirective) directive,
+            errorListener);
+      }
+    }
   }
 }

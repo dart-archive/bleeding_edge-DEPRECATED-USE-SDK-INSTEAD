@@ -15,6 +15,7 @@ package com.google.dart.engine.internal.context;
 
 import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.ast.ImportDirective;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.TopLevelVariableDeclaration;
 import com.google.dart.engine.context.AnalysisContextFactory;
@@ -32,7 +33,9 @@ import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.ErrorSeverity;
+import com.google.dart.engine.html.ast.HtmlScriptTagNode;
 import com.google.dart.engine.html.ast.HtmlUnit;
+import com.google.dart.engine.html.ast.XmlTagNode;
 import com.google.dart.engine.internal.cache.DartEntry;
 import com.google.dart.engine.internal.scope.Namespace;
 import com.google.dart.engine.internal.task.ResolveDartLibraryTask;
@@ -922,6 +925,32 @@ public class AnalysisContextImplTest extends EngineTestCase {
     Source source = addSource("/lib.html", "<html></html>");
     HtmlUnit unit = context.parseHtmlUnit(source);
     assertNotNull(unit);
+  }
+
+  public void test_parseHtmlUnit_resolveDirectives() throws Exception {
+    Source libSource = addSource("/lib.dart", createSource(//
+        "library lib;",
+        "class ClassA {}"));
+    Source source = addSource("/lib.html", createSource(//
+        "<html>",
+        "<head>",
+        "  <script type='application/dart'>",
+        "    import 'lib.dart';",
+        "    ClassA v = null;",
+        "  </script>",
+        "</head>",
+        "<body>",
+        "</body>",
+        "</html>"));
+    HtmlUnit unit = context.parseHtmlUnit(source);
+    // import directive should be resolved
+    XmlTagNode htmlNode = unit.getTagNodes().get(0);
+    XmlTagNode headNode = htmlNode.getTagNodes().get(0);
+    HtmlScriptTagNode scriptNode = (HtmlScriptTagNode) headNode.getTagNodes().get(0);
+    CompilationUnit script = scriptNode.getScript();
+    ImportDirective importNode = (ImportDirective) script.getDirectives().get(0);
+    assertNotNull(importNode.getUriContent());
+    assertEquals(libSource, importNode.getSource());
   }
 
   public void test_performAnalysisTask_changeLibraryContents() throws Exception {

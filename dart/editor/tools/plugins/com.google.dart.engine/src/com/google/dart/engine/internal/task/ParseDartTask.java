@@ -46,6 +46,59 @@ import java.util.HashSet;
  */
 public class ParseDartTask extends AnalysisTask {
   /**
+   * Return the result of resolving the URI of the given URI-based directive against the URI of the
+   * given library, or {@code null} if the URI is not valid.
+   * 
+   * @param context the context in which the resolution is to be performed
+   * @param librarySource the source representing the library containing the directive
+   * @param directive the directive which URI should be resolved
+   * @param errorListener the error listener to which errors should be reported
+   * @return the result of resolving the URI against the URI of the library
+   */
+  public static Source resolveSource(AnalysisContext analysisContext, Source librarySource,
+      UriBasedDirective directive, AnalysisErrorListener errorListener) {
+    StringLiteral uriLiteral = directive.getUri();
+    if (uriLiteral instanceof StringInterpolation) {
+      errorListener.onError(new AnalysisError(
+          librarySource,
+          uriLiteral.getOffset(),
+          uriLiteral.getLength(),
+          CompileTimeErrorCode.URI_WITH_INTERPOLATION));
+      return null;
+    }
+    String uriContent = uriLiteral.getStringValue().trim();
+    directive.setUriContent(uriContent);
+    if (directive instanceof ImportDirective && uriContent.startsWith(DART_EXT_SCHEME)) {
+      return null;
+    }
+    try {
+      String encodedUriContent = UriUtilities.encode(uriContent);
+      new URI(encodedUriContent);
+      Source source = analysisContext.getSourceFactory().resolveUri(
+          librarySource,
+          encodedUriContent);
+      if (!analysisContext.exists(source)) {
+        errorListener.onError(new AnalysisError(
+            librarySource,
+            uriLiteral.getOffset(),
+            uriLiteral.getLength(),
+            CompileTimeErrorCode.URI_DOES_NOT_EXIST,
+            uriContent));
+      }
+      directive.setSource(source);
+      return source;
+    } catch (URISyntaxException exception) {
+      errorListener.onError(new AnalysisError(
+          librarySource,
+          uriLiteral.getOffset(),
+          uriLiteral.getLength(),
+          CompileTimeErrorCode.INVALID_URI,
+          uriContent));
+    }
+    return null;
+  }
+
+  /**
    * The source to be parsed.
    */
   private Source source;
@@ -246,23 +299,36 @@ public class ParseDartTask extends AnalysisTask {
       parser.setParseFunctionBodies(getContext().getAnalysisOptions().getAnalyzeFunctionBodies());
       unit = parser.parseCompilationUnit(tokenStream);
       unit.setLineInfo(lineInfo);
+      AnalysisContext analysisContext = getContext();
       for (Directive directive : unit.getDirectives()) {
         if (directive instanceof PartOfDirective) {
           containsPartOfDirective = true;
         } else {
           containsNonPartOfDirective = true;
           if (directive instanceof ExportDirective) {
-            Source exportSource = resolveSource(source, (ExportDirective) directive, errorListener);
+            Source exportSource = resolveSource(
+                analysisContext,
+                source,
+                (ExportDirective) directive,
+                errorListener);
             if (exportSource != null) {
               exportedSources.add(exportSource);
             }
           } else if (directive instanceof ImportDirective) {
-            Source importSource = resolveSource(source, (ImportDirective) directive, errorListener);
+            Source importSource = resolveSource(
+                analysisContext,
+                source,
+                (ImportDirective) directive,
+                errorListener);
             if (importSource != null) {
               importedSources.add(importSource);
             }
           } else if (directive instanceof PartDirective) {
-            Source partSource = resolveSource(source, (PartDirective) directive, errorListener);
+            Source partSource = resolveSource(
+                analysisContext,
+                source,
+                (PartDirective) directive,
+                errorListener);
             if (partSource != null && !partSource.equals(source)) {
               includedSources.add(partSource);
             }
@@ -273,59 +339,6 @@ public class ParseDartTask extends AnalysisTask {
     } finally {
       timeCounterParse.stop();
     }
-  }
-
-  /**
-   * Return the result of resolving the URI of the given URI-based directive against the URI of the
-   * given library, or {@code null} if the URI is not valid.
-   * 
-   * @param librarySource the source representing the library containing the directive
-   * @param directive the directive which URI should be resolved
-   * @param errorListener the error listener to which errors should be reported
-   * @return the result of resolving the URI against the URI of the library
-   */
-  private Source resolveSource(Source librarySource, UriBasedDirective directive,
-      AnalysisErrorListener errorListener) {
-    StringLiteral uriLiteral = directive.getUri();
-    if (uriLiteral instanceof StringInterpolation) {
-      errorListener.onError(new AnalysisError(
-          librarySource,
-          uriLiteral.getOffset(),
-          uriLiteral.getLength(),
-          CompileTimeErrorCode.URI_WITH_INTERPOLATION));
-      return null;
-    }
-    String uriContent = uriLiteral.getStringValue().trim();
-    directive.setUriContent(uriContent);
-    if (directive instanceof ImportDirective && uriContent.startsWith(DART_EXT_SCHEME)) {
-      return null;
-    }
-    try {
-      String encodedUriContent = UriUtilities.encode(uriContent);
-      new URI(encodedUriContent);
-      AnalysisContext analysisContext = getContext();
-      Source source = analysisContext.getSourceFactory().resolveUri(
-          librarySource,
-          encodedUriContent);
-      if (!analysisContext.exists(source)) {
-        errorListener.onError(new AnalysisError(
-            librarySource,
-            uriLiteral.getOffset(),
-            uriLiteral.getLength(),
-            CompileTimeErrorCode.URI_DOES_NOT_EXIST,
-            uriContent));
-      }
-      directive.setSource(source);
-      return source;
-    } catch (URISyntaxException exception) {
-      errorListener.onError(new AnalysisError(
-          librarySource,
-          uriLiteral.getOffset(),
-          uriLiteral.getLength(),
-          CompileTimeErrorCode.INVALID_URI,
-          uriContent));
-    }
-    return null;
   }
 
   /**
