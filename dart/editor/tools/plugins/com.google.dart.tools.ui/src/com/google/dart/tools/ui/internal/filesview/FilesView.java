@@ -792,7 +792,7 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     renameAction = new RenameResourceAction(getShell(), treeViewer.getTree()) {
       @Override
       public void run() {
-        if (!RefactoringUtils.waitReadyForRefactoring()) {
+        if (!RefactoringUtils.waitReadyForRefactoring2()) {
           return;
         }
         super.run();
