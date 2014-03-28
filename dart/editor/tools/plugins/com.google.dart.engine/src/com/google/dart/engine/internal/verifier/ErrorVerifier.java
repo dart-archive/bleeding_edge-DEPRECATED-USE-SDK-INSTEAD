@@ -295,6 +295,15 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
   private boolean hasExtUri;
 
   /**
+   * This is set to {@code false} on the entry of every {@link BlockFunctionBody}, and is restored
+   * to the enclosing value on exit. The value is used in
+   * {@link #checkForMixedReturns(BlockFunctionBody)} to prevent both
+   * {@link StaticWarningCode#MIXED_RETURN_TYPES} and {@link StaticWarningCode#RETURN_WITHOUT_VALUE}
+   * from being generated in the same function body.
+   */
+  private boolean hasReturnWithoutValue = false;
+
+  /**
    * The class containing the AST nodes being visited, or {@code null} if we are not in the scope of
    * a class.
    */
@@ -417,6 +426,8 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
 
   @Override
   public Void visitBlockFunctionBody(BlockFunctionBody node) {
+    boolean previousHasReturnWithoutValue = hasReturnWithoutValue;
+    hasReturnWithoutValue = false;
     ArrayList<ReturnStatement> previousReturnsWith = returnsWith;
     ArrayList<ReturnStatement> previousReturnsWithout = returnsWithout;
     try {
@@ -427,6 +438,7 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
     } finally {
       returnsWith = previousReturnsWith;
       returnsWithout = previousReturnsWithout;
+      hasReturnWithoutValue = previousHasReturnWithoutValue;
     }
     return null;
   }
@@ -1800,6 +1812,7 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
       if (VoidTypeImpl.getInstance().isAssignableTo(expectedReturnType)) {
         return false;
       }
+      hasReturnWithoutValue = true;
       errorReporter.reportErrorForNode(StaticWarningCode.RETURN_WITHOUT_VALUE, node);
       return true;
     }
@@ -3929,6 +3942,9 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
    * @see StaticWarningCode#MIXED_RETURN_TYPES
    */
   private boolean checkForMixedReturns(BlockFunctionBody node) {
+    if (hasReturnWithoutValue) {
+      return false;
+    }
     int withCount = returnsWith.size();
     int withoutCount = returnsWithout.size();
     if (withCount > 0 && withoutCount > 0) {

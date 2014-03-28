@@ -1762,25 +1762,6 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_mixedReturnTypes_factoryConstructor() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {",
-        "  factory A(int x) {",
-        "    if (x < 0) {",
-        "      return new A (0);",
-        "    }",
-        "    return;",
-        "  }",
-        "}"));
-    resolve(source);
-    assertErrors(
-        source,
-        StaticWarningCode.MIXED_RETURN_TYPES,
-        StaticWarningCode.MIXED_RETURN_TYPES,
-        StaticWarningCode.RETURN_WITHOUT_VALUE);
-    verify(source);
-  }
-
   public void test_mixedReturnTypes_localFunction() throws Exception {
     Source source = addSource(createSource(//
         "class C {",
@@ -2329,9 +2310,40 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_returnWithoutValue() throws Exception {
+  public void test_returnWithoutValue_factoryConstructor() throws Exception {
+    Source source = addSource(createSource(//
+    "class A { factory A() { return; } }"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.RETURN_WITHOUT_VALUE);
+    verify(source);
+  }
+
+  public void test_returnWithoutValue_function() throws Exception {
     Source source = addSource(createSource(//
     "int f() { return; }"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.RETURN_WITHOUT_VALUE);
+    verify(source);
+  }
+
+  public void test_returnWithoutValue_method() throws Exception {
+    Source source = addSource(createSource(//
+    "class A { int m() { return; } }"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.RETURN_WITHOUT_VALUE);
+    verify(source);
+  }
+
+  public void test_returnWithoutValue_mixedReturnTypes_function() throws Exception {
+    // Tests that only the RETURN_WITHOUT_VALUE warning is created, and no MIXED_RETURN_TYPES are
+    // created.
+    Source source = addSource(createSource(//
+        "int f(int x) {",
+        "  if (x < 0) {",
+        "    return 1;",
+        "  }",
+        "  return;",
+        "}"));
     resolve(source);
     assertErrors(source, StaticWarningCode.RETURN_WITHOUT_VALUE);
     verify(source);

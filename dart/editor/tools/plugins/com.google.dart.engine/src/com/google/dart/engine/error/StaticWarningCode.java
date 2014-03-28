@@ -732,7 +732,7 @@ public enum StaticWarningCode implements ErrorCode {
       "The name '%s' is not a type and cannot be used in a redirected constructor"),
 
   /**
-   * 13.11 Return: Let <i>f</i> be the function immediately enclosing a return statement of the form
+   * 13.12 Return: Let <i>f</i> be the function immediately enclosing a return statement of the form
    * <i>return;</i> It is a static warning if both of the following conditions hold:
    * <ol>
    * <li><i>f</i> is not a generative constructor.
