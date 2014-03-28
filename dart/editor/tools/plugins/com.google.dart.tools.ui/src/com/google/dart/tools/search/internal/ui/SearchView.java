@@ -128,10 +128,11 @@ public class SearchView extends ViewPart implements ISearchResultViewPart {
    * @param newPage the {@link SearchPage} to show. May be <code>null</code> to show empty page.
    */
   public void showPage(SearchPage newPage) {
-    // dispose previous page
+    // cleanup previous page
+    SearchPage oldPage = null;
     if (page != null) {
       setContentDescription("");
-      page.dispose();
+      oldPage = page;
       pageActionBars.dispose();
     }
     // activate new page
@@ -158,6 +159,10 @@ public class SearchView extends ViewPart implements ISearchResultViewPart {
     } else {
       pageBook.showPage(emptyComposite);
       actionBars.updateActionBars();
+    }
+    // dispose previous page after new page is in place to prevent SWT layout exception
+    if (oldPage != null) {
+      oldPage.dispose();
     }
   }
 
