@@ -18,6 +18,7 @@ import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.TopLevelVariableDeclaration;
 import com.google.dart.engine.context.AnalysisContextFactory;
+import com.google.dart.engine.context.AnalysisErrorInfo;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.context.AnalysisOptions;
 import com.google.dart.engine.context.ChangeNotice;
@@ -30,6 +31,7 @@ import com.google.dart.engine.element.HtmlElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.error.AnalysisError;
+import com.google.dart.engine.error.ErrorSeverity;
 import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.internal.cache.DartEntry;
 import com.google.dart.engine.internal.scope.Namespace;
@@ -54,6 +56,20 @@ import java.util.List;
 
 public class AnalysisContextImplTest extends EngineTestCase {
   /**
+   * Returns {@code true} if there is an {@link AnalysisError} with {@link ErrorSeverity#ERROR} in
+   * the given {@link AnalysisErrorInfo}.
+   */
+  private static boolean hasAnalysisErrorWithErrorSeverity(AnalysisErrorInfo errorInfo) {
+    AnalysisError[] errors = errorInfo.getErrors();
+    for (AnalysisError analysisError : errors) {
+      if (analysisError.getErrorCode().getErrorSeverity() == ErrorSeverity.ERROR) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
    * An analysis context whose source factory is {@link #sourceFactory}.
    */
   private AnalysisContextImpl context;
@@ -69,6 +85,41 @@ public class AnalysisContextImplTest extends EngineTestCase {
 
   public void fail_mergeContext() {
     fail("Implement this");
+  }
+
+  public void fail_performAnalysisTask_importedLibraryAdd() throws Exception {
+    Source libASource = addSource("/libA.dart", "library libA; import 'libB.dart';");
+    analyzeAll_assertFinished();
+    assertNotNull("libA resolved 1", context.getResolvedCompilationUnit(libASource, libASource));
+    assertTrue(
+        "libA has an error",
+        hasAnalysisErrorWithErrorSeverity(context.getErrors(libASource)));
+    // add libB.dart and analyze
+    Source libBSource = addSource("/libB.dart", "library libB;");
+    analyzeAll_assertFinished();
+    assertNotNull("libA resolved 2", context.getResolvedCompilationUnit(libASource, libASource));
+    assertNotNull("libB resolved 2", context.getResolvedCompilationUnit(libBSource, libBSource));
+    assertTrue(
+        "libA doesn't have errors",
+        !hasAnalysisErrorWithErrorSeverity(context.getErrors(libASource)));
+  }
+
+  public void fail_performAnalysisTask_importedLibraryDelete() throws Exception {
+    Source libASource = addSource("/libA.dart", "library libA; import 'libB.dart';");
+    Source libBSource = addSource("/libB.dart", "library libB;");
+    analyzeAll_assertFinished();
+    assertNotNull("libA resolved 1", context.getResolvedCompilationUnit(libASource, libASource));
+    assertNotNull("libB resolved 1", context.getResolvedCompilationUnit(libBSource, libBSource));
+    assertTrue(
+        "libA doesn't have errors",
+        !hasAnalysisErrorWithErrorSeverity(context.getErrors(libASource)));
+    // remove libB.dart content and analyze
+    context.setContents(libBSource, null);
+    analyzeAll_assertFinished();
+    assertNotNull("libA resolved 2", context.getResolvedCompilationUnit(libASource, libASource));
+    assertTrue(
+        "libA has an error",
+        hasAnalysisErrorWithErrorSeverity(context.getErrors(libASource)));
   }
 
   public void fail_recordLibraryElements() {
@@ -156,9 +207,7 @@ public class AnalysisContextImplTest extends EngineTestCase {
     context.computeErrors(libB);
     assertSizeOfList(0, context.getSourcesNeedingProcessing());
 
-    ChangeSet changeSet = new ChangeSet();
-    changeSet.removedSource(libB);
-    context.applyChanges(changeSet);
+    removeSource(libB);
     List<Source> sources = context.getSourcesNeedingProcessing();
     assertSizeOfList(1, sources);
     assertSame(libA, sources.get(0));
@@ -1297,6 +1346,12 @@ public class AnalysisContextImplTest extends EngineTestCase {
     Field field = AnalysisContextImpl.class.getDeclaredField("priorityOrder");
     field.setAccessible(true);
     return (Source[]) field.get(context2);
+  }
+
+  private void removeSource(Source source) {
+    ChangeSet changeSet = new ChangeSet();
+    changeSet.removedSource(source);
+    context.applyChanges(changeSet);
   }
 
   private void setIncrementalAnalysisCache(AnalysisContextImpl context2,
