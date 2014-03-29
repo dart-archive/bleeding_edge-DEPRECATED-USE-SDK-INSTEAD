@@ -1,0 +1,51 @@
+<config>
+  <directory path="${dart.editor.path}/tools/plugins/com.google.dart.command.analyze/bin">
+    <include prefix="com/google/dart/command/analyze/" source="/com.google.dart.command.analyze/src/"/>
+  </directory>
+  <directory path="${dart.editor.path}/tools/plugins/com.google.dart.eclipse.core/bin">
+    <include prefix="com/google/dart/eclipse/core/" source="/com.google.dart.eclipse.core/src/"/>
+  </directory>
+  <directory path="${dart.editor.path}/tools/plugins/com.google.dart.eclipse.ui/bin">
+    <include prefix="com/google/dart/eclipse/ui/" source="/com.google.dart.eclipse.ui/src/"/>
+  </directory>
+  <directory path="${dart.editor.path}/tools/plugins/com.google.dart.engine.services/bin">
+    <include prefix="com/google/dart/engine/services/" source="/com.google.dart.engine.services/src/"/>
+  </directory>
+  <directory path="${dart.editor.path}/tools/plugins/com.google.dart.engine/bin">
+    <include prefix="com/google/dart/engine/" source="/com.google.dart.engine/src/"/>
+  </directory>
+  <directory path="${dart.editor.path}/tools/plugins/com.google.dart.tools.core/bin">
+    <include prefix="com/google/dart/tools/core/" source="/com.google.dart.tools.core/src/"/>
+  </directory>
+  <directory path="${dart.editor.path}/tools/plugins/com.google.dart.tools.debug.core/bin">
+    <include prefix="com/google/dart/tools/debug/core/" source="/com.google.dart.tools.debug.core/src/"/>
+  </directory>
+  <directory path="${dart.editor.path}/tools/plugins/com.google.dart.tools.debug.ui/bin">
+    <include prefix="com/google/dart/tools/debug/ui/internal/" source="/com.google.dart.tools.debug.ui/src/"/>
+    <include prefix="com/google/dart/tools/debug/ui/launch/" source="/com.google.dart.tools.debug.ui/src/"/>
+  </directory>
+  <directory path="${dart.editor.path}/tools/plugins/com.google.dart.tools.deploy/bin">
+    <include prefix="com/google/dart/tools/deploy/" source="/com.google.dart.tools.deploy/src/"/>
+  </directory>
+  <directory path="${dart.editor.path}/tools/plugins/com.google.dart.tools.search/bin">
+    <include prefix="com/google/dart/tools/search/" source="/com.google.dart.tools.search/src/"/>
+  </directory>
+  <directory path="${dart.editor.path}/tools/plugins/com.google.dart.tools.ui/bin">
+    <include prefix="com/google/dart/tools/xui" source="/com.google.dart.tools.ui/src-mocks/"/>
+  </directory>
+  <directory path="${dart.editor.path}/tools/plugins/com.google.dart.tools.ui/bin">
+    <include prefix="com/google/dart/tools/internal/corext/" source="/com.google.dart.tools.ui/src/"/>
+    <include prefix="com/google/dart/tools/ui/actions/" source="/com.google.dart.tools.ui/src/"/>
+    <include prefix="com/google/dart/tools/ui/internal/" source="/com.google.dart.tools.ui/src/"/>
+    <include prefix="com/google/dart/tools/internal/corext/codemanipulation/" source="/com.google.dart.tools.ui/src/"/>
+  </directory>
+  <directory path="${dart.editor.path}/tools/plugins/com.google.dart.tools.ui/bin">
+    <include prefix="com/google/dart/core/" source="/com.google.dart.tools.ui/src-mocks/"/>
+  </directory>
+  <directory path="${dart.editor.path}/tools/plugins/com.google.dart.tools.update.core/bin">
+    <include prefix="com/google/dart/tools/update/core/" source="/com.google.dart.tools.update.core/src/"/>
+  </directory>
+  <directory path="${dart.editor.path}/tools/plugins/com.xored.glance.ui/bin">
+    <include prefix="com/xored/glance/ui/" source="/com.xored.glance.ui/src/"/>
+  </directory>
+</config>
