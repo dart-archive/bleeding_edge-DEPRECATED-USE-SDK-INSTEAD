@@ -44,12 +44,45 @@ import java.util.Map;
  * Handle adding a removing breakpoints to the WebKit connection for the DartiumDebugTarget class.
  */
 public class BreakpointManager implements IBreakpointListener, DartBreakpointManager {
+  public static class NullBreakpointManager implements DartBreakpointManager {
+
+    public NullBreakpointManager() {
+
+    }
+
+    @Override
+    public void connect() throws IOException {
+
+    }
+
+    @Override
+    public void dispose(boolean deleteAll) {
+
+    }
+
+    @Override
+    public DartBreakpoint getBreakpointFor(WebkitLocation location) {
+      return null;
+    }
+
+    @Override
+    public void handleBreakpointResolved(WebkitBreakpoint breakpoint) {
+
+    }
+
+    @Override
+    public void handleGlobalObjectCleared() {
+
+    }
+  }
+
   private static String PACKAGES_DIRECTORY_PATH = "/packages/";
+
   private static String LIB_DIRECTORY_PATH = "/lib/";
 
   private DartiumDebugTarget debugTarget;
-
   private Map<IBreakpoint, List<String>> breakpointToIdMap = new HashMap<IBreakpoint, List<String>>();
+
   private Map<String, DartBreakpoint> breakpointsToUpdateMap = new HashMap<String, DartBreakpoint>();
 
   private List<IBreakpoint> ignoredBreakpoints = new ArrayList<IBreakpoint>();
@@ -388,36 +421,4 @@ interface DartBreakpointManager {
 
   public void handleGlobalObjectCleared();
 
-}
-
-class NullBreakpointManager implements DartBreakpointManager {
-
-  public NullBreakpointManager() {
-
-  }
-
-  @Override
-  public void connect() throws IOException {
-
-  }
-
-  @Override
-  public void dispose(boolean deleteAll) {
-
-  }
-
-  @Override
-  public DartBreakpoint getBreakpointFor(WebkitLocation location) {
-    return null;
-  }
-
-  @Override
-  public void handleBreakpointResolved(WebkitBreakpoint breakpoint) {
-
-  }
-
-  @Override
-  public void handleGlobalObjectCleared() {
-
-  }
 }

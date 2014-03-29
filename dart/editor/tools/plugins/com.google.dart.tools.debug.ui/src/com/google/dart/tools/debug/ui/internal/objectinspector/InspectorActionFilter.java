@@ -32,6 +32,26 @@ import org.eclipse.ui.IActionFilter;
  */
 public class InspectorActionFilter implements IActionFilter {
 
+  static class InspectorAdapterFactory implements IAdapterFactory {
+    private InspectorActionFilter inspectorFilter = new InspectorActionFilter();
+
+    public InspectorAdapterFactory() {
+
+    }
+
+    @Override
+    @SuppressWarnings("rawtypes")
+    public Object getAdapter(Object adaptableObject, Class adapterType) {
+      return inspectorFilter;
+    }
+
+    @SuppressWarnings("rawtypes")
+    @Override
+    public Class[] getAdapterList() {
+      return new Class[] {IActionFilter.class};
+    }
+  }
+
   public static void registerAdapters() {
     IAdapterManager manager = Platform.getAdapterManager();
 
@@ -138,25 +158,5 @@ public class InspectorActionFilter implements IActionFilter {
     }
 
     return false;
-  }
-}
-
-class InspectorAdapterFactory implements IAdapterFactory {
-  private InspectorActionFilter inspectorFilter = new InspectorActionFilter();
-
-  public InspectorAdapterFactory() {
-
-  }
-
-  @Override
-  @SuppressWarnings("rawtypes")
-  public Object getAdapter(Object adaptableObject, Class adapterType) {
-    return inspectorFilter;
-  }
-
-  @SuppressWarnings("rawtypes")
-  @Override
-  public Class[] getAdapterList() {
-    return new Class[] {IActionFilter.class};
   }
 }

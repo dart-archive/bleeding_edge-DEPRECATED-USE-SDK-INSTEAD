@@ -127,7 +127,7 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
     if (enableBreakpoints) {
       breakpointManager = new BreakpointManager(this);
     } else {
-      breakpointManager = new NullBreakpointManager();
+      breakpointManager = new BreakpointManager.NullBreakpointManager();
     }
 
     cssScriptManager = new CssScriptManager(this);
