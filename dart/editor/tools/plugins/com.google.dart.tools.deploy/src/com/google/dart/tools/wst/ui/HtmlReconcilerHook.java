@@ -147,7 +147,6 @@ public class HtmlReconcilerHook implements ISourceValidator, IValidator {
    * @param code the new source code or {@code null} if the source should be pulled from disk
    */
   private void sourceChanged(String code) {
-    resolvedUnit = null;
     if (documentInfo != null) {
       AnalysisContext context = documentInfo.getContext();
       if (context != null) {

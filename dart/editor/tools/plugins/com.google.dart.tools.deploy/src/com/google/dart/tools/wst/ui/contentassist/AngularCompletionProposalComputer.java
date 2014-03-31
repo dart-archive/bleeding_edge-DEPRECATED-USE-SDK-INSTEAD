@@ -9,7 +9,9 @@ import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.HtmlElement;
 import com.google.dart.engine.element.angular.AngularComponentElement;
+import com.google.dart.engine.element.angular.AngularDirectiveElement;
 import com.google.dart.engine.element.angular.AngularElement;
+import com.google.dart.engine.element.angular.AngularHasAttributeSelectorElement;
 import com.google.dart.engine.element.angular.AngularPropertyElement;
 import com.google.dart.engine.element.angular.AngularSelectorElement;
 import com.google.dart.engine.element.angular.AngularTagSelectorElement;
@@ -52,6 +54,17 @@ import java.util.List;
  */
 @SuppressWarnings("restriction")
 public class AngularCompletionProposalComputer implements ICompletionProposalComputer {
+  /**
+   * Container with information about an attribute completion.
+   */
+  private static class AttributeCompletion {
+    final String name;
+
+    public AttributeCompletion(String name) {
+      this.name = name;
+    }
+  }
+
   private static final List<ICompletionProposal> EMPTY_PROPOSALS = ImmutableList.of();
 
   private static List<AngularPropertyElement> getSortedProperties(AngularComponentElement component) {
@@ -77,6 +90,7 @@ public class AngularCompletionProposalComputer implements ICompletionProposalCom
   private HtmlElement htmlElement;
   private AngularApplication application;
   private List<ICompletionProposal> proposals;
+
   private boolean doExpressionCompletion;
 
   @Override
@@ -147,38 +161,41 @@ public class AngularCompletionProposalComputer implements ICompletionProposalCom
   }
 
   private void completeAttribute() throws Exception {
-    // prepare region in document
+    // prepare tag region in document
     IStructuredDocumentRegion tagRegion = getStructuredDocumentRegion(viewer, offset);
     if (tagRegion == null) {
       return;
     }
-    String tagType = tagRegion.getType();
-    int tagOffset = tagRegion.getStartOffset();
-    // prepare Angular component
-    AngularComponentElement component = null;
-    if (DOMRegionContext.XML_TAG_NAME.equals(tagType)) {
-      // prepare enclosing tag
-      XmlTagNode tagNode = HtmlUnitUtils.getEnclosingTagNode(htmlUnit, tagOffset);
-      if (tagNode == null) {
-        return;
-      }
-      if (!tagRegion.isEnded()) {
-        return;
-      }
-      // prepare Angular selector
-      Element tagElement = tagNode.getElement();
-      if (!(tagElement instanceof AngularTagSelectorElement)) {
-        return;
-      }
-      AngularTagSelectorElement selector = (AngularTagSelectorElement) tagElement;
-      // prepare Angular component
-      if (!(selector.getEnclosingElement() instanceof AngularComponentElement)) {
-        return;
-      }
-      component = (AngularComponentElement) selector.getEnclosingElement();
-    }
-    if (component == null) {
+    if (!tagRegion.isEnded()) {
       return;
+    }
+    int tagOffset = tagRegion.getStartOffset();
+    // prepare possible attribute completions
+    List<AttributeCompletion> attributeCompletions = Lists.newArrayList();
+    // add component properties
+    {
+      AngularComponentElement component = getAngularComponent();
+      if (component != null) {
+        List<AngularPropertyElement> componentProperties = getSortedProperties(component);
+        for (AngularPropertyElement property : componentProperties) {
+          String propertyName = property.getName();
+          AttributeCompletion completion = new AttributeCompletion(propertyName);
+          attributeCompletions.add(completion);
+        }
+      }
+    }
+    // add directives
+    if (application != null) {
+      for (AngularElement angularElement : application.getElements()) {
+        if (angularElement instanceof AngularDirectiveElement) {
+          AngularDirectiveElement directive = (AngularDirectiveElement) angularElement;
+          AngularSelectorElement selector = directive.getSelector();
+          if (selector instanceof AngularHasAttributeSelectorElement) {
+            AngularHasAttributeSelectorElement attributeSelector = (AngularHasAttributeSelectorElement) selector;
+            attributeCompletions.add(new AttributeCompletion(attributeSelector.getName()));
+          }
+        }
+      }
     }
     // prepare text region
     ITextRegion textRegion = tagRegion.getRegionAtCharacterOffset(offset);
@@ -186,30 +203,39 @@ public class AngularCompletionProposalComputer implements ICompletionProposalCom
       return;
     }
     String textType = textRegion.getType();
-    // cannot be a Dart expression
-    doExpressionCompletion = false;
-    // attribute name prefix
+    // "<tag attrNamePrefix!>"
+    if (DOMRegionContext.XML_TAG_CLOSE.equals(textType)) {
+      ITextRegion prevTextRegion = tagRegion.getRegionAtCharacterOffset(offset - 1);
+      String prevTextType = prevTextRegion.getType();
+      if (DOMRegionContext.XML_TAG_ATTRIBUTE_NAME.equals(prevTextType)) {
+        textRegion = prevTextRegion;
+        textType = prevTextType;
+      }
+    }
+    // "<tag attrNamePrefix! otherAttr='bar'>"
     if (DOMRegionContext.XML_TAG_ATTRIBUTE_NAME.equals(textType)) {
       int attrOffset = tagOffset + textRegion.getStart();
       int attrLength = textRegion.getTextLength();
       String attrPrefix = document.get(attrOffset, attrLength);
       // propose component properties
-      for (AngularPropertyElement property : getSortedProperties(component)) {
-        String propertyName = property.getName();
+      for (AttributeCompletion completion : attributeCompletions) {
+        String propertyName = completion.name;
         if (propertyName.startsWith(attrPrefix)) {
           addEmptyAttributeProposal(attrOffset, attrLength, propertyName);
         }
       }
       // done
+      doExpressionCompletion = false;
       return;
     }
     // after tag name or other attribute value
     if (DOMRegionContext.XML_TAG_NAME.equals(textType)) {
       if (textRegion.getLength() > 1 + textRegion.getTextLength()) {
-        for (AngularPropertyElement property : getSortedProperties(component)) {
-          String propertyName = property.getName();
+        for (AttributeCompletion completion : attributeCompletions) {
+          String propertyName = completion.name;
           addEmptyAttributeProposal(offset, 0, propertyName);
         }
+        doExpressionCompletion = false;
       }
       // done
       return;
@@ -218,10 +244,11 @@ public class AngularCompletionProposalComputer implements ICompletionProposalCom
     if (DOMRegionContext.XML_TAG_CLOSE.equals(textType)
         || DOMRegionContext.XML_TAG_ATTRIBUTE_VALUE.equals(textType)) {
       if (hasWhitespaceBetweenLastAndOffset(tagRegion)) {
-        for (AngularPropertyElement property : getSortedProperties(component)) {
-          String propertyName = property.getName();
+        for (AttributeCompletion completion : attributeCompletions) {
+          String propertyName = completion.name;
           addEmptyAttributeProposal(offset, 0, propertyName);
         }
+        doExpressionCompletion = false;
       }
       // done
       return;
@@ -343,6 +370,28 @@ public class AngularCompletionProposalComputer implements ICompletionProposalCom
         }
       }
     }
+  }
+
+  /**
+   * Return an {@link AngularComponentElement} that encloses given offset.
+   */
+  private AngularComponentElement getAngularComponent() {
+    // prepare enclosing tag
+    XmlTagNode tagNode = HtmlUnitUtils.getEnclosingTagNode(htmlUnit, offset);
+    if (tagNode == null) {
+      return null;
+    }
+    // prepare Angular selector
+    Element tagElement = tagNode.getElement();
+    if (!(tagElement instanceof AngularTagSelectorElement)) {
+      return null;
+    }
+    AngularTagSelectorElement selector = (AngularTagSelectorElement) tagElement;
+    // prepare Angular component
+    if (!(selector.getEnclosingElement() instanceof AngularComponentElement)) {
+      return null;
+    }
+    return (AngularComponentElement) selector.getEnclosingElement();
   }
 
   private boolean hasWhitespaceBetweenLastAndOffset(IStructuredDocumentRegion tagRegion) {
