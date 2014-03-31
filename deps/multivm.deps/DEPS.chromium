@@ -23,19 +23,19 @@ vars = {
   "libcxxabi_revision": "197063",
   "webkit_trunk": "http://src.chromium.org/blink/trunk",
   "nacl_trunk": "http://src.chromium.org/native_client/trunk",
-  "webkit_revision": "169859",
+  "webkit_revision": "169949",
   "chromium_git": "https://chromium.googlesource.com",
   "chromiumos_git": "https://chromium.googlesource.com/chromiumos",
   "skia_git": "https://skia.googlesource.com",
   "swig_revision": "230490",
-  "nacl_revision": "12892",
+  "nacl_revision": "12927",
   # After changing nacl_revision, run 'glient sync' and check native_client/DEPS
   # to update other nacl_*_revision's.
   "nacl_tools_revision": "12760",  # native_client/DEPS: tools_rev
   "google_toolbox_for_mac_revision": "662",
   "libaddressinput_revision": "176",
   "libphonenumber_revision": "621",
-  "libvpx_revision": "257501",
+  "libvpx_revision": "259324",
   "lss_revision": "24",
 
   # These two FFmpeg variables must be updated together.  One is used for SVN
@@ -45,17 +45,17 @@ vars = {
 
   "sfntly_revision": "228",
   "lighttpd_revision": "33737",
-  "skia_revision": "13904",
-  "skia_hash": "08f6d86f8e6aa19f6f2702b106fcfaa89d760869",
+  "skia_revision": "13948",
+  "skia_hash": "13e6576424317c6c54323a6de34876f44112560e",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and V8 without interference from each other.
   "v8_branch": "trunk",
-  "v8_revision": "20174",
+  "v8_revision": "20277",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling WebRTC
   # and V8 without interference from each other.
-  "webrtc_revision": "5762",
+  "webrtc_revision": "5793",
   "jsoncpp_revision": "248",
   "nss_revision": "258808",
   # Three lines of non-changing comments so that
@@ -69,7 +69,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  "angle_revision": "28b4790916c70dff3cee85ba351ab46299a1af97",
+  "angle_revision": "740a2f8daa9cc45c53ecf7333c3ae5aa64c821f8",
 }
 
 deps = {
@@ -89,7 +89,7 @@ deps = {
     Var("chromium_git") + "/angle/angle.git@" + Var("angle_revision"),
 
   "src/third_party/trace-viewer":
-    (Var("googlecode_url") % "trace-viewer") + "/trunk@1203",
+    (Var("googlecode_url") % "trace-viewer") + "/trunk@1212",
 
   "src/third_party/WebKit":
     Var("webkit_trunk") + "@" + Var("webkit_revision"),
@@ -103,7 +103,7 @@ deps = {
     "/external/w3c/csswg-test.git@8c415e3215a203fa3a22dbdd1799279fdf44c81e",
 
   "src/third_party/icu":
-    "/trunk/deps/third_party/icu46@258359",
+    "/trunk/deps/third_party/icu46@259309",
 
   "src/third_party/libexif/sources":
     "/trunk/deps/third_party/libexif/sources@146817",
@@ -134,7 +134,7 @@ deps = {
     (Var("googlecode_url") % "snappy") + "/trunk@80",
 
   "src/tools/grit":
-    (Var("googlecode_url") % "grit-i18n") + "/trunk@156",
+    (Var("googlecode_url") % "grit-i18n") + "/trunk@157",
 
   "src/tools/gyp":
     (Var("googlecode_url") % "gyp") + "/trunk@1880",
@@ -172,7 +172,7 @@ deps = {
 
   "src/third_party/brotli/src":
     Var("chromium_git") +
-    "/external/font-compression-reference.git@494c85cebbaaa0db345df69ffa1b639aa4652022",
+    "/external/font-compression-reference.git@0829e37293abc2523a1d2b0f4d68ff7b5fcd8e01",
 
   "src/tools/page_cycler/acid3":
     "/trunk/deps/page_cycler/acid3@171600",
@@ -485,7 +485,7 @@ deps_os = {
     # For Linux and Chromium OS.
     "src/third_party/cros_system_api":
       Var("chromiumos_git") + "/platform/system_api.git" +
-      "@67c14ecd9f00a574abc59d45516dc35289c4119c",
+      "@844a42e5f5c7a106807b09b6c2ac6b00b166c1cc",
 
     # Note that this is different from Android's freetype repo.
     "src/third_party/freetype2/src":
@@ -517,7 +517,7 @@ deps_os = {
   "android": {
     "src/third_party/android_tools":
       Var("chromium_git") + "/android_tools.git" +
-      "@0582bdc17b4829beb522975441546a4eb99b11b5",
+      "@ca35676f4f652fa97964c488313720f55efd4405",
 
     "src/third_party/aosp":
       "/trunk/deps/third_party/aosp@148330",

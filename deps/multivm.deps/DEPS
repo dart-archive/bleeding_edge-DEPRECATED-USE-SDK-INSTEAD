@@ -10,11 +10,11 @@ vars.update({
   "chromium_url": "http://src.chromium.org/svn",
   "multivm_base": "http://src.chromium.org",
   "multivm_chromium_branch": "/chrome/trunk/src",
-  "multivm_chromium_revision": "259084",
-  "chromium_base_revision": "259084",
+  "multivm_chromium_revision": "259740",
+  "chromium_base_revision": "259740",
   "perf_scripts_dart_branch": "/branches/bleeding_edge/dart/tools/bots",
   "multivm_blink_branch": "/blink/branches/dart/multivm",
-  "multivm_blink_revision": "170345",
+  "multivm_blink_revision": "170483",
 })
 
 def massage_deps(deps):
