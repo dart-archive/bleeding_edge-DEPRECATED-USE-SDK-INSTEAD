@@ -74,6 +74,8 @@ public class PubServeManager {
 
   private static final String WEBSOCKET_URL = "ws://{0}:{1}/";
 
+  private static final String PUB_SNAPSHOT_PATH = "bin/snapshots/pub.dart.snapshot";
+
   private static PubServeManager manager = new PubServeManager();
 
   public static PubServeManager getManager() {
@@ -200,13 +202,20 @@ public class PubServeManager {
     DartSdk sdk = DartSdkManager.getManager().getSdk();
     File pubFile = sdk.getPubExecutable();
     List<String> args = new ArrayList<String>();
-    args.add(pubFile.getAbsolutePath());
+    // on Windows, run the pub snapshot directly instead of the pub script,
+    // since process.destroy() cannot terminate children of the process.
+    if (DartCore.isWindows()) {
+      pubFile = new File(sdk.getDirectory().getAbsolutePath(), PUB_SNAPSHOT_PATH);
+      args.add(sdk.getVmExecutable().getAbsolutePath());
+      args.add(pubFile.getAbsolutePath());
+    } else {
+      args.add(pubFile.getAbsolutePath());
+    }
     args.add(SERVE_COMMAND);
     args.add("--port");
     args.add(PORT_NUMBER);
     args.add("--hostname");
     args.add(LOCAL_HOST_ADDR);
-
     return args;
   }
 
