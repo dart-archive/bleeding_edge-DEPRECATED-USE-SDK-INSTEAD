@@ -1,10 +1,10 @@
-util.openWelcomePage
+﻿util.openWelcomePage
 TypeText escape
 util.openFileDialog
 util.xWaitFor 2, "file search icon"
 if (util.isMacOSX) then
 	Click "homedir icon"
-	util.xWait .05
+	util.xWait 0.5
 	Click "file search icon"
 	util.xWait 0.5
 	TypeText "codelab"
@@ -12,12 +12,22 @@ if (util.isMacOSX) then
 	util.xWait 1
 	Click(Text:"finished",CaseSensitive:"yes")
 else if (util.isLinux) then
-	Click "file search icon"
+	(*	Click "file search icon"
 	util.xWait 0.5
 	TypeText "io-2013-dart-codelab"
 	TypeText return
 	util.xWait 1
 	TypeText downArrow
+	TypeText return
+	util.xWait 0.5
+	TypeText downArrow *)
+	set the searchrectangle to ((500,400),(700,800))
+	click (Text:"dart")
+	util.xWait 0.5
+	set the searchrectangle to ((650,400),(900,600))
+	click (Text:"io-2013-dart-codelab")
+	util.xWait 0.5
+	set the searchrectangle to ()
 	TypeText return
 	util.xWait 0.5
 	TypeText downArrow

@@ -1,4 +1,4 @@
-(* Create and run a command-line app using the button on the Welcome page *)
+﻿(* Create and run a command-line app using the button on the Welcome page *)
 util.openWelcomePage
 set the SearchRectangle to ((200,150),(700,350))
 Click "create app button"
@@ -53,13 +53,13 @@ util.selectContextImageMenuItem "manifest", "Run as Chrome App"
 if util.isMacOSX() then
 	set the SearchRectangle to ((700,350),(1300,850))
 else
-	set the SearchRectangle to ((200,200),(700,700))
+	set the SearchRectangle to ((700,400),(1200,800))
 end if
 util.xWaitFor 10,(Text:"Click me!",CaseSensitive:"yes",IgnoreSpaces:"yes",ValidCharacters:"*",dpi:94)
 set the SearchRectangle to ()
 if (util.isLinux()) then
 	Click "close window X"
 end if
-util.exitChromium
+util.killDartium
 util.deleteProject "sample project"
 util.deleteOutput

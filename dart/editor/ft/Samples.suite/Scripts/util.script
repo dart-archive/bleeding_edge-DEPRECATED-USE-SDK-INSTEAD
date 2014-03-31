@@ -253,7 +253,7 @@ to killDartium
 	if isMacOSX()
 		shell "killall Dartium.app"
 	else if isLinux()
-		shell "killall Dartium"
+		shell "bash -c 'killall $HOME/Desktop/dart/chromium/chrome'"
 	else
 		throw "Error" "Not implemented: killDartium for Windows"
 	end if
@@ -264,7 +264,7 @@ to doKeyCmd key
 		TypeText commandKey,key
 	else
 		TypeText controlKey,key
-		end if
+	end if
 end doKeyCmd
 
 to doShiftKeyCmd key
