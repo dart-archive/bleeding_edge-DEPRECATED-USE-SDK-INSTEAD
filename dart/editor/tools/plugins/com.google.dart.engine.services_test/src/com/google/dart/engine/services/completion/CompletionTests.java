@@ -1870,6 +1870,15 @@ public class CompletionTests extends CompletionTestCase {
         "}"), "1+String", "1-bool", "2+String", "2-bool");
   }
 
+  public void testCompletion_inPeriodPeriod() throws Exception {
+    test(src(//
+        "main(String str) {",
+        "  1 < str.!1.length;",
+        "  1 + str.!2.length;",
+        "  1 + 2 * str.!3.length;",
+        "}"), "1+codeUnits", "2+codeUnits", "3+codeUnits");
+  }
+
   public void testCompletion_instanceCreation_unresolved() throws Exception {
     test(src(//
         "class A {",

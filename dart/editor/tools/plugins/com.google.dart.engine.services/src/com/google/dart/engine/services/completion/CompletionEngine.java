@@ -120,6 +120,7 @@ import com.google.dart.engine.internal.context.InternalAnalysisContext;
 import com.google.dart.engine.internal.resolver.TypeProvider;
 import com.google.dart.engine.internal.type.DynamicTypeImpl;
 import com.google.dart.engine.scanner.Token;
+import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.sdk.SdkLibrary;
 import com.google.dart.engine.search.SearchEngine;
@@ -1390,7 +1391,21 @@ public class CompletionEngine {
       if (node.getTarget() != null && node.getTarget().getLength() == 0) {
         return null; // { . }
       }
-      analyzePrefixedAccess(node.getRealTarget(), node.getPropertyName());
+      Expression target = node.getRealTarget();
+      // The "1 + str.!.length" is parsed as "(1 + str).!.length",
+      // but actually user wants "1 + (str.!).length".
+      // So, if completion inside of period-period ".!." then it is not really a cascade completion.
+      Token operator = node.getOperator();
+      if (operator.getType() == TokenType.PERIOD_PERIOD) {
+        int completionLocation = completionLocation();
+        if (completionLocation > operator.getOffset() && completionLocation < operator.getEnd()) {
+          while (target instanceof BinaryExpression) {
+            target = ((BinaryExpression) target).getRightOperand();
+          }
+        }
+      }
+      // do prefixed completion
+      analyzePrefixedAccess(target, node.getPropertyName());
       return null;
     }
 
