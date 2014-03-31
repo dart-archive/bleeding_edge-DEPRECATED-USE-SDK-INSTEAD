@@ -18,7 +18,7 @@ import com.google.dart.compiler.ast.DartImportDirective;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.tools.core.internal.util.CharOperation;
 import com.google.dart.tools.core.model.CompilationUnit;
-import com.google.dart.tools.ui.ContextSensitiveImportRewriteContext;
+import com.google.dart.tools.mock.ui.ContextSensitiveImportRewriteContext;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;

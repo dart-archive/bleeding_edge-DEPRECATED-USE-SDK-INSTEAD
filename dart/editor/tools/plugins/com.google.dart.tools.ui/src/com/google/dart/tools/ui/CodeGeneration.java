@@ -14,6 +14,7 @@
 package com.google.dart.tools.ui;
 
 import com.google.dart.tools.core.model.CompilationUnit;
+import com.google.dart.tools.mock.ui.StubUtility;
 
 import org.eclipse.core.runtime.CoreException;
 

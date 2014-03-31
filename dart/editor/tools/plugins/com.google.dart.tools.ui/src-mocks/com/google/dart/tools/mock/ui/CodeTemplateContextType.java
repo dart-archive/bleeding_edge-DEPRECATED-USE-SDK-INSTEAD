@@ -11,26 +11,12 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.tools.ui;
-
-import com.google.dart.core.ILocalVariable;
-import com.google.dart.tools.core.model.TypeMember;
-
-import java.io.Reader;
+package com.google.dart.tools.mock.ui;
 
 /**
- * TODO(devoncarew): This is a temporary interface, used to resolve compilation errors.
+ * TODO(brianwilkerson): This is a temporary interface, used to resolve compilation errors.
  */
-public interface IDocumentationReader {
-
-  boolean appliesTo(ILocalVariable declaration);
-
-  boolean appliesTo(TypeMember member);
-
-  Reader getContentReader(ILocalVariable declaration, boolean allowInherited);
-
-  Reader getContentReader(TypeMember member, boolean allowInherited);
-
-  Reader getDocumentation2HTMLReader(Reader contentReader);
-
+public class CodeTemplateContextType {
+  public static final String CONSTRUCTORCOMMENT_ID = null;
+  public static final String OVERRIDECOMMENT_ID = null;
 }

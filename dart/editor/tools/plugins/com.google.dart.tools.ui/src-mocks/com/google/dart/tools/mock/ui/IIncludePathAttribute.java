@@ -11,12 +11,11 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.tools.ui;
+package com.google.dart.tools.mock.ui;
 
 /**
  * TODO(brianwilkerson): This is a temporary interface, used to resolve compilation errors.
  */
-public class CodeTemplatePreferencePage {
-  public static final Object DATA_SELECT_TEMPLATE = null;
-  public static final String PROP_ID = null;
+public interface IIncludePathAttribute {
+  IIncludePathAttribute HIDE = null;
 }

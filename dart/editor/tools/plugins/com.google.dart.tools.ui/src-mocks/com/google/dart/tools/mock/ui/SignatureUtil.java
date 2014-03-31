@@ -11,25 +11,13 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.tools.ui;
-
-import com.google.dart.compiler.ast.DartUnit;
-import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.core.model.DartProject;
-
-import org.eclipse.core.resources.IStorage;
-import org.eclipse.jface.text.IRegion;
+package com.google.dart.tools.mock.ui;
 
 /**
  * TODO(brianwilkerson): This is a temporary interface, used to resolve compilation errors.
  */
-public class NLSHintHelper {
-  public static AccessorClassReference getAccessorClassReference(DartUnit ast, IRegion nlsKeyRegion) {
-    return null;
-  }
-
-  public static IStorage getResourceBundle(DartProject dartProject,
-      AccessorClassReference fAccessorClassReference) throws DartModelException {
+public class SignatureUtil {
+  public static String stripSignatureToFQN(String valueOf) {
     return null;
   }
 }

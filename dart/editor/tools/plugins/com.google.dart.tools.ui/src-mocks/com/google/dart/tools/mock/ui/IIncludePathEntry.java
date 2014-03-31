@@ -11,13 +11,21 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.tools.ui;
+package com.google.dart.tools.mock.ui;
+
+import org.eclipse.core.runtime.IPath;
 
 /**
  * TODO(brianwilkerson): This is a temporary interface, used to resolve compilation errors.
  */
-public class CodeGenerationSettings {
-  public boolean createComments = true;
-  public int tabWidth = 2;
-  public int indentWidth = 2;
+public interface IIncludePathEntry {
+  int CPE_VARIABLE = 0;
+  int CPE_SOURCE = 0;
+  int CPE_CONTAINER = 0;
+
+  int getEntryKind();
+
+  IIncludePathAttribute[] getExtraAttributes();
+
+  IPath getPath();
 }

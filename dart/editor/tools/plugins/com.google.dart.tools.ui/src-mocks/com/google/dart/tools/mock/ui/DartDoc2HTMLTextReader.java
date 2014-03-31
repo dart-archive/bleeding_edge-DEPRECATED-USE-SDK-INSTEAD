@@ -11,28 +11,31 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.tools.ui;
+package com.google.dart.tools.mock.ui;
 
-import com.google.dart.tools.core.model.CompilationUnit;
-
-import org.eclipse.jface.text.ITextViewer;
-import org.eclipse.jface.text.templates.TemplateContextType;
-import org.eclipse.jface.text.templates.TemplateProposal;
+import java.io.IOException;
+import java.io.Reader;
 
 /**
- * TODO(brianwilkerson): This is a temporary interface, used to resolve compilation errors.
+ * TODO(devoncarew): This is a temporary class, used to resolve compilation errors.
+ * <p>
+ * see org.eclipse.jdt.internal.ui.text.javadoc.JavaDoc2HTMLTextReader
  */
-public class TemplateEngine {
-  public TemplateEngine(TemplateContextType contextType) {
+public class DartDoc2HTMLTextReader extends Reader {
+  private Reader reader;
+
+  public DartDoc2HTMLTextReader(Reader reader) {
+    this.reader = reader;
   }
 
-  public void complete(ITextViewer viewer, int invocationOffset, CompilationUnit unit) {
+  @Override
+  public void close() throws IOException {
+    reader.close();
   }
 
-  public TemplateProposal[] getResults() {
-    return null;
+  @Override
+  public int read(char[] buffer, int offset, int length) throws IOException {
+    return reader.read(buffer, offset, length);
   }
 
-  public void reset() {
-  }
 }

@@ -15,7 +15,7 @@ package com.google.dart.core;
 
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartProject;
-import com.google.dart.tools.ui.IIncludePathEntry;
+import com.google.dart.tools.mock.ui.IIncludePathEntry;
 
 /**
  * TODO(brianwilkerson): This is a temporary interface, used to resolve compilation errors.

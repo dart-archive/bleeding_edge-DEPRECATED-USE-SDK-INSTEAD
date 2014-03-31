@@ -11,31 +11,26 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.tools.ui;
+package com.google.dart.tools.mock.ui;
 
-import java.io.IOException;
+import com.google.dart.core.ILocalVariable;
+import com.google.dart.tools.core.model.TypeMember;
+
 import java.io.Reader;
 
 /**
- * TODO(devoncarew): This is a temporary class, used to resolve compilation errors.
- * <p>
- * see org.eclipse.jdt.internal.ui.text.javadoc.JavaDoc2HTMLTextReader
+ * TODO(devoncarew): This is a temporary interface, used to resolve compilation errors.
  */
-public class DartDoc2HTMLTextReader extends Reader {
-  private Reader reader;
+public interface IDocumentationReader {
 
-  public DartDoc2HTMLTextReader(Reader reader) {
-    this.reader = reader;
-  }
+  boolean appliesTo(ILocalVariable declaration);
 
-  @Override
-  public void close() throws IOException {
-    reader.close();
-  }
+  boolean appliesTo(TypeMember member);
 
-  @Override
-  public int read(char[] buffer, int offset, int length) throws IOException {
-    return reader.read(buffer, offset, length);
-  }
+  Reader getContentReader(ILocalVariable declaration, boolean allowInherited);
+
+  Reader getContentReader(TypeMember member, boolean allowInherited);
+
+  Reader getDocumentation2HTMLReader(Reader contentReader);
 
 }

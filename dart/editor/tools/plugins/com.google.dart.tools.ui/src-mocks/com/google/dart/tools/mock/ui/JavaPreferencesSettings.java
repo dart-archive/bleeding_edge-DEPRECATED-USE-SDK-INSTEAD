@@ -11,21 +11,15 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.tools.ui;
+package com.google.dart.tools.mock.ui;
 
-import org.eclipse.core.resources.IMarker;
+import com.google.dart.tools.core.model.DartProject;
 
 /**
- * TODO(devoncarew): This is a temporary class, used to resolve compilation errors.
+ * TODO(brianwilkerson): This is a temporary interface, used to resolve compilation errors.
  */
-public class CorrectionEngine {
-
-  public static String[] getProblemArguments(IMarker marker) {
-    return new String[0];
+public class JavaPreferencesSettings {
+  public static CodeGenerationSettings getCodeGenerationSettings(DartProject dartProject) {
+    return null;
   }
-
-  private CorrectionEngine() {
-
-  }
-
 }

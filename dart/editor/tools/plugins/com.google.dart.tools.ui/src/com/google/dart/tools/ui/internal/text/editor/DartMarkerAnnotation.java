@@ -17,7 +17,7 @@ import com.google.dart.compiler.ErrorCode;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
-import com.google.dart.tools.ui.CorrectionEngine;
+import com.google.dart.tools.mock.ui.CorrectionEngine;
 
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.ui.texteditor.MarkerAnnotation;

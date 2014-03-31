@@ -11,15 +11,11 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.tools.ui;
-
-import com.google.dart.core.dom.ITypeBinding;
+package com.google.dart.tools.mock.ui;
 
 /**
  * TODO(brianwilkerson): This is a temporary interface, used to resolve compilation errors.
  */
-public class AccessorClassReference {
-  public ITypeBinding getBinding() {
-    return null;
-  }
+public class MembersOrderPreferencePage {
+  public static final String PREF_ID = null;
 }

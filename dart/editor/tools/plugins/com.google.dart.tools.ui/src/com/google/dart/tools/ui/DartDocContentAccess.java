@@ -24,6 +24,8 @@ import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.model.OpenableElement;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.model.TypeMember;
+import com.google.dart.tools.mock.ui.DartDoc2HTMLTextReader;
+import com.google.dart.tools.mock.ui.IDocumentationReader;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;

@@ -11,7 +11,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.tools.ui;
+package com.google.dart.tools.mock.ui;
 
 import com.google.dart.compiler.ast.Modifiers;
 import com.google.dart.tools.core.model.DartModelException;

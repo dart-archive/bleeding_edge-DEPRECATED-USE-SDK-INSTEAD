@@ -11,12 +11,15 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.tools.ui;
+package com.google.dart.tools.mock.ui;
+
+import com.google.dart.core.dom.ITypeBinding;
 
 /**
  * TODO(brianwilkerson): This is a temporary interface, used to resolve compilation errors.
  */
-public class CodeTemplateContextType {
-  public static final String CONSTRUCTORCOMMENT_ID = null;
-  public static final String OVERRIDECOMMENT_ID = null;
+public class AccessorClassReference {
+  public ITypeBinding getBinding() {
+    return null;
+  }
 }

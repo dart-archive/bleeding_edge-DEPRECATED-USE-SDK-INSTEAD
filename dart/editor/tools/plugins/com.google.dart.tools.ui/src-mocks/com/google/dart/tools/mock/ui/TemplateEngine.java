@@ -11,12 +11,28 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.tools.ui;
+package com.google.dart.tools.mock.ui;
 
+import com.google.dart.tools.core.model.CompilationUnit;
+
+import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.templates.TemplateContextType;
+import org.eclipse.jface.text.templates.TemplateProposal;
 
 /**
  * TODO(brianwilkerson): This is a temporary interface, used to resolve compilation errors.
  */
-public class DartDocContextType extends TemplateContextType {
+public class TemplateEngine {
+  public TemplateEngine(TemplateContextType contextType) {
+  }
+
+  public void complete(ITextViewer viewer, int invocationOffset, CompilationUnit unit) {
+  }
+
+  public TemplateProposal[] getResults() {
+    return null;
+  }
+
+  public void reset() {
+  }
 }
