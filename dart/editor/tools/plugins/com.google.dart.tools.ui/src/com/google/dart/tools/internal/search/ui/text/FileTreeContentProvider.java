@@ -11,8 +11,15 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.tools.search.internal.ui.text;
+package com.google.dart.tools.internal.search.ui.text;
 
+import com.google.dart.tools.search.internal.ui.text.FileMatch;
+import com.google.dart.tools.search.internal.ui.text.FileResource;
+import com.google.dart.tools.search.internal.ui.text.FileResourceMatch;
+import com.google.dart.tools.search.internal.ui.text.FileSearchQuery;
+import com.google.dart.tools.search.internal.ui.text.FileSearchResult;
+import com.google.dart.tools.search.internal.ui.text.IFileSearchContentProvider;
+import com.google.dart.tools.search.internal.ui.text.LineElement;
 import com.google.dart.tools.search.ui.ISearchQuery;
 import com.google.dart.tools.search.ui.text.AbstractTextSearchResult;
 import com.google.dart.tools.search.ui.text.FileTextSearchScope;

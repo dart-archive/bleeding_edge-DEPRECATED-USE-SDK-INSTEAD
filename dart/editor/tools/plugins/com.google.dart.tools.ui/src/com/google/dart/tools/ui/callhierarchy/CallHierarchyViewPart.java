@@ -16,7 +16,7 @@ package com.google.dart.tools.ui.callhierarchy;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.TypeMember;
 import com.google.dart.tools.core.search.SearchScope;
-import com.google.dart.tools.search.internal.ui.DartSearchActionGroup;
+import com.google.dart.tools.internal.search.ui.DartSearchActionGroup;
 import com.google.dart.tools.ui.DartElementLabels;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;

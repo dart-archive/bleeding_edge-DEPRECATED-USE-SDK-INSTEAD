@@ -13,7 +13,7 @@
  */
 package com.google.dart.tools.ui.omni.elements;
 
-import com.google.dart.tools.search.internal.ui.FindDeclarationsAction;
+import com.google.dart.tools.internal.search.ui.FindDeclarationsAction;
 import com.google.dart.tools.ui.Messages;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.omni.OmniBoxImages;

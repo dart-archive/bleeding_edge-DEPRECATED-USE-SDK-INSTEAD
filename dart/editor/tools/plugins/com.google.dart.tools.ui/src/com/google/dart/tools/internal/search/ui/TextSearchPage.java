@@ -12,11 +12,11 @@
  * the License.
  */
 
-package com.google.dart.tools.search.internal.ui;
+package com.google.dart.tools.internal.search.ui;
 
 import com.google.dart.engine.search.SearchMatch;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.search.internal.ui.text.FileSearchPage;
+import com.google.dart.tools.internal.search.ui.text.FileSearchPage;
 import com.google.dart.tools.search.internal.ui.text.FileSearchQuery;
 import com.google.dart.tools.search.internal.ui.text.FileSearchResult;
 import com.google.dart.tools.search.ui.ISearchQuery;

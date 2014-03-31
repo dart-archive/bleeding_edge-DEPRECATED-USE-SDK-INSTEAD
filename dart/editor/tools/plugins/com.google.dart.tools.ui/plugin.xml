@@ -323,7 +323,7 @@
             name="%searchViewName"
             icon="$nl$/icons/full/eview16/search_results.gif"
             category="com.google.dart.tools.ui.dart"
-            class="com.google.dart.tools.search.internal.ui.SearchView"
+            class="com.google.dart.tools.internal.search.ui.SearchView"
             allowMultiple="false"
             id="com.google.dart.tools.SearchView">
       </view>
@@ -2631,9 +2631,9 @@
         point="com.google.dart.tools.search.searchResultViewPages">
     <viewPage
       id="com.google.dart.tools.search.text.FileSearchResultPage"
-      searchResultClass="com.google.dart.tools.search.internal.ui.text.FileSearchResult"
+      searchResultClass="com.google.dart.tools.internal.search.ui.text.FileSearchResult"
       helpContextId="com.google.dart.tools.search.file_search_result_page"
-      class="com.google.dart.tools.search.internal.ui.text.FileSearchPage">
+      class="com.google.dart.tools.internal.search.ui.text.FileSearchPage">
     </viewPage>
   </extension>
  

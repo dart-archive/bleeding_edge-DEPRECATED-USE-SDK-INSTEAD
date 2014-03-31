@@ -15,7 +15,7 @@ package com.google.dart.tools.ui.internal.typehierarchy;
 
 import com.google.common.base.Predicates;
 import com.google.dart.engine.element.ClassElement;
-import com.google.dart.tools.search.internal.ui.DartSearchActionGroup;
+import com.google.dart.tools.internal.search.ui.DartSearchActionGroup;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.actions.OpenAction;
 import com.google.dart.tools.ui.actions.OpenViewActionGroup;

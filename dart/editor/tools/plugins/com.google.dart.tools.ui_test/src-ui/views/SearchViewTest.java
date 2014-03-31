@@ -14,7 +14,7 @@
 package views;
 
 import com.google.common.base.Joiner;
-import com.google.dart.tools.search.internal.ui.SearchView;
+import com.google.dart.tools.internal.search.ui.SearchView;
 import com.google.dart.tools.ui.actions.DartEditorActionDefinitionIds;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringUtils;
 import com.google.dart.ui.test.Condition;

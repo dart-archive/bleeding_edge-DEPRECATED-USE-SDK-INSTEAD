@@ -12,7 +12,7 @@
  * the License.
  */
 
-package com.google.dart.tools.search.internal.ui;
+package com.google.dart.tools.internal.search.ui;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;

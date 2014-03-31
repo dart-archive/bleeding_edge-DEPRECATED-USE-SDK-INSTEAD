@@ -11,8 +11,10 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.tools.search.internal.ui.text;
+package com.google.dart.tools.internal.search.ui.text;
 
+import com.google.dart.tools.search.internal.ui.text.FileSearchResult;
+import com.google.dart.tools.search.internal.ui.text.IFileSearchContentProvider;
 import com.google.dart.tools.search.ui.text.AbstractTextSearchResult;
 
 import org.eclipse.jface.viewers.IStructuredContentProvider;

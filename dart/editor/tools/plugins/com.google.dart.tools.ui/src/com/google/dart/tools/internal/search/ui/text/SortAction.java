@@ -11,7 +11,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.tools.search.internal.ui.text;
+package com.google.dart.tools.internal.search.ui.text;
 
 import org.eclipse.jface.action.Action;
 
