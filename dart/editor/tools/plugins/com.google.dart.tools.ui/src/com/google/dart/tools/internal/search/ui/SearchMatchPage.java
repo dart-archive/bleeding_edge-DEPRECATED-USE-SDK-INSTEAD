@@ -14,6 +14,7 @@
 
 package com.google.dart.tools.internal.search.ui;
 
+import com.google.common.base.Objects;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -40,7 +41,6 @@ import com.google.dart.tools.ui.internal.util.SWTUtil;
 import com.google.dart.tools.ui.internal.viewsupport.ColoringLabelProvider;
 
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.ObjectUtils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
@@ -65,7 +65,6 @@ import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider;
 import org.eclipse.jface.viewers.DoubleClickEvent;
-import org.eclipse.jface.viewers.IBaseLabelProvider;
 import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.ISelection;
@@ -148,7 +147,7 @@ public abstract class SearchMatchPage extends SearchPage {
       if (!(obj instanceof ElementItem)) {
         return false;
       }
-      return ObjectUtils.equals(((ElementItem) obj).element, element);
+      return Objects.equal(((ElementItem) obj).element, element);
     }
 
     @Override
@@ -553,8 +552,6 @@ public abstract class SearchMatchPage extends SearchPage {
   private static final String FILTER_PROJECT_ID = "filter_project";
 
   private static final ITreeContentProvider CONTENT_PROVIDER = new SearchContentProvider();
-  private static final IBaseLabelProvider LABEL_PROVIDER = new DelegatingStyledCellLabelProvider(
-      new SearchLabelProvider());
 
   /**
    * Adds new {@link ElementItem} to the tree.
@@ -934,7 +931,8 @@ public abstract class SearchMatchPage extends SearchPage {
     initFilters();
     viewer = new TreeViewer(parent, SWT.FULL_SELECTION);
     viewer.setContentProvider(CONTENT_PROVIDER);
-    viewer.setLabelProvider(LABEL_PROVIDER);
+    // NB(scheglov): don't attempt to share label provider - it is not allowed in JFace
+    viewer.setLabelProvider(new DelegatingStyledCellLabelProvider(new SearchLabelProvider()));
     viewer.addDoubleClickListener(new IDoubleClickListener() {
       @Override
       public void doubleClick(DoubleClickEvent event) {

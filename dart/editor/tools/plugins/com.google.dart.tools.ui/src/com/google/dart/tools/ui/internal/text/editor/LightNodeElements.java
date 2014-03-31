@@ -344,7 +344,6 @@ public class LightNodeElements {
 
   public static final ViewerComparator NAME_COMPARATOR = new NameComparator();
   public static final ViewerComparator POSITION_COMPARATOR = new PositionComparator();
-  private static final IStyledLabelProvider LABEL_PROVIDER = new NodeLabelProvider();
 
   /**
    * @return the {@link LightNodeElement} for given {@link AstNode}, may be <code>null</code> if
@@ -453,7 +452,7 @@ public class LightNodeElements {
    * @return the new label provider instance to use for displaying {@link LightNodeElement}s.
    */
   public static IBaseLabelProvider newLabelProvider() {
-    return new DelegatingStyledCellLabelProvider(LABEL_PROVIDER);
+    return new DelegatingStyledCellLabelProvider(new NodeLabelProvider());
   }
 
   /**
