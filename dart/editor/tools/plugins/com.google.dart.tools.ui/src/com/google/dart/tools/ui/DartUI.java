@@ -248,7 +248,7 @@ public final class DartUI {
   /**
    * The maximal length of a document for which we want to support Dart editing features.
    */
-  private static final int MAX_DOCUMENT_LENGTH = 1024 * 1024;
+  private static final int MAX_DOCUMENT_LENGTH = (int) (1.5 * 1024 * 1024);
 
   /**
    * The maximal length of a line in a document for which we want to support Dart editing features.

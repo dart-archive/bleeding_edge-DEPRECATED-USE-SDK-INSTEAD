@@ -31,6 +31,7 @@ import com.google.dart.engine.ast.FunctionTypeAlias;
 import com.google.dart.engine.ast.InstanceCreationExpression;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.MethodInvocation;
+import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.TopLevelVariableDeclaration;
 import com.google.dart.engine.ast.TypeName;
@@ -172,7 +173,8 @@ public class LightNodeElements {
         return;
       }
       // create elements
-      for (CompilationUnitMember unitMember : unit.getDeclarations()) {
+      NodeList<CompilationUnitMember> unitDeclarations = unit.getDeclarations();
+      for (CompilationUnitMember unitMember : unitDeclarations) {
         if (unitMember instanceof TopLevelVariableDeclaration) {
           TopLevelVariableDeclaration topVarDecl = (TopLevelVariableDeclaration) unitMember;
           List<VariableDeclaration> variables = topVarDecl.getVariables().getVariables();
@@ -188,8 +190,11 @@ public class LightNodeElements {
             elements.add(element);
           }
         }
-        if (elements.size() > MAX_CHILDREN_COUNT) {
-          elements.add(new LightNodeElement(contextFile, null, unit, unit, MAX_CHILDREN_TEXT));
+        if (elements.size() > MAX_UNIT_MEMBER_COUNT) {
+          elements.add(new LightNodeElement(contextFile, null, unit, unit, String.format(
+              MAX_CHILDREN_TEXT,
+              MAX_UNIT_MEMBER_COUNT,
+              unitDeclarations.size())));
           break;
         }
       }
@@ -323,14 +328,19 @@ public class LightNodeElements {
   }
 
   /**
-   * The maximum number of children we want to show in any parent.
+   * The maximum number of children we want to show in any compilation unit.
    */
-  private static final int MAX_CHILDREN_COUNT = 250;
+  private static final int MAX_UNIT_MEMBER_COUNT = 750;
+
+  /**
+   * The maximum number of children we want to show in any class.
+   */
+  private static final int MAX_CLASS_MEMBER_COUNT = 250;
 
   /**
    * The text to show if there are too many children.
    */
-  private static final String MAX_CHILDREN_TEXT = "<First 250 children are displayed>";
+  private static final String MAX_CHILDREN_TEXT = "<First %d of %d children are displayed>";
 
   public static final ViewerComparator NAME_COMPARATOR = new NameComparator();
   public static final ViewerComparator POSITION_COMPARATOR = new PositionComparator();
@@ -551,7 +561,8 @@ public class LightNodeElements {
           nameNode,
           nameNode.getName());
       if (withChildren) {
-        for (ClassMember classMember : classDeclaration.getMembers()) {
+        NodeList<ClassMember> classMembers = classDeclaration.getMembers();
+        for (ClassMember classMember : classMembers) {
           if (classMember instanceof FieldDeclaration) {
             FieldDeclaration fieldDeclaration = (FieldDeclaration) classMember;
             List<VariableDeclaration> fields = fieldDeclaration.getFields().getVariables();
@@ -561,13 +572,13 @@ public class LightNodeElements {
           } else {
             createLightNodeElement(contextFile, classElement, classMember, true);
           }
-          if (classElement.children.size() > MAX_CHILDREN_COUNT) {
+          if (classElement.children.size() > MAX_CLASS_MEMBER_COUNT) {
             new LightNodeElement(
                 contextFile,
                 classElement,
                 classDeclaration,
                 classDeclaration.getName(),
-                MAX_CHILDREN_TEXT);
+                String.format(MAX_CHILDREN_TEXT, MAX_CLASS_MEMBER_COUNT, classMembers.size()));
             break;
           }
         }
