@@ -1,0 +1,4 @@
+This folder contains utility files for assisting in the build of Dart Editor.
+
+For instructions on setting up the workflow for building Editor within Eclipse, 
+please see ../docs/README.txt
