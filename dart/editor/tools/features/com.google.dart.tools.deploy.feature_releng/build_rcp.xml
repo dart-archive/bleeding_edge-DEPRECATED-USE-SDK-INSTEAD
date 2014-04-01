@@ -240,7 +240,7 @@ build system.  The PDE build system has to run under Eclipse.
     <target name="installSdk" unless="build.dart.sdk" depends="setOS">
         <echoProperty propertyname="build.dart.sdk"/>
 
-        <get src="http://gsdview.appspot.com/dart-archive/channels/be/raw/latest/sdk/dartsdk-${osfamily}-ia32-release.zip"
+        <get src="http://storage.googleapis.com/dart-archive/channels/be/raw/latest/sdk/dartsdk-${osfamily}-ia32-release.zip"
              dest="${build.dart.sdk.zip}"
              usetimestamp="true" />
 
