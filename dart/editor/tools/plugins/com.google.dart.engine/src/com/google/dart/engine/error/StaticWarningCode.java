@@ -567,7 +567,7 @@ public enum StaticWarningCode implements ErrorCode {
    * @param additionalCount the number of additional missing members that aren't listed
    */
   NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS(
-      "Missing concrete implementation of '%s', '%s', '%s', '%s' and %d more"),
+      "Missing concrete implementation of %s, %s, %s, %s and %d more"),
 
   /**
    * 7.9.1 Inheritance and Overriding: It is a static warning if a non-abstract class inherits an
@@ -587,7 +587,7 @@ public enum StaticWarningCode implements ErrorCode {
    * @param memberName the name of the fourth member
    */
   NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR(
-      "Missing concrete implementation of '%s', '%s', '%s' and '%s'"),
+      "Missing concrete implementation of %s, %s, %s and %s"),
 
   /**
    * 7.9.1 Inheritance and Overriding: It is a static warning if a non-abstract class inherits an
@@ -603,7 +603,7 @@ public enum StaticWarningCode implements ErrorCode {
    * 
    * @param memberName the name of the member
    */
-  NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE("Missing concrete implementation of '%s'"),
+  NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE("Missing concrete implementation of %s"),
 
   /**
    * 7.9.1 Inheritance and Overriding: It is a static warning if a non-abstract class inherits an
@@ -622,7 +622,7 @@ public enum StaticWarningCode implements ErrorCode {
    * @param memberName the name of the third member
    */
   NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE(
-      "Missing concrete implementation of '%s', '%s' and '%s'"),
+      "Missing concrete implementation of %s, %s and %s"),
 
   /**
    * 7.9.1 Inheritance and Overriding: It is a static warning if a non-abstract class inherits an
@@ -639,8 +639,7 @@ public enum StaticWarningCode implements ErrorCode {
    * @param memberName the name of the first member
    * @param memberName the name of the second member
    */
-  NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO(
-      "Missing concrete implementation of '%s' and '%s'"),
+  NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO("Missing concrete implementation of %s and %s"),
 
   /**
    * 13.11 Try: An on-catch clause of the form <i>on T catch (p<sub>1</sub>, p<sub>2</sub>) s</i> or

@@ -190,27 +190,27 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
   /**
    * The type representing the type 'dynamic'.
    */
-  private Type dynamicType;
+  private final Type dynamicType;
 
   /**
    * The type representing the type 'bool'.
    */
-  private InterfaceType boolType;
+  private final InterfaceType boolType;
 
   /**
    * The type representing the type 'int'.
    */
-  private InterfaceType intType;
+  private final InterfaceType intType;
 
   /**
    * The object providing access to the types defined by the language.
    */
-  private TypeProvider typeProvider;
+  private final TypeProvider typeProvider;
 
   /**
    * The manager for the inheritance mappings.
    */
-  private InheritanceManager inheritanceManager;
+  private final InheritanceManager inheritanceManager;
 
   /**
    * This is set to {@code true} iff the visitor is currently visiting children nodes of a
@@ -369,6 +369,27 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
    */
   private final InterfaceType[] DISALLOWED_TYPES_TO_EXTEND_OR_IMPLEMENT;
 
+  /**
+   * Static final string with value {@code "getter "} used in the construction of the
+   * {@link StaticWarningCode#NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE}, and similar, error
+   * code messages.
+   * 
+   * @see #checkForNonAbstractClassInheritsAbstractMember(ClassDeclaration)
+   */
+  private final static String GETTER_SPACE = "getter ";
+
+  /**
+   * Static final string with value {@code "setter "} used in the construction of the
+   * {@link StaticWarningCode#NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE}, and similar, error
+   * code messages.
+   * 
+   * @see #checkForNonAbstractClassInheritsAbstractMember(ClassDeclaration)
+   */
+  private final static String SETTER_SPACE = "setter ";
+
+  /**
+   * Initialize the {@link ErrorVerifier} visitor.
+   */
   public ErrorVerifier(ErrorReporter errorReporter, LibraryElement currentLibrary,
       TypeProvider typeProvider, InheritanceManager inheritanceManager) {
     this.errorReporter = errorReporter;
@@ -384,9 +405,9 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
     isInInstanceVariableInitializer = false;
     isInConstructorInitializer = false;
     isInStaticMethod = false;
+    dynamicType = typeProvider.getDynamicType();
     boolType = typeProvider.getBoolType();
     intType = typeProvider.getIntType();
-    dynamicType = typeProvider.getDynamicType();
     DISALLOWED_TYPES_TO_EXTEND_OR_IMPLEMENT = new InterfaceType[] {
         typeProvider.getNullType(), typeProvider.getNumType(), intType,
         typeProvider.getDoubleType(), boolType, typeProvider.getStringType()};
@@ -4265,15 +4286,23 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
         missingOverridesArray.length);
     for (int i = 0; i < missingOverridesArray.length; i++) {
       String newStrMember;
-      if (missingOverridesArray[i].getEnclosingElement() != null) {
-        newStrMember = missingOverridesArray[i].getEnclosingElement().getDisplayName() + '.'
-            + missingOverridesArray[i].getDisplayName();
+      Element enclosingElement = missingOverridesArray[i].getEnclosingElement();
+      String prefix = StringUtilities.EMPTY;
+      if (missingOverridesArray[i] instanceof PropertyAccessorElement) {
+        PropertyAccessorElement propertyAccessorElement = (PropertyAccessorElement) missingOverridesArray[i];
+        if (propertyAccessorElement.isGetter()) {
+          prefix = GETTER_SPACE; // "getter "
+        } else {
+          prefix = SETTER_SPACE; // "setter "
+        }
+      }
+      if (enclosingElement != null) {
+        newStrMember = prefix + "'" + enclosingElement.getDisplayName() + '.'
+            + missingOverridesArray[i].getDisplayName() + "'";
       } else {
-        newStrMember = missingOverridesArray[i].getDisplayName();
+        newStrMember = prefix + "'" + missingOverridesArray[i].getDisplayName() + "'";
       }
-      if (!stringMembersArrayListSet.contains(newStrMember)) {
-        stringMembersArrayListSet.add(newStrMember);
-      }
+      stringMembersArrayListSet.add(newStrMember);
     }
     String[] stringMembersArray = stringMembersArrayListSet.toArray(new String[stringMembersArrayListSet.size()]);
     AnalysisErrorWithProperties analysisError;
@@ -5558,7 +5587,7 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
    * @return {@code true} iff the passed member is found in the passed class element
    */
   private boolean isMemberInClassOrMixin(ExecutableElement executableElt, ClassElement classElt) {
-    ExecutableElement foundElt;
+    ExecutableElement foundElt = null;
     String executableName = executableElt.getName();
     if (executableElt instanceof MethodElement) {
       foundElt = classElt.getMethod(executableName);
@@ -5573,8 +5602,11 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
         return true;
       }
     } else if (executableElt instanceof PropertyAccessorElement) {
-      foundElt = classElt.getGetter(executableElt.getName());
-      if (foundElt == null) {
+      PropertyAccessorElement propertyAccessorElement = (PropertyAccessorElement) executableElt;
+      if (propertyAccessorElement.isGetter()) {
+        foundElt = classElt.getGetter(executableName);
+      }
+      if (foundElt == null && propertyAccessorElement.isSetter()) {
         foundElt = classElt.getSetter(executableName);
       }
       if (foundElt != null) {

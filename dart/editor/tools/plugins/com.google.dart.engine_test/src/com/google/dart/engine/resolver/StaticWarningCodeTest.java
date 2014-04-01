@@ -2112,6 +2112,36 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_nonAbstractClassInheritsAbstractMemberOne_variable_fromInterface_missingGetter()
+      throws Exception {
+    // 16133
+    Source source = addSource(createSource(//
+        "class I {",
+        "  var v;",
+        "}",
+        "class C implements I {",
+        "  set v(_) {}",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE);
+    verify(source);
+  }
+
+  public void test_nonAbstractClassInheritsAbstractMemberOne_variable_fromInterface_missingSetter()
+      throws Exception {
+    // 16133
+    Source source = addSource(createSource(//
+        "class I {",
+        "  var v;",
+        "}",
+        "class C implements I {",
+        "  get v => 1;",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE);
+    verify(source);
+  }
+
   public void test_nonAbstractClassInheritsAbstractMemberThree() throws Exception {
     Source source = addSource(createSource(//
         "abstract class A {",
@@ -2133,6 +2163,20 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "  n();",
         "}",
         "class C extends A {",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO);
+    verify(source);
+  }
+
+  public void test_nonAbstractClassInheritsAbstractMemberTwo_variable_fromInterface_missingBoth()
+      throws Exception {
+    // 16133
+    Source source = addSource(createSource(//
+        "class I {",
+        "  var v;",
+        "}",
+        "class C implements I {",
         "}"));
     resolve(source);
     assertErrors(source, StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO);
