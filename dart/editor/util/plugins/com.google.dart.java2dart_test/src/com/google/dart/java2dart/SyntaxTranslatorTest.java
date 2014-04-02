@@ -332,17 +332,45 @@ public class SyntaxTranslatorTest extends AbstractSemanticTest {
     parseJava(
         "// filler filler filler filler filler filler filler filler filler filler",
         "public class A {",
-        "  boolean testA(Object a, Object b) {",
+        "  boolean testObject(Object a, Object b) {",
         "    return a == b;",
         "  }",
-        "  boolean testB(Object p) {",
-        "    return p == null || p == 1 || p == 2L || p == 3.0f || p == 4.0d;",
+        "  boolean testNull(Object p) {",
+        "    return p == null;",
+        "  }",
+        "  boolean testBool(Object p) {",
+        "    return p == true;",
+        "  }",
+        "  boolean testChar(Object p) {",
+        "    return p == '0';",
+        "  }",
+        "  boolean testByte(Object p) {",
+        "    return p == (byte) 1;",
+        "  }",
+        "  boolean testInt(Object p) {",
+        "    return p == 2;",
+        "  }",
+        "  boolean testLong(Object p) {",
+        "    return p == 3L;",
+        "  }",
+        "  boolean testFloat(Object p) {",
+        "    return p == 4.0f;",
+        "  }",
+        "  boolean testDouble(Object p) {",
+        "    return p == 5.0d;",
         "  }",
         "}");
     assertDartSource(
         "class A {",
-        "  bool testA(Object a, Object b) => identical(a, b);",
-        "  bool testB(Object p) => p == null || p == 1 || p == 2 || p == 3.0 || p == 4.0;",
+        "  bool testObject(Object a, Object b) => identical(a, b);",
+        "  bool testNull(Object p) => p == null;",
+        "  bool testBool(Object p) => p == true;",
+        "  bool testChar(Object p) => p == 0x30;",
+        "  bool testByte(Object p) => p == 1;",
+        "  bool testInt(Object p) => p == 2;",
+        "  bool testLong(Object p) => p == 3;",
+        "  bool testFloat(Object p) => p == 4.0;",
+        "  bool testDouble(Object p) => p == 5.0;",
         "}");
   }
 
@@ -361,6 +389,24 @@ public class SyntaxTranslatorTest extends AbstractSemanticTest {
         "    bool b1 = p is String;",
         "    bool b2 = !(p is String);",
         "  }",
+        "}");
+  }
+
+  public void test_expression_notEquals() throws Exception {
+    parseJava(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "public class A {",
+        "  boolean testA(Object a, Object b) {",
+        "    return a != b;",
+        "  }",
+        "  boolean testB(Object p) {",
+        "    return p != null || p != 1 || p != 2L || p != 3.0f || p != 4.0d;",
+        "  }",
+        "}");
+    assertDartSource(
+        "class A {",
+        "  bool testA(Object a, Object b) => !identical(a, b);",
+        "  bool testB(Object p) => p != null || p != 1 || p != 2 || p != 3.0 || p != 4.0;",
         "}");
   }
 
@@ -494,6 +540,28 @@ public class SyntaxTranslatorTest extends AbstractSemanticTest {
         "class Test {",
         "  void main(Object p) {",
         "    print((p as int));",
+        "  }",
+        "}");
+  }
+
+  public void test_expressionCast_toByte() throws Exception {
+    parseJava(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "public class Test {",
+        "  void main(Object p) {",
+        "    print((byte) p);",
+        "    print((byte) 2);",
+        "    print((byte) 256);",
+        "    print((byte) 257);",
+        "  }",
+        "}");
+    assertDartSource(//
+        "class Test {",
+        "  void main(Object p) {",
+        "    print(toByte(p));",
+        "    print(2);",
+        "    print(0);",
+        "    print(1);",
         "  }",
         "}");
   }

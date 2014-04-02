@@ -24,6 +24,7 @@ import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.Block;
 import com.google.dart.engine.ast.BlockFunctionBody;
+import com.google.dart.engine.ast.BooleanLiteral;
 import com.google.dart.engine.ast.BreakStatement;
 import com.google.dart.engine.ast.CatchClause;
 import com.google.dart.engine.ast.ClassDeclaration;
@@ -463,8 +464,21 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
 
   @Override
   public boolean visit(org.eclipse.jdt.core.dom.CastExpression node) {
+    org.eclipse.jdt.core.dom.Type javaType = node.getType();
     Expression expression = translate(node.getExpression());
-    TypeName typeName = translate(node.getType());
+    TypeName typeName = translate(javaType);
+    // (byte) E;
+    {
+      String javaTypeName = javaType.toString();
+      if (javaTypeName.equals("byte")) {
+        if (expression instanceof IntegerLiteral) {
+          IntegerLiteral literal = (IntegerLiteral) expression;
+          return done(integer(literal.getValue().intValue() & 0xFF));
+        }
+        return done(methodInvocation("toByte", expression));
+      }
+    }
+    // general case
     AsExpression asExpression = asExpression(expression, typeName);
     return done(parenthesizedExpression(asExpression));
   }
@@ -921,14 +935,18 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
       tokenType = TokenType.GT_EQ;
     }
     if (javaOperator == org.eclipse.jdt.core.dom.InfixExpression.Operator.EQUALS) {
-      if (isNumberOrNull(left) || isNumberOrNull(right)) {
+      if (isNumberOrNull(left) || isNumberOrNull(right) || isEnum(left) && isEnum(right)) {
         tokenType = TokenType.EQ_EQ;
       } else {
         return done(methodInvocation("identical", left, right));
       }
     }
     if (javaOperator == org.eclipse.jdt.core.dom.InfixExpression.Operator.NOT_EQUALS) {
-      tokenType = TokenType.BANG_EQ;
+      if (isNumberOrNull(left) || isNumberOrNull(right) || isEnum(left) && isEnum(right)) {
+        tokenType = TokenType.BANG_EQ;
+      } else {
+        return done(prefixExpression(TokenType.BANG, methodInvocation("identical", left, right)));
+      }
     }
     Assert.isNotNull(tokenType, "No token for: " + javaOperator);
     // create BinaryExpression
@@ -1074,7 +1092,13 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
       return done(new DoubleLiteral(token(TokenType.DOUBLE, token), 0));
     } else {
       token = StringUtils.removeEndIgnoreCase(token, "L");
-      return done(new IntegerLiteral(token(TokenType.INT, token), BigInteger.valueOf(0)));
+      long value;
+      if (token.startsWith("0x")) {
+        value = Long.parseLong(token.substring(2), 16);
+      } else {
+        value = Long.parseLong(token);
+      }
+      return done(new IntegerLiteral(token(TokenType.INT, token), BigInteger.valueOf(value)));
     }
   }
 
@@ -1839,21 +1863,29 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
     return javaSource.substring(offset, offset + node.getLength());
   }
 
+  private boolean isEnum(Expression expression) {
+    ITypeBinding typeBinding = context.getNodeTypeBinding(expression);
+    if (typeBinding != null) {
+      return JavaUtils.isSubtype(typeBinding, "java.lang.Enum");
+    }
+    return false;
+  }
+
   private boolean isEol(char character) {
     return character == '\r' || character == '\n';
   }
 
   private boolean isNumberOrNull(Expression expression) {
-    if (expression instanceof IntegerLiteral || expression instanceof DoubleLiteral
-        || expression instanceof NullLiteral) {
+    if (expression instanceof IntegerLiteral || expression instanceof BooleanLiteral
+        || expression instanceof DoubleLiteral || expression instanceof NullLiteral) {
       return true;
     }
     ITypeBinding typeBinding = context.getNodeTypeBinding(expression);
     if (typeBinding != null) {
       String name = JavaUtils.getFullyQualifiedName(typeBinding, false);
-      return name.equals("char") || name.equals("short") || name.equals("int")
-          || name.equals("long") || name.equals("float") || name.equals("double")
-          || name.equals("java.lang.Class");
+      return name.equals("boolean") || name.equals("byte") || name.equals("char")
+          || name.equals("short") || name.equals("int") || name.equals("long")
+          || name.equals("float") || name.equals("double") || name.equals("java.lang.Class");
     }
     return false;
   }

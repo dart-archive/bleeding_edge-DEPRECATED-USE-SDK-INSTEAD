@@ -386,6 +386,10 @@ bool javaBooleanAnd(bool a, bool b) {
   return a && b;
 }
 
+int javaByte(Object o) {
+  return (o as int) & 0xFF;
+}
+
 class JavaStringBuilder {
   StringBuffer sb = new StringBuffer();
   String toString() => sb.toString();

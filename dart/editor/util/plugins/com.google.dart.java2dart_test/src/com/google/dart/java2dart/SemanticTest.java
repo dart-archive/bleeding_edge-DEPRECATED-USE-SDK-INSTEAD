@@ -923,6 +923,45 @@ public class SemanticTest extends AbstractSemanticTest {
         getFormattedSource(unit));
   }
 
+  public void test_enum_equals() throws Exception {
+    setFileLines(
+        "test/Test.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "public class A {",
+            "  public static enum Direction {",
+            "    LEFT, RIGHT;",
+            "  }",
+            "  ",
+            "  public void test(Object a, Direction b) {",
+            "    print(a == Direction.LEFT);",
+            "    print(a != Direction.RIGHT);",
+            "    print(b == Direction.LEFT);",
+            "    print(b != Direction.RIGHT);",
+            "  }",
+            "}"));
+    context.addSourceFolder(tmpFolder);
+    context.addSourceFiles(tmpFolder);
+    translate();
+    assertEquals(
+        toString(
+            "class A {",
+            "  void test(Object a, Direction b) {",
+            "    print(identical(a, Direction.LEFT));",
+            "    print(!identical(a, Direction.RIGHT));",
+            "    print(b == Direction.LEFT);",
+            "    print(b != Direction.RIGHT);",
+            "  }",
+            "}",
+            "class Direction extends Enum<Direction> {",
+            "  static const Direction LEFT = const Direction('LEFT', 0);",
+            "  static const Direction RIGHT = const Direction('RIGHT', 1);",
+            "  static const List<Direction> values = const [LEFT, RIGHT];",
+            "  const Direction(String name, int ordinal) : super(name, ordinal);",
+            "}"),
+        getFormattedSource(unit));
+  }
+
   public void test_enum_inner() throws Exception {
     setFileLines(
         "test/Test.java",
@@ -1001,6 +1040,59 @@ public class SemanticTest extends AbstractSemanticTest {
             "  const Test.con2(String name, int ordinal, int p) : super(name, ordinal) {",
             "    print(p);",
             "  }",
+            "}"),
+        getFormattedSource(unit));
+  }
+
+  public void test_expression_equals() throws Exception {
+    setFileLines(
+        "test/Test.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "public class Test {",
+            "  boolean testObject(Object a, Object b) {",
+            "    return a == b;",
+            "  }",
+            "  boolean testNull(Object p) {",
+            "    return p == null;",
+            "  }",
+            "  boolean testBool(Object p, boolean t) {",
+            "    return p == true || p == t;",
+            "  }",
+            "  boolean testChar(Object p, char t) {",
+            "    return p == '0' || p == t;",
+            "  }",
+            "  boolean testByte(Object p, byte t) {",
+            "    return p == (byte) 1 || p == t;",
+            "  }",
+            "  boolean testInt(Object p, int t) {",
+            "    return p == 2 || p == t;",
+            "  }",
+            "  boolean testLong(Object p, long t) {",
+            "    return p == 3L || p == t;",
+            "  }",
+            "  boolean testFloat(Object p, float t) {",
+            "    return p == 4.0f || p == t;",
+            "  }",
+            "  boolean testDouble(Object p, double t) {",
+            "    return p == 5.0d || p == t;",
+            "  }",
+            "}"));
+    context.addSourceFolder(tmpFolder);
+    context.addSourceFiles(tmpFolder);
+    translate();
+    assertEquals(
+        toString(
+            "class Test {",
+            "  bool _testObject(Object a, Object b) => identical(a, b);",
+            "  bool _testNull(Object p) => p == null;",
+            "  bool _testBool(Object p, bool t) => p == true || p == t;",
+            "  bool _testChar(Object p, int t) => p == 0x30 || p == t;",
+            "  bool _testByte(Object p, int t) => p == 1 || p == t;",
+            "  bool _testInt(Object p, int t) => p == 2 || p == t;",
+            "  bool _testLong(Object p, int t) => p == 3 || p == t;",
+            "  bool _testFloat(Object p, double t) => p == 4.0 || p == t;",
+            "  bool _testDouble(Object p, double t) => p == 5.0 || p == t;",
             "}"),
         getFormattedSource(unit));
   }
