@@ -98,7 +98,8 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
       this,
       ResourcesPlugin.getWorkspace().getRoot(),
       AnalysisManager.getInstance(),
-      AnalysisMarkerManager.getInstance());
+      AnalysisMarkerManager.getInstance(),
+      index);
 
   public ProjectManagerImpl(IWorkspaceRoot resource, DartSdk sdk, DartIgnoreManager ignoreManager) {
     super(sdk);

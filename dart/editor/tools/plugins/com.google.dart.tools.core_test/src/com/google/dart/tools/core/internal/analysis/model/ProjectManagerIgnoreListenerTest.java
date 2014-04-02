@@ -28,6 +28,7 @@ import com.google.dart.tools.core.internal.builder.MockContext;
 import com.google.dart.tools.core.internal.builder.TestProjects;
 import com.google.dart.tools.core.internal.model.DartIgnoreFile;
 import com.google.dart.tools.core.internal.model.DartIgnoreManager;
+import com.google.dart.tools.core.mock.MockContainer;
 import com.google.dart.tools.core.mock.MockFile;
 import com.google.dart.tools.core.mock.MockFolder;
 import com.google.dart.tools.core.mock.MockProject;
@@ -88,6 +89,7 @@ public class ProjectManagerIgnoreListenerTest extends TestCase {
   private MockContext projectContext;
   private MockContext appContext;
   private ProjectManagerIgnoreListener listener;
+  private Index index;
 
   public void test_ignoreAppWithSingleContexts() throws Exception {
     clearInteractions();
@@ -138,6 +140,7 @@ public class ProjectManagerIgnoreListenerTest extends TestCase {
     ignoreManager.addToIgnores(projectContainer.getLocation());
 
     appContext.assertChanged(null, null, new IResource[] {projectContainer});
+    verify(index).removeSources(appContext, projectContainer.asSourceContainer());
     assertIgnored(projectContainer, projectContext);
 
     ignoreManager.removeFromIgnores(projectContainer.getLocation());
@@ -175,7 +178,7 @@ public class ProjectManagerIgnoreListenerTest extends TestCase {
     assertNotNull(appFolder);
     markerManager = mock(AnalysisMarkerManager.class);
     DartSdk sdk = mock(DartSdk.class);
-    Index index = mock(Index.class);
+    index = mock(Index.class);
     analysisManager = mock(AnalysisManager.class);
 
     projectImpl = new ProjectImpl(projectContainer, sdk, index, new AnalysisContextFactory() {
@@ -202,7 +205,8 @@ public class ProjectManagerIgnoreListenerTest extends TestCase {
         projectManager,
         rootContainer,
         analysisManager,
-        markerManager);
+        markerManager,
+        index);
     ignoreManager.addListener(listener);
 
     projectContext = (MockContext) projectManager.getContext(projectContainer);
@@ -234,12 +238,19 @@ public class ProjectManagerIgnoreListenerTest extends TestCase {
   private void assertIgnored(MockResource res, MockContext context) {
     verify(markerManager).clearMarkers(res);
     context.assertChanged(null, null, new IResource[] {res});
+    if (res instanceof MockFile) {
+      verify(index).removeSource(context, ((MockFile) res).asSource());
+    }
+    if (res instanceof MockContainer) {
+      verify(index).removeSources(context, ((MockContainer) res).asSourceContainer());
+    }
     assertNoMoreInteractions();
   }
 
   private void assertNoMoreInteractions() {
     verifyNoMoreInteractions(markerManager);
     verifyNoMoreInteractions(analysisManager);
+    verifyNoMoreInteractions(index);
     projectContext.assertNoCalls();
     appContext.assertNoCalls();
   }

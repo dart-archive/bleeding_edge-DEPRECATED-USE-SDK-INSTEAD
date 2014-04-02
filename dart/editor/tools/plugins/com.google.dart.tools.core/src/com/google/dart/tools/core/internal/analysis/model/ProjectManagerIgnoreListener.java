@@ -3,9 +3,11 @@ package com.google.dart.tools.core.internal.analysis.model;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisErrorInfo;
 import com.google.dart.engine.context.ChangeSet;
+import com.google.dart.engine.index.Index;
 import com.google.dart.engine.source.DirectoryBasedSourceContainer;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.source.SourceContainer;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
@@ -39,15 +41,17 @@ import java.util.List;
 public class ProjectManagerIgnoreListener implements DartIgnoreListener {
   private final ProjectManager projectManager;
   private final IWorkspaceRoot workspaceRoot;
-  private AnalysisManager analysisManager;
-  private AnalysisMarkerManager markerManager;
+  private final AnalysisManager analysisManager;
+  private final AnalysisMarkerManager markerManager;
+  private final Index index;
 
   public ProjectManagerIgnoreListener(ProjectManager projectManager, IWorkspaceRoot workspaceRoot,
-      AnalysisManager analysisManager, AnalysisMarkerManager markerManager) {
+      AnalysisManager analysisManager, AnalysisMarkerManager markerManager, Index index) {
     this.projectManager = projectManager;
     this.workspaceRoot = workspaceRoot;
     this.analysisManager = analysisManager;
     this.markerManager = markerManager;
+    this.index = index;
   }
 
   @Override
@@ -165,17 +169,24 @@ public class ProjectManagerIgnoreListener implements DartIgnoreListener {
     for (String path : paths) {
       IResource resource = getResourceFromPath(path);
       if (resource != null) {
+        AnalysisContext context = projectManager.getContext(resource);
         ChangeSet changeSet = new ChangeSet();
         if (resource instanceof IFile) {
-          changeSet.removedSource(projectManager.getSource((IFile) resource));
+          Source source = projectManager.getSource((IFile) resource);
+          changeSet.removedSource(source);
+          index.removeSource(context, source);
         } else {
           IContainer container = (IContainer) resource;
-          changeSet.removedContainer(new DirectoryBasedSourceContainer(new File(path)));
+          SourceContainer sourceContainer = new DirectoryBasedSourceContainer(new File(path));
+          changeSet.removedContainer(sourceContainer);
+          index.removeSources(context, sourceContainer);
           for (PubFolder pubFolder : projectManager.getContainedPubFolders(container)) {
-            pubFolder.getContext().applyChanges(changeSet);
+            AnalysisContext subContext = pubFolder.getContext();
+            subContext.applyChanges(changeSet);
+            index.removeSources(subContext, sourceContainer);
           }
         }
-        projectManager.getContext(resource).applyChanges(changeSet);
+        context.applyChanges(changeSet);
         markerManager.clearMarkers(resource);
       }
     }

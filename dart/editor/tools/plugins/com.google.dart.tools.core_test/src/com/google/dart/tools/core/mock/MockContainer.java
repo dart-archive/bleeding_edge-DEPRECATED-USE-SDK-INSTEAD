@@ -13,6 +13,9 @@
  */
 package com.google.dart.tools.core.mock;
 
+import com.google.dart.engine.source.DirectoryBasedSourceContainer;
+import com.google.dart.engine.source.SourceContainer;
+
 import static com.google.dart.tools.core.DartCore.isDartLikeFileName;
 import static com.google.dart.tools.core.DartCore.isHtmlLikeFileName;
 
@@ -107,6 +110,15 @@ public abstract class MockContainer extends MockResource implements IContainer {
     MockFolder folder = new MockFolder(this, name);
     add(folder);
     return folder;
+  }
+
+  /**
+   * Answer a source container representing this container
+   * 
+   * @return a container, not {@code null}
+   */
+  public SourceContainer asSourceContainer() {
+    return new DirectoryBasedSourceContainer(toFile());
   }
 
   @Override
